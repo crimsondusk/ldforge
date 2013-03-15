@@ -34,7 +34,6 @@ void renderer::resizeGL (int w, int h) {
 void renderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glPushMatrix ();
 		glTranslatef (
 			(g_BBox.v0.x + g_BBox.v1.x) / -2.0,
