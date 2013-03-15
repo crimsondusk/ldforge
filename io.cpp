@@ -73,10 +73,55 @@ OpenFile* IO_OpenLDrawFile (str path) {
 }
 
 // =============================================================================
+// isNumber (char*)
+//
+// Returns whether a given string represents a floating point number
+// TODO: Does LDraw support scientific notation?
+// =============================================================================
+static bool isNumber (char* sToken) {
+	char* sPointer = &sToken[0];
+	bool bGotDot = false;
+	
+	// Allow leading hyphen for negatives
+	if (*sPointer == '-')
+		sPointer++;
+	
+	while (*sPointer != '\0') {
+		if (*sPointer == '.' && !bGotDot) {
+			// Decimal point
+			bGotDot = true;
+			sPointer++;
+			continue;
+		}
+		
+		if (*sPointer >= '0' && *sPointer <= '9') {
+			sPointer++;
+			continue; // Digit
+		}
+		
+		// If the above cases didn't catch this character, it was
+		// illegal and this is therefore not a number.
+		return false;
+	}
+	
+	return true;
+}
+
+// =============================================================================
 // ParseLine (str)
 //
 // Parses a string line containing an LDraw object and returns the object parsed.
 // =============================================================================
+#define CHECK_TOKEN_COUNT(N) \
+	if (tokens.size() != N) \
+		return new LDGibberish (zLine, "Bad amount of tokens");
+
+#define CHECK_TOKEN_NUMBERS(MIN,MAX) \
+	for (ushort i = MIN; i <= MAX; ++i) \
+		if (!isNumber (tokens[i])) \
+			return new LDGibberish (zLine, str::mkfmt ("Token #%u was `%s`, expected a number", \
+				(i + 1), tokens[i].chars()));
+
 LDObject* ParseLine (str zLine) {
 	str zNoWhitespace = zLine;
 	StripWhitespace (zNoWhitespace);
@@ -102,6 +147,9 @@ LDObject* ParseLine (str zLine) {
 	
 	case 1:
 		{
+			CHECK_TOKEN_COUNT (15)
+			CHECK_TOKEN_NUMBERS (1, 13)
+			
 			// Subfile
 			LDSubfile* obj = new LDSubfile;
 			obj->dColor = atoi (tokens[1]);
@@ -116,6 +164,9 @@ LDObject* ParseLine (str zLine) {
 	
 	case 2:
 		{
+			CHECK_TOKEN_COUNT (8)
+			CHECK_TOKEN_NUMBERS (1, 7)
+			
 			// Line
 			LDLine* obj = new LDLine;
 			obj->dColor = GetWordInt (zLine, 1);
@@ -126,6 +177,9 @@ LDObject* ParseLine (str zLine) {
 	
 	case 3:
 		{
+			CHECK_TOKEN_COUNT (11)
+			CHECK_TOKEN_NUMBERS (1, 10)
+			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
 			obj->dColor = GetWordInt (zLine, 1);
@@ -138,6 +192,9 @@ LDObject* ParseLine (str zLine) {
 	
 	case 4:
 		{
+			CHECK_TOKEN_COUNT (14)
+			CHECK_TOKEN_NUMBERS (1, 13)
+			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
 			obj->dColor = GetWordInt (zLine, 1);
@@ -150,6 +207,9 @@ LDObject* ParseLine (str zLine) {
 	
 	case 5:
 		{
+			CHECK_TOKEN_COUNT (14)
+			CHECK_TOKEN_NUMBERS (1, 13)
+			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
 			obj->dColor = GetWordInt (zLine, 1);
@@ -162,10 +222,7 @@ LDObject* ParseLine (str zLine) {
 			return obj;
 		}
 		
-	default:
-		{
-			// Strange line we couldn't parse
-			return new LDGibberish (zLine, "Unknown line code number");
-		}
+	default: // Strange line we couldn't parse
+		return new LDGibberish (zLine, "Unknown line code number");
 	}
 }
