@@ -17,7 +17,7 @@ OpenFile* IO_FindLoadedFile (str name) {
 	
 	for (uint i = 0; i < g_LoadedFiles.size(); i++) {
 		file = g_LoadedFiles[i];
-		if (!file->filename.icompare (name))
+		if (!file->zFileName.icompare (name))
 			return file;
 	}
 	
@@ -38,7 +38,7 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	}
 	
 	OpenFile* load = new OpenFile;
-	load->filename = path;
+	load->zFileName = path;
 	
 	vector<str> lines;
 	
@@ -67,6 +67,7 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	
 	// Rebuild the object tree view now.
 	g_qWindow->buildObjList ();
+	g_qWindow->setTitle ();
 	
 	return g_CurrentFile;
 }
@@ -86,7 +87,6 @@ LDObject* ParseLine (str zLine) {
 	
 	char c = zLine[0];
 	vector<str> tokens = zLine / " ";
-	printf ("line: %s\n", zLine.chars());
 	
 	switch (c - '0') {
 	case 0:
@@ -94,7 +94,6 @@ LDObject* ParseLine (str zLine) {
 			// Comment
 			LDComment* obj = new LDComment;
 			obj->zText = zLine.substr (1, -1);
-			printf ("\t-> comment (%s)\n", obj->zText.chars());
 			return obj;
 		}
 	

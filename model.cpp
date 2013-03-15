@@ -30,7 +30,7 @@ void newModel () {
 		closeModel (); // Close any open file first, though
 	
 	OpenFile* f = new OpenFile;
-	f->filename = "";
+	f->zFileName = "";
 	g_LoadedFiles.push_back (f);
 	g_CurrentFile = f;
 	

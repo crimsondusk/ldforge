@@ -31,7 +31,7 @@ LDForgeWindow::LDForgeWindow () {
 	createMenus ();
 	createToolbars ();
 	
-	setWindowTitle (APPNAME_DISPLAY " v" VERSION_STRING);
+	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
 }
@@ -156,6 +156,25 @@ void LDForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
 	addToolBar (qEditToolBar);
+}
+
+void LDForgeWindow::setTitle () {
+	str zTitle = APPNAME_DISPLAY " v" VERSION_STRING;
+	
+	// Append our current file if we have one
+	if (g_CurrentFile) {
+		zTitle.appendformat (": %s", basename (g_CurrentFile->zFileName.chars()));
+		
+		if (g_CurrentFile->objects.size() > 0 &&
+			g_CurrentFile->objects[0]->getType() == OBJ_Comment)
+		{
+			// Append title
+			LDComment* comm = static_cast<LDComment*> (g_CurrentFile->objects[0]);
+			zTitle.appendformat (":%s", comm->zText.chars());
+		}
+	}
+	
+	setWindowTitle (zTitle.chars());
 }
 
 void LDForgeWindow::slot_new () {

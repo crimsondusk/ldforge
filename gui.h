@@ -37,6 +37,7 @@ public:
 	
 	LDForgeWindow ();
 	void buildObjList ();
+	void setTitle ();
 	
 private:
 	void createMenuActions ();

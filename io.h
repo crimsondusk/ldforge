@@ -5,6 +5,12 @@
 #include "ldtypes.h"
 #include "str.h"
 
+class OpenFile {
+public:
+	str zFileName, zTitle;
+	vector<LDObject*> objects;
+};
+
 // PROTOTYPES
 OpenFile* IO_FindLoadedFile (str name);
 OpenFile* IO_OpenLDrawFile (str path);

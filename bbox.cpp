@@ -1,6 +1,7 @@
 #include "common.h"
 #include "bbox.h"
 #include "ldtypes.h"
+#include "io.h"
 
 void bbox::calculate () {
 	if (!g_CurrentFile)

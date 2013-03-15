@@ -28,6 +28,7 @@ using std::vector;
 class LDForgeWindow;
 class LDObject;
 class bbox;
+class OpenFile;
 
 // =============================================================================
 // vertex (v)
@@ -63,11 +64,6 @@ class bearing {
 };
 
 // =============================================================================
-typedef struct {
-	str filename;
-	vector<LDObject*> objects;
-} OpenFile;
-
 // Plural expression
 #define PLURAL(n) ((n != 1) ? "s" : "")
 
