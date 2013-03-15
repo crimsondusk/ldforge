@@ -30,14 +30,18 @@ OpenFile* IO_FindLoadedFile (str name) {
 // Opens the given file and parses the LDraw code within.
 // =============================================================================
 OpenFile* IO_OpenLDrawFile (str path) {
+	logf ("Opening %s...\n", path.chars());
+	
 	FILE* fp = fopen (path.chars (), "r");
 	
 	if (!fp) {
-		printf ("Couldn't open %s!\n", path.chars ());
+		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));
 		return NULL;
 	}
 	
 	OpenFile* load = new OpenFile;
+	ulong numWarnings = 0;
+	
 	load->zFileName = path;
 	
 	vector<str> lines;
@@ -56,8 +60,18 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	
 	fclose (fp);
 	
-	for (ulong i = 0; i < lines.size(); ++i)
-		load->objects.push_back (ParseLine (lines[i]));
+	for (ulong i = 0; i < lines.size(); ++i) {
+		LDObject* obj = ParseLine (lines[i]);
+		load->objects.push_back (obj);
+		
+		// Check for warnings
+		if (obj->getType() == OBJ_Gibberish) {
+			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
+				i, static_cast<LDGibberish*> (obj)->zReason.chars());
+			logf (LOG_Warning, "- Line was: %s\n", lines[i].chars());
+			numWarnings++;
+		}
+	}
 	
 	g_LoadedFiles.push_back (load);
 	g_CurrentFile = g_LoadedFiles[g_LoadedFiles.size() - 1];
@@ -68,6 +82,9 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	// Rebuild the object tree view now.
 	g_qWindow->buildObjList ();
 	g_qWindow->setTitle ();
+	
+	logf (LOG_Success, "File %s parsed successfully (%lu warnings).\n",
+		path.chars(), numWarnings);
 	
 	return g_CurrentFile;
 }

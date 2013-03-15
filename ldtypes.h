@@ -41,6 +41,10 @@ class LDObject {
 public:
 	LDObject ();
 	
+	// Index (i.e. line number) of this object
+	ulong getIndex ();
+	
+	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
 		return OBJ_Unidentified;
 	};

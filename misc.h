@@ -8,9 +8,9 @@ inline str GetWord (str& zString, ulong ulIndex) {
 	return (zString / " ")[ulIndex];
 }
 
-double GetWordFloat (str& s, int n);
-long GetWordInt (str& s, int n);
-vertex ParseVertex (str& s, int n);
+double GetWordFloat (str& s, const ushort n);
+long GetWordInt (str& s, const ushort n);
+vertex ParseVertex (str& s, const ushort n);
 void StripWhitespace (str& s);
 
 #endif // __MISC_H__

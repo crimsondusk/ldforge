@@ -21,6 +21,7 @@ public:
 	
 	// Message log
 	QTextEdit* qMessageLog;
+	str zMessageLogHTML;
 	
 	// Menus
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu;

@@ -1,19 +1,19 @@
 #include "common.h"
 #include <math.h>
 
-double GetWordFloat (str& s, int n) {
+double GetWordFloat (str& s, const ushort n) {
 	return atof ((s / " ")[n]);
 }
 
-long GetWordInt (str& s, int n) {
+long GetWordInt (str& s, const ushort n) {
 	return atol ((s / " ")[n]);
 }
 
-vertex ParseVertex (str& s, int n) {
+vertex ParseVertex (str& s, const ushort n) {
 	vertex v;
 	v.x = GetWordFloat (s, n);
-	v.y = GetWordFloat (s, n+1);
-	v.z = GetWordFloat (s, n+2);
+	v.y = GetWordFloat (s, n + 1);
+	v.z = GetWordFloat (s, n + 2);
 	
 	return v;
 }

@@ -23,6 +23,12 @@
 #include "str.h"
 #include "config.h"
 
+#ifdef __GNUC__
+ #define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
+#else
+ #define FORMAT_PRINTF(M,N)
+#endif // __GNUC__
+
 using std::vector;
 
 class LDForgeWindow;
@@ -95,6 +101,17 @@ template<class T> inline T max (T a, T b) {
 static const double pi = 3.14159265358979323846f;
 
 // main.cpp
+enum logtype_e {
+	LOG_Normal,
+	LOG_Success,
+	LOG_Info,
+	LOG_Warning,
+	LOG_Error,
+};
+
+void logf (const char* fmt, ...) FORMAT_PRINTF (1, 2);
+void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
+
 extern OpenFile* g_CurrentFile;
 extern bbox g_BBox;
 extern LDForgeWindow* g_qWindow;
