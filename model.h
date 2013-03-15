@@ -1,0 +1,2 @@
+void closeModel ();
+void newModel ();
