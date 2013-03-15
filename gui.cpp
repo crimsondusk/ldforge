@@ -312,6 +312,10 @@ void LDForgeWindow::buildObjList () {
 		switch (obj->getType ()) {
 		case OBJ_Comment:
 			zText = static_cast<LDComment*> (obj)->zText;
+			
+			// Remove leading whitespace
+			while (~zText && zText[0] == ' ')
+				zText -= -1;
 			break;
 		
 		case OBJ_Empty:
@@ -340,7 +344,7 @@ void LDForgeWindow::buildObjList () {
 		case OBJ_Quad:
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
-				zText.format ("%s, %s, %s",
+				zText.format ("%s, %s, %s, %s",
 					quad->vaCoords[0].getStringRep ().chars(),
 					quad->vaCoords[1].getStringRep ().chars(),
 					quad->vaCoords[2].getStringRep ().chars(),
