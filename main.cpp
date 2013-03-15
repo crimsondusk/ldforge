@@ -12,9 +12,11 @@ int main (int argc, char** argv) {
 	g_CurrentFile = IO_ParseLDFile ("55966.dat");
 	g_BBox.calculate();
 	
-	printf ("bbox: (%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)\n",
-		FVERTEX (g_BBox.v0), FVERTEX (g_BBox.v1));
-	printf ("%u objects\n", g_CurrentFile->objects.size());
+	if (g_CurrentFile) {
+		printf ("bbox: (%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)\n",
+			FVERTEX (g_BBox.v0), FVERTEX (g_BBox.v1));
+		printf ("%u objects\n", g_CurrentFile->objects.size());
+	}
 	
 	QApplication app (argc, argv);
 	LDForgeWindow* win = new LDForgeWindow;

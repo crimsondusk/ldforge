@@ -3,6 +3,9 @@
 #include "ldtypes.h"
 
 void bbox::calculate () {
+	if (!g_CurrentFile)
+		return;
+	
 	// The bounding box, bbox for short, is the
 	// box that encompasses the model we have open.
 	// v0 is the minimum vertex, v1 is the maximum vertex.

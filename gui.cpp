@@ -279,7 +279,13 @@ static QIcon IconForObjectType (LDObject* obj) {
 }
 
 void LDForgeWindow::buildObjList () {
+	if (!g_CurrentFile)
+		return;
+	
 	QList<QTreeWidgetItem*> qaItems;
+	
+	qObjList->clear ();
+	
 	for (ushort i = 0; i < g_CurrentFile->objects.size(); ++i) {
 		LDObject* obj = g_CurrentFile->objects[i];
 		
