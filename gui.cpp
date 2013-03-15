@@ -166,13 +166,13 @@ void LDForgeWindow::slot_new () {
 }
 
 void LDForgeWindow::slot_open () {
-	str name = QFileDialog::getOpenFileName (this, "Open file",
+	str name = QFileDialog::getOpenFileName (this, "Open File",
 		"", "LDraw files (*.dat *.ldr)").toStdString().c_str();
 	
 	if (g_LoadedFiles.size())
 		closeModel ();
 	
-	IO_ParseLDFile (name);
+	IO_OpenLDrawFile (name);
 }
 
 void LDForgeWindow::slot_save () {

@@ -9,9 +9,6 @@ LDForgeWindow* g_qWindow = NULL;
 bbox g_BBox;
 
 int main (int argc, char** argv) {
-	g_CurrentFile = IO_ParseLDFile ("55966.dat");
-	g_BBox.calculate();
-	
 	if (g_CurrentFile) {
 		printf ("bbox: (%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)\n",
 			FVERTEX (g_BBox.v0), FVERTEX (g_BBox.v1));
@@ -21,7 +18,6 @@ int main (int argc, char** argv) {
 	QApplication app (argc, argv);
 	LDForgeWindow* win = new LDForgeWindow;
 	g_qWindow = win;
-	g_qWindow->buildObjList ();
 	win->show ();
 	return app.exec ();
 }

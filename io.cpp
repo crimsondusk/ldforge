@@ -4,6 +4,8 @@
 #include "io.h"
 #include "ldtypes.h"
 #include "misc.h"
+#include "gui.h"
+#include "bbox.h"
 
 // =============================================================================
 // IO_FindLoadedFile (str)
@@ -23,11 +25,11 @@ OpenFile* IO_FindLoadedFile (str name) {
 }
 
 // =============================================================================
-// IO_ParseLDFile (str)
+// IO_OpenLDrawFile (str)
 //
 // Opens the given file and parses the LDraw code within.
 // =============================================================================
-OpenFile* IO_ParseLDFile (str path) {
+OpenFile* IO_OpenLDrawFile (str path) {
 	FILE* fp = fopen (path.chars (), "r");
 	
 	if (!fp) {
@@ -58,7 +60,15 @@ OpenFile* IO_ParseLDFile (str path) {
 		load->objects.push_back (ParseLine (lines[i]));
 	
 	g_LoadedFiles.push_back (load);
-	return g_LoadedFiles[g_LoadedFiles.size() - 1];
+	g_CurrentFile = g_LoadedFiles[g_LoadedFiles.size() - 1];
+	
+	// Recalculate the bounding box
+	g_BBox.calculate();
+	
+	// Rebuild the object tree view now.
+	g_qWindow->buildObjList ();
+	
+	return g_CurrentFile;
 }
 
 // =============================================================================

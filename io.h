@@ -7,7 +7,7 @@
 
 // PROTOTYPES
 OpenFile* IO_FindLoadedFile (str name);
-OpenFile* IO_ParseLDFile (str path);
+OpenFile* IO_OpenLDrawFile (str path);
 LDObject* ParseLine (str zLine);
 
 extern vector<OpenFile*> g_LoadedFiles;
