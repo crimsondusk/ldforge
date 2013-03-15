@@ -88,6 +88,9 @@ LDObject* ParseLine (str zLine) {
 	char c = zLine[0];
 	vector<str> tokens = zLine / " ";
 	
+	if (~tokens[0] != 1)
+		return new LDGibberish (zLine, "Illogical line code");
+	
 	switch (c - '0') {
 	case 0:
 		{
@@ -162,9 +165,7 @@ LDObject* ParseLine (str zLine) {
 	default:
 		{
 			// Strange line we couldn't parse
-			LDGibberish* obj = new LDGibberish;
-			obj->zContent = zLine;
-			return obj;
+			return new LDGibberish (zLine, "Unknown line code number");
 		}
 	}
 }

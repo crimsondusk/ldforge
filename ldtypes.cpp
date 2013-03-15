@@ -25,6 +25,11 @@ LDGibberish::LDGibberish () {
 	
 }
 
+LDGibberish::LDGibberish (str _zContent, str _zReason) {
+	zContent = _zContent;
+	zReason = _zReason;
+}
+
 LDEmpty::LDEmpty () {
 	
 }

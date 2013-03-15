@@ -58,8 +58,13 @@ class LDGibberish : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Gibberish)
 	
+	LDGibberish (str _zContent, str _zReason);
+	
 	// Content of this unknown line
 	str zContent;
+	
+	// Why is this gibberish?
+	str zReason;
 };
 
 // =============================================================================

@@ -374,9 +374,14 @@ void LDForgeWindow::buildObjList () {
 			QStringList (zText.chars()), 0);
 		item->setIcon (0, IconForObjectType (obj));
 		
+		// Color gibberish red
+		if (obj->getType() == OBJ_Gibberish) {
+			item->setBackgroundColor (0, "#AA0000");
+			item->setForeground (0, QColor ("#FFAA00"));
+		}
+		
 		qaItems.append (item);
 	}
 	
-	printf ("insert top level items\n");
 	qObjList->insertTopLevelItems (0, qaItems);
 }
