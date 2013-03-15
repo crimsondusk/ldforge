@@ -48,9 +48,9 @@ void LDForgeWindow::createMenuActions () {
 		*sAboutText = "About " APPNAME_DISPLAY;
 	
 	MAKE_ACTION (new,			"&New",			"file-new",		"Create a new part model.")
-	MAKE_ACTION (open,			"&Open",		"open",			"Load a part model from a file.")
-	MAKE_ACTION (save,			"&Save",		"save",			"Save the part model.")
-	MAKE_ACTION (saveAs,		"Save &As",		"save-as",		"Save the part to a specific file.")
+	MAKE_ACTION (open,			"&Open",		"file-open",	"Load a part model from a file.")
+	MAKE_ACTION (save,			"&Save",		"file-save",	"Save the part model.")
+	MAKE_ACTION (saveAs,		"Save &As",		"file-save-as",	"Save the part to a specific file.")
 	MAKE_ACTION (exit,			"&Exit",		"exit",			"Close " APPNAME_DISPLAY ".")
 	
 	MAKE_ACTION (cut,			"Cut",			"cut",			"Cut the current selection to clipboard.")
