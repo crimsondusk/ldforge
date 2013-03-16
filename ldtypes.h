@@ -181,6 +181,9 @@ public:
 	
 	short dColor;
 	vertex vaCoords[4];
+	
+	// Split this quad into two triangles
+	void splitToTriangles ();
 };
 
 // =============================================================================

@@ -24,6 +24,7 @@ public:
 	void serialize ();
 	void unSerialize ();
 	static void replacePointers (LDObject* old, LDObject* repl);
+	static void deleteObj (LDObject*);
 	
 	LDObject& operator* () {
 		return *ptr;

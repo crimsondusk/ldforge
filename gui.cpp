@@ -63,6 +63,7 @@ void LDForgeWindow::createMenuActions () {
 	MAKE_ACTION (about,			sAboutText,		"about",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
+	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
 	
 	MAKE_ACTION (newSubfile,	"New Subfile",	"add-subfile",	"Creates a new subfile reference.")
@@ -130,6 +131,7 @@ void LDForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_copy);			// Copy
 	qEditMenu->addAction (qAct_paste);			// Paste
 	qEditMenu->addSeparator ();					// -----
+	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
 	qEditMenu->addAction (qAct_setContents);	// Set Contents
 	
 	// Help menu
@@ -161,6 +163,7 @@ void LDForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_cut);
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
+	qEditToolBar->addAction (qAct_splitQuads);
 	qEditToolBar->addAction (qAct_setContents);
 	addToolBar (qEditToolBar);
 }
@@ -274,6 +277,38 @@ void LDForgeWindow::slot_newVector () {
 
 void LDForgeWindow::slot_newVertex () {
 	
+}
+
+void LDForgeWindow::slot_splitQuads () {
+	if (qObjList->selectedItems().size() == 0)
+		return;
+	
+	const QList<QTreeWidgetItem*> qaItems = qObjList->selectedItems();
+	
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
+		LDObject* obj = g_CurrentFile->objects[i];
+		
+		// Don't even consider non-quads
+		if (obj->getType() != OBJ_Quad)
+			continue;
+		
+		bool bIsSelected = false;
+		
+		for (long j = 0; j < qaItems.size(); ++j) {
+			if (qaItems[j] == obj->qObjListEntry) {
+				bIsSelected = true;
+				break;
+			}
+		}
+		
+		if (!bIsSelected)
+			continue; // Was not selected
+		
+		static_cast<LDQuad*> (obj)->splitToTriangles ();
+	}
+	
+	R->hardRefresh ();
+	buildObjList ();
 }
 
 void LDForgeWindow::slot_setContents () {

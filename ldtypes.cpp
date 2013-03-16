@@ -2,6 +2,7 @@
 #include "ldtypes.h"
 #include "io.h"
 #include "misc.h"
+#include "pointer.h"
 
 const char* g_saObjTypeNames[] = {
 	"unidentified",
@@ -157,4 +158,50 @@ str LDVertex::getContents () {
 
 str LDEmpty::getContents () {
 	return str ();
+}
+
+void LDQuad::splitToTriangles () {
+	// Find the index of this quad
+	ulong ulIndex;
+	for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex)
+		if (g_CurrentFile->objects[ulIndex].ptr == this)
+			break;
+	
+	if (ulIndex >= g_CurrentFile->objects.size()) {
+		// couldn't find it?
+		logf (LOG_Error, "LDQuad::splitToTriangles: Couldn't find quad %p in "
+			"current object list!!\n", this);
+		return;
+	}
+	
+	// Create the two triangles based on this quadrilateral:
+	// 0---3     0---3    3
+	// |   |     |  /    /|
+	// |   |  =  | /    / |
+	// |   |     |/    /  |
+	// 1---2     1    1---2
+	LDTriangle* tri1 = new LDTriangle;
+	tri1->vaCoords[0] = vaCoords[0];
+	tri1->vaCoords[1] = vaCoords[1];
+	tri1->vaCoords[2] = vaCoords[3];
+	
+	LDTriangle* tri2 = new LDTriangle;
+	tri2->vaCoords[0] = vaCoords[1];
+	tri2->vaCoords[1] = vaCoords[2];
+	tri2->vaCoords[2] = vaCoords[3];
+	
+	// The triangles also inherit the quad's color
+	tri1->dColor = tri2->dColor = dColor;
+	
+	// Replace the quad with the first triangle
+	objPointer::replacePointers (this, tri1);
+	
+	// Add the second triangle after the first one.
+	objPointer ptr (tri2);
+	ptr.serialize ();
+	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulIndex, ptr);
+	
+	// Delete this quad now, it has been split. `delete this` isn't exactly
+	// safe in my experience so we'll tell objPointer to delete the quad.
+	objPointer::deleteObj (this);
 }
