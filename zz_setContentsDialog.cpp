@@ -66,8 +66,6 @@ void Dialog_SetContents::staticDialog (LDObject* obj, LDForgeWindow* parent) {
 		// Reinterpret it from the text of the input field
 		obj = ParseLine (dlg.qContents->text ().toStdString ().c_str ());
 		
-		printf ("object re-parsed, new type: %s\n", g_saObjTypeNames[obj->getType ()]);
-		
 		// Remove the old object
 		delete oldobj;
 		
