@@ -6,12 +6,15 @@
 #include "model.h"
 #include "io.h"
 
+#include "zz_setContentsDialog.h"
+
 LDForgeWindow::LDForgeWindow () {
 	R = new renderer;
 	
 	qObjList = new QTreeWidget;
 	qObjList->setHeaderHidden (true);
 	qObjList->setMaximumWidth (256);
+	qObjList->setSelectionMode (QTreeWidget::MultiSelection);
 	
 	qMessageLog = new QTextEdit;
 	qMessageLog->setReadOnly (true);
@@ -58,6 +61,8 @@ void LDForgeWindow::createMenuActions () {
 	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
 	MAKE_ACTION (about,			sAboutText,		"about",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
+	
+	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
 	
 	MAKE_ACTION (newSubfile,	"New Subfile",	"add-subfile",	"Creates a new subfile reference.")
 	MAKE_ACTION (newLine,		"New Line", 	"add-line",		"Creates a new line.")
@@ -125,6 +130,8 @@ void LDForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_cut);			// Cut
 	qEditMenu->addAction (qAct_copy);			// Copy
 	qEditMenu->addAction (qAct_paste);			// Paste
+	qEditMenu->addSeparator ();					// -----
+	qEditMenu->addAction (qAct_setContents);	// Set Contents
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
@@ -155,6 +162,7 @@ void LDForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_cut);
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
+	qEditToolBar->addAction (qAct_setContents);
 	addToolBar (qEditToolBar);
 }
 
@@ -259,6 +267,26 @@ void LDForgeWindow::slot_newVertex () {
 	
 }
 
+void LDForgeWindow::slot_setContents () {
+	if (qObjList->selectedItems().size() != 1)
+		return;
+	
+	ulong ulIndex;
+	LDObject* obj = nullptr;
+	
+	QTreeWidgetItem* item = qObjList->selectedItems()[0];
+	for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex) {
+		obj = g_CurrentFile->objects[ulIndex];
+		
+		if (obj->qObjListEntry == item)
+			break;
+	}
+	
+	if (ulIndex >= g_CurrentFile->objects.size())
+		return;
+	
+	Dialog_SetContents::staticDialog (obj, this);
+}
 
 static QIcon IconForObjectType (LDObject* obj) {
 	switch (obj->getType ()) {
@@ -311,7 +339,7 @@ void LDForgeWindow::buildObjList () {
 		str zText;
 		switch (obj->getType ()) {
 		case OBJ_Comment:
-			zText = static_cast<LDComment*> (obj)->zText;
+			zText = static_cast<LDComment*> (obj)->zText.chars();
 			
 			// Remove leading whitespace
 			while (~zText && zText[0] == ' ')
@@ -354,7 +382,7 @@ void LDForgeWindow::buildObjList () {
 		
 		case OBJ_Gibberish:
 			zText.format ("ERROR: %s",
-				static_cast<LDGibberish*> (obj)->zContent.chars());
+				static_cast<LDGibberish*> (obj)->zContents.chars());
 			break;
 		
 		case OBJ_Vector:
@@ -370,7 +398,7 @@ void LDForgeWindow::buildObjList () {
 			break;
 		}
 		
-		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*)nullptr,
+		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*) (nullptr),
 			QStringList (zText.chars()), 0);
 		item->setIcon (0, IconForObjectType (obj));
 		
@@ -380,8 +408,14 @@ void LDForgeWindow::buildObjList () {
 			item->setForeground (0, QColor ("#FFAA00"));
 		}
 		
+		obj->qObjListEntry = item;
+		
 		qaItems.append (item);
 	}
 	
 	qObjList->insertTopLevelItems (0, qaItems);
+}
+
+void LDForgeWindow::slot_selectionChanged () {
+	
 }

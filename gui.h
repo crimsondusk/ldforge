@@ -34,6 +34,7 @@ public:
 	QAction* qAct_cut, *qAct_copy, *qAct_paste;
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
 	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVector, *qAct_newVertex;
+	QAction* qAct_setContents;
 	QAction* qAct_about, *qAct_aboutQt;
 	
 	LDForgeWindow ();
@@ -46,6 +47,8 @@ private:
     void createToolbars ();
 
 private slots:
+	void slot_selectionChanged ();
+	
 	void slot_new ();
 	void slot_open ();
 	void slot_save ();
@@ -60,6 +63,8 @@ private slots:
 	void slot_newComment ();
 	void slot_newVector ();
 	void slot_newVertex ();
+	
+	void slot_setContents ();
 	
 	void slot_cut ();
 	void slot_copy ();

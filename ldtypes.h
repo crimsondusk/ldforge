@@ -8,7 +8,10 @@
 	LD##N (); \
 	virtual LDObjectType_e getType () const { \
 		return OBJ_##N; \
-	}
+	} \
+	virtual str getContents ();
+
+class QTreeWidgetItem;
 
 // =============================================================================
 // LDObjectType_e
@@ -48,6 +51,15 @@ public:
 	virtual LDObjectType_e getType () const {
 		return OBJ_Unidentified;
 	};
+	
+	// A string that represents this line
+	virtual str getContents () {
+		return "";
+	}
+	
+	void commonInit ();
+	
+	QTreeWidgetItem* qObjListEntry;
 };
 
 // =============================================================================
@@ -65,7 +77,7 @@ public:
 	LDGibberish (str _zContent, str _zReason);
 	
 	// Content of this unknown line
-	str zContent;
+	str zContents;
 	
 	// Why is this gibberish?
 	str zReason;

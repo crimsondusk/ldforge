@@ -9,28 +9,31 @@ INCLUDEPATH += .
 
 # Input
 HEADERS += bbox.h \
-           common.h \
-           draw.h \
-           gui.h \
-           io.h \
-           ldtypes.h \
-           misc.h \
-           model.h \
-           scanner.h \
-           str.h \
-           config.h \
-           cfgdef.h
+	common.h \
+	draw.h \
+	gui.h \
+	io.h \
+	ldtypes.h \
+	misc.h \
+	model.h \
+	scanner.h \
+	str.h \
+	config.h \
+	cfgdef.h \
+	zz_setContentsDialog.h
+
 SOURCES += bbox.cpp \
-           draw.cpp \
-           gui.cpp \
-           io.cpp \
-           ldtypes.cpp \
-           main.cpp \
-           misc.cpp \
-           model.cpp \
-           scanner.cpp \
-           str.cpp \ 
-           config.cpp
+	draw.cpp \
+	gui.cpp \
+	io.cpp \
+	ldtypes.cpp \
+	main.cpp \
+	misc.cpp \
+	model.cpp \
+	scanner.cpp \
+	str.cpp \ 
+	config.cpp \
+	zz_setContentsDialog.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl

@@ -83,8 +83,8 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	g_qWindow->buildObjList ();
 	g_qWindow->setTitle ();
 	
-	logf (LOG_Success, "File %s parsed successfully (%lu warnings).\n",
-		path.chars(), numWarnings);
+	logf (LOG_Success, "File %s parsed successfully (%lu warning%s).\n",
+		path.chars(), numWarnings, PLURAL (numWarnings));
 	
 	return g_CurrentFile;
 }
