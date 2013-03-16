@@ -93,15 +93,11 @@ str LDComment::getContents () {
 }
 
 str LDSubfile::getContents () {
-	str val = str::mkfmt ("1 %d", dColor);
-	val += vPosition;
+	str val = str::mkfmt ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
 	
-	for (short i = 0; i < 9; ++i) {
-		val += ' ';
-		val += ftoa (faMatrix[i]);
-	}
+	for (short i = 0; i < 9; ++i)
+		val.appendformat ("%s ", ftoa (faMatrix[i]).chars());
 	
-	val += ' ';
 	val += zFileName;
 	return val;
 }

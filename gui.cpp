@@ -86,7 +86,6 @@ void LDForgeWindow::createMenuActions () {
 	
 	// things not implemented yet
 	QAction* qaDisabledActions[] = {
-		qAct_save,
 		qAct_saveAs,
 		qAct_newSubfile,
 		qAct_newTriangle,
@@ -203,7 +202,7 @@ void LDForgeWindow::slot_open () {
 }
 
 void LDForgeWindow::slot_save () {
-	printf ("save file\n");
+	saveModel ();
 }
 
 void LDForgeWindow::slot_saveAs () {

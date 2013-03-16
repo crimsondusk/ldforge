@@ -38,3 +38,24 @@ void newModel () {
 	
 	g_qWindow->R->hardRefresh();
 }
+
+void saveModel () {
+	if (!g_CurrentFile)
+		return;
+	
+	FILE* fp = fopen (g_CurrentFile->zFileName, "w");
+	if (!fp)
+		return;
+	
+	// Write all entries now
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
+		LDObject* obj = g_CurrentFile->objects[i];
+		
+		// LDraw requires lines to have DOS line endings
+		str zLine = str::mkfmt ("%s\r\n",obj->getContents ().chars ());
+		
+		fwrite (zLine.chars(), 1, ~zLine, fp);
+	}
+	
+	fclose (fp);
+}
