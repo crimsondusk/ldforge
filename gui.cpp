@@ -35,6 +35,8 @@ LDForgeWindow::LDForgeWindow () {
 	createMenus ();
 	createToolbars ();
 	
+	slot_selectionChanged ();
+	
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
@@ -229,7 +231,6 @@ void LDForgeWindow::slot_newLine () {
 	line->dColor = 24;
 	
 	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulSpot, line);
-	g_CurrentFile->objects[ulSpot].serialize ();
 	
 	buildObjList ();
 	R->hardRefresh ();
@@ -305,10 +306,14 @@ void LDForgeWindow::slot_splitQuads () {
 			continue; // Was not selected
 		
 		static_cast<LDQuad*> (obj)->splitToTriangles ();
+		i++;// Skip past the second triangle
 	}
 	
-	R->hardRefresh ();
+	printf ("build obj list\n");
 	buildObjList ();
+	
+	printf ("refresh teh renderer\n");
+	R->hardRefresh ();
 }
 
 void LDForgeWindow::slot_setContents () {
@@ -377,8 +382,9 @@ void LDForgeWindow::buildObjList () {
 	
 	qObjList->clear ();
 	
-	for (ushort i = 0; i < g_CurrentFile->objects.size(); ++i) {
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
 		LDObject* obj = g_CurrentFile->objects[i];
+		printf ("%lu: %p\n", i, obj);
 		
 		str zText;
 		switch (obj->getType ()) {
@@ -463,6 +469,9 @@ void LDForgeWindow::buildObjList () {
 void LDForgeWindow::slot_selectionChanged () {
 	// If the selection isn't 1 exact, disable setting contents
 	qAct_setContents->setEnabled (qObjList->selectedItems().size() == 1);
+	
+	// If we have no selection, disable splitting quads
+	qAct_splitQuads->setEnabled (qObjList->selectedItems().size() > 0);
 }
 
 // =============================================================================

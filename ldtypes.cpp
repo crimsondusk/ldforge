@@ -2,7 +2,6 @@
 #include "ldtypes.h"
 #include "io.h"
 #include "misc.h"
-#include "pointer.h"
 
 const char* g_saObjTypeNames[] = {
 	"unidentified",
@@ -164,7 +163,7 @@ void LDQuad::splitToTriangles () {
 	// Find the index of this quad
 	ulong ulIndex;
 	for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex)
-		if (g_CurrentFile->objects[ulIndex].ptr == this)
+		if (g_CurrentFile->objects[ulIndex] == this)
 			break;
 	
 	if (ulIndex >= g_CurrentFile->objects.size()) {
@@ -190,18 +189,16 @@ void LDQuad::splitToTriangles () {
 	tri2->vaCoords[1] = vaCoords[2];
 	tri2->vaCoords[2] = vaCoords[3];
 	
+	printf ("triangles: %p %p\n", tri1, tri2);
+	
 	// The triangles also inherit the quad's color
 	tri1->dColor = tri2->dColor = dColor;
 	
-	// Replace the quad with the first triangle
-	objPointer::replacePointers (this, tri1);
+	// Replace the quad with the first triangle and add the second triangle
+	// after the first one.
+	g_CurrentFile->objects[ulIndex] = tri1;
+	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulIndex + 1, tri2);
 	
-	// Add the second triangle after the first one.
-	objPointer ptr (tri2);
-	ptr.serialize ();
-	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulIndex, ptr);
-	
-	// Delete this quad now, it has been split. `delete this` isn't exactly
-	// safe in my experience so we'll tell objPointer to delete the quad.
-	objPointer::deleteObj (this);
+	// Delete this quad now, it has been split.
+	delete this;
 }

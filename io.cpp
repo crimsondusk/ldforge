@@ -72,10 +72,6 @@ OpenFile* IO_OpenLDrawFile (str path) {
 		}
 	}
 	
-	// Serialize all of the objects
-	for (ulong i = 0; i < load->objects.size(); ++i)
-		load->objects[i].serialize ();
-	
 	g_LoadedFiles.push_back (load);
 	g_CurrentFile = g_LoadedFiles[g_LoadedFiles.size() - 1];
 	

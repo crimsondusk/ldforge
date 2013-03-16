@@ -131,6 +131,4 @@ typedef uint16_t xushort;
 typedef uint32_t xulong;
 typedef uint64_t xulonglong;
 
-#include "pointer.h"
-
 #endif
