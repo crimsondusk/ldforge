@@ -1,6 +1,7 @@
 #include "common.h"
 #include "ldtypes.h"
 #include "io.h"
+#include "misc.h"
 
 const char* g_saObjTypeNames[] = {
 	"unidentified",
@@ -91,47 +92,63 @@ str LDComment::getContents () {
 	return str::mkfmt ("0 %s", zText.chars ());
 }
 
+str LDSubfile::getContents () {
+	str val = str::mkfmt ("1 %d", dColor);
+	val += vPosition;
+	
+	for (short i = 0; i < 9; ++i) {
+		val += ' ';
+		val += ftoa (faMatrix[i]);
+	}
+	
+	val += ' ';
+	val += zFileName;
+	return val;
+}
+
 str LDLine::getContents () {
-	return str::mkfmt ("2 %d %f %f %f %f %f %f", dColor,
-		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
-		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z);
+	str val = str::mkfmt ("2 %d", dColor);
+	
+	for (ushort i = 0; i < 2; ++i)
+		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+	
+	return val;
 }
 
 str LDTriangle::getContents () {
-	return str::mkfmt ("3 %d %f %f %f %f %f %f %f %f %f", dColor,
-		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
-		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z,
-		vaCoords[2].x, vaCoords[2].y, vaCoords[2].z);
+	str val = str::mkfmt ("3 %d", dColor);
+	
+	for (ushort i = 0; i < 3; ++i)
+		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+	
+	return val;
 }
 
 str LDQuad::getContents () {
-	// Oh, Jesus.
-	return str::mkfmt ("4 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
-		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
-		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z,
-		vaCoords[2].x, vaCoords[2].y, vaCoords[2].z,
-		vaCoords[3].x, vaCoords[3].y, vaCoords[3].z);
+	str val = str::mkfmt ("4 %d", dColor);
+	
+	for (ushort i = 0; i < 4; ++i)
+		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+	
+	return val;
 }
 
 str LDCondLine::getContents () {
-	return str::mkfmt ("5 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
-		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
-		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z,
-		vaControl[0].x, vaControl[0].y, vaControl[0].z,
-		vaControl[1].x, vaControl[1].y, vaControl[1].z);
+	str val = str::mkfmt ("5 %d", dColor);
+	
+	// Add the coordinates of end points
+	for (ushort i = 0; i < 2; ++i)
+		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+	
+	// Add the control points
+	for (ushort i = 0; i < 2; ++i)
+		val.appendformat (" %s", vaControl[i].getStringRep (false).chars ());
+	
+	return val;
 }
 
 str LDGibberish::getContents () {
 	return zContents;
-}
-
-str LDSubfile::getContents () {
-	return str::mkfmt ("1 %d %f %f %f %f %f %f %f %f %f %f %f %f %s", dColor,
-		vPosition.x, vPosition.y, vPosition.y,
-		faMatrix[0], faMatrix[1], faMatrix[2],
-		faMatrix[3], faMatrix[4], faMatrix[5],
-		faMatrix[6], faMatrix[7], faMatrix[8],
-		zFileName.chars());
 }
 
 str LDVector::getContents () {

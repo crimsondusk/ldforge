@@ -13,6 +13,8 @@
 
 char* vdynformat (const char* csFormat, va_list vArgs, long int lSize);
 
+class vertex;
+
 // Dynamic string object, allocates memory when needed and
 // features a good bunch of manipulation methods
 class str {
@@ -163,6 +165,8 @@ public:
 		append (c);
 		return *this;
 	}
+	
+	str& operator+= (vertex vrt);
 	
 	str operator* (const int repcount) {
 		repeat (repcount);

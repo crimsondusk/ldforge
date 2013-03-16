@@ -13,4 +13,7 @@ long GetWordInt (str& s, const ushort n);
 vertex ParseVertex (str& s, const ushort n);
 void StripWhitespace (str& s);
 
+// Float to string
+str ftoa (double fCoord);
+
 #endif // __MISC_H__

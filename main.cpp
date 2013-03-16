@@ -2,6 +2,7 @@
 #include "gui.h"
 #include "io.h"
 #include "bbox.h"
+#include "misc.h"
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = NULL;
@@ -30,26 +31,13 @@ vertex vertex::midpoint (vertex& other) {
 	return mid;
 }
 
-static str getCoordinateRep (double fCoord) {
-	str zRep = str::mkfmt ("%.3f", fCoord);
+str vertex::getStringRep (const bool bMangled) {
+	const char* sFormat = (bMangled) ? "(%s, %s, %s)" : "%s %s %s";
 	
-	// Remove trailing zeroes
-	while (zRep[~zRep - 1] == '0')
-		zRep -= 1;
-	
-	// If there was only zeroes in the decimal place, remove
-	// the decimal point now.
-	if (zRep[~zRep - 1] == '.')
-		zRep -= 1;
-	
-	return zRep;
-}
-
-str vertex::getStringRep () {
-	return str::mkfmt ("(%s, %s, %s)",
-		getCoordinateRep (x).chars(),
-		getCoordinateRep (y).chars(),
-		getCoordinateRep (z).chars());
+	return str::mkfmt (sFormat,
+		ftoa (x).chars(),
+		ftoa (y).chars(),
+		ftoa (z).chars());
 }
 
 // =============================================================================

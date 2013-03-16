@@ -363,8 +363,8 @@ void LDForgeWindow::buildObjList () {
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
 				zText.format ("%s, %s",
-					line->vaCoords[0].getStringRep ().chars(),
-					line->vaCoords[1].getStringRep ().chars());
+					line->vaCoords[0].getStringRep (true).chars(),
+					line->vaCoords[1].getStringRep (true).chars());
 			}
 			break;
 		
@@ -372,9 +372,9 @@ void LDForgeWindow::buildObjList () {
 			{
 				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
 				zText.format ("%s, %s, %s",
-					triangle->vaCoords[0].getStringRep ().chars(),
-					triangle->vaCoords[1].getStringRep ().chars(),
-					triangle->vaCoords[2].getStringRep ().chars());
+					triangle->vaCoords[0].getStringRep (true).chars(),
+					triangle->vaCoords[1].getStringRep (true).chars(),
+					triangle->vaCoords[2].getStringRep (true).chars());
 			}
 			break;
 		
@@ -382,10 +382,10 @@ void LDForgeWindow::buildObjList () {
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
 				zText.format ("%s, %s, %s, %s",
-					quad->vaCoords[0].getStringRep ().chars(),
-					quad->vaCoords[1].getStringRep ().chars(),
-					quad->vaCoords[2].getStringRep ().chars(),
-					quad->vaCoords[3].getStringRep ().chars());
+					quad->vaCoords[0].getStringRep (true).chars(),
+					quad->vaCoords[1].getStringRep (true).chars(),
+					quad->vaCoords[2].getStringRep (true).chars(),
+					quad->vaCoords[3].getStringRep (true).chars());
 			}
 			break;
 		
@@ -395,11 +395,11 @@ void LDForgeWindow::buildObjList () {
 			break;
 		
 		case OBJ_Vector:
-			zText.format ("%s", static_cast<LDVector*> (obj)->vPos.getStringRep().chars());
+			zText.format ("%s", static_cast<LDVector*> (obj)->vPos.getStringRep(true).chars());
 			break;
 		
 		case OBJ_Vertex:
-			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep().chars());
+			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep(true).chars());
 			break;
 		
 		default:

@@ -35,3 +35,23 @@ vertex bearing::project (vertex& vSource, ulong ulLength) {
 	vDest.z += (sin (fPitch) * ulLength);
 	return vDest;
 }
+
+// =============================================================================
+// str ftoa (double)
+//
+// Converts a double-precision float to a string value.
+// =============================================================================
+str ftoa (double fCoord) {
+	str zRep = str::mkfmt ("%.3f", fCoord);
+	
+	// Remove trailing zeroes
+	while (zRep[~zRep - 1] == '0')
+		zRep -= 1;
+	
+	// If there was only zeroes in the decimal place, remove
+	// the decimal point now.
+	if (zRep[~zRep - 1] == '.')
+		zRep -= 1;
+	
+	return zRep;
+}

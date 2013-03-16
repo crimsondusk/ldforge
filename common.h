@@ -52,7 +52,7 @@ public:
 	// =========================================================================
 	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
-	str getStringRep ();
+	str getStringRep (const bool bMangled);
 };
 
 // =============================================================================

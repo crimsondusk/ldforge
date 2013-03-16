@@ -5,6 +5,8 @@
 #include <assert.h>
 // #include <initializer_list>
 #include "str.h"
+#include "common.h"
+#include "misc.h"
 
 #define ITERATE_STRING(u) \
 	for (unsigned int u = 0; u < strlen (text); u++)
@@ -464,3 +466,8 @@ std::vector<str> str::split (str del) {
 std::vector<str> str::operator/ (str splitstring) {return split(splitstring);}
 std::vector<str> str::operator/ (char* splitstring) {return split(splitstring);}
 std::vector<str> str::operator/ (const char* splitstring) {return split(splitstring);}
+
+str& str::operator+= (vertex vrt) {
+	appendformat ("%s", vrt.getStringRep (false).chars());
+	return *this;
+}
