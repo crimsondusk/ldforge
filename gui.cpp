@@ -15,6 +15,7 @@ LDForgeWindow::LDForgeWindow () {
 	qObjList->setHeaderHidden (true);
 	qObjList->setMaximumWidth (256);
 	qObjList->setSelectionMode (QTreeWidget::MultiSelection);
+	connect (qObjList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	
 	qMessageLog = new QTextEdit;
 	qMessageLog->setReadOnly (true);
@@ -88,7 +89,6 @@ void LDForgeWindow::createMenuActions () {
 		qAct_save,
 		qAct_saveAs,
 		qAct_newSubfile,
-		qAct_newLine,
 		qAct_newTriangle,
 		qAct_newQuad,
 		qAct_newCondLine,
@@ -220,7 +220,16 @@ void LDForgeWindow::slot_newSubfile () {
 }
 
 void LDForgeWindow::slot_newLine () {
+	LDLine* line = new LDLine;
+	const ulong ulSpot = getInsertionPoint ();
 	
+	memset (line->vaCoords, 0, sizeof line->vaCoords);
+	line->dColor = 24;
+	
+	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulSpot, line);
+	
+	buildObjList ();
+	R->hardRefresh ();
 }
 
 void LDForgeWindow::slot_newTriangle () {
@@ -417,5 +426,28 @@ void LDForgeWindow::buildObjList () {
 }
 
 void LDForgeWindow::slot_selectionChanged () {
+	// If the selection isn't 1 exact, disable setting contents
+	qAct_setContents->setEnabled (qObjList->selectedItems().size() == 1);
+}
+
+// =============================================================================
+// ulong getInsertionPoint ()
+// 
+// Returns the index of where a new item should be placed at.
+// =============================================================================
+ulong LDForgeWindow::getInsertionPoint () {
+	ulong ulIndex;
 	
+	if (qObjList->selectedItems().size() == 1) {
+		// If we have a selection, put the item after it.
+		for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex)
+			if (g_CurrentFile->objects[ulIndex]->qObjListEntry == qObjList->selectedItems()[0])
+				break;
+		
+		if (ulIndex >= g_CurrentFile->objects.size())
+			return ulIndex + 1;
+	}
+	
+	// Otherwise place the object at the end.
+	return g_CurrentFile->objects.size();
 }

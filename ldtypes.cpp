@@ -88,7 +88,7 @@ ulong LDObject::getIndex () {
 
 // =============================================================================
 str LDComment::getContents () {
-	return str::mkfmt ("0%s", zText.chars ());
+	return str::mkfmt ("0 %s", zText.chars ());
 }
 
 str LDLine::getContents () {
@@ -106,7 +106,7 @@ str LDTriangle::getContents () {
 
 str LDQuad::getContents () {
 	// Oh, Jesus.
-	return str::mkfmt ("3 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
+	return str::mkfmt ("4 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
 		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
 		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z,
 		vaCoords[2].x, vaCoords[2].y, vaCoords[2].z,
@@ -114,7 +114,7 @@ str LDQuad::getContents () {
 }
 
 str LDCondLine::getContents () {
-	return str::mkfmt ("3 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
+	return str::mkfmt ("5 %d %f %f %f %f %f %f %f %f %f %f %f %f", dColor,
 		vaCoords[0].x, vaCoords[0].y, vaCoords[0].z,
 		vaCoords[1].x, vaCoords[1].y, vaCoords[1].z,
 		vaControl[0].x, vaControl[0].y, vaControl[0].z,

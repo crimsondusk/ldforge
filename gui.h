@@ -41,6 +41,9 @@ public:
 	void buildObjList ();
 	void setTitle ();
 	
+	// Where would a new item be inserted into?
+	ulong getInsertionPoint ();
+	
 private:
 	void createMenuActions ();
 	void createMenus ();

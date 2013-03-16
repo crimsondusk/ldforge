@@ -158,7 +158,7 @@ LDObject* ParseLine (str zLine) {
 		{
 			// Comment
 			LDComment* obj = new LDComment;
-			obj->zText = zLine.substr (1, -1);
+			obj->zText = zLine.substr (2, -1);
 			return obj;
 		}
 	
