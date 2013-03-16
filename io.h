@@ -8,7 +8,7 @@
 class OpenFile {
 public:
 	str zFileName, zTitle;
-	vector<LDObject*> objects;
+	vector<objPointer> objects;
 };
 
 // PROTOTYPES

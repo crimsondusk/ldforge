@@ -70,12 +70,7 @@ void Dialog_SetContents::staticDialog (LDObject* obj, LDForgeWindow* parent) {
 		delete oldobj;
 		
 		// Replace all instances of the old object with the new object
-		for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-			if (g_CurrentFile->objects[i] == oldobj) {
-				g_CurrentFile->objects[i] = obj;
-				break;
-			}
-		}
+		objPointer::replacePointers (oldobj, obj);
 		
 		// Rebuild stuff after this
 		parent->buildObjList ();

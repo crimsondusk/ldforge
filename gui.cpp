@@ -227,6 +227,7 @@ void LDForgeWindow::slot_newLine () {
 	line->dColor = 24;
 	
 	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulSpot, line);
+	g_CurrentFile->objects[ulSpot].serialize ();
 	
 	buildObjList ();
 	R->hardRefresh ();

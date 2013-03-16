@@ -2,7 +2,6 @@
 
 #include "common.h"
 #include "io.h"
-#include "ldtypes.h"
 #include "misc.h"
 #include "gui.h"
 #include "bbox.h"
@@ -72,6 +71,10 @@ OpenFile* IO_OpenLDrawFile (str path) {
 			numWarnings++;
 		}
 	}
+	
+	// Serialize all of the objects
+	for (ulong i = 0; i < load->objects.size(); ++i)
+		load->objects[i].serialize ();
 	
 	g_LoadedFiles.push_back (load);
 	g_CurrentFile = g_LoadedFiles[g_LoadedFiles.size() - 1];

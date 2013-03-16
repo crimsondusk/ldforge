@@ -2,7 +2,6 @@
 #define __LDTYPES_H__
 
 #include "common.h"
-#include "str.h"
 
 #define IMPLEMENT_LDTYPE(N) \
 	LD##N (); \
@@ -45,7 +44,7 @@ public:
 	LDObject ();
 	
 	// Index (i.e. line number) of this object
-	ulong getIndex ();
+	unsigned long getIndex ();
 	
 	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
@@ -203,7 +202,7 @@ public:
 	
 	vertex vPos;
 	bearing gAngle3D;
-	ulong ulLength;
+	unsigned long ulLength;
 };
 
 // =============================================================================

@@ -2,7 +2,7 @@
 #include <qlineedit.h>
 #include <qlabel.h>
 #include <qdialogbuttonbox.h>
-#include "ldtypes.h"
+#include "common.h"
 
 class Dialog_SetContents : public QDialog {
 public:

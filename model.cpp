@@ -11,8 +11,10 @@ void closeModel () {
 	for (ushort i = 0; i < g_LoadedFiles.size(); i++) {
 		OpenFile* f = g_LoadedFiles[i];
 		
-		for (ushort j = 0; j < f->objects.size(); ++j)
-			delete f->objects[j];
+		for (ushort j = 0; j < f->objects.size(); ++j) {
+			f->objects[i].unSerialize ();
+			delete (LDObject*)f->objects[j];
+		}
 		
 		delete f;
 	}

@@ -20,6 +20,7 @@ HEADERS += bbox.h \
 	str.h \
 	config.h \
 	cfgdef.h \
+	pointer.h \
 	zz_setContentsDialog.h
 
 SOURCES += bbox.cpp \
@@ -33,6 +34,7 @@ SOURCES += bbox.cpp \
 	scanner.cpp \
 	str.cpp \ 
 	config.cpp \
+	pointer.cpp \
 	zz_setContentsDialog.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
