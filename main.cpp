@@ -1,6 +1,6 @@
 #include <QApplication>
 #include "gui.h"
-#include "io.h"
+#include "file.h"
 #include "bbox.h"
 #include "misc.h"
 

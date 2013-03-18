@@ -1,6 +1,6 @@
 #include "common.h"
 #include "ldtypes.h"
-#include "io.h"
+#include "file.h"
 #include "misc.h"
 
 const char* g_saObjTypeNames[] = {

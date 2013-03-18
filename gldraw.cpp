@@ -1,8 +1,8 @@
 #include <QtGui>
 #include <QGLWidget>
 #include "common.h"
-#include "io.h"
-#include "draw.h"
+#include "file.h"
+#include "gldraw.h"
 #include "bbox.h"
 
 renderer::renderer (QWidget* parent) {

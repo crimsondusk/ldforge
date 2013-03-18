@@ -1,9 +1,9 @@
 #include <QtGui>
 
 #include "common.h"
-#include "draw.h"
+#include "gldraw.h"
 #include "gui.h"
-#include "io.h"
+#include "file.h"
 
 #include "zz_setContentsDialog.h"
 

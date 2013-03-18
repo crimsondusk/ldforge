@@ -8,7 +8,7 @@
 #include <QTreeWidget>
 #include <QToolBar>
 #include <QTextEdit>
-#include "draw.h"
+#include "gldraw.h"
 
 class ForgeWindow : public QMainWindow {
 	Q_OBJECT

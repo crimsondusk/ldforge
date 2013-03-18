@@ -1,5 +1,5 @@
-#ifndef __REND_H__
-#define __REND_H__
+#ifndef __GLDRAW_H__
+#define __GLDRAW_H__
 
 #include <QGLWidget>
 #include "common.h"
@@ -29,4 +29,4 @@ private:
 	void ClampAngle (double& fAngle);
 };
 
-#endif
+#endif // __GLDRAW_H__

@@ -1,7 +1,7 @@
 #include <vector>
 
 #include "common.h"
-#include "io.h"
+#include "file.h"
 #include "misc.h"
 #include "bbox.h"
 #include "gui.h"

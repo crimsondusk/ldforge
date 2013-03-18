@@ -1,5 +1,5 @@
-#ifndef __IO_H__
-#define __IO_H__
+#ifndef __FILE_H__
+#define __FILE_H__
 
 #include "common.h"
 #include "ldtypes.h"
@@ -45,4 +45,4 @@ LDObject* parseLine (str zLine);
 extern vector<str> g_zaFileLoadPaths;
 extern vector<OpenFile*> g_LoadedFiles;
 
-#endif
+#endif // __FILE_H__
