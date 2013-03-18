@@ -80,7 +80,6 @@ static const char* g_ConfigTypeNames[] = {
 	"String",
 	"Float",
 	"Boolean",
-	"Color",
 };
 
 // =============================================================================
@@ -186,9 +185,6 @@ bool config::load () {
 				val = false;
 			break;
 		}
-		case CONFIG_color:
-			static_cast<colorconfig*> (cfg)->value.parseFromString (valstring);
-			break;
 		default:
 			break;
 		}
@@ -294,9 +290,6 @@ bool config::save () {
 				break;
 			case CONFIG_bool:
 				valstring = (static_cast<boolconfig*> (cfg)->value) ? "true" : "false";
-				break;
-			case CONFIG_color:
-				valstring = (str)(static_cast<colorconfig*> (cfg)->value);
 				break;
 			default:
 				break;

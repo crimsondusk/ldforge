@@ -3,7 +3,6 @@
 
 #include "common.h"
 #include "str.h"
-#include "color.h"
 
 // =============================================================================
 // Determine configuration file. Use APPNAME if given.
@@ -42,7 +41,6 @@ enum configtype_e {
 	CONFIG_str,
 	CONFIG_float,
 	CONFIG_bool,
-	CONFIG_color,
 };
 
 // =========================================================
@@ -217,14 +215,6 @@ public:
 	IMPLEMENT_CONFIG (bool)
 	DEFINE_ALL_COMPARE_OPERATORS (bool)
 	DEFINE_ASSIGN_OPERATOR (bool, =)
-};
-
-// =============================================================================
-CONFIGTYPE (color) {
-public:
-	IMPLEMENT_CONFIG (color)
-	// DEFINE_COMPARE_OPERATOR (color, ==)
-	// DEFINE_COMPARE_OPERATOR (color, !=)
 };
 
 // =============================================================================

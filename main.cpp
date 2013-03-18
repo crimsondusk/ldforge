@@ -3,6 +3,7 @@
 #include "file.h"
 #include "bbox.h"
 #include "misc.h"
+#include "config.h"
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = NULL;
@@ -10,11 +11,14 @@ ForgeWindow* g_qWindow = NULL;
 bbox g_BBox;
 
 int main (int dArgC, char* saArgV[]) {
-	// TODO
-	g_zaFileLoadPaths.push_back (".");
-	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts");
-	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts/s");
-	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/p");
+	// Load or create the configuration
+	if (!config::load()) {
+		printf ("Creating configuration file...\n");
+		if (config::save ())
+			printf ("Configuration file successfully created.\n");
+		else
+			printf ("failed to create configuration file!\n");
+	}
 	
 	QApplication app (dArgC, saArgV);
 	ForgeWindow* win = new ForgeWindow;

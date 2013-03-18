@@ -33,15 +33,22 @@ str::str () {
 
 str::str (const char* c) {
 	text = new char[1];
-	clear ();
-	alloclen = strlen (text);
+	text[0] = '\0';
+	curs = alloclen = 0;
 	append (c);
 }
 
 str::str (char c) {
 	text = new char[1];
-	clear ();
-	alloclen = strlen (text);
+	text[0] = '\0';
+	curs = alloclen = 0;
+	append (c);
+}
+
+str::str (QString c) {
+	text = new char[1];
+	text[0] = '\0';
+	curs = alloclen = 0;
 	append (c);
 }
 

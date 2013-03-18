@@ -66,14 +66,7 @@ void Dialog_SetContents::staticDialog (LDObject* obj, ForgeWindow* parent) {
 		// Reinterpret it from the text of the input field
 		obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
 		
-		// Remove the old object
-		delete oldobj;
-		
-		// Replace all instances of the old object with the new object
-		for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-			if (g_CurrentFile->objects[i] == oldobj)
-				g_CurrentFile->objects[i] = obj;
-		}
+		oldobj->replace (obj);
 		
 		// Rebuild stuff after this
 		parent->buildObjList ();

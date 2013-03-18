@@ -3,7 +3,7 @@
 #include "file.h"
 #include "misc.h"
 
-const char* g_saObjTypeNames[] = {
+char const* g_saObjTypeNames[] = {
 	"unidentified",
 	"unknown",
 	"empty",
@@ -152,7 +152,7 @@ str LDVector::getContents () {
 }
 
 str LDVertex::getContents () {
-	return "!LDFORGE VERTEX"; // TODO
+	return str::mkfmt ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.getStringRep (false).chars());
 }
 
 str LDEmpty::getContents () {
@@ -200,6 +200,17 @@ void LDQuad::splitToTriangles () {
 	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulIndex + 1, tri2);
 	
 	// Delete this quad now, it has been split.
+	delete this;
+}
+
+void LDObject::replace (LDObject* replacement) {
+	// Replace all instances of the old object with the new object
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
+		if (g_CurrentFile->objects[i] == this)
+			g_CurrentFile->objects[i] = replacement;
+	}
+	
+	// Remove the old object
 	delete this;
 }
 

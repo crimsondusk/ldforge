@@ -33,7 +33,7 @@ public:
 	str ();
 	str (const char* c);
 	str (char c);
-	str (const QString c);
+	str (QString c);
 	~str ();
 	
 	static str mkfmt (const char* fmt, ...) {

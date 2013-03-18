@@ -3,4 +3,4 @@
 
 // ---------------------------------------------------------
 SECT (io, Files)
-CFG (str, io, openfile, "Current open fle", "box5.dat")
+CFG (str, io, ldpath, "LDraw path", "")

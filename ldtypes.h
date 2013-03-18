@@ -60,6 +60,10 @@ public:
 	
 	void commonInit ();
 	
+	// Replace this LDObject with another LDObject. This method deletes the
+	// object and any pointers to it become invalid.
+    void replace (LDObject* replacement);
+	
 	QTreeWidgetItem* qObjListEntry;
 };
 
@@ -223,6 +227,7 @@ class LDVertex : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Vertex)
 	
+	short dColor;
 	vertex vPosition;
 };
 

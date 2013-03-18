@@ -35,11 +35,13 @@ public:
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
 	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVector, *qAct_newVertex;
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
+	QAction* qAct_settings;
 	QAction* qAct_about, *qAct_aboutQt;
 	
 	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
+	void refresh ();
 	
 	// Where would a new item be inserted into?
 	ulong getInsertionPoint ();
@@ -74,6 +76,8 @@ private slots:
 	void slot_cut ();
 	void slot_copy ();
 	void slot_paste ();
+	
+	void slot_settings ();
 	
 	void slot_about ();
 	void slot_aboutQt ();

@@ -9,6 +9,9 @@ long getWordInt (str& s, const ushort n) {
 	return atol ((s / " ")[n]);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 vertex parseVertex (str& s, const ushort n) {
 	vertex v;
 	v.x = getWordFloat (s, n);
@@ -18,6 +21,9 @@ vertex parseVertex (str& s, const ushort n) {
 	return v;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void stripWhitespace (str& s) {
 	str other;
 	
@@ -26,6 +32,9 @@ void stripWhitespace (str& s) {
 			other += s[i];
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 vertex bearing::project (vertex& vSource, ulong ulLength) {
 	vertex vDest = vSource;
 	
@@ -37,9 +46,7 @@ vertex bearing::project (vertex& vSource, ulong ulLength) {
 }
 
 // =============================================================================
-// str ftoa (double)
-//
-// Converts a double-precision float to a string value.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str ftoa (double fCoord) {
 	str zRep = str::mkfmt ("%.3f", fCoord);
@@ -57,10 +64,7 @@ str ftoa (double fCoord) {
 }
 
 // =============================================================================
-// isNumber (str&)
-//
-// Returns whether a given string represents a floating point number
-// TODO: Does LDraw support scientific notation?
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 bool isNumber (str& zToken) {
 	char* cpPointer = &zToken[0];

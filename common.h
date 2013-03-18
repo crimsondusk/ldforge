@@ -29,6 +29,12 @@
  #define FORMAT_PRINTF(M,N)
 #endif // __GNUC__
 
+#ifdef WIN32
+#define DIRSLASH "\\"
+#else // WIN32
+#define DIRSLASH "/"
+#endif // WIN32
+
 using std::vector;
 
 class ForgeWindow;

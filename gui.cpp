@@ -6,6 +6,7 @@
 #include "file.h"
 
 #include "zz_setContentsDialog.h"
+#include "zz_configDialog.h"
 
 ForgeWindow::ForgeWindow () {
 	R = new renderer;
@@ -36,6 +37,7 @@ ForgeWindow::ForgeWindow () {
 	
 	slot_selectionChanged ();
 	
+	setWindowIcon (QIcon ("icons/ldforge.png"));
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
@@ -46,9 +48,12 @@ ForgeWindow::ForgeWindow () {
 	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
 	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::createMenuActions () {
 	// Long menu names go here so my cool action definition table doesn't get out of proportions
-	const char* sNewCdLineText = "New Conditional Line",
+	char const* sNewCdLineText = "New Conditional Line",
 		*sNewQuadText = "New Quadrilateral",
 		*sAboutText = "About " APPNAME_DISPLAY;
 	
@@ -61,8 +66,6 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (cut,			"Cut",			"cut",			"Cut the current selection to clipboard.")
 	MAKE_ACTION (copy,			"Copy",			"copy",			"Copy the current selection to clipboard.")
 	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
-	MAKE_ACTION (about,			sAboutText,		"about",		"Shows information about " APPNAME_DISPLAY ".")
-	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
 	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
@@ -76,6 +79,11 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (newComment,	"New Comment",	"add-comment",	"Creates a new comment.");
 	MAKE_ACTION (newVector,		"New Vector",	"add-vector",	"Creates a new vector.")
 	MAKE_ACTION (newVertex,		"New Vertex",	"add-vertex",	"Creates a new vertex.")
+	
+	MAKE_ACTION (settings,		"Settings",		"settings",		"Edit the settings of " APPNAME_DISPLAY ".")
+	
+	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
+	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
 	// Keyboard shortcuts
 	qAct_new->setShortcut (Qt::CTRL | Qt::Key_N);
@@ -107,6 +115,9 @@ void ForgeWindow::createMenuActions () {
 		qaDisabledActions[i]->setEnabled (false);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::createMenus () {
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
@@ -114,6 +125,8 @@ void ForgeWindow::createMenus () {
 	qFileMenu->addAction (qAct_open);			// Open
 	qFileMenu->addAction (qAct_save);			// Save
 	qFileMenu->addAction (qAct_saveAs);			// Save As
+	qFileMenu->addSeparator ();					// -------
+	qFileMenu->addAction (qAct_settings);		// Settings
 	qFileMenu->addSeparator ();					// -------
 	qFileMenu->addAction (qAct_exit);			// Exit
 	
@@ -143,6 +156,9 @@ void ForgeWindow::createMenus () {
 	qHelpMenu->addAction (qAct_aboutQt);		// About Qt
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::createToolbars () {
 	qFileToolBar = new QToolBar ("File");
 	qFileToolBar->addAction (qAct_new);
@@ -172,6 +188,9 @@ void ForgeWindow::createToolbars () {
 	addToolBar (qEditToolBar);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::setTitle () {
 	str zTitle = APPNAME_DISPLAY " v" VERSION_STRING;
 	
@@ -215,6 +234,10 @@ void ForgeWindow::slot_saveAs () {
 	
 	if (~zName && g_CurrentFile->save (zName))
 		g_CurrentFile->zFileName = zName;
+}
+
+void ForgeWindow::slot_settings () {
+	ConfigDialog::staticDialog (this);
 }
 
 void ForgeWindow::slot_exit () {
@@ -290,7 +313,7 @@ void ForgeWindow::slot_splitQuads () {
 	if (qObjList->selectedItems().size() == 0)
 		return;
 	
-	const QList<QTreeWidgetItem*> qaItems = qObjList->selectedItems();
+	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems();
 	
 	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
 		LDObject* obj = g_CurrentFile->objects[i];
@@ -343,6 +366,9 @@ void ForgeWindow::slot_setContents () {
 	Dialog_SetContents::staticDialog (obj, this);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 static QIcon IconForObjectType (LDObject* obj) {
 	switch (obj->getType ()) {
 	case OBJ_Empty:
@@ -380,6 +406,9 @@ static QIcon IconForObjectType (LDObject* obj) {
 	return QIcon ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
@@ -471,6 +500,9 @@ void ForgeWindow::buildObjList () {
 	qObjList->insertTopLevelItems (0, qaItems);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_selectionChanged () {
 	// If the selection isn't 1 exact, disable setting contents
 	qAct_setContents->setEnabled (qObjList->selectedItems().size() == 1);
@@ -499,4 +531,9 @@ ulong ForgeWindow::getInsertionPoint () {
 	
 	// Otherwise place the object at the end.
 	return g_CurrentFile->objects.size();
+}
+
+void ForgeWindow::refresh () {
+	buildObjList ();
+	R->hardRefresh ();
 }

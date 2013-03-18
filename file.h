@@ -42,7 +42,12 @@ void closeAll ();
 // Parses a string line containing an LDraw object and returns the object parsed.
 LDObject* parseLine (str zLine);
 
-extern vector<str> g_zaFileLoadPaths;
+// Retrieves the pointer to - or loads - the given subfile.
+OpenFile* loadSubfile (str zFile);
+
+// Re-caches all subfiles.
+void reloadAllSubfiles ();
+
 extern vector<OpenFile*> g_LoadedFiles;
 
 #endif // __FILE_H__

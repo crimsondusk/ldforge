@@ -6,18 +6,20 @@
 #include "bbox.h"
 #include "gui.h"
 
-vector<str> g_zaFileLoadPaths;
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* findLoadedFile (str name) {
+OpenFile* findLoadedFile (str zName) {
+	printf ("finding %s in files\n", zName.chars());
+	
 	for (ulong i = 0; i < g_LoadedFiles.size(); i++) {
 		OpenFile* const file = g_LoadedFiles[i];
-		if (file->zFileName == name)
+		printf ("%s <-> %s\n", file->zFileName.chars(), zName.chars());
+		if (file->zFileName == zName)
 			return file;
 	}
 	
+	printf ("failed to find given file\n");
 	return nullptr;
 }
 
@@ -29,9 +31,17 @@ OpenFile* openDATFile (str path) {
 	
 	FILE* fp = fopen (path.chars (), "r");
 	
-	if (!fp) {
-		for (ushort i = 0; i < g_zaFileLoadPaths.size(); ++i) {
-			str zFilePath = str::mkfmt ("%s/%s", g_zaFileLoadPaths[i].chars(), path.chars());
+	if (!fp && ~io_ldpath.value) {
+		char const* saSubdirectories[] = {
+			"parts",
+			"p",
+		};
+		
+		for (ushort i = 0; i < sizeof saSubdirectories / sizeof *saSubdirectories; ++i) {
+			str zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
+				io_ldpath.value.chars(), saSubdirectories[i], path.chars());
+			
+			printf ("trying %s...\n", zFilePath.chars ());
 			fp = fopen (zFilePath.chars (), "r");
 			
 			if (fp)
@@ -114,7 +124,7 @@ void closeAll () {
 	g_LoadedFiles.clear();
 	g_CurrentFile = NULL;
 	
-	g_qWindow->R->hardRefresh();
+	g_qWindow->refresh ();
 }
 
 // =============================================================================
@@ -130,8 +140,7 @@ void newFile () {
 	g_CurrentFile = f;
 	
 	g_BBox.calculate();
-	g_qWindow->buildObjList ();
-	g_qWindow->R->hardRefresh();
+	g_qWindow->refresh ();
 }
 
 // =============================================================================
@@ -147,8 +156,7 @@ void openMainFile (str zPath) {
 	g_BBox.calculate();
 	
 	// Rebuild the object tree view now.
-	g_qWindow->buildObjList ();
-	g_qWindow->setTitle ();
+	g_qWindow->refresh ();
 }
 
 // =============================================================================
@@ -227,9 +235,7 @@ LDObject* parseLine (str zLine) {
 #endif // WIN32
 			
 			// Try open the file
-			OpenFile* pFile = findLoadedFile (tokens[14]);
-			if (!pFile)
-				pFile = openDATFile (tokens[14]);
+			OpenFile* pFile = loadSubfile (tokens[14]);
 			
 			// If we cannot open the file, mark it an error
 			if (!pFile)
@@ -309,5 +315,53 @@ LDObject* parseLine (str zLine) {
 		
 	default: // Strange line we couldn't parse
 		return new LDGibberish (zLine, "Unknown line code number");
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+OpenFile* loadSubfile (str zFile) {
+	// Try open the file
+	OpenFile* pFile = findLoadedFile (zFile);
+	if (!pFile)
+		pFile = openDATFile (zFile);
+	
+	return pFile;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void reloadAllSubfiles () {
+	// First, close all but the current open file.
+	for (ushort i = 0; i < g_LoadedFiles.size(); ++i)
+		if (g_LoadedFiles[i] != g_CurrentFile)
+			g_LoadedFiles[i]->close();
+	
+	g_LoadedFiles.clear ();
+	g_LoadedFiles.push_back (g_CurrentFile);
+	
+	// Go through all the current file and reload the subfiles
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
+		LDObject* obj = g_CurrentFile->objects[i];
+		
+		// Reload subfiles
+		if (obj->getType() == OBJ_Subfile) {
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			OpenFile* pFile = loadSubfile (ref->zFileName);
+			
+			if (pFile)
+				ref->pFile = pFile;
+			else {
+				// Couldn't load the file, mark it an error
+				ref->replace (new LDGibberish (ref->getContents (), "Could not open referred file"));
+			}
+		}
+		
+		// Reparse gibberish files. It could be that they are invalid because
+		// the file could not be opened. Circumstances may be different now.
+		if (obj->getType() == OBJ_Gibberish)
+			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->zContents));
 	}
 }
