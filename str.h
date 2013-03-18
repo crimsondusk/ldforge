@@ -6,10 +6,7 @@
 #include <stdarg.h>
 // #include <initializer_list>
 #include <vector>
-
-#ifdef QT_VERSION
- #include <QString>
-#endif // QT_VERSION
+#include <QString>
 
 char* vdynformat (const char* csFormat, va_list vArgs, long int lSize);
 
@@ -36,6 +33,7 @@ public:
 	str ();
 	str (const char* c);
 	str (char c);
+	str (const QString c);
 	~str ();
 	
 	static str mkfmt (const char* fmt, ...) {
@@ -69,9 +67,10 @@ public:
 	void dump ();
 	
 	// Appends text to the string
-	void append (char c);
+	void append (const char c);
 	void append (const char* c);
 	void append (str c);
+	void append (QString c);
 	
 	// Formats text to the string.
 	void format (const char* fmt, ...);
@@ -97,6 +96,9 @@ public:
 	// Removes a given index from the string, optionally more characters than just 1.
 	void remove (unsigned int idx, unsigned int dellen=1);
 	
+	// Trims the given amount of characters. If negative, the characters
+	// are removed from the beginning of the string, if positive, from the
+	// end of the string.
 	str trim (int dellen);
 	
 	// Inserts a substring into a certain position.
@@ -162,6 +164,11 @@ public:
 	}
 	
 	str& operator+= (const str c) {
+		append (c);
+		return *this;
+	}
+	
+	str& operator+= (const QString c) {
 		append (c);
 		return *this;
 	}
@@ -245,11 +252,9 @@ public:
 		return text;
 	}
 	
-#ifdef QT_VERSION
 	operator QString () const {
 		return text;
 	}
-#endif // QT_VERSION
 	
 	operator int () const {
 		return atoi (text);

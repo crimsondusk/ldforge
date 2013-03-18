@@ -3,12 +3,11 @@
 #include "common.h"
 #include "draw.h"
 #include "gui.h"
-#include "model.h"
 #include "io.h"
 
 #include "zz_setContentsDialog.h"
 
-LDForgeWindow::LDForgeWindow () {
+ForgeWindow::ForgeWindow () {
 	R = new renderer;
 	
 	qObjList = new QTreeWidget;
@@ -47,7 +46,7 @@ LDForgeWindow::LDForgeWindow () {
 	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
 	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
 
-void LDForgeWindow::createMenuActions () {
+void ForgeWindow::createMenuActions () {
 	// Long menu names go here so my cool action definition table doesn't get out of proportions
 	const char* sNewCdLineText = "New Conditional Line",
 		*sNewQuadText = "New Quadrilateral",
@@ -109,7 +108,7 @@ void LDForgeWindow::createMenuActions () {
 		qaDisabledActions[i]->setEnabled (false);
 }
 
-void LDForgeWindow::createMenus () {
+void ForgeWindow::createMenus () {
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
 	qFileMenu->addAction (qAct_new);			// New
@@ -145,7 +144,7 @@ void LDForgeWindow::createMenus () {
 	qHelpMenu->addAction (qAct_aboutQt);		// About Qt
 }
 
-void LDForgeWindow::createToolbars () {
+void ForgeWindow::createToolbars () {
 	qFileToolBar = new QToolBar ("File");
 	qFileToolBar->addAction (qAct_new);
 	qFileToolBar->addAction (qAct_open);
@@ -174,7 +173,7 @@ void LDForgeWindow::createToolbars () {
 	addToolBar (qEditToolBar);
 }
 
-void LDForgeWindow::setTitle () {
+void ForgeWindow::setTitle () {
 	str zTitle = APPNAME_DISPLAY " v" VERSION_STRING;
 	
 	// Append our current file if we have one
@@ -193,38 +192,34 @@ void LDForgeWindow::setTitle () {
 	setWindowTitle (zTitle.chars());
 }
 
-void LDForgeWindow::slot_new () {
-	printf ("new file\n");
-	
-	closeModel ();
-	newModel ();
+void ForgeWindow::slot_new () {
+	newFile ();
 }
 
-void LDForgeWindow::slot_open () {
+void ForgeWindow::slot_open () {
 	str name = QFileDialog::getOpenFileName (this, "Open File",
 		"", "LDraw files (*.dat *.ldr)").toStdString().c_str();
 	
-	openModel (name);
+	openMainFile (name);
 }
 
-void LDForgeWindow::slot_save () {
-	saveModel ();
+void ForgeWindow::slot_save () {
+	g_CurrentFile->save ();
 }
 
-void LDForgeWindow::slot_saveAs () {
-	printf ("save as file\n");
-}
-
-void LDForgeWindow::slot_exit () {
-	printf ("exit\n");
-	exit (0);
-}
-
-void LDForgeWindow::slot_newSubfile () {
+void ForgeWindow::slot_saveAs () {
 	
 }
 
-void LDForgeWindow::slot_newLine () {
+void ForgeWindow::slot_exit () {
+	exit (0);
+}
+
+void ForgeWindow::slot_newSubfile () {
+	
+}
+
+void ForgeWindow::slot_newLine () {
 	LDLine* line = new LDLine;
 	const ulong ulSpot = getInsertionPoint ();
 	
@@ -237,55 +232,55 @@ void LDForgeWindow::slot_newLine () {
 	R->hardRefresh ();
 }
 
-void LDForgeWindow::slot_newTriangle () {
+void ForgeWindow::slot_newTriangle () {
 	
 }
 
-void LDForgeWindow::slot_newQuad () {
+void ForgeWindow::slot_newQuad () {
 	
 }
 
-void LDForgeWindow::slot_newCondLine () {
+void ForgeWindow::slot_newCondLine () {
 
 }
 
-void LDForgeWindow::slot_newComment () {
+void ForgeWindow::slot_newComment () {
 
 }
 
-void LDForgeWindow::slot_about () {
+void ForgeWindow::slot_about () {
 	
 }
 
-void LDForgeWindow::slot_aboutQt () {
+void ForgeWindow::slot_aboutQt () {
 	QMessageBox::aboutQt (this);
 }
 
-void LDForgeWindow::slot_cut () {
+void ForgeWindow::slot_cut () {
 
 }
 
-void LDForgeWindow::slot_copy () {
+void ForgeWindow::slot_copy () {
 
 }
 
-void LDForgeWindow::slot_paste () {
+void ForgeWindow::slot_paste () {
 	
 }
 
-void LDForgeWindow::slot_newVector () {
+void ForgeWindow::slot_newVector () {
 	
 }
 
-void LDForgeWindow::slot_newVertex () {
+void ForgeWindow::slot_newVertex () {
 	
 }
 
-void LDForgeWindow::slot_inline () {
+void ForgeWindow::slot_inline () {
 
 }
 
-void LDForgeWindow::slot_splitQuads () {
+void ForgeWindow::slot_splitQuads () {
 	if (qObjList->selectedItems().size() == 0)
 		return;
 	
@@ -321,7 +316,7 @@ void LDForgeWindow::slot_splitQuads () {
 	R->hardRefresh ();
 }
 
-void LDForgeWindow::slot_setContents () {
+void ForgeWindow::slot_setContents () {
 	if (qObjList->selectedItems().size() != 1)
 		return;
 	
@@ -379,7 +374,7 @@ static QIcon IconForObjectType (LDObject* obj) {
 	return QIcon ();
 }
 
-void LDForgeWindow::buildObjList () {
+void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
 	
@@ -389,7 +384,6 @@ void LDForgeWindow::buildObjList () {
 	
 	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
 		LDObject* obj = g_CurrentFile->objects[i];
-		printf ("%lu: %p\n", i, obj);
 		
 		str zText;
 		switch (obj->getType ()) {
@@ -471,7 +465,7 @@ void LDForgeWindow::buildObjList () {
 	qObjList->insertTopLevelItems (0, qaItems);
 }
 
-void LDForgeWindow::slot_selectionChanged () {
+void ForgeWindow::slot_selectionChanged () {
 	// If the selection isn't 1 exact, disable setting contents
 	qAct_setContents->setEnabled (qObjList->selectedItems().size() == 1);
 	
@@ -484,7 +478,7 @@ void LDForgeWindow::slot_selectionChanged () {
 // 
 // Returns the index of where a new item should be placed at.
 // =============================================================================
-ulong LDForgeWindow::getInsertionPoint () {
+ulong ForgeWindow::getInsertionPoint () {
 	ulong ulIndex;
 	
 	if (qObjList->selectedItems().size() == 1) {

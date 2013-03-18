@@ -6,18 +6,18 @@
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = NULL;
-LDForgeWindow* g_qWindow = NULL; 
+ForgeWindow* g_qWindow = NULL; 
 bbox g_BBox;
 
-int main (int argc, char** argv) {
+int main (int dArgC, char* saArgV[]) {
 	// TODO
 	g_zaFileLoadPaths.push_back (".");
 	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts");
 	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts/s");
 	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/p");
 	
-	QApplication app (argc, argv);
-	LDForgeWindow* win = new LDForgeWindow;
+	QApplication app (dArgC, saArgV);
+	ForgeWindow* win = new ForgeWindow;
 	g_qWindow = win;
 	win->show ();
 	return app.exec ();

@@ -55,7 +55,7 @@ void Dialog_SetContents::slot_handleButtons (QAbstractButton* qButton) {
 // are exposed to the user and is reinterpreted if the user accepts the new
 // contents.
 // =============================================================================
-void Dialog_SetContents::staticDialog (LDObject* obj, LDForgeWindow* parent) {
+void Dialog_SetContents::staticDialog (LDObject* obj, ForgeWindow* parent) {
 	if (!obj)
 		return;
 	
@@ -64,7 +64,7 @@ void Dialog_SetContents::staticDialog (LDObject* obj, LDForgeWindow* parent) {
 		LDObject* oldobj = obj;
 		
 		// Reinterpret it from the text of the input field
-		obj = ParseLine (dlg.qContents->text ().toStdString ().c_str ());
+		obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
 		
 		// Remove the old object
 		delete oldobj;

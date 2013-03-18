@@ -13,7 +13,7 @@ public:
 	LDObject* patient;
 	
 	Dialog_SetContents (LDObject* obj, QWidget* parent = nullptr);
-	static void staticDialog (LDObject* obj, LDForgeWindow* parent);
+	static void staticDialog (LDObject* obj, ForgeWindow* parent);
 	
 private slots:
 	void slot_handleButtons (QAbstractButton* qButton);

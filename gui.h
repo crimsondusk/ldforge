@@ -10,7 +10,7 @@
 #include <QTextEdit>
 #include "draw.h"
 
-class LDForgeWindow : public QMainWindow {
+class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
 public:
@@ -37,7 +37,7 @@ public:
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
 	QAction* qAct_about, *qAct_aboutQt;
 	
-	LDForgeWindow ();
+	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
 	

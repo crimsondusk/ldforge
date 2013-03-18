@@ -8,10 +8,11 @@ inline str GetWord (str& zString, ulong ulIndex) {
 	return (zString / " ")[ulIndex];
 }
 
-double GetWordFloat (str& s, const ushort n);
-long GetWordInt (str& s, const ushort n);
-vertex ParseVertex (str& s, const ushort n);
-void StripWhitespace (str& s);
+double getWordFloat (str& s, const ushort n);
+long getWordInt (str& s, const ushort n);
+vertex parseVertex (str& s, const ushort n);
+void stripWhitespace (str& s);
+bool isNumber (str& zToken);
 
 // Float to string
 str ftoa (double fCoord);

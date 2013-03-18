@@ -31,7 +31,7 @@
 
 using std::vector;
 
-class LDForgeWindow;
+class ForgeWindow;
 class LDObject;
 class bbox;
 class OpenFile;
@@ -114,7 +114,7 @@ void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
 
 extern OpenFile* g_CurrentFile;
 extern bbox g_BBox;
-extern LDForgeWindow* g_qWindow;
+extern ForgeWindow* g_qWindow;
 extern vector<OpenFile*> g_LoadedFiles;
 
 #ifndef unix

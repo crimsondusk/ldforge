@@ -19,8 +19,8 @@ class QTreeWidgetItem;
 // Object type codes
 // =============================================================================
 enum LDObjectType_e {
-	OBJ_Unidentified,	// Object is uninitialized (LDObject)
-	OBJ_Gibberish,		// Object is unknown (LDUnknown; bad code number)
+	OBJ_Unidentified,	// Object is an uninitialized (LDObject) (SHOULD NEVER HAPPEN)
+	OBJ_Gibberish,		// Object is the result of failed parsing (LDGibberish)
 	OBJ_Empty,			// Object represents an empty line (LDEmpty)
 	OBJ_Comment,		// Object represents a comment (LDComment, code: 0)
 	OBJ_Subfile,		// Object represents a sub-file reference (LDSubfile, code: 1)

@@ -4,15 +4,14 @@
 #include "io.h"
 #include "misc.h"
 #include "bbox.h"
+#include "gui.h"
 
 vector<str> g_zaFileLoadPaths;
 
 // =============================================================================
-// IO_FindLoadedFile (str)
-//
-// Returns a pointer to the first found open file with the given name.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* IO_FindLoadedFile (str name) {
+OpenFile* findLoadedFile (str name) {
 	for (ulong i = 0; i < g_LoadedFiles.size(); i++) {
 		OpenFile* const file = g_LoadedFiles[i];
 		if (file->zFileName == name)
@@ -23,11 +22,9 @@ OpenFile* IO_FindLoadedFile (str name) {
 }
 
 // =============================================================================
-// IO_OpenLDrawFile (str)
-//
-// Opens the given file and parses the LDraw code within.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* IO_OpenLDrawFile (str path) {
+OpenFile* openDATFile (str path) {
 	logf ("Opening %s...\n", path.chars());
 	
 	FILE* fp = fopen (path.chars (), "r");
@@ -69,10 +66,10 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	fclose (fp);
 	
 	for (ulong i = 0; i < lines.size(); ++i) {
-		LDObject* obj = ParseLine (lines[i]);
+		LDObject* obj = parseLine (lines[i]);
 		load->objects.push_back (obj);
 		
-		// Check for warnings
+		// Check for parse errors and warn abotu tthem
 		if (obj->getType() == OBJ_Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
 				i, static_cast<LDGibberish*> (obj)->zReason.chars());
@@ -90,44 +87,96 @@ OpenFile* IO_OpenLDrawFile (str path) {
 }
 
 // =============================================================================
-// isNumber (char*) [static]
-//
-// Returns whether a given string represents a floating point number
-// TODO: Does LDraw support scientific notation?
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static bool isNumber (char* sToken) {
-	char* sPointer = &sToken[0];
-	bool bGotDot = false;
+// Clear everything from the model
+void OpenFile::close () {
+	for (ulong j = 0; j < objects.size(); ++j)
+		delete objects[j];
 	
-	// Allow leading hyphen for negatives
-	if (*sPointer == '-')
-		sPointer++;
-	
-	while (*sPointer != '\0') {
-		if (*sPointer == '.' && !bGotDot) {
-			// Decimal point
-			bGotDot = true;
-			sPointer++;
-			continue;
-		}
-		
-		if (*sPointer >= '0' && *sPointer <= '9') {
-			sPointer++;
-			continue; // Digit
-		}
-		
-		// If the above cases didn't catch this character, it was
-		// illegal and this is therefore not a number.
-		return false;
-	}
-	
-	return true;
+	delete this;
 }
 
 // =============================================================================
-// ParseLine (str)
-//
-// Parses a string line containing an LDraw object and returns the object parsed.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void closeAll () {
+	if (!g_LoadedFiles.size())
+		return;
+	
+	// Remove all loaded files and the objects they contain
+	for (ushort i = 0; i < g_LoadedFiles.size(); i++) {
+		OpenFile* f = g_LoadedFiles[i];
+		f->close ();
+	}
+	
+	// Clear the array
+	g_LoadedFiles.clear();
+	g_CurrentFile = NULL;
+	
+	g_qWindow->R->hardRefresh();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void newFile () {
+	// Create a new anonymous file and set it to our current
+	closeAll ();
+	
+	OpenFile* f = new OpenFile;
+	f->zFileName = "";
+	g_LoadedFiles.push_back (f);
+	g_CurrentFile = f;
+	
+	g_BBox.calculate();
+	g_qWindow->buildObjList ();
+	g_qWindow->R->hardRefresh();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void openMainFile (str zPath) {
+	closeAll ();
+	
+	OpenFile* pFile = openDATFile (zPath);
+	g_CurrentFile = pFile;
+	
+	// Recalculate the bounding box
+	g_BBox.calculate();
+	
+	// Rebuild the object tree view now.
+	g_qWindow->buildObjList ();
+	g_qWindow->setTitle ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void OpenFile::save (str zPath) {
+	if (!~zPath)
+		zPath = zFileName;
+	
+	FILE* fp = fopen (zPath, "w");
+	if (!fp)
+		return;
+	
+	// Write all entries now
+	for (ulong i = 0; i < objects.size(); ++i) {
+		LDObject* obj = objects[i];
+		
+		// LDraw requires lines to have DOS line endings
+		str zLine = str::mkfmt ("%s\r\n",obj->getContents ().chars ());
+		
+		fwrite (zLine.chars(), 1, ~zLine, fp);
+	}
+	
+	fclose (fp);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define CHECK_TOKEN_COUNT(N) \
 	if (tokens.size() != N) \
@@ -139,9 +188,9 @@ static bool isNumber (char* sToken) {
 			return new LDGibberish (zLine, str::mkfmt ("Token #%u was `%s`, expected a number", \
 				(i + 1), tokens[i].chars()));
 
-LDObject* ParseLine (str zLine) {
+LDObject* parseLine (str zLine) {
 	str zNoWhitespace = zLine;
-	StripWhitespace (zNoWhitespace);
+	stripWhitespace (zNoWhitespace);
 	if (!~zNoWhitespace) {
 		// Line was empty, or only consisted of whitespace
 		return new LDEmpty;
@@ -177,9 +226,9 @@ LDObject* ParseLine (str zLine) {
 #endif // WIN32
 			
 			// Try open the file
-			OpenFile* pFile = IO_FindLoadedFile (tokens[14]);
+			OpenFile* pFile = findLoadedFile (tokens[14]);
 			if (!pFile)
-				pFile = IO_OpenLDrawFile (tokens[14]);
+				pFile = openDATFile (tokens[14]);
 			
 			// If we cannot open the file, mark it an error
 			if (!pFile)
@@ -187,7 +236,7 @@ LDObject* ParseLine (str zLine) {
 			
 			LDSubfile* obj = new LDSubfile;
 			obj->dColor = atoi (tokens[1]);
-			obj->vPosition = ParseVertex (zLine, 2); // 2 - 4
+			obj->vPosition = parseVertex (zLine, 2); // 2 - 4
 			
 			for (short i = 0; i < 9; ++i)
 				obj->faMatrix[i] = atof (tokens[i + 5]); // 5 - 13
@@ -204,9 +253,9 @@ LDObject* ParseLine (str zLine) {
 			
 			// Line
 			LDLine* obj = new LDLine;
-			obj->dColor = GetWordInt (zLine, 1);
+			obj->dColor = getWordInt (zLine, 1);
 			for (short i = 0; i < 2; ++i)
-				obj->vaCoords[i] = ParseVertex (zLine, 2 + (i * 3)); // 2 - 7
+				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 7
 			return obj;
 		}
 	
@@ -217,10 +266,10 @@ LDObject* ParseLine (str zLine) {
 			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
-			obj->dColor = GetWordInt (zLine, 1);
+			obj->dColor = getWordInt (zLine, 1);
 			
 			for (short i = 0; i < 3; ++i)
-				obj->vaCoords[i] = ParseVertex (zLine, 2 + (i * 3)); // 2 - 10
+				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 10
 			
 			return obj;
 		}
@@ -232,10 +281,10 @@ LDObject* ParseLine (str zLine) {
 			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
-			obj->dColor = GetWordInt (zLine, 1);
+			obj->dColor = getWordInt (zLine, 1);
 			
 			for (short i = 0; i < 4; ++i)
-				obj->vaCoords[i] = ParseVertex (zLine, 2 + (i * 3)); // 2 - 13
+				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 13
 			
 			return obj;
 		}
@@ -247,13 +296,13 @@ LDObject* ParseLine (str zLine) {
 			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
-			obj->dColor = GetWordInt (zLine, 1);
+			obj->dColor = getWordInt (zLine, 1);
 			
 			for (short i = 0; i < 2; ++i)
-				obj->vaCoords[i] = ParseVertex (zLine, 2 + (i * 3)); // 2 - 7
+				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 7
 			
 			for (short i = 0; i < 2; ++i)
-				obj->vaControl[i] = ParseVertex (zLine, 8 + (i * 3)); // 8 - 13
+				obj->vaControl[i] = parseVertex (zLine, 8 + (i * 3)); // 8 - 13
 			return obj;
 		}
 		

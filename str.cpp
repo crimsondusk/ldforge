@@ -82,7 +82,7 @@ void str::dump () {
 
 // ============================================================================
 // Adds a new character at the end of the string.
-void str::append (char c) {
+void str::append (const char c) {
 	// Out of space, thus resize
 	if (curs == alloclen)
 		resize (alloclen + 1);
@@ -101,6 +101,10 @@ void str::append (const char* c) {
 
 void str::append (str c) {
 	append (c.chars());
+}
+
+void str::append (QString c) {
+	append (c.toUtf8 ().constData ());
 }
 
 // ============================================================================
@@ -256,6 +260,7 @@ void str::replace (const char* o, const char* n, unsigned int a) {
 }
 
 // ============================================================================
+// It works otherwise but I'm having trouble with the initializer_list
 /*
 void str::strip (char c) {
 	strip ({c});

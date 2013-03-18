@@ -16,8 +16,6 @@ HEADERS += bbox.h \
 	io.h \
 	ldtypes.h \
 	misc.h \
-	model.h \
-	scanner.h \
 	str.h \
 	config.h \
 	cfgdef.h \
@@ -30,8 +28,6 @@ SOURCES += bbox.cpp \
 	ldtypes.cpp \
 	main.cpp \
 	misc.cpp \
-	model.cpp \
-	scanner.cpp \
 	str.cpp \ 
 	config.cpp \
 	zz_setContentsDialog.cpp
