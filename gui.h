@@ -34,7 +34,7 @@ public:
 	QAction* qAct_cut, *qAct_copy, *qAct_paste;
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
 	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVector, *qAct_newVertex;
-	QAction* qAct_splitQuads, *qAct_setContents;
+	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
 	QAction* qAct_about, *qAct_aboutQt;
 	
 	LDForgeWindow ();
@@ -67,6 +67,7 @@ private slots:
 	void slot_newVector ();
 	void slot_newVertex ();
 	
+	void slot_inline ();
 	void slot_splitQuads ();
 	void slot_setContents ();
 	

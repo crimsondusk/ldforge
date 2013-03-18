@@ -65,6 +65,7 @@ void LDForgeWindow::createMenuActions () {
 	MAKE_ACTION (about,			sAboutText,		"about",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
+	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
 	
@@ -100,7 +101,8 @@ void LDForgeWindow::createMenuActions () {
 		qAct_cut,
 		qAct_copy,
 		qAct_paste,
-		qAct_about
+		qAct_about,
+		qAct_inline,
 	};
 	
 	for (ushort i = 0; i < sizeof qaDisabledActions / sizeof *qaDisabledActions; ++i)
@@ -133,6 +135,7 @@ void LDForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_copy);			// Copy
 	qEditMenu->addAction (qAct_paste);			// Paste
 	qEditMenu->addSeparator ();					// -----
+	qEditMenu->addAction (qAct_inline);			// Inline
 	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
 	qEditMenu->addAction (qAct_setContents);	// Set Contents
 	
@@ -165,6 +168,7 @@ void LDForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_cut);
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
+	qEditToolBar->addAction (qAct_inline);
 	qEditToolBar->addAction (qAct_splitQuads);
 	qEditToolBar->addAction (qAct_setContents);
 	addToolBar (qEditToolBar);
@@ -275,6 +279,10 @@ void LDForgeWindow::slot_newVector () {
 
 void LDForgeWindow::slot_newVertex () {
 	
+}
+
+void LDForgeWindow::slot_inline () {
+
 }
 
 void LDForgeWindow::slot_splitQuads () {

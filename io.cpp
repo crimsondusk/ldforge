@@ -3,7 +3,6 @@
 #include "common.h"
 #include "io.h"
 #include "misc.h"
-#include "gui.h"
 #include "bbox.h"
 
 vector<str> g_zaFileLoadPaths;
@@ -36,7 +35,6 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	if (!fp) {
 		for (ushort i = 0; i < g_zaFileLoadPaths.size(); ++i) {
 			str zFilePath = str::mkfmt ("%s/%s", g_zaFileLoadPaths[i].chars(), path.chars());
-			printf ("try open %s\n", zFilePath.chars ());
 			fp = fopen (zFilePath.chars (), "r");
 			
 			if (fp)

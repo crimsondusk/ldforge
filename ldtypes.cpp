@@ -202,3 +202,15 @@ void LDQuad::splitToTriangles () {
 	// Delete this quad now, it has been split.
 	delete this;
 }
+
+LDObject::~LDObject () {}
+LDComment::~LDComment () {}
+LDCondLine::~LDCondLine () {}
+LDEmpty::~LDEmpty () {}
+LDGibberish::~LDGibberish () {}
+LDLine::~LDLine () {}
+LDQuad::~LDQuad () {}
+LDSubfile::~LDSubfile () {}
+LDTriangle::~LDTriangle () {}
+LDVector::~LDVector () {}
+LDVertex::~LDVertex () {}

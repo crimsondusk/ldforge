@@ -5,6 +5,7 @@
 
 #define IMPLEMENT_LDTYPE(N) \
 	LD##N (); \
+	virtual ~LD##N (); \
 	virtual LDObjectType_e getType () const { \
 		return OBJ_##N; \
 	} \
@@ -42,6 +43,7 @@ enum LDObjectType_e {
 class LDObject {
 public:
 	LDObject ();
+	virtual ~LDObject ();
 	
 	// Index (i.e. line number) of this object
 	unsigned long getIndex ();
