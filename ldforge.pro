@@ -11,9 +11,9 @@ OBJECTS_DIR = build/
 # Input
 HEADERS += bbox.h \
 	common.h \
-	draw.h \
+	gldraw.h \
 	gui.h \
-	io.h \
+	file.h \
 	ldtypes.h \
 	misc.h \
 	str.h \
@@ -22,9 +22,9 @@ HEADERS += bbox.h \
 	zz_setContentsDialog.h
 
 SOURCES += bbox.cpp \
-	draw.cpp \
+	gldraw.cpp \
 	gui.cpp \
-	io.cpp \
+	file.cpp \
 	ldtypes.cpp \
 	main.cpp \
 	misc.cpp \
