@@ -154,13 +154,13 @@ void openMainFile (str zPath) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void OpenFile::save (str zPath) {
+bool OpenFile::save (str zPath) {
 	if (!~zPath)
 		zPath = zFileName;
 	
 	FILE* fp = fopen (zPath, "w");
 	if (!fp)
-		return;
+		return false;
 	
 	// Write all entries now
 	for (ulong i = 0; i < objects.size(); ++i) {
@@ -173,6 +173,7 @@ void OpenFile::save (str zPath) {
 	}
 	
 	fclose (fp);
+	return true;
 }
 
 // =============================================================================

@@ -89,7 +89,6 @@ void ForgeWindow::createMenuActions () {
 	
 	// things not implemented yet
 	QAction* qaDisabledActions[] = {
-		qAct_saveAs,
 		qAct_newSubfile,
 		qAct_newTriangle,
 		qAct_newQuad,
@@ -197,10 +196,12 @@ void ForgeWindow::slot_new () {
 }
 
 void ForgeWindow::slot_open () {
-	str name = QFileDialog::getOpenFileName (this, "Open File",
-		"", "LDraw files (*.dat *.ldr)").toStdString().c_str();
+	str zName;
+	zName += QFileDialog::getOpenFileName (this, "Open File",
+		"", "LDraw files (*.dat *.ldr)");
 	
-	openMainFile (name);
+	if (~zName)
+		openMainFile (zName);
 }
 
 void ForgeWindow::slot_save () {
@@ -208,7 +209,12 @@ void ForgeWindow::slot_save () {
 }
 
 void ForgeWindow::slot_saveAs () {
+	str zName;
+	zName += QFileDialog::getSaveFileName (this, "Save As",
+		"", "LDraw files (*.dat *.ldr)");
 	
+	if (~zName && g_CurrentFile->save (zName))
+		g_CurrentFile->zFileName = zName;
 }
 
 void ForgeWindow::slot_exit () {

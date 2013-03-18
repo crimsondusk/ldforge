@@ -25,8 +25,8 @@ protected:
 
 private:
 	GLuint objlist;
-	void CompileOneObject (LDObject* obj);
-	void ClampAngle (double& fAngle);
+	void compileOneObject (LDObject* obj);
+	void clampAngle (double& fAngle);
 };
 
 #endif // __GLDRAW_H__

@@ -20,7 +20,7 @@ public:
 	void close ();
 	
 	// Saves this file to disk.
-	void save (str zPath = "");
+	bool save (str zPath = "");
 };
 
 // Close all current loaded files and start off blank.

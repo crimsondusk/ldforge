@@ -68,7 +68,7 @@ void renderer::CompileObjects () {
 	}
 	
 	for (ulong i = 0; i < g_CurrentFile->objects.size(); i++)
-		CompileOneObject (g_CurrentFile->objects[i]);
+		compileOneObject (g_CurrentFile->objects[i]);
 	
 	glEndList ();
 }
@@ -76,7 +76,7 @@ void renderer::CompileObjects () {
 #define GL_VERTEX(V) \
 	glVertex3d (V.x, V.y, V.z);
 
-void renderer::CompileOneObject (LDObject* obj) {
+void renderer::compileOneObject (LDObject* obj) {
 	if (!obj)
 		return;
 	
@@ -121,7 +121,7 @@ void renderer::CompileOneObject (LDObject* obj) {
 	}
 }
 
-void renderer::ClampAngle (double& fAngle) {
+void renderer::clampAngle (double& fAngle) {
 	while (fAngle < 0)
 		fAngle += 360.0;
 	while (fAngle > 360.0)
@@ -135,15 +135,15 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 	if (event->buttons () & Qt::LeftButton) {
 		fRotX = fRotX + (dy);
 		fRotY = fRotY + (dx);
-		ClampAngle (fRotX);
-		ClampAngle (fRotY);
+		clampAngle (fRotX);
+		clampAngle (fRotY);
 	}
 	
 	if (event->buttons () & Qt::RightButton) {
 		fRotX = fRotX + (dy);
 		fRotZ = fRotZ + (dx);
-		ClampAngle (fRotX);
-		ClampAngle (fRotZ);
+		clampAngle (fRotX);
+		clampAngle (fRotZ);
 	}
 	
 	if (event->buttons () & Qt::MidButton) {
