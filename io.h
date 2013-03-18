@@ -16,6 +16,7 @@ OpenFile* IO_FindLoadedFile (str name);
 OpenFile* IO_OpenLDrawFile (str path);
 LDObject* ParseLine (str zLine);
 
+extern vector<str> g_zaFileLoadPaths;
 extern vector<OpenFile*> g_LoadedFiles;
 
 #endif

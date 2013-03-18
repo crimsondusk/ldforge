@@ -4,6 +4,7 @@
 #include "io.h"
 #include "gui.h"
 #include "draw.h"
+#include "bbox.h"
 
 // Clear everything from the model
 void closeModel () {
@@ -35,6 +36,21 @@ void newModel () {
 	g_CurrentFile = f;
 	
 	g_qWindow->R->hardRefresh();
+}
+
+void openModel (str zPath) {
+	if (g_CurrentFile)
+		closeModel ();
+	
+	OpenFile* pFile = IO_OpenLDrawFile (zPath);
+	g_CurrentFile = pFile;
+	
+	// Recalculate the bounding box
+	g_BBox.calculate();
+	
+	// Rebuild the object tree view now.
+	g_qWindow->buildObjList ();
+	g_qWindow->setTitle ();
 }
 
 void saveModel () {

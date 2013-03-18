@@ -6,21 +6,21 @@
 #include "gui.h"
 #include "bbox.h"
 
+vector<str> g_zaFileLoadPaths;
+
 // =============================================================================
 // IO_FindLoadedFile (str)
 //
 // Returns a pointer to the first found open file with the given name.
 // =============================================================================
 OpenFile* IO_FindLoadedFile (str name) {
-	OpenFile* file;
-	
-	for (uint i = 0; i < g_LoadedFiles.size(); i++) {
-		file = g_LoadedFiles[i];
-		if (!file->zFileName.icompare (name))
+	for (ulong i = 0; i < g_LoadedFiles.size(); i++) {
+		OpenFile* const file = g_LoadedFiles[i];
+		if (file->zFileName == name)
 			return file;
 	}
 	
-	return NULL;
+	return nullptr;
 }
 
 // =============================================================================
@@ -34,8 +34,19 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	FILE* fp = fopen (path.chars (), "r");
 	
 	if (!fp) {
+		for (ushort i = 0; i < g_zaFileLoadPaths.size(); ++i) {
+			str zFilePath = str::mkfmt ("%s/%s", g_zaFileLoadPaths[i].chars(), path.chars());
+			printf ("try open %s\n", zFilePath.chars ());
+			fp = fopen (zFilePath.chars (), "r");
+			
+			if (fp)
+				break;
+		}
+	}
+	
+	if (!fp) {
 		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));
-		return NULL;
+		return nullptr;
 	}
 	
 	OpenFile* load = new OpenFile;
@@ -73,23 +84,15 @@ OpenFile* IO_OpenLDrawFile (str path) {
 	}
 	
 	g_LoadedFiles.push_back (load);
-	g_CurrentFile = g_LoadedFiles[g_LoadedFiles.size() - 1];
-	
-	// Recalculate the bounding box
-	g_BBox.calculate();
-	
-	// Rebuild the object tree view now.
-	g_qWindow->buildObjList ();
-	g_qWindow->setTitle ();
 	
 	logf (LOG_Success, "File %s parsed successfully (%lu warning%s).\n",
 		path.chars(), numWarnings, PLURAL (numWarnings));
 	
-	return g_CurrentFile;
+	return load;
 }
 
 // =============================================================================
-// isNumber (char*)
+// isNumber (char*) [static]
 //
 // Returns whether a given string represents a floating point number
 // TODO: Does LDraw support scientific notation?
@@ -146,12 +149,16 @@ LDObject* ParseLine (str zLine) {
 		return new LDEmpty;
 	}
 	
-	char c = zLine[0];
 	vector<str> tokens = zLine / " ";
+	
+	// Rid leading all-whitespace tokens
+	while (tokens.size() && !(~tokens[0]))
+		tokens.erase (tokens.begin());
 	
 	if (~tokens[0] != 1)
 		return new LDGibberish (zLine, "Illogical line code");
 	
+	char const c = tokens[0][0];
 	switch (c - '0') {
 	case 0:
 		{
@@ -163,10 +170,23 @@ LDObject* ParseLine (str zLine) {
 	
 	case 1:
 		{
+			// Subfile
 			CHECK_TOKEN_COUNT (15)
 			CHECK_TOKEN_NUMBERS (1, 13)
 			
-			// Subfile
+#ifndef WIN32
+			tokens[14].replace ("\\", "/");
+#endif // WIN32
+			
+			// Try open the file
+			OpenFile* pFile = IO_FindLoadedFile (tokens[14]);
+			if (!pFile)
+				pFile = IO_OpenLDrawFile (tokens[14]);
+			
+			// If we cannot open the file, mark it an error
+			if (!pFile)
+				return new LDGibberish (zLine, "Could not open referred file");
+			
 			LDSubfile* obj = new LDSubfile;
 			obj->dColor = atoi (tokens[1]);
 			obj->vPosition = ParseVertex (zLine, 2); // 2 - 4
@@ -175,6 +195,7 @@ LDObject* ParseLine (str zLine) {
 				obj->faMatrix[i] = atof (tokens[i + 5]); // 5 - 13
 			
 			obj->zFileName = tokens[14];
+			obj->pFile = pFile;
 			return obj;
 		}
 	

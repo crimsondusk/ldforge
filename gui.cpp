@@ -200,10 +200,7 @@ void LDForgeWindow::slot_open () {
 	str name = QFileDialog::getOpenFileName (this, "Open File",
 		"", "LDraw files (*.dat *.ldr)").toStdString().c_str();
 	
-	if (g_LoadedFiles.size())
-		closeModel ();
-	
-	IO_OpenLDrawFile (name);
+	openModel (name);
 }
 
 void LDForgeWindow::slot_save () {

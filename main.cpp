@@ -10,11 +10,11 @@ LDForgeWindow* g_qWindow = NULL;
 bbox g_BBox;
 
 int main (int argc, char** argv) {
-	if (g_CurrentFile) {
-		printf ("bbox: (%.3f, %.3f, %.3f), (%.3f, %.3f, %.3f)\n",
-			FVERTEX (g_BBox.v0), FVERTEX (g_BBox.v1));
-		printf ("%u objects\n", g_CurrentFile->objects.size());
-	}
+	// TODO
+	g_zaFileLoadPaths.push_back (".");
+	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts");
+	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/parts/s");
+	g_zaFileLoadPaths.push_back ("/home/arezey/ldraw/p");
 	
 	QApplication app (argc, argv);
 	LDForgeWindow* win = new LDForgeWindow;
@@ -46,52 +46,52 @@ str vertex::getStringRep (const bool bMangled) {
 // Common code for the two logfs
 // =============================================================================
 static void logVA (logtype_e eType, const char* fmt, va_list va) {
-	str zText;
-	char* sBuffer;
-	
 	// Log it to standard output
 	vprintf (fmt, va);
+	
+	return;
+	
+	str zText;
+	char* sBuffer;
 	
 	sBuffer = vdynformat (fmt, va, 128);
 	zText = sBuffer;
 	delete[] sBuffer;
-	
 	
 	// Replace some things out with HTML entities
 	zText.replace ("<", "&lt;");
 	zText.replace (">", "&gt;");
 	zText.replace ("\n", "<br />");
 	
-	str zHTML;
+	str* zpHTML = &g_qWindow->zMessageLogHTML;
 	
 	switch (eType) {
 	case LOG_Normal:
-		zHTML = zText;
+		zpHTML->append (zText);
 		break;
 	
 	case LOG_Error:
-		zHTML.format ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
+		zpHTML->appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Info:
-		zHTML.format ("<span style=\"color: #04F\"><b>[INFO]</b> %s</span>",
+		zpHTML->appendformat ("<span style=\"color: #04F\"><b>[INFO]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Success:
-		zHTML.format ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
+		zpHTML->appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Warning:
-		zHTML.format ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
+		zpHTML->appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
 			zText.chars());
 		break;
 	}
 	
-	g_qWindow->zMessageLogHTML += zHTML;
-	g_qWindow->qMessageLog->setHtml (g_qWindow->zMessageLogHTML);
+	g_qWindow->qMessageLog->setHtml (*zpHTML);
 }
 
 

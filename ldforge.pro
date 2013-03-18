@@ -6,6 +6,7 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
+OBJECTS_DIR = build/
 
 # Input
 HEADERS += bbox.h \

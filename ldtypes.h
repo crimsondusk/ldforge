@@ -118,6 +118,7 @@ public:
 	vertex vPosition; // Position of the subpart
 	double faMatrix[9]; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
+	OpenFile* pFile; // Pointer to opened file for this subfile. nullptr if unopened.
 };
 
 // =============================================================================
