@@ -16,8 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "common.h"
 #include <math.h>
+#include <locale.h>
+#include "common.h"
 
 double getWordFloat (str& s, const ushort n) {
 	return atof ((s / " ")[n]);
@@ -67,6 +68,10 @@ vertex bearing::project (vertex& vSource, ulong ulLength) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str ftoa (double fCoord) {
+	// Disable the locale first so that the decimal point will not
+	// turn into anything weird (like commas)
+	setlocale (LC_NUMERIC, "C");
+	
 	str zRep = str::mkfmt ("%.3f", fCoord);
 	
 	// Remove trailing zeroes
@@ -78,6 +83,8 @@ str ftoa (double fCoord) {
 	if (zRep[~zRep - 1] == '.')
 		zRep -= 1;
 	
+	// Reset the locale
+	setlocale (LC_NUMERIC, "");
 	return zRep;
 }
 
