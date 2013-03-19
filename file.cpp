@@ -391,6 +391,11 @@ void reloadAllSubfiles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void OpenFile::addObject (LDObject* obj) {
+	if (this != g_CurrentFile) {
+		objects.insert (objects.end (), obj);
+		return;
+	}
+	
 	const ulong ulSpot = g_qWindow->getInsertionPoint ();
 	objects.insert (objects.begin() + ulSpot, obj);
 }

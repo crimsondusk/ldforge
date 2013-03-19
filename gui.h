@@ -28,6 +28,13 @@
 #include <QTextEdit>
 #include "gldraw.h"
 
+// Stuff for dialogs
+#define IMPLEMENT_DIALOG_BUTTONS \
+	qButtons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
+	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ())); \
+	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ())); \
+
+
 class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	

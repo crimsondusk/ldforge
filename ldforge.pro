@@ -21,7 +21,8 @@ HEADERS += bbox.h \
 	config.h \
 	cfgdef.h \
 	zz_setContentsDialog.h \
-	zz_configDialog.h
+	zz_configDialog.h \
+	zz_addObjectDialog.h
 
 SOURCES += bbox.cpp \
 	gldraw.cpp \
@@ -33,7 +34,8 @@ SOURCES += bbox.cpp \
 	str.cpp \ 
 	config.cpp \
 	zz_setContentsDialog.cpp \
-	zz_configDialog.cpp
+	zz_configDialog.cpp \
+	zz_addObjectDialog.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl

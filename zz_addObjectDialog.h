@@ -16,28 +16,26 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef __ZZ_ADDOBJECTDIALOG_H__
+#define __ZZ_ADDOBJECTDIALOG_H__
+
+#include "gui.h"
 #include <qdialog.h>
 #include <qlineedit.h>
-#include <qlabel.h>
 #include <qdialogbuttonbox.h>
-#include "common.h"
+#include <qlabel.h>
 
-// =============================================================================
-// SetContentsDialog
-//
-// Performs the Set Contents dialog on the given LDObject. Object's contents
-// are exposed to the user and is reinterpreted if the user accepts the new
-// contents.
-// =============================================================================
-class SetContentsDialog : public QDialog {
+class AddObjectDialog : public QDialog {
 public:
-	QLabel* qContentsLabel;
-	QLineEdit* qContents;
+    AddObjectDialog (const LDObjectType_e type, QWidget* parent = nullptr);
+	static void staticDialog (const LDObjectType_e type, ForgeWindow* window);
+	
+	QLabel* qTypeIcon;
+	
+	// -- COMMENT --
+	QLineEdit* qCommentLine;
+	
 	QDialogButtonBox* qButtons;
-	
-	SetContentsDialog (LDObject* obj, QWidget* parent = nullptr);
-	static void staticDialog (LDObject* obj, ForgeWindow* parent);
-	
-private slots:
-	void slot_handleButtons (QAbstractButton* qButton);
 };
+
+#endif // __ZZ_ADDOBJECTDIALOG_H__

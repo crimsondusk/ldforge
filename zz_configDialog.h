@@ -17,7 +17,7 @@
  */
 
 #include "gui.h"
-#include <QDialog>
+#include <qdialog.h>
 #include <qlabel.h>
 #include <qlineedit.h>
 #include <qdialogbuttonbox.h>

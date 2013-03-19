@@ -35,6 +35,20 @@ char const* g_saObjTypeNames[] = {
 	"vertex",
 };
 
+char const* g_saObjTypeIcons[] = {
+	"icons/error.png",
+	"icons/error.png",
+	"icons/empty.png",
+	"icons/comment.png",
+	"icons/subfile.png",
+	"icons/line.png",
+	"icons/triangle.png",
+	"icons/quad.png",
+	"icons/condline.png",
+	"icons/vector.png",
+	"icons/vertex.png"
+};
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================

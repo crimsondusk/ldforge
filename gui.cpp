@@ -25,6 +25,7 @@
 
 #include "zz_setContentsDialog.h"
 #include "zz_configDialog.h"
+#include "zz_addObjectDialog.h"
 
 #define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
 	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
@@ -314,9 +315,7 @@ void ForgeWindow::slot_newCondLine () {
 }
 
 void ForgeWindow::slot_newComment () {
-	LDComment* comm = new LDComment;
-	g_CurrentFile->addObject (comm);
-	refresh ();
+	AddObjectDialog::staticDialog (OBJ_Comment, this);
 }
 
 void ForgeWindow::slot_help () {

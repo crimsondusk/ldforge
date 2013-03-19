@@ -39,6 +39,8 @@ public:
 	
 	// Saves this file to disk.
 	bool save (str zPath = "");
+	
+	// Adds an object to this file at the appropriate location.
 	void addObject (LDObject* obj);
 };
 

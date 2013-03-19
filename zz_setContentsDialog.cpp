@@ -39,19 +39,12 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		"standard</a> for further information.");
 	qContents->setMinimumWidth (384);
 	
-	qOKCancel = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel,
-		Qt::Horizontal, parent);
-	
-	connect (qOKCancel, SIGNAL (accepted ()), this, SLOT (accept ()));
-	connect (qOKCancel, SIGNAL (rejected ()), this, SLOT (reject ()));
-	/*
-	connect (qOKCancel, SIGNAL (clicked (QAbstractButton*)), this, SLOT (slot_handleButtons (QAbstractButton*)));
-	*/
+	IMPLEMENT_DIALOG_BUTTONS
 	
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget (qContentsLabel);
 	layout->addWidget (qContents);
-	layout->addWidget (qOKCancel);
+	layout->addWidget (qButtons);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - setting contents");

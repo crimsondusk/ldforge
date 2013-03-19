@@ -254,4 +254,7 @@ public:
 // string representation of the object's type.
 extern const char* g_saObjTypeNames[];
 
+// Icons for these types
+extern const char* g_saObjTypeIcons[];
+
 #endif

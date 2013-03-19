@@ -53,9 +53,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
-	qButtons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ()));
-	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ()));
+	IMPLEMENT_DIALOG_BUTTONS
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (qLDrawPathLabel, 0, 0);
