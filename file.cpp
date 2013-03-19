@@ -352,6 +352,9 @@ OpenFile* loadSubfile (str zFile) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void reloadAllSubfiles () {
+	if (!g_CurrentFile)
+		return;
+	
 	// First, close all but the current open file.
 	for (ushort i = 0; i < g_LoadedFiles.size(); ++i)
 		if (g_LoadedFiles[i] != g_CurrentFile)

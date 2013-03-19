@@ -27,9 +27,11 @@ class renderer : public QGLWidget {
 	Q_OBJECT
 	
 public:
-	renderer(QWidget* parent = NULL);
+	renderer (QWidget* parent = nullptr);
 	void hardRefresh ();
-	void CompileObjects ();
+	void compileObjects ();
+    void setBackground ();
+	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
 	double fZoom;

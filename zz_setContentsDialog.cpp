@@ -78,11 +78,9 @@ void SetContentsDialog::staticDialog (LDObject* obj, ForgeWindow* parent) {
 		
 		// Reinterpret it from the text of the input field
 		obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
-		
 		oldobj->replace (obj);
 		
 		// Rebuild stuff after this
-		parent->buildObjList ();
-		parent->R->hardRefresh ();
+		parent->refresh ();
 	}
 }

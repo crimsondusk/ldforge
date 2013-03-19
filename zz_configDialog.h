@@ -27,15 +27,21 @@ class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	QLabel* qLDrawPathLabel;
+	QLabel* qLDrawPathLabel, *qGLBackgroundLabel;
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
+	QPushButton* qGLBackgroundButton;
 	
 	QDialogButtonBox* qButtons;
 	
 	ConfigDialog (ForgeWindow* parent);
+	~ConfigDialog ();
 	static void staticDialog (ForgeWindow* window);
+	
+private:
+    void setButtonBackground (QPushButton* qButton, str zValue);
 	
 private slots:
 	void slot_findLDrawPath ();
+	void slot_setGLBackground ();
 };

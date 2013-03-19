@@ -26,6 +26,14 @@
 #include "zz_setContentsDialog.h"
 #include "zz_configDialog.h"
 
+#define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
+	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
+	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
+	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 ForgeWindow::ForgeWindow () {
 	R = new renderer;
 	
@@ -60,11 +68,6 @@ ForgeWindow::ForgeWindow () {
 	setMinimumSize (320, 200);
 	resize (800, 600);
 }
-
-#define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
-	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
-	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
-	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -232,6 +235,9 @@ void ForgeWindow::setTitle () {
 	setWindowTitle (zTitle.chars());
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_new () {
 	newFile ();
 }
@@ -335,6 +341,9 @@ void ForgeWindow::slot_inline () {
 
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_splitQuads () {
 	if (qObjList->selectedItems().size() == 0)
 		return;
@@ -364,13 +373,12 @@ void ForgeWindow::slot_splitQuads () {
 		i++;// Skip past the second triangle
 	}
 	
-	printf ("build obj list\n");
-	buildObjList ();
-	
-	printf ("refresh teh renderer\n");
-	R->hardRefresh ();
+	refresh ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_setContents () {
 	if (qObjList->selectedItems().size() != 1)
 		return;
@@ -538,9 +546,7 @@ void ForgeWindow::slot_selectionChanged () {
 }
 
 // =============================================================================
-// ulong getInsertionPoint ()
-// 
-// Returns the index of where a new item should be placed at.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong ForgeWindow::getInsertionPoint () {
 	ulong ulIndex;
@@ -559,6 +565,9 @@ ulong ForgeWindow::getInsertionPoint () {
 	return g_CurrentFile->objects.size();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::refresh () {
 	buildObjList ();
 	R->hardRefresh ();

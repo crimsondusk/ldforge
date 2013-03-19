@@ -21,11 +21,16 @@
 #include "file.h"
 #include <qgridlayout.h>
 #include <qfiledialog.h>
+#include <qcolordialog.h>
+
+ConfigDialog* g_ConfigDialog = nullptr;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
+	g_ConfigDialog = this;
+	
 	qLDrawPath = new QLineEdit;
 	qLDrawPath->setText (io_ldpath.value.chars());
 	
@@ -36,6 +41,14 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qLDrawPathFindButton, SIGNAL (clicked ()),
 		this, SLOT (slot_findLDrawPath ()));
 	
+	qGLBackgroundLabel = new QLabel ("Background color:");
+	qGLBackgroundButton = new QPushButton;
+	qGLBackgroundButton->setIcon (QIcon ("icons/colorselect.png"));
+	qGLBackgroundButton->setAutoFillBackground (true);
+	setButtonBackground (qGLBackgroundButton, gl_bgcolor.value);
+	connect (qGLBackgroundButton, SIGNAL (clicked()),
+		this, SLOT (slot_setGLBackground ()));
+	
 	qButtons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ()));
 	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ()));
@@ -44,11 +57,22 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (qLDrawPathLabel, 0, 0);
 	layout->addWidget (qLDrawPath, 0, 1);
 	layout->addWidget (qLDrawPathFindButton, 0, 2);
+	
+	layout->addWidget (qGLBackgroundLabel, 1, 0);
+	layout->addWidget (qGLBackgroundButton, 1, 1);
+	
 	layout->addWidget (qButtons, 2, 1, 1, 2);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - editing settings");
 	setWindowIcon (QIcon ("icons/settings.png"));
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+ConfigDialog::~ConfigDialog() {
+	g_ConfigDialog = nullptr;
 }
 
 // =============================================================================
@@ -65,24 +89,42 @@ void ConfigDialog::slot_findLDrawPath () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::staticDialog (ForgeWindow* window) {
-	ConfigDialog dlg (window);
-	ulong ulChange = 0;
+void ConfigDialog::slot_setGLBackground () {
+	QColorDialog dlg (QColor (gl_bgcolor.value.chars()));
 	
 	if (dlg.exec ()) {
-		str zOldLDPath = io_ldpath;
+		uchar r = dlg.currentColor ().red (),
+			g = dlg.currentColor ().green (),
+			b = dlg.currentColor ().blue ();
+		gl_bgcolor.value.format ("#%.2X%.2X%.2X", r, g, b);
+		setButtonBackground (qGLBackgroundButton, gl_bgcolor.value);
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
+	qButton->setStyleSheet (
+		str::mkfmt ("background-color: %s", zValue.chars()).chars()
+	);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::staticDialog (ForgeWindow* window) {
+	ConfigDialog dlg (window);
+	
+	if (dlg.exec ()) {
 		io_ldpath = dlg.qLDrawPath->text();
 		
-		if (io_ldpath != zOldLDPath) {
-			ulChange |= (1 << 1);
-		}
+		// Save the config
+		config::save ();
 		
-		if (ulChange != 0)
-			config::save ();
+		// Reload all subfiles
+		reloadAllSubfiles ();
 		
-		if (ulChange & (1 << 1)) {
-			// Reload all subfiles
-			reloadAllSubfiles ();
-		}
+		window->R->setBackground ();
 	}
 }

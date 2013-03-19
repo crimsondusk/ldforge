@@ -23,34 +23,73 @@
 #include "gldraw.h"
 #include "bbox.h"
 
+#define GL_VERTEX(V) glVertex3d (V.x, V.y, V.z);
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 renderer::renderer (QWidget* parent) {
 	parent = parent; // shhh, GCC
 	fRotX = fRotY = fRotZ = 0.0;
 	fZoom = 1.0;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
-	glClearColor (0.8f, 0.8f, 0.85f, 1.0f);
+	
+	setBackground ();
+	swapBuffers ();
+	
 	glEnable (GL_DEPTH_TEST);
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_MULTISAMPLE);
 	
-	CompileObjects ();
+	compileObjects ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void renderer::setBackground () {
+	QColor col (gl_bgcolor.value.chars());
+	printf ("bgcolor: %s\n", gl_bgcolor.value.chars());
+	if (col.isValid ()) {
+		printf ("was valid\n");
+		glClearColor (
+			((double)col.red()) / 255.0f,
+			((double)col.green()) / 255.0f,
+			((double)col.blue()) / 255.0f,
+			1.0f);
+	} else {
+		glClearColor (0.8f, 0.8f, 0.85f, 1.0f);
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::hardRefresh () {
-	CompileObjects ();
+	compileObjects ();
 	paintGL ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	printf ("painting..\n");
 	
 	glPushMatrix ();
 		glTranslatef (
@@ -74,7 +113,10 @@ void renderer::paintGL () {
 	glPopMatrix ();
 }
 
-void renderer::CompileObjects () {
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void renderer::compileObjects () {
 	printf ("compile all objects\n");
 	
 	objlist = glGenLists (1);
@@ -91,9 +133,9 @@ void renderer::CompileObjects () {
 	glEndList ();
 }
 
-#define GL_VERTEX(V) \
-	glVertex3d (V.x, V.y, V.z);
-
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::compileOneObject (LDObject* obj) {
 	if (!obj)
 		return;
@@ -139,6 +181,9 @@ void renderer::compileOneObject (LDObject* obj) {
 	}
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::clampAngle (double& fAngle) {
 	while (fAngle < 0)
 		fAngle += 360.0;
@@ -146,6 +191,9 @@ void renderer::clampAngle (double& fAngle) {
 		fAngle -= 360.0;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void renderer::mouseMoveEvent (QMouseEvent *event) {
 	int dx = event->x () - lastPos.x ();
 	int dy = event->y () - lastPos.y ();

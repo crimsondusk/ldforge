@@ -22,3 +22,6 @@
 // ---------------------------------------------------------
 SECT (io, Files)
 CFG (str, io, ldpath, "LDraw path", "")
+
+SECT (gl, GLRenderer)
+CFG (str, gl, bgcolor, "Background color", "#CCCCD9")
