@@ -30,7 +30,7 @@ public:
 	renderer (QWidget* parent = nullptr);
 	void hardRefresh ();
 	void compileObjects ();
-    void setBackground ();
+	void setBackground ();
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;

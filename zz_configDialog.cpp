@@ -91,6 +91,7 @@ void ConfigDialog::slot_findLDrawPath () {
 // =============================================================================
 void ConfigDialog::slot_setGLBackground () {
 	QColorDialog dlg (QColor (gl_bgcolor.value.chars()));
+	dlg.setWindowIcon (QIcon ("icons/colorselect.png"));
 	
 	if (dlg.exec ()) {
 		uchar r = dlg.currentColor ().red (),
