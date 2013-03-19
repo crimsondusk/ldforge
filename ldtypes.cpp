@@ -166,13 +166,9 @@ str LDQuad::getContents () {
 str LDCondLine::getContents () {
 	str val = str::mkfmt ("5 %d", dColor);
 	
-	// Add the coordinates of end points
-	for (ushort i = 0; i < 2; ++i)
+	// Add the coordinates
+	for (ushort i = 0; i < 4; ++i)
 		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
-	
-	// Add the control points
-	for (ushort i = 0; i < 2; ++i)
-		val.appendformat (" %s", vaControl[i].getStringRep (false).chars ());
 	
 	return val;
 }

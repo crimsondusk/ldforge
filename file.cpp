@@ -323,11 +323,8 @@ LDObject* parseLine (str zLine) {
 			LDCondLine* obj = new LDCondLine;
 			obj->dColor = getWordInt (zLine, 1);
 			
-			for (short i = 0; i < 2; ++i)
-				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 7
-			
-			for (short i = 0; i < 2; ++i)
-				obj->vaControl[i] = parseVertex (zLine, 8 + (i * 3)); // 8 - 13
+			for (short i = 0; i < 4; ++i)
+				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 13
 			return obj;
 		}
 		

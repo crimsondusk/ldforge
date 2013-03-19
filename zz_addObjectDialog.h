@@ -24,6 +24,7 @@
 #include <qlineedit.h>
 #include <qdialogbuttonbox.h>
 #include <qlabel.h>
+#include <qspinbox.h>
 
 class AddObjectDialog : public QDialog {
 public:
@@ -34,6 +35,9 @@ public:
 	
 	// -- COMMENT --
 	QLineEdit* qCommentLine;
+	
+	// Coordinate edits for.. anything with coordinates, really.
+	QDoubleSpinBox* qaCoordinates[12];
 	
 	QDialogButtonBox* qButtons;
 };

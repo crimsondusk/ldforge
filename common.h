@@ -53,6 +53,10 @@
 #define DIRSLASH "/"
 #endif // WIN32
 
+static const double fMaxCoord = 10000.0;
+static const short dMainColor = 16;
+static const short dEdgeColor = 24;
+
 using std::vector;
 
 class ForgeWindow;

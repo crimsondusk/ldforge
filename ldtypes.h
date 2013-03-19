@@ -170,7 +170,8 @@ class LDCondLine : public LDLine {
 public:
 	IMPLEMENT_LDTYPE (CondLine)
 	
-	vertex vaControl[2]; // Control points
+	short dColor; // Color of this line
+	vertex vaCoords[4]; // End points + control points of this line
 };
 
 // =============================================================================

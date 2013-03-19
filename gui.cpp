@@ -26,6 +26,7 @@
 #include "zz_setContentsDialog.h"
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
+#include "misc.h"
 
 #define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
 	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
@@ -274,44 +275,19 @@ void ForgeWindow::slot_newSubfile () {
 }
 
 void ForgeWindow::slot_newLine () {
-	LDLine* line = new LDLine;
-	
-	memset (line->vaCoords, 0, sizeof line->vaCoords);
-	line->dColor = 24;
-	
-	g_CurrentFile->addObject (line);
-	refresh ();
+	AddObjectDialog::staticDialog (OBJ_Line, this);
 }
 
 void ForgeWindow::slot_newTriangle () {
-	LDTriangle* tri = new LDTriangle;
-	
-	memset (tri->vaCoords, 0, sizeof tri->vaCoords);
-	tri->dColor = 16;
-	
-	g_CurrentFile->addObject (tri);
-	refresh ();
+	AddObjectDialog::staticDialog (OBJ_Triangle, this);
 }
 
 void ForgeWindow::slot_newQuad () {
-	LDQuad* quad = new LDQuad;
-	
-	memset (quad->vaCoords, 0, sizeof quad->vaCoords);
-	quad->dColor = 16;
-	
-	g_CurrentFile->addObject (quad);
-	refresh ();
+	AddObjectDialog::staticDialog (OBJ_Quad, this);
 }
 
 void ForgeWindow::slot_newCondLine () {
-	LDCondLine* line = new LDCondLine;
-	
-	memset (line->vaCoords, 0, sizeof line->vaCoords);
-	memset (line->vaControl, 0, sizeof line->vaControl);
-	line->dColor = 24;
-	
-	g_CurrentFile->addObject (line);
-	refresh ();
+	AddObjectDialog::staticDialog (OBJ_CondLine, this);
 }
 
 void ForgeWindow::slot_newComment () {
@@ -416,46 +392,6 @@ void ForgeWindow::slot_setContents () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static QIcon IconForObjectType (LDObject* obj) {
-	switch (obj->getType ()) {
-	case OBJ_Empty:
-		return QIcon ("icons/empty.png");
-	
-	case OBJ_Line:
-		return QIcon ("icons/line.png");
-	
-	case OBJ_Quad:
-		return QIcon ("icons/quad.png");
-	
-	case OBJ_Subfile:
-		return QIcon ("icons/subfile.png");
-	
-	case OBJ_Triangle:
-		return QIcon ("icons/triangle.png");
-	
-	case OBJ_CondLine:
-		return QIcon ("icons/condline.png");
-	
-	case OBJ_Comment:
-		return QIcon ("icons/comment.png");
-	
-	case OBJ_Vector:
-		return QIcon ("icons/vector.png");
-	
-	case OBJ_Vertex:
-		return QIcon ("icons/vertex.png");
-	
-	case OBJ_Gibberish:
-	case OBJ_Unidentified:
-		return QIcon ("icons/error.png");
-	}
-	
-	return QIcon ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
@@ -481,7 +417,6 @@ void ForgeWindow::buildObjList () {
 			break; // leave it empty
 		
 		case OBJ_Line:
-		case OBJ_CondLine:
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
 				zText.format ("%s, %s",
@@ -511,6 +446,17 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
+		case OBJ_CondLine:
+			{
+				LDCondLine* line = static_cast<LDCondLine*> (obj);
+				zText.format ("%s, %s, %s, %s",
+					line->vaCoords[0].getStringRep (true).chars(),
+					line->vaCoords[1].getStringRep (true).chars(),
+					line->vaCoords[2].getStringRep (true).chars(),
+					line->vaCoords[3].getStringRep (true).chars());
+			}
+			break;
+		
 		case OBJ_Gibberish:
 			zText.format ("ERROR: %s",
 				static_cast<LDGibberish*> (obj)->zContents.chars());
@@ -524,6 +470,21 @@ void ForgeWindow::buildObjList () {
 			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep(true).chars());
 			break;
 		
+		case OBJ_Subfile:
+			{
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				
+				zText.format ("%s %s, (",
+					ref->zFileName.chars(), ref->vPosition.getStringRep (true).chars());
+				
+				for (short i = 0; i < 9; ++i)
+					zText.appendformat ("%s%s",
+						ftoa (ref->faMatrix[i]).chars(), (i != 8) ? " " : "");
+				
+				zText += ')';
+			}
+			break;
+		
 		default:
 			zText = g_saObjTypeNames[obj->getType ()];
 			break;
@@ -531,7 +492,7 @@ void ForgeWindow::buildObjList () {
 		
 		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*) (nullptr),
 			QStringList (zText.chars()), 0);
-		item->setIcon (0, IconForObjectType (obj));
+		item->setIcon (0, QIcon (g_saObjTypeIcons[obj->getType ()]));
 		
 		// Color gibberish red
 		if (obj->getType() == OBJ_Gibberish) {

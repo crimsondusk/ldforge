@@ -59,10 +59,8 @@ void bbox::calculate () {
 		case OBJ_CondLine:
 			{
 				LDCondLine* line = static_cast<LDCondLine*> (obj);
-				for (short i = 0; i < 2; ++i) {
+				for (short i = 0; i < 4; ++i)
 					checkVertex (line->vaCoords[i]);
-					checkVertex (line->vaControl[i]);
-				}
 			}
 			break;
 		
