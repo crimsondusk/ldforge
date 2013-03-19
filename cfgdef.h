@@ -25,3 +25,4 @@ CFG (str, io, ldpath, "LDraw path", "")
 
 SECT (gl, GLRenderer)
 CFG (str, gl, bgcolor, "Background color", "#CCCCD9")
+CFG (str, gl, maincolor, "Main color", "#707078")

@@ -43,11 +43,15 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	qGLBackgroundLabel = new QLabel ("Background color:");
 	qGLBackgroundButton = new QPushButton;
-	qGLBackgroundButton->setIcon (QIcon ("icons/colorselect.png"));
-	qGLBackgroundButton->setAutoFillBackground (true);
 	setButtonBackground (qGLBackgroundButton, gl_bgcolor.value);
-	connect (qGLBackgroundButton, SIGNAL (clicked()),
+	connect (qGLBackgroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLBackground ()));
+	
+	qGLForegroundLabel = new QLabel ("Foreground color:");
+	qGLForegroundButton = new QPushButton;
+	setButtonBackground (qGLForegroundButton, gl_maincolor.value);
+	connect (qGLForegroundButton, SIGNAL (clicked ()),
+		this, SLOT (slot_setGLForeground ()));
 	
 	qButtons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ()));
@@ -55,13 +59,15 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (qLDrawPathLabel, 0, 0);
-	layout->addWidget (qLDrawPath, 0, 1);
-	layout->addWidget (qLDrawPathFindButton, 0, 2);
+	layout->addWidget (qLDrawPath, 0, 1, 1, 2);
+	layout->addWidget (qLDrawPathFindButton, 0, 3);
 	
 	layout->addWidget (qGLBackgroundLabel, 1, 0);
 	layout->addWidget (qGLBackgroundButton, 1, 1);
+	layout->addWidget (qGLForegroundLabel, 1, 2);
+	layout->addWidget (qGLForegroundButton, 1, 3);
 	
-	layout->addWidget (qButtons, 2, 1, 1, 2);
+	layout->addWidget (qButtons, 2, 2, 1, 2);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - editing settings");
@@ -89,23 +95,33 @@ void ConfigDialog::slot_findLDrawPath () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::slot_setGLBackground () {
-	QColorDialog dlg (QColor (gl_bgcolor.value.chars()));
+void ConfigDialog::pickColor (strconfig& cfg, QPushButton* qButton) {
+	QColorDialog dlg (QColor (cfg.value.chars()));
 	dlg.setWindowIcon (QIcon ("icons/colorselect.png"));
 	
 	if (dlg.exec ()) {
 		uchar r = dlg.currentColor ().red (),
 			g = dlg.currentColor ().green (),
 			b = dlg.currentColor ().blue ();
-		gl_bgcolor.value.format ("#%.2X%.2X%.2X", r, g, b);
-		setButtonBackground (qGLBackgroundButton, gl_bgcolor.value);
+		cfg.value.format ("#%.2X%.2X%.2X", r, g, b);
+		setButtonBackground (qButton, cfg.value);
 	}
+}
+
+void ConfigDialog::slot_setGLBackground () {
+	pickColor (gl_bgcolor, qGLBackgroundButton);
+}
+
+void ConfigDialog::slot_setGLForeground () {
+	pickColor (gl_maincolor, qGLForegroundButton);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
+	qButton->setIcon (QIcon ("icons/colorselect.png"));
+	qButton->setAutoFillBackground (true);
 	qButton->setStyleSheet (
 		str::mkfmt ("background-color: %s", zValue.chars()).chars()
 	);

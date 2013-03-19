@@ -27,10 +27,10 @@ class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	QLabel* qLDrawPathLabel, *qGLBackgroundLabel;
+	QLabel* qLDrawPathLabel, *qGLBackgroundLabel, *qGLForegroundLabel;
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
-	QPushButton* qGLBackgroundButton;
+	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
 	
 	QDialogButtonBox* qButtons;
 	
@@ -40,8 +40,10 @@ public:
 	
 private:
     void setButtonBackground (QPushButton* qButton, str zValue);
+    void pickColor (strconfig& cfg, QPushButton* qButton);
 	
 private slots:
 	void slot_findLDrawPath ();
 	void slot_setGLBackground ();
+	void slot_setGLForeground ();
 };
