@@ -1,3 +1,21 @@
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <QtGui>
 
 #include "common.h"
@@ -82,6 +100,7 @@ void ForgeWindow::createMenuActions () {
 	
 	MAKE_ACTION (settings,		"Settings",		"settings",		"Edit the settings of " APPNAME_DISPLAY ".")
 	
+	MAKE_ACTION (help,			"Help",			"help",			"Shows the " APPNAME_DISPLAY " help manual.")
 	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
@@ -109,6 +128,7 @@ void ForgeWindow::createMenuActions () {
 		qAct_paste,
 		qAct_about,
 		qAct_inline,
+		qAct_help,
 	};
 	
 	for (ushort i = 0; i < sizeof qaDisabledActions / sizeof *qaDisabledActions; ++i)
@@ -152,6 +172,8 @@ void ForgeWindow::createMenus () {
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
+	qHelpMenu->addAction (qAct_help);			// Help
+	qHelpMenu->addSeparator ();					// -----
 	qHelpMenu->addAction (qAct_about);			// About
 	qHelpMenu->addAction (qAct_aboutQt);		// About Qt
 }
@@ -277,6 +299,10 @@ void ForgeWindow::slot_newComment () {
 
 }
 
+void ForgeWindow::slot_help () {
+	
+}
+
 void ForgeWindow::slot_about () {
 	
 }
@@ -363,7 +389,7 @@ void ForgeWindow::slot_setContents () {
 	if (ulIndex >= g_CurrentFile->objects.size())
 		return;
 	
-	Dialog_SetContents::staticDialog (obj, this);
+	SetContentsDialog::staticDialog (obj, this);
 }
 
 // =============================================================================

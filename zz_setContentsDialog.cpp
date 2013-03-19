@@ -1,3 +1,21 @@
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <QAbstractButton>
 #include <qboxlayout.h>
 #include "zz_setContentsDialog.h"
@@ -5,11 +23,9 @@
 #include "gui.h"
 
 // =============================================================================
-// Dialog_SetContents (LDObject*) [constructor]
-//
-// Initializes the Set Contents dialog for the given LDObject
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-Dialog_SetContents::Dialog_SetContents (LDObject* obj, QWidget* parent) : QDialog(parent) {
+SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(parent) {
 	setWindowTitle (APPNAME_DISPLAY ": Set Contents");
 	
 	qContentsLabel = new QLabel ("Set contents:", parent);
@@ -37,29 +53,26 @@ Dialog_SetContents::Dialog_SetContents (LDObject* obj, QWidget* parent) : QDialo
 	layout->addWidget (qContents);
 	layout->addWidget (qOKCancel);
 	setLayout (layout);
+	
+	setWindowTitle (APPNAME_DISPLAY " - setting contents");
+	setWindowIcon (QIcon ("icons/set-contents.png"));
 }
 
 // =============================================================================
-// void slot_handleButtons (QAbstractButton*)
-//
-// Handles a button.. this is used to reset the input field
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void Dialog_SetContents::slot_handleButtons (QAbstractButton* qButton) {
+void SetContentsDialog::slot_handleButtons (QAbstractButton* qButton) {
 	qButton = qButton;
 }
 
 // =============================================================================
-// void staticDialog (LDObject*) [static method]
-//
-// Performs the Set Contents dialog on the given LDObject. Object's contents
-// are exposed to the user and is reinterpreted if the user accepts the new
-// contents.
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void Dialog_SetContents::staticDialog (LDObject* obj, ForgeWindow* parent) {
+void SetContentsDialog::staticDialog (LDObject* obj, ForgeWindow* parent) {
 	if (!obj)
 		return;
 	
-	Dialog_SetContents dlg (obj, parent);
+	SetContentsDialog dlg (obj, parent);
 	if (dlg.exec ()) {
 		LDObject* oldobj = obj;
 		

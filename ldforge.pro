@@ -7,6 +7,7 @@ TARGET =
 DEPENDPATH += .
 INCLUDEPATH += .
 OBJECTS_DIR = build/
+RC_FILE = ldforge.rc
 
 # Input
 HEADERS += bbox.h \
