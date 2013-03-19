@@ -72,7 +72,7 @@ str ftoa (double fCoord) {
 	// turn into anything weird (like commas)
 	setlocale (LC_NUMERIC, "C");
 	
-	str zRep = str::mkfmt ("%.3f", fCoord);
+	str zRep = str::mkfmt ("%.6f", fCoord);
 	
 	// Remove trailing zeroes
 	while (zRep[~zRep - 1] == '0')
