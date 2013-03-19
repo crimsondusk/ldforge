@@ -120,10 +120,6 @@ void ForgeWindow::createMenuActions () {
 	// things not implemented yet
 	QAction* qaDisabledActions[] = {
 		qAct_newSubfile,
-		qAct_newTriangle,
-		qAct_newQuad,
-		qAct_newCondLine,
-		qAct_newComment,
 		qAct_newVector,
 		qAct_newVertex,
 		qAct_cut,
@@ -278,31 +274,49 @@ void ForgeWindow::slot_newSubfile () {
 
 void ForgeWindow::slot_newLine () {
 	LDLine* line = new LDLine;
-	const ulong ulSpot = getInsertionPoint ();
 	
 	memset (line->vaCoords, 0, sizeof line->vaCoords);
 	line->dColor = 24;
 	
-	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulSpot, line);
-	
-	buildObjList ();
-	R->hardRefresh ();
+	g_CurrentFile->addObject (line);
+	refresh ();
 }
 
 void ForgeWindow::slot_newTriangle () {
+	LDTriangle* tri = new LDTriangle;
 	
+	memset (tri->vaCoords, 0, sizeof tri->vaCoords);
+	tri->dColor = 16;
+	
+	g_CurrentFile->addObject (tri);
+	refresh ();
 }
 
 void ForgeWindow::slot_newQuad () {
+	LDQuad* quad = new LDQuad;
 	
+	memset (quad->vaCoords, 0, sizeof quad->vaCoords);
+	quad->dColor = 16;
+	
+	g_CurrentFile->addObject (quad);
+	refresh ();
 }
 
 void ForgeWindow::slot_newCondLine () {
-
+	LDCondLine* line = new LDCondLine;
+	
+	memset (line->vaCoords, 0, sizeof line->vaCoords);
+	memset (line->vaControl, 0, sizeof line->vaControl);
+	line->dColor = 24;
+	
+	g_CurrentFile->addObject (line);
+	refresh ();
 }
 
 void ForgeWindow::slot_newComment () {
-
+	LDComment* comm = new LDComment;
+	g_CurrentFile->addObject (comm);
+	refresh ();
 }
 
 void ForgeWindow::slot_help () {

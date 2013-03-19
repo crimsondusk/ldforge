@@ -39,6 +39,7 @@ public:
 	
 	// Saves this file to disk.
 	bool save (str zPath = "");
+	void addObject (LDObject* obj);
 };
 
 // Close all current loaded files and start off blank.

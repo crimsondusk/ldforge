@@ -386,3 +386,11 @@ void reloadAllSubfiles () {
 			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->zContents));
 	}
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void OpenFile::addObject (LDObject* obj) {
+	const ulong ulSpot = g_qWindow->getInsertionPoint ();
+	objects.insert (objects.begin() + ulSpot, obj);
+}
