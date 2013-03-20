@@ -58,7 +58,7 @@ public:
 	QAction* qAct_new, *qAct_open, *qAct_save, *qAct_saveAs, *qAct_exit;
 	QAction* qAct_cut, *qAct_copy, *qAct_paste;
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
-	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVector, *qAct_newVertex;
+	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVertex;
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
 	QAction* qAct_settings;
 	QAction* qAct_help, *qAct_about, *qAct_aboutQt;
@@ -91,7 +91,6 @@ private slots:
 	void slot_newQuad ();
 	void slot_newCondLine ();
 	void slot_newComment ();
-	void slot_newVector ();
 	void slot_newVertex ();
 	
 	void slot_inline ();

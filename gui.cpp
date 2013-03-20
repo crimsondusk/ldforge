@@ -98,9 +98,8 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (newLine,		"New Line", 	"add-line",		"Creates a new line.")
 	MAKE_ACTION (newTriangle,	"New Triangle", "add-triangle",	"Creates a new triangle.")
 	MAKE_ACTION (newQuad,		sNewQuadText,	"add-quad",		"Creates a new quadrilateral.")
-	MAKE_ACTION (newCondLine,	sNewCdLineText,	"add-condline",	"Creates a new conditional line.");
-	MAKE_ACTION (newComment,	"New Comment",	"add-comment",	"Creates a new comment.");
-	MAKE_ACTION (newVector,		"New Vector",	"add-vector",	"Creates a new vector.")
+	MAKE_ACTION (newCondLine,	sNewCdLineText,	"add-condline",	"Creates a new conditional line.")
+	MAKE_ACTION (newComment,	"New Comment",	"add-comment",	"Creates a new comment.")
 	MAKE_ACTION (newVertex,		"New Vertex",	"add-vertex",	"Creates a new vertex.")
 	
 	MAKE_ACTION (settings,		"Settings",		"settings",		"Edit the settings of " APPNAME_DISPLAY ".")
@@ -122,7 +121,6 @@ void ForgeWindow::createMenuActions () {
 	// things not implemented yet
 	QAction* qaDisabledActions[] = {
 		qAct_newSubfile,
-		qAct_newVector,
 		qAct_cut,
 		qAct_copy,
 		qAct_paste,
@@ -158,7 +156,6 @@ void ForgeWindow::createMenus () {
 	qInsertMenu->addAction (qAct_newQuad);		// New Quad
 	qInsertMenu->addAction (qAct_newCondLine);	// New Conditional Line
 	qInsertMenu->addAction (qAct_newComment);	// New Comment
-	qInsertMenu->addAction (qAct_newVector);	// New Vector
 	qInsertMenu->addAction (qAct_newVertex);	// New Vertex
 	
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
@@ -196,7 +193,6 @@ void ForgeWindow::createToolbars () {
 	qInsertToolBar->addAction (qAct_newQuad);
 	qInsertToolBar->addAction (qAct_newCondLine);
 	qInsertToolBar->addAction (qAct_newComment);
-	qInsertToolBar->addAction (qAct_newVector);
 	qInsertToolBar->addAction (qAct_newVertex);
 	addToolBar (qInsertToolBar);
 	
@@ -322,10 +318,6 @@ void ForgeWindow::slot_copy () {
 }
 
 void ForgeWindow::slot_paste () {
-	
-}
-
-void ForgeWindow::slot_newVector () {
 	
 }
 
@@ -467,10 +459,6 @@ void ForgeWindow::buildObjList () {
 		case OBJ_Gibberish:
 			zText.format ("ERROR: %s",
 				static_cast<LDGibberish*> (obj)->zContents.chars());
-			break;
-		
-		case OBJ_Vector:
-			zText.format ("%s", static_cast<LDVector*> (obj)->vPos.getStringRep (true).chars());
 			break;
 		
 		case OBJ_Vertex:

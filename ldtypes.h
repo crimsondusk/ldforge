@@ -46,7 +46,6 @@ enum LDObjectType_e {
 	OBJ_Triangle,		// Object represents a triangle (LDTriangle, code: 3)
 	OBJ_Quad,			// Object represents a quadrilateral (LDQuad, code: 4)
 	OBJ_CondLine,		// Object represents a conditional line (LDCondLine, code: 5)
-	OBJ_Vector,			// Object is a vector, LDForge extension object (LDVector)
 	OBJ_Vertex			// Object is a vertex, LDForge extension object (LDVertex)
 };
 
@@ -210,28 +209,6 @@ public:
 	
 	// Split this quad into two triangles
 	void splitToTriangles ();
-};
-
-// =============================================================================
-// LDVector
-// 
-// The vector is a LDForge-specific extension. It is essentially a line with an
-// alternative definition. Instead of being defined with two vertices, the vector
-// is defined with a single vertex, a length and a bearing. This makes it useful
-// for dealing with lines positioned on arbitrary angles without fear of precision
-// loss of vertex coordinates. A vector can be transformed into a line and vice
-// versa. Vectors are not a part of official LDraw standard and should be
-// converted to lines for finished parts.
-// 
-// TODO: should a conditional vector be considered?
-// =============================================================================
-class LDVector : public LDObject {
-public:
-	IMPLEMENT_LDTYPE (Vector)
-	
-	vertex vPos;
-	bearing gAngle3D;
-	unsigned long ulLength;
 };
 
 // =============================================================================

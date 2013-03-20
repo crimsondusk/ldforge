@@ -31,7 +31,6 @@ char const* g_saObjTypeNames[] = {
 	"triangle",
 	"quadrilateral",
 	"condline",
-	"vector",
 	"vertex",
 };
 
@@ -45,7 +44,6 @@ char const* g_saObjTypeIcons[] = {
 	"triangle",
 	"quad",
 	"condline",
-	"vector",
 	"vertex"
 };
 
@@ -97,10 +95,6 @@ LDQuad::LDQuad () {
 }
 
 LDCondLine::LDCondLine () {
-	commonInit ();
-}
-
-LDVector::LDVector () {
 	commonInit ();
 }
 
@@ -177,10 +171,6 @@ str LDGibberish::getContents () {
 	return zContents;
 }
 
-str LDVector::getContents () {
-	return str::mkfmt ("0 !LDFORGE VECTOR"); // TODO
-}
-
 str LDVertex::getContents () {
 	return str::mkfmt ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.getStringRep (false).chars());
 }
@@ -253,5 +243,4 @@ LDLine::~LDLine () {}
 LDQuad::~LDQuad () {}
 LDSubfile::~LDSubfile () {}
 LDTriangle::~LDTriangle () {}
-LDVector::~LDVector () {}
 LDVertex::~LDVertex () {}
