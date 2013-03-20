@@ -53,6 +53,8 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	case OBJ_CondLine:
 		dCoordCount = 12;
 		break;
+	case OBJ_Vertex:
+		dCoordCount = 3;
 	default:
 		break;
 	}
@@ -91,7 +93,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	setWindowTitle (str::mkfmt (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
 	
-	setWindowIcon (QIcon (g_saObjTypeIcons[type]));
+	setWindowIcon (QIcon (str::mkfmt ("icons/add-%s.png", g_saObjTypeIcons[type]).chars ()));
 }
 
 // =============================================================================
@@ -157,6 +159,20 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 				g_CurrentFile->addObject (line);
 				window->refresh ();
 			}
+			break;
+		
+		case OBJ_Vertex:
+			{
+				LDVertex* vert = new LDVertex;
+				vert->dColor = dMainColor;
+				vert->vPosition.x = dlg.qaCoordinates[0]->value ();
+				vert->vPosition.y = dlg.qaCoordinates[1]->value ();
+				vert->vPosition.z = dlg.qaCoordinates[2]->value ();
+				
+				g_CurrentFile->addObject (vert);
+				window->refresh ();
+			}
+			break;
 		
 		default:
 			break;

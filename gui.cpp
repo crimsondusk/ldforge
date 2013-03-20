@@ -123,7 +123,6 @@ void ForgeWindow::createMenuActions () {
 	QAction* qaDisabledActions[] = {
 		qAct_newSubfile,
 		qAct_newVector,
-		qAct_newVertex,
 		qAct_cut,
 		qAct_copy,
 		qAct_paste,
@@ -323,7 +322,7 @@ void ForgeWindow::slot_newVector () {
 }
 
 void ForgeWindow::slot_newVertex () {
-	
+	AddObjectDialog::staticDialog (OBJ_Vertex, this);
 }
 
 void ForgeWindow::slot_inline () {
@@ -463,11 +462,11 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case OBJ_Vector:
-			zText.format ("%s", static_cast<LDVector*> (obj)->vPos.getStringRep(true).chars());
+			zText.format ("%s", static_cast<LDVector*> (obj)->vPos.getStringRep (true).chars());
 			break;
 		
 		case OBJ_Vertex:
-			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep(true).chars());
+			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep (true).chars());
 			break;
 		
 		case OBJ_Subfile:
@@ -479,7 +478,8 @@ void ForgeWindow::buildObjList () {
 				
 				for (short i = 0; i < 9; ++i)
 					zText.appendformat ("%s%s",
-						ftoa (ref->faMatrix[i]).chars(), (i != 8) ? " " : "");
+						ftoa (ref->faMatrix[i]).chars(),
+						(i != 8) ? " " : "");
 				
 				zText += ')';
 			}
@@ -492,7 +492,7 @@ void ForgeWindow::buildObjList () {
 		
 		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*) (nullptr),
 			QStringList (zText.chars()), 0);
-		item->setIcon (0, QIcon (g_saObjTypeIcons[obj->getType ()]));
+		item->setIcon (0, QIcon (str::mkfmt ("icons/%s.png", g_saObjTypeIcons[obj->getType ()]).chars()));
 		
 		// Color gibberish red
 		if (obj->getType() == OBJ_Gibberish) {
