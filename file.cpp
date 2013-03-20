@@ -202,9 +202,6 @@ bool OpenFile::save (str zPath) {
 	return true;
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 #define CHECK_TOKEN_COUNT(N) \
 	if (tokens.size() != N) \
 		return new LDGibberish (zLine, "Bad amount of tokens");
@@ -215,7 +212,15 @@ bool OpenFile::save (str zPath) {
 			return new LDGibberish (zLine, str::mkfmt ("Token #%u was `%s`, expected a number", \
 				(i + 1), tokens[i].chars()));
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 LDObject* parseLine (str zLine) {
+	// Disable the locale while parsing the line or atof's behavior changes
+	// between locales (i.e. fails to read decimals properly). That is
+	// quite undesired...
+	setlocale (LC_NUMERIC, "C");
+	
 	str zNoWhitespace = zLine;
 	stripWhitespace (zNoWhitespace);
 	if (!~zNoWhitespace) {
@@ -352,6 +357,8 @@ LDObject* parseLine (str zLine) {
 	default: // Strange line we couldn't parse
 		return new LDGibberish (zLine, "Unknown line code number");
 	}
+	
+	setlocale (LC_NUMERIC, "");
 }
 
 // =============================================================================
