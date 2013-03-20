@@ -39,3 +39,4 @@ SOURCES += bbox.cpp \
 
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl
+LIBS += -lGLU

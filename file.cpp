@@ -216,6 +216,8 @@ bool OpenFile::save (str zPath) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 LDObject* parseLine (str zLine) {
+	printf ("%s\n", zLine.chars());
+	
 	// Disable the locale while parsing the line or atof's behavior changes
 	// between locales (i.e. fails to read decimals properly). That is
 	// quite undesired...

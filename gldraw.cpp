@@ -18,6 +18,7 @@
 
 #include <QtGui>
 #include <QGLWidget>
+#include <GL/glu.h>
 #include "common.h"
 #include "file.h"
 #include "gldraw.h"
@@ -42,11 +43,21 @@ void renderer::initializeGL () {
 	glMatrixMode (GL_MODELVIEW);
 	
 	setBackground ();
-	swapBuffers ();
+	
+	glEnable (GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset (1.0f, 1.0f);
 	
 	glEnable (GL_DEPTH_TEST);
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_MULTISAMPLE);
+	
+	glEnable (GL_DITHER);
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	glEnable (GL_LINE_SMOOTH);
+	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+	glLineWidth (4 * 2.0f);
 	
 	compileObjects ();
 }
@@ -56,9 +67,8 @@ void renderer::initializeGL () {
 // =============================================================================
 void renderer::setBackground () {
 	QColor col (gl_bgcolor.value.chars());
-	printf ("bgcolor: %s\n", gl_bgcolor.value.chars());
+	
 	if (col.isValid ()) {
-		printf ("was valid\n");
 		glClearColor (
 			((double)col.red()) / 255.0f,
 			((double)col.green()) / 255.0f,
@@ -75,6 +85,7 @@ void renderer::setBackground () {
 void renderer::hardRefresh () {
 	compileObjects ();
 	paintGL ();
+	swapBuffers ();
 }
 
 // =============================================================================
@@ -82,6 +93,9 @@ void renderer::hardRefresh () {
 // =============================================================================
 void renderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
+	glLoadIdentity ();
+	glMatrixMode (GL_PROJECTION);
+	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
 }
 
 // =============================================================================
@@ -90,26 +104,28 @@ void renderer::resizeGL (int w, int h) {
 void renderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	printf ("painting..\n");
+	glMatrixMode (GL_MODELVIEW);
 	
 	glPushMatrix ();
+		glLoadIdentity ();
+		
+	/*
 		glTranslatef (
 			(g_BBox.v0.x + g_BBox.v1.x) / -2.0,
 			(g_BBox.v0.y + g_BBox.v1.y) / -2.0,
 			(g_BBox.v0.z + g_BBox.v1.z) / -2.0
 		);
+	*/
 		
-		// glTranslatef (0.0f, 0.0f, -5.0f);
-		glTranslatef (0.0f, 0.0f, fZoom);
+		glTranslatef (0.0f, 0.0f, -5.0f);
+		glTranslatef (0.0f, 0.0f, -fZoom);
 		
 		// glScalef (0.75f, 1.15f, 0.0f);
 		glRotatef (fRotX, 1.0f, 0.0f, 0.0f);
 		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
-		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
+	//	glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
-		glMatrixMode (GL_MODELVIEW);
-		
-		glCallList (objlist);
-		glColor3f (0.0, 0.5, 1.0);
+		glCallList (uObjList);
 	glPopMatrix ();
 }
 
@@ -119,8 +135,8 @@ void renderer::paintGL () {
 void renderer::compileObjects () {
 	printf ("compile all objects\n");
 	
-	objlist = glGenLists (1);
-	glNewList (objlist, GL_COMPILE);
+	uObjList = glGenLists (1);
+	glNewList (uObjList, GL_COMPILE);
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -157,7 +173,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Triangle:
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			glColor3f (0.5f, 0.5f, 0.5f); // Draw all polygons gray for now
+			glColor3f (0.5f, 0.0f, 0.0f); // Draw all polygons red for now
 			glBegin (GL_TRIANGLES);
 			for (short i = 0; i < 3; ++i)
 				GL_VERTEX (tri->vaCoords[i])
@@ -168,7 +184,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Quad:
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			glColor3f (0.5f, 0.5f, 0.5f);
+			glColor3f (0.5f, 0.0f, 0.0f);
 			glBegin (GL_QUADS);
 			for (short i = 0; i < 4; ++i)
 				GL_VERTEX (quad->vaCoords[i])
@@ -214,7 +230,7 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 	
 	if (event->buttons () & Qt::MidButton) {
 		fZoom += (dy / 100.0);
-		fZoom = clamp (fZoom, 0.1, 10.0);
+		fZoom = clamp (fZoom, 0.01, 100.0);
 	}
 	
 	printf ("%.3f %.3f %.3f %.3f\n",

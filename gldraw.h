@@ -44,7 +44,7 @@ protected:
 	void mouseMoveEvent (QMouseEvent *event);
 
 private:
-	GLuint objlist;
+	GLuint uObjList;
 	void compileOneObject (LDObject* obj);
 	void clampAngle (double& fAngle);
 };
