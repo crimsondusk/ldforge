@@ -44,10 +44,10 @@ protected:
 	void mouseMoveEvent (QMouseEvent *event);
 
 private:
-	GLuint uObjList;
-	void compileOneObject (LDObject* obj);
+	GLuint uObjList, uObjListBack;
+	void compileOneObject (LDObject* obj, bool bBack);
 	void clampAngle (double& fAngle);
-	void setObjectColor (LDObject* obj);
+	void setObjectColor (LDObject* obj, bool bBack);
 };
 
 #endif // __GLDRAW_H__

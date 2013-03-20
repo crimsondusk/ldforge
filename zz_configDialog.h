@@ -33,7 +33,7 @@ public:
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
 	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
-	QCheckBox* qLVColorize;
+	QCheckBox* qLVColorize, *qGLColorBFC;
 	QSlider* qGLLineThickness;
 	
 	QDialogButtonBox* qButtons;

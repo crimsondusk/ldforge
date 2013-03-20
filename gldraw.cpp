@@ -86,7 +86,18 @@ void renderer::setColor (str zColor,
 		1.0f);
 }
 
-void renderer::setObjectColor (LDObject* obj) {
+void renderer::setObjectColor (LDObject* obj, bool bBack) {
+	if (gl_colorbfc &&
+		obj->getType () != OBJ_Line &&
+		obj->getType () != OBJ_CondLine)
+	{
+		if (bBack)
+			glColor4f (0.9f, 0.0f, 0.0f, 1.0f);
+		else
+			glColor4f (0.0f, 0.8f, 0.0f, 1.0f);
+		return;
+	}
+	
 	if (obj->dColor == dMainColor)
 		setColor (gl_maincolor, glColor4f);
 	else {
@@ -146,7 +157,18 @@ void renderer::paintGL () {
 		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
 		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
-		glCallList (uObjList);
+		if (gl_colorbfc) {
+			glEnable (GL_CULL_FACE);
+			
+			glCullFace (GL_FRONT);
+			glCallList (uObjList);
+			
+			glCullFace (GL_BACK);
+			glCallList (uObjListBack);
+			
+			glDisable (GL_CULL_FACE);
+		} else
+			glCallList (uObjList);
 	glPopMatrix ();
 }
 
@@ -154,8 +176,6 @@ void renderer::paintGL () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void renderer::compileObjects () {
-	uObjList = glGenLists (1);
-	glNewList (uObjList, GL_COMPILE);
 	
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
@@ -166,23 +186,36 @@ void renderer::compileObjects () {
 		return;
 	}
 	
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); i++)
-		compileOneObject (g_CurrentFile->objects[i]);
+	GLuint* upaLists[2] = {
+		&uObjList,
+		&uObjListBack,
+	};
 	
-	glEndList ();
+	for (uchar j = 0; j < 2; ++j) {
+		if (j && !gl_colorbfc)
+			continue;
+		
+		*upaLists[j] = glGenLists (1);
+		glNewList (*upaLists[j], GL_COMPILE);
+		
+		for (ulong i = 0; i < g_CurrentFile->objects.size(); i++)
+			compileOneObject (g_CurrentFile->objects[i], j);
+		
+		glEndList ();
+	}
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void renderer::compileOneObject (LDObject* obj) {
+void renderer::compileOneObject (LDObject* obj, bool bBack) {
 	if (!obj)
 		return;
 	
 	switch (obj->getType ()) {
 	case OBJ_Line:
 		{
-			setObjectColor (obj);
+			setObjectColor (obj, bBack);
 			
 			// draw lines
 			LDLine* line = static_cast<LDLine*> (obj);
@@ -198,7 +231,7 @@ void renderer::compileOneObject (LDObject* obj) {
 			glLineStipple (1, 0x6666);
 			glEnable (GL_LINE_STIPPLE);
 			
-			setObjectColor (obj);
+			setObjectColor (obj, bBack);
 			LDCondLine* line = static_cast<LDCondLine*> (obj);
 			
 			glBegin (GL_LINES);
@@ -213,7 +246,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Triangle:
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			setObjectColor (obj);
+			setObjectColor (obj, bBack);
 			glBegin (GL_TRIANGLES);
 			for (short i = 0; i < 3; ++i)
 				GL_VERTEX (tri->vaCoords[i])
@@ -224,7 +257,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Quad:
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			setObjectColor (obj);
+			setObjectColor (obj, bBack);
 			glBegin (GL_QUADS);
 			for (short i = 0; i < 4; ++i)
 				GL_VERTEX (quad->vaCoords[i])

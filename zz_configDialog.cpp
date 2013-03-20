@@ -25,6 +25,12 @@
 
 ConfigDialog* g_ConfigDialog = nullptr;
 
+#define INIT_CHECKBOX(BOX, CFG) \
+	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
+
+#define APPLY_CHECKBOX(BTN, CFG) \
+	CFG = BTN->checkState() == Qt::Checked;
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -61,7 +67,10 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	qGLLineThickness->setTickInterval (1);
 	
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
-	qLVColorize->setCheckState (lv_colorize ? Qt::Checked : Qt::Unchecked);
+	INIT_CHECKBOX (qLVColorize, lv_colorize)
+	
+	qGLColorBFC = new QCheckBox ("Red/green BFC view");
+	INIT_CHECKBOX (qGLColorBFC, gl_colorbfc)
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -79,6 +88,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (qGLLineThickness, 2, 1);
 	
 	layout->addWidget (qLVColorize, 3, 0, 1, 2);
+	layout->addWidget (qGLColorBFC, 3, 2, 1, 2);
 	
 	layout->addWidget (qButtons, 4, 2, 1, 2);
 	setLayout (layout);
@@ -148,7 +158,9 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 	
 	if (dlg.exec ()) {
 		io_ldpath = dlg.qLDrawPath->text();
-		lv_colorize = dlg.qLVColorize->checkState() == Qt::Checked;
+		
+		APPLY_CHECKBOX (dlg.qLVColorize, lv_colorize)
+		APPLY_CHECKBOX (dlg.qGLColorBFC, gl_colorbfc)
 		
 		gl_linethickness = dlg.qGLLineThickness->value ();
 		
