@@ -25,7 +25,10 @@
 #include "bbox.h"
 #include "colors.h"
 
-#define GL_VERTEX(V) glVertex3d (V.x, V.y, V.z);
+#define GL_VERTEX(V) glVertex3d (V.x + g_faObjectOffset[0], \
+	V.y + g_faObjectOffset[1], V.z + g_faObjectOffset[2]);
+
+double g_faObjectOffset[3];
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -58,7 +61,9 @@ void renderer::initializeGL () {
 	
 	glEnable (GL_LINE_SMOOTH);
 	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
-	glLineWidth (4 * 2.0f);
+	glLineWidth (gl_linethickness);
+	
+	setMouseTracking (true);
 	
 	compileObjects ();
 }
@@ -104,6 +109,8 @@ void renderer::hardRefresh () {
 	compileObjects ();
 	paintGL ();
 	swapBuffers ();
+	
+	glLineWidth (gl_linethickness);
 }
 
 // =============================================================================
@@ -121,27 +128,23 @@ void renderer::resizeGL (int w, int h) {
 // =============================================================================
 void renderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	printf ("painting..\n");
 	glMatrixMode (GL_MODELVIEW);
 	
 	glPushMatrix ();
 		glLoadIdentity ();
 		
-	/*
 		glTranslatef (
 			(g_BBox.v0.x + g_BBox.v1.x) / -2.0,
 			(g_BBox.v0.y + g_BBox.v1.y) / -2.0,
 			(g_BBox.v0.z + g_BBox.v1.z) / -2.0
 		);
-	*/
 		
 		glTranslatef (0.0f, 0.0f, -5.0f);
 		glTranslatef (0.0f, 0.0f, -fZoom);
 		
-		// glScalef (0.75f, 1.15f, 0.0f);
 		glRotatef (fRotX, 1.0f, 0.0f, 0.0f);
 		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
-	//	glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
+		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
 		glCallList (uObjList);
 	glPopMatrix ();
@@ -151,10 +154,12 @@ void renderer::paintGL () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void renderer::compileObjects () {
-	printf ("compile all objects\n");
-	
 	uObjList = glGenLists (1);
 	glNewList (uObjList, GL_COMPILE);
+	
+	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
+	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
+	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -175,16 +180,33 @@ void renderer::compileOneObject (LDObject* obj) {
 		return;
 	
 	switch (obj->getType ()) {
-	case OBJ_CondLine: // For now, treat condlines like normal lines.
 	case OBJ_Line:
 		{
-			glColor3f (0.0f, 0.0f, 0.0f); // Draw all lines black for now
+			setObjectColor (obj);
+			
 			// draw lines
 			LDLine* line = static_cast<LDLine*> (obj);
 			glBegin (GL_LINES);
 			for (short i = 0; i < 2; ++i)
 				GL_VERTEX (line->vaCoords[i])
 			glEnd ();
+		}
+		break;
+	
+	case OBJ_CondLine:
+		{
+			glLineStipple (1, 0x6666);
+			glEnable (GL_LINE_STIPPLE);
+			
+			setObjectColor (obj);
+			LDCondLine* line = static_cast<LDCondLine*> (obj);
+			
+			glBegin (GL_LINES);
+			for (short i = 0; i < 2; ++i)
+				GL_VERTEX (line->vaCoords[i])
+			glEnd ();
+			
+			glDisable (GL_LINE_STIPPLE);
 		}
 		break;
 	
@@ -251,8 +273,6 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 		fZoom = clamp (fZoom, 0.01, 100.0);
 	}
 	
-	printf ("%.3f %.3f %.3f %.3f\n",
-		fRotX, fRotY, fRotZ, fZoom);
 	lastPos = event->pos();
 	updateGL ();
 }

@@ -53,6 +53,13 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
+	qGLLineThicknessLabel = new QLabel ("Line thickness:");
+	qGLLineThickness = new QSlider (Qt::Horizontal);
+	qGLLineThickness->setRange (1, 8);
+	qGLLineThickness->setSliderPosition (gl_linethickness);
+	qGLLineThickness->setTickPosition (QSlider::TicksBothSides);
+	qGLLineThickness->setTickInterval (1);
+	
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
 	qLVColorize->setCheckState (lv_colorize ? Qt::Checked : Qt::Unchecked);
 	
@@ -68,9 +75,12 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (qGLForegroundLabel, 1, 2);
 	layout->addWidget (qGLForegroundButton, 1, 3);
 	
-	layout->addWidget (qLVColorize, 2, 0, 1, 2);
+	layout->addWidget (qGLLineThicknessLabel, 2, 0);
+	layout->addWidget (qGLLineThickness, 2, 1);
 	
-	layout->addWidget (qButtons, 3, 2, 1, 2);
+	layout->addWidget (qLVColorize, 3, 0, 1, 2);
+	
+	layout->addWidget (qButtons, 4, 2, 1, 2);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - editing settings");
@@ -139,6 +149,8 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 	if (dlg.exec ()) {
 		io_ldpath = dlg.qLDrawPath->text();
 		lv_colorize = dlg.qLVColorize->checkState() == Qt::Checked;
+		
+		gl_linethickness = dlg.qGLLineThickness->value ();
 		
 		// Save the config
 		config::save ();
