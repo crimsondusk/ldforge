@@ -23,6 +23,7 @@
 #include <qicon.h>
 #include <qboxlayout.h>
 #include <qgraphicsitem.h>
+#include <qevent.h>
 #include "zz_colorSelectDialog.h"
 #include "colors.h"
 
@@ -36,9 +37,10 @@ static const long g_lMaxHeight = ((MAX_COLORS / g_dNumColumns) * g_dSquareSize);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ColorSelectDialog::ColorSelectDialog (QWidget* parent) {
+ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog (parent) {
 	qScene = new QGraphicsScene;
 	qView = new QGraphicsView (qScene);
+	dSelColor = dDefault;
 	
 	// not really an icon but eh
 	qScene->setBackgroundBrush (QPixmap ("icons/checkerboard.png"));
@@ -46,11 +48,43 @@ ColorSelectDialog::ColorSelectDialog (QWidget* parent) {
 	qScene->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
 	qView->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
 	
+	drawScene ();
+	
+	IMPLEMENT_DIALOG_BUTTONS
+	
+	// Set the size of the view
+	const long lWidth = g_lWidth + 21; // HACK
+	qView->setMaximumWidth (lWidth);
+	qView->setMinimumWidth (lWidth);
+	qView->setMaximumHeight (g_lHeight);
+	qView->setMinimumHeight (g_lHeight);
+	
+	qColorInfo = new QLabel;
+	drawColorInfo ();
+	
+	QHBoxLayout* qLayout = new QHBoxLayout;
+	qLayout->addWidget (qColorInfo);
+	qLayout->addWidget (qButtons);
+	
+	QVBoxLayout* qLayout2 = new QVBoxLayout;
+	qLayout2->addWidget (qView);
+	qLayout2->addLayout (qLayout);
+	setLayout (qLayout2);
+	
+	setWindowIcon (QIcon ("icons/palette.png"));
+	setWindowTitle (APPNAME_DISPLAY " - choose a color");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ColorSelectDialog::drawScene () {
 	const double fPenWidth = 1.0f;
 	QPen qPen (Qt::black, fPenWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	
 	// Draw the color rectangles.
-	for (ulong i = 0; i < MAX_COLORS; ++i) {
+	qScene->clear ();
+	for (short i = 0; i < MAX_COLORS; ++i) {
 		color* meta = g_LDColors[i];
 		if (!meta)
 			continue;
@@ -70,33 +104,55 @@ ColorSelectDialog::ColorSelectDialog (QWidget* parent) {
 		QGraphicsTextItem* qText = qScene->addText (str::mkfmt ("%lu", i).chars());
 		qText->setDefaultTextColor ((bDark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
+		
+		if (i == dSelColor) {
+			QGraphicsPixmapItem* qCursorPic;
+			qCursorPic = qScene->addPixmap (QPixmap ("icons/colorcursor.png"));
+			qCursorPic->setPos (x, y);
+		}
 	}
-	
-	IMPLEMENT_DIALOG_BUTTONS
-	
-	// Set the size of the view
-	const long lWidth = g_lWidth + 21; // HACK
-	qView->setMaximumWidth (lWidth);
-	qView->setMinimumWidth (lWidth);
-	qView->setMaximumHeight (g_lHeight);
-	qView->setMinimumHeight (g_lHeight);
-	
-	QVBoxLayout* qLayout = new QVBoxLayout;
-	qLayout->addWidget (qView);
-	qLayout->addWidget (qButtons);
-	setLayout (qLayout);
-	
-	setWindowIcon (QIcon ("icons/palette.png"));
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool ColorSelectDialog::staticDialog (short& dValue, QWidget* parent) {
-	ColorSelectDialog dlg;
+void ColorSelectDialog::drawColorInfo () {
+	if (dSelColor == -1) {
+		qColorInfo->setText ("---");
+		return;
+	}
 	
-	if (dlg.exec ()) {
-		dValue = dValue;
+	qColorInfo->setText (str::mkfmt ("%d - %s",
+		dSelColor, g_LDColors[dSelColor]->zName.chars()));
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
+	QPointF qPoint = qView->mapToScene (event->pos ());
+	
+	ulong x = ((ulong)qPoint.x () - (g_dSquareSize / 2)) / g_dSquareSize;
+	ulong y = ((ulong)qPoint.y () - (g_dSquareSize / 2)) / g_dSquareSize;
+	ulong idx = (y * g_dNumColumns) + x;
+	
+	color* col = g_LDColors[idx];
+	if (!col)
+		return;
+	
+	dSelColor = idx;
+	drawScene ();
+	drawColorInfo ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+bool ColorSelectDialog::staticDialog (short& dValue, short dDefault, QWidget* parent) {
+	ColorSelectDialog dlg (dDefault, parent);
+	
+	if (dlg.exec () && dlg.dSelColor != -1) {
+		dValue = dlg.dSelColor;
 		return true;
 	}
 	

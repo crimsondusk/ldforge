@@ -18,13 +18,26 @@
 
 #include <qdialog.h>
 #include <qdialogbuttonbox.h>
+#include <qgraphicsscene.h>
+#include <qlabel.h>
 
 class ColorSelectDialog : public QDialog {
+	Q_OBJECT
+	
 public:
-	explicit ColorSelectDialog (QWidget* parent = nullptr);
-	static bool staticDialog (short& dValue, QWidget* parent = nullptr);
+	explicit ColorSelectDialog (short dDefault = -1, QWidget* parent = nullptr);
+	static bool staticDialog (short& dValue, short dDefault = -1, QWidget* parent = nullptr);
 	
 	QGraphicsScene* qScene;
 	QGraphicsView* qView;
+	QLabel* qColorInfo;
 	QDialogButtonBox* qButtons;
+	short dSelColor;
+	
+private:
+	void drawScene ();
+	void drawColorInfo ();
+	
+private slots:
+	void mousePressEvent (QMouseEvent* event);
 };

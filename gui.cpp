@@ -28,6 +28,7 @@
 #include "zz_addObjectDialog.h"
 #include "misc.h"
 #include "zz_colorSelectDialog.h"
+#include "colors.h"
 
 #define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
 	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
@@ -548,6 +549,8 @@ void ForgeWindow::refresh () {
 }
 
 void ForgeWindow::slot_testColorSelect () {
-	ColorSelectDialog dlg;
-	dlg.exec ();
+	short dColor;
+	if (ColorSelectDialog::staticDialog (dColor, -1, this)) {
+		printf ("you selected %s!\n", g_LDColors[dColor]->zName.chars());
+	}
 }
