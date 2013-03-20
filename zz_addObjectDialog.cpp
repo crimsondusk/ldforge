@@ -20,6 +20,8 @@
 #include "gui.h"
 #include "zz_addObjectDialog.h"
 #include "file.h"
+#include "colors.h"
+#include "zz_colorSelectDialog.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) { \
@@ -60,6 +62,29 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		break;
 	}
 	
+	// Show a color edit dialog for the types that actually use the color
+	bool bUsesColor = false;
+	switch (type) {
+	case OBJ_CondLine:
+	case OBJ_Line:
+	case OBJ_Quad:
+	case OBJ_Triangle:
+	case OBJ_Vertex:
+	case OBJ_Subfile:
+		bUsesColor = true;
+		break;
+	default:
+		break;
+	}
+	
+	if (bUsesColor) {
+		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? dEdgeColor : dMainColor;
+		
+		qColorButton = new QPushButton;
+		setButtonBackground (qColorButton, g_LDColors[dColor]->zColor);
+		connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_colorButtonClicked ()));
+	}
+	
 	for (short i = 0; i < dCoordCount; ++i) {
 		qaCoordinates[i] = new QDoubleSpinBox;
 		qaCoordinates[i]->setMaximumWidth (96);
@@ -80,21 +105,43 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		break;
 	}
 	
+	if (bUsesColor)
+		qLayout->addWidget (qColorButton, 1, 0);
+	
 	if (dCoordCount > 0) {
 		QGridLayout* const qCoordLayout = new QGridLayout;
 		
 		for (short i = 0; i < dCoordCount; ++i)
 			qCoordLayout->addWidget (qaCoordinates[i], (i / 3), (i % 3));
 		
-		qLayout->addLayout (qCoordLayout, 0, 1);
+		qLayout->addLayout (qCoordLayout, 0, 1, 2, 1);
 	}
 	
-	qLayout->addWidget (qButtons, 1, 1);
+	qLayout->addWidget (qButtons, 2, 1);
 	setLayout (qLayout);
 	setWindowTitle (str::mkfmt (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
 	
 	setWindowIcon (QIcon (zIconName.chars ()));
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void AddObjectDialog::setButtonBackground (QPushButton* qButton, str zValue) {
+	qButton->setIcon (QIcon ("icons/palette.png"));
+	qButton->setAutoFillBackground (true);
+	qButton->setStyleSheet (
+		str::mkfmt ("background-color: %s", zValue.chars()).chars()
+	);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void AddObjectDialog::slot_colorButtonClicked () {
+	ColorSelectDialog::staticDialog (dColor, dColor, this);
+	setButtonBackground (qColorButton, g_LDColors[dColor]->zColor);
 }
 
 // =============================================================================
@@ -117,7 +164,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		case OBJ_Line:
 			{
 				LDLine* line = new LDLine;
-				line->dColor = dEdgeColor;
+				line->dColor = dlg.dColor;
 				
 				APPLY_COORDS (line, 2)
 				
@@ -129,7 +176,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		case OBJ_Triangle:
 			{
 				LDTriangle* tri = new LDTriangle;
-				tri->dColor = dMainColor;
+				tri->dColor = dlg.dColor;
 				
 				APPLY_COORDS (tri, 3)
 				
@@ -141,7 +188,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		case OBJ_Quad:
 			{
 				LDQuad* quad = new LDQuad;
-				quad->dColor = dMainColor;
+				quad->dColor = dlg.dColor;
 				
 				APPLY_COORDS (quad, 4)
 				
@@ -153,7 +200,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		case OBJ_CondLine:
 			{
 				LDCondLine* line = new LDCondLine;
-				line->dColor = dEdgeColor;
+				line->dColor = dlg.dColor;
 				
 				APPLY_COORDS (line, 4)
 				
@@ -165,7 +212,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		case OBJ_Vertex:
 			{
 				LDVertex* vert = new LDVertex;
-				vert->dColor = dMainColor;
+				vert->dColor = dlg.dColor;
 				vert->vPosition.x = dlg.qaCoordinates[0]->value ();
 				vert->vPosition.y = dlg.qaCoordinates[1]->value ();
 				vert->vPosition.z = dlg.qaCoordinates[2]->value ();

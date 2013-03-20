@@ -25,8 +25,11 @@
 #include <qdialogbuttonbox.h>
 #include <qlabel.h>
 #include <qspinbox.h>
+#include <qpushbutton.h>
 
 class AddObjectDialog : public QDialog {
+	Q_OBJECT
+	
 public:
     AddObjectDialog (const LDObjectType_e type, QWidget* parent = nullptr);
 	static void staticDialog (const LDObjectType_e type, ForgeWindow* window);
@@ -39,7 +42,18 @@ public:
 	// Coordinate edits for.. anything with coordinates, really.
 	QDoubleSpinBox* qaCoordinates[12];
 	
+	// Color selection dialog button
+	QPushButton* qColorButton;
+	
 	QDialogButtonBox* qButtons;
+	
+private:
+	void setButtonBackground (QPushButton* qButton, str zValue);
+	
+	short dColor;
+	
+private slots:
+	void slot_colorButtonClicked ();
 };
 
 #endif // __ZZ_ADDOBJECTDIALOG_H__
