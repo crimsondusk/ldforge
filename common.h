@@ -85,20 +85,6 @@ public:
 };
 
 // =============================================================================
-// bearing
-// 
-// A bearing is a combination of an angle and a pitch. Essentially a 3D angle.
-// The project method projects a vertex from a given vertex by a given length.
-// 
-// Prefix: g, since b is bool
-// =============================================================================
-class bearing {
-	double fAngle, fPitch;
-	
-	vertex project (vertex& vSource, ulong ulLength);
-};
-
-// =============================================================================
 // Plural expression
 #define PLURAL(n) ((n != 1) ? "s" : "")
 

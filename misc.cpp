@@ -54,19 +54,6 @@ void stripWhitespace (str& s) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vertex bearing::project (vertex& vSource, ulong ulLength) {
-	vertex vDest = vSource;
-	
-	vDest.x += (cos (fAngle) * ulLength);
-	vDest.y += (sin (fAngle) * ulLength);
-	vDest.x += (cos (fPitch) * ulLength);
-	vDest.z += (sin (fPitch) * ulLength);
-	return vDest;
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 str ftoa (double fCoord) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)
