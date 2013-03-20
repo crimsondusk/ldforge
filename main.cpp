@@ -22,6 +22,7 @@
 #include "bbox.h"
 #include "misc.h"
 #include "config.h"
+#include "colors.h"
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = nullptr;
@@ -38,6 +39,8 @@ int main (int dArgC, char* saArgV[]) {
 		else
 			printf ("failed to create configuration file!\n");
 	}
+	
+	initColors ();
 	
 	QApplication app (dArgC, saArgV);
 	ForgeWindow* win = new ForgeWindow;

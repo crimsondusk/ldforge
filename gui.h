@@ -62,6 +62,7 @@ public:
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
 	QAction* qAct_settings;
 	QAction* qAct_help, *qAct_about, *qAct_aboutQt;
+	QAction* qAct_testColorSelect;
 	
 	ForgeWindow ();
 	void buildObjList ();
@@ -106,6 +107,8 @@ private slots:
 	void slot_help ();
 	void slot_about ();
 	void slot_aboutQt ();
+	
+	void slot_testColorSelect ();
 };
 
 enum {

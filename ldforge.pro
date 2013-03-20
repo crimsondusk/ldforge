@@ -20,9 +20,11 @@ HEADERS += bbox.h \
 	str.h \
 	config.h \
 	cfgdef.h \
+	colors.h \
 	zz_setContentsDialog.h \
 	zz_configDialog.h \
-	zz_addObjectDialog.h
+	zz_addObjectDialog.h \
+	zz_colorSelectDialog.h \
 
 SOURCES += bbox.cpp \
 	gldraw.cpp \
@@ -33,9 +35,11 @@ SOURCES += bbox.cpp \
 	misc.cpp \
 	str.cpp \ 
 	config.cpp \
+	colors.cpp \
 	zz_setContentsDialog.cpp \
 	zz_configDialog.cpp \
-	zz_addObjectDialog.cpp
+	zz_addObjectDialog.cpp \
+	zz_colorSelectDialog.cpp
 
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl

@@ -27,6 +27,7 @@
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
 #include "misc.h"
+#include "zz_colorSelectDialog.h"
 
 #define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
 	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
@@ -107,6 +108,8 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (help,			"Help",			"help",			"Shows the " APPNAME_DISPLAY " help manual.")
 	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
+	
+	MAKE_ACTION (testColorSelect, "Test colors", "palette",		"Test the color selection dialog")
 	
 	// Keyboard shortcuts
 	qAct_new->setShortcut (Qt::CTRL | Qt::Key_N);
@@ -203,6 +206,7 @@ void ForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_inline);
 	qEditToolBar->addAction (qAct_splitQuads);
 	qEditToolBar->addAction (qAct_setContents);
+	qEditToolBar->addAction (qAct_testColorSelect);
 	addToolBar (qEditToolBar);
 }
 
@@ -541,4 +545,9 @@ ulong ForgeWindow::getInsertionPoint () {
 void ForgeWindow::refresh () {
 	buildObjList ();
 	R->hardRefresh ();
+}
+
+void ForgeWindow::slot_testColorSelect () {
+	ColorSelectDialog dlg;
+	dlg.exec ();
 }
