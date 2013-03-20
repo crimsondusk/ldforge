@@ -65,6 +65,10 @@ public:
 	// Index (i.e. line number) of this object
 	unsigned long getIndex ();
 	
+	// Color used by this object. Comments, gibberish and empty entries
+	// do not use this field.
+	short dColor;
+	
 	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
 		return OBJ_Unidentified;
@@ -137,7 +141,6 @@ class LDSubfile : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Subfile)
 	
-	short dColor; // Color used by the reference
 	vertex vPosition; // Position of the subpart
 	double faMatrix[9]; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
@@ -155,7 +158,6 @@ class LDLine : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Line)
 	
-	short dColor; // Color of this line
 	vertex vaCoords[2]; // End points of this line
 };
 
@@ -169,7 +171,6 @@ class LDCondLine : public LDLine {
 public:
 	IMPLEMENT_LDTYPE (CondLine)
 	
-	short dColor; // Color of this line
 	vertex vaCoords[4]; // End points + control points of this line
 };
 
@@ -184,7 +185,6 @@ class LDTriangle : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Triangle)
 	
-	short dColor;
 	vertex vaCoords[3];
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
@@ -204,7 +204,6 @@ class LDQuad : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Quad)
 	
-	short dColor;
 	vertex vaCoords[4];
 	
 	// Split this quad into two triangles
@@ -223,7 +222,6 @@ class LDVertex : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Vertex)
 	
-	short dColor;
 	vertex vPosition;
 };
 

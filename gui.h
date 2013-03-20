@@ -62,12 +62,13 @@ public:
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
 	QAction* qAct_settings;
 	QAction* qAct_help, *qAct_about, *qAct_aboutQt;
-	QAction* qAct_testColorSelect;
+	QAction* qAct_setColor;
 	
 	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
 	void refresh ();
+	std::vector<LDObject*> getSelectedObjects ();
 	
 	// Where would a new item be inserted into?
 	ulong getInsertionPoint ();
@@ -108,7 +109,7 @@ private slots:
 	void slot_about ();
 	void slot_aboutQt ();
 	
-	void slot_testColorSelect ();
+	void slot_setColor ();
 };
 
 enum {

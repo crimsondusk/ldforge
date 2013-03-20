@@ -92,6 +92,7 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (copy,			"Copy",			"copy",			"Copy the current selection to clipboard.")
 	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
 	
+	MAKE_ACTION (setColor,		"Set Color",	"palette",		"Set the color on given objects.")
 	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
@@ -109,8 +110,6 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (help,			"Help",			"help",			"Shows the " APPNAME_DISPLAY " help manual.")
 	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
-	
-	MAKE_ACTION (testColorSelect, "Test colors", "palette",		"Test the color selection dialog")
 	
 	// Keyboard shortcuts
 	qAct_new->setShortcut (Qt::CTRL | Qt::Key_N);
@@ -167,6 +166,8 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_copy);			// Copy
 	qEditMenu->addAction (qAct_paste);			// Paste
 	qEditMenu->addSeparator ();					// -----
+	qEditMenu->addAction (qAct_setColor);		// Set Color
+	qEditMenu->addSeparator ();					// -----
 	qEditMenu->addAction (qAct_inline);			// Inline
 	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
 	qEditMenu->addAction (qAct_setContents);	// Set Contents
@@ -204,10 +205,10 @@ void ForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_cut);
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
+	qEditToolBar->addAction (qAct_setColor);
 	qEditToolBar->addAction (qAct_inline);
 	qEditToolBar->addAction (qAct_splitQuads);
 	qEditToolBar->addAction (qAct_setContents);
-	qEditToolBar->addAction (qAct_testColorSelect);
 	addToolBar (qEditToolBar);
 }
 
@@ -396,6 +397,48 @@ void ForgeWindow::slot_setContents () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ForgeWindow::slot_setColor () {
+	if (qObjList->selectedItems().size() <= 0)
+		return;
+	
+	short dColor;
+	short dDefault = -1;
+	
+	std::vector<LDObject*> objs = getSelectedObjects ();
+	
+	// Try to get a consensus on the color used for use as a default.
+	for (ulong i = 0; i < objs.size(); ++i) {
+		LDObject* obj = objs[i];
+		
+		if (obj->dColor == -1)
+			continue; // doesn't use colors
+		
+		if (dDefault != -1 && obj->dColor != dDefault) {
+			// No unanimosity in object color, therefore we don't have a
+			// proper default value to use.
+			dDefault = -1;
+			break;
+		}
+		
+		if (dDefault == -1)
+			dDefault = obj->dColor;
+	}
+	
+	// Show the dialog to the user now and ask him for a color.
+	if (ColorSelectDialog::staticDialog (dColor, dDefault, this)) {
+		for (ulong i = 0; i < objs.size(); ++i) {
+			LDObject* obj = objs[i];
+			if (obj->dColor != -1)
+				obj->dColor = dColor;
+		}
+		
+		refresh ();
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
@@ -548,9 +591,23 @@ void ForgeWindow::refresh () {
 	R->hardRefresh ();
 }
 
-void ForgeWindow::slot_testColorSelect () {
-	short dColor;
-	if (ColorSelectDialog::staticDialog (dColor, -1, this)) {
-		printf ("you selected %s!\n", g_LDColors[dColor]->zName.chars());
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
+	std::vector<LDObject*> objs;
+	
+	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems();
+	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
+		LDObject* obj = g_CurrentFile->objects[i];
+		
+		for (long j = 0; j < qaItems.size(); ++j) {
+			if (qaItems[j] == obj->qObjListEntry) {
+				objs.push_back (obj);
+				break;
+			}
+		}
 	}
+	
+	return objs;
 }

@@ -61,21 +61,25 @@ void LDObject::commonInit () {
 
 LDGibberish::LDGibberish () {
 	commonInit ();
+	dColor = -1;
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {
 	zContents = _zContent;
 	zReason = _zReason;
+	dColor = -1;
 	
 	commonInit ();
 }
 
 LDEmpty::LDEmpty () {
 	commonInit ();
+	dColor = -1;
 }
 
 LDComment::LDComment () {
 	commonInit ();
+	dColor = -1;
 }
 
 LDSubfile::LDSubfile () {
