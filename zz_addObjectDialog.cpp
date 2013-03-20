@@ -35,9 +35,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	QDialog (parent)
 {
 	short dCoordCount = 0;
+	str zIconName = str::mkfmt ("icons/add-%s.png", g_saObjTypeIcons[type]);
 	
 	qTypeIcon = new QLabel;
-	qTypeIcon->setPixmap (QPixmap (g_saObjTypeIcons[type]));
+	qTypeIcon->setPixmap (QPixmap (zIconName.chars ()));
 	
 	switch (type) {
 	case OBJ_Comment:
@@ -93,7 +94,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	setWindowTitle (str::mkfmt (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
 	
-	setWindowIcon (QIcon (str::mkfmt ("icons/add-%s.png", g_saObjTypeIcons[type]).chars ()));
+	setWindowIcon (QIcon (zIconName.chars ()));
 }
 
 // =============================================================================

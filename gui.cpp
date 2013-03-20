@@ -249,6 +249,14 @@ void ForgeWindow::slot_open () {
 }
 
 void ForgeWindow::slot_save () {
+	if (!~g_CurrentFile->zFileName) {
+		// If we don't have a file name, this is an anonymous file created
+		// with the new file command. We cannot save without a name so ask
+		// the user for one.
+		slot_saveAs ();
+		return;
+	}
+	
 	g_CurrentFile->save ();
 }
 

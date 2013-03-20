@@ -237,8 +237,29 @@ LDObject* parseLine (str zLine) {
 	case 0:
 		{
 			// Comment
+			str zComment = zLine.substr (2, -1);
+			
+			if (tokens[1] == "!LDFORGE") {
+				// Handle LDForge-specific types, they're embedded into comments
+				
+				if (tokens[2] == "VERTEX") {
+					// Vertex (0 !LDFORGE VERTEX)
+					CHECK_TOKEN_COUNT (7)
+					CHECK_TOKEN_NUMBERS (3, 6)
+					
+					LDVertex* obj = new LDVertex;
+					obj->dColor = atol (tokens[3]);
+					obj->vPosition.x = atof (tokens[4]);
+					obj->vPosition.y = atof (tokens[5]);
+					obj->vPosition.z = atof (tokens[6]);
+					
+					return obj;
+				}
+			}
+				
+			
 			LDComment* obj = new LDComment;
-			obj->zText = zLine.substr (2, -1);
+			obj->zText = zComment;
 			return obj;
 		}
 	

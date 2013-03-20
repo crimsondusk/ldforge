@@ -45,6 +45,8 @@ int main (int dArgC, char* saArgV[]) {
 	g_qMainApp = &app;
 	g_qWindow = win;
 	
+	newFile ();
+	
 	win->show ();
 	return app.exec ();
 }
