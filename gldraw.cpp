@@ -23,6 +23,7 @@
 #include "file.h"
 #include "gldraw.h"
 #include "bbox.h"
+#include "colors.h"
 
 #define GL_VERTEX(V) glVertex3d (V.x, V.y, V.z);
 
@@ -42,7 +43,7 @@ void renderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
 	
-	setColor (gl_bgcolor, &glClearColor);
+	setColor (gl_bgcolor.value, &glClearColor);
 	
 	glEnable (GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset (1.0f, 1.0f);
@@ -65,10 +66,10 @@ void renderer::initializeGL () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void renderer::setColor (strconfig& cfg,
+void renderer::setColor (str zColor,
 	void (*func) (float, float, float, float))
 {
-	QColor col (cfg.value.chars());
+	QColor col (zColor.chars());
 	
 	if (!col.isValid ())
 		return;
@@ -78,6 +79,22 @@ void renderer::setColor (strconfig& cfg,
 		((double)col.green()) / 255.0f,
 		((double)col.blue()) / 255.0f,
 		1.0f);
+}
+
+void renderer::setObjectColor (LDObject* obj) {
+	if (obj->dColor == dMainColor)
+		setColor (gl_maincolor, glColor4f);
+	else {
+		color* col = g_LDColors[obj->dColor];
+		QColor qCol (col->zColor.chars());
+		
+		if (qCol.isValid ())
+			glColor4f (
+				((double)qCol.red()) / 255.0f,
+				((double)qCol.green()) / 255.0f,
+				((double)qCol.blue()) / 255.0f,
+				col->fAlpha);
+	}
 }
 
 // =============================================================================
@@ -174,7 +191,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Triangle:
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			setColor (gl_maincolor, glColor4f);
+			setObjectColor (obj);
 			glBegin (GL_TRIANGLES);
 			for (short i = 0; i < 3; ++i)
 				GL_VERTEX (tri->vaCoords[i])
@@ -185,7 +202,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Quad:
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			setColor (gl_maincolor, glColor4f);
+			setObjectColor (obj);
 			glBegin (GL_QUADS);
 			for (short i = 0; i < 4; ++i)
 				GL_VERTEX (quad->vaCoords[i])

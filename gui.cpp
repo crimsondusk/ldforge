@@ -542,6 +542,14 @@ void ForgeWindow::buildObjList () {
 		if (obj->getType() == OBJ_Gibberish) {
 			item->setBackgroundColor (0, "#AA0000");
 			item->setForeground (0, QColor ("#FFAA00"));
+		} else if (lv_colorize &&
+			obj->dColor != -1 &&
+			obj->dColor != dMainColor &&
+			obj->dColor != dEdgeColor)
+		{
+			// If the object isn't in the main or edge color, draw this
+			// list entry in said color.
+			item->setForeground (0, QColor (g_LDColors[obj->dColor]->zColor.chars()));
 		}
 		
 		obj->qObjListEntry = item;

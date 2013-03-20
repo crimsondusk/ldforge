@@ -22,15 +22,18 @@
 #include <qlineedit.h>
 #include <qdialogbuttonbox.h>
 #include <qpushbutton.h>
+#include <qcheckbox.h>
 
 class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	QLabel* qLDrawPathLabel, *qGLBackgroundLabel, *qGLForegroundLabel;
+	QLabel* qLDrawPathLabel;
+	QLabel* qGLBackgroundLabel, *qGLForegroundLabel;
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
 	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
+	QCheckBox* qLVColorize;
 	
 	QDialogButtonBox* qButtons;
 	

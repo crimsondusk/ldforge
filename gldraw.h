@@ -30,7 +30,7 @@ public:
 	renderer (QWidget* parent = nullptr);
 	void hardRefresh ();
 	void compileObjects ();
-	void setColor (strconfig& cfg, void (*func) (float, float, float, float));
+	void setColor (str zColor, void (*func) (float, float, float, float));
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
@@ -47,6 +47,7 @@ private:
 	GLuint uObjList;
 	void compileOneObject (LDObject* obj);
 	void clampAngle (double& fAngle);
+	void setObjectColor (LDObject* obj);
 };
 
 #endif // __GLDRAW_H__

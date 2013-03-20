@@ -53,6 +53,9 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
+	qLVColorize = new QCheckBox ("Colorize polygons in list view");
+	qLVColorize->setCheckState (lv_colorize ? Qt::Checked : Qt::Unchecked);
+	
 	IMPLEMENT_DIALOG_BUTTONS
 	
 	QGridLayout* layout = new QGridLayout;
@@ -65,7 +68,9 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (qGLForegroundLabel, 1, 2);
 	layout->addWidget (qGLForegroundButton, 1, 3);
 	
-	layout->addWidget (qButtons, 2, 2, 1, 2);
+	layout->addWidget (qLVColorize, 2, 0, 1, 2);
+	
+	layout->addWidget (qButtons, 3, 2, 1, 2);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - editing settings");
@@ -133,6 +138,7 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 	
 	if (dlg.exec ()) {
 		io_ldpath = dlg.qLDrawPath->text();
+		lv_colorize = dlg.qLVColorize->checkState() == Qt::Checked;
 		
 		// Save the config
 		config::save ();
@@ -141,5 +147,6 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		reloadAllSubfiles ();
 		
 		window->R->setColor (gl_bgcolor, glClearColor);
+		window->refresh ();
 	}
 }

@@ -26,3 +26,6 @@ CFG (str, io, ldpath, "LDraw path", "")
 SECT (gl, GLRenderer)
 CFG (str, gl, bgcolor, "Background color", "#CCCCD9")
 CFG (str, gl, maincolor, "Main color", "#707078")
+
+SECT (lv, ListView)
+CFG (bool, lv, colorize, "Show colorized polygons in their color in the list view", true)
