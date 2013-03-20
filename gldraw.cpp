@@ -42,7 +42,7 @@ void renderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
 	
-	setBackground ();
+	setColor (gl_bgcolor, &glClearColor);
 	
 	glEnable (GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset (1.0f, 1.0f);
@@ -65,18 +65,19 @@ void renderer::initializeGL () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void renderer::setBackground () {
-	QColor col (gl_bgcolor.value.chars());
+void renderer::setColor (strconfig& cfg,
+	void (*func) (float, float, float, float))
+{
+	QColor col (cfg.value.chars());
 	
-	if (col.isValid ()) {
-		glClearColor (
-			((double)col.red()) / 255.0f,
-			((double)col.green()) / 255.0f,
-			((double)col.blue()) / 255.0f,
-			1.0f);
-	} else {
-		glClearColor (0.8f, 0.8f, 0.85f, 1.0f);
-	}
+	if (!col.isValid ())
+		return;
+	
+	(*func) (
+		((double)col.red()) / 255.0f,
+		((double)col.green()) / 255.0f,
+		((double)col.blue()) / 255.0f,
+		1.0f);
 }
 
 // =============================================================================
@@ -173,7 +174,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Triangle:
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			glColor3f (0.5f, 0.0f, 0.0f); // Draw all polygons red for now
+			setColor (gl_maincolor, glColor4f);
 			glBegin (GL_TRIANGLES);
 			for (short i = 0; i < 3; ++i)
 				GL_VERTEX (tri->vaCoords[i])
@@ -184,7 +185,7 @@ void renderer::compileOneObject (LDObject* obj) {
 	case OBJ_Quad:
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			glColor3f (0.5f, 0.0f, 0.0f);
+			setColor (gl_maincolor, glColor4f);
 			glBegin (GL_QUADS);
 			for (short i = 0; i < 4; ++i)
 				GL_VERTEX (quad->vaCoords[i])

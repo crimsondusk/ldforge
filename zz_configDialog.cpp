@@ -140,6 +140,6 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		// Reload all subfiles
 		reloadAllSubfiles ();
 		
-		window->R->setBackground ();
+		window->R->setColor (gl_bgcolor, glClearColor);
 	}
 }
