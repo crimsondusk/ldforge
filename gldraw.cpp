@@ -25,18 +25,16 @@
 #include "bbox.h"
 #include "colors.h"
 
-#define GL_VERTEX(V) glVertex3d (V.x + g_faObjectOffset[0], \
-	-(V.y + g_faObjectOffset[1]), V.z + g_faObjectOffset[2]);
-
-double g_faObjectOffset[3];
+static double g_faObjectOffset[3];
+static double g_StoredBBoxSize;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 renderer::renderer (QWidget* parent) {
 	parent = parent; // shhh, GCC
-	fRotX = fRotY = fRotZ = 0.0;
-	fZoom = 1.0;
+	fRotX = fRotY = fRotZ = 0.0f;
+	fZoom = 1.0f;
 }
 
 // =============================================================================
@@ -144,12 +142,6 @@ void renderer::paintGL () {
 	glPushMatrix ();
 		glLoadIdentity ();
 		
-		glTranslatef (
-			(g_BBox.v0.x + g_BBox.v1.x) / -2.0,
-			(g_BBox.v0.y + g_BBox.v1.y) / -2.0,
-			(g_BBox.v0.z + g_BBox.v1.z) / -2.0
-		);
-		
 		glTranslatef (0.0f, 0.0f, -5.0f);
 		glTranslatef (0.0f, 0.0f, -fZoom);
 		
@@ -176,10 +168,11 @@ void renderer::paintGL () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void renderer::compileObjects () {
-	
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
 	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
+	g_StoredBBoxSize = g_BBox.calcSize ();
+	printf ("bbox size is %f\n", g_StoredBBoxSize);
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -221,7 +214,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBack) {
 			LDLine* line = static_cast<LDLine*> (obj);
 			glBegin (GL_LINES);
 			for (short i = 0; i < 2; ++i)
-				GL_VERTEX (line->vaCoords[i])
+				compileVertex (line->vaCoords[i]);
 			glEnd ();
 		}
 		break;
@@ -236,7 +229,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBack) {
 			
 			glBegin (GL_LINES);
 			for (short i = 0; i < 2; ++i)
-				GL_VERTEX (line->vaCoords[i])
+				compileVertex (line->vaCoords[i]);
 			glEnd ();
 			
 			glDisable (GL_LINE_STIPPLE);
@@ -249,7 +242,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBack) {
 			setObjectColor (obj, bBack);
 			glBegin (GL_TRIANGLES);
 			for (short i = 0; i < 3; ++i)
-				GL_VERTEX (tri->vaCoords[i])
+				compileVertex (tri->vaCoords[i]);
 			glEnd ();
 		}
 		break;
@@ -260,7 +253,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBack) {
 			setObjectColor (obj, bBack);
 			glBegin (GL_QUADS);
 			for (short i = 0; i < 4; ++i)
-				GL_VERTEX (quad->vaCoords[i])
+				compileVertex (quad->vaCoords[i]);
 			glEnd ();
 		}
 		break;
@@ -268,6 +261,16 @@ void renderer::compileOneObject (LDObject* obj, bool bBack) {
 	default:
 		break;
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void renderer::compileVertex (vertex& vrt) {
+	glVertex3d (
+		(vrt.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
+		-(vrt.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
+		(vrt.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
 }
 
 // =============================================================================

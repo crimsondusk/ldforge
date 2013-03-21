@@ -26,9 +26,6 @@ inline str GetWord (str& zString, ulong ulIndex) {
 	return (zString / " ")[ulIndex];
 }
 
-double getWordFloat (str& s, const ushort n);
-long getWordInt (str& s, const ushort n);
-vertex parseVertex (str& s, const ushort n);
 void stripWhitespace (str& s);
 
 // Returns whether a given string represents a floating point number

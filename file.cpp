@@ -168,6 +168,10 @@ void openMainFile (str zPath) {
 	closeAll ();
 	
 	OpenFile* pFile = openDATFile (zPath);
+	
+	if (!pFile)
+		return;
+	
 	g_CurrentFile = pFile;
 	
 	// Recalculate the bounding box
@@ -215,26 +219,30 @@ bool OpenFile::save (str zPath) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDObject* parseLine (str zLine) {
-	printf ("%s\n", zLine.chars());
-	
+static vertex parseVertex (vector<str>& s, const ushort n) {
 	// Disable the locale while parsing the line or atof's behavior changes
 	// between locales (i.e. fails to read decimals properly). That is
 	// quite undesired...
 	setlocale (LC_NUMERIC, "C");
 	
-	str zNoWhitespace = zLine;
-	stripWhitespace (zNoWhitespace);
-	if (!~zNoWhitespace) {
+	vertex v;
+	v.x = atof (s[n]);
+	v.y = atof (s[n + 1]);
+	v.z = atof (s[n + 2]);
+	
+	return v;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+LDObject* parseLine (str zLine) {
+	vector<str> tokens = zLine.split (" ", true);
+	
+	if (!tokens.size ()) {
 		// Line was empty, or only consisted of whitespace
 		return new LDEmpty;
 	}
-	
-	vector<str> tokens = zLine / " ";
-	
-	// Rid leading all-whitespace tokens
-	while (tokens.size() && !(~tokens[0]))
-		tokens.erase (tokens.begin());
 	
 	if (~tokens[0] != 1)
 		return new LDGibberish (zLine, "Illogical line code");
@@ -246,7 +254,7 @@ LDObject* parseLine (str zLine) {
 			// Comment
 			str zComment = zLine.substr (2, -1);
 			
-			if (tokens[1] == "!LDFORGE") {
+			if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {
 				// Handle LDForge-specific types, they're embedded into comments
 				
 				if (tokens[2] == "VERTEX") {
@@ -263,7 +271,6 @@ LDObject* parseLine (str zLine) {
 					return obj;
 				}
 			}
-				
 			
 			LDComment* obj = new LDComment;
 			obj->zText = zComment;
@@ -288,8 +295,8 @@ LDObject* parseLine (str zLine) {
 				return new LDGibberish (zLine, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
-			obj->dColor = atoi (tokens[1]);
-			obj->vPosition = parseVertex (zLine, 2); // 2 - 4
+			obj->dColor = atol (tokens[1]);
+			obj->vPosition = parseVertex (tokens, 2); // 2 - 4
 			
 			for (short i = 0; i < 9; ++i)
 				obj->faMatrix[i] = atof (tokens[i + 5]); // 5 - 13
@@ -306,9 +313,9 @@ LDObject* parseLine (str zLine) {
 			
 			// Line
 			LDLine* obj = new LDLine;
-			obj->dColor = getWordInt (zLine, 1);
+			obj->dColor = atol (tokens[1]);
 			for (short i = 0; i < 2; ++i)
-				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 7
+				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 7
 			return obj;
 		}
 	
@@ -319,10 +326,10 @@ LDObject* parseLine (str zLine) {
 			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
-			obj->dColor = getWordInt (zLine, 1);
+			obj->dColor = atol (tokens[1]);
 			
 			for (short i = 0; i < 3; ++i)
-				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 10
+				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 10
 			
 			return obj;
 		}
@@ -334,10 +341,10 @@ LDObject* parseLine (str zLine) {
 			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
-			obj->dColor = getWordInt (zLine, 1);
+			obj->dColor = atol (tokens[1]);
 			
 			for (short i = 0; i < 4; ++i)
-				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 13
+				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
 			
 			return obj;
 		}
@@ -349,18 +356,16 @@ LDObject* parseLine (str zLine) {
 			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
-			obj->dColor = getWordInt (zLine, 1);
+			obj->dColor = atol (tokens[1]);
 			
 			for (short i = 0; i < 4; ++i)
-				obj->vaCoords[i] = parseVertex (zLine, 2 + (i * 3)); // 2 - 13
+				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
 			return obj;
 		}
 		
 	default: // Strange line we couldn't parse
 		return new LDGibberish (zLine, "Unknown line code number");
 	}
-	
-	setlocale (LC_NUMERIC, "");
 }
 
 // =============================================================================

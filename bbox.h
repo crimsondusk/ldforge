@@ -21,13 +21,22 @@
 
 #include "common.h"
 
+// =============================================================================
+// The bounding box, bbox for short, is the
+// box that encompasses the model we have open.
+// v0 is the minimum vertex, v1 is the maximum vertex.
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 class bbox {
 public:
-	vertex v0;
-	vertex v1;
+	vertex v0, v1;
 	
 	bbox ();
+	
+	void reset ();
 	void calculate ();
+	double calcSize ();
 	
 private:
 	void checkVertex (vertex v);

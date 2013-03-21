@@ -157,7 +157,7 @@ public:
 		return operator[] (pos);
 	}
 	
-	std::vector<str> split (str del);
+	std::vector<str> split (str del, bool bNoBlanks = false);
 	
 	/*
 	void strip (char c);

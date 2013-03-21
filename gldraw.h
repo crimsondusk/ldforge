@@ -46,6 +46,7 @@ protected:
 private:
 	GLuint uObjList, uObjListBack;
 	void compileOneObject (LDObject* obj, bool bBack);
+	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj, bool bBack);
 };

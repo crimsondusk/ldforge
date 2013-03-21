@@ -473,7 +473,7 @@ unsigned str::count (char* c) {
 }
 
 // ============================================================================
-std::vector<str> str::split (str del) {
+std::vector<str> str::split (str del, bool bNoBlanks) {
 	std::vector<str> res;
 	unsigned int a = 0;
 	
@@ -484,12 +484,15 @@ std::vector<str> str::split (str del) {
 		if (b == -1)
 			break;
 		
-		res.push_back (substr (a, b));
+		if (!bNoBlanks || (b - a))
+			res.push_back (substr (a, b));
+		
 		a = b + strlen (del);
 	}
 	
 	// Add the string at the right of the last separator
-	res.push_back (substr (a, len()));
+	if (!bNoBlanks || (len () - a))
+		res.push_back (substr (a, len ()));
 	return res;
 }
 

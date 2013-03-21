@@ -21,13 +21,19 @@
 #include "ldtypes.h"
 #include "file.h"
 
+#define CHECK_DIMENSION(V,X) \
+	if (V.X < v0.X) v0.X = V.X; \
+	if (V.X > v1.X) v1.X = V.X;
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void bbox::calculate () {
+	reset ();
+	
 	if (!g_CurrentFile)
 		return;
 	
-	// The bounding box, bbox for short, is the
-	// box that encompasses the model we have open.
-	// v0 is the minimum vertex, v1 is the maximum vertex.
 	for (uint i = 0; i < g_CurrentFile->objects.size(); i++) {
 		LDObject* obj = g_CurrentFile->objects[i];
 		switch (obj->getType ()) {
@@ -70,17 +76,44 @@ void bbox::calculate () {
 	}
 }
 
-#define CHECK_DIMENSION(V,X) \
-	if (V.X < v0.X) v0.X = V.X; \
-	if (V.X > v1.X) v1.X = V.X;
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void bbox::checkVertex (vertex v) {
 	CHECK_DIMENSION (v, x)
 	CHECK_DIMENSION (v, y)
 	CHECK_DIMENSION (v, z)
 }
-#undef CHECK_DIMENSION
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 bbox::bbox () {
+	reset ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::reset () {
 	memset (&v0, 0, sizeof v0);
 	memset (&v1, 0, sizeof v1);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+double bbox::calcSize () {
+	double fXScale = (v0.x - v1.x);
+	double fYScale = (v0.y - v1.y);
+	double fZScale = (v0.z - v1.z);
+	double* fpSize = &fZScale;
+	
+	if (fXScale > fYScale) {
+		if (fXScale > fZScale)
+			fpSize = &fXScale;
+	} else if (fYScale > fZScale)
+		fpSize = &fYScale;
+	
+	return (*fpSize) / 2;
 }
