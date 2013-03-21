@@ -24,6 +24,7 @@
 #include <qboxlayout.h>
 #include <qgraphicsitem.h>
 #include <qevent.h>
+#include <qscrollbar.h>
 #include "zz_colorSelectDialog.h"
 #include "colors.h"
 
@@ -58,6 +59,13 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	qView->setMinimumWidth (lWidth);
 	qView->setMaximumHeight (g_lHeight);
 	qView->setMinimumHeight (g_lHeight);
+	qView->setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+	
+	// If we have a default color selected, scroll down so that it is visible.
+	if (dDefault >= ((g_dNumColumns * g_dNumRows) - 2)) {
+		ulong ulNewY = ((dDefault / g_dNumColumns) - 3) * g_dSquareSize;
+		qView->verticalScrollBar ()->setSliderPosition (ulNewY);
+	}
 	
 	qColorInfo = new QLabel;
 	drawColorInfo ();

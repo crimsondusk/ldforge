@@ -41,8 +41,11 @@ static TemporaryColorMeta g_LDColorInfo[] = {
 	{17,	"Light Green",	"#80FF80",	1.0},
 	{18,	"Light Yellow",	"#FFFF80",	1.0},
 	{19,	"Tan",			"#EECC99",	1.0},
+	{21,	"Phosphorus",	"#E0FFB0",	0.975},
 	{22,	"Purple",		"#A000A0",	1.0},
 	{24,	"Edge Color",	"#000000",	1.0},
+	{25,	"Orange",		"#FF8000",	1.0},
+	{26,	"Magenta",		"#FFA0FF",	1.0},
 	{27,	"Lime",			"#00FF00",	1.0},
 	{28,	"Sand",			"#989070",	1.0},
 	{32,	"Smoke",		"#101010",	0.5},
@@ -61,6 +64,9 @@ static TemporaryColorMeta g_LDColorInfo[] = {
 	{45,	"Trans Pink",	"#FF2080",	0.5},
 	{46,	"Trans Yellow",	"#FFEE00",	0.5},
 	{47,	"Clear",		"#FFFFFF",	0.5},
+	{79,	"Ghost White",	"#FFFFFF",	0.875},
+	{294,	"Trans Phosphorus",	"#E0FFB0",	0.6},
+	{378,	"Sand Green",	"#80A080",	1.0},
 };
 
 color* g_LDColors[MAX_COLORS];
