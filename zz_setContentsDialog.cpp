@@ -39,12 +39,25 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		"standard</a> for further information.");
 	qContents->setMinimumWidth (384);
 	
+	if (obj->getType() == OBJ_Gibberish) {
+		qErrorLabel = new QLabel;
+		qErrorLabel->setText (str::mkfmt ("<span style=\"color: #900\">%s</span>",
+			static_cast<LDGibberish*> (obj)->zReason.chars()));
+	}
+	
 	IMPLEMENT_DIALOG_BUTTONS
 	
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget (qContentsLabel);
 	layout->addWidget (qContents);
-	layout->addWidget (qButtons);
+	
+	QHBoxLayout* layout2 = new QHBoxLayout;
+	
+	if (obj->getType() == OBJ_Gibberish)
+		layout2->addWidget (qErrorLabel);
+	
+	layout2->addWidget (qButtons);
+	layout->addLayout (layout2);
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - setting contents");

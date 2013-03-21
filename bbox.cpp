@@ -107,13 +107,15 @@ double bbox::calcSize () {
 	double fXScale = (v0.x - v1.x);
 	double fYScale = (v0.y - v1.y);
 	double fZScale = (v0.z - v1.z);
-	double* fpSize = &fZScale;
+	double fSize = fZScale;
 	
 	if (fXScale > fYScale) {
 		if (fXScale > fZScale)
-			fpSize = &fXScale;
+			fSize = fXScale;
 	} else if (fYScale > fZScale)
-		fpSize = &fYScale;
+		fSize = fYScale;
 	
-	return (*fpSize) / 2;
+	if (fSize >= 2.0f)
+		return (fSize / 2);
+	return 1.0f;
 }

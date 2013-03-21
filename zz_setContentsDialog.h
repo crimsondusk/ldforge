@@ -31,7 +31,7 @@
 // =============================================================================
 class SetContentsDialog : public QDialog {
 public:
-	QLabel* qContentsLabel;
+	QLabel* qContentsLabel, *qErrorLabel;
 	QLineEdit* qContents;
 	QDialogButtonBox* qButtons;
 	
