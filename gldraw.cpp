@@ -26,7 +26,7 @@
 #include "colors.h"
 
 #define GL_VERTEX(V) glVertex3d (V.x + g_faObjectOffset[0], \
-	V.y + g_faObjectOffset[1], V.z + g_faObjectOffset[2]);
+	-(V.y + g_faObjectOffset[1]), V.z + g_faObjectOffset[2]);
 
 double g_faObjectOffset[3];
 
