@@ -426,3 +426,20 @@ void OpenFile::addObject (LDObject* obj) {
 	const ulong ulSpot = g_qWindow->getInsertionPoint ();
 	objects.insert (objects.begin() + ulSpot, obj);
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void OpenFile::forgetObject (LDObject* obj) {
+	// Find the index for the given object
+	ulong ulIndex;
+	for (ulIndex = 0; ulIndex < (ulong)objects.size(); ++ulIndex)
+		if (objects[ulIndex] == obj)
+			break; // found it
+	
+	if (ulIndex >= objects.size ())
+		return; // was not found
+	
+	// Erase it from memory
+	objects.erase (objects.begin() + ulIndex);
+}

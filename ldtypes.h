@@ -27,7 +27,10 @@
 	virtual LDObjectType_e getType () const { \
 		return OBJ_##N; \
 	} \
-	virtual str getContents ();
+	virtual str getContents (); \
+	virtual LD##N* makeClone () { \
+		return new LD##N (*this); \
+	}
 
 class QTreeWidgetItem;
 
@@ -77,6 +80,10 @@ public:
 	// A string that represents this line
 	virtual str getContents () {
 		return "";
+	}
+	
+	virtual LDObject* makeClone () {
+		return new LDObject (*this);
 	}
 	
 	void commonInit ();

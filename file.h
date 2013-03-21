@@ -42,6 +42,9 @@ public:
 	
 	// Adds an object to this file at the appropriate location.
 	void addObject (LDObject* obj);
+	
+	// Deletes the given object from the object chain.
+	void forgetObject (LDObject* obj);
 };
 
 // Close all current loaded files and start off blank.

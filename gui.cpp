@@ -35,6 +35,8 @@
 	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
 	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
 
+vector<LDObject*> g_Clipboard;
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -91,6 +93,7 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (cut,			"Cut",			"cut",			"Cut the current selection to clipboard.")
 	MAKE_ACTION (copy,			"Copy",			"copy",			"Copy the current selection to clipboard.")
 	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
+	MAKE_ACTION (delete,		"Delete",		"delete",		"Delete the selection")
 	
 	MAKE_ACTION (setColor,		"Set Color",	"palette",		"Set the color on given objects.")
 	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
@@ -120,13 +123,11 @@ void ForgeWindow::createMenuActions () {
 	qAct_cut->setShortcut (Qt::CTRL | Qt::Key_X);
 	qAct_copy->setShortcut (Qt::CTRL | Qt::Key_C);
 	qAct_paste->setShortcut (Qt::CTRL | Qt::Key_V);
+	qAct_delete->setShortcut (Qt::Key_Delete);
 	
 	// things not implemented yet
 	QAction* qaDisabledActions[] = {
 		qAct_newSubfile,
-		qAct_cut,
-		qAct_copy,
-		qAct_paste,
 		qAct_about,
 		qAct_inline,
 		qAct_help,
@@ -165,6 +166,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_cut);			// Cut
 	qEditMenu->addAction (qAct_copy);			// Copy
 	qEditMenu->addAction (qAct_paste);			// Paste
+	qEditMenu->addAction (qAct_delete);			// Delete
 	qEditMenu->addSeparator ();					// -----
 	qEditMenu->addAction (qAct_setColor);		// Set Color
 	qEditMenu->addSeparator ();					// -----
@@ -205,6 +207,7 @@ void ForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_cut);
 	qEditToolBar->addAction (qAct_copy);
 	qEditToolBar->addAction (qAct_paste);
+	qEditToolBar->addAction (qAct_delete);
 	qEditToolBar->addAction (qAct_setColor);
 	qEditToolBar->addAction (qAct_inline);
 	qEditToolBar->addAction (qAct_splitQuads);
@@ -315,16 +318,83 @@ void ForgeWindow::slot_aboutQt () {
 	QMessageBox::aboutQt (this);
 }
 
-void ForgeWindow::slot_cut () {
-
-}
-
-void ForgeWindow::slot_copy () {
-
-}
-
-void ForgeWindow::slot_paste () {
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+bool ForgeWindow::copyToClipboard () {
+	vector<LDObject*> objs = getSelectedObjects ();
 	
+	if (objs.size() == 0)
+		return false;
+	
+	// Clear the clipboard. However, its contents are dynamically allocated
+	// clones of LDObjects (cannot use pointers to real objects because the
+	// cut operation deletes them!), so we have to delete said objects first.
+	for (std::size_t i = 0; i < g_Clipboard.size(); ++i)
+		delete g_Clipboard[i];
+	
+	g_Clipboard.clear ();
+	
+	for (std::size_t i = 0; i < objs.size(); ++i)
+		g_Clipboard.push_back (objs[i]->makeClone ());
+	
+	return true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::deleteSelection () {
+	vector<LDObject*> objs = getSelectedObjects ();
+	
+	// Delete the objects that were being selected
+	for (ulong i = 0; i < (ulong)objs.size(); ++i) {
+		LDObject* obj = objs[i];
+		
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_cut () {
+	if (!copyToClipboard ())
+		return;
+	
+	deleteSelection ();
+	
+	qAct_paste->setEnabled (true);
+	refresh ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_copy () {
+	if (copyToClipboard ())
+		qAct_paste->setEnabled (true);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_paste () {
+	for (std::size_t i = 0; i < g_Clipboard.size(); ++i) {
+		LDObject* copy = g_Clipboard[i]->makeClone ();
+		g_CurrentFile->addObject (copy);
+	}
+	
+	refresh ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_delete () {
+	deleteSelection ();
+	refresh ();
 }
 
 void ForgeWindow::slot_newVertex () {

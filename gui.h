@@ -56,7 +56,7 @@ public:
 	
 	// ACTION ARMADA
 	QAction* qAct_new, *qAct_open, *qAct_save, *qAct_saveAs, *qAct_exit;
-	QAction* qAct_cut, *qAct_copy, *qAct_paste;
+	QAction* qAct_cut, *qAct_copy, *qAct_paste, *qAct_delete;
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
 	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVertex;
 	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
@@ -77,6 +77,8 @@ private:
 	void createMenuActions ();
 	void createMenus ();
     void createToolbars ();
+	bool copyToClipboard ();
+	void deleteSelection ();
 
 private slots:
 	void slot_selectionChanged ();
@@ -102,6 +104,7 @@ private slots:
 	void slot_cut ();
 	void slot_copy ();
 	void slot_paste ();
+	void slot_delete ();
 	
 	void slot_settings ();
 	
