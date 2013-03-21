@@ -59,7 +59,7 @@ public:
 	QAction* qAct_cut, *qAct_copy, *qAct_paste, *qAct_delete;
 	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
 	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVertex;
-	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline;
+	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline, *qAct_makeBorders;
 	QAction* qAct_settings;
 	QAction* qAct_help, *qAct_about, *qAct_aboutQt;
 	QAction* qAct_setColor;
@@ -100,6 +100,7 @@ private slots:
 	void slot_inline ();
 	void slot_splitQuads ();
 	void slot_setContents ();
+	void slot_makeBorders ();
 	
 	void slot_cut ();
 	void slot_copy ();

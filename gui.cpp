@@ -99,6 +99,7 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
+	MAKE_ACTION (makeBorders,	"Make Borders",	"make-borders",	"Add borders around given polygons.")
 	
 	MAKE_ACTION (newSubfile,	"New Subfile",	"add-subfile",	"Creates a new subfile reference.")
 	MAKE_ACTION (newLine,		"New Line", 	"add-line",		"Creates a new line.")
@@ -173,6 +174,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_inline);			// Inline
 	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
 	qEditMenu->addAction (qAct_setContents);	// Set Contents
+	qEditMenu->addAction (qAct_makeBorders);	// Make Borders
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
@@ -212,6 +214,7 @@ void ForgeWindow::createToolbars () {
 	qEditToolBar->addAction (qAct_inline);
 	qEditToolBar->addAction (qAct_splitQuads);
 	qEditToolBar->addAction (qAct_setContents);
+	qEditToolBar->addAction (qAct_makeBorders);
 	addToolBar (qEditToolBar);
 }
 
@@ -432,20 +435,7 @@ void ForgeWindow::slot_setContents () {
 	if (qObjList->selectedItems().size() != 1)
 		return;
 	
-	ulong ulIndex;
-	LDObject* obj = nullptr;
-	
-	QTreeWidgetItem* item = qObjList->selectedItems()[0];
-	for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex) {
-		obj = g_CurrentFile->objects[ulIndex];
-		
-		if (obj->qObjListEntry == item)
-			break;
-	}
-	
-	if (ulIndex >= g_CurrentFile->objects.size())
-		return;
-	
+	LDObject* obj = getSelectedObjects ()[0];
 	SetContentsDialog::staticDialog (obj, this);
 }
 
@@ -489,6 +479,48 @@ void ForgeWindow::slot_setColor () {
 		
 		refresh ();
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_makeBorders () {
+	vector<LDObject*> objs = getSelectedObjects ();
+	
+	// Delete the objects that were being selected
+	for (std::size_t i = 0; i < objs.size(); ++i) {
+		LDObject* obj = objs[i];
+		
+		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
+			continue;
+		
+		short dNumLines;
+		LDLine* lines[4];
+		
+		if (obj->getType() == OBJ_Quad) {
+			dNumLines = 4;
+			
+			LDQuad* quad = static_cast<LDQuad*> (obj);
+			lines[0] = new LDLine (quad->vaCoords[0], quad->vaCoords[1]);
+			lines[1] = new LDLine (quad->vaCoords[1], quad->vaCoords[2]);
+			lines[2] = new LDLine (quad->vaCoords[2], quad->vaCoords[3]);
+			lines[3] = new LDLine (quad->vaCoords[3], quad->vaCoords[0]);
+		} else {
+			dNumLines = 3;
+			
+			LDTriangle* tri = static_cast<LDTriangle*> (obj);
+			lines[0] = new LDLine (tri->vaCoords[0], tri->vaCoords[1]);
+			lines[1] = new LDLine (tri->vaCoords[1], tri->vaCoords[2]);
+			lines[2] = new LDLine (tri->vaCoords[2], tri->vaCoords[0]); 
+		}
+		
+		for (short i = 0; i < dNumLines; ++i) {
+			lines[i]->dColor = dEdgeColor;
+			g_CurrentFile->addObject (lines[i]);
+		}
+	}
+	
+	refresh ();
 }
 
 // =============================================================================

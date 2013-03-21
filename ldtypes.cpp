@@ -238,6 +238,13 @@ void LDObject::replace (LDObject* replacement) {
 	delete this;
 }
 
+LDLine::LDLine (vertex v1, vertex v2) {
+	commonInit ();
+	
+	vaCoords[0] = v1;
+	vaCoords[1] = v2;
+}
+
 LDObject::~LDObject () {}
 LDComment::~LDComment () {}
 LDCondLine::~LDCondLine () {}

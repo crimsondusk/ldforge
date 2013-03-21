@@ -164,6 +164,7 @@ public:
 class LDLine : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Line)
+	LDLine (vertex v1, vertex v2);
 	
 	vertex vaCoords[2]; // End points of this line
 };
