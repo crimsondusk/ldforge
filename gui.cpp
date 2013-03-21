@@ -409,32 +409,17 @@ void ForgeWindow::slot_inline () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_splitQuads () {
-	if (qObjList->selectedItems().size() == 0)
-		return;
+	vector<LDObject*> objs = getSelectedObjects ();
 	
-	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems();
-	
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		LDObject* obj = g_CurrentFile->objects[i];
+	// Delete the objects that were being selected
+	for (ulong i = 0; i < (ulong)objs.size(); ++i) {
+		LDObject* obj = objs[i];
 		
 		// Don't even consider non-quads
 		if (obj->getType() != OBJ_Quad)
 			continue;
 		
-		bool bIsSelected = false;
-		
-		for (long j = 0; j < qaItems.size(); ++j) {
-			if (qaItems[j] == obj->qObjListEntry) {
-				bIsSelected = true;
-				break;
-			}
-		}
-		
-		if (!bIsSelected)
-			continue; // Was not selected
-		
 		static_cast<LDQuad*> (obj)->splitToTriangles ();
-		i++;// Skip past the second triangle
 	}
 	
 	refresh ();
