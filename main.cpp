@@ -30,6 +30,8 @@ ForgeWindow* g_qWindow = nullptr;
 bbox g_BBox;
 QApplication* g_qMainApp = nullptr;
 
+const vertex g_Origin (0.0f, 0.0f, 0.0f);
+
 int main (int dArgC, char* saArgV[]) {
 	// Load or create the configuration
 	if (!config::load()) {
@@ -69,6 +71,17 @@ str vertex::getStringRep (const bool bMangled) {
 		ftoa (x).chars(),
 		ftoa (y).chars(),
 		ftoa (z).chars());
+}
+
+void vertex::transform (double* matrix, vertex pos) {
+	double x2, y2, z2;
+	x2 = (matrix[0] * x) + (matrix[1] * y) + (matrix[2] * z) + pos.x;
+	y2 = (matrix[3] * x) + (matrix[4] * y) + (matrix[5] * z) + pos.y;
+	z2 = (matrix[6] * x) + (matrix[7] * y) + (matrix[8] * z) + pos.z;
+	
+	x = x2;
+	y = y2;
+	z = z2;
 }
 
 // =============================================================================

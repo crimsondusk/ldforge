@@ -152,6 +152,10 @@ public:
 	double faMatrix[9]; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
 	OpenFile* pFile; // Pointer to opened file for this subfile. nullptr if unopened.
+	vector<LDObject*> objCache; // Cache of this file's contents, if desired
+	
+	// Gets the inlined contents of this subfile.
+	std::vector<LDObject*> inlineContents (double* matrix, vertex pos, bool bCache);
 };
 
 // =============================================================================

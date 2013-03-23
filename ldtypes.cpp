@@ -106,6 +106,9 @@ LDVertex::LDVertex () {
 	commonInit ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 ulong LDObject::getIndex () {
 	if (!g_CurrentFile)
 		return -1u;
@@ -183,6 +186,9 @@ str LDEmpty::getContents () {
 	return str ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void LDQuad::splitToTriangles () {
 	// Find the index of this quad
 	ulong ulIndex;
@@ -227,6 +233,9 @@ void LDQuad::splitToTriangles () {
 	delete this;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace all instances of the old object with the new object
 	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
@@ -255,3 +264,71 @@ LDQuad::~LDQuad () {}
 LDSubfile::~LDSubfile () {}
 LDTriangle::~LDTriangle () {}
 LDVertex::~LDVertex () {}
+
+#define ADD_TYPE(T,N) \
+	case OBJ_##T: \
+			{ \
+				LD##T* newobj = static_cast<LD##T*> (obj)->makeClone (); \
+				for (short i = 0; i < N; ++i) \
+					newobj->vaCoords[i].transform (matrix, pos); \
+				\
+				objs.push_back (newobj); \
+			} \
+			break;
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+static uint g_uTabs = 0;
+vector<LDObject*> LDSubfile::inlineContents (double* matrix, vertex pos, bool bCache) {
+	// If we have this cached, just return that.
+	if (objCache.size ())
+		return objCache;
+	
+	vector<LDObject*> objs;
+	
+	for (ulong i = 0; i < pFile->objects.size(); ++i) {
+		LDObject* obj = pFile->objects[i];
+		
+		switch (obj->getType()) {
+		case OBJ_Comment:
+		case OBJ_Empty:
+		case OBJ_Gibberish:
+		case OBJ_Unidentified:
+		case OBJ_Vertex:
+			break; // Skip non-essentials
+		
+		ADD_TYPE (Line, 2)
+		ADD_TYPE (Triangle, 3)
+		ADD_TYPE (Quad, 4)
+		ADD_TYPE (CondLine, 4)
+		
+		case OBJ_Subfile:
+			// Got another sub-file reference, inline it.
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			
+			double faNewMatrix[9];
+			
+			for (short i = 0; i < 9; ++i)
+				faNewMatrix[i] = matrix[i] * ref->faMatrix[i];
+			
+			vertex vNewPos = ref->vPosition;
+			vNewPos.transform (matrix, pos);
+			
+			// Only cache immediate subfiles, this is not one. Yay recursion!
+			g_uTabs++;
+			vector<LDObject*> otherobjs = ref->inlineContents (faNewMatrix, vNewPos, false);
+			g_uTabs--;
+			
+			for (ulong i = 0; i < otherobjs.size(); ++i)
+				objs.push_back (otherobjs[i]);
+			break;
+		}
+	}
+	
+	// If we cache this stuff, keep it around
+	if (bCache)
+		objCache = objs;
+	
+	return objs;
+}

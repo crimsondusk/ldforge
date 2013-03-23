@@ -45,10 +45,12 @@ protected:
 
 private:
 	GLuint uObjList, uObjListBack;
-	void compileOneObject (LDObject* obj, bool bBack);
+	void compileOneObject (LDObject* obj, bool bBackSide);
+	template<class T> void compileSubObject (LDObject* obj, const bool bBackSide,
+		const GLenum eGLType, const short dVerts);
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
-	void setObjectColor (LDObject* obj, bool bBack);
+	void setObjectColor (LDObject* obj, bool bBackSide);
 };
 
 #endif // __GLDRAW_H__

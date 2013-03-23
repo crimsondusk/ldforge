@@ -35,4 +35,6 @@ bool isNumber (str& zToken);
 // Converts a float value to a string value.
 str ftoa (double fCoord);
 
+template<class T> bool in (T needle, std::initializer_list<T> haystack);
+
 #endif // __MISC_H__

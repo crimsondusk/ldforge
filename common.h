@@ -78,10 +78,18 @@ class vertex {
 public:
 	double x, y, z;
 	
+	vertex () {}
+	vertex (double fX, double fY, double fZ) {
+		x = fX;
+		y = fY;
+		z = fZ;
+	}
+	
 	// =========================================================================
 	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
 	str getStringRep (const bool bMangled);
+	void transform (double* matrix, vertex pos);
 };
 
 // =============================================================================
@@ -123,6 +131,9 @@ enum logtype_e {
 	LOG_Warning,
 	LOG_Error,
 };
+
+// Vertex at (0, 0, 0)
+extern const vertex g_Origin;
 
 void logf (const char* fmt, ...) FORMAT_PRINTF (1, 2);
 void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);

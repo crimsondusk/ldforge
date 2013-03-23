@@ -84,12 +84,12 @@ void renderer::setColor (str zColor,
 		1.0f);
 }
 
-void renderer::setObjectColor (LDObject* obj, bool bBack) {
+void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 	if (gl_colorbfc &&
 		obj->getType () != OBJ_Line &&
 		obj->getType () != OBJ_CondLine)
 	{
-		if (bBack)
+		if (bBackSide)
 			glColor4f (0.9f, 0.0f, 0.0f, 1.0f);
 		else
 			glColor4f (0.0f, 0.8f, 0.0f, 1.0f);
@@ -201,60 +201,56 @@ void renderer::compileObjects () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void renderer::compileOneObject (LDObject* obj, bool bBack) {
+template<class T>void renderer::compileSubObject (LDObject* obj,
+	const bool bBackSide, const GLenum eGLType, const short dVerts)
+{
+	setObjectColor (obj, bBackSide);
+	T* newobj = static_cast<T*> (obj);
+	glBegin (eGLType);
+	
+	for (short i = 0; i < dVerts; ++i)
+		compileVertex (newobj->vaCoords[i]);
+	
+	glEnd ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 	if (!obj)
 		return;
 	
 	switch (obj->getType ()) {
 	case OBJ_Line:
-		{
-			setObjectColor (obj, bBack);
-			
-			// draw lines
-			LDLine* line = static_cast<LDLine*> (obj);
-			glBegin (GL_LINES);
-			for (short i = 0; i < 2; ++i)
-				compileVertex (line->vaCoords[i]);
-			glEnd ();
-		}
+		compileSubObject<LDLine> (obj, bBackSide, GL_LINES, 2);
 		break;
 	
 	case OBJ_CondLine:
-		{
-			glLineStipple (1, 0x6666);
-			glEnable (GL_LINE_STIPPLE);
-			
-			setObjectColor (obj, bBack);
-			LDCondLine* line = static_cast<LDCondLine*> (obj);
-			
-			glBegin (GL_LINES);
-			for (short i = 0; i < 2; ++i)
-				compileVertex (line->vaCoords[i]);
-			glEnd ();
-			
-			glDisable (GL_LINE_STIPPLE);
-		}
+		glLineStipple (1, 0x6666);
+		glEnable (GL_LINE_STIPPLE);
+		
+		compileSubObject<LDCondLine> (obj, bBackSide, GL_LINES, 2);
+		
+		glDisable (GL_LINE_STIPPLE);
 		break;
 	
 	case OBJ_Triangle:
-		{
-			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			setObjectColor (obj, bBack);
-			glBegin (GL_TRIANGLES);
-			for (short i = 0; i < 3; ++i)
-				compileVertex (tri->vaCoords[i]);
-			glEnd ();
-		}
+		compileSubObject<LDTriangle> (obj, bBackSide, GL_TRIANGLES, 3);
 		break;
-		
+	
 	case OBJ_Quad:
+		compileSubObject<LDQuad> (obj, bBackSide, GL_QUADS, 4);
+		break;
+	
+	case OBJ_Subfile:
 		{
-			LDQuad* quad = static_cast<LDQuad*> (obj);
-			setObjectColor (obj, bBack);
-			glBegin (GL_QUADS);
-			for (short i = 0; i < 4; ++i)
-				compileVertex (quad->vaCoords[i]);
-			glEnd ();
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			
+			vector<LDObject*> objs = ref->inlineContents (ref->faMatrix, ref->vPosition, true);
+			
+			for (ulong i = 0; i < (ulong)objs.size(); ++i)
+				compileOneObject (objs[i], bBackSide);
 		}
 		break;
 	
@@ -270,7 +266,7 @@ void renderer::compileVertex (vertex& vrt) {
 	glVertex3d (
 		(vrt.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
 		-(vrt.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
-		(vrt.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
+		-(vrt.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
 }
 
 // =============================================================================
