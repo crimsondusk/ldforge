@@ -20,6 +20,7 @@
 #define __LDTYPES_H__
 
 #include "common.h"
+#include "types.h"
 
 #define IMPLEMENT_LDTYPE(N) \
 	LD##N (); \
@@ -151,13 +152,13 @@ public:
 	IMPLEMENT_LDTYPE (Subfile)
 	
 	vertex vPosition; // Position of the subpart
-	double faMatrix[9]; // Transformation matrix for the subpart
+	matrix mMatrix; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
 	OpenFile* pFile; // Pointer to opened file for this subfile. nullptr if unopened.
 	vector<LDObject*> objCache; // Cache of this file's contents, if desired
 	
 	// Gets the inlined contents of this subfile.
-	std::vector<LDObject*> inlineContents (bool bDeepInline, double* matrix,
+	std::vector<LDObject*> inlineContents (bool bDeepInline, matrix mMatrix,
 		vertex pos, bool bCache);
 };
 

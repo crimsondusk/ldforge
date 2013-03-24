@@ -28,16 +28,10 @@
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 OpenFile* findLoadedFile (str zName) {
-	printf ("finding %s in files\n", zName.chars());
-	
-	for (ulong i = 0; i < g_LoadedFiles.size(); i++) {
-		OpenFile* const file = g_LoadedFiles[i];
-		printf ("%s <-> %s\n", file->zFileName.chars(), zName.chars());
+	FOREACH (OpenFile, *, file, g_LoadedFiles)
 		if (file->zFileName == zName)
 			return file;
-	}
 	
-	printf ("failed to find given file\n");
 	return nullptr;
 }
 
@@ -299,7 +293,7 @@ LDObject* parseLine (str zLine) {
 			obj->vPosition = parseVertex (tokens, 2); // 2 - 4
 			
 			for (short i = 0; i < 9; ++i)
-				obj->faMatrix[i] = atof (tokens[i + 5]); // 5 - 13
+				obj->mMatrix[i] = atof (tokens[i + 5]); // 5 - 13
 			
 			obj->zFileName = tokens[14];
 			obj->pFile = pFile;

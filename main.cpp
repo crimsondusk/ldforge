@@ -23,6 +23,7 @@
 #include "misc.h"
 #include "config.h"
 #include "colors.h"
+#include "types.h"
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = nullptr;
@@ -54,34 +55,6 @@ int main (int dArgC, char* saArgV[]) {
 	
 	win->show ();
 	return app.exec ();
-}
-
-vertex vertex::midpoint (vertex& other) {
-	vertex mid;
-	mid.x = (x + other.x);
-	mid.y = (y + other.y);
-	mid.z = (z + other.z);
-	return mid;
-}
-
-str vertex::getStringRep (const bool bMangled) {
-	const char* sFormat = (bMangled) ? "(%s, %s, %s)" : "%s %s %s";
-	
-	return str::mkfmt (sFormat,
-		ftoa (x).chars(),
-		ftoa (y).chars(),
-		ftoa (z).chars());
-}
-
-void vertex::transform (double* matrix, vertex pos) {
-	double x2, y2, z2;
-	x2 = (matrix[0] * x) + (matrix[1] * y) + (matrix[2] * z) + pos.x;
-	y2 = (matrix[3] * x) + (matrix[4] * y) + (matrix[5] * z) + pos.y;
-	z2 = (matrix[6] * x) + (matrix[7] * y) + (matrix[8] * z) + pos.z;
-	
-	x = x2;
-	y = y2;
-	z = z2;
 }
 
 // =============================================================================

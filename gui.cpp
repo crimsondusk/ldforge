@@ -334,8 +334,8 @@ bool ForgeWindow::copyToClipboard () {
 	// Clear the clipboard. However, its contents are dynamically allocated
 	// clones of LDObjects (cannot use pointers to real objects because the
 	// cut operation deletes them!), so we have to delete said objects first.
-	for (std::size_t i = 0; i < g_Clipboard.size(); ++i)
-		delete g_Clipboard[i];
+	FOREACH (LDObject, *, obj, g_Clipboard)
+		delete obj;
 	
 	g_Clipboard.clear ();
 	
@@ -343,21 +343,6 @@ bool ForgeWindow::copyToClipboard () {
 		g_Clipboard.push_back (objs[i]->makeClone ());
 	
 	return true;
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::deleteSelection () {
-	vector<LDObject*> objs = getSelectedObjects ();
-	
-	// Delete the objects that were being selected
-	for (ulong i = 0; i < (ulong)objs.size(); ++i) {
-		LDObject* obj = objs[i];
-		
-		g_CurrentFile->forgetObject (obj);
-		delete obj;
-	}
 }
 
 // =============================================================================
@@ -385,10 +370,8 @@ void ForgeWindow::slot_copy () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_paste () {
-	for (std::size_t i = 0; i < g_Clipboard.size(); ++i) {
-		LDObject* copy = g_Clipboard[i]->makeClone ();
-		g_CurrentFile->addObject (copy);
-	}
+	FOREACH (LDObject, *, obj, g_Clipboard)
+		g_CurrentFile->addObject (obj->makeClone ());
 	
 	refresh ();
 }
@@ -428,7 +411,7 @@ void ForgeWindow::doInline (bool bDeep) {
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		
 		// Get the inlined objects. These are clones of the subfile's contents.
-		vector<LDObject*> objs = ref->inlineContents (bDeep, ref->faMatrix,
+		vector<LDObject*> objs = ref->inlineContents (bDeep, ref->mMatrix,
 			ref->vPosition, true);
 		
 		// Merge in the inlined objects
@@ -457,11 +440,7 @@ void ForgeWindow::slot_deepInline () {
 void ForgeWindow::slot_splitQuads () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
-	// Delete the objects that were being selected
-	for (ulong i = 0; i < (ulong)objs.size(); ++i) {
-		LDObject* obj = objs[i];
-		
-		// Don't even consider non-quads
+	FOREACH (LDObject, *, obj, objs) {
 		if (obj->getType() != OBJ_Quad)
 			continue;
 		
@@ -494,15 +473,14 @@ void ForgeWindow::slot_setColor () {
 	
 	std::vector<LDObject*> objs = getSelectedObjects ();
 	
-	// Try to get a consensus on the color used for use as a default.
-	for (ulong i = 0; i < objs.size(); ++i) {
-		LDObject* obj = objs[i];
-		
+	// If all selected objects have the same color, said color is our default
+	// value to the color selection dialog.
+	FOREACH (LDObject, *, obj, objs) {
 		if (obj->dColor == -1)
-			continue; // doesn't use colors
+			continue; // doesn't use color
 		
 		if (dDefault != -1 && obj->dColor != dDefault) {
-			// No unanimosity in object color, therefore we don't have a
+			// No consensus in object color, therefore we don't have a
 			// proper default value to use.
 			dDefault = -1;
 			break;
@@ -512,13 +490,11 @@ void ForgeWindow::slot_setColor () {
 			dDefault = obj->dColor;
 	}
 	
-	// Show the dialog to the user now and ask him for a color.
+	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (dColor, dDefault, this)) {
-		for (ulong i = 0; i < objs.size(); ++i) {
-			LDObject* obj = objs[i];
+		FOREACH (LDObject, *, obj, objs)
 			if (obj->dColor != -1)
 				obj->dColor = dColor;
-		}
 		
 		refresh ();
 	}
@@ -531,9 +507,7 @@ void ForgeWindow::slot_makeBorders () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
 	// Delete the objects that were being selected
-	for (std::size_t i = 0; i < objs.size(); ++i) {
-		LDObject* obj = objs[i];
-		
+	FOREACH (LDObject, *, obj, objs) {
 		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
 			continue;
 		
@@ -564,6 +538,19 @@ void ForgeWindow::slot_makeBorders () {
 	}
 	
 	refresh ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::deleteSelection () {
+	vector<LDObject*> objs = getSelectedObjects ();
+	
+	// Delete the objects that were being selected
+	FOREACH (LDObject, *, obj, objs) {
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
+	}
 }
 
 // =============================================================================
@@ -652,7 +639,7 @@ void ForgeWindow::buildObjList () {
 				
 				for (short i = 0; i < 9; ++i)
 					zText.appendformat ("%s%s",
-						ftoa (ref->faMatrix[i]).chars(),
+						ftoa (ref->mMatrix[i]).chars(),
 						(i != 8) ? " " : "");
 				
 				zText += ')';

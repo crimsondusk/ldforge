@@ -127,14 +127,13 @@ str LDComment::getContents () {
 	return str::mkfmt ("0 %s", zText.chars ());
 }
 
+#define MATVAL(N) ftoa (mMatrix[N]).chars()
 str LDSubfile::getContents () {
-	str val = str::mkfmt ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
-	
-	for (short i = 0; i < 9; ++i)
-		val.appendformat ("%s ", ftoa (faMatrix[i]).chars());
-	
-	val += zFileName;
-	return val;
+	return str::mkfmt ("1 %d %s %s %s %s %s %s %s %s %s %s %s",
+		dColor, vPosition.getStringRep (false).chars (),
+		MATVAL (0), MATVAL (1), MATVAL (2),
+		MATVAL (4), MATVAL (5), MATVAL (6),
+		MATVAL (8), MATVAL (9), MATVAL (10), zFileName.chars());
 }
 
 str LDLine::getContents () {
@@ -216,8 +215,6 @@ void LDQuad::splitToTriangles () {
 	tri2->vaCoords[1] = vaCoords[2];
 	tri2->vaCoords[2] = vaCoords[3];
 	
-	printf ("triangles: %p %p\n", tri1, tri2);
-	
 	// The triangles also inherit the quad's color
 	tri1->dColor = tri2->dColor = dColor;
 	
@@ -267,7 +264,7 @@ LDVertex::~LDVertex () {}
 			{ \
 				LD##T* newobj = static_cast<LD##T*> (obj)->makeClone (); \
 				for (short i = 0; i < N; ++i) \
-					newobj->vaCoords[i].transform (matrix, pos); \
+					newobj->vaCoords[i].transform (mMatrix, pos); \
 				\
 				objs.push_back (newobj); \
 			} \
@@ -277,16 +274,14 @@ LDVertex::~LDVertex () {}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static uint g_uTabs = 0;
-vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, double* matrix, vertex pos, bool bCache) {
+vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, matrix mMatrix, vertex pos, bool bCache) {
 	// If we have this cached, just return that.
 	if (bDeepInline && objCache.size ())
 		return objCache;
 	
 	vector<LDObject*> objs;
 	
-	for (ulong i = 0; i < pFile->objects.size(); ++i) {
-		LDObject* obj = pFile->objects[i];
-		
+	FOREACH (LDObject, *, obj, pFile->objects) {
 		switch (obj->getType()) {
 		case OBJ_Comment:
 		case OBJ_Empty:
@@ -307,27 +302,21 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, double* matrix, v
 				// Got another sub-file reference, inline it if we're deep-inlining. If not,
 				// just add it into the objects normally.
 				if (bDeepInline) {
-					double faNewMatrix[9];
-					
-					for (short i = 0; i < 9; ++i)
-						faNewMatrix[i] = matrix[i] * ref->faMatrix[i];
-					
+					matrix mNewMatrix = mMatrix * ref->mMatrix;
 					vertex vNewPos = ref->vPosition;
-					vNewPos.transform (matrix, pos);
+					vNewPos.transform (mMatrix, pos);
 					
 					// Only cache immediate subfiles, this is not one. Yay recursion!
 					g_uTabs++;
-					vector<LDObject*> otherobjs = ref->inlineContents (true, faNewMatrix, vNewPos, false);
+					vector<LDObject*> otherobjs = ref->inlineContents (true, mNewMatrix, vNewPos, false);
 					g_uTabs--;
 					
 					for (ulong i = 0; i < otherobjs.size(); ++i)
 						objs.push_back (otherobjs[i]);
 				} else {
 					LDSubfile* clone = ref->makeClone ();
-					clone->vPosition.transform (matrix, pos);
-					
-					for (short i = 0; i < 9; ++i)
-						clone->faMatrix[i] *= matrix[i];
+					clone->vPosition.transform (mMatrix, pos);
+					clone->mMatrix *= mMatrix;
 					
 					objs.push_back (clone);
 				}

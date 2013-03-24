@@ -40,6 +40,7 @@
 #include "stdarg.h"
 #include "str.h"
 #include "config.h"
+#include "types.h"
 
 #ifdef __GNUC__
  #define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
@@ -64,33 +65,6 @@ class LDObject;
 class bbox;
 class OpenFile;
 class QApplication;
-
-// =============================================================================
-// vertex (v)
-// 
-// Vertex class. Not to be confused with LDVertex, which is a vertex used in an
-// LDraw code file.
-//
-// Methods:
-// - midpoint (vertex&): returns a midpoint
-// =============================================================================
-class vertex {
-public:
-	double x, y, z;
-	
-	vertex () {}
-	vertex (double fX, double fY, double fZ) {
-		x = fX;
-		y = fY;
-		z = fZ;
-	}
-	
-	// =========================================================================
-	// Midpoint between this vertex and another vertex.
-	vertex midpoint (vertex& other);
-	str getStringRep (const bool bMangled);
-	void transform (double* matrix, vertex pos);
-};
 
 // =============================================================================
 // Plural expression
