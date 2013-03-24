@@ -67,7 +67,7 @@ public:
 	virtual ~LDObject ();
 	
 	// Index (i.e. line number) of this object
-	unsigned long getIndex ();
+	long getIndex (OpenFile* pFile);
 	
 	// Color used by this object. Comments, gibberish and empty entries
 	// do not use this field.
@@ -92,8 +92,6 @@ public:
 	// Replace this LDObject with another LDObject. This method deletes the
 	// object and any pointers to it become invalid.
     void replace (LDObject* replacement);
-	
-	long getIndex (OpenFile* pFile);
 	
 	QTreeWidgetItem* qObjListEntry;
 };
@@ -155,11 +153,9 @@ public:
 	matrix mMatrix; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
 	OpenFile* pFile; // Pointer to opened file for this subfile. nullptr if unopened.
-	vector<LDObject*> objCache; // Cache of this file's contents, if desired
 	
 	// Gets the inlined contents of this subfile.
-	std::vector<LDObject*> inlineContents (bool bDeepInline, matrix mMatrix,
-		vertex pos, bool bCache);
+	std::vector<LDObject*> inlineContents (bool bDeepInline, bool bCache);
 };
 
 // =============================================================================

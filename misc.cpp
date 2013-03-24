@@ -86,14 +86,3 @@ bool isNumber (str& zToken) {
 	
 	return true;
 }
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-template<class T> bool in (T needle, std::initializer_list<T> haystack) {
-	for (size_t i = 0; i < haystack.size(); ++i)
-		if (needle = haystack[i])
-			return true;
-	
-	return false;
-}

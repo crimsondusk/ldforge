@@ -62,10 +62,6 @@ public:
 		return mult (mOther);
 	}
 	
-	matrix& operator*= (matrix mOther) {
-		return operator= (mult (mOther));
-	}
-	
 	inline double& operator[] (const uint uIndex) {
 		return faValues[uIndex];
 	}

@@ -41,6 +41,14 @@ OpenFile* findLoadedFile (str zName) {
 OpenFile* openDATFile (str path) {
 	logf ("Opening %s...\n", path.chars());
 	
+	// Convert the file name to lowercase since some parts contain uppercase
+	// file names. I'll assume here that the library will always use lowercase
+	// file names for the actual parts..
+	str zTruePath = -path;
+#ifndef WIN32
+	zTruePath.replace ("\\", "/");
+#endif // WIN32
+	
 	FILE* fp = fopen (path.chars (), "r");
 	
 	if (!fp && ~io_ldpath.value) {
@@ -51,9 +59,8 @@ OpenFile* openDATFile (str path) {
 		
 		for (ushort i = 0; i < sizeof saSubdirectories / sizeof *saSubdirectories; ++i) {
 			str zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-				io_ldpath.value.chars(), saSubdirectories[i], path.chars());
+				io_ldpath.value.chars(), saSubdirectories[i], zTruePath.chars());
 			
-			printf ("trying %s...\n", zFilePath.chars ());
 			fp = fopen (zFilePath.chars (), "r");
 			
 			if (fp)
@@ -113,8 +120,8 @@ OpenFile* openDATFile (str path) {
 // =============================================================================
 // Clear everything from the model
 void OpenFile::close () {
-	FOREACH (LDObject, *, obj, objects)
-		delete obj;
+	for (ulong j = 0; j < objects.size(); ++j)
+		delete objects[j];
 	
 	delete this;
 }
@@ -127,8 +134,10 @@ void closeAll () {
 		return;
 	
 	// Remove all loaded files and the objects they contain
-	FOREACH (OpenFile, *, f, g_LoadedFiles)
+	for (ushort i = 0; i < g_LoadedFiles.size(); i++) {
+		OpenFile* f = g_LoadedFiles[i];
 		f->close ();
+	}
 	
 	// Clear the array
 	g_LoadedFiles.clear();
@@ -185,7 +194,9 @@ bool OpenFile::save (str zPath) {
 		return false;
 	
 	// Write all entries now
-	FOREACH (LDObject, *, obj, objects) {
+	for (ulong i = 0; i < objects.size(); ++i) {
+		LDObject* obj = objects[i];
+		
 		// LDraw requires lines to have DOS line endings
 		str zLine = str::mkfmt ("%s\r\n",obj->getContents ().chars ());
 		
@@ -272,10 +283,6 @@ LDObject* parseLine (str zLine) {
 			// Subfile
 			CHECK_TOKEN_COUNT (15)
 			CHECK_TOKEN_NUMBERS (1, 13)
-			
-#ifndef WIN32
-			tokens[14].replace ("\\", "/");
-#endif // WIN32
 			
 			// Try open the file
 			OpenFile* pFile = loadSubfile (tokens[14]);

@@ -411,8 +411,7 @@ void ForgeWindow::doInline (bool bDeep) {
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		
 		// Get the inlined objects. These are clones of the subfile's contents.
-		vector<LDObject*> objs = ref->inlineContents (bDeep, ref->mMatrix,
-			ref->vPosition, true);
+		vector<LDObject*> objs = ref->inlineContents (bDeep, true);
 		
 		// Merge in the inlined objects
 		FOREACH (LDObject, *, inlineobj, objs)

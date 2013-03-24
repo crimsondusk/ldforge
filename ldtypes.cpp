@@ -107,22 +107,6 @@ LDVertex::LDVertex () {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-ulong LDObject::getIndex () {
-	if (!g_CurrentFile)
-		return -1u;
-	
-	// TODO: shouldn't rely on g_CurrentFile
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		if (g_CurrentFile->objects[i] == this)
-			return i;
-	}
-	
-	return -1u;
-}
-
-// =============================================================================
 str LDComment::getContents () {
 	return str::mkfmt ("0 %s", zText.chars ());
 }
@@ -260,76 +244,114 @@ LDSubfile::~LDSubfile () {}
 LDTriangle::~LDTriangle () {}
 LDVertex::~LDVertex () {}
 
-#define ADD_TYPE(T,N) \
+#define TRANSFORM_TYPE(T,N) \
 	case OBJ_##T: \
-			{ \
-				LD##T* newobj = static_cast<LD##T*> (obj)->makeClone (); \
-				for (short i = 0; i < N; ++i) \
-					newobj->vaCoords[i].transform (mMatrix, pos); \
-				\
-				objs.push_back (newobj); \
-			} \
-			break;
+			
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static uint g_uTabs = 0;
-vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, matrix mMatrix, vertex pos, bool bCache) {
-	// If we have this cached, just return that.
-	if (bDeepInline && objCache.size ())
-		return objCache;
+template<class T> static void transformSubObject (LDObject* obj, matrix mMatrix,
+	vertex vPos, short dColor)
+{
+	T* newobj = static_cast<T*> (obj);
+	for (short i = 0; i < (short)(sizeof newobj->vaCoords / sizeof *newobj->vaCoords); ++i)
+		newobj->vaCoords[i].transform (mMatrix, vPos);
 	
-	vector<LDObject*> objs;
+	if (newobj->dColor == dMainColor)
+		newobj->dColor = dColor;
+}
+
+// -----------------------------------------------------------------------------
+static void transformObject (LDObject* obj, matrix mMatrix, vertex vPos,
+	short dColor)
+{
+	switch (obj->getType()) {
+	case OBJ_Line:
+		transformSubObject<LDLine> (obj, mMatrix, vPos, dColor);
+		break;
+	case OBJ_CondLine:
+		transformSubObject<LDCondLine> (obj, mMatrix, vPos, dColor);
+		break;
+	case OBJ_Triangle:
+		transformSubObject<LDTriangle> (obj, mMatrix, vPos, dColor);
+		break;
+	case OBJ_Quad:
+		transformSubObject<LDQuad> (obj, mMatrix, vPos, dColor);
+		break;
+	case OBJ_Subfile:
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			
+			matrix mNewMatrix = mMatrix * ref->mMatrix;
+			ref->vPosition.transform (mMatrix, vPos);
+			ref->mMatrix = mNewMatrix;
+		}
+		
+		break;
+	default:
+		break;
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
+	vector<LDObject*> objs, cache;
 	
-	FOREACH (LDObject, *, obj, pFile->objects) {
-		switch (obj->getType()) {
-		case OBJ_Comment:
-		case OBJ_Empty:
-		case OBJ_Gibberish:
-		case OBJ_Unidentified:
-		case OBJ_Vertex:
-			break; // Skip non-essentials
+	// If we have this cached, just clone that
+	if (bDeepInline && pFile->objCache.size ()) {
+		FOREACH (LDObject, *, obj, pFile->objCache)
+			objs.push_back (obj->makeClone ());
+	} else {
+		if (!bDeepInline)
+			bCache = false;
 		
-		ADD_TYPE (Line, 2)
-		ADD_TYPE (Triangle, 3)
-		ADD_TYPE (Quad, 4)
-		ADD_TYPE (CondLine, 4)
-		
-		case OBJ_Subfile:
-			{
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
-				
-				// Got another sub-file reference, inline it if we're deep-inlining. If not,
-				// just add it into the objects normally.
-				if (bDeepInline) {
-					matrix mNewMatrix = mMatrix * ref->mMatrix;
-					vertex vNewPos = ref->vPosition;
-					vNewPos.transform (mMatrix, pos);
-					
-					// Only cache immediate subfiles, this is not one. Yay recursion!
-					g_uTabs++;
-					vector<LDObject*> otherobjs = ref->inlineContents (true, mNewMatrix, vNewPos, false);
-					g_uTabs--;
-					
-					for (ulong i = 0; i < otherobjs.size(); ++i)
-						objs.push_back (otherobjs[i]);
-				} else {
-					LDSubfile* clone = ref->makeClone ();
-					clone->vPosition.transform (mMatrix, pos);
-					clone->mMatrix *= mMatrix;
-					
-					objs.push_back (clone);
-				}
+		FOREACH (LDObject, *, obj, pFile->objects) {
+			// Skip those without schemantic meaning
+			switch (obj->getType ()) {
+			case OBJ_Comment:
+			case OBJ_Empty:
+			case OBJ_Gibberish:
+			case OBJ_Unidentified:
+			case OBJ_Vertex:
+				continue;
+			default:
+				break;
 			}
 			
-			break;
+			// Got another sub-file reference, inline it if we're deep-inlining. If not,
+			// just add it into the objects normally. Also, we only cache immediate
+			// subfiles and this is not one. Yay, recursion!
+			if (bDeepInline && obj->getType() == OBJ_Subfile) {
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				
+				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
+				
+				FOREACH (LDObject, *, otherobj, otherobjs) {
+					// Cache this object if desired
+					if (bCache)
+						cache.push_back (otherobj->makeClone ());
+					
+					objs.push_back (otherobj);
+				}
+			} else {
+				// Cache it, if desired
+				if (bCache)
+					cache.push_back (obj->makeClone ());
+				
+				objs.push_back (obj->makeClone ());
+			}
 		}
+		
+		if (bCache)
+			pFile->objCache = cache;
 	}
 	
-	// If we cache this stuff, keep it around
-	if (bCache)
-		objCache = objs;
+	// Transform the objects
+	FOREACH (LDObject, *, obj, objs)
+		transformObject (obj, mMatrix, vPosition, dColor);
 	
 	return objs;
 }

@@ -33,6 +33,7 @@ class OpenFile {
 public:
 	str zFileName, zTitle;
 	vector<LDObject*> objects;
+	vector<LDObject*> objCache; // Cache of this file's contents, if desired
 	
 	// Closes this OpenFile. The object is deleted in the process.
 	void close ();
