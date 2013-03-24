@@ -127,13 +127,14 @@ str LDComment::getContents () {
 	return str::mkfmt ("0 %s", zText.chars ());
 }
 
-#define MATVAL(N) ftoa (mMatrix[N]).chars()
 str LDSubfile::getContents () {
-	return str::mkfmt ("1 %d %s %s %s %s %s %s %s %s %s %s %s",
-		dColor, vPosition.getStringRep (false).chars (),
-		MATVAL (0), MATVAL (1), MATVAL (2),
-		MATVAL (4), MATVAL (5), MATVAL (6),
-		MATVAL (8), MATVAL (9), MATVAL (10), zFileName.chars());
+	str val = str::mkfmt ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
+	
+	for (short i = 0; i < 9; ++i)
+		val.appendformat ("%s ", ftoa (mMatrix[i]).chars());
+	
+	val += zFileName;
+	return val;
 }
 
 str LDLine::getContents () {

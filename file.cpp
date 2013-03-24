@@ -113,8 +113,8 @@ OpenFile* openDATFile (str path) {
 // =============================================================================
 // Clear everything from the model
 void OpenFile::close () {
-	for (ulong j = 0; j < objects.size(); ++j)
-		delete objects[j];
+	FOREACH (LDObject, *, obj, objects)
+		delete obj;
 	
 	delete this;
 }
@@ -127,10 +127,8 @@ void closeAll () {
 		return;
 	
 	// Remove all loaded files and the objects they contain
-	for (ushort i = 0; i < g_LoadedFiles.size(); i++) {
-		OpenFile* f = g_LoadedFiles[i];
+	FOREACH (OpenFile, *, f, g_LoadedFiles)
 		f->close ();
-	}
 	
 	// Clear the array
 	g_LoadedFiles.clear();
@@ -187,9 +185,7 @@ bool OpenFile::save (str zPath) {
 		return false;
 	
 	// Write all entries now
-	for (ulong i = 0; i < objects.size(); ++i) {
-		LDObject* obj = objects[i];
-		
+	FOREACH (LDObject, *, obj, objects) {
 		// LDraw requires lines to have DOS line endings
 		str zLine = str::mkfmt ("%s\r\n",obj->getContents ().chars ());
 		
