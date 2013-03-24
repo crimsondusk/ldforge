@@ -84,7 +84,11 @@ void renderer::setColor (str zColor,
 		1.0f);
 }
 
+static vector<short> g_daWarnedColors;
 void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
+	if (obj->dColor == -1)
+		return;
+	
 	if (gl_colorbfc &&
 		obj->getType () != OBJ_Line &&
 		obj->getType () != OBJ_CondLine)
@@ -100,6 +104,22 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 		setColor (gl_maincolor, glColor4f);
 	else {
 		color* col = g_LDColors[obj->dColor];
+		
+		if (!col) {
+			// Warn about unknown colors, but only once.
+			for (long i = 0; i < g_daWarnedColors.size(); ++i)
+				if (g_daWarnedColors[i] == obj->dColor)
+					return;
+			
+			printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
+			g_daWarnedColors.push_back (obj->dColor);
+			
+			// Set the main color to make the object at least not appear
+			// pitch-black.
+			setColor (gl_maincolor, glColor4f);
+			return;
+		}
+		
 		QColor qCol (col->zColor.chars());
 		
 		if (qCol.isValid ())

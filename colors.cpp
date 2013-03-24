@@ -64,6 +64,8 @@ static TemporaryColorMeta g_LDColorInfo[] = {
 	{45,	"Trans Pink",	"#FF2080",	0.5},
 	{46,	"Trans Yellow",	"#FFEE00",	0.5},
 	{47,	"Clear",		"#FFFFFF",	0.5},
+	{71,	"Medium Stone",	"#A0A0AA",	1.0},
+	{72,	"Dark Stone",	"#60606A",	1.0},
 	{79,	"Ghost White",	"#FFFFFF",	0.875},
 	{294,	"Trans Phosphorus",	"#E0FFB0",	0.6},
 	{378,	"Sand Green",	"#80A080",	1.0},
