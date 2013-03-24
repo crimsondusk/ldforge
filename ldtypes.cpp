@@ -191,12 +191,9 @@ str LDEmpty::getContents () {
 // =============================================================================
 void LDQuad::splitToTriangles () {
 	// Find the index of this quad
-	ulong ulIndex;
-	for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex)
-		if (g_CurrentFile->objects[ulIndex] == this)
-			break;
+	long lIndex = getIndex (g_CurrentFile);
 	
-	if (ulIndex >= g_CurrentFile->objects.size()) {
+	if (lIndex == -1) {
 		// couldn't find it?
 		logf (LOG_Error, "LDQuad::splitToTriangles: Couldn't find quad %p in "
 			"current object list!!\n", this);
@@ -226,8 +223,8 @@ void LDQuad::splitToTriangles () {
 	
 	// Replace the quad with the first triangle and add the second triangle
 	// after the first one.
-	g_CurrentFile->objects[ulIndex] = tri1;
-	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulIndex + 1, tri2);
+	g_CurrentFile->objects[lIndex] = tri1;
+	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + lIndex + 1, tri2);
 	
 	// Delete this quad now, it has been split.
 	delete this;
@@ -280,9 +277,9 @@ LDVertex::~LDVertex () {}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static uint g_uTabs = 0;
-vector<LDObject*> LDSubfile::inlineContents (double* matrix, vertex pos, bool bCache) {
+vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, double* matrix, vertex pos, bool bCache) {
 	// If we have this cached, just return that.
-	if (objCache.size ())
+	if (bDeepInline && objCache.size ())
 		return objCache;
 	
 	vector<LDObject*> objs;
@@ -304,24 +301,38 @@ vector<LDObject*> LDSubfile::inlineContents (double* matrix, vertex pos, bool bC
 		ADD_TYPE (CondLine, 4)
 		
 		case OBJ_Subfile:
-			// Got another sub-file reference, inline it.
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			{
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				
+				// Got another sub-file reference, inline it if we're deep-inlining. If not,
+				// just add it into the objects normally.
+				if (bDeepInline) {
+					double faNewMatrix[9];
+					
+					for (short i = 0; i < 9; ++i)
+						faNewMatrix[i] = matrix[i] * ref->faMatrix[i];
+					
+					vertex vNewPos = ref->vPosition;
+					vNewPos.transform (matrix, pos);
+					
+					// Only cache immediate subfiles, this is not one. Yay recursion!
+					g_uTabs++;
+					vector<LDObject*> otherobjs = ref->inlineContents (true, faNewMatrix, vNewPos, false);
+					g_uTabs--;
+					
+					for (ulong i = 0; i < otherobjs.size(); ++i)
+						objs.push_back (otherobjs[i]);
+				} else {
+					LDSubfile* clone = ref->makeClone ();
+					clone->vPosition.transform (matrix, pos);
+					
+					for (short i = 0; i < 9; ++i)
+						clone->faMatrix[i] *= matrix[i];
+					
+					objs.push_back (clone);
+				}
+			}
 			
-			double faNewMatrix[9];
-			
-			for (short i = 0; i < 9; ++i)
-				faNewMatrix[i] = matrix[i] * ref->faMatrix[i];
-			
-			vertex vNewPos = ref->vPosition;
-			vNewPos.transform (matrix, pos);
-			
-			// Only cache immediate subfiles, this is not one. Yay recursion!
-			g_uTabs++;
-			vector<LDObject*> otherobjs = ref->inlineContents (faNewMatrix, vNewPos, false);
-			g_uTabs--;
-			
-			for (ulong i = 0; i < otherobjs.size(); ++i)
-				objs.push_back (otherobjs[i]);
 			break;
 		}
 	}
@@ -331,4 +342,17 @@ vector<LDObject*> LDSubfile::inlineContents (double* matrix, vertex pos, bool bC
 		objCache = objs;
 	
 	return objs;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+long LDObject::getIndex (OpenFile* pFile) {
+	long lIndex;
+	
+	for (lIndex = 0; lIndex < (long)pFile->objects.size(); ++lIndex)
+		if (pFile->objects[lIndex] == this)
+			return lIndex;
+	
+	return -1;
 }

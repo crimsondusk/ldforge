@@ -97,6 +97,7 @@ void ForgeWindow::createMenuActions () {
 	
 	MAKE_ACTION (setColor,		"Set Color",	"palette",		"Set the color on given objects.")
 	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
+	MAKE_ACTION (deepInline,	"Deep Inline",	"inline-deep",	"Recursively inline selected subfiles down to polygons only.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
 	MAKE_ACTION (makeBorders,	"Make Borders",	"make-borders",	"Add borders around given polygons.")
@@ -130,7 +131,6 @@ void ForgeWindow::createMenuActions () {
 	QAction* qaDisabledActions[] = {
 		qAct_newSubfile,
 		qAct_about,
-		qAct_inline,
 		qAct_help,
 	};
 	
@@ -172,6 +172,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (qAct_setColor);		// Set Color
 	qEditMenu->addSeparator ();					// -----
 	qEditMenu->addAction (qAct_inline);			// Inline
+	qEditMenu->addAction (qAct_deepInline);		// Deep Inline
 	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
 	qEditMenu->addAction (qAct_setContents);	// Set Contents
 	qEditMenu->addAction (qAct_makeBorders);	// Make Borders
@@ -400,12 +401,54 @@ void ForgeWindow::slot_delete () {
 	refresh ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_newVertex () {
 	AddObjectDialog::staticDialog (OBJ_Vertex, this);
 }
 
-void ForgeWindow::slot_inline () {
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::doInline (bool bDeep) {
+	vector<LDObject*> sel = getSelectedObjects ();
+	
+	FOREACH (LDObject, *, obj, sel) {
+		// Obviously, only subfiles can be inlined.
+		if (obj->getType() != OBJ_Subfile)
+			continue;
+		
+		// Get the index of the subfile so we know where to insert the
+		// inlined contents.
+		long idx = obj->getIndex (g_CurrentFile);
+		if (idx == -1)
+			continue;
+		
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		
+		// Get the inlined objects. These are clones of the subfile's contents.
+		vector<LDObject*> objs = ref->inlineContents (bDeep, ref->faMatrix,
+			ref->vPosition, true);
+		
+		// Merge in the inlined objects
+		FOREACH (LDObject, *, inlineobj, objs)
+			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
+		
+		// Delete the subfile now as it's been inlined.
+		g_CurrentFile->forgetObject (ref);
+		delete ref;
+	}
+	
+	refresh ();
+}
 
+void ForgeWindow::slot_inline () {
+	doInline (false);
+}
+
+void ForgeWindow::slot_deepInline () {
+	doInline (true);
 }
 
 // =============================================================================

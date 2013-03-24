@@ -92,6 +92,8 @@ public:
 	// object and any pointers to it become invalid.
     void replace (LDObject* replacement);
 	
+	long getIndex (OpenFile* pFile);
+	
 	QTreeWidgetItem* qObjListEntry;
 };
 
@@ -155,7 +157,8 @@ public:
 	vector<LDObject*> objCache; // Cache of this file's contents, if desired
 	
 	// Gets the inlined contents of this subfile.
-	std::vector<LDObject*> inlineContents (double* matrix, vertex pos, bool bCache);
+	std::vector<LDObject*> inlineContents (bool bDeepInline, double* matrix,
+		vertex pos, bool bCache);
 };
 
 // =============================================================================

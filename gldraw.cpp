@@ -247,7 +247,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			vector<LDObject*> objs = ref->inlineContents (ref->faMatrix, ref->vPosition, true);
+			vector<LDObject*> objs = ref->inlineContents (true, ref->faMatrix, ref->vPosition, true);
 			
 			for (ulong i = 0; i < (ulong)objs.size(); ++i)
 				compileOneObject (objs[i], bBackSide);
