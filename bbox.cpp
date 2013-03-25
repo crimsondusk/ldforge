@@ -34,10 +34,8 @@ void bbox::calculate () {
 	if (!g_CurrentFile)
 		return;
 	
-	for (uint i = 0; i < g_CurrentFile->objects.size(); i++) {
-		LDObject* obj = g_CurrentFile->objects[i];
+	for (LDObject* obj : g_CurrentFile->objects) {
 		switch (obj->getType ()) {
-		
 		case OBJ_Line:
 			{
 				LDLine* line = static_cast<LDLine*> (obj);

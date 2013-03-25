@@ -24,6 +24,8 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 
+class intconfig;
+
 class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
@@ -44,6 +46,7 @@ public:
 	static void staticDialog (ForgeWindow* window);
 	
 private:
+	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
     void setButtonBackground (QPushButton* qButton, str zValue);
     void pickColor (strconfig& cfg, QPushButton* qButton);
 	

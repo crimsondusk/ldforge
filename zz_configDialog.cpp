@@ -68,19 +68,11 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
-	qGLForegroundAlphaLabel = new QLabel ("Translucency:");
-	qGLForegroundAlpha = new QSlider (Qt::Horizontal);
-	qGLForegroundAlpha->setRange (1, 10);
-	qGLForegroundAlpha->setTickInterval (1);
-	qGLForegroundAlpha->setSliderPosition (gl_maincolor_alpha * 10.0f);
-	qGLForegroundAlpha->setTickPosition (QSlider::TicksAbove);
+	qGLForegroundAlphaLabel = new QLabel ("Alpha:");
+	makeSlider (qGLForegroundAlpha, 1, 10, (gl_maincolor_alpha * 10.0f));
 	
 	qGLLineThicknessLabel = new QLabel ("Line thickness:");
-	qGLLineThickness = new QSlider (Qt::Horizontal);
-	qGLLineThickness->setRange (1, 8);
-	qGLLineThickness->setSliderPosition (gl_linethickness);
-	qGLLineThickness->setTickPosition (QSlider::TicksAbove);
-	qGLLineThickness->setTickInterval (1);
+	makeSlider (qGLLineThickness, 1, 8, gl_linethickness);
 	
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
 	INIT_CHECKBOX (qLVColorize, lv_colorize)
@@ -113,6 +105,19 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	setWindowTitle (APPNAME_DISPLAY " - editing settings");
 	setWindowIcon (QIcon ("icons/settings.png"));
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::makeSlider (QSlider*& qSlider, short int dMin, short int dMax,
+	short dDefault)
+{
+	qSlider = new QSlider (Qt::Horizontal);
+	qSlider->setRange (dMin, dMax);
+	qSlider->setSliderPosition (dDefault);
+	qSlider->setTickPosition (QSlider::TicksAbove);
+	qSlider->setTickInterval (1);
 }
 
 // =============================================================================

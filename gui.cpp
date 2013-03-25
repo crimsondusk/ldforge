@@ -336,7 +336,7 @@ bool ForgeWindow::copyToClipboard () {
 	// Clear the clipboard. However, its contents are dynamically allocated
 	// clones of LDObjects (cannot use pointers to real objects because the
 	// cut operation deletes them!), so we have to delete said objects first.
-	FOREACH (LDObject, *, obj, g_Clipboard)
+	for (LDObject* obj : g_Clipboard)
 		delete obj;
 	
 	g_Clipboard.clear ();
@@ -372,7 +372,7 @@ void ForgeWindow::slot_copy () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_paste () {
-	FOREACH (LDObject, *, obj, g_Clipboard)
+	for (LDObject* obj : g_Clipboard)
 		g_CurrentFile->addObject (obj->makeClone ());
 	
 	refresh ();
@@ -399,7 +399,7 @@ void ForgeWindow::slot_newVertex () {
 void ForgeWindow::doInline (bool bDeep) {
 	vector<LDObject*> sel = getSelectedObjects ();
 	
-	FOREACH (LDObject, *, obj, sel) {
+	for (LDObject* obj : sel) {
 		// Obviously, only subfiles can be inlined.
 		if (obj->getType() != OBJ_Subfile)
 			continue;
@@ -416,7 +416,7 @@ void ForgeWindow::doInline (bool bDeep) {
 		vector<LDObject*> objs = ref->inlineContents (bDeep, true);
 		
 		// Merge in the inlined objects
-		FOREACH (LDObject, *, inlineobj, objs)
+		for (LDObject* inlineobj : objs)
 			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
 		
 		// Delete the subfile now as it's been inlined.
@@ -441,7 +441,7 @@ void ForgeWindow::slot_deepInline () {
 void ForgeWindow::slot_splitQuads () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
-	FOREACH (LDObject, *, obj, objs) {
+	for (LDObject* obj : objs) {
 		if (obj->getType() != OBJ_Quad)
 			continue;
 		
@@ -476,7 +476,7 @@ void ForgeWindow::slot_setColor () {
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	FOREACH (LDObject, *, obj, objs) {
+	for (LDObject* obj : objs) {
 		if (obj->dColor == -1)
 			continue; // doesn't use color
 		
@@ -493,7 +493,7 @@ void ForgeWindow::slot_setColor () {
 	
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (dColor, dDefault, this)) {
-		FOREACH (LDObject, *, obj, objs)
+		for (LDObject* obj : objs)
 			if (obj->dColor != -1)
 				obj->dColor = dColor;
 		
@@ -508,7 +508,7 @@ void ForgeWindow::slot_makeBorders () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
 	// Delete the objects that were being selected
-	FOREACH (LDObject, *, obj, objs) {
+	for (LDObject* obj : objs) {
 		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
 			continue;
 		
@@ -548,7 +548,7 @@ void ForgeWindow::deleteSelection () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
 	// Delete the objects that were being selected
-	FOREACH (LDObject, *, obj, objs) {
+	for (LDObject* obj : objs) {
 		g_CurrentFile->forgetObject (obj);
 		delete obj;
 	}
@@ -565,9 +565,7 @@ void ForgeWindow::buildObjList () {
 	
 	qObjList->clear ();
 	
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		LDObject* obj = g_CurrentFile->objects[i];
-		
+	for (LDObject* obj : g_CurrentFile->objects) {
 		str zText;
 		switch (obj->getType ()) {
 		case OBJ_Comment:
@@ -726,14 +724,11 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 	std::vector<LDObject*> objs;
 	
 	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems();
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		LDObject* obj = g_CurrentFile->objects[i];
-		
-		for (long j = 0; j < qaItems.size(); ++j) {
-			if (qaItems[j] == obj->qObjListEntry) {
-				objs.push_back (obj);
-				break;
-			}
+	for (LDObject* obj : g_CurrentFile->objects)
+	for (QTreeWidgetItem* qItem : qaItems) {
+		if (qItem == obj->qObjListEntry) {
+			objs.push_back (obj);
+			break;
 		}
 	}
 	

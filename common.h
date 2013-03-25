@@ -132,8 +132,4 @@ typedef uint16_t xushort;
 typedef uint32_t xulong;
 typedef uint64_t xulonglong;
 
-#define FOREACH(T, PTRS, COUNTER, ARRAY) \
-	for (T PTRS* COUNTER##ptr = &(*ARRAY.begin ()), PTRS COUNTER = *COUNTER##ptr; \
-		COUNTER##ptr < &(*ARRAY.end ()); COUNTER = *(++COUNTER##ptr))
-
 #endif

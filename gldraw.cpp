@@ -135,8 +135,8 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 		setMainColor ();
 		
 		// Warn about the unknown colors, but only once.
-		for (long i = 0; i < (long)g_daWarnedColors.size(); ++i)
-			if (g_daWarnedColors[i] == obj->dColor)
+		for (short i : g_daWarnedColors)
+			if (obj->dColor == i)
 				return;
 		
 		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
@@ -227,15 +227,15 @@ void renderer::compileObjects () {
 		&uObjListBack,
 	};
 	
-	for (uchar j = 0; j < 2; ++j) {
-		if (j && !gl_colorbfc)
+	for (uchar i = 0; i < 2; ++i) {
+		if (i && !gl_colorbfc)
 			continue;
 		
-		*upaLists[j] = glGenLists (1);
-		glNewList (*upaLists[j], GL_COMPILE);
+		*upaLists[i] = glGenLists (1);
+		glNewList (*upaLists[i], GL_COMPILE);
 		
-		for (ulong i = 0; i < g_CurrentFile->objects.size(); i++)
-			compileOneObject (g_CurrentFile->objects[i], j);
+		for (LDObject* obj : g_CurrentFile->objects)
+			compileOneObject (obj, i);
 		
 		glEndList ();
 	}
@@ -244,7 +244,7 @@ void renderer::compileObjects () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-template<class T>void renderer::compileSubObject (LDObject* obj,
+template<class T> void renderer::compileSubObject (LDObject* obj,
 	const bool bBackSide, const GLenum eGLType, const short dVerts)
 {
 	setObjectColor (obj, bBackSide);
@@ -292,9 +292,9 @@ void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 			
 			vector<LDObject*> objs = ref->inlineContents (true, true);
 			
-			for (ulong i = 0; i < (ulong)objs.size(); ++i) {
-				compileOneObject (objs[i], bBackSide);
-				delete objs[i];
+			for (LDObject* obj : objs) {
+				compileOneObject (obj, bBackSide);
+				delete obj;
 			}
 		}
 		break;

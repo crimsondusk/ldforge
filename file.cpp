@@ -31,7 +31,7 @@ cfg (str, io_ldpath, "");
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 OpenFile* findLoadedFile (str zName) {
-	FOREACH (OpenFile, *, file, g_LoadedFiles)
+	for (OpenFile* file : g_LoadedFiles)
 		if (file->zFileName == zName)
 			return file;
 	
@@ -60,9 +60,9 @@ OpenFile* openDATFile (str path) {
 			"p",
 		};
 		
-		for (ushort i = 0; i < sizeof saSubdirectories / sizeof *saSubdirectories; ++i) {
+		for (char const* sSubdir : saSubdirectories) {
 			str zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-				io_ldpath.value.chars(), saSubdirectories[i], zTruePath.chars());
+				io_ldpath.value.chars(), sSubdir, zTruePath.chars());
 			
 			fp = fopen (zFilePath.chars (), "r");
 			
@@ -97,15 +97,17 @@ OpenFile* openDATFile (str path) {
 	
 	fclose (fp);
 	
-	for (ulong i = 0; i < lines.size(); ++i) {
-		LDObject* obj = parseLine (lines[i]);
+	for (str line : lines) {
+		LDObject* obj = parseLine (line);
 		load->objects.push_back (obj);
 		
-		// Check for parse errors and warn abotu tthem
+		// Check for parse errors and warn about tthem
 		if (obj->getType() == OBJ_Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				i, static_cast<LDGibberish*> (obj)->zReason.chars());
-			logf (LOG_Warning, "- Line was: %s\n", lines[i].chars());
+				(&line - &(lines[0])),
+				static_cast<LDGibberish*> (obj)->zReason.chars());
+			
+			logf (LOG_Warning, "- Line was: %s\n", line.chars());
 			numWarnings++;
 		}
 	}
@@ -123,8 +125,8 @@ OpenFile* openDATFile (str path) {
 // =============================================================================
 // Clear everything from the model
 void OpenFile::close () {
-	for (ulong j = 0; j < objects.size(); ++j)
-		delete objects[j];
+	for (LDObject* obj : objects)
+		delete obj;
 	
 	delete this;
 }
@@ -137,10 +139,8 @@ void closeAll () {
 		return;
 	
 	// Remove all loaded files and the objects they contain
-	for (ushort i = 0; i < g_LoadedFiles.size(); i++) {
-		OpenFile* f = g_LoadedFiles[i];
-		f->close ();
-	}
+	for (OpenFile* file : g_LoadedFiles)
+		file->close ();
 	
 	// Clear the array
 	g_LoadedFiles.clear();
@@ -197,11 +197,9 @@ bool OpenFile::save (str zPath) {
 		return false;
 	
 	// Write all entries now
-	for (ulong i = 0; i < objects.size(); ++i) {
-		LDObject* obj = objects[i];
-		
+	for (LDObject* obj : objects) {
 		// LDraw requires lines to have DOS line endings
-		str zLine = str::mkfmt ("%s\r\n",obj->getContents ().chars ());
+		str zLine = str::mkfmt ("%s\r\n", obj->getContents ().chars ());
 		
 		fwrite (zLine.chars(), 1, ~zLine, fp);
 	}
@@ -360,9 +358,10 @@ LDObject* parseLine (str zLine) {
 			
 			for (short i = 0; i < 4; ++i)
 				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
+			
 			return obj;
 		}
-		
+	
 	default: // Strange line we couldn't parse
 		return new LDGibberish (zLine, "Unknown line code number");
 	}
@@ -388,19 +387,17 @@ void reloadAllSubfiles () {
 		return;
 	
 	// First, close all but the current open file.
-	for (ushort i = 0; i < g_LoadedFiles.size(); ++i)
-		if (g_LoadedFiles[i] != g_CurrentFile)
-			g_LoadedFiles[i]->close();
+	for (OpenFile* file : g_LoadedFiles)
+		if (file != g_CurrentFile)
+			file->close ();
 	
 	g_LoadedFiles.clear ();
 	g_LoadedFiles.push_back (g_CurrentFile);
 	
-	// Go through all the current file and reload the subfiles
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		LDObject* obj = g_CurrentFile->objects[i];
-		
-		// Reload subfiles
+	// Go through all objects in the current file and reload the subfiles
+	for (LDObject* obj : g_CurrentFile->objects) {
 		if (obj->getType() == OBJ_Subfile) {
+			// Note: ref->pFile is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			OpenFile* pFile = loadSubfile (ref->zFileName);
 			
