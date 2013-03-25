@@ -34,43 +34,60 @@ void bbox::calculate () {
 	if (!g_CurrentFile)
 		return;
 	
-	for (LDObject* obj : g_CurrentFile->objects) {
-		switch (obj->getType ()) {
-		case OBJ_Line:
-			{
-				LDLine* line = static_cast<LDLine*> (obj);
-				for (short i = 0; i < 2; ++i)
-					checkVertex (line->vaCoords[i]);
-			}
-			break;
-		
-		case OBJ_Triangle:
-			{
-				LDTriangle* tri = static_cast<LDTriangle*> (obj);
-				for (short i = 0; i < 3; ++i)
-					checkVertex (tri->vaCoords[i]);
-			}
-			break;
-		
-		case OBJ_Quad:
-			{
-				LDQuad* quad = static_cast<LDQuad*> (obj);
-				for (short i = 0; i < 4; ++i)
-					checkVertex (quad->vaCoords[i]);
-			}
-			break;
-		
-		case OBJ_CondLine:
-			{
-				LDCondLine* line = static_cast<LDCondLine*> (obj);
-				for (short i = 0; i < 4; ++i)
-					checkVertex (line->vaCoords[i]);
-			}
-			break;
-		
-		default:
-			break;
+	for (LDObject* obj : g_CurrentFile->objects)
+		checkObject (obj);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::checkObject (LDObject* obj) {
+	switch (obj->getType ()) {
+	case OBJ_Line:
+		{
+			LDLine* line = static_cast<LDLine*> (obj);
+			for (short i = 0; i < 2; ++i)
+				checkVertex (line->vaCoords[i]);
 		}
+		break;
+	
+	case OBJ_Triangle:
+		{
+			LDTriangle* tri = static_cast<LDTriangle*> (obj);
+			for (short i = 0; i < 3; ++i)
+				checkVertex (tri->vaCoords[i]);
+		}
+		break;
+	
+	case OBJ_Quad:
+		{
+			LDQuad* quad = static_cast<LDQuad*> (obj);
+			for (short i = 0; i < 4; ++i)
+				checkVertex (quad->vaCoords[i]);
+		}
+		break;
+	
+	case OBJ_CondLine:
+		{
+			LDCondLine* line = static_cast<LDCondLine*> (obj);
+			for (short i = 0; i < 4; ++i)
+				checkVertex (line->vaCoords[i]);
+		}
+		break;
+	
+	case OBJ_Subfile:
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			vector<LDObject*> objs = ref->inlineContents (true, true);
+			
+			for (LDObject* obj : objs) {
+				checkObject (obj);
+				delete obj;
+			}
+		}
+	
+	default:
+		break;
 	}
 }
 

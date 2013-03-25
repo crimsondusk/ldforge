@@ -39,6 +39,7 @@ public:
 	double calcSize ();
 	
 private:
+	void checkObject (LDObject* obj);
 	void checkVertex (vertex v);
 };
 

@@ -128,6 +128,10 @@ void OpenFile::close () {
 	for (LDObject* obj : objects)
 		delete obj;
 	
+	// Clear the cache as well
+	for (LDObject* obj : objCache)
+		delete obj;
+	
 	delete this;
 }
 

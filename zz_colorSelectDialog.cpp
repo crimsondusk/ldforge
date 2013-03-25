@@ -27,6 +27,7 @@
 #include <qscrollbar.h>
 #include "zz_colorSelectDialog.h"
 #include "colors.h"
+#include "config.h"
 
 static const short g_dNumColumns = 8;
 static const short g_dNumRows = 10;
@@ -34,6 +35,9 @@ static const short g_dSquareSize = 32;
 static const long g_lWidth = (g_dNumColumns * g_dSquareSize);
 static const long g_lHeight = (g_dNumRows * g_dSquareSize);
 static const long g_lMaxHeight = ((MAX_COLORS / g_dNumColumns) * g_dSquareSize);
+
+extern_cfg (str, gl_maincolor);
+extern_cfg (float, gl_maincolor_alpha);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -105,11 +109,19 @@ void ColorSelectDialog::drawScene () {
 		const double y = (i / g_dNumColumns) * g_dSquareSize;
 		const double w = (g_dSquareSize) - (fPenWidth / 2);
 		
-		QColor qColor (meta->zColor.chars ());
-		qColor.setAlpha (meta->fAlpha * 255.0);
+		QColor qColor;
+		
+		if (i == dMainColor) {
+			// Use the user preferences for main color here
+			qColor = gl_maincolor.value.chars ();
+			qColor.setAlpha (gl_maincolor_alpha * 255.0f);
+		} else {
+			qColor = meta->zColor.chars ();
+			qColor.setAlpha (meta->fAlpha * 255.0f);
+		}
 		
 		uchar ucLuma = (0.2126f * qColor.red()) +
-			(0.7152f * qColor.green()) + (0.0722 * qColor.blue());
+			(0.7152f * qColor.green()) + (0.0722f * qColor.blue());
 		bool bDark = (ucLuma < 80);
 		
 		qScene->addRect (x, y, w, w, qPen, qColor);
