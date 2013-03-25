@@ -19,9 +19,18 @@
 #include "common.h"
 #include "zz_configDialog.h"
 #include "file.h"
+#include "config.h"
 #include <qgridlayout.h>
 #include <qfiledialog.h>
 #include <qcolordialog.h>
+
+extern_cfg (str, io_ldpath);
+extern_cfg (str, gl_bgcolor);
+extern_cfg (str, gl_maincolor);
+extern_cfg (bool, lv_colorize);
+extern_cfg (bool, gl_colorbfc);
+extern_cfg (float, gl_maincolor_alpha);
+extern_cfg (int, gl_linethickness);
 
 ConfigDialog* g_ConfigDialog = nullptr;
 

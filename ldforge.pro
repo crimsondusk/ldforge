@@ -19,7 +19,6 @@ HEADERS += bbox.h \
 	misc.h \
 	str.h \
 	config.h \
-	cfgdef.h \
 	colors.h \
 	types.h \
 	zz_setContentsDialog.h \

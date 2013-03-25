@@ -298,13 +298,13 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	
 	// If we have this cached, just clone that
 	if (bDeepInline && pFile->objCache.size ()) {
-		FOREACH (LDObject, *, obj, pFile->objCache)
+		for (LDObject* obj : pFile->objCache)
 			objs.push_back (obj->makeClone ());
 	} else {
 		if (!bDeepInline)
 			bCache = false;
 		
-		FOREACH (LDObject, *, obj, pFile->objects) {
+		for (LDObject* obj : pFile->objects) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
 			case OBJ_Comment:
@@ -325,7 +325,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 				
 				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
-				FOREACH (LDObject, *, otherobj, otherobjs) {
+				for (LDObject* otherobj : otherobjs) {
 					// Cache this object if desired
 					if (bCache)
 						cache.push_back (otherobj->makeClone ());
@@ -346,7 +346,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	}
 	
 	// Transform the objects
-	FOREACH (LDObject, *, obj, objs)
+	for (LDObject* obj : objs)
 		transformObject (obj, mMatrix, vPosition, dColor);
 	
 	return objs;

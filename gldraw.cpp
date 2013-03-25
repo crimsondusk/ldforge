@@ -20,6 +20,7 @@
 #include <QGLWidget>
 #include <GL/glu.h>
 #include "common.h"
+#include "config.h"
 #include "file.h"
 #include "gldraw.h"
 #include "bbox.h"
@@ -27,6 +28,12 @@
 
 static double g_faObjectOffset[3];
 static double g_StoredBBoxSize;
+
+cfg (str, gl_bgcolor, "#CCCCD9");
+cfg (str, gl_maincolor, "#707078");
+cfg (float, gl_maincolor_alpha, 1.0);
+cfg (int, gl_linethickness, 2);
+cfg (bool, gl_colorbfc, true);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -22,7 +22,7 @@
 #include "gldraw.h"
 #include "gui.h"
 #include "file.h"
-
+#include "config.h"
 #include "zz_setContentsDialog.h"
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
@@ -36,6 +36,8 @@
 	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
 
 vector<LDObject*> g_Clipboard;
+
+cfg (bool, lv_colorize, true);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

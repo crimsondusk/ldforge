@@ -19,10 +19,13 @@
 #include <vector>
 
 #include "common.h"
+#include "config.h"
 #include "file.h"
 #include "misc.h"
 #include "bbox.h"
 #include "gui.h"
+
+cfg (str, io_ldpath, "");
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

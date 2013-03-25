@@ -23,34 +23,17 @@
 #include "str.h"
 
 // =============================================================================
-// Determine configuration file. Use APPNAME if given.
-#ifdef APPNAME
- #define CONFIGFILE APPNAME ".ini"
-#else // APPNAME
- #define APPNAME "(unnamed application)"
- #define CONFIGFILE "config.ini"
-#endif // APPNAME
-
-#ifdef CONFIG_WITH_QT
- #include <QString>
-#endif // CONFIG_WITH_QT
-
-// -------------------------------
-#define CFGSECTNAME(X) CFGSECT_##X
+#define CONFIGFILE APPNAME ".cfg"
+#include <QString>
 
 #define MAX_INI_LINE 512
-#define NUM_CONFIG (sizeof config::pointers / sizeof *config::pointers)
+#define NUM_CONFIG (g_pConfigPointers.size ())
 
-// =============================================================================
-enum configsection_e {
-#define CFG(...)
-#define SECT(A,B) CFGSECTNAME (A),
- #include "cfgdef.h"
-#undef CFG
-#undef SECT
-	NUM_ConfigSections,
-	NO_CONFIG_SECTION = -1
-};
+#define cfg(T, NAME, DEFAULT) \
+	T##config NAME (DEFAULT, #NAME, #T, #DEFAULT)
+
+#define extern_cfg(T, NAME) \
+	extern T##config NAME
 
 // =============================================================================
 enum configtype_e {
@@ -64,8 +47,7 @@ enum configtype_e {
 // =========================================================
 class config {
 public:
-	configsection_e sect;
-	const char* description, *name, *fullname, *typestring, *defaultstring;
+	const char* name, *typestring, *defaultstring;
 	
 	virtual configtype_e getType () {
 		return CONFIG_none;
@@ -77,12 +59,11 @@ public:
 	static bool load ();
 	static bool save ();
 	static void reset ();
-	static config* pointers[];
-	static const char* sections[];
-	static const char* sectionNames[];
 	static str dirpath ();
 	static str filepath ();
 };
+
+extern std::vector<config*> g_pConfigPointers;
 
 // =============================================================================
 #define DEFINE_UNARY_OPERATOR(T, OP) \
@@ -130,17 +111,14 @@ class T##config : public config
 #define IMPLEMENT_CONFIG(T) \
 	T value, defval; \
 	\
-	T##config (const configsection_e _sect, const char* _description, \
-		T _defval, const char* _name, const char* _fullname, const char* _typestring, \
+	T##config (T _defval, const char* _name, const char* _typestring, \
 		const char* _defaultstring) \
 	{ \
-		sect = _sect; \
-		description = _description; \
 		value = defval = _defval; \
 		name = _name; \
-		fullname = _fullname; \
 		typestring = _typestring; \
 		defaultstring = _defaultstring; \
+		g_pConfigPointers.push_back (this); \
 	} \
 	operator T () { \
 		return value; \
@@ -148,7 +126,7 @@ class T##config : public config
 	configtype_e getType () { \
 		return CONFIG_##T; \
 	} \
-	void resetValue () { \
+	virtual void resetValue () { \
 		value = defval; \
 	}
 
@@ -234,13 +212,5 @@ public:
 	DEFINE_ALL_COMPARE_OPERATORS (bool)
 	DEFINE_ASSIGN_OPERATOR (bool, =)
 };
-
-// =============================================================================
-// Extern the configurations now
-#define CFG(TYPE, SECT, NAME, DESCR, DEFAULT) extern TYPE##config SECT##_##NAME;
-#define SECT(...)
- #include "cfgdef.h"
-#undef CFG
-#undef SECT
 
 #endif // __OPTIONS_H__
