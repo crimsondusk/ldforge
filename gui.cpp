@@ -665,7 +665,7 @@ void ForgeWindow::buildObjList () {
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			color* col = g_LDColors[obj->dColor];
+			color* col = getColor (obj->dColor);
 			if (col)
 				item->setForeground (0, QColor (col->zColor.chars()));
 		}

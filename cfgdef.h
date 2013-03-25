@@ -26,6 +26,7 @@ CFG (str, io, ldpath, "LDraw path", "")
 SECT (gl, GLRenderer)
 CFG (str, gl, bgcolor, "Background color", "#CCCCD9")
 CFG (str, gl, maincolor, "Main color", "#707078")
+CFG (float, gl, maincolor_alpha, "Main color translucency [0.0 - 1.0]", 1.0)
 CFG (int, gl, linethickness, "Line thickness", 2)
 CFG (bool, gl, colorbfc, "Green-red BFC view", true)
 

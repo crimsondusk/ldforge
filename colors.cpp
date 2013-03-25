@@ -69,9 +69,10 @@ static TemporaryColorMeta g_LDColorInfo[] = {
 	{79,	"Ghost White",	"#FFFFFF",	0.875},
 	{294,	"Trans Phosphorus",	"#E0FFB0",	0.6},
 	{378,	"Sand Green",	"#80A080",	1.0},
+	{511,	"Rubber White",	"#F8F8F8",	1.0},
 };
 
-color* g_LDColors[MAX_COLORS];
+static color* g_LDColors[MAX_COLORS];
 static bool g_bColorsInit = false;
 
 void initColors () {
@@ -89,4 +90,15 @@ void initColors () {
 	}
 	
 	g_bColorsInit = true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+color* getColor (short dColorNum) {
+	// Check bounds
+	if (dColorNum < 0 || dColorNum >= MAX_COLORS)
+		return nullptr;
+	
+	return g_LDColors[dColorNum];
 }

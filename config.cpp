@@ -103,6 +103,9 @@ static const char* g_ConfigTypeNames[] = {
 // =============================================================================
 // Load the configuration from file
 bool config::load () {
+	// Locale must be disabled for atof
+	setlocale (LC_NUMERIC, "C");
+	
 	FILE* fp = fopen (filepath().chars(), "r");
 	char linedata[MAX_INI_LINE];
 	char* line;
@@ -230,6 +233,10 @@ static size_t writef (FILE* fp, const char* fmt, ...) {
 // =============================================================================
 // Save the configuration to disk
 bool config::save () {
+	// The function will write floats, disable the locale now so that they
+	// are written properly.
+	setlocale (LC_NUMERIC, "C");
+	
 #ifdef APPNAME
 	#ifdef CONFIG_WITH_QT
 		// If the directory doesn't exist, create it now.

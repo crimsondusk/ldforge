@@ -59,11 +59,18 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
+	qGLForegroundAlphaLabel = new QLabel ("Translucency:");
+	qGLForegroundAlpha = new QSlider (Qt::Horizontal);
+	qGLForegroundAlpha->setRange (1, 10);
+	qGLForegroundAlpha->setTickInterval (1);
+	qGLForegroundAlpha->setSliderPosition (gl_maincolor_alpha * 10.0f);
+	qGLForegroundAlpha->setTickPosition (QSlider::TicksAbove);
+	
 	qGLLineThicknessLabel = new QLabel ("Line thickness:");
 	qGLLineThickness = new QSlider (Qt::Horizontal);
 	qGLLineThickness->setRange (1, 8);
 	qGLLineThickness->setSliderPosition (gl_linethickness);
-	qGLLineThickness->setTickPosition (QSlider::TicksBothSides);
+	qGLLineThickness->setTickPosition (QSlider::TicksAbove);
 	qGLLineThickness->setTickInterval (1);
 	
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
@@ -86,6 +93,8 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	layout->addWidget (qGLLineThicknessLabel, 2, 0);
 	layout->addWidget (qGLLineThickness, 2, 1);
+	layout->addWidget (qGLForegroundAlphaLabel, 2, 2);
+	layout->addWidget (qGLForegroundAlpha, 2, 3);
 	
 	layout->addWidget (qLVColorize, 3, 0, 1, 2);
 	layout->addWidget (qGLColorBFC, 3, 2, 1, 2);
@@ -162,6 +171,7 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		APPLY_CHECKBOX (dlg.qLVColorize, lv_colorize)
 		APPLY_CHECKBOX (dlg.qGLColorBFC, gl_colorbfc)
 		
+		gl_maincolor_alpha = ((double)dlg.qGLForegroundAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.qGLLineThickness->value ();
 		
 		// Save the config
@@ -170,7 +180,7 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		// Reload all subfiles
 		reloadAllSubfiles ();
 		
-		window->R->setColor (gl_bgcolor, glClearColor);
+		window->R->setBackground ();
 		window->refresh ();
 	}
 }

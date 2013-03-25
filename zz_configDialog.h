@@ -29,12 +29,13 @@ class ConfigDialog : public QDialog {
 	
 public:
 	QLabel* qLDrawPathLabel;
-	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLLineThicknessLabel;
+	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLForegroundAlphaLabel;
+	QLabel* qGLLineThicknessLabel;
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
 	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
 	QCheckBox* qLVColorize, *qGLColorBFC;
-	QSlider* qGLLineThickness;
+	QSlider* qGLForegroundAlpha, *qGLLineThickness;
 	
 	QDialogButtonBox* qButtons;
 	

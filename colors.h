@@ -37,6 +37,8 @@ typedef struct {
 } TemporaryColorMeta;
 
 void initColors ();
-extern color* g_LDColors[MAX_COLORS];
+
+// Safely gets a color with the given number or nullptr if no such color.
+color* getColor (short dColorNum);
 
 #endif // __COLORS_H__

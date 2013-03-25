@@ -81,7 +81,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? dEdgeColor : dMainColor;
 		
 		qColorButton = new QPushButton;
-		setButtonBackground (qColorButton, g_LDColors[dColor]->zColor);
+		setButtonBackground (qColorButton, getColor (dColor)->zColor);
 		connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_colorButtonClicked ()));
 	}
 	
@@ -141,7 +141,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 // =============================================================================
 void AddObjectDialog::slot_colorButtonClicked () {
 	ColorSelectDialog::staticDialog (dColor, dColor, this);
-	setButtonBackground (qColorButton, g_LDColors[dColor]->zColor);
+	setButtonBackground (qColorButton, getColor (dColor)->zColor);
 }
 
 // =============================================================================

@@ -39,6 +39,10 @@ static const long g_lMaxHeight = ((MAX_COLORS / g_dNumColumns) * g_dSquareSize);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog (parent) {
+	// Remove the default color if it's invalid
+	if (!getColor (dDefault))
+		dDefault = -1;
+	
 	qScene = new QGraphicsScene;
 	qView = new QGraphicsView (qScene);
 	dSelColor = dDefault;
@@ -93,7 +97,7 @@ void ColorSelectDialog::drawScene () {
 	// Draw the color rectangles.
 	qScene->clear ();
 	for (short i = 0; i < MAX_COLORS; ++i) {
-		color* meta = g_LDColors[i];
+		color* meta = getColor (i);
 		if (!meta)
 			continue;
 		
@@ -125,13 +129,15 @@ void ColorSelectDialog::drawScene () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ColorSelectDialog::drawColorInfo () {
-	if (dSelColor == -1) {
+	color* col = getColor (dSelColor);
+	
+	if (dSelColor == -1 || !col) {
 		qColorInfo->setText ("---");
 		return;
 	}
 	
 	qColorInfo->setText (str::mkfmt ("%d - %s",
-		dSelColor, g_LDColors[dSelColor]->zName.chars()));
+		dSelColor, col->zName.chars()));
 }
 
 // =============================================================================
@@ -144,7 +150,7 @@ void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
 	ulong y = ((ulong)qPoint.y () - (g_dSquareSize / 2)) / g_dSquareSize;
 	ulong idx = (y * g_dNumColumns) + x;
 	
-	color* col = g_LDColors[idx];
+	color* col = getColor (idx);
 	if (!col)
 		return;
 	

@@ -30,7 +30,7 @@ public:
 	renderer (QWidget* parent = nullptr);
 	void hardRefresh ();
 	void compileObjects ();
-	void setColor (str zColor, void (*func) (float, float, float, float));
+	void setBackground ();
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
@@ -51,6 +51,7 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj, bool bBackSide);
+	void setMainColor ();
 };
 
 #endif // __GLDRAW_H__

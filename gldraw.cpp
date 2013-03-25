@@ -44,7 +44,7 @@ void renderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
 	
-	setColor (gl_bgcolor.value, &glClearColor);
+	setBackground ();
 	
 	glEnable (GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset (1.0f, 1.0f);
@@ -69,21 +69,36 @@ void renderer::initializeGL () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void renderer::setColor (str zColor,
-	void (*func) (float, float, float, float))
-{
-	QColor col (zColor.chars());
+void renderer::setMainColor () {
+	QColor col (gl_maincolor.value.chars());
 	
 	if (!col.isValid ())
 		return;
 	
-	(*func) (
+	glColor4f (
+		((double)col.red()) / 255.0f,
+		((double)col.green()) / 255.0f,
+		((double)col.blue()) / 255.0f,
+		gl_maincolor_alpha);
+}
+
+// -----------------------------------------------------------------------------
+void renderer::setBackground () {
+	QColor col (gl_bgcolor.value.chars());
+	
+	if (!col.isValid ())
+		return;
+	
+	glClearColor (
 		((double)col.red()) / 255.0f,
 		((double)col.green()) / 255.0f,
 		((double)col.blue()) / 255.0f,
 		1.0f);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 static vector<short> g_daWarnedColors;
 void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 	if (obj->dColor == -1)
@@ -100,35 +115,36 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 		return;
 	}
 	
-	if (obj->dColor == dMainColor)
-		setColor (gl_maincolor, glColor4f);
-	else {
-		color* col = g_LDColors[obj->dColor];
-		
-		if (!col) {
-			// Warn about unknown colors, but only once.
-			for (long i = 0; i < g_daWarnedColors.size(); ++i)
-				if (g_daWarnedColors[i] == obj->dColor)
-					return;
-			
-			printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
-			g_daWarnedColors.push_back (obj->dColor);
-			
-			// Set the main color to make the object at least not appear
-			// pitch-black.
-			setColor (gl_maincolor, glColor4f);
-			return;
-		}
-		
-		QColor qCol (col->zColor.chars());
-		
-		if (qCol.isValid ())
-			glColor4f (
-				((double)qCol.red()) / 255.0f,
-				((double)qCol.green()) / 255.0f,
-				((double)qCol.blue()) / 255.0f,
-				col->fAlpha);
+	if (obj->dColor == dMainColor) {
+		setMainColor ();
+		return;
 	}
+	
+	color* col = getColor (obj->dColor);
+	
+	if (!col) {
+		// The color was unknown. Use main color to make the object at least
+		// not appear pitch-black.
+		setMainColor ();
+		
+		// Warn about the unknown colors, but only once.
+		for (long i = 0; i < (long)g_daWarnedColors.size(); ++i)
+			if (g_daWarnedColors[i] == obj->dColor)
+				return;
+		
+		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
+		g_daWarnedColors.push_back (obj->dColor);
+		return;
+	}
+	
+	QColor qCol (col->zColor.chars());
+	
+	if (qCol.isValid ())
+		glColor4f (
+			((double)qCol.red()) / 255.0f,
+			((double)qCol.green()) / 255.0f,
+			((double)qCol.blue()) / 255.0f,
+			col->fAlpha);
 }
 
 // =============================================================================
