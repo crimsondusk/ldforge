@@ -19,6 +19,7 @@
 #include <math.h>
 #include <locale.h>
 #include "common.h"
+#include "misc.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -85,4 +86,77 @@ bool isNumber (str& zToken) {
 	}
 	
 	return true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+stringparser::stringparser (str zInText, char cSeparator) {
+	zaTokens = zInText.split (cSeparator, true);
+	dPos = -1;
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::atBeginning () {
+	return (dPos == -1);
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::atEnd () {
+	return (dPos == zaTokens.size() - 1);
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::getToken (str& zVal, const ushort uInPos) {
+	if (uInPos < 0 || uInPos >= zaTokens.size())
+		return false;
+	
+	zVal = zaTokens[uInPos];
+	return true;
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::next (str& zVal) {
+	return getToken (zVal, ++dPos);
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::peekNext (str& zVal) {
+	return getToken (zVal, dPos + 1);
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::findToken (short& dResult, char const* sNeedle, short dArgs) {
+	for (short i = 0; i < (zaTokens.size() - dArgs); ++i) {
+		if (zaTokens[i] == sNeedle) {
+			dResult = i;
+			return true;
+		}
+	}
+	
+	return false;
+}
+
+// -----------------------------------------------------------------------------
+void stringparser::rewind () {
+	dPos = -1;
+}
+
+// -----------------------------------------------------------------------------
+void stringparser::seek (short int dAmount, bool bRelative) {
+	dPos = (bRelative ? dPos : 0) + dAmount;
+}
+
+// -----------------------------------------------------------------------------
+size_t stringparser::size () {
+	return zaTokens.size();
+}
+
+// -----------------------------------------------------------------------------
+bool stringparser::tokenCompare (short int dInPos, const char* sOther) {
+	str tok;
+	if (!getToken (tok, dInPos))
+		return false;
+	
+	return (tok == sOther);
 }

@@ -48,7 +48,7 @@ public:
 	QDialogButtonBox* qButtons;
 	
 private:
-	void setButtonBackground (QPushButton* qButton, str zValue);
+	void setButtonBackground (QPushButton* qButton, short dColor);
 	
 	short dColor;
 	

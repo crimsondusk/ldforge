@@ -41,35 +41,61 @@ OpenFile* findLoadedFile (str zName) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+FILE* openLDrawFile (str path, bool bSubDirectories) {
+	str zTruePath = path;
+	
+#ifndef WIN32
+	zTruePath.replace ("\\", "/");
+#endif // WIN32
+	
+	FILE* fp = fopen (path.chars (), "r");
+	str zFilePath;
+	
+	if (fp != nullptr)
+		return fp;
+	
+	if (~io_ldpath.value) {
+		// Try with just the LDraw path first
+		zFilePath = str::mkfmt ("%s" DIRSLASH "%s",
+			io_ldpath.value.chars(), zTruePath.chars());
+		printf ("try %s\n", zFilePath.chars());
+		
+		fp = fopen (zFilePath, "r");
+		if (fp != nullptr)
+			return fp;
+		
+		if (bSubDirectories) {
+			char const* saSubdirectories[] = {
+				"parts",
+				"p",
+			};
+			
+			for (char const* sSubdir : saSubdirectories) {
+				zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
+					io_ldpath.value.chars(), sSubdir, zTruePath.chars());
+				printf ("try %s\n", zFilePath.chars());
+				
+				fp = fopen (zFilePath.chars (), "r");
+				
+				if (fp)
+					return fp;
+			}
+		}
+	}
+	
+	return nullptr;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 OpenFile* openDATFile (str path) {
 	logf ("Opening %s...\n", path.chars());
 	
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
-	str zTruePath = -path;
-#ifndef WIN32
-	zTruePath.replace ("\\", "/");
-#endif // WIN32
-	
-	FILE* fp = fopen (path.chars (), "r");
-	
-	if (!fp && ~io_ldpath.value) {
-		char const* saSubdirectories[] = {
-			"parts",
-			"p",
-		};
-		
-		for (char const* sSubdir : saSubdirectories) {
-			str zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-				io_ldpath.value.chars(), sSubdir, zTruePath.chars());
-			
-			fp = fopen (zFilePath.chars (), "r");
-			
-			if (fp)
-				break;
-		}
-	}
+	FILE* fp = openLDrawFile (-path, true);
 	
 	if (!fp) {
 		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));

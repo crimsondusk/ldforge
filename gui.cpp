@@ -507,7 +507,6 @@ void ForgeWindow::slot_setColor () {
 void ForgeWindow::slot_makeBorders () {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
-	// Delete the objects that were being selected
 	for (LDObject* obj : objs) {
 		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
 			continue;
@@ -667,7 +666,7 @@ void ForgeWindow::buildObjList () {
 			// list entry in said color.
 			color* col = getColor (obj->dColor);
 			if (col)
-				item->setForeground (0, QColor (col->zColor.chars()));
+				item->setForeground (0, col->qColor);
 		}
 		
 		obj->qObjListEntry = item;

@@ -19,15 +19,15 @@
 #ifndef __COLORS_H__
 #define __COLORS_H__
 
+#include <qcolor.h>
 #include "common.h"
 
 #define MAX_COLORS 512
 
 class color {
 public:
-	str zName;
-	str zColor;
-	float fAlpha;
+	str zName, zColorString;
+	QColor qColor, qEdge;
 };
 
 typedef struct {
@@ -37,6 +37,7 @@ typedef struct {
 } TemporaryColorMeta;
 
 void initColors ();
+void parseLDConfig ();
 
 // Safely gets a color with the given number or nullptr if no such color.
 color* getColor (short dColorNum);

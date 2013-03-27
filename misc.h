@@ -43,4 +43,32 @@ template<class T> bool in (T needle, std::initializer_list<T> haystack) {
 	return false;
 }
 
+// =============================================================================
+// stringparser
+//
+// String parsing utility
+// =============================================================================
+class stringparser {
+public:
+	std::vector<str> zaTokens;
+	short dPos;
+	
+	stringparser (str zInText, char cSeparator);
+	
+	bool atEnd ();
+	bool atBeginning ();
+	bool next (str& zVal);
+	bool peekNext (str& zVal);
+	bool getToken (str& zVal, const ushort uInPos);
+	bool findToken (short& dResult, char const* sNeedle, short dArgs);
+	size_t size ();
+	void rewind ();
+	void seek (short dAmount, bool bRelative);
+	bool tokenCompare (short int dInPos, const char* sOther);
+	
+	str operator[] (const size_t uIndex) {
+		return zaTokens[uIndex];
+	}
+};
+
 #endif // __MISC_H__

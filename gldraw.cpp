@@ -139,19 +139,16 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 			if (obj->dColor == i)
 				return;
 		
-		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
+		printf ("setObjectColor Unknown color %d!\n", obj->dColor);
 		g_daWarnedColors.push_back (obj->dColor);
 		return;
 	}
 	
-	QColor qCol (col->zColor.chars());
-	
-	if (qCol.isValid ())
-		glColor4f (
-			((double)qCol.red()) / 255.0f,
-			((double)qCol.green()) / 255.0f,
-			((double)qCol.blue()) / 255.0f,
-			col->fAlpha);
+	glColor4f (
+		((double)col->qColor.red()) / 255.0f,
+		((double)col->qColor.green()) / 255.0f,
+		((double)col->qColor.blue()) / 255.0f,
+		((double)col->qColor.alpha()) / 255.0f);
 }
 
 // =============================================================================

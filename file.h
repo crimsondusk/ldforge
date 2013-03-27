@@ -61,6 +61,9 @@ OpenFile* findLoadedFile (str name);
 // to the opened file or nullptr on error.
 OpenFile* openDATFile (str path);
 
+// Opens the given file and returns a pointer to it, potentially looking in /parts and /p
+FILE* openLDrawFile (str path, bool bSubDirectories);
+
 // Close all open files, whether user-opened or subfile caches.
 void closeAll ();
 

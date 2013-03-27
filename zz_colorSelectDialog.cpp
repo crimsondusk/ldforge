@@ -78,14 +78,11 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	qColorInfo = new QLabel;
 	drawColorInfo ();
 	
-	QHBoxLayout* qLayout = new QHBoxLayout;
+	QVBoxLayout* qLayout = new QVBoxLayout;
+	qLayout->addWidget (qView);
 	qLayout->addWidget (qColorInfo);
 	qLayout->addWidget (qButtons);
-	
-	QVBoxLayout* qLayout2 = new QVBoxLayout;
-	qLayout2->addWidget (qView);
-	qLayout2->addLayout (qLayout);
-	setLayout (qLayout2);
+	setLayout (qLayout);
 	
 	setWindowIcon (QIcon ("icons/palette.png"));
 	setWindowTitle (APPNAME_DISPLAY " - choose a color");
@@ -109,15 +106,12 @@ void ColorSelectDialog::drawScene () {
 		const double y = (i / g_dNumColumns) * g_dSquareSize;
 		const double w = (g_dSquareSize) - (fPenWidth / 2);
 		
-		QColor qColor;
+		QColor qColor = meta->qColor;
 		
 		if (i == dMainColor) {
 			// Use the user preferences for main color here
 			qColor = gl_maincolor.value.chars ();
 			qColor.setAlpha (gl_maincolor_alpha * 255.0f);
-		} else {
-			qColor = meta->zColor.chars ();
-			qColor.setAlpha (meta->fAlpha * 255.0f);
 		}
 		
 		uchar ucLuma = (0.2126f * qColor.red()) +
