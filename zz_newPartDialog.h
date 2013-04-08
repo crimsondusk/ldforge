@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef ZZ_NEWPARTDIALOG_H
+#define ZZ_NEWPARTDIALOG_H
+
 #include "gui.h"
 #include <qdialog.h>
 #include <qlabel.h>
@@ -33,3 +36,5 @@ public:
 	QComboBox* qCB_LicenseBox, *qCB_BFCBox;
 	QDialogButtonBox* qButtons;
 };
+
+#endif // ZZ_NEWPARTDIALOG_H

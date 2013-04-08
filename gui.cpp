@@ -25,18 +25,63 @@
 #include "config.h"
 #include "misc.h"
 #include "colors.h"
+#include "config.h"
 #include "zz_addObjectDialog.h"
 #include "zz_colorSelectDialog.h"
 #include "zz_configDialog.h"
 #include "zz_newPartDialog.h"
 #include "zz_setContentsDialog.h"
 
-#define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
-	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
-	qAct_##OBJECT->setStatusTip (tr (DESCR)); \
-	connect (qAct_##OBJECT, SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ()));
+// =============================================================================
+// ACTION ARMADA
+namespace Actions {
+	QAction* newFile, *open, *save, *saveAs, *exit;
+	QAction* cut, *copy, *paste, *del;
+	QAction* newSubfile, *newLine, *newTriangle, *newQuad;
+	QAction* newCondLine, *newComment, *newVertex;
+	QAction* splitQuads, *setContents, *setColor;
+	QAction* inlineContents, *deepInline, *makeBorders;
+	QAction* settings;
+	QAction* help, *about, *aboutQt;
+};
+
+// Key-binding configurations
+cfg (str, key_newFile,			"ctrl-n");
+cfg (str, key_open,				"ctrl-o");
+cfg (str, key_save,				"ctrl-s");
+cfg (str, key_saveAs,			"ctrl-shift-s");
+cfg (str, key_exit,				"ctrl-q");
+cfg (str, key_cut,				"ctrl-x");
+cfg (str, key_copy,				"ctrl-c");
+cfg (str, key_paste,			"ctrl-v");
+cfg (str, key_del,				"del");
+cfg (str, key_newSubfile,		"");
+cfg (str, key_newLine,			"");
+cfg (str, key_newTriangle,		"");
+cfg (str, key_newQuad,			"");
+cfg (str, key_newCondLine,		"");
+cfg (str, key_newComment,		"");
+cfg (str, key_newVertex,		"");
+cfg (str, key_splitQuads,		"");
+cfg (str, key_setContents,		"");
+cfg (str, key_inlineContents,	"ctrl-i");
+cfg (str, key_deepInline,		"ctrl-shift-i");
+cfg (str, key_makeBorders,		"ctrl-shift-b");
+cfg (str, key_settings,			"");
+cfg (str, key_help,				"f1");
+cfg (str, key_about,			"");
+cfg (str, key_aboutQt,			"");
+cfg (str, key_setColor,			"");
+
+// =============================================================================
+// Metadata for actions
+typedef struct {
+	QAction** const qAct;
+	strconfig* const cfg;
+} actionmeta;
 
 vector<LDObject*> g_Clipboard;
+vector<actionmeta> g_ActionMeta;
 
 cfg (bool, lv_colorize, true);
 
@@ -81,13 +126,23 @@ ForgeWindow::ForgeWindow () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+#define ACTION(N) (Actions::N)
+#define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
+	ACTION (OBJECT) = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
+	ACTION (OBJECT)->setStatusTip (tr (DESCR)); \
+	connect (ACTION (OBJECT), SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ())); \
+	{ \
+		actionmeta meta = {&ACTION (OBJECT), &key_##OBJECT}; \
+		g_ActionMeta.push_back (meta); \
+	}
+
 void ForgeWindow::createMenuActions () {
 	// Long menu names go here so my cool action definition table doesn't get out of proportions
 	char const* sNewCdLineText = "New Conditional Line",
 		*sNewQuadText = "New Quadrilateral",
 		*sAboutText = "About " APPNAME_DISPLAY;
 	
-	MAKE_ACTION (new,			"&New",			"brick",		"Create a new part model.")
+	MAKE_ACTION (newFile,		"&New",			"brick",		"Create a new part model.")
 	MAKE_ACTION (open,			"&Open",		"file-open",	"Load a part model from a file.")
 	MAKE_ACTION (save,			"&Save",		"file-save",	"Save the part model.")
 	MAKE_ACTION (saveAs,		"Save &As",		"file-save-as",	"Save the part to a specific file.")
@@ -96,10 +151,10 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (cut,			"Cut",			"cut",			"Cut the current selection to clipboard.")
 	MAKE_ACTION (copy,			"Copy",			"copy",			"Copy the current selection to clipboard.")
 	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
-	MAKE_ACTION (delete,		"Delete",		"delete",		"Delete the selection")
+	MAKE_ACTION (del,			"Delete",		"delete",		"Delete the selection")
 	
 	MAKE_ACTION (setColor,		"Set Color",	"palette",		"Set the color on given objects.")
-	MAKE_ACTION (inline,		"Inline",		"inline",		"Inline selected subfiles.")
+	MAKE_ACTION (inlineContents,"Inline",		"inline",		"Inline selected subfiles.")
 	MAKE_ACTION (deepInline,	"Deep Inline",	"inline-deep",	"Recursively inline selected subfiles down to polygons only.")
 	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
 	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
@@ -120,105 +175,109 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
 	// Keyboard shortcuts
-	qAct_new->setShortcut (Qt::CTRL | Qt::Key_N);
-	qAct_open->setShortcut (Qt::CTRL | Qt::Key_O);
-	qAct_save->setShortcut (Qt::CTRL | Qt::Key_S);
-	qAct_saveAs->setShortcut (Qt::CTRL | Qt::SHIFT | Qt::Key_S);
+	ACTION (newFile)->setShortcut (Qt::CTRL | Qt::Key_N);
+	ACTION (open)->setShortcut (Qt::CTRL | Qt::Key_O);
+	ACTION (save)->setShortcut (Qt::CTRL | Qt::Key_S);
+	ACTION (saveAs)->setShortcut (Qt::CTRL | Qt::SHIFT | Qt::Key_S);
 	
-	qAct_cut->setShortcut (Qt::CTRL | Qt::Key_X);
-	qAct_copy->setShortcut (Qt::CTRL | Qt::Key_C);
-	qAct_paste->setShortcut (Qt::CTRL | Qt::Key_V);
-	qAct_delete->setShortcut (Qt::Key_Delete);
+	ACTION (cut)->setShortcut (Qt::CTRL | Qt::Key_X);
+	ACTION (copy)->setShortcut (Qt::CTRL | Qt::Key_C);
+	ACTION (paste)->setShortcut (Qt::CTRL | Qt::Key_V);
+	ACTION (del)->setShortcut (Qt::Key_Delete);
 	
 	// things not implemented yet
-	QAction* qaDisabledActions[] = {
-		qAct_newSubfile,
-		qAct_about,
-		qAct_help,
+	QAction* const qaDisabledActions[] = {
+		ACTION (newSubfile),
+		ACTION (about),
+		ACTION (help),
 	};
 	
-	for (ushort i = 0; i < sizeof qaDisabledActions / sizeof *qaDisabledActions; ++i)
-		qaDisabledActions[i]->setEnabled (false);
+	for (QAction* act : qaDisabledActions)
+		act->setEnabled (false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+#define ADD_MENU_ITEM(MENU, ACT) q##MENU##Menu->addAction (ACTION (ACT));
+
 void ForgeWindow::createMenus () {
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
-	qFileMenu->addAction (qAct_new);			// New
-	qFileMenu->addAction (qAct_open);			// Open
-	qFileMenu->addAction (qAct_save);			// Save
-	qFileMenu->addAction (qAct_saveAs);			// Save As
-	qFileMenu->addSeparator ();					// -------
-	qFileMenu->addAction (qAct_settings);		// Settings
-	qFileMenu->addSeparator ();					// -------
-	qFileMenu->addAction (qAct_exit);			// Exit
+	ADD_MENU_ITEM (File, newFile)			// New
+	ADD_MENU_ITEM (File, open)				// Open
+	ADD_MENU_ITEM (File, save)				// Save
+	ADD_MENU_ITEM (File, saveAs)			// Save As
+	qFileMenu->addSeparator ();				// -------
+	ADD_MENU_ITEM (File, settings)			// Settings
+	qFileMenu->addSeparator ();				// -------
+	ADD_MENU_ITEM (File, exit)				// Exit
 	
 	// Edit menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
-	qInsertMenu->addAction (qAct_newSubfile);	// New Subfile
-	qInsertMenu->addAction (qAct_newLine);		// New Line
-	qInsertMenu->addAction (qAct_newTriangle);	// New Triangle
-	qInsertMenu->addAction (qAct_newQuad);		// New Quad
-	qInsertMenu->addAction (qAct_newCondLine);	// New Conditional Line
-	qInsertMenu->addAction (qAct_newComment);	// New Comment
-	qInsertMenu->addAction (qAct_newVertex);	// New Vertex
+	ADD_MENU_ITEM (Insert, newSubfile)		// New Subfile
+	ADD_MENU_ITEM (Insert, newLine)			// New Line
+	ADD_MENU_ITEM (Insert, newTriangle)		// New Triangle
+	ADD_MENU_ITEM (Insert, newQuad)			// New Quad
+	ADD_MENU_ITEM (Insert, newCondLine)		// New Conditional Line
+	ADD_MENU_ITEM (Insert, newComment)		// New Comment
+	ADD_MENU_ITEM (Insert, newVertex)		// New Vertex
 	
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
-	qEditMenu->addAction (qAct_cut);			// Cut
-	qEditMenu->addAction (qAct_copy);			// Copy
-	qEditMenu->addAction (qAct_paste);			// Paste
-	qEditMenu->addAction (qAct_delete);			// Delete
-	qEditMenu->addSeparator ();					// -----
-	qEditMenu->addAction (qAct_setColor);		// Set Color
-	qEditMenu->addSeparator ();					// -----
-	qEditMenu->addAction (qAct_inline);			// Inline
-	qEditMenu->addAction (qAct_deepInline);		// Deep Inline
-	qEditMenu->addAction (qAct_splitQuads);		// Split Quads
-	qEditMenu->addAction (qAct_setContents);	// Set Contents
-	qEditMenu->addAction (qAct_makeBorders);	// Make Borders
+	ADD_MENU_ITEM (Edit, cut)				// Cut
+	ADD_MENU_ITEM (Edit, copy)				// Copy
+	ADD_MENU_ITEM (Edit, paste)				// Paste
+	ADD_MENU_ITEM (Edit, del)				// Delete
+	qEditMenu->addSeparator ();				// -----
+	ADD_MENU_ITEM (Edit, setColor)			// Set Color
+	qEditMenu->addSeparator ();				// -----
+	ADD_MENU_ITEM (Edit, inlineContents)	// Inline
+	ADD_MENU_ITEM (Edit, deepInline)		// Deep Inline
+	ADD_MENU_ITEM (Edit, splitQuads)		// Split Quads
+	ADD_MENU_ITEM (Edit, setContents)		// Set Contents
+	ADD_MENU_ITEM (Edit, makeBorders)		// Make Borders
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
-	qHelpMenu->addAction (qAct_help);			// Help
-	qHelpMenu->addSeparator ();					// -----
-	qHelpMenu->addAction (qAct_about);			// About
-	qHelpMenu->addAction (qAct_aboutQt);		// About Qt
+	ADD_MENU_ITEM (Help, help)				// Help
+	qHelpMenu->addSeparator ();				// -----
+	ADD_MENU_ITEM (Help, about)				// About
+	ADD_MENU_ITEM (Help, aboutQt)			// About Qt
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+#define ADD_TOOLBAR_ITEM(BAR, ACT) q##BAR##ToolBar->addAction (ACTION (ACT));
+
 void ForgeWindow::createToolbars () {
 	qFileToolBar = new QToolBar ("File");
-	qFileToolBar->addAction (qAct_new);
-	qFileToolBar->addAction (qAct_open);
-	qFileToolBar->addAction (qAct_save);
-	qFileToolBar->addAction (qAct_saveAs);
+	ADD_TOOLBAR_ITEM (File, newFile)
+	ADD_TOOLBAR_ITEM (File, open)
+	ADD_TOOLBAR_ITEM (File, save)
+	ADD_TOOLBAR_ITEM (File, saveAs)
 	addToolBar (qFileToolBar);
 	
 	qInsertToolBar = new QToolBar ("Insert");
-	qInsertToolBar->addAction (qAct_newSubfile);
-	qInsertToolBar->addAction (qAct_newLine);
-	qInsertToolBar->addAction (qAct_newTriangle);
-	qInsertToolBar->addAction (qAct_newQuad);
-	qInsertToolBar->addAction (qAct_newCondLine);
-	qInsertToolBar->addAction (qAct_newComment);
-	qInsertToolBar->addAction (qAct_newVertex);
+	ADD_TOOLBAR_ITEM (Insert, newSubfile)
+	ADD_TOOLBAR_ITEM (Insert, newLine)
+	ADD_TOOLBAR_ITEM (Insert, newTriangle)
+	ADD_TOOLBAR_ITEM (Insert, newQuad)
+	ADD_TOOLBAR_ITEM (Insert, newCondLine)
+	ADD_TOOLBAR_ITEM (Insert, newComment)
+	ADD_TOOLBAR_ITEM (Insert, newVertex)
 	addToolBar (qInsertToolBar);
 	
 	qEditToolBar = new QToolBar ("Edit");
-	qEditToolBar->addAction (qAct_cut);
-	qEditToolBar->addAction (qAct_copy);
-	qEditToolBar->addAction (qAct_paste);
-	qEditToolBar->addAction (qAct_delete);
-	qEditToolBar->addAction (qAct_setColor);
-	qEditToolBar->addAction (qAct_inline);
-	qEditToolBar->addAction (qAct_splitQuads);
-	qEditToolBar->addAction (qAct_setContents);
-	qEditToolBar->addAction (qAct_makeBorders);
+	ADD_TOOLBAR_ITEM (Edit, cut)
+	ADD_TOOLBAR_ITEM (Edit, copy)
+	ADD_TOOLBAR_ITEM (Edit, paste)
+	ADD_TOOLBAR_ITEM (Edit, del)
+	ADD_TOOLBAR_ITEM (Edit, setColor)
+	ADD_TOOLBAR_ITEM (Edit, inlineContents)
+	ADD_TOOLBAR_ITEM (Edit, splitQuads)
+	ADD_TOOLBAR_ITEM (Edit, setContents)
+	ADD_TOOLBAR_ITEM (Edit, makeBorders)
 	addToolBar (qEditToolBar);
 }
 
@@ -360,7 +419,7 @@ void ForgeWindow::slot_cut () {
 	
 	deleteSelection ();
 	
-	qAct_paste->setEnabled (true);
+	ACTION (paste)->setEnabled (true);
 	refresh ();
 }
 
@@ -369,7 +428,7 @@ void ForgeWindow::slot_cut () {
 // =============================================================================
 void ForgeWindow::slot_copy () {
 	if (copyToClipboard ())
-		qAct_paste->setEnabled (true);
+		ACTION (paste)->setEnabled (true);
 }
 
 // =============================================================================
@@ -711,10 +770,10 @@ void ForgeWindow::buildObjList () {
 // =============================================================================
 void ForgeWindow::slot_selectionChanged () {
 	// If the selection isn't 1 exact, disable setting contents
-	qAct_setContents->setEnabled (qObjList->selectedItems().size() == 1);
+	ACTION (setContents)->setEnabled (qObjList->selectedItems().size() == 1);
 	
 	// If we have no selection, disable splitting quads
-	qAct_splitQuads->setEnabled (qObjList->selectedItems().size() > 0);
+	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
 }
 
 // =============================================================================

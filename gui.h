@@ -34,7 +34,6 @@
 	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ())); \
 	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ())); \
 
-
 class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
@@ -53,16 +52,6 @@ public:
 	
 	// Toolbars
 	QToolBar* qFileToolBar, *qEditToolBar, *qInsertToolBar;
-	
-	// ACTION ARMADA
-	QAction* qAct_new, *qAct_open, *qAct_save, *qAct_saveAs, *qAct_exit;
-	QAction* qAct_cut, *qAct_copy, *qAct_paste, *qAct_delete;
-	QAction* qAct_newSubfile, *qAct_newLine, *qAct_newTriangle, *qAct_newQuad;
-	QAction* qAct_newCondLine, *qAct_newComment, *qAct_newVertex;
-	QAction* qAct_splitQuads, *qAct_setContents, *qAct_inline, *qAct_deepInline, *qAct_makeBorders;
-	QAction* qAct_settings;
-	QAction* qAct_help, *qAct_about, *qAct_aboutQt;
-	QAction* qAct_setColor;
 	
 	ForgeWindow ();
 	void buildObjList ();
