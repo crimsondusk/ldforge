@@ -323,6 +323,13 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 			case OBJ_Unidentified:
 			case OBJ_Vertex:
 				continue;
+			
+			case OBJ_BFC:
+				// Filter non-INVERTNEXT statements
+				if (static_cast<LDBFC*> (obj)->dStatement != BFC_InvertNext)
+					continue;
+				break;
+			
 			default:
 				break;
 			}
