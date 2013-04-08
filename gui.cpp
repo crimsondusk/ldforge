@@ -445,7 +445,25 @@ void ForgeWindow::slot_splitQuads () {
 		if (obj->getType() != OBJ_Quad)
 			continue;
 		
-		static_cast<LDQuad*> (obj)->splitToTriangles ();
+		// Find the index of this quad
+		long lIndex = obj->getIndex (g_CurrentFile);
+		
+		if (lIndex == -1) {
+			// couldn't find it?
+			logf (LOG_Error, "Couldn't find quad %p in "
+				"current object list!!\n", this);
+			return;
+		}
+		
+		std::vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
+		
+		// Replace the quad with the first triangle and add the second triangle
+		// after the first one.
+		g_CurrentFile->objects[lIndex] = triangles[0];
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + lIndex + 1, triangles[1]);
+		
+		// Delete this quad now, it has been split.
+		delete this;
 	}
 	
 	refresh ();
@@ -644,6 +662,13 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
+		case OBJ_BFC:
+			{
+				LDBFC* bfc = static_cast<LDBFC*> (obj);
+				zText = LDBFC::saStatements[bfc->dStatement];
+			}
+			break;
+		
 		default:
 			zText = g_saObjTypeNames[obj->getType ()];
 			break;
@@ -655,7 +680,7 @@ void ForgeWindow::buildObjList () {
 		
 		// Color gibberish red
 		if (obj->getType() == OBJ_Gibberish) {
-			item->setBackgroundColor (0, "#AA0000");
+			item->setBackground (0, QColor ("#AA0000"));
 			item->setForeground (0, QColor ("#FFAA00"));
 		} else if (lv_colorize &&
 			obj->dColor != -1 &&

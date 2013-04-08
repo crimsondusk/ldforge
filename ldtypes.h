@@ -50,6 +50,7 @@ enum LDObjectType_e {
 	OBJ_Triangle,		// Object represents a triangle (LDTriangle, code: 3)
 	OBJ_Quad,			// Object represents a quadrilateral (LDQuad, code: 4)
 	OBJ_CondLine,		// Object represents a conditional line (LDCondLine, code: 5)
+	OBJ_BFC,			// Object represents a BFC statement
 	OBJ_Vertex			// Object is a vertex, LDForge extension object (LDVertex)
 };
 
@@ -141,6 +142,37 @@ public:
 };
 
 // =============================================================================
+// LDBFC
+// 
+// Represents a 0 BFC statement in the LDraw code. eStatement contains the type
+// of this statement.
+// =============================================================================
+class LDBFC : public LDComment {
+public:
+	IMPLEMENT_LDTYPE (BFC)
+	LDBFC (const int dType) : dStatement (dType) {}
+	
+	// Statement strings
+	static const char* saStatements[];
+	
+	static str statementString (short dValue);
+	short dStatement;
+};
+
+
+// -----------------------------------------------------------------------------
+// Enumerator for LDBFC's dStatement
+enum LDBFCType_e {
+	BFC_CertifyCCW,
+	BFC_CCW,
+	BFC_CertifyCW,
+	BFC_CW,
+	BFC_NoCertify,	// Winding becomes disabled (0 BFC NOCERTIFY)
+	BFC_InvertNext,	// Winding is inverted for next object (0 BFC INVERTNEXT)
+	NUM_BFCStatements
+};
+
+// =============================================================================
 // LDSubfile
 //
 // Represents a single code-1 subfile reference.
@@ -219,7 +251,7 @@ public:
 	vertex vaCoords[4];
 	
 	// Split this quad into two triangles
-	void splitToTriangles ();
+	vector<LDTriangle*> splitToTriangles ();
 };
 
 // =============================================================================

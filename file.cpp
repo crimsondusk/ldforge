@@ -279,12 +279,31 @@ LDObject* parseLine (str zLine) {
 	if (~tokens[0] != 1)
 		return new LDGibberish (zLine, "Illogical line code");
 	
-	char const c = tokens[0][0];
+	const char c = tokens[0][0];
 	switch (c - '0') {
 	case 0:
 		{
 			// Comment
-			str zComment = zLine.substr (2, -1);
+			str zComment;
+			for (uint i = 1; i < tokens.size(); ++i) {
+				zComment += tokens[i];
+				
+				if (i != tokens.size() - 1)
+					zComment += ' ';
+			}
+			
+			// Handle BFC statements
+			if (tokens.size() > 2 && tokens[1] == "BFC") {
+				for (short i = 0; i < NUM_BFCStatements; ++i)
+					if (zComment == str::mkfmt ("BFC %s", LDBFC::saStatements [i]))
+						return new LDBFC (i);
+				
+				// MLCAD is notorious for stuffing these statements in parts it
+				// creates. The above block only handles valid statements, so we
+				// need to handle MLCAD-style invertnext separately.
+				if (zComment == "BFC CERTIFY INVERTNEXT")
+					return new LDBFC (BFC_InvertNext);
+			}
 			
 			if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {
 				// Handle LDForge-specific types, they're embedded into comments

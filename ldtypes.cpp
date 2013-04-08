@@ -31,6 +31,7 @@ char const* g_saObjTypeNames[] = {
 	"triangle",
 	"quadrilateral",
 	"condline",
+	"bfc",
 	"vertex",
 };
 
@@ -44,7 +45,8 @@ char const* g_saObjTypeIcons[] = {
 	"triangle",
 	"quad",
 	"condline",
-	"vertex"
+	"bfc",
+	"vertex",
 };
 
 // =============================================================================
@@ -103,6 +105,10 @@ LDCondLine::LDCondLine () {
 }
 
 LDVertex::LDVertex () {
+	commonInit ();
+}
+
+LDBFC::LDBFC () {
 	commonInit ();
 }
 
@@ -173,17 +179,23 @@ str LDEmpty::getContents () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDQuad::splitToTriangles () {
-	// Find the index of this quad
-	long lIndex = getIndex (g_CurrentFile);
-	
-	if (lIndex == -1) {
-		// couldn't find it?
-		logf (LOG_Error, "LDQuad::splitToTriangles: Couldn't find quad %p in "
-			"current object list!!\n", this);
-		return;
-	}
-	
+const char* LDBFC::saStatements[] = {
+	"CCW",
+	"CW",
+	"CERTIFY CCW",
+	"CERTIFY CW",
+	"NOCERTIFY",
+	"INVERTNEXT",
+};
+
+str LDBFC::getContents () {
+	return str::mkfmt ("0 BFC %s", LDBFC::saStatements[dStatement]);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+vector<LDTriangle*> LDQuad::splitToTriangles () {
 	// Create the two triangles based on this quadrilateral:
 	// 0---3     0---3    3
 	// |   |     |  /    /|
@@ -203,13 +215,10 @@ void LDQuad::splitToTriangles () {
 	// The triangles also inherit the quad's color
 	tri1->dColor = tri2->dColor = dColor;
 	
-	// Replace the quad with the first triangle and add the second triangle
-	// after the first one.
-	g_CurrentFile->objects[lIndex] = tri1;
-	g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + lIndex + 1, tri2);
-	
-	// Delete this quad now, it has been split.
-	delete this;
+	vector<LDTriangle*> triangles;
+	triangles.push_back (tri1);
+	triangles.push_back (tri2);
+	return triangles;
 }
 
 // =============================================================================
@@ -243,6 +252,7 @@ LDQuad::~LDQuad () {}
 LDSubfile::~LDSubfile () {}
 LDTriangle::~LDTriangle () {}
 LDVertex::~LDVertex () {}
+LDBFC::~LDBFC () {}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
