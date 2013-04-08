@@ -276,15 +276,19 @@ static void transformObject (LDObject* obj, matrix mMatrix, vertex vPos,
 	case OBJ_Line:
 		transformSubObject<LDLine> (obj, mMatrix, vPos, dColor);
 		break;
+	
 	case OBJ_CondLine:
 		transformSubObject<LDCondLine> (obj, mMatrix, vPos, dColor);
 		break;
+	
 	case OBJ_Triangle:
 		transformSubObject<LDTriangle> (obj, mMatrix, vPos, dColor);
 		break;
+	
 	case OBJ_Quad:
 		transformSubObject<LDQuad> (obj, mMatrix, vPos, dColor);
 		break;
+	
 	case OBJ_Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
@@ -295,6 +299,7 @@ static void transformObject (LDObject* obj, matrix mMatrix, vertex vPos,
 		}
 		
 		break;
+	
 	default:
 		break;
 	}
@@ -309,7 +314,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	// If we have this cached, just clone that
 	if (bDeepInline && pFile->objCache.size ()) {
 		for (LDObject* obj : pFile->objCache)
-			objs.push_back (obj->makeClone ());
+			objs.push_back (obj->clone ());
 	} else {
 		if (!bDeepInline)
 			bCache = false;
@@ -343,18 +348,17 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
 				for (LDObject* otherobj : otherobjs) {
-					// Cache this object if desired
+					// Cache this object, if desired
 					if (bCache)
-						cache.push_back (otherobj->makeClone ());
+						cache.push_back (otherobj->clone ());
 					
 					objs.push_back (otherobj);
 				}
 			} else {
-				// Cache it, if desired
 				if (bCache)
-					cache.push_back (obj->makeClone ());
+					cache.push_back (obj->clone ());
 				
-				objs.push_back (obj->makeClone ());
+				objs.push_back (obj->clone ());
 			}
 		}
 		

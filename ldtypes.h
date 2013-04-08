@@ -29,7 +29,7 @@
 		return OBJ_##N; \
 	} \
 	virtual str getContents (); \
-	virtual LD##N* makeClone () { \
+	virtual LD##N* clone () { \
 		return new LD##N (*this); \
 	}
 
@@ -84,7 +84,8 @@ public:
 		return "";
 	}
 	
-	virtual LDObject* makeClone () {
+	// Creates a new LDObject identical to this one and returns a pointer to it.
+	virtual LDObject* clone () {
 		return new LDObject (*this);
 	}
 	
@@ -137,6 +138,7 @@ public:
 class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment)
+	LDComment (str zText) : zText (zText) {}
 	
 	str zText; // The text of this comment
 };

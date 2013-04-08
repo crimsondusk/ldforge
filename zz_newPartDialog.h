@@ -20,36 +20,16 @@
 #include <qdialog.h>
 #include <qlabel.h>
 #include <qlineedit.h>
+#include <qcombobox.h>
 #include <qdialogbuttonbox.h>
-#include <qpushbutton.h>
-#include <qcheckbox.h>
 
-class ConfigDialog : public QDialog {
-	Q_OBJECT
-	
+class NewPartDialog : public QDialog {
 public:
-	QLabel* qLDrawPathLabel;
-	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLForegroundAlphaLabel;
-	QLabel* qGLLineThicknessLabel;
-	QLineEdit* qLDrawPath;
-	QPushButton* qLDrawPathFindButton;
-	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
-	QCheckBox* qLVColorize, *qGLColorBFC;
-	QSlider* qGLForegroundAlpha, *qGLLineThickness;
+	explicit NewPartDialog (QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+	static void StaticDialog ();
 	
+	QLabel* qLB_Icon, *qLB_NameLabel, *qLB_AuthorLabel, *qLB_LicenseLabel, *qLB_BFCLabel;
+	QLineEdit* qLE_Name, *qLE_Author;
+	QComboBox* qCB_LicenseBox, *qCB_BFCBox;
 	QDialogButtonBox* qButtons;
-	
-	ConfigDialog (ForgeWindow* parent);
-	~ConfigDialog ();
-	static void staticDialog (ForgeWindow* window);
-	
-private:
-	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
-    void setButtonBackground (QPushButton* qButton, str zValue);
-    void pickColor (strconfig& cfg, QPushButton* qButton);
-	
-private slots:
-	void slot_findLDrawPath ();
-	void slot_setGLBackground ();
-	void slot_setGLForeground ();
 };

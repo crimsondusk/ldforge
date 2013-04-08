@@ -23,12 +23,13 @@
 #include "gui.h"
 #include "file.h"
 #include "config.h"
-#include "zz_setContentsDialog.h"
-#include "zz_configDialog.h"
-#include "zz_addObjectDialog.h"
 #include "misc.h"
-#include "zz_colorSelectDialog.h"
 #include "colors.h"
+#include "zz_addObjectDialog.h"
+#include "zz_colorSelectDialog.h"
+#include "zz_configDialog.h"
+#include "zz_newPartDialog.h"
+#include "zz_setContentsDialog.h"
 
 #define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
 	qAct_##OBJECT = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
@@ -86,7 +87,7 @@ void ForgeWindow::createMenuActions () {
 		*sNewQuadText = "New Quadrilateral",
 		*sAboutText = "About " APPNAME_DISPLAY;
 	
-	MAKE_ACTION (new,			"&New",			"file-new",		"Create a new part model.")
+	MAKE_ACTION (new,			"&New",			"brick",		"Create a new part model.")
 	MAKE_ACTION (open,			"&Open",		"file-open",	"Load a part model from a file.")
 	MAKE_ACTION (save,			"&Save",		"file-save",	"Save the part model.")
 	MAKE_ACTION (saveAs,		"Save &As",		"file-save-as",	"Save the part to a specific file.")
@@ -247,7 +248,8 @@ void ForgeWindow::setTitle () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_new () {
-	newFile ();
+	// newFile ();
+	NewPartDialog::StaticDialog ();
 }
 
 void ForgeWindow::slot_open () {
@@ -333,16 +335,18 @@ bool ForgeWindow::copyToClipboard () {
 	if (objs.size() == 0)
 		return false;
 	
-	// Clear the clipboard. However, its contents are dynamically allocated
-	// clones of LDObjects (cannot use pointers to real objects because the
-	// cut operation deletes them!), so we have to delete said objects first.
+	// Clear the clipboard first.
 	for (LDObject* obj : g_Clipboard)
 		delete obj;
 	
 	g_Clipboard.clear ();
 	
-	for (std::size_t i = 0; i < objs.size(); ++i)
-		g_Clipboard.push_back (objs[i]->makeClone ());
+	// Now, copy the contents into the clipboard. The objects should be
+	// separate objects so that modifying the existing ones does not affect
+	// the clipboard. Thus, we add clones of the objects to the clipboard, not
+	// the objects themselves.
+	for (ulong i = 0; i < objs.size(); ++i)
+		g_Clipboard.push_back (objs[i]->clone ());
 	
 	return true;
 }
@@ -373,7 +377,7 @@ void ForgeWindow::slot_copy () {
 // =============================================================================
 void ForgeWindow::slot_paste () {
 	for (LDObject* obj : g_Clipboard)
-		g_CurrentFile->addObject (obj->makeClone ());
+		g_CurrentFile->addObject (obj->clone ());
 	
 	refresh ();
 }
