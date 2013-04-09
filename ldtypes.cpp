@@ -180,10 +180,10 @@ str LDEmpty::getContents () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 const char* LDBFC::saStatements[] = {
-	"CCW",
-	"CW",
 	"CERTIFY CCW",
+	"CCW",
 	"CERTIFY CW",
+	"CW",
 	"NOCERTIFY",
 	"INVERTNEXT",
 };

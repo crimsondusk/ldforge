@@ -59,7 +59,9 @@ EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 
 vector<actionmeta> g_ActionMeta;
+
 cfg (bool, lv_colorize, true);
+cfg (int, gui_toolbar_iconsize, 24);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -183,26 +185,26 @@ void ForgeWindow::createMenus () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_TOOLBAR_ITEM(ACT) (*g_CurrentToolBar)->addAction (ACTION_NAME (ACT));
-static QToolBar** g_CurrentToolBar;
+#define ADD_TOOLBAR_ITEM(ACT) g_CurrentToolBar->addAction (ACTION_NAME (ACT));
+static QToolBar* g_CurrentToolBar;
 static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
 
-void ForgeWindow::initSingleToolBar (QToolBar*& qBar, const char* sName) {
-	qBar = new QToolBar (sName);
-	qBar->setIconSize (QSize (24, 24));
+void ForgeWindow::initSingleToolBar (const char* sName) {
+	QToolBar* qBar = new QToolBar (sName);
 	addToolBar (g_ToolBarArea, qBar);
+	qaToolBars.push_back (qBar);
 	
-	g_CurrentToolBar = &qBar;
+	g_CurrentToolBar = qBar;
 }
 
 void ForgeWindow::createToolbars () {
-	initSingleToolBar (qFileToolBar, "File");
+	initSingleToolBar ("File");
 	ADD_TOOLBAR_ITEM (newFile)
 	ADD_TOOLBAR_ITEM (open)
 	ADD_TOOLBAR_ITEM (save)
 	ADD_TOOLBAR_ITEM (saveAs)
 	
-	initSingleToolBar (qInsertToolBar, "Insert");
+	initSingleToolBar ("Insert");
 	ADD_TOOLBAR_ITEM (newSubfile)
 	ADD_TOOLBAR_ITEM (newLine)
 	ADD_TOOLBAR_ITEM (newTriangle)
@@ -211,28 +213,35 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (newComment)
 	ADD_TOOLBAR_ITEM (newVertex)
 	
-	initSingleToolBar (qEditToolBar, "Edit");
+	initSingleToolBar ("Edit");
 	ADD_TOOLBAR_ITEM (undo)
 	ADD_TOOLBAR_ITEM (redo)
 	ADD_TOOLBAR_ITEM (cut)
 	ADD_TOOLBAR_ITEM (copy)
 	ADD_TOOLBAR_ITEM (paste)
 	ADD_TOOLBAR_ITEM (del)
-	addToolBar (qEditToolBar);
 	
-	initSingleToolBar (qMoveToolBar, "Move");
+	initSingleToolBar ("Move");
 	ADD_TOOLBAR_ITEM (moveUp)
 	ADD_TOOLBAR_ITEM (moveDown)
 	
 	// ==========================================
 	// Left area toolbars
 	g_ToolBarArea = Qt::LeftToolBarArea;
-	initSingleToolBar (qInsertToolBar, "Objects");
+	initSingleToolBar ("Objects");
 	ADD_TOOLBAR_ITEM (setColor)
 	ADD_TOOLBAR_ITEM (inlineContents)
 	ADD_TOOLBAR_ITEM (splitQuads)
 	ADD_TOOLBAR_ITEM (setContents)
 	ADD_TOOLBAR_ITEM (makeBorders)
+	
+	updateToolBars ();
+}
+
+void ForgeWindow::updateToolBars () {
+	for (QToolBar* qBar : qaToolBars) {
+		qBar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
+	}
 }
 
 // =============================================================================

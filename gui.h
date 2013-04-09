@@ -100,8 +100,7 @@ public:
 	QTreeWidget* qObjList;
 	QTextEdit* qMessageLog;
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu;
-	QToolBar* qFileToolBar, *qEditToolBar, *qInsertToolBar;
-	QToolBar* qMoveToolBar, *qObjectToolBar;
+	std::vector<QToolBar*> qaToolBars;
 	
 	str zMessageLogHTML;
 	
@@ -112,12 +111,13 @@ public:
 	std::vector<LDObject*> getSelectedObjects ();
 	ulong getInsertionPoint ();
 	void deleteSelection ();
+	void updateToolBars ();
 
 private:
 	void createMenuActions ();
 	void createMenus ();
 	void createToolbars ();
-	void initSingleToolBar (QToolBar*& qBar, const char* sName);
+	void initSingleToolBar (const char* sName);
 
 private slots:
 	void slot_selectionChanged ();

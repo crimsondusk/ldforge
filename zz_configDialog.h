@@ -36,12 +36,12 @@ public:
 	// Main tab widgets
 	QLabel* qLDrawPathLabel;
 	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLForegroundAlphaLabel;
-	QLabel* qGLLineThicknessLabel;
+	QLabel* qGLLineThicknessLabel, *qToolBarIconSizeLabel;
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
 	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
 	QCheckBox* qLVColorize, *qGLColorBFC;
-	QSlider* qGLForegroundAlpha, *qGLLineThickness;
+	QSlider* qGLForegroundAlpha, *qGLLineThickness, *qToolBarIconSize;
 	
 	// =========================================================================
 	// Shortcuts tab

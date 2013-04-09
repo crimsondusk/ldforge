@@ -34,6 +34,7 @@ extern_cfg (bool, lv_colorize);
 extern_cfg (bool, gl_colorbfc);
 extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (int, gl_linethickness);
+extern_cfg (int, gui_toolbar_iconsize);
 
 ConfigDialog* g_ConfigDialog = nullptr;
 
@@ -105,6 +106,11 @@ void ConfigDialog::initMainTab () {
 	makeSlider (qGLLineThickness, 1, 8, gl_linethickness);
 	
 	// =========================================================================
+	// Tool bar icon size slider
+	qToolBarIconSizeLabel = new QLabel ("Toolbar icon size:");
+	makeSlider (qToolBarIconSize, 1, 5, (gui_toolbar_iconsize - 12) / 4);
+	
+	// =========================================================================
 	// List view colorizer and BFC red/green view checkboxes
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
 	INIT_CHECKBOX (qLVColorize, lv_colorize)
@@ -127,8 +133,11 @@ void ConfigDialog::initMainTab () {
 	layout->addWidget (qGLForegroundAlphaLabel, 2, 2);
 	layout->addWidget (qGLForegroundAlpha, 2, 3);
 	
-	layout->addWidget (qLVColorize, 3, 0, 1, 2);
-	layout->addWidget (qGLColorBFC, 3, 2, 1, 2);
+	layout->addWidget (qToolBarIconSizeLabel, 3, 0);
+	layout->addWidget (qToolBarIconSize, 3, 1);
+	
+	layout->addWidget (qLVColorize, 4, 0, 1, 2);
+	layout->addWidget (qGLColorBFC, 4, 2, 1, 2);
 	qMainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -332,6 +341,7 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		
 		gl_maincolor_alpha = ((double)dlg.qGLForegroundAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.qGLLineThickness->value ();
+		gui_toolbar_iconsize = (dlg.qToolBarIconSize->value () * 4) + 12;
 		
 		// Save the config
 		config::save ();
@@ -341,6 +351,7 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		
 		window->R->setBackground ();
 		window->refresh ();
+		window->updateToolBars ();
 	}
 }
 
