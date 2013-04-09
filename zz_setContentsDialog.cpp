@@ -43,6 +43,11 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		qErrorLabel = new QLabel;
 		qErrorLabel->setText (str::mkfmt ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
+		
+		QPixmap qErrorPixmap = QPixmap ("icons/error.png").scaledToHeight (16);
+		
+		qErrorIcon = new QLabel;
+		qErrorIcon->setPixmap (qErrorPixmap);
 	}
 	
 	IMPLEMENT_DIALOG_BUTTONS
@@ -53,8 +58,10 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	
 	QHBoxLayout* layout2 = new QHBoxLayout;
 	
-	if (obj->getType() == OBJ_Gibberish)
+	if (obj->getType() == OBJ_Gibberish) {
+		layout2->addWidget (qErrorIcon);
 		layout2->addWidget (qErrorLabel);
+	}
 	
 	layout2->addWidget (qButtons);
 	layout->addLayout (layout2);
