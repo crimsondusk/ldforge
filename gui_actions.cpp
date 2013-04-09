@@ -129,12 +129,12 @@ ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (about, "About" APPNAME_DISPLAY, "ldforge",
+ACTION (about, "About " APPNAME_DISPLAY, "ldforge",
 	"Shows information about " APPNAME_DISPLAY ".", CTRL (F1))
 {
 	
 }
 
-ACTION (aboutQt, "About Qt", "aboutQt", "Shows information about Qt.", CTRL_SHIFT (F1)) {
+ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1)) {
 	QMessageBox::aboutQt (g_ForgeWindow);
 }
