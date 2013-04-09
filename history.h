@@ -28,8 +28,12 @@
 
 enum HistoryType_e {
 	HISTORY_Delete,
+	HISTORY_SetColor,
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 class HistoryEntry {
 public:
 	virtual void undo () {}
@@ -41,6 +45,9 @@ public:
 	};
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 class DeleteHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Delete)
@@ -55,6 +62,27 @@ public:
 	virtual void redo ();
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class SetColorHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (SetColor)
+	
+	vector<ulong> ulaIndices;
+	vector<short> daColors;
+	short dNewColor;
+	
+	SetColorHistory (vector<ulong> ulaIndices, vector<short> daColors, short dNewColor) :
+		ulaIndices (ulaIndices), daColors (daColors), dNewColor (dNewColor) {}
+	virtual ~SetColorHistory () {}
+	virtual void undo ();
+	virtual void redo ();
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 namespace History {
 	extern std::vector<HistoryEntry*> entries;
 	

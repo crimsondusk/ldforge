@@ -221,10 +221,19 @@ ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY
 	
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (dColor, dDefault, g_ForgeWindow)) {
-		for (LDObject* obj : objs)
-			if (obj->dColor != -1)
-				obj->dColor = dColor;
+		std::vector<ulong> ulaIndices;
+		std::vector<short> daColors;
 		
+		for (LDObject* obj : objs) {
+			if (obj->dColor != -1) {
+				ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+				daColors.push_back (obj->dColor);
+				
+				obj->dColor = dColor;
+			}
+		}
+		
+		History::addEntry (new SetColorHistory (ulaIndices, daColors, dColor));
 		g_ForgeWindow->refresh ();
 	}
 }

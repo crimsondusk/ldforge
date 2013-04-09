@@ -23,6 +23,8 @@
 #include "gui.h"
 
 // =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void DeleteHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		LDObject* obj = cache[i]->clone ();
@@ -48,6 +50,25 @@ void DeleteHistory::redo () {
 DeleteHistory::~DeleteHistory () {
 	for (LDObject* obj : cache)
 		delete obj;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void SetColorHistory::undo () {
+	// Restore colors
+	for (ulong i = 0; i < ulaIndices.size (); ++i)
+		g_CurrentFile->objects[ulaIndices[i]]->dColor = daColors[i];
+	
+	g_ForgeWindow->refresh ();
+}
+
+void SetColorHistory::redo () {
+	// Re-set post color
+	for (ulong i = 0; i < ulaIndices.size (); ++i)
+		g_CurrentFile->objects[ulaIndices[i]]->dColor = dNewColor;
+	
+	g_ForgeWindow->refresh ();
 }
 
 // =============================================================================
