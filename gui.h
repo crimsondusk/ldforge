@@ -101,6 +101,7 @@ public:
 	QTextEdit* qMessageLog;
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu;
 	QToolBar* qFileToolBar, *qEditToolBar, *qInsertToolBar;
+	QToolBar* qMoveToolBar, *qObjectToolBar;
 	
 	str zMessageLogHTML;
 	
@@ -115,7 +116,8 @@ public:
 private:
 	void createMenuActions ();
 	void createMenus ();
-    void createToolbars ();
+	void createToolbars ();
+	void initSingleToolBar (QToolBar*& qBar, const char* sName);
 
 private slots:
 	void slot_selectionChanged ();

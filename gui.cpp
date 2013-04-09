@@ -183,41 +183,56 @@ void ForgeWindow::createMenus () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_TOOLBAR_ITEM(BAR, ACT) q##BAR##ToolBar->addAction (ACTION_NAME (ACT));
+#define ADD_TOOLBAR_ITEM(ACT) (*g_CurrentToolBar)->addAction (ACTION_NAME (ACT));
+static QToolBar** g_CurrentToolBar;
+static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
+
+void ForgeWindow::initSingleToolBar (QToolBar*& qBar, const char* sName) {
+	qBar = new QToolBar (sName);
+	qBar->setIconSize (QSize (24, 24));
+	addToolBar (g_ToolBarArea, qBar);
+	
+	g_CurrentToolBar = &qBar;
+}
 
 void ForgeWindow::createToolbars () {
-	qFileToolBar = new QToolBar ("File");
-	ADD_TOOLBAR_ITEM (File, newFile)
-	ADD_TOOLBAR_ITEM (File, open)
-	ADD_TOOLBAR_ITEM (File, save)
-	ADD_TOOLBAR_ITEM (File, saveAs)
-	addToolBar (qFileToolBar);
+	initSingleToolBar (qFileToolBar, "File");
+	ADD_TOOLBAR_ITEM (newFile)
+	ADD_TOOLBAR_ITEM (open)
+	ADD_TOOLBAR_ITEM (save)
+	ADD_TOOLBAR_ITEM (saveAs)
 	
-	qInsertToolBar = new QToolBar ("Insert");
-	ADD_TOOLBAR_ITEM (Insert, newSubfile)
-	ADD_TOOLBAR_ITEM (Insert, newLine)
-	ADD_TOOLBAR_ITEM (Insert, newTriangle)
-	ADD_TOOLBAR_ITEM (Insert, newQuad)
-	ADD_TOOLBAR_ITEM (Insert, newCondLine)
-	ADD_TOOLBAR_ITEM (Insert, newComment)
-	ADD_TOOLBAR_ITEM (Insert, newVertex)
-	addToolBar (qInsertToolBar);
+	initSingleToolBar (qInsertToolBar, "Insert");
+	ADD_TOOLBAR_ITEM (newSubfile)
+	ADD_TOOLBAR_ITEM (newLine)
+	ADD_TOOLBAR_ITEM (newTriangle)
+	ADD_TOOLBAR_ITEM (newQuad)
+	ADD_TOOLBAR_ITEM (newCondLine)
+	ADD_TOOLBAR_ITEM (newComment)
+	ADD_TOOLBAR_ITEM (newVertex)
 	
-	qEditToolBar = new QToolBar ("Edit");
-	ADD_TOOLBAR_ITEM (Edit, undo)
-	ADD_TOOLBAR_ITEM (Edit, redo)
-	ADD_TOOLBAR_ITEM (Edit, cut)
-	ADD_TOOLBAR_ITEM (Edit, copy)
-	ADD_TOOLBAR_ITEM (Edit, paste)
-	ADD_TOOLBAR_ITEM (Edit, del)
-	ADD_TOOLBAR_ITEM (Edit, moveUp)
-	ADD_TOOLBAR_ITEM (Edit, moveDown)
-	ADD_TOOLBAR_ITEM (Edit, setColor)
-	ADD_TOOLBAR_ITEM (Edit, inlineContents)
-	ADD_TOOLBAR_ITEM (Edit, splitQuads)
-	ADD_TOOLBAR_ITEM (Edit, setContents)
-	ADD_TOOLBAR_ITEM (Edit, makeBorders)
+	initSingleToolBar (qEditToolBar, "Edit");
+	ADD_TOOLBAR_ITEM (undo)
+	ADD_TOOLBAR_ITEM (redo)
+	ADD_TOOLBAR_ITEM (cut)
+	ADD_TOOLBAR_ITEM (copy)
+	ADD_TOOLBAR_ITEM (paste)
+	ADD_TOOLBAR_ITEM (del)
 	addToolBar (qEditToolBar);
+	
+	initSingleToolBar (qMoveToolBar, "Move");
+	ADD_TOOLBAR_ITEM (moveUp)
+	ADD_TOOLBAR_ITEM (moveDown)
+	
+	// ==========================================
+	// Left area toolbars
+	g_ToolBarArea = Qt::LeftToolBarArea;
+	initSingleToolBar (qInsertToolBar, "Objects");
+	ADD_TOOLBAR_ITEM (setColor)
+	ADD_TOOLBAR_ITEM (inlineContents)
+	ADD_TOOLBAR_ITEM (splitQuads)
+	ADD_TOOLBAR_ITEM (setContents)
+	ADD_TOOLBAR_ITEM (makeBorders)
 }
 
 // =============================================================================
