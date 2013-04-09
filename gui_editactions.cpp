@@ -251,3 +251,44 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 	
 	g_ForgeWindow->refresh ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+static void doMoveSelection (const bool bUp) {
+	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	
+	// If we move down, we need to iterate the array in reverse order.
+	const long start = bUp ? 0 : (objs.size() - 1);
+	const long end = bUp ? objs.size() : -1;
+	const long incr = bUp ? 1 : -1;
+	
+	for (long i = start; i != end; i += incr) {
+		LDObject* obj = objs[i];
+		
+		const long lIndex = obj->getIndex (g_CurrentFile),
+			lTarget = lIndex + (bUp ? -1 : 1);
+		
+		if ((bUp == true and lIndex == 0) or
+			(bUp == false and lIndex == (long)(g_CurrentFile->objects.size() - 1)))
+		{
+			// One of the objects hit the extrema. If this happens, this should be the first
+			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
+			// abort the entire operation.
+			assert (i == start);
+			return;
+		}
+		
+		obj->swap (g_CurrentFile->objects[lTarget]);
+	}
+	
+	g_ForgeWindow->buildObjList ();
+}
+
+ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", CTRL (Up)) {
+	doMoveSelection (true);
+}
+
+ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", CTRL (Down)) {
+	doMoveSelection (false);
+}

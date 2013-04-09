@@ -226,13 +226,24 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace all instances of the old object with the new object
-	for (ulong i = 0; i < g_CurrentFile->objects.size(); ++i) {
-		if (g_CurrentFile->objects[i] == this)
-			g_CurrentFile->objects[i] = replacement;
-	}
+	for (LDObject* obj : g_CurrentFile->objects)
+		if (obj == this)
+			obj = replacement;
 	
 	// Remove the old object
 	delete this;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void LDObject::swap (LDObject* other) {
+	for (LDObject*& obj : g_CurrentFile->objects) {
+		if (obj == this)
+			obj = other;
+		else if (obj == other)
+			obj = this;
+	}
 }
 
 LDLine::LDLine (vertex v1, vertex v2) {

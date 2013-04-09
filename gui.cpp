@@ -43,6 +43,8 @@ EXTERN_ACTION (deepInline)
 EXTERN_ACTION (splitQuads)
 EXTERN_ACTION (setContents)
 EXTERN_ACTION (makeBorders)
+EXTERN_ACTION (moveUp)
+EXTERN_ACTION (moveDown)
 EXTERN_ACTION (newSubfile)
 EXTERN_ACTION (newLine)
 EXTERN_ACTION (newCondLine)
@@ -154,6 +156,9 @@ void ForgeWindow::createMenus () {
 	ADD_MENU_ITEM (Edit, paste)				// Paste
 	ADD_MENU_ITEM (Edit, del)				// Delete
 	qEditMenu->addSeparator ();				// -----
+	ADD_MENU_ITEM (Edit, moveUp)			// Move Up
+	ADD_MENU_ITEM (Edit, moveDown)			// Move Down
+	qEditMenu->addSeparator ();				// -----
 	ADD_MENU_ITEM (Edit, setColor)			// Set Color
 	qEditMenu->addSeparator ();				// -----
 	ADD_MENU_ITEM (Edit, inlineContents)	// Inline
@@ -198,6 +203,8 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (Edit, copy)
 	ADD_TOOLBAR_ITEM (Edit, paste)
 	ADD_TOOLBAR_ITEM (Edit, del)
+	ADD_TOOLBAR_ITEM (Edit, moveUp)
+	ADD_TOOLBAR_ITEM (Edit, moveDown)
 	ADD_TOOLBAR_ITEM (Edit, setColor)
 	ADD_TOOLBAR_ITEM (Edit, inlineContents)
 	ADD_TOOLBAR_ITEM (Edit, splitQuads)

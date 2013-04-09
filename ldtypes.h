@@ -95,6 +95,9 @@ public:
 	// object and any pointers to it become invalid.
     void replace (LDObject* replacement);
 	
+	// Swap this object with another.
+	void swap (LDObject* other);
+	
 	QTreeWidgetItem* qObjListEntry;
 };
 
