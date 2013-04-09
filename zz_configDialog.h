@@ -46,7 +46,7 @@ public:
 	// =========================================================================
 	// Shortcuts tab
 	QListWidget* qShortcutList;
-	QPushButton* qBTN_setShortcut, *qBTN_resetShortcut;
+	QPushButton* qSetShortcut, *qResetShortcut, *qClearShortcut;
 	std::vector<QListWidgetItem*> qaShortcutItems;
 	
 	QDialogButtonBox* qButtons;
@@ -71,6 +71,7 @@ private slots:
 	void slot_setGLForeground ();
 	void slot_setShortcut ();
 	void slot_resetShortcut ();
+	void slot_clearShortcut ();
 };
 
 // =============================================================================

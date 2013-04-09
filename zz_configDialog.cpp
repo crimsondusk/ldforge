@@ -158,15 +158,18 @@ void ConfigDialog::initShortcutsTab () {
 		++i;
 	}
 	
-	qBTN_setShortcut = new QPushButton ("Set");
-	qBTN_resetShortcut = new QPushButton ("Reset");
+	qSetShortcut = new QPushButton ("Set");
+	qResetShortcut = new QPushButton ("Reset");
+	qClearShortcut = new QPushButton ("Clear");
 	
-	connect (qBTN_setShortcut, SIGNAL (clicked ()), this, SLOT (slot_setShortcut ()));
-	connect (qBTN_resetShortcut, SIGNAL (clicked ()), this, SLOT (slot_resetShortcut ()));
+	connect (qSetShortcut, SIGNAL (clicked ()), this, SLOT (slot_setShortcut ()));
+	connect (qResetShortcut, SIGNAL (clicked ()), this, SLOT (slot_resetShortcut ()));
+	connect (qClearShortcut, SIGNAL (clicked ()), this, SLOT (slot_clearShortcut ()));
 	
 	QVBoxLayout* qButtonLayout = new QVBoxLayout;
-	qButtonLayout->addWidget (qBTN_setShortcut);
-	qButtonLayout->addWidget (qBTN_resetShortcut);
+	qButtonLayout->addWidget (qSetShortcut);
+	qButtonLayout->addWidget (qResetShortcut);
+	qButtonLayout->addWidget (qClearShortcut);
 	qButtonLayout->addStretch (10);
 	
 	qLayout->addWidget (qShortcutList, 0, 0);
@@ -277,15 +280,29 @@ void ConfigDialog::slot_resetShortcut () {
 	for (QListWidgetItem* qItem : qaSel) {
 		long idx = getItemRow (qItem);
 		
-		if (idx == -1)
-			continue;
-		
 		actionmeta meta = g_ActionMeta[idx];
 		keyseqconfig* conf = g_ActionMeta[idx].conf;
 		
 		conf->reset ();
 		(*meta.qAct)->setShortcut (*conf);
 		
+		setShortcutText (qItem, meta);
+	}
+}
+
+// =============================================================================
+void ConfigDialog::slot_clearShortcut () {
+	QList<QListWidgetItem*> qaSel = qShortcutList->selectedItems ();
+	QKeySequence qDummySeq;
+	
+	for (QListWidgetItem* qItem : qaSel) {
+		long idx = getItemRow (qItem);
+		
+		actionmeta meta = g_ActionMeta[idx];
+		keyseqconfig* conf = g_ActionMeta[idx].conf;
+		conf->value = qDummySeq;
+		
+		(*meta.qAct)->setShortcut (*conf);
 		setShortcutText (qItem, meta);
 	}
 }
