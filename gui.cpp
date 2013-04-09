@@ -46,39 +46,32 @@ namespace Actions {
 };
 
 // Key-binding configurations
-cfg (str, key_newFile,			"ctrl-n");
-cfg (str, key_open,				"ctrl-o");
-cfg (str, key_save,				"ctrl-s");
-cfg (str, key_saveAs,			"ctrl-shift-s");
-cfg (str, key_exit,				"ctrl-q");
-cfg (str, key_cut,				"ctrl-x");
-cfg (str, key_copy,				"ctrl-c");
-cfg (str, key_paste,			"ctrl-v");
-cfg (str, key_del,				"del");
-cfg (str, key_newSubfile,		"");
-cfg (str, key_newLine,			"");
-cfg (str, key_newTriangle,		"");
-cfg (str, key_newQuad,			"");
-cfg (str, key_newCondLine,		"");
-cfg (str, key_newComment,		"");
-cfg (str, key_newVertex,		"");
-cfg (str, key_splitQuads,		"");
-cfg (str, key_setContents,		"");
-cfg (str, key_inlineContents,	"ctrl-i");
-cfg (str, key_deepInline,		"ctrl-shift-i");
-cfg (str, key_makeBorders,		"ctrl-shift-b");
-cfg (str, key_settings,			"");
-cfg (str, key_help,				"f1");
-cfg (str, key_about,			"");
-cfg (str, key_aboutQt,			"");
-cfg (str, key_setColor,			"");
-
-// =============================================================================
-// Metadata for actions
-typedef struct {
-	QAction** const qAct;
-	strconfig* const cfg;
-} actionmeta;
+cfg (keyseq, key_newFile,			(Qt::CTRL | Qt::Key_N));
+cfg (keyseq, key_open,				(Qt::CTRL | Qt::Key_O));
+cfg (keyseq, key_save,				(Qt::CTRL | Qt::Key_S));
+cfg (keyseq, key_saveAs,			(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
+cfg (keyseq, key_exit,				(Qt::CTRL | Qt::Key_Q));
+cfg (keyseq, key_cut,				(Qt::CTRL | Qt::Key_X));
+cfg (keyseq, key_copy,				(Qt::CTRL | Qt::Key_C));
+cfg (keyseq, key_paste,				(Qt::CTRL | Qt::Key_V));
+cfg (keyseq, key_del,				(Qt::Key_Delete));
+cfg (keyseq, key_newSubfile,		0);
+cfg (keyseq, key_newLine,			0);
+cfg (keyseq, key_newTriangle,		0);
+cfg (keyseq, key_newQuad,			0);
+cfg (keyseq, key_newCondLine,		0);
+cfg (keyseq, key_newComment,		0);
+cfg (keyseq, key_newVertex,			0);
+cfg (keyseq, key_splitQuads,		0);
+cfg (keyseq, key_setContents,		0);
+cfg (keyseq, key_inlineContents,	(Qt::CTRL | Qt::Key_I));
+cfg (keyseq, key_deepInline,		(Qt::CTRL | Qt::SHIFT | Qt::Key_I));
+cfg (keyseq, key_makeBorders,		(Qt::CTRL | Qt::SHIFT | Qt::Key_B));
+cfg (keyseq, key_settings,			0);
+cfg (keyseq, key_help,				(Qt::Key_F1));
+cfg (keyseq, key_about,				0);
+cfg (keyseq, key_aboutQt,			0);
+cfg (keyseq, key_setColor,			0);
 
 vector<LDObject*> g_Clipboard;
 vector<actionmeta> g_ActionMeta;
@@ -174,16 +167,9 @@ void ForgeWindow::createMenuActions () {
 	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
 	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
 	
-	// Keyboard shortcuts
-	ACTION (newFile)->setShortcut (Qt::CTRL | Qt::Key_N);
-	ACTION (open)->setShortcut (Qt::CTRL | Qt::Key_O);
-	ACTION (save)->setShortcut (Qt::CTRL | Qt::Key_S);
-	ACTION (saveAs)->setShortcut (Qt::CTRL | Qt::SHIFT | Qt::Key_S);
-	
-	ACTION (cut)->setShortcut (Qt::CTRL | Qt::Key_X);
-	ACTION (copy)->setShortcut (Qt::CTRL | Qt::Key_C);
-	ACTION (paste)->setShortcut (Qt::CTRL | Qt::Key_V);
-	ACTION (del)->setShortcut (Qt::Key_Delete);
+	// Apply the shortcuts now
+	for (actionmeta meta : g_ActionMeta)
+		(*meta.qAct)->setShortcut (*meta.conf);
 	
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
@@ -306,7 +292,7 @@ void ForgeWindow::setTitle () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::slot_new () {
+void ForgeWindow::slot_newFile () {
 	// newFile ();
 	NewPartDialog::StaticDialog ();
 }
@@ -444,7 +430,7 @@ void ForgeWindow::slot_paste () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::slot_delete () {
+void ForgeWindow::slot_del () {
 	deleteSelection ();
 	refresh ();
 }
@@ -490,7 +476,7 @@ void ForgeWindow::doInline (bool bDeep) {
 	refresh ();
 }
 
-void ForgeWindow::slot_inline () {
+void ForgeWindow::slot_inlineContents () {
 	doInline (false);
 }
 

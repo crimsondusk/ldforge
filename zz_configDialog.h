@@ -23,11 +23,17 @@
 #include <qdialogbuttonbox.h>
 #include <qpushbutton.h>
 #include <qcheckbox.h>
+#include <qlistwidget.h>
 
 class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
+	QTabWidget* qTabs;
+	QWidget* qMainTab, *qShortcutsTab;
+	
+	// =========================================================================
+	// Main tab widgets
 	QLabel* qLDrawPathLabel;
 	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLForegroundAlphaLabel;
 	QLabel* qGLLineThicknessLabel;
@@ -37,6 +43,12 @@ public:
 	QCheckBox* qLVColorize, *qGLColorBFC;
 	QSlider* qGLForegroundAlpha, *qGLLineThickness;
 	
+	// =========================================================================
+	// Shortcuts tab
+	QListWidget* qShortcutList;
+	QPushButton* qBTN_setShortcut, *qBTN_resetShortcut;
+	std::vector<QListWidgetItem*> qaShortcutItems;
+	
 	QDialogButtonBox* qButtons;
 	
 	ConfigDialog (ForgeWindow* parent);
@@ -44,12 +56,40 @@ public:
 	static void staticDialog (ForgeWindow* window);
 	
 private:
+	void initMainTab ();
+	void initShortcutsTab ();
+	
 	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
-    void setButtonBackground (QPushButton* qButton, str zValue);
-    void pickColor (strconfig& cfg, QPushButton* qButton);
+	void setButtonBackground (QPushButton* qButton, str zValue);
+	void pickColor (strconfig& cfg, QPushButton* qButton);
+	void setShortcutText (QListWidgetItem* qItem, actionmeta meta);
+	long getItemRow (QListWidgetItem* qItem);
 	
 private slots:
 	void slot_findLDrawPath ();
 	void slot_setGLBackground ();
 	void slot_setGLForeground ();
+	void slot_setShortcut ();
+	void slot_resetShortcut ();
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class KeySequenceDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+	static bool staticDialog (actionmeta& meta, QWidget* parent = nullptr);
+	
+	QLabel* qOutput;
+	QDialogButtonBox* qButtons;
+	QKeySequence seq;
+	
+private:
+	void updateOutput ();
+	
+private slots:
+	virtual void keyPressEvent (QKeyEvent* ev);
 };

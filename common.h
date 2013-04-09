@@ -95,6 +95,10 @@ template<class T> inline T max (T a, T b) {
 	return (a > b) ? a : b;
 }
 
+static inline const char* qchars (QString qstr) {
+	return qstr.toStdString ().c_str ();
+}
+
 static const double pi = 3.14159265358979323846f;
 
 // main.cpp

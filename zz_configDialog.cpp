@@ -20,9 +20,12 @@
 #include "zz_configDialog.h"
 #include "file.h"
 #include "config.h"
+#include "misc.h"
 #include <qgridlayout.h>
 #include <qfiledialog.h>
 #include <qcolordialog.h>
+#include <qboxlayout.h>
+#include <qevent.h>
 
 extern_cfg (str, io_ldpath);
 extern_cfg (str, gl_bgcolor);
@@ -45,7 +48,30 @@ ConfigDialog* g_ConfigDialog = nullptr;
 // =============================================================================
 ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	g_ConfigDialog = this;
+	qTabs = new QTabWidget;
 	
+	initMainTab ();
+	initShortcutsTab ();
+	
+	IMPLEMENT_DIALOG_BUTTONS
+	
+	QVBoxLayout* layout = new QVBoxLayout;
+	layout->addWidget (qTabs);
+	layout->addWidget (qButtons);
+	setLayout (layout);
+	
+	setWindowTitle (APPNAME_DISPLAY " - editing settings");
+	setWindowIcon (QIcon ("icons/settings.png"));
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::initMainTab () {
+	qMainTab = new QWidget;
+	
+	// =========================================================================
+	// LDraw path
 	qLDrawPath = new QLineEdit;
 	qLDrawPath->setText (io_ldpath.value.chars());
 	
@@ -56,6 +82,8 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qLDrawPathFindButton, SIGNAL (clicked ()),
 		this, SLOT (slot_findLDrawPath ()));
 	
+	// =========================================================================
+	// Background and foreground colors
 	qGLBackgroundLabel = new QLabel ("Background color:");
 	qGLBackgroundButton = new QPushButton;
 	setButtonBackground (qGLBackgroundButton, gl_bgcolor.value);
@@ -68,19 +96,21 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	connect (qGLForegroundButton, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
 	
+	// =========================================================================
+	// Alpha and line thickness sliders
 	qGLForegroundAlphaLabel = new QLabel ("Alpha:");
 	makeSlider (qGLForegroundAlpha, 1, 10, (gl_maincolor_alpha * 10.0f));
 	
 	qGLLineThicknessLabel = new QLabel ("Line thickness:");
 	makeSlider (qGLLineThickness, 1, 8, gl_linethickness);
 	
+	// =========================================================================
+	// List view colorizer and BFC red/green view checkboxes
 	qLVColorize = new QCheckBox ("Colorize polygons in list view");
 	INIT_CHECKBOX (qLVColorize, lv_colorize)
 	
 	qGLColorBFC = new QCheckBox ("Red/green BFC view");
 	INIT_CHECKBOX (qGLColorBFC, gl_colorbfc)
-	
-	IMPLEMENT_DIALOG_BUTTONS
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (qLDrawPathLabel, 0, 0);
@@ -99,12 +129,50 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	layout->addWidget (qLVColorize, 3, 0, 1, 2);
 	layout->addWidget (qGLColorBFC, 3, 2, 1, 2);
+	qMainTab->setLayout (layout);
 	
-	layout->addWidget (qButtons, 4, 2, 1, 2);
-	setLayout (layout);
+	// Add the tab to the manager
+	qTabs->addTab (qMainTab, "Main settings");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::initShortcutsTab () {
+	QGridLayout* qLayout;
 	
-	setWindowTitle (APPNAME_DISPLAY " - editing settings");
-	setWindowIcon (QIcon ("icons/settings.png"));
+	qShortcutsTab = new QWidget;
+	qShortcutList = new QListWidget;
+	qLayout = new QGridLayout;
+	
+	// Init table items
+	ulong i = 0;
+	for (actionmeta meta : g_ActionMeta) {
+		QAction* const qAct = *meta.qAct;
+		QListWidgetItem* qItem = new QListWidgetItem;
+		setShortcutText (qItem, meta);
+		qItem->setIcon (qAct->icon ());
+		
+		qaShortcutItems.push_back (qItem);
+		qShortcutList->insertItem (i, qItem);
+		++i;
+	}
+	
+	qBTN_setShortcut = new QPushButton ("Set");
+	qBTN_resetShortcut = new QPushButton ("Reset");
+	
+	connect (qBTN_setShortcut, SIGNAL (clicked ()), this, SLOT (slot_setShortcut ()));
+	connect (qBTN_resetShortcut, SIGNAL (clicked ()), this, SLOT (slot_resetShortcut ()));
+	
+	QVBoxLayout* qButtonLayout = new QVBoxLayout;
+	qButtonLayout->addWidget (qBTN_setShortcut);
+	qButtonLayout->addWidget (qBTN_resetShortcut);
+	qButtonLayout->addStretch (10);
+	
+	qLayout->addWidget (qShortcutList, 0, 0);
+	qLayout->addLayout (qButtonLayout, 0, 1);
+	qShortcutsTab->setLayout (qLayout);
+	qTabs->addTab (qShortcutsTab, "Shortcuts");
 }
 
 // =============================================================================
@@ -123,7 +191,7 @@ void ConfigDialog::makeSlider (QSlider*& qSlider, short int dMin, short int dMax
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ConfigDialog::~ConfigDialog() {
+ConfigDialog::~ConfigDialog () {
 	g_ConfigDialog = nullptr;
 }
 
@@ -174,6 +242,66 @@ void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 }
 
 // =============================================================================
+long ConfigDialog::getItemRow (QListWidgetItem* qItem) {
+	long i = 0;
+	
+	for (QListWidgetItem* it : qaShortcutItems) {
+		if (it == qItem)
+			return i;
+		++i;
+	}
+	
+	return -1;
+}
+
+// =============================================================================
+void ConfigDialog::slot_setShortcut () {
+	QList<QListWidgetItem*> qaSel = qShortcutList->selectedItems ();
+	
+	if (qaSel.size() < 1)
+		return;
+	
+	QListWidgetItem* qItem = qaSel[0];
+	
+	// Find the row this object is on.
+	long idx = getItemRow (qItem);
+	
+	if (KeySequenceDialog::staticDialog (g_ActionMeta[idx], this))
+		setShortcutText (qItem, g_ActionMeta[idx]);
+}
+
+// =============================================================================
+void ConfigDialog::slot_resetShortcut () {
+	QList<QListWidgetItem*> qaSel = qShortcutList->selectedItems ();
+	
+	for (QListWidgetItem* qItem : qaSel) {
+		long idx = getItemRow (qItem);
+		
+		if (idx == -1)
+			continue;
+		
+		actionmeta meta = g_ActionMeta[idx];
+		keyseqconfig* conf = g_ActionMeta[idx].conf;
+		
+		conf->reset ();
+		(*meta.qAct)->setShortcut (*conf);
+		
+		setShortcutText (qItem, meta);
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
+	QAction* const qAct = *meta.qAct;
+	str zLabel = qAct->iconText ();
+	str zKeybind = qAct->shortcut ().toString ();
+	
+	qItem->setText (str::mkfmt ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
+}
+
+// =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::staticDialog (ForgeWindow* window) {
@@ -197,4 +325,73 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		window->R->setBackground ();
 		window->refresh ();
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent,
+	Qt::WindowFlags f) : QDialog (parent, f), seq (seq)
+{
+	qOutput = new QLabel;
+	IMPLEMENT_DIALOG_BUTTONS
+	
+	setWhatsThis ("Into this dialog you can input a key sequence for use as a "
+		"shortcut in LDForge. Use OK to confirm the new shortcut and Cancel to "
+		"dismiss.");
+	
+	QVBoxLayout* layout = new QVBoxLayout;
+	layout->addWidget (qOutput);
+	layout->addWidget (qButtons);
+	setLayout (layout);
+	
+	updateOutput ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+bool KeySequenceDialog::staticDialog (actionmeta& meta, QWidget* parent) {
+	KeySequenceDialog dlg (*meta.conf, parent);
+	
+	if (dlg.exec () == false)
+		return false;
+	
+	*meta.conf = dlg.seq;
+	(*meta.qAct)->setShortcut (*meta.conf);
+	return true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void KeySequenceDialog::updateOutput () {
+	str zShortcut = seq.toString ();
+	
+	str zText = str::mkfmt ("<center><b>%s</b></center>", zShortcut.chars ());
+	
+	qOutput->setText (zText);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void KeySequenceDialog::keyPressEvent (QKeyEvent* ev) {
+	seq = ev->key ();
+	
+	switch (seq) {
+	case Qt::Key_Shift:
+	case Qt::Key_Control:
+	case Qt::Key_Alt:
+	case Qt::Key_Meta:
+		seq = 0;
+		break;
+	
+	default:
+		break;
+	}
+	
+	seq = (seq | ev->modifiers ());
+	
+	updateOutput ();
 }

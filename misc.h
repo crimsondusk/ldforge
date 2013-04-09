@@ -36,9 +36,11 @@ bool isNumber (str& zToken);
 str ftoa (double fCoord);
 
 template<class T> bool in (T needle, std::initializer_list<T> haystack) {
-	for (size_t i = 0; i < haystack.size(); ++i)
-		if (needle = *(haystack.begin() + i))
+	for (T hay : haystack) {
+		printf ("%s: %ld <-> %ld\n", __func__, needle, hay);
+		if (needle == hay)
 			return true;
+	}
 	
 	return false;
 }

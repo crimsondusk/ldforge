@@ -25,6 +25,7 @@
 // =============================================================================
 #define CONFIGFILE APPNAME ".cfg"
 #include <QString>
+#include <qkeysequence.h>
 
 #define MAX_INI_LINE 512
 #define NUM_CONFIG (g_pConfigPointers.size ())
@@ -42,6 +43,7 @@ enum configtype_e {
 	CONFIG_str,
 	CONFIG_float,
 	CONFIG_bool,
+	CONFIG_keyseq,
 };
 
 // =========================================================
@@ -211,6 +213,16 @@ public:
 	IMPLEMENT_CONFIG (bool)
 	DEFINE_ALL_COMPARE_OPERATORS (bool)
 	DEFINE_ASSIGN_OPERATOR (bool, =)
+};
+
+// =============================================================================
+typedef QKeySequence keyseq;
+
+CONFIGTYPE (keyseq) {
+public:
+	IMPLEMENT_CONFIG (keyseq)
+	DEFINE_ALL_COMPARE_OPERATORS (keyseq)
+	DEFINE_ASSIGN_OPERATOR (keyseq, =)
 };
 
 #endif // __OPTIONS_H__

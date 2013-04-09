@@ -59,6 +59,7 @@ static const char* g_ConfigTypeNames[] = {
 	"String",
 	"Float",
 	"Boolean",
+	"Key sequence",
 };
 
 // =============================================================================
@@ -121,12 +122,15 @@ bool config::load () {
 		case CONFIG_int:
 			static_cast<intconfig*> (cfg)->value = atoi (valstring.chars());
 			break;
+		
 		case CONFIG_str:
 			static_cast<strconfig*> (cfg)->value = valstring;
 			break;
+		
 		case CONFIG_float:
 			static_cast<floatconfig*> (cfg)->value = atof (valstring.chars());
 			break;
+		
 		case CONFIG_bool:
 		{
 			bool& val = static_cast<boolconfig*> (cfg)->value;
@@ -137,6 +141,11 @@ bool config::load () {
 				val = false;
 			break;
 		}
+		
+		case CONFIG_keyseq:
+			static_cast<keyseqconfig*> (cfg)->value = keyseq::fromString (valstring.chars ());
+			break;
+		
 		default:
 			break;
 		}
@@ -224,12 +233,18 @@ bool config::save () {
 		case CONFIG_bool:
 			valstring = (static_cast<boolconfig*> (cfg)->value) ? "true" : "false";
 			break;
+		case CONFIG_keyseq:
+			valstring = static_cast<keyseqconfig*> (cfg)->value.toString ();
+			break;
 		default:
 			break;
 		}
 		
+		const char* sDefault = (cfg->getType() != CONFIG_keyseq) ? cfg->defaultstring :
+			static_cast<keyseqconfig*> (cfg)->defval.toString ().toUtf8 ().constData ();
+		
 		// Write the entry now.
-		writef (fp, "\n# [%s] default: %s\n", g_ConfigTypeNames[cfg->getType()], cfg->defaultstring);
+		writef (fp, "\n# [%s] default: %s\n", g_ConfigTypeNames[cfg->getType()], sDefault);
 		writef (fp, "%s=%s\n", cfg->name, valstring.chars());
 	}
 	

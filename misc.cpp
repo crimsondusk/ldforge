@@ -51,8 +51,6 @@ str ftoa (double fCoord) {
 	if (zRep[~zRep - 1] == '.')
 		zRep -= 1;
 	
-	// Reset the locale
-	setlocale (LC_NUMERIC, "");
 	return zRep;
 }
 
@@ -103,12 +101,12 @@ bool stringparser::atBeginning () {
 
 // -----------------------------------------------------------------------------
 bool stringparser::atEnd () {
-	return (dPos == zaTokens.size() - 1);
+	return (dPos == (signed)zaTokens.size() - 1);
 }
 
 // -----------------------------------------------------------------------------
 bool stringparser::getToken (str& zVal, const ushort uInPos) {
-	if (uInPos < 0 || uInPos >= zaTokens.size())
+	if (uInPos >= zaTokens.size())
 		return false;
 	
 	zVal = zaTokens[uInPos];
@@ -127,7 +125,7 @@ bool stringparser::peekNext (str& zVal) {
 
 // -----------------------------------------------------------------------------
 bool stringparser::findToken (short& dResult, char const* sNeedle, short dArgs) {
-	for (short i = 0; i < (zaTokens.size() - dArgs); ++i) {
+	for (ushort i = 0; i < (zaTokens.size() - dArgs); ++i) {
 		if (zaTokens[i] == sNeedle) {
 			dResult = i;
 			return true;

@@ -27,6 +27,7 @@
 #include <QToolBar>
 #include <QTextEdit>
 #include "gldraw.h"
+#include "config.h"
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -73,7 +74,7 @@ private:
 private slots:
 	void slot_selectionChanged ();
 	
-	void slot_new ();
+	void slot_newFile ();
 	void slot_open ();
 	void slot_save ();
 	void slot_saveAs ();
@@ -87,7 +88,7 @@ private slots:
 	void slot_newComment ();
 	void slot_newVertex ();
 	
-	void slot_inline ();
+	void slot_inlineContents ();
 	void slot_deepInline ();
 	void slot_splitQuads ();
 	void slot_setContents ();
@@ -96,7 +97,7 @@ private slots:
 	void slot_cut ();
 	void slot_copy ();
 	void slot_paste ();
-	void slot_delete ();
+	void slot_del ();
 	
 	void slot_settings ();
 	
@@ -112,5 +113,14 @@ enum {
 	LDOLC_Data,
 	NUM_LDOL_Columns
 };
+
+// =============================================================================
+// Metadata for actions
+typedef struct {
+	QAction** const qAct;
+	keyseqconfig* const conf;
+} actionmeta;
+
+extern vector<actionmeta> g_ActionMeta;
 
 #endif
