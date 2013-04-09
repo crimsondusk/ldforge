@@ -87,7 +87,7 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void NewPartDialog::StaticDialog () {
-	NewPartDialog dlg (g_qWindow);
+	NewPartDialog dlg (g_ForgeWindow);
 	if (dlg.exec ()) {
 		newFile ();
 		
@@ -119,6 +119,6 @@ void NewPartDialog::StaticDialog () {
 		objs.push_back (new LDBFC (eBFCType));
 		objs.push_back (new LDEmpty);
 		
-		g_qWindow->refresh ();
+		g_ForgeWindow->refresh ();
 	}
 }

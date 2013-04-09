@@ -176,7 +176,7 @@ void closeAll () {
 	g_LoadedFiles.clear();
 	g_CurrentFile = NULL;
 	
-	g_qWindow->refresh ();
+	g_ForgeWindow->refresh ();
 }
 
 // =============================================================================
@@ -192,7 +192,7 @@ void newFile () {
 	g_CurrentFile = f;
 	
 	g_BBox.calculate();
-	g_qWindow->refresh ();
+	g_ForgeWindow->refresh ();
 }
 
 // =============================================================================
@@ -212,7 +212,7 @@ void openMainFile (str zPath) {
 	g_BBox.calculate();
 	
 	// Rebuild the object tree view now.
-	g_qWindow->refresh ();
+	g_ForgeWindow->refresh ();
 }
 
 // =============================================================================
@@ -474,7 +474,7 @@ void OpenFile::addObject (LDObject* obj) {
 		return;
 	}
 	
-	const ulong ulSpot = g_qWindow->getInsertionPoint ();
+	const ulong ulSpot = g_ForgeWindow->getInsertionPoint ();
 	objects.insert (objects.begin() + ulSpot, obj);
 }
 

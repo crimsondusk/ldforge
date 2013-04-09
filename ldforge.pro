@@ -32,6 +32,8 @@ SOURCES += bbox.cpp \
 	colors.cpp \
 	gldraw.cpp \
 	gui.cpp \
+	gui_actions.cpp \
+	gui_editactions.cpp \
 	file.cpp \
 	ldtypes.cpp \
 	main.cpp \

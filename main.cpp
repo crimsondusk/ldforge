@@ -27,7 +27,7 @@
 
 vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = nullptr;
-ForgeWindow* g_qWindow = nullptr; 
+ForgeWindow* g_ForgeWindow = nullptr; 
 bbox g_BBox;
 QApplication* g_qMainApp = nullptr;
 
@@ -49,7 +49,7 @@ int main (int dArgC, char* saArgV[]) {
 	ForgeWindow* win = new ForgeWindow;
 	
 	g_qMainApp = &app;
-	g_qWindow = win;
+	g_ForgeWindow = win;
 	
 	newFile ();
 	
@@ -80,7 +80,7 @@ static void logVA (logtype_e eType, const char* fmt, va_list va) {
 	zText.replace (">", "&gt;");
 	zText.replace ("\n", "<br />");
 	
-	str* zpHTML = &g_qWindow->zMessageLogHTML;
+	str* zpHTML = &g_ForgeWindow->zMessageLogHTML;
 	
 	switch (eType) {
 	case LOG_Normal:
@@ -108,7 +108,7 @@ static void logVA (logtype_e eType, const char* fmt, va_list va) {
 		break;
 	}
 	
-	g_qWindow->qMessageLog->setHtml (*zpHTML);
+	g_ForgeWindow->qMessageLog->setHtml (*zpHTML);
 }
 
 

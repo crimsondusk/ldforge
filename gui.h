@@ -35,6 +35,61 @@
 	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ())); \
 	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ())); \
 
+// =============================================================================
+// Metadata for actions
+typedef struct {
+	QAction** const qAct;
+	keyseqconfig* const conf;
+	const char* const sDisplayName, *sIconName, *sDescription;
+	void (*const handler) ();
+} actionmeta;
+
+extern vector<actionmeta> g_ActionMeta;
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+#define ACTION(NAME, DISPLAYNAME, ICONNAME, DESCR, DEFSHORTCUT) \
+	QAction* ACTION_NAME (NAME); \
+	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
+	static void actionHandler_##NAME (); \
+	static ActionAdder ActionAdderInstance_##NAME (&ACTION_NAME(NAME), DISPLAYNAME, \
+		ICONNAME, DESCR, &key_##NAME, actionHandler_##NAME); \
+	static void actionHandler_##NAME ()
+
+#define EXTERN_ACTION(NAME) extern QAction* ACTION_NAME (NAME);
+#define ACTION_NAME(N) (LDForgeAction_##N)
+
+// Convenience macros for key sequences.
+#define KEY(N) (Qt::Key_##N)
+#define CTRL(N) (Qt::CTRL | Qt::Key_##N)
+#define SHIFT(N) (Qt::SHIFT | Qt::Key_##N)
+#define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
+
+// =============================================================================
+// ActionAdder
+//
+// The ACTION macro expands into - among other stuff - into an instance of this.
+// This class' constructor creates meta for the newly defined action and stores
+// it in g_ActionMeta. It is not supposed to be used directly!
+// =============================================================================
+class ActionAdder {
+public:
+	ActionAdder (QAction** qAct, const char* sDisplayName, const char* sIconName,
+		const char* sDescription, keyseqconfig* conf, void (*const handler) ())
+	{
+		actionmeta meta = {qAct, conf, sDisplayName, sIconName, sDescription, handler};
+		g_ActionMeta.push_back (meta);
+	}
+};
+
+// =============================================================================
+// ForgeWindow
+// 
+// The one main GUI class. Hosts the renderer, object list, message log. Contains
+// slot_action, which is what all actions connect to. Manages menus and toolbars.
+// Large and in charge.
+// =============================================================================
 class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
@@ -43,84 +98,43 @@ public:
 	
 	// Object list view
 	QTreeWidget* qObjList;
-	
-	// Message log
 	QTextEdit* qMessageLog;
-	str zMessageLogHTML;
-	
-	// Menus
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu;
-	
-	// Toolbars
 	QToolBar* qFileToolBar, *qEditToolBar, *qInsertToolBar;
+	
+	str zMessageLogHTML;
 	
 	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
 	void refresh ();
 	std::vector<LDObject*> getSelectedObjects ();
-	
-	// Where would a new item be inserted into?
 	ulong getInsertionPoint ();
-	
+	void deleteSelection ();
+
 private:
 	void createMenuActions ();
 	void createMenus ();
     void createToolbars ();
-	bool copyToClipboard ();
-	void deleteSelection ();
-	void doInline (bool bDeep);
 
 private slots:
 	void slot_selectionChanged ();
-	
-	void slot_newFile ();
-	void slot_open ();
-	void slot_save ();
-	void slot_saveAs ();
-	void slot_exit ();
-	
-	void slot_newSubfile ();
-	void slot_newLine ();
-	void slot_newTriangle ();
-	void slot_newQuad ();
-	void slot_newCondLine ();
-	void slot_newComment ();
-	void slot_newVertex ();
-	
-	void slot_inlineContents ();
-	void slot_deepInline ();
-	void slot_splitQuads ();
-	void slot_setContents ();
-	void slot_makeBorders ();
-	
-	void slot_cut ();
-	void slot_copy ();
-	void slot_paste ();
-	void slot_del ();
-	
-	void slot_settings ();
-	
-	void slot_help ();
-	void slot_about ();
-	void slot_aboutQt ();
-	
-	void slot_setColor ();
+	void slot_action ();
 };
 
+// -----------------------------------------------------------------------------
+// Other GUI-related stuff not directly part of ForgeWindow:
+QIcon getIcon (const char* sIconName);
+
+// -----------------------------------------------------------------------------
+// Pointer to the instance of ForgeWindow.
+extern ForgeWindow* g_ForgeWindow;
+
+// Is this still needed?
 enum {
 	LDOLC_Icon,
 	LDOLC_Data,
 	NUM_LDOL_Columns
 };
-
-// =============================================================================
-// Metadata for actions
-typedef struct {
-	QAction** const qAct;
-	keyseqconfig* const conf;
-} actionmeta;
-
-extern vector<actionmeta> g_ActionMeta;
 
 #endif

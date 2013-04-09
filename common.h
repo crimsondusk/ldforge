@@ -54,6 +54,10 @@
 #define DIRSLASH "/"
 #endif // WIN32
 
+#ifdef RELEASE
+#define NDEBUG // remove asserts
+#endif // RELEASE
+
 static const double fMaxCoord = 10000.0;
 static const short dMainColor = 16;
 static const short dEdgeColor = 24;
@@ -112,14 +116,25 @@ enum logtype_e {
 
 // Vertex at (0, 0, 0)
 extern const vertex g_Origin;
+extern bool g_bApplicationReady;
 
 void logf (const char* fmt, ...) FORMAT_PRINTF (1, 2);
 void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
 
+// -----------------------------------------------------------------------------
+// Pointer to the OpenFile which is currently being edited by the user.
 extern OpenFile* g_CurrentFile;
+
+// -----------------------------------------------------------------------------
+// Pointer to the bounding box.
 extern bbox g_BBox;
-extern ForgeWindow* g_qWindow;
+
+// -----------------------------------------------------------------------------
+// Vector of all currently opened files.
 extern vector<OpenFile*> g_LoadedFiles;
+
+// -----------------------------------------------------------------------------
+// Pointer to the main application.
 extern QApplication* g_qMainApp;
 
 #ifndef unix
@@ -127,13 +142,14 @@ typedef unsigned int uint;
 typedef unsigned long ulong;
 #endif // unix
 
-typedef int8_t xchar;
-typedef int16_t xshort;
-typedef int32_t xlong;
-typedef int64_t xlonglong;
-typedef uint8_t xuchar;
-typedef uint16_t xushort;
-typedef uint32_t xulong;
-typedef uint64_t xulonglong;
+// Typedef out the _t suffices :)
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef int64_t int64;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
 
 #endif

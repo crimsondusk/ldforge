@@ -26,56 +26,35 @@
 #include "misc.h"
 #include "colors.h"
 #include "config.h"
-#include "zz_addObjectDialog.h"
-#include "zz_colorSelectDialog.h"
-#include "zz_configDialog.h"
-#include "zz_newPartDialog.h"
-#include "zz_setContentsDialog.h"
 
-// =============================================================================
-// ACTION ARMADA
-namespace Actions {
-	QAction* newFile, *open, *save, *saveAs, *exit;
-	QAction* cut, *copy, *paste, *del;
-	QAction* newSubfile, *newLine, *newTriangle, *newQuad;
-	QAction* newCondLine, *newComment, *newVertex;
-	QAction* splitQuads, *setContents, *setColor;
-	QAction* inlineContents, *deepInline, *makeBorders;
-	QAction* settings;
-	QAction* help, *about, *aboutQt;
-};
+EXTERN_ACTION (newFile)
+EXTERN_ACTION (open)
+EXTERN_ACTION (save)
+EXTERN_ACTION (saveAs)
+EXTERN_ACTION (settings)
+EXTERN_ACTION (exit)
+EXTERN_ACTION (cut)
+EXTERN_ACTION (copy)
+EXTERN_ACTION (paste)
+EXTERN_ACTION (del)
+EXTERN_ACTION (setColor)
+EXTERN_ACTION (inlineContents)
+EXTERN_ACTION (deepInline)
+EXTERN_ACTION (splitQuads)
+EXTERN_ACTION (setContents)
+EXTERN_ACTION (makeBorders)
+EXTERN_ACTION (newSubfile)
+EXTERN_ACTION (newLine)
+EXTERN_ACTION (newCondLine)
+EXTERN_ACTION (newTriangle)
+EXTERN_ACTION (newQuad)
+EXTERN_ACTION (newVertex)
+EXTERN_ACTION (newComment)
+EXTERN_ACTION (help)
+EXTERN_ACTION (about)
+EXTERN_ACTION (aboutQt)
 
-// Key-binding configurations
-cfg (keyseq, key_newFile,			(Qt::CTRL | Qt::Key_N));
-cfg (keyseq, key_open,				(Qt::CTRL | Qt::Key_O));
-cfg (keyseq, key_save,				(Qt::CTRL | Qt::Key_S));
-cfg (keyseq, key_saveAs,			(Qt::CTRL | Qt::SHIFT | Qt::Key_S));
-cfg (keyseq, key_exit,				(Qt::CTRL | Qt::Key_Q));
-cfg (keyseq, key_cut,				(Qt::CTRL | Qt::Key_X));
-cfg (keyseq, key_copy,				(Qt::CTRL | Qt::Key_C));
-cfg (keyseq, key_paste,				(Qt::CTRL | Qt::Key_V));
-cfg (keyseq, key_del,				(Qt::Key_Delete));
-cfg (keyseq, key_newSubfile,		0);
-cfg (keyseq, key_newLine,			0);
-cfg (keyseq, key_newTriangle,		0);
-cfg (keyseq, key_newQuad,			0);
-cfg (keyseq, key_newCondLine,		0);
-cfg (keyseq, key_newComment,		0);
-cfg (keyseq, key_newVertex,			0);
-cfg (keyseq, key_splitQuads,		0);
-cfg (keyseq, key_setContents,		0);
-cfg (keyseq, key_inlineContents,	(Qt::CTRL | Qt::Key_I));
-cfg (keyseq, key_deepInline,		(Qt::CTRL | Qt::SHIFT | Qt::Key_I));
-cfg (keyseq, key_makeBorders,		(Qt::CTRL | Qt::SHIFT | Qt::Key_B));
-cfg (keyseq, key_settings,			0);
-cfg (keyseq, key_help,				(Qt::Key_F1));
-cfg (keyseq, key_about,				0);
-cfg (keyseq, key_aboutQt,			0);
-cfg (keyseq, key_setColor,			0);
-
-vector<LDObject*> g_Clipboard;
 vector<actionmeta> g_ActionMeta;
-
 cfg (bool, lv_colorize, true);
 
 // =============================================================================
@@ -119,63 +98,22 @@ ForgeWindow::ForgeWindow () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ACTION(N) (Actions::N)
-#define MAKE_ACTION(OBJECT, DISPLAYNAME, IMAGENAME, DESCR) \
-	ACTION (OBJECT) = new QAction (QIcon ("./icons/" IMAGENAME ".png"), tr (DISPLAYNAME), this); \
-	ACTION (OBJECT)->setStatusTip (tr (DESCR)); \
-	connect (ACTION (OBJECT), SIGNAL (triggered ()), this, SLOT (slot_##OBJECT ())); \
-	{ \
-		actionmeta meta = {&ACTION (OBJECT), &key_##OBJECT}; \
-		g_ActionMeta.push_back (meta); \
-	}
-
 void ForgeWindow::createMenuActions () {
-	// Long menu names go here so my cool action definition table doesn't get out of proportions
-	char const* sNewCdLineText = "New Conditional Line",
-		*sNewQuadText = "New Quadrilateral",
-		*sAboutText = "About " APPNAME_DISPLAY;
-	
-	MAKE_ACTION (newFile,		"&New",			"brick",		"Create a new part model.")
-	MAKE_ACTION (open,			"&Open",		"file-open",	"Load a part model from a file.")
-	MAKE_ACTION (save,			"&Save",		"file-save",	"Save the part model.")
-	MAKE_ACTION (saveAs,		"Save &As",		"file-save-as",	"Save the part to a specific file.")
-	MAKE_ACTION (exit,			"&Exit",		"exit",			"Close " APPNAME_DISPLAY ".")
-	
-	MAKE_ACTION (cut,			"Cut",			"cut",			"Cut the current selection to clipboard.")
-	MAKE_ACTION (copy,			"Copy",			"copy",			"Copy the current selection to clipboard.")
-	MAKE_ACTION (paste,			"Paste",		"paste",		"Paste clipboard contents.")
-	MAKE_ACTION (del,			"Delete",		"delete",		"Delete the selection")
-	
-	MAKE_ACTION (setColor,		"Set Color",	"palette",		"Set the color on given objects.")
-	MAKE_ACTION (inlineContents,"Inline",		"inline",		"Inline selected subfiles.")
-	MAKE_ACTION (deepInline,	"Deep Inline",	"inline-deep",	"Recursively inline selected subfiles down to polygons only.")
-	MAKE_ACTION (splitQuads,	"Split Quads",	"quad-split",	"Split quads into triangles.")
-	MAKE_ACTION (setContents,	"Set Contents",	"set-contents",	"Set the raw code of this object.")
-	MAKE_ACTION (makeBorders,	"Make Borders",	"make-borders",	"Add borders around given polygons.")
-	
-	MAKE_ACTION (newSubfile,	"New Subfile",	"add-subfile",	"Creates a new subfile reference.")
-	MAKE_ACTION (newLine,		"New Line", 	"add-line",		"Creates a new line.")
-	MAKE_ACTION (newTriangle,	"New Triangle", "add-triangle",	"Creates a new triangle.")
-	MAKE_ACTION (newQuad,		sNewQuadText,	"add-quad",		"Creates a new quadrilateral.")
-	MAKE_ACTION (newCondLine,	sNewCdLineText,	"add-condline",	"Creates a new conditional line.")
-	MAKE_ACTION (newComment,	"New Comment",	"add-comment",	"Creates a new comment.")
-	MAKE_ACTION (newVertex,		"New Vertex",	"add-vertex",	"Creates a new vertex.")
-	
-	MAKE_ACTION (settings,		"Settings",		"settings",		"Edit the settings of " APPNAME_DISPLAY ".")
-	
-	MAKE_ACTION (help,			"Help",			"help",			"Shows the " APPNAME_DISPLAY " help manual.")
-	MAKE_ACTION (about,			sAboutText,		"ldforge",		"Shows information about " APPNAME_DISPLAY ".")
-	MAKE_ACTION (aboutQt,		"About Qt",		"aboutQt",		"Shows information about Qt.")
-	
-	// Apply the shortcuts now
-	for (actionmeta meta : g_ActionMeta)
-		(*meta.qAct)->setShortcut (*meta.conf);
+	// Create the actions based on stored meta.
+	for (actionmeta meta : g_ActionMeta) {
+		QAction*& qAct = *meta.qAct;
+		qAct = new QAction (getIcon (meta.sIconName), meta.sDisplayName, this);
+		qAct->setStatusTip (meta.sDescription);
+		qAct->setShortcut (*meta.conf);
+		
+		connect (qAct, SIGNAL (triggered ()), this, SLOT (slot_action ()));
+	}
 	
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
-		ACTION (newSubfile),
-		ACTION (about),
-		ACTION (help),
+		ACTION_NAME (newSubfile),
+		ACTION_NAME (about),
+		ACTION_NAME (help),
 	};
 	
 	for (QAction* act : qaDisabledActions)
@@ -185,7 +123,7 @@ void ForgeWindow::createMenuActions () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_MENU_ITEM(MENU, ACT) q##MENU##Menu->addAction (ACTION (ACT));
+#define ADD_MENU_ITEM(MENU, ACT) q##MENU##Menu->addAction (ACTION_NAME (ACT));
 
 void ForgeWindow::createMenus () {
 	// File menu
@@ -199,7 +137,7 @@ void ForgeWindow::createMenus () {
 	qFileMenu->addSeparator ();				// -------
 	ADD_MENU_ITEM (File, exit)				// Exit
 	
-	// Edit menu
+	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
 	ADD_MENU_ITEM (Insert, newSubfile)		// New Subfile
 	ADD_MENU_ITEM (Insert, newLine)			// New Line
@@ -209,6 +147,7 @@ void ForgeWindow::createMenus () {
 	ADD_MENU_ITEM (Insert, newComment)		// New Comment
 	ADD_MENU_ITEM (Insert, newVertex)		// New Vertex
 	
+	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
 	ADD_MENU_ITEM (Edit, cut)				// Cut
 	ADD_MENU_ITEM (Edit, copy)				// Copy
@@ -234,7 +173,7 @@ void ForgeWindow::createMenus () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_TOOLBAR_ITEM(BAR, ACT) q##BAR##ToolBar->addAction (ACTION (ACT));
+#define ADD_TOOLBAR_ITEM(BAR, ACT) q##BAR##ToolBar->addAction (ACTION_NAME (ACT));
 
 void ForgeWindow::createToolbars () {
 	qFileToolBar = new QToolBar ("File");
@@ -292,319 +231,27 @@ void ForgeWindow::setTitle () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::slot_newFile () {
-	// newFile ();
-	NewPartDialog::StaticDialog ();
-}
-
-void ForgeWindow::slot_open () {
-	str zName;
-	zName += QFileDialog::getOpenFileName (this, "Open File",
-		"", "LDraw files (*.dat *.ldr)");
+void ForgeWindow::slot_action () {
+	// Get the action that triggered this slot.
+	QAction* qAct = static_cast<QAction*> (sender ());
 	
-	if (~zName)
-		openMainFile (zName);
-}
-
-void ForgeWindow::slot_save () {
-	if (!~g_CurrentFile->zFileName) {
-		// If we don't have a file name, this is an anonymous file created
-		// with the new file command. We cannot save without a name so ask
-		// the user for one.
-		slot_saveAs ();
-		return;
-	}
+	// Find the meta for the action.
+	actionmeta* pMeta = nullptr;
 	
-	g_CurrentFile->save ();
-}
-
-void ForgeWindow::slot_saveAs () {
-	str zName;
-	zName += QFileDialog::getSaveFileName (this, "Save As",
-		"", "LDraw files (*.dat *.ldr)");
-	
-	if (~zName && g_CurrentFile->save (zName))
-		g_CurrentFile->zFileName = zName;
-}
-
-void ForgeWindow::slot_settings () {
-	ConfigDialog::staticDialog (this);
-}
-
-void ForgeWindow::slot_exit () {
-	exit (0);
-}
-
-void ForgeWindow::slot_newSubfile () {
-	
-}
-
-void ForgeWindow::slot_newLine () {
-	AddObjectDialog::staticDialog (OBJ_Line, this);
-}
-
-void ForgeWindow::slot_newTriangle () {
-	AddObjectDialog::staticDialog (OBJ_Triangle, this);
-}
-
-void ForgeWindow::slot_newQuad () {
-	AddObjectDialog::staticDialog (OBJ_Quad, this);
-}
-
-void ForgeWindow::slot_newCondLine () {
-	AddObjectDialog::staticDialog (OBJ_CondLine, this);
-}
-
-void ForgeWindow::slot_newComment () {
-	AddObjectDialog::staticDialog (OBJ_Comment, this);
-}
-
-void ForgeWindow::slot_help () {
-	
-}
-
-void ForgeWindow::slot_about () {
-	
-}
-
-void ForgeWindow::slot_aboutQt () {
-	QMessageBox::aboutQt (this);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-bool ForgeWindow::copyToClipboard () {
-	vector<LDObject*> objs = getSelectedObjects ();
-	
-	if (objs.size() == 0)
-		return false;
-	
-	// Clear the clipboard first.
-	for (LDObject* obj : g_Clipboard)
-		delete obj;
-	
-	g_Clipboard.clear ();
-	
-	// Now, copy the contents into the clipboard. The objects should be
-	// separate objects so that modifying the existing ones does not affect
-	// the clipboard. Thus, we add clones of the objects to the clipboard, not
-	// the objects themselves.
-	for (ulong i = 0; i < objs.size(); ++i)
-		g_Clipboard.push_back (objs[i]->clone ());
-	
-	return true;
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_cut () {
-	if (!copyToClipboard ())
-		return;
-	
-	deleteSelection ();
-	
-	ACTION (paste)->setEnabled (true);
-	refresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_copy () {
-	if (copyToClipboard ())
-		ACTION (paste)->setEnabled (true);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_paste () {
-	for (LDObject* obj : g_Clipboard)
-		g_CurrentFile->addObject (obj->clone ());
-	
-	refresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_del () {
-	deleteSelection ();
-	refresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_newVertex () {
-	AddObjectDialog::staticDialog (OBJ_Vertex, this);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::doInline (bool bDeep) {
-	vector<LDObject*> sel = getSelectedObjects ();
-	
-	for (LDObject* obj : sel) {
-		// Obviously, only subfiles can be inlined.
-		if (obj->getType() != OBJ_Subfile)
-			continue;
-		
-		// Get the index of the subfile so we know where to insert the
-		// inlined contents.
-		long idx = obj->getIndex (g_CurrentFile);
-		if (idx == -1)
-			continue;
-		
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
-		
-		// Get the inlined objects. These are clones of the subfile's contents.
-		vector<LDObject*> objs = ref->inlineContents (bDeep, true);
-		
-		// Merge in the inlined objects
-		for (LDObject* inlineobj : objs)
-			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
-		
-		// Delete the subfile now as it's been inlined.
-		g_CurrentFile->forgetObject (ref);
-		delete ref;
-	}
-	
-	refresh ();
-}
-
-void ForgeWindow::slot_inlineContents () {
-	doInline (false);
-}
-
-void ForgeWindow::slot_deepInline () {
-	doInline (true);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_splitQuads () {
-	vector<LDObject*> objs = getSelectedObjects ();
-	
-	for (LDObject* obj : objs) {
-		if (obj->getType() != OBJ_Quad)
-			continue;
-		
-		// Find the index of this quad
-		long lIndex = obj->getIndex (g_CurrentFile);
-		
-		if (lIndex == -1) {
-			// couldn't find it?
-			logf (LOG_Error, "Couldn't find quad %p in "
-				"current object list!!\n", this);
-			return;
-		}
-		
-		std::vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
-		
-		// Replace the quad with the first triangle and add the second triangle
-		// after the first one.
-		g_CurrentFile->objects[lIndex] = triangles[0];
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + lIndex + 1, triangles[1]);
-		
-		// Delete this quad now, it has been split.
-		delete this;
-	}
-	
-	refresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_setContents () {
-	if (qObjList->selectedItems().size() != 1)
-		return;
-	
-	LDObject* obj = getSelectedObjects ()[0];
-	SetContentsDialog::staticDialog (obj, this);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_setColor () {
-	if (qObjList->selectedItems().size() <= 0)
-		return;
-	
-	short dColor;
-	short dDefault = -1;
-	
-	std::vector<LDObject*> objs = getSelectedObjects ();
-	
-	// If all selected objects have the same color, said color is our default
-	// value to the color selection dialog.
-	for (LDObject* obj : objs) {
-		if (obj->dColor == -1)
-			continue; // doesn't use color
-		
-		if (dDefault != -1 && obj->dColor != dDefault) {
-			// No consensus in object color, therefore we don't have a
-			// proper default value to use.
-			dDefault = -1;
+	for (actionmeta meta : g_ActionMeta) {
+		if (*meta.qAct == qAct) {
+			pMeta = &meta;
 			break;
 		}
-		
-		if (dDefault == -1)
-			dDefault = obj->dColor;
 	}
 	
-	// Show the dialog to the user now and ask for a color.
-	if (ColorSelectDialog::staticDialog (dColor, dDefault, this)) {
-		for (LDObject* obj : objs)
-			if (obj->dColor != -1)
-				obj->dColor = dColor;
-		
-		refresh ();
-	}
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_makeBorders () {
-	vector<LDObject*> objs = getSelectedObjects ();
-	
-	for (LDObject* obj : objs) {
-		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
-			continue;
-		
-		short dNumLines;
-		LDLine* lines[4];
-		
-		if (obj->getType() == OBJ_Quad) {
-			dNumLines = 4;
-			
-			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->vaCoords[0], quad->vaCoords[1]);
-			lines[1] = new LDLine (quad->vaCoords[1], quad->vaCoords[2]);
-			lines[2] = new LDLine (quad->vaCoords[2], quad->vaCoords[3]);
-			lines[3] = new LDLine (quad->vaCoords[3], quad->vaCoords[0]);
-		} else {
-			dNumLines = 3;
-			
-			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->vaCoords[0], tri->vaCoords[1]);
-			lines[1] = new LDLine (tri->vaCoords[1], tri->vaCoords[2]);
-			lines[2] = new LDLine (tri->vaCoords[2], tri->vaCoords[0]); 
-		}
-		
-		for (short i = 0; i < dNumLines; ++i) {
-			lines[i]->dColor = dEdgeColor;
-			g_CurrentFile->addObject (lines[i]);
-		}
+	if (!pMeta) {
+		fprintf (stderr, "unknown signal sender %p!\n", qAct);
+		return;
 	}
 	
-	refresh ();
+	// We have the meta, now call the handler.
+	(*pMeta->handler) ();
 }
 
 // =============================================================================
@@ -618,6 +265,9 @@ void ForgeWindow::deleteSelection () {
 		g_CurrentFile->forgetObject (obj);
 		delete obj;
 	}
+	
+	if (objs.size() > 0)
+		refresh ();
 }
 
 // =============================================================================
@@ -755,11 +405,13 @@ void ForgeWindow::buildObjList () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_selectionChanged () {
+	/*
 	// If the selection isn't 1 exact, disable setting contents
 	ACTION (setContents)->setEnabled (qObjList->selectedItems().size() == 1);
 	
 	// If we have no selection, disable splitting quads
 	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
+	*/
 }
 
 // =============================================================================
@@ -806,4 +458,11 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 	}
 	
 	return objs;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+QIcon getIcon (const char* sIconName) {
+	return (QIcon (str::mkfmt ("./icons/%s.png", sIconName)));
 }
