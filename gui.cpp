@@ -55,6 +55,8 @@ EXTERN_ACTION (newComment)
 EXTERN_ACTION (help)
 EXTERN_ACTION (about)
 EXTERN_ACTION (aboutQt)
+EXTERN_ACTION (undo)
+EXTERN_ACTION (redo)
 
 vector<actionmeta> g_ActionMeta;
 cfg (bool, lv_colorize, true);
@@ -151,6 +153,9 @@ void ForgeWindow::createMenus () {
 	
 	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
+	ADD_MENU_ITEM (Edit, undo)				// Undo
+	ADD_MENU_ITEM (Edit, redo)				// Redo
+	qEditMenu->addSeparator ();				// -----
 	ADD_MENU_ITEM (Edit, cut)				// Cut
 	ADD_MENU_ITEM (Edit, copy)				// Copy
 	ADD_MENU_ITEM (Edit, paste)				// Paste
@@ -199,6 +204,8 @@ void ForgeWindow::createToolbars () {
 	addToolBar (qInsertToolBar);
 	
 	qEditToolBar = new QToolBar ("Edit");
+	ADD_TOOLBAR_ITEM (Edit, undo)
+	ADD_TOOLBAR_ITEM (Edit, redo)
 	ADD_TOOLBAR_ITEM (Edit, cut)
 	ADD_TOOLBAR_ITEM (Edit, copy)
 	ADD_TOOLBAR_ITEM (Edit, paste)

@@ -11,15 +11,16 @@ RC_FILE = ldforge.rc
 
 # Input
 HEADERS += bbox.h \
+	colors.h \
 	common.h \
+	config.h \
+	file.h \
 	gldraw.h \
 	gui.h \
-	file.h \
+	history.h \
 	ldtypes.h \
 	misc.h \
 	str.h \
-	config.h \
-	colors.h \
 	types.h \
 	zz_addObjectDialog.h \
 	zz_colorSelectDialog.h \
@@ -34,6 +35,7 @@ SOURCES += bbox.cpp \
 	gui.cpp \
 	gui_actions.cpp \
 	gui_editactions.cpp \
+	history.cpp \
 	file.cpp \
 	ldtypes.cpp \
 	main.cpp \

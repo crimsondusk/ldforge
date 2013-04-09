@@ -45,6 +45,15 @@ template<class T> bool in (T needle, std::initializer_list<T> haystack) {
 	return false;
 }
 
+template<class T> std::vector<T> reverseVector (std::vector<T> in) {
+	std::vector<T> out;
+	
+	for (T stuff : in)
+		out.insert (out.begin(), in);
+	
+	return out;
+}
+
 // =============================================================================
 // stringparser
 //

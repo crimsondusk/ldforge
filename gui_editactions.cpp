@@ -21,6 +21,7 @@
 #include "zz_setContentsDialog.h"
 #include "file.h"
 #include "zz_colorSelectDialog.h"
+#include "history.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -80,7 +81,24 @@ ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
-	g_ForgeWindow->deleteSelection ();
+	vector<LDObject*> sel = g_ForgeWindow->getSelectedObjects ();
+	
+	if (sel.size() == 0)
+		return;
+	
+	vector<ulong> ulaIndices;
+	vector<LDObject*> copies;
+	
+	for (LDObject* obj : sel) {
+		copies.insert (copies.begin(), obj->clone ());
+		ulaIndices.insert (ulaIndices.begin(), obj->getIndex (g_CurrentFile));
+		
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
+	}
+	
+	History::addEntry (new DeleteHistory (ulaIndices, copies));
+	g_ForgeWindow->refresh ();
 }
 
 // =============================================================================
@@ -291,4 +309,12 @@ ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", CTRL (U
 
 ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", CTRL (Down)) {
 	doMoveSelection (false);
+}
+
+ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
+	History::undo ();
+}
+
+ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
+	History::redo ();
 }
