@@ -25,6 +25,7 @@ HEADERS += bbox.h \
 	zz_addObjectDialog.h \
 	zz_colorSelectDialog.h \
 	zz_configDialog.h \
+	zz_historyDialog.h \
 	zz_newPartDialog.h \
 	zz_setContentsDialog.h
 
@@ -45,6 +46,7 @@ SOURCES += bbox.cpp \
 	zz_addObjectDialog.cpp \
 	zz_colorSelectDialog.cpp \
 	zz_configDialog.cpp \
+	zz_historyDialog.cpp \
 	zz_newPartDialog.cpp \
 	zz_setContentsDialog.cpp
 

@@ -58,7 +58,7 @@ extern vector<actionmeta> g_ActionMeta;
 	static void actionHandler_##NAME ()
 
 #define EXTERN_ACTION(NAME) extern QAction* ACTION_NAME (NAME);
-#define ACTION_NAME(N) (LDForgeAction_##N)
+#define ACTION_NAME(N) LDForgeAction_##N
 
 // Convenience macros for key sequences.
 #define KEY(N) (Qt::Key_##N)
@@ -99,7 +99,7 @@ public:
 	// Object list view
 	QTreeWidget* qObjList;
 	QTextEdit* qMessageLog;
-	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu;
+	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu, *qControlMenu;
 	std::vector<QToolBar*> qaToolBars;
 	
 	str zMessageLogHTML;

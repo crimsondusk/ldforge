@@ -37,7 +37,6 @@ namespace History {
 	void addEntry (HistoryEntry* entry) {
 		// If there's any entries after our current position, we need to remove them now
 		for (ulong i = lPos + 1; i < entries.size(); ++i) {
-			
 			delete entries[i];
 			entries.erase (entries.begin() + i);
 		}
@@ -63,6 +62,16 @@ namespace History {
 			return; // nothing to redo;
 		
 		entries[++lPos]->redo ();
+		updateActions ();
+	}
+	
+	// =========================================================================
+	void clear () {
+		for (HistoryEntry* entry : entries)
+			delete entry;
+		
+		entries.clear ();
+		lPos = -1;
 		updateActions ();
 	}
 	

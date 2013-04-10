@@ -58,6 +58,7 @@ EXTERN_ACTION (about)
 EXTERN_ACTION (aboutQt)
 EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
+EXTERN_ACTION (showHistory)
 
 vector<actionmeta> g_ActionMeta;
 
@@ -176,6 +177,10 @@ void ForgeWindow::createMenus () {
 	ADD_MENU_ITEM (Edit, splitQuads)		// Split Quads
 	ADD_MENU_ITEM (Edit, setContents)		// Set Contents
 	ADD_MENU_ITEM (Edit, makeBorders)		// Make Borders
+	
+	// Control menuBar
+	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
+	ADD_MENU_ITEM (Control, showHistory)	// Show History
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));

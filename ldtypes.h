@@ -38,20 +38,21 @@ class QTreeWidgetItem;
 // =============================================================================
 // LDObjectType_e
 // 
-// Object type codes
+// Object type codes. Codes are sorted in order of significance.
 // =============================================================================
 enum LDObjectType_e {
-	OBJ_Unidentified,	// Object is an uninitialized (LDObject) (SHOULD NEVER HAPPEN)
-	OBJ_Gibberish,		// Object is the result of failed parsing (LDGibberish)
-	OBJ_Empty,			// Object represents an empty line (LDEmpty)
-	OBJ_Comment,		// Object represents a comment (LDComment, code: 0)
-	OBJ_Subfile,		// Object represents a sub-file reference (LDSubfile, code: 1)
-	OBJ_Line,			// Object represents a line (LDLine, code: 2)
-	OBJ_Triangle,		// Object represents a triangle (LDTriangle, code: 3)
-	OBJ_Quad,			// Object represents a quadrilateral (LDQuad, code: 4)
-	OBJ_CondLine,		// Object represents a conditional line (LDCondLine, code: 5)
+	OBJ_Subfile,		// Object represents a sub-file reference
+	OBJ_Quad,			// Object represents a quadrilateral
+	OBJ_Triangle,		// Object represents a triangle
+	OBJ_Line,			// Object represents a line
+	OBJ_CondLine,		// Object represents a conditional line
+	OBJ_Vertex,			// Object is a vertex, LDForge extension object
 	OBJ_BFC,			// Object represents a BFC statement
-	OBJ_Vertex			// Object is a vertex, LDForge extension object (LDVertex)
+	OBJ_Comment,		// Object represents a comment
+	OBJ_Gibberish,		// Object is the result of failed parsing
+	OBJ_Empty,			// Object represents an empty line
+	OBJ_Unidentified,	// Object is an uninitialized (SHOULD NEVER HAPPEN)
+	NUM_ObjectTypes		// Amount of object types
 };
 
 // =============================================================================
@@ -99,6 +100,7 @@ public:
 	void swap (LDObject* other);
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
+	static str objectListContents (std::vector<LDObject*>& objs);
 	
 	QTreeWidgetItem* qObjListEntry;
 };

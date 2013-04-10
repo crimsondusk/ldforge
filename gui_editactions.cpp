@@ -18,10 +18,11 @@
 
 #include "gui.h"
 #include "common.h"
-#include "zz_setContentsDialog.h"
 #include "file.h"
-#include "zz_colorSelectDialog.h"
 #include "history.h"
+#include "zz_colorSelectDialog.h"
+#include "zz_historyDialog.h"
+#include "zz_setContentsDialog.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -322,10 +323,18 @@ ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.",
 	doMoveSelection (false);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
 	History::undo ();
 }
 
 ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
 	History::redo ();
+}
+
+ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0)) {
+	HistoryDialog dlg;
+	dlg.exec ();
 }

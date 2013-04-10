@@ -25,8 +25,18 @@
 #define IMPLEMENT_HISTORY_TYPE(N) \
 	virtual ~N##History (); \
 	virtual void undo (); \
-	virtual void redo ();
+	virtual void redo (); \
+	virtual HistoryType type () { return HISTORY_##N; }
 
+// =============================================================================
+enum HistoryType {
+	HISTORY_Delete,
+	HISTORY_SetColor,
+	HISTORY_SetContents,
+	HISTORY_ListMove,
+	HISTORY_Addition,
+	HISTORY_QuadSplit,
+};
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -36,6 +46,7 @@ public:
 	virtual void undo () {}
 	virtual void redo () {}
 	virtual ~HistoryEntry () {}
+	virtual HistoryType type () { return (HistoryType)(0); }
 };
 
 // =============================================================================
@@ -133,6 +144,7 @@ namespace History {
 	void addEntry (HistoryEntry* entry);
 	void undo ();
 	void redo ();
+	void clear ();
 	void updateActions ();
 };
 

@@ -22,31 +22,32 @@
 #include "misc.h"
 
 char const* g_saObjTypeNames[] = {
-	"unidentified",
+	"subfile",
+	"quadrilateral",
+	"triangle",
+	"line",
+	"condline",
+	"vertex",
+	"bfc",
+	"comment",
 	"unknown",
 	"empty",
-	"comment",
-	"subfile",
-	"line",
-	"triangle",
-	"quadrilateral",
-	"condline",
-	"bfc",
-	"vertex",
+	"unidentified",
 };
 
+// Should probably get rid of this array sometime
 char const* g_saObjTypeIcons[] = {
-	"error",
+	"subfile",
+	"quad",
+	"triangle",
+	"line",
+	"condline",
+	"vertex",
+	"bfc",
+	"comment",
 	"error",
 	"empty",
-	"comment",
-	"subfile",
-	"line",
-	"triangle",
-	"quad",
-	"condline",
-	"bfc",
-	"vertex",
+	"error",
 };
 
 // =============================================================================
@@ -395,6 +396,9 @@ long LDObject::getIndex (OpenFile* pFile) {
 	return -1;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 	// If we move down, we need to iterate the array in reverse order.
 	const long start = bUp ? 0 : (objs.size() - 1);
@@ -419,4 +423,34 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 		
 		obj->swap (g_CurrentFile->objects[lTarget]);
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+str LDObject::objectListContents (std::vector<LDObject*>& objs) {
+	bool bFirstDetails = true;
+	str zText = "";
+	
+	if (objs.size() == 0)
+		return "nothing"; // :)
+	
+	for (long i = 0; i < NUM_ObjectTypes; ++i) {
+		LDObjectType_e eType = (LDObjectType_e) i;
+		ulong ulCount = 0;
+		
+		for (LDObject* obj : objs)
+			if (obj->getType() == eType)
+				ulCount++;
+		
+		if (ulCount > 0) {
+			if (!bFirstDetails)
+				zText += ", ";
+			
+			zText.appendformat ("%lu %s%s", ulCount, g_saObjTypeNames[eType], PLURAL (ulCount));
+			bFirstDetails = false;
+		}
+	}
+	
+	return zText;
 }
