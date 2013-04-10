@@ -20,6 +20,7 @@
 #define HISTORY_H
 
 #include "common.h"
+#include "ldtypes.h"
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
 	virtual ~N##History (); \
@@ -107,6 +108,20 @@ public:
 	
 	AdditionHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paObjs) :
 		ulaIndices (ulaIndices), paObjs (paObjs) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class QuadSplitHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (QuadSplit)
+	
+	std::vector<ulong> ulaIndices;
+	std::vector<LDQuad*> paQuads;
+	
+	QuadSplitHistory (std::vector<ulong> ulaIndices, std::vector<LDQuad*> paQuads) :
+		ulaIndices (ulaIndices), paQuads (paQuads) {}
 };
 
 // =============================================================================

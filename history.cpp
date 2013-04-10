@@ -200,3 +200,48 @@ void AdditionHistory::redo () {
 	
 	g_ForgeWindow->refresh ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+QuadSplitHistory::~QuadSplitHistory () {
+	for (LDQuad* pQuad : paQuads)
+		delete pQuad;
+}
+
+void QuadSplitHistory::undo () {
+	for (ulong i = 0; i < paQuads.size(); ++i) {
+		// The quad was replaced by the first triangle and a second one was
+		// added after it. Thus, we remove the second one here and replace
+		// the first with a copy of the quad.
+		ulong idx = ulaIndices[i];
+		printf ("%lu (%lu)\n", i, idx);
+		
+		LDTriangle* tri1 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx]),
+			*tri2 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx + 1]);
+		LDQuad* pCopy = paQuads[i]->clone ();
+		
+		tri1->replace (pCopy);
+		g_CurrentFile->forgetObject (tri2);
+		delete tri2;
+	}
+	
+	g_ForgeWindow->refresh ();
+}
+
+void QuadSplitHistory::redo () {
+	for (long i = paQuads.size() - 1; i >= 0; --i) {
+		ulong idx = ulaIndices[i];
+		
+		printf ("redo: %ld (%lu)\n", i, idx);
+		
+		LDQuad* pQuad = static_cast<LDQuad*> (g_CurrentFile->objects[idx]);
+		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
+		
+		g_CurrentFile->objects[idx] = paTriangles[0];
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx + 1, paTriangles[1]);
+		delete pQuad;
+	}
+	
+	g_ForgeWindow->refresh ();
+}

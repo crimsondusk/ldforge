@@ -151,6 +151,18 @@ ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected s
 ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
 	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
 	
+	vector<ulong> ulaIndices;
+	vector<LDQuad*> paCopies;
+	
+	// Store stuff first for history archival
+	for (LDObject* obj : objs) {
+		if (obj->getType() != OBJ_Quad)
+			continue;
+		
+		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+		paCopies.push_back (static_cast<LDQuad*> (obj)->clone ());
+	}
+	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != OBJ_Quad)
 			continue;
@@ -158,12 +170,8 @@ ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", 
 		// Find the index of this quad
 		long lIndex = obj->getIndex (g_CurrentFile);
 		
-		if (lIndex == -1) {
-			// couldn't find it?
-			logf (LOG_Error, "Couldn't find quad %p in "
-				"current object list!!\n", obj);
+		if (lIndex == -1)
 			return;
-		}
 		
 		std::vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
 		
@@ -176,6 +184,7 @@ ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", 
 		delete obj;
 	}
 	
+	History::addEntry (new QuadSplitHistory (ulaIndices, paCopies));
 	g_ForgeWindow->refresh ();
 }
 
