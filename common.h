@@ -28,6 +28,9 @@
 #define VERSION_MINOR 1
 #define VERSION_MINOR_STR "1"
 
+// ============---
+// #define RELEASE
+
 #define VERSION_STRING VERSION_MAJOR_STR "." VERSION_MINOR_STR
 
 #define CONFIG_WITH_QT
@@ -37,7 +40,7 @@
 #include <assert.h>
 #include <vector>
 #include <stdint.h>
-#include "stdarg.h"
+#include <stdarg.h>
 #include "str.h"
 #include "config.h"
 #include "types.h"
@@ -74,6 +77,7 @@ class QApplication;
 // Plural expression
 #define PLURAL(n) ((n != 1) ? "s" : "")
 
+// -----------------------------------------------------------------------------
 // Shortcut for formatting
 #define PERFORM_FORMAT(in, out) \
 	va_list v; \
@@ -81,12 +85,12 @@ class QApplication;
 	char* out = vdynformat (in, v, 256); \
 	va_end (v);
 
+// -----------------------------------------------------------------------------
 // Shortcuts for stuffing vertices into printf-formatting.
 #define FMT_VERTEX "(%.3f, %.3f, %.3f)"
 #define FVERTEX(V) V.x, V.y, V.z
 
-typedef unsigned char byte;
-
+// -----------------------------------------------------------------------------
 template<class T> inline T clamp (T a, T min, T max) {
 	return (a > max) ? max : (a < min) ? min : a;
 }
@@ -105,6 +109,7 @@ static inline const char* qchars (QString qstr) {
 
 static const double pi = 3.14159265358979323846f;
 
+// -----------------------------------------------------------------------------
 // main.cpp
 enum logtype_e {
 	LOG_Normal,
@@ -112,14 +117,16 @@ enum logtype_e {
 	LOG_Info,
 	LOG_Warning,
 	LOG_Error,
+	LOG_Dev,
 };
-
-// Vertex at (0, 0, 0)
-extern const vertex g_Origin;
-extern bool g_bApplicationReady;
 
 void logf (const char* fmt, ...) FORMAT_PRINTF (1, 2);
 void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
+
+// -----------------------------------------------------------------------------
+// Vertex at (0, 0, 0)
+extern const vertex g_Origin;
+extern bool g_bApplicationReady;
 
 // -----------------------------------------------------------------------------
 // Pointer to the OpenFile which is currently being edited by the user.
@@ -137,10 +144,8 @@ extern vector<OpenFile*> g_LoadedFiles;
 // Pointer to the main application.
 extern QApplication* g_qMainApp;
 
-#ifndef unix
 typedef unsigned int uint;
 typedef unsigned long ulong;
-#endif // unix
 
 // Typedef out the _t suffices :)
 typedef int8_t int8;

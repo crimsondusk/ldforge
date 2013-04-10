@@ -30,11 +30,11 @@
 
 // =============================================================================
 enum HistoryType {
-	HISTORY_Delete,
+	HISTORY_Del,
 	HISTORY_SetColor,
 	HISTORY_SetContents,
 	HISTORY_ListMove,
-	HISTORY_Addition,
+	HISTORY_Add,
 	HISTORY_QuadSplit,
 };
 
@@ -52,15 +52,21 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class DeleteHistory : public HistoryEntry {
+class DelHistory : public HistoryEntry {
 public:
-	IMPLEMENT_HISTORY_TYPE (Delete)
+	enum Type {
+		Cut,	// were deleted with a cut operation
+		Other,	// were deleted witout specific reason
+	};
+	
+	IMPLEMENT_HISTORY_TYPE (Del)
 	
 	vector<ulong> indices;
 	vector<LDObject*> cache;
+	const Type eType;
 	
-	DeleteHistory (vector<ulong> indices, vector<LDObject*> cache) :
-		indices (indices), cache (cache) {}
+	DelHistory (vector<ulong> indices, vector<LDObject*> cache, const Type eType = Other) :
+		indices (indices), cache (cache), eType (eType) {}
 };
 
 // =============================================================================
@@ -110,15 +116,22 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class AdditionHistory : public HistoryEntry {
+class AddHistory : public HistoryEntry {
 public:
-	IMPLEMENT_HISTORY_TYPE (Addition)
+	enum Type {
+		Other,	// was "just added"
+		Paste,	// was added through a paste operation
+	};
+	
+	IMPLEMENT_HISTORY_TYPE (Add)
 	
 	std::vector<ulong> ulaIndices;
 	std::vector<LDObject*> paObjs;
+	const Type eType;
 	
-	AdditionHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paObjs) :
-		ulaIndices (ulaIndices), paObjs (paObjs) {}
+	AddHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paObjs,
+		const Type eType = Other) :
+		ulaIndices (ulaIndices), paObjs (paObjs), eType (eType) {}
 };
 
 // =============================================================================
@@ -146,6 +159,7 @@ namespace History {
 	void redo ();
 	void clear ();
 	void updateActions ();
+	long pos ();
 };
 
 #endif // HISTORY_H

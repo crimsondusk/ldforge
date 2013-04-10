@@ -38,11 +38,13 @@ public:
 	
 private:
 	void updateButtons ();
+	void updateSelection ();
 	
 private slots:
 	void slot_undo ();
 	void slot_redo ();
 	void slot_clear ();
+	void slot_selChanged ();
 };
 
 #endif // ZZ_HISTORYDIALOG_H

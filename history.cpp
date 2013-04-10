@@ -80,12 +80,17 @@ namespace History {
 		ACTION_NAME (undo)->setEnabled (lPos > -1);
 		ACTION_NAME (redo)->setEnabled (lPos < (long) entries.size () - 1);
 	}
+	
+	// =========================================================================
+	long pos () {
+		return lPos;
+	}
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void DeleteHistory::undo () {
+void DelHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		ulong idx = cache.size() - i - 1;
 		LDObject* obj = cache[idx]->clone ();
@@ -96,7 +101,7 @@ void DeleteHistory::undo () {
 }
 
 // =============================================================================
-void DeleteHistory::redo () {
+void DelHistory::redo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		LDObject* obj = g_CurrentFile->objects[indices[i]];
 		
@@ -108,7 +113,7 @@ void DeleteHistory::redo () {
 }
 
 // =============================================================================
-DeleteHistory::~DeleteHistory () {
+DelHistory::~DelHistory () {
 	for (LDObject* obj : cache)
 		delete obj;
 }
@@ -183,12 +188,12 @@ ListMoveHistory::~ListMoveHistory() {}
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-AdditionHistory::~AdditionHistory () {
+AddHistory::~AddHistory () {
 	for (LDObject* pObj : paObjs)
 		delete pObj;
 }
 
-void AdditionHistory::undo () {
+void AddHistory::undo () {
 	for (ulong i = 0; i < paObjs.size(); ++i) {
 		ulong idx = ulaIndices[ulaIndices.size() - i - 1];
 		LDObject* obj = g_CurrentFile->objects[idx];
@@ -200,7 +205,7 @@ void AdditionHistory::undo () {
 	g_ForgeWindow->refresh ();
 }
 
-void AdditionHistory::redo () {
+void AddHistory::redo () {
 	for (ulong i = 0; i < paObjs.size(); ++i) {
 		ulong idx = ulaIndices[i];
 		LDObject* obj = paObjs[i]->clone ();
@@ -225,7 +230,6 @@ void QuadSplitHistory::undo () {
 		// added after it. Thus, we remove the second one here and replace
 		// the first with a copy of the quad.
 		ulong idx = ulaIndices[i];
-		printf ("%lu (%lu)\n", i, idx);
 		
 		LDTriangle* tri1 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx]),
 			*tri2 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx + 1]);
@@ -242,8 +246,6 @@ void QuadSplitHistory::undo () {
 void QuadSplitHistory::redo () {
 	for (long i = paQuads.size() - 1; i >= 0; --i) {
 		ulong idx = ulaIndices[i];
-		
-		printf ("redo: %ld (%lu)\n", i, idx);
 		
 		LDQuad* pQuad = static_cast<LDQuad*> (g_CurrentFile->objects[idx]);
 		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();

@@ -100,6 +100,12 @@ public:
 	QTreeWidget* qObjList;
 	QTextEdit* qMessageLog;
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu, *qControlMenu;
+	
+#ifndef RELEASE
+	QMenu* qDebugMenu;
+	QToolBar* qDebugToolBar;
+#endif // RELEASE
+	
 	std::vector<QToolBar*> qaToolBars;
 	
 	str zMessageLogHTML;

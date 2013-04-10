@@ -23,6 +23,7 @@
 #include "zz_newPartDialog.h"
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
+#include "history.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -138,3 +139,22 @@ ACTION (about, "About " APPNAME_DISPLAY, "ldforge",
 ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1)) {
 	QMessageBox::aboutQt (g_ForgeWindow);
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// Debug things
+#ifndef RELEASE
+ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", CTRL_SHIFT (Q)) {
+	LDQuad* pQuad = new LDQuad;
+	pQuad->dColor = rand () % 16;
+	pQuad->vaCoords[0] = { 1.0f, 0.0f,  1.0f};
+	pQuad->vaCoords[1] = {-1.0f, 0.0f,  1.0f};
+	pQuad->vaCoords[2] = {-1.0f, 0.0f, -1.0f};
+	pQuad->vaCoords[3] = { 1.0f, 0.0f, -1.0f};
+	
+	g_CurrentFile->addObject (pQuad);
+	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_CurrentFile)}, {pQuad->clone ()}));
+	g_ForgeWindow->refresh ();
+}
+#endif // RELEASE

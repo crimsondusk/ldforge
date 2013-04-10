@@ -18,6 +18,7 @@
 
 #include "zz_historyDialog.h"
 #include "history.h"
+#include "colors.h"
 #include <qboxlayout.h>
 #include <qmessagebox.h>
 
@@ -34,6 +35,8 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	qClearButton = new QPushButton ("Clear");
 	qButtons = new QDialogButtonBox (QDialogButtonBox::Close);
 	
+	qHistoryList->setAlternatingRowColors (true);
+	
 	qUndoButton->setIcon (getIcon ("undo"));
 	qRedoButton->setIcon (getIcon ("redo"));
 	
@@ -41,6 +44,7 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	connect (qRedoButton, SIGNAL (clicked ()), this, SLOT (slot_redo ()));
 	connect (qClearButton, SIGNAL (clicked ()), this, SLOT (slot_clear ()));
 	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ()));
+	connect (qHistoryList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selChanged ()));
 	
 	QVBoxLayout* qButtonLayout = new QVBoxLayout;
 	qButtonLayout->setDirection (QBoxLayout::TopToBottom);
@@ -60,6 +64,7 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	
 	populateList ();
 	updateButtons ();
+	updateSelection ();
 }
 
 // =============================================================================
@@ -68,14 +73,54 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 void HistoryDialog::populateList () {
 	qHistoryList->clear ();
 	
+	QListWidgetItem* qItem = new QListWidgetItem;
+	qItem->setText ("[[ initial state ]]");
+	qItem->setIcon (getIcon ("empty"));
+	qHistoryList->addItem (qItem);
+	
 	for (HistoryEntry* entry : History::entries) {
 		str zText;
+		QIcon qEntryIcon;
 		
 		switch (entry->type ()) {
-		case HISTORY_Addition:
+		case HISTORY_Add:
 			{
-				AdditionHistory* addentry = static_cast<AdditionHistory*> (entry);
-				zText.format ("Added %s", LDObject::objectListContents (addentry->paObjs).chars());
+				AddHistory* addentry = static_cast<AddHistory*> (entry);
+				ulong ulCount = addentry->paObjs.size ();
+				str zVerb = "Added";
+				
+				switch (addentry->eType) {
+				case AddHistory::Paste:
+					zVerb = "Pasted";
+					qEntryIcon = getIcon ("paste");
+					break;
+				
+				default:
+					{
+						// Determine a common type for these objects. If all objects are of the same
+						// type, we display its addition icon. Otherwise, we draw a subfile addition
+						// one as a default.
+						LDObjectType_e eCommonType = OBJ_Unidentified;
+						for (LDObject* obj : addentry->paObjs) {
+							if (eCommonType == OBJ_Unidentified or obj->getType() == eCommonType)
+								eCommonType = obj->getType ();
+							else {
+								eCommonType = OBJ_Unidentified;
+								break;
+							}
+						}
+						
+						// Set the icon based on the common type decided above.
+						if (eCommonType == OBJ_Unidentified)
+							qEntryIcon = getIcon ("add-subfile");
+						else
+							qEntryIcon = getIcon (str::mkfmt ("add-%s", g_saObjTypeIcons[eCommonType]));
+					}
+					break;
+				}
+				
+				zText.format ("%s %lu objects\n%s", zVerb.chars(), ulCount,
+					LDObject::objectListContents (addentry->paObjs).chars());
 			}
 			break;
 		
@@ -84,8 +129,66 @@ void HistoryDialog::populateList () {
 				QuadSplitHistory* splitentry = static_cast<QuadSplitHistory*> (entry);
 				ulong ulCount = splitentry->paQuads.size ();
 				zText.format ("Split %lu quad%s to triangles", ulCount, PLURAL (ulCount));
-				break;
+				
+				qEntryIcon = getIcon ("quad-split");
 			}
+			break;
+		
+		case HISTORY_Del:
+			{
+				DelHistory* delentry = static_cast<DelHistory*> (entry);
+				ulong ulCount = delentry->cache.size ();
+				str zVerb = "Deleted";
+				qEntryIcon = getIcon ("delete");
+				
+				switch (delentry->eType) {
+				case DelHistory::Cut:
+					qEntryIcon = getIcon ("cut");
+					zVerb = "Cut";
+					break;
+				
+				default:
+					break;
+				}
+				
+				zText.format ("%s %lu objects:\n%s", zVerb.chars(), ulCount,
+					LDObject::objectListContents (delentry->cache).chars ());
+			}
+			break;
+		
+		case HISTORY_SetColor:
+			{
+				SetColorHistory* colentry = static_cast<SetColorHistory*> (entry);
+				ulong ulCount = colentry->ulaIndices.size ();
+				zText.format ("Set color of %lu objects to %d (%s)", ulCount,
+					colentry->dNewColor, getColor (colentry->dNewColor)->zName.chars());
+				
+				qEntryIcon = getIcon ("palette");
+			}
+			break;
+		
+		case HISTORY_ListMove:
+			{
+				ListMoveHistory* moveentry = static_cast<ListMoveHistory*> (entry);
+				ulong ulCount = moveentry->ulaIndices.size ();
+				
+				zText.format ("Moved %lu objects %s", ulCount,
+					moveentry->bUp ? "up" : "down");
+				qEntryIcon = getIcon (moveentry->bUp ? "arrow-up" : "arrow-down");
+			}
+			break;
+		
+		case HISTORY_SetContents:
+			{
+				SetContentsHistory* setentry = static_cast<SetContentsHistory*> (entry);
+				
+				zText.format ("Set contents of %s\n%s (%s)",
+					g_saObjTypeNames [setentry->oldObj->getType ()],
+					setentry->newObj->getContents ().chars (),
+					g_saObjTypeNames [setentry->newObj->getType ()]);
+				qEntryIcon = getIcon ("set-contents");
+			}
+			break;
 		
 		default:
 			zText = "???";
@@ -94,6 +197,7 @@ void HistoryDialog::populateList () {
 		
 		QListWidgetItem* qItem = new QListWidgetItem;
 		qItem->setText (zText);
+		qItem->setIcon (qEntryIcon);
 		qHistoryList->addItem (qItem);
 	}
 }
@@ -104,12 +208,18 @@ void HistoryDialog::populateList () {
 void HistoryDialog::slot_undo () {
 	History::undo ();
 	updateButtons ();
+	updateSelection ();
 }
 
 // =============================================================================
 void HistoryDialog::slot_redo () {
 	History::redo ();
 	updateButtons ();
+	updateSelection ();
+}
+
+void HistoryDialog::updateSelection () {
+	qHistoryList->setCurrentItem (qHistoryList->item (History::pos () + 1));
 }
 
 // =============================================================================
@@ -124,10 +234,41 @@ void HistoryDialog::slot_clear () {
 	
 	History::clear ();
 	populateList ();
+	updateButtons ();
 }
 
 // =============================================================================
 void HistoryDialog::updateButtons () {
 	qUndoButton->setEnabled (ACTION_NAME (undo)->isEnabled ());
 	qRedoButton->setEnabled (ACTION_NAME (redo)->isEnabled ());
+}
+
+// =============================================================================
+void HistoryDialog::slot_selChanged () {
+	if (qHistoryList->selectedItems ().size () != 1)
+		return;
+	
+	QListWidgetItem* qItem = qHistoryList->selectedItems ()[0];
+	
+	// Find the index of the edit
+	long idx = -1;
+	QListWidgetItem* it;
+	while ((it = qHistoryList->item (++idx)) != nullptr)
+		if (it == qItem)
+			break;
+	
+	idx--; // qHistoryList is 0-based, History is -1-based.
+	
+	if (idx == History::pos ())
+		return;
+	
+	// Seek to the selected edit by repeadetly undoing or redoing.
+	while (History::pos () != idx) {
+		if (History::pos () > idx)
+			History::undo ();
+		else
+			History::redo ();
+	}
+	
+	updateButtons ();
 }

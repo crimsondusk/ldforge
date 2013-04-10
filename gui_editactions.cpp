@@ -62,7 +62,7 @@ ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) 
 		return;
 	
 	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
-	History::addEntry (new DeleteHistory (ulaIndices, copies));
+	History::addEntry (new DelHistory (ulaIndices, copies, DelHistory::Cut));
 }
 
 // =============================================================================
@@ -86,7 +86,7 @@ ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 		paCopies.push_back (obj->clone ());
 	}
 	
-	History::addEntry (new AdditionHistory (ulaIndices, paCopies));
+	History::addEntry (new AddHistory (ulaIndices, paCopies, AddHistory::Paste));
 	g_ForgeWindow->refresh ();
 }
 
@@ -100,7 +100,7 @@ ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
 	
 	if (copies.size ())
-		History::addEntry (new DeleteHistory (ulaIndices, copies));
+		History::addEntry (new DelHistory (ulaIndices, copies));
 }
 
 // =============================================================================
@@ -295,7 +295,7 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 		}
 	}
 	
-	History::addEntry (new AdditionHistory (ulaIndices, paObjs));
+	History::addEntry (new AddHistory (ulaIndices, paObjs));
 	g_ForgeWindow->refresh ();
 }
 

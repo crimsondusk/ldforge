@@ -60,6 +60,10 @@ EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 EXTERN_ACTION (showHistory)
 
+#ifndef RELEASE
+EXTERN_ACTION (addTestQuad)
+#endif // RELEASE
+
 vector<actionmeta> g_ActionMeta;
 
 cfg (bool, lv_colorize, true);
@@ -74,7 +78,8 @@ ForgeWindow::ForgeWindow () {
 	qObjList = new QTreeWidget;
 	qObjList->setHeaderHidden (true);
 	qObjList->setMaximumWidth (256);
-	qObjList->setSelectionMode (QTreeWidget::MultiSelection);
+	qObjList->setSelectionMode (QTreeWidget::ExtendedSelection);
+	qObjList->setAlternatingRowColors (true);
 	connect (qObjList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	
 	qMessageLog = new QTextEdit;
@@ -178,9 +183,15 @@ void ForgeWindow::createMenus () {
 	ADD_MENU_ITEM (Edit, setContents)		// Set Contents
 	ADD_MENU_ITEM (Edit, makeBorders)		// Make Borders
 	
-	// Control menuBar
+	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
 	ADD_MENU_ITEM (Control, showHistory)	// Show History
+	
+#ifndef RELEASE
+	// Debug menu
+	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
+	ADD_MENU_ITEM (Debug, addTestQuad)		// Add Test Quad
+#endif // RELEASE
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));

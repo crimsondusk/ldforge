@@ -210,7 +210,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 		}
 		
 		ulong idx = g_CurrentFile->addObject (obj);
-		History::addEntry (new AdditionHistory ({idx}, {obj->clone ()}));
+		History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
 		window->refresh ();
 	}
 }
