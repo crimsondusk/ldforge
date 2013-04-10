@@ -36,6 +36,7 @@ enum HistoryType {
 	HISTORY_ListMove,
 	HISTORY_Add,
 	HISTORY_QuadSplit,
+	HISTORY_Inline,
 };
 
 // =============================================================================
@@ -146,6 +147,22 @@ public:
 	
 	QuadSplitHistory (std::vector<ulong> ulaIndices, std::vector<LDQuad*> paQuads) :
 		ulaIndices (ulaIndices), paQuads (paQuads) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class InlineHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (Inline)
+	
+	const std::vector<ulong> ulaBitIndices, ulaRefIndices;
+	const std::vector<LDSubfile*> paRefs;
+	const bool bDeep;
+	
+	InlineHistory (const std::vector<ulong> ulaBitIndices, const std::vector<ulong> ulaRefIndices,
+		const std::vector<LDSubfile*> paRefs, const bool bDeep) :
+		ulaBitIndices (ulaBitIndices), ulaRefIndices (ulaRefIndices), paRefs (paRefs), bDeep (bDeep) {}
 };
 
 // =============================================================================

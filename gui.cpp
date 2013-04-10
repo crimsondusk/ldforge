@@ -176,7 +176,6 @@ void ForgeWindow::createMenus () {
 	ADD_MENU_ITEM (Edit, moveDown)			// Move Down
 	qEditMenu->addSeparator ();				// -----
 	ADD_MENU_ITEM (Edit, setColor)			// Set Color
-	qEditMenu->addSeparator ();				// -----
 	ADD_MENU_ITEM (Edit, inlineContents)	// Inline
 	ADD_MENU_ITEM (Edit, deepInline)		// Deep Inline
 	ADD_MENU_ITEM (Edit, splitQuads)		// Split Quads
@@ -250,6 +249,7 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("Objects");
 	ADD_TOOLBAR_ITEM (setColor)
 	ADD_TOOLBAR_ITEM (inlineContents)
+	ADD_TOOLBAR_ITEM (deepInline)
 	ADD_TOOLBAR_ITEM (splitQuads)
 	ADD_TOOLBAR_ITEM (setContents)
 	ADD_TOOLBAR_ITEM (makeBorders)

@@ -257,3 +257,44 @@ void QuadSplitHistory::redo () {
 	
 	g_ForgeWindow->refresh ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void InlineHistory::undo () {
+	for (long i = ulaBitIndices.size() - 1; i >= 0; --i) {
+		LDObject* obj = g_CurrentFile->objects [ulaBitIndices[i]];
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
+	}
+	
+	for (ulong i = 0; i < ulaRefIndices.size(); ++i) {
+		LDSubfile* obj = paRefs[i]->clone ();
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulaRefIndices[i], obj);
+	}
+	
+	g_ForgeWindow->refresh ();
+}
+
+void InlineHistory::redo () {
+	for (long i = ulaRefIndices.size() - 1; i >= 0; --i) {
+		ulong idx = ulaRefIndices[i];
+		
+		assert (g_CurrentFile->object (idx)->getType () == OBJ_Subfile);
+		LDSubfile* ref = static_cast<LDSubfile*> (g_CurrentFile->object (idx));
+		vector<LDObject*> objs = ref->inlineContents (bDeep, false);
+		
+		for (LDObject* obj : objs)
+			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, obj);
+		
+		g_CurrentFile->forgetObject (ref);
+		delete ref;
+	}
+	
+	g_ForgeWindow->refresh ();
+}
+
+InlineHistory::~InlineHistory () {
+	for (LDSubfile* ref : paRefs)
+		delete ref;
+}

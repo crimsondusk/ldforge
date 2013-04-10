@@ -54,6 +54,7 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	qButtonLayout->addStretch ();
 	
 	QGridLayout* qLayout = new QGridLayout;
+	qLayout->setColumnStretch (0, 1);
 	qLayout->addWidget (qHistoryList, 0, 0, 2, 1);
 	qLayout->addLayout (qButtonLayout, 0, 1);
 	qLayout->addWidget (qButtons, 1, 1);
@@ -187,6 +188,19 @@ void HistoryDialog::populateList () {
 					setentry->newObj->getContents ().chars (),
 					g_saObjTypeNames [setentry->newObj->getType ()]);
 				qEntryIcon = getIcon ("set-contents");
+			}
+			break;
+		
+		case HISTORY_Inline:
+			{
+				InlineHistory* subentry = static_cast<InlineHistory*> (entry);
+				
+				zText.format ("%s %lu subfiles:\n%lu resultants",
+					(subentry->bDeep) ? "Deep-inlined" : "Inlined",
+					(ulong) subentry->paRefs.size(),
+					(ulong) subentry->ulaBitIndices.size());
+				
+				qEntryIcon = getIcon (subentry->bDeep ? "inline-deep" : "inline");
 			}
 			break;
 		

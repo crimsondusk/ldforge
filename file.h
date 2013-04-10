@@ -46,6 +46,10 @@ public:
 	
 	// Deletes the given object from the object chain.
 	void forgetObject (LDObject* obj);
+	
+	LDObject* object (size_t uPos) const {
+		return objects[uPos];
+	}
 };
 
 // Close all current loaded files and start off blank.

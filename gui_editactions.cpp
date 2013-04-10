@@ -109,6 +109,18 @@ ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 static void doInline (bool bDeep) {
 	vector<LDObject*> sel = g_ForgeWindow->getSelectedObjects ();
 	
+	// History stuff
+	vector<LDSubfile*> paRefs;
+	vector<ulong> ulaRefIndices, ulaBitIndices;
+	
+	for (LDObject* obj : sel) {
+		if (obj->getType() != OBJ_Subfile)
+			continue;
+		
+		ulaRefIndices.push_back (obj->getIndex (g_CurrentFile));
+		paRefs.push_back (static_cast<LDSubfile*> (obj)->clone ());
+	}
+	
 	for (LDObject* obj : sel) {
 		// Obviously, only subfiles can be inlined.
 		if (obj->getType() != OBJ_Subfile)
@@ -126,14 +138,17 @@ static void doInline (bool bDeep) {
 		vector<LDObject*> objs = ref->inlineContents (bDeep, true);
 		
 		// Merge in the inlined objects
-		for (LDObject* inlineobj : objs)
+		for (LDObject* inlineobj : objs) {
+			ulaBitIndices.push_back (idx);
 			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
+		}
 		
 		// Delete the subfile now as it's been inlined.
 		g_CurrentFile->forgetObject (ref);
 		delete ref;
 	}
 	
+	History::addEntry (new InlineHistory (ulaBitIndices, ulaRefIndices, paRefs, bDeep));
 	g_ForgeWindow->refresh ();
 }
 
