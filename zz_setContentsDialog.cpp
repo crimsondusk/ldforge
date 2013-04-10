@@ -21,6 +21,7 @@
 #include "zz_setContentsDialog.h"
 #include "file.h"
 #include "gui.h"
+#include "history.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -81,19 +82,26 @@ void SetContentsDialog::slot_handleButtons (QAbstractButton* qButton) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void SetContentsDialog::staticDialog (LDObject* obj, ForgeWindow* parent) {
+void SetContentsDialog::staticDialog (LDObject* obj) {
 	if (!obj)
 		return;
 	
-	SetContentsDialog dlg (obj, parent);
-	if (dlg.exec ()) {
-		LDObject* oldobj = obj;
-		
-		// Reinterpret it from the text of the input field
-		obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
-		oldobj->replace (obj);
-		
-		// Rebuild stuff after this
-		parent->refresh ();
-	}
+	SetContentsDialog dlg (obj, g_ForgeWindow);
+	if (dlg.exec () == false)
+		return;
+	
+	LDObject* oldobj = obj;
+	
+	// Reinterpret it from the text of the input field
+	obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
+	
+	// Mark down the history now before we perform the replacement (which
+	// destroys the old object)
+	History::addEntry (new SetContentsHistory (oldobj->getIndex (g_CurrentFile),
+		oldobj->clone (), obj->clone ()));
+	
+	oldobj->replace (obj);
+	
+	// Rebuild stuff after this
+	g_ForgeWindow->refresh ();
 }

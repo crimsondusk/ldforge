@@ -187,7 +187,7 @@ ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this o
 		return;
 	
 	LDObject* obj = g_ForgeWindow->getSelectedObjects ()[0];
-	SetContentsDialog::staticDialog (obj, g_ForgeWindow);
+	SetContentsDialog::staticDialog (obj);
 }
 
 // =============================================================================

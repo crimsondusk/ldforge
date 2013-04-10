@@ -36,7 +36,7 @@ public:
 	QDialogButtonBox* qButtons;
 	
 	SetContentsDialog (LDObject* obj, QWidget* parent = nullptr);
-	static void staticDialog (LDObject* obj, ForgeWindow* parent);
+	static void staticDialog (LDObject* obj);
 	
 private slots:
 	void slot_handleButtons (QAbstractButton* qButton);

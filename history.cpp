@@ -71,6 +71,28 @@ void SetColorHistory::redo () {
 	g_ForgeWindow->refresh ();
 }
 
+SetColorHistory::~SetColorHistory () {}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void SetContentsHistory::undo () {
+	LDObject* obj = g_CurrentFile->objects[ulIndex];
+	obj->replace (oldObj->clone ());
+	g_ForgeWindow->refresh ();
+}
+
+void SetContentsHistory::redo () {
+	LDObject* obj = g_CurrentFile->objects[ulIndex];
+	obj->replace (newObj->clone ());
+	g_ForgeWindow->refresh ();
+}
+
+SetContentsHistory::~SetContentsHistory () {
+	delete oldObj;
+	delete newObj;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================

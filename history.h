@@ -25,10 +25,14 @@
 	virtual HistoryType_e getType () const { \
 		return HISTORY_##N; \
 	} \
+	virtual ~N##History (); \
+	virtual void undo (); \
+	virtual void redo ();
 
 enum HistoryType_e {
 	HISTORY_Delete,
 	HISTORY_SetColor,
+	HISTORY_SetContents,
 };
 
 // =============================================================================
@@ -57,9 +61,6 @@ public:
 	
 	DeleteHistory (vector<ulong> indices, vector<LDObject*> cache) :
 		indices (indices), cache (cache) {}
-	virtual ~DeleteHistory ();
-	virtual void undo ();
-	virtual void redo ();
 };
 
 // =============================================================================
@@ -75,9 +76,17 @@ public:
 	
 	SetColorHistory (vector<ulong> ulaIndices, vector<short> daColors, short dNewColor) :
 		ulaIndices (ulaIndices), daColors (daColors), dNewColor (dNewColor) {}
-	virtual ~SetColorHistory () {}
-	virtual void undo ();
-	virtual void redo ();
+};
+
+class SetContentsHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (SetContents)
+	
+	ulong ulIndex;
+	LDObject* oldObj, *newObj;
+	
+	SetContentsHistory (ulong ulIndex, LDObject* oldObj, LDObject* newObj) :
+		ulIndex (ulIndex), oldObj (oldObj), newObj (newObj) {}
 };
 
 // =============================================================================

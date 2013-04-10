@@ -226,7 +226,7 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace all instances of the old object with the new object
-	for (LDObject* obj : g_CurrentFile->objects)
+	for (LDObject*& obj : g_CurrentFile->objects)
 		if (obj == this)
 			obj = replacement;
 	
