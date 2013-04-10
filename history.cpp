@@ -78,8 +78,9 @@ namespace History {
 // =============================================================================
 void DeleteHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
-		LDObject* obj = cache[i]->clone ();
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + indices[i], obj);
+		ulong idx = cache.size() - i - 1;
+		LDObject* obj = cache[idx]->clone ();
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + indices[idx], obj);
 	}
 	
 	g_ForgeWindow->refresh ();

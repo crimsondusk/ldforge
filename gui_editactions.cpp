@@ -54,10 +54,14 @@ static bool copyToClipboard () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
+	vector<ulong> ulaIndices;
+	vector<LDObject*> copies;
+	
 	if (!copyToClipboard ())
 		return;
 	
-	g_ForgeWindow->deleteSelection ();
+	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
+	History::addEntry (new DeleteHistory (ulaIndices, copies));
 }
 
 // =============================================================================
@@ -71,9 +75,17 @@ ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", CTRL (
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
-	for (LDObject* obj : g_Clipboard)
-		g_CurrentFile->addObject (obj->clone ());
+	vector<ulong> ulaIndices;
+	vector<LDObject*> paCopies;
 	
+	for (LDObject* obj : g_Clipboard) {
+		ulong idx = g_CurrentFile->addObject (obj->clone ());
+		
+		ulaIndices.push_back (idx);
+		paCopies.push_back (obj->clone ());
+	}
+	
+	History::addEntry (new AdditionHistory (ulaIndices, paCopies));
 	g_ForgeWindow->refresh ();
 }
 
@@ -81,24 +93,13 @@ ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
-	vector<LDObject*> sel = g_ForgeWindow->getSelectedObjects ();
-	
-	if (sel.size() == 0)
-		return;
-	
 	vector<ulong> ulaIndices;
 	vector<LDObject*> copies;
 	
-	for (LDObject* obj : sel) {
-		copies.insert (copies.begin(), obj->clone ());
-		ulaIndices.insert (ulaIndices.begin(), obj->getIndex (g_CurrentFile));
-		
-		g_CurrentFile->forgetObject (obj);
-		delete obj;
-	}
+	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
 	
-	History::addEntry (new DeleteHistory (ulaIndices, copies));
-	g_ForgeWindow->refresh ();
+	if (copies.size ())
+		History::addEntry (new DeleteHistory (ulaIndices, copies));
 }
 
 // =============================================================================

@@ -110,7 +110,7 @@ public:
 	void refresh ();
 	std::vector<LDObject*> getSelectedObjects ();
 	ulong getInsertionPoint ();
-	void deleteSelection ();
+	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
 
 private:

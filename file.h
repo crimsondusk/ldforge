@@ -42,7 +42,7 @@ public:
 	bool save (str zPath = "");
 	
 	// Adds an object to this file at the appropriate location.
-	void addObject (LDObject* obj);
+	ulong addObject (LDObject* obj);
 	
 	// Deletes the given object from the object chain.
 	void forgetObject (LDObject* obj);

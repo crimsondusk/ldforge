@@ -298,11 +298,16 @@ void ForgeWindow::slot_action () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::deleteSelection () {
+void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
 	vector<LDObject*> objs = getSelectedObjects ();
 	
 	// Delete the objects that were being selected
 	for (LDObject* obj : objs) {
+		if (papObjects && ulapIndices) {
+			papObjects->push_back (obj->clone ());
+			ulapIndices->push_back (obj->getIndex (g_CurrentFile));
+		}
+		
 		g_CurrentFile->forgetObject (obj);
 		delete obj;
 	}

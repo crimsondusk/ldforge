@@ -468,14 +468,15 @@ void reloadAllSubfiles () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void OpenFile::addObject (LDObject* obj) {
+ulong OpenFile::addObject (LDObject* obj) {
 	if (this != g_CurrentFile) {
 		objects.insert (objects.end (), obj);
-		return;
+		return objects.size() - 1;
 	}
 	
 	const ulong ulSpot = g_ForgeWindow->getInsertionPoint ();
 	objects.insert (objects.begin() + ulSpot, obj);
+	return ulSpot;
 }
 
 // =============================================================================
