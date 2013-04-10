@@ -98,6 +98,8 @@ public:
 	// Swap this object with another.
 	void swap (LDObject* other);
 	
+	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
+	
 	QTreeWidgetItem* qObjListEntry;
 };
 

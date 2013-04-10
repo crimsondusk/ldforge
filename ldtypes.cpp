@@ -394,3 +394,29 @@ long LDObject::getIndex (OpenFile* pFile) {
 	
 	return -1;
 }
+
+void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
+	// If we move down, we need to iterate the array in reverse order.
+	const long start = bUp ? 0 : (objs.size() - 1);
+	const long end = bUp ? objs.size() : -1;
+	const long incr = bUp ? 1 : -1;
+	
+	for (long i = start; i != end; i += incr) {
+		LDObject* obj = objs[i];
+		
+		const long lIndex = obj->getIndex (g_CurrentFile),
+			lTarget = lIndex + (bUp ? -1 : 1);
+		
+		if ((bUp == true and lIndex == 0) or
+			(bUp == false and lIndex == (long)(g_CurrentFile->objects.size() - 1)))
+		{
+			// One of the objects hit the extrema. If this happens, this should be the first
+			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
+			// abort the entire operation.
+			assert (i == start);
+			return;
+		}
+		
+		obj->swap (g_CurrentFile->objects[lTarget]);
+	}
+}

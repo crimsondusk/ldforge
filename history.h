@@ -22,18 +22,10 @@
 #include "common.h"
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
-	virtual HistoryType_e getType () const { \
-		return HISTORY_##N; \
-	} \
 	virtual ~N##History (); \
 	virtual void undo (); \
 	virtual void redo ();
 
-enum HistoryType_e {
-	HISTORY_Delete,
-	HISTORY_SetColor,
-	HISTORY_SetContents,
-};
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -43,10 +35,6 @@ public:
 	virtual void undo () {}
 	virtual void redo () {}
 	virtual ~HistoryEntry () {}
-	
-	virtual HistoryType_e getType () const {
-		return (HistoryType_e)(0);
-	};
 };
 
 // =============================================================================
@@ -78,6 +66,9 @@ public:
 		ulaIndices (ulaIndices), daColors (daColors), dNewColor (dNewColor) {}
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 class SetContentsHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (SetContents)
@@ -87,6 +78,21 @@ public:
 	
 	SetContentsHistory (ulong ulIndex, LDObject* oldObj, LDObject* newObj) :
 		ulIndex (ulIndex), oldObj (oldObj), newObj (newObj) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class ListMoveHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (ListMove)
+	
+	std::vector<ulong> ulaIndices;
+	bool bUp;
+	
+	std::vector<LDObject*> getObjects (short ofs);
+	ListMoveHistory (vector<ulong> ulaIndices, const bool bUp) :
+		ulaIndices (ulaIndices), bUp (bUp) {}
 };
 
 // =============================================================================

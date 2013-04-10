@@ -25,6 +25,44 @@
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+namespace History {
+	std::vector<HistoryEntry*> entries;
+	
+	static long lPos = -1;
+	
+	// =========================================================================
+	void addEntry (HistoryEntry* entry) {
+		// If there's any entries after our current position, we need to remove them now
+		for (ulong i = lPos + 1; i < entries.size(); ++i) {
+			
+			delete entries[i];
+			entries.erase (entries.begin() + i);
+		}
+		
+		entries.push_back (entry);
+		lPos++;
+	}
+	
+	// =========================================================================
+	void undo () {
+		if (lPos == -1)
+			return; // nothing to undo
+		
+		entries[lPos--]->undo ();
+	}
+	
+	// =========================================================================
+	void redo () {
+		if (lPos == (long) entries.size () - 1)
+			return; // nothing to redo;
+		
+		entries[++lPos]->redo ();
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void DeleteHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		LDObject* obj = cache[i]->clone ();
@@ -96,37 +134,25 @@ SetContentsHistory::~SetContentsHistory () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-namespace History {
-	std::vector<HistoryEntry*> entries;
+std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
+	std::vector<LDObject*> objs;
 	
-	static long lPos = -1;
+	for (ulong idx : ulaIndices)
+		objs.push_back (g_CurrentFile->objects[idx + ofs]);
 	
-	// =========================================================================
-	void addEntry (HistoryEntry* entry) {
-		// If there's any entries after our current position, we need to remove them now
-		for (ulong i = lPos + 1; i < entries.size(); ++i) {
-			
-			delete entries[i];
-			entries.erase (entries.begin() + i);
-		}
-		
-		entries.push_back (entry);
-		lPos++;
-	}
-	
-	// =========================================================================
-	void undo () {
-		if (lPos == -1)
-			return; // nothing to undo
-		
-		entries[lPos--]->undo ();
-	}
-	
-	// =========================================================================
-	void redo () {
-		if (lPos == (long) entries.size () - 1)
-			return; // nothing to redo;
-		
-		entries[++lPos]->redo ();
-	}
+	return objs;
 }
+
+void ListMoveHistory::undo () {
+	std::vector<LDObject*> objs = getObjects (bUp ? -1 : 1);
+	LDObject::moveObjects (objs, !bUp);
+	g_ForgeWindow->buildObjList ();
+}
+
+void ListMoveHistory::redo () {
+	std::vector<LDObject*> objs = getObjects (0);
+	LDObject::moveObjects (objs, bUp);
+	g_ForgeWindow->buildObjList ();
+}
+
+ListMoveHistory::~ListMoveHistory() {}
