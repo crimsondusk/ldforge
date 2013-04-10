@@ -98,12 +98,27 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+class AdditionHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (Addition)
+	
+	std::vector<ulong> ulaIndices;
+	std::vector<LDObject*> paObjs;
+	
+	AdditionHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paObjs) :
+		ulaIndices (ulaIndices), paObjs (paObjs) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 namespace History {
 	extern std::vector<HistoryEntry*> entries;
 	
 	void addEntry (HistoryEntry* entry);
 	void undo ();
 	void redo ();
+	void updateActions ();
 };
 
 #endif // HISTORY_H

@@ -25,6 +25,7 @@
 #include "config.h"
 #include "misc.h"
 #include "colors.h"
+#include "history.h"
 #include "config.h"
 
 EXTERN_ACTION (newFile)
@@ -124,6 +125,8 @@ void ForgeWindow::createMenuActions () {
 	
 	for (QAction* act : qaDisabledActions)
 		act->setEnabled (false);
+	
+	History::updateActions ();
 }
 
 // =============================================================================

@@ -22,6 +22,9 @@
 #include "misc.h"
 #include "gui.h"
 
+EXTERN_ACTION (undo)
+EXTERN_ACTION (redo)
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -41,6 +44,8 @@ namespace History {
 		
 		entries.push_back (entry);
 		lPos++;
+		
+		updateActions ();
 	}
 	
 	// =========================================================================
@@ -49,6 +54,7 @@ namespace History {
 			return; // nothing to undo
 		
 		entries[lPos--]->undo ();
+		updateActions ();
 	}
 	
 	// =========================================================================
@@ -57,6 +63,13 @@ namespace History {
 			return; // nothing to redo;
 		
 		entries[++lPos]->redo ();
+		updateActions ();
+	}
+	
+	// =========================================================================
+	void updateActions () {
+		ACTION_NAME (undo)->setEnabled (lPos > -1);
+		ACTION_NAME (redo)->setEnabled (lPos < (long) entries.size () - 1);
 	}
 }
 
@@ -156,3 +169,34 @@ void ListMoveHistory::redo () {
 }
 
 ListMoveHistory::~ListMoveHistory() {}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+AdditionHistory::~AdditionHistory () {
+	for (LDObject* pObj : paObjs)
+		delete pObj;
+}
+
+void AdditionHistory::undo () {
+	for (ulong i = 0; i < paObjs.size(); ++i) {
+		ulong idx = ulaIndices[ulaIndices.size() - i - 1];
+		LDObject* obj = g_CurrentFile->objects[idx];
+		
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
+	}
+	
+	g_ForgeWindow->refresh ();
+}
+
+void AdditionHistory::redo () {
+	for (ulong i = 0; i < paObjs.size(); ++i) {
+		ulong idx = ulaIndices[i];
+		LDObject* obj = paObjs[i]->clone ();
+		
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx, obj);
+	}
+	
+	g_ForgeWindow->refresh ();
+}

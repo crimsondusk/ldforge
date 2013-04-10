@@ -246,6 +246,9 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 {
 	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
 	
+	vector<ulong> ulaIndices;
+	vector<LDObject*> paObjs;
+	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
 			continue;
@@ -271,11 +274,17 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 		}
 		
 		for (short i = 0; i < dNumLines; ++i) {
+			ulong idx = obj->getIndex (g_CurrentFile) + i + 1;
+			
 			lines[i]->dColor = dEdgeColor;
-			g_CurrentFile->addObject (lines[i]);
+			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx, lines[i]);
+			
+			ulaIndices.push_back (idx);
+			paObjs.push_back (lines[i]->clone ());
 		}
 	}
 	
+	History::addEntry (new AdditionHistory (ulaIndices, paObjs));
 	g_ForgeWindow->refresh ();
 }
 
