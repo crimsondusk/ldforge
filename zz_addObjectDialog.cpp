@@ -22,6 +22,7 @@
 #include "file.h"
 #include "colors.h"
 #include "zz_colorSelectDialog.h"
+#include "history.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) { \
@@ -149,27 +150,20 @@ void AddObjectDialog::slot_colorButtonClicked () {
 // =============================================================================
 void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* window) {
 	AddObjectDialog dlg (type, window);
+	LDObject* obj = nullptr;
 	
 	if (dlg.exec ()) {
 		switch (type) {
 		case OBJ_Comment:
-			{
-				LDComment* comm = new LDComment;
-				comm->zText = dlg.qCommentLine->text ();
-				g_CurrentFile->addObject (comm);
-				window->refresh ();
-			}
+			obj = new LDComment (dlg.qCommentLine->text ());
 			break;
 		
 		case OBJ_Line:
 			{
 				LDLine* line = new LDLine;
 				line->dColor = dlg.dColor;
-				
 				APPLY_COORDS (line, 2)
-				
-				g_CurrentFile->addObject (line);
-				window->refresh ();
+				obj = line;
 			}
 			break;
 		
@@ -177,11 +171,8 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			{
 				LDTriangle* tri = new LDTriangle;
 				tri->dColor = dlg.dColor;
-				
 				APPLY_COORDS (tri, 3)
-				
-				g_CurrentFile->addObject (tri);
-				window->refresh ();
+				obj = tri;
 			}
 			break;
 		
@@ -189,11 +180,8 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			{
 				LDQuad* quad = new LDQuad;
 				quad->dColor = dlg.dColor;
-				
 				APPLY_COORDS (quad, 4)
-				
-				g_CurrentFile->addObject (quad);
-				window->refresh ();
+				obj = quad;
 			}
 			break;
 		
@@ -201,11 +189,8 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			{
 				LDCondLine* line = new LDCondLine;
 				line->dColor = dlg.dColor;
-				
 				APPLY_COORDS (line, 4)
-				
-				g_CurrentFile->addObject (line);
-				window->refresh ();
+				obj = line;
 			}
 			break;
 		
@@ -216,14 +201,16 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 				vert->vPosition.x = dlg.qaCoordinates[0]->value ();
 				vert->vPosition.y = dlg.qaCoordinates[1]->value ();
 				vert->vPosition.z = dlg.qaCoordinates[2]->value ();
-				
-				g_CurrentFile->addObject (vert);
-				window->refresh ();
+				obj = vert;
 			}
 			break;
 		
 		default:
 			break;
 		}
+		
+		ulong idx = g_CurrentFile->addObject (obj);
+		History::addEntry (new AdditionHistory ({idx}, {obj->clone ()}));
+		window->refresh ();
 	}
 }
