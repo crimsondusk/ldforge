@@ -273,7 +273,7 @@ void ForgeWindow::createToolbars () {
 	
 	// ==========================================
 	// Color toolbar
-	qColorToolBar = new QToolBar;
+	qColorToolBar = new QToolBar ("Quick Colors");
 	addToolBar (Qt::RightToolBarArea, qColorToolBar);
 	
 	// ==========================================
