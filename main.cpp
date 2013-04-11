@@ -33,7 +33,7 @@ QApplication* g_qMainApp = nullptr;
 
 const vertex g_Origin (0.0f, 0.0f, 0.0f);
 
-int main (int dArgC, char* saArgV[]) {
+int main (int dArgc, char* saArgv[]) {
 	// Load or create the configuration
 	if (!config::load()) {
 		printf ("Creating configuration file...\n");
@@ -45,7 +45,7 @@ int main (int dArgC, char* saArgV[]) {
 	
 	initColors ();
 	
-	QApplication app (dArgC, saArgV);
+	QApplication app (dArgc, saArgv);
 	ForgeWindow* win = new ForgeWindow;
 	
 	g_qMainApp = &app;

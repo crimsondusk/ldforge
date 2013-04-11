@@ -83,7 +83,7 @@ ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific f
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME_DISPLAY ".", (0)) {
-	ConfigDialog::staticDialog (g_ForgeWindow);
+	ConfigDialog::staticDialog ();
 }
 
 // =============================================================================

@@ -238,13 +238,8 @@ void HistoryDialog::updateSelection () {
 
 // =============================================================================
 void HistoryDialog::slot_clear () {
-	if (QMessageBox::question (this, "Confirm", "Are you sure you want to "
-		"clear the edit history?\nThis cannot be undone.",
-		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) != QMessageBox::Yes)
-	{
-		// Canceled
-		return;
-	}
+	if (!confirm ("Are you sure you want to clear the edit history?\nThis cannot be undone."))
+		return; // Canceled
 	
 	History::clear ();
 	populateList ();

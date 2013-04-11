@@ -28,6 +28,8 @@ class color {
 public:
 	str zName, zColorString;
 	QColor qColor, qEdge;
+	
+	short index ();
 };
 
 typedef struct {

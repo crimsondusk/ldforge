@@ -30,7 +30,7 @@ class ConfigDialog : public QDialog {
 	
 public:
 	QTabWidget* qTabs;
-	QWidget* qMainTab, *qShortcutsTab;
+	QWidget* qMainTab, *qShortcutsTab, *qQuickColorTab;
 	
 	// =========================================================================
 	// Main tab widgets
@@ -49,29 +49,49 @@ public:
 	QPushButton* qSetShortcut, *qResetShortcut, *qClearShortcut;
 	std::vector<QListWidgetItem*> qaShortcutItems;
 	
+	// =========================================================================
+	// Quick color toolbar tab
+	QListWidget* qQuickColorList;
+	QPushButton* qAddColor, *qDelColor, *qChangeColor, *qAddColorSeparator,
+		*qMoveColorUp, *qMoveColorDown, *qClearColors;
+	std::vector<QListWidgetItem*> qaQuickColorItems;
+	std::vector<quickColorMetaEntry> quickColorMeta;
+	
+	// =========================================================================
 	QDialogButtonBox* qButtons;
 	
 	ConfigDialog (ForgeWindow* parent);
 	~ConfigDialog ();
-	static void staticDialog (ForgeWindow* window);
+	static void staticDialog ();
 	
 private:
 	void initMainTab ();
 	void initShortcutsTab ();
+	void initQuickColorTab ();
 	
 	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
 	void setButtonBackground (QPushButton* qButton, str zValue);
 	void pickColor (strconfig& cfg, QPushButton* qButton);
+	void updateQuickColorList (quickColorMetaEntry* pSel = nullptr);
 	void setShortcutText (QListWidgetItem* qItem, actionmeta meta);
-	long getItemRow (QListWidgetItem* qItem);
+	long getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack);
+	str makeColorToolBarString ();
+	QListWidgetItem* getSelectedQuickColor ();
 	
 private slots:
 	void slot_findLDrawPath ();
 	void slot_setGLBackground ();
 	void slot_setGLForeground ();
+	
 	void slot_setShortcut ();
 	void slot_resetShortcut ();
 	void slot_clearShortcut ();
+	
+	void slot_setColor ();
+	void slot_delColor ();
+	void slot_addColorSeparator ();
+	void slot_moveColor ();
+	void slot_clearColors ();
 };
 
 // =============================================================================

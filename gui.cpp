@@ -68,6 +68,7 @@ vector<actionmeta> g_ActionMeta;
 
 cfg (bool, lv_colorize, true);
 cfg (int, gui_toolbar_iconsize, 24);
+cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
 
 // =============================================================================
@@ -96,6 +97,8 @@ ForgeWindow::ForgeWindow () {
 	layout->addWidget (qMessageLog,	1, 0, 1, 2);
 	w->setLayout (layout);
 	setCentralWidget (w);
+	
+	quickColorMeta = parseQuickColorMeta ();
 	
 	createMenuActions ();
 	createMenus ();
@@ -269,6 +272,11 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (moveDown)
 	
 	// ==========================================
+	// Color toolbar
+	qColorToolBar = new QToolBar;
+	addToolBar (Qt::RightToolBarArea, qColorToolBar);
+	
+	// ==========================================
 	// Left area toolbars
 	g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Objects");
@@ -282,9 +290,55 @@ void ForgeWindow::createToolbars () {
 	updateToolBars ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+std::vector<quickColorMetaEntry> parseQuickColorMeta () {
+	std::vector<quickColorMetaEntry> meta;
+	
+	for (str zColor : gui_colortoolbar.value / ":") {
+		if (zColor == "|") {
+			meta.push_back ({nullptr, nullptr, true});
+		} else {
+			color* col = getColor (atoi (zColor));
+			meta.push_back ({col, nullptr, false});
+		}
+	}
+	
+	return meta;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::updateToolBars () {
-	for (QToolBar* qBar : qaToolBars) {
+	for (QToolBar* qBar : qaToolBars)
 		qBar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
+	
+	// Update the quick color toolbar.
+	for (QPushButton* qButton : qaColorButtons)
+		delete qButton;
+	
+	qaColorButtons.clear ();
+	
+	// Clear the toolbar to remove separators
+	qColorToolBar->clear ();
+	
+	for (quickColorMetaEntry& entry : quickColorMeta) {
+		if (entry.bSeparator)
+			qColorToolBar->addSeparator ();
+		else {
+			QPushButton* qColorButton = new QPushButton;
+			qColorButton->setAutoFillBackground (true);
+			qColorButton->setStyleSheet (str::mkfmt ("background-color: %s", entry.col->zColorString.chars()));
+			qColorButton->setToolTip (entry.col->zName);
+			
+			connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
+			qColorToolBar->addWidget (qColorButton);
+			qaColorButtons.push_back (qColorButton);
+			
+			entry.btn = qColorButton;
+		}
 	}
 }
 
@@ -512,6 +566,41 @@ void ForgeWindow::slot_recentFile () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ForgeWindow::slot_quickColor () {
+	QPushButton* qBtn = static_cast<QPushButton*> (sender ());
+	color* col = nullptr;
+	
+	for (quickColorMetaEntry entry : quickColorMeta) {
+		if (entry.btn == qBtn) {
+			col = entry.col;
+			break;
+		}
+	}
+	
+	if (col == nullptr)
+		return;
+	
+	std::vector<ulong> ulaIndices;
+	std::vector<short> daColors;
+	short dNewColor = col->index ();
+	
+	for (LDObject* obj : getSelectedObjects ()) {
+		if (obj->dColor == -1)
+			continue; // uncolored object
+		
+		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+		daColors.push_back (obj->dColor);
+		
+		obj->dColor = dNewColor;
+	}
+	
+	History::addEntry (new SetColorHistory (ulaIndices, daColors, dNewColor));
+	refresh ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 ulong ForgeWindow::getInsertionPoint () {
 	ulong ulIndex;
 	
@@ -560,4 +649,10 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 // =============================================================================
 QIcon getIcon (const char* sIconName) {
 	return (QIcon (str::mkfmt ("./icons/%s.png", sIconName)));
+}
+
+// =============================================================================
+bool confirm (str zMessage) {
+	return QMessageBox::question (g_ForgeWindow, "Confirm", zMessage,
+		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }

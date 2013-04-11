@@ -26,6 +26,7 @@
 #include <QTreeWidget>
 #include <QToolBar>
 #include <QTextEdit>
+#include <qpushbutton.h>
 #include "gldraw.h"
 #include "config.h"
 
@@ -65,6 +66,13 @@ extern vector<actionmeta> g_ActionMeta;
 #define CTRL(N) (Qt::CTRL | Qt::Key_##N)
 #define SHIFT(N) (Qt::SHIFT | Qt::Key_##N)
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
+
+class color;
+typedef struct {
+	color* col;
+	QPushButton* btn;
+	bool bSeparator;
+} quickColorMetaEntry;
 
 // =============================================================================
 // ActionAdder
@@ -110,6 +118,10 @@ public:
 	
 	std::vector<QToolBar*> qaToolBars;
 	
+	std::vector<QPushButton*> qaColorButtons;
+	QToolBar* qColorToolBar;
+	std::vector<quickColorMetaEntry> quickColorMeta;
+	
 	str zMessageLogHTML;
 	
 	ForgeWindow ();
@@ -132,11 +144,14 @@ private slots:
 	void slot_selectionChanged ();
 	void slot_action ();
 	void slot_recentFile ();
+	void slot_quickColor ();
 };
 
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QIcon getIcon (const char* sIconName);
+std::vector<quickColorMetaEntry> parseQuickColorMeta ();
+bool confirm (str zMessage);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

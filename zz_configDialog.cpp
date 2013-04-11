@@ -21,6 +21,8 @@
 #include "file.h"
 #include "config.h"
 #include "misc.h"
+#include "colors.h"
+#include "zz_colorSelectDialog.h"
 #include <qgridlayout.h>
 #include <qfiledialog.h>
 #include <qcolordialog.h>
@@ -35,6 +37,7 @@ extern_cfg (bool, gl_colorbfc);
 extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
+extern_cfg (str, gui_colortoolbar);
 
 ConfigDialog* g_ConfigDialog = nullptr;
 
@@ -53,6 +56,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	
 	initMainTab ();
 	initShortcutsTab ();
+	initQuickColorTab ();
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -190,6 +194,182 @@ void ConfigDialog::initShortcutsTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ConfigDialog::initQuickColorTab () {
+	qQuickColorTab = new QWidget;
+	
+	qAddColor = new QPushButton (getIcon ("palette"), "Add");
+	qDelColor = new QPushButton (getIcon ("delete"), "Remove");
+	qChangeColor = new QPushButton (getIcon ("palette"), "Set");
+	qAddColorSeparator = new QPushButton ("Add Separator");
+	qMoveColorUp = new QPushButton (getIcon ("arrow-up"), "Move Up");
+	qMoveColorDown = new QPushButton (getIcon ("arrow-down"), "Move Down");
+	qClearColors = new QPushButton (getIcon ("delete-all"), "Clear");
+	
+	qQuickColorList = new QListWidget;
+	
+	quickColorMeta = parseQuickColorMeta ();
+	updateQuickColorList ();
+	
+	QVBoxLayout* qButtonLayout = new QVBoxLayout;
+	qButtonLayout->addWidget (qAddColor);
+	qButtonLayout->addWidget (qDelColor);
+	qButtonLayout->addWidget (qChangeColor);
+	qButtonLayout->addWidget (qAddColorSeparator);
+	qButtonLayout->addWidget (qMoveColorUp);
+	qButtonLayout->addWidget (qMoveColorDown);
+	qButtonLayout->addWidget (qClearColors);
+	qButtonLayout->addStretch (1);
+	
+	connect (qAddColor, SIGNAL (clicked ()), this, SLOT (slot_setColor ()));
+	connect (qDelColor, SIGNAL (clicked ()), this, SLOT (slot_delColor ()));
+	connect (qChangeColor, SIGNAL (clicked ()), this, SLOT (slot_setColor ()));
+	connect (qAddColorSeparator, SIGNAL (clicked ()), this, SLOT (slot_addColorSeparator ()));
+	connect (qMoveColorUp, SIGNAL (clicked ()), this, SLOT (slot_moveColor ()));
+	connect (qMoveColorDown, SIGNAL (clicked ()), this, SLOT (slot_moveColor ()));
+	connect (qClearColors, SIGNAL (clicked ()), this, SLOT (slot_clearColors ()));
+	
+	QGridLayout* qLayout = new QGridLayout;
+	qLayout->addWidget (qQuickColorList, 0, 0);
+	qLayout->addLayout (qButtonLayout, 0, 1);
+	
+	qQuickColorTab->setLayout (qLayout);
+	qTabs->addTab (qQuickColorTab, "Quick Colors");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
+	for (QListWidgetItem* qItem : qaQuickColorItems)
+		delete qItem;
+	
+	qaQuickColorItems.clear ();
+	
+	// Init table items
+	for (quickColorMetaEntry& entry : quickColorMeta) {
+		QListWidgetItem* qItem = new QListWidgetItem;
+		
+		if (entry.bSeparator) {
+			qItem->setText ("--------");
+			qItem->setIcon (getIcon ("empty"));
+		} else {
+			color* col = entry.col;
+			
+			if (col == nullptr) {
+				qItem->setText ("[[unknown color]]");
+				qItem->setIcon (getIcon ("error"));
+			} else {
+				qItem->setText (col->zName);
+				qItem->setIcon (getIcon ("palette"));
+			}
+		}
+		
+		qQuickColorList->addItem (qItem);
+		qaQuickColorItems.push_back (qItem);
+		
+		if (pSel && &entry == pSel) {
+			qQuickColorList->setCurrentItem (qItem);
+			qQuickColorList->scrollToItem (qItem);
+		}
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::slot_setColor () {
+	quickColorMetaEntry* pEntry = nullptr;
+	QListWidgetItem* qItem = nullptr;
+	const bool bNew = static_cast<QPushButton*> (sender ()) == qAddColor;
+	
+	if (bNew == false) {
+		qItem = getSelectedQuickColor ();
+		if (!qItem)
+			return;
+		
+		ulong ulIdx = getItemRow (qItem, qaQuickColorItems);
+		pEntry = &quickColorMeta[ulIdx];
+		
+		if (pEntry->bSeparator == true)
+			return; // don't color separators
+	}
+	
+	short dDefault = pEntry ? pEntry->col->index () : -1;
+	short dValue;
+	
+	if (ColorSelectDialog::staticDialog (dValue, dDefault, this) == false)
+		return;
+	
+	if (pEntry)
+		pEntry->col = getColor (dValue);
+	else {
+		quickColorMetaEntry entry = {getColor (dValue), nullptr, false};
+		
+		qItem = getSelectedQuickColor ();
+		ulong idx;
+		
+		if (qItem)
+			idx = getItemRow (qItem, qaQuickColorItems) + 1;
+		else
+			idx = qaQuickColorItems.size();
+		
+		quickColorMeta.insert (quickColorMeta.begin() + idx, entry);
+		pEntry = &quickColorMeta[idx];
+	}
+	
+	updateQuickColorList (pEntry);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::slot_delColor () {
+	if (qQuickColorList->selectedItems().size() == 0)
+		return;
+	
+	QListWidgetItem* qItem = qQuickColorList->selectedItems ()[0];
+	ulong ulIdx = getItemRow (qItem, qaQuickColorItems);
+	quickColorMeta.erase (quickColorMeta.begin () + ulIdx);
+	updateQuickColorList ();
+}
+
+// =============================================================================
+void ConfigDialog::slot_moveColor () {
+	const bool bUp = (static_cast<QPushButton*> (sender()) == qMoveColorUp);
+	
+	if (qQuickColorList->selectedItems().size() == 0)
+		return;
+	
+	QListWidgetItem* qItem = qQuickColorList->selectedItems ()[0];
+	ulong ulIdx = getItemRow (qItem, qaQuickColorItems);
+	
+	long lDest = bUp ? (ulIdx - 1) : (ulIdx + 1);
+	
+	if (lDest < 0 || (ulong)lDest >= qaQuickColorItems.size ())
+		return; // destination out of bounds
+	
+	quickColorMetaEntry tmp = quickColorMeta[lDest];
+	quickColorMeta[lDest] = quickColorMeta[ulIdx];
+	quickColorMeta[ulIdx] = tmp;
+	
+	updateQuickColorList (&quickColorMeta[lDest]);
+}
+
+// =============================================================================
+void ConfigDialog::slot_addColorSeparator() {
+	quickColorMeta.push_back ({nullptr, nullptr, true});
+	updateQuickColorList (&quickColorMeta[quickColorMeta.size () - 1]);
+}
+
+// =============================================================================
+void ConfigDialog::slot_clearColors () {
+	quickColorMeta.clear ();
+	updateQuickColorList ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ConfigDialog::makeSlider (QSlider*& qSlider, short int dMin, short int dMax,
 	short dDefault)
 {
@@ -254,16 +434,24 @@ void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 }
 
 // =============================================================================
-long ConfigDialog::getItemRow (QListWidgetItem* qItem) {
+long ConfigDialog::getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack) {
 	long i = 0;
 	
-	for (QListWidgetItem* it : qaShortcutItems) {
+	for (QListWidgetItem* it : haystack) {
 		if (it == qItem)
 			return i;
 		++i;
 	}
 	
 	return -1;
+}
+
+// =============================================================================
+QListWidgetItem* ConfigDialog::getSelectedQuickColor () {
+	if (qQuickColorList->selectedItems().size() == 0)
+		return nullptr;
+	
+	return qQuickColorList->selectedItems ()[0];
 }
 
 // =============================================================================
@@ -276,7 +464,7 @@ void ConfigDialog::slot_setShortcut () {
 	QListWidgetItem* qItem = qaSel[0];
 	
 	// Find the row this object is on.
-	long idx = getItemRow (qItem);
+	long idx = getItemRow (qItem, qaShortcutItems);
 	
 	if (KeySequenceDialog::staticDialog (g_ActionMeta[idx], this))
 		setShortcutText (qItem, g_ActionMeta[idx]);
@@ -287,7 +475,7 @@ void ConfigDialog::slot_resetShortcut () {
 	QList<QListWidgetItem*> qaSel = qShortcutList->selectedItems ();
 	
 	for (QListWidgetItem* qItem : qaSel) {
-		long idx = getItemRow (qItem);
+		long idx = getItemRow (qItem, qaShortcutItems);
 		
 		actionmeta meta = g_ActionMeta[idx];
 		keyseqconfig* conf = g_ActionMeta[idx].conf;
@@ -305,7 +493,7 @@ void ConfigDialog::slot_clearShortcut () {
 	QKeySequence qDummySeq;
 	
 	for (QListWidgetItem* qItem : qaSel) {
-		long idx = getItemRow (qItem);
+		long idx = getItemRow (qItem, qaShortcutItems);
 		
 		actionmeta meta = g_ActionMeta[idx];
 		keyseqconfig* conf = g_ActionMeta[idx].conf;
@@ -330,8 +518,27 @@ void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::staticDialog (ForgeWindow* window) {
-	ConfigDialog dlg (window);
+str ConfigDialog::makeColorToolBarString () {
+	str zVal;
+	
+	for (quickColorMetaEntry entry : quickColorMeta) {
+		if (~zVal > 0)
+			zVal += ':';
+		
+		if (entry.bSeparator)
+			zVal += '|';
+		else
+			zVal.appendformat ("%d", entry.col->index ());
+	}
+	
+	return zVal;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::staticDialog () {
+	ConfigDialog dlg (g_ForgeWindow);
 	
 	if (dlg.exec ()) {
 		io_ldpath = dlg.qLDrawPath->text();
@@ -343,21 +550,29 @@ void ConfigDialog::staticDialog (ForgeWindow* window) {
 		gl_linethickness = dlg.qGLLineThickness->value ();
 		gui_toolbar_iconsize = (dlg.qToolBarIconSize->value () * 4) + 12;
 		
+		// Manage the quick color toolbar
+		g_ForgeWindow->quickColorMeta = dlg.quickColorMeta;
+		gui_colortoolbar = dlg.makeColorToolBarString ();
+		
 		// Save the config
 		config::save ();
 		
 		// Reload all subfiles
 		reloadAllSubfiles ();
 		
-		window->R->setBackground ();
-		window->refresh ();
-		window->updateToolBars ();
+		g_ForgeWindow->R->setBackground ();
+		g_ForgeWindow->refresh ();
+		g_ForgeWindow->updateToolBars ();
 	}
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// =========================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =========================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =========================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =========================================================================================================================
 KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent,
 	Qt::WindowFlags f) : QDialog (parent, f), seq (seq)
 {
