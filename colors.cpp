@@ -29,6 +29,8 @@ void initColors () {
 	if (g_bColorsInit)
 		return;
 	
+	printf ("%s: initializing color information.\n", __func__);
+	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	color* maincolor = new color;
 	maincolor->zColorString = "#AAAAAA";

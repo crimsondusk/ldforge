@@ -68,6 +68,7 @@ vector<actionmeta> g_ActionMeta;
 
 cfg (bool, lv_colorize, true);
 cfg (int, gui_toolbar_iconsize, 24);
+extern_cfg (str, io_recentfiles);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -138,66 +139,90 @@ void ForgeWindow::createMenuActions () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_MENU_ITEM(MENU, ACT) q##MENU##Menu->addAction (ACTION_NAME (ACT));
-
 void ForgeWindow::createMenus () {
+	qRecentFilesMenu = new QMenu (tr ("Open &Recent"));
+	qRecentFilesMenu->setIcon (getIcon ("open-recent"));
+	updateRecentFilesMenu ();
+	
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
-	ADD_MENU_ITEM (File, newFile)			// New
-	ADD_MENU_ITEM (File, open)				// Open
-	ADD_MENU_ITEM (File, save)				// Save
-	ADD_MENU_ITEM (File, saveAs)			// Save As
-	qFileMenu->addSeparator ();				// -------
-	ADD_MENU_ITEM (File, settings)			// Settings
-	qFileMenu->addSeparator ();				// -------
-	ADD_MENU_ITEM (File, exit)				// Exit
+	qFileMenu->addAction (ACTION_NAME (newFile));			// New
+	qFileMenu->addAction (ACTION_NAME (open));				// Open
+	qFileMenu->addMenu (qRecentFilesMenu);					// Open Recent
+	qFileMenu->addAction (ACTION_NAME (save));				// Save
+	qFileMenu->addAction (ACTION_NAME (saveAs));			// Save As
+	qFileMenu->addSeparator ();								// -------
+	qFileMenu->addAction (ACTION_NAME (settings));			// Settings
+	qFileMenu->addSeparator ();								// -------
+	qFileMenu->addAction (ACTION_NAME (exit));				// Exit
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
-	ADD_MENU_ITEM (Insert, newSubfile)		// New Subfile
-	ADD_MENU_ITEM (Insert, newLine)			// New Line
-	ADD_MENU_ITEM (Insert, newTriangle)		// New Triangle
-	ADD_MENU_ITEM (Insert, newQuad)			// New Quad
-	ADD_MENU_ITEM (Insert, newCondLine)		// New Conditional Line
-	ADD_MENU_ITEM (Insert, newComment)		// New Comment
-	ADD_MENU_ITEM (Insert, newVertex)		// New Vertex
+	qInsertMenu->addAction (ACTION_NAME (newSubfile));		// New Subfile
+	qInsertMenu->addAction (ACTION_NAME (newLine));			// New Line
+	qInsertMenu->addAction (ACTION_NAME (newTriangle));		// New Triangle
+	qInsertMenu->addAction (ACTION_NAME (newQuad));			// New Quad
+	qInsertMenu->addAction (ACTION_NAME (newCondLine));		// New Conditional Line
+	qInsertMenu->addAction (ACTION_NAME (newComment));		// New Comment
+	qInsertMenu->addAction (ACTION_NAME (newVertex));		// New Vertex
 	
 	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
-	ADD_MENU_ITEM (Edit, undo)				// Undo
-	ADD_MENU_ITEM (Edit, redo)				// Redo
-	qEditMenu->addSeparator ();				// -----
-	ADD_MENU_ITEM (Edit, cut)				// Cut
-	ADD_MENU_ITEM (Edit, copy)				// Copy
-	ADD_MENU_ITEM (Edit, paste)				// Paste
-	ADD_MENU_ITEM (Edit, del)				// Delete
-	qEditMenu->addSeparator ();				// -----
-	ADD_MENU_ITEM (Edit, moveUp)			// Move Up
-	ADD_MENU_ITEM (Edit, moveDown)			// Move Down
-	qEditMenu->addSeparator ();				// -----
-	ADD_MENU_ITEM (Edit, setColor)			// Set Color
-	ADD_MENU_ITEM (Edit, inlineContents)	// Inline
-	ADD_MENU_ITEM (Edit, deepInline)		// Deep Inline
-	ADD_MENU_ITEM (Edit, splitQuads)		// Split Quads
-	ADD_MENU_ITEM (Edit, setContents)		// Set Contents
-	ADD_MENU_ITEM (Edit, makeBorders)		// Make Borders
+	qEditMenu->addAction (ACTION_NAME (undo));				// Undo
+	qEditMenu->addAction (ACTION_NAME (redo));				// Redo
+	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addAction (ACTION_NAME (cut));				// Cut
+	qEditMenu->addAction (ACTION_NAME (copy));				// Copy
+	qEditMenu->addAction (ACTION_NAME (paste));				// Paste
+	qEditMenu->addAction (ACTION_NAME (del));				// Delete
+	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addAction (ACTION_NAME (moveUp));			// Move Up
+	qEditMenu->addAction (ACTION_NAME (moveDown));			// Move Down
+	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addAction (ACTION_NAME (setColor));			// Set Color
+	qEditMenu->addAction (ACTION_NAME (inlineContents));	// Inline
+	qEditMenu->addAction (ACTION_NAME (deepInline));		// Deep Inline
+	qEditMenu->addAction (ACTION_NAME (splitQuads));		// Split Quads
+	qEditMenu->addAction (ACTION_NAME (setContents));		// Set Contents
+	qEditMenu->addAction (ACTION_NAME (makeBorders));		// Make Borders
 	
 	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
-	ADD_MENU_ITEM (Control, showHistory)	// Show History
+	qControlMenu->addAction (ACTION_NAME (showHistory));	// Show History
 	
 #ifndef RELEASE
 	// Debug menu
 	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
-	ADD_MENU_ITEM (Debug, addTestQuad)		// Add Test Quad
+	qDebugMenu->addAction (ACTION_NAME (addTestQuad));		// Add Test Quad
 #endif // RELEASE
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
-	ADD_MENU_ITEM (Help, help)				// Help
-	qHelpMenu->addSeparator ();				// -----
-	ADD_MENU_ITEM (Help, about)				// About
-	ADD_MENU_ITEM (Help, aboutQt)			// About Qt
+	qHelpMenu->addAction (ACTION_NAME (help));				// Help
+	qHelpMenu->addSeparator ();								// -----
+	qHelpMenu->addAction (ACTION_NAME (about));				// About
+	qHelpMenu->addAction (ACTION_NAME (aboutQt));			// About Qt
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::updateRecentFilesMenu () {
+	// First, clear any items in the recent files menu
+	for (QAction* qRecent : qaRecentFiles)
+		delete qRecent;
+	qaRecentFiles.clear ();
+	
+	std::vector<str> zaFiles = io_recentfiles.value / "@";
+	for (long i = zaFiles.size() - 1; i >= 0; --i) {
+		str zFile = zaFiles[i];
+		
+		QAction* qRecent = new QAction (getIcon ("open-recent"), zFile, this);
+		
+		connect (qRecent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
+		qRecentFilesMenu->addAction (qRecent);
+		qaRecentFiles.push_back (qRecent);
+	}
 }
 
 // =============================================================================
@@ -474,6 +499,14 @@ void ForgeWindow::slot_selectionChanged () {
 	// If we have no selection, disable splitting quads
 	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
 	*/
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::slot_recentFile () {
+	QAction* qAct = static_cast<QAction*> (sender ());
+	openMainFile (qAct->text ());
 }
 
 // =============================================================================

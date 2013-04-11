@@ -17,7 +17,7 @@
  */
 
 #include <vector>
-
+#include <stdio.h>
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -26,6 +26,7 @@
 #include "gui.h"
 
 cfg (str, io_ldpath, "");
+cfg (str, io_recentfiles, "");
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -198,6 +199,37 @@ void newFile () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void addRecentFile (str zPath) {
+	long lPos = io_recentfiles.value.first (zPath);
+	
+	// If this file already is in the list, pop it out.
+	if (lPos != -1) {
+		if (~io_recentfiles.value == ~zPath)
+			return; // only recent file - do nothing
+		
+		// Pop it out.
+		str zFront = io_recentfiles.value.substr (0, lPos);
+		str zBack = io_recentfiles.value.substr (lPos + ~zPath + 1, -1);
+		io_recentfiles.value = zFront + zBack;
+	}
+	
+	// If there's too many recent files, drop one out.
+	while (io_recentfiles.value.count ('@') > 3)
+		io_recentfiles.value = io_recentfiles.value.substr (io_recentfiles.value.first ("@") + 1, -1);
+	
+	// Add the file
+	if (~io_recentfiles.value > 0)
+		io_recentfiles.value += "@";
+	
+	io_recentfiles += zPath;
+	
+	config::save ();
+	g_ForgeWindow->updateRecentFilesMenu ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void openMainFile (str zPath) {
 	closeAll ();
 	
@@ -213,6 +245,9 @@ void openMainFile (str zPath) {
 	
 	// Rebuild the object tree view now.
 	g_ForgeWindow->refresh ();
+	
+	// Add it to the recent files list.
+	addRecentFile (zPath);
 }
 
 // =============================================================================

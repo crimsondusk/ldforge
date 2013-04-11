@@ -100,6 +100,8 @@ public:
 	QTreeWidget* qObjList;
 	QTextEdit* qMessageLog;
 	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qHelpMenu, *qControlMenu;
+	QMenu* qRecentFilesMenu;
+	std::vector<QAction*> qaRecentFiles;
 	
 #ifndef RELEASE
 	QMenu* qDebugMenu;
@@ -118,6 +120,7 @@ public:
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
+	void updateRecentFilesMenu ();
 
 private:
 	void createMenuActions ();
@@ -128,6 +131,7 @@ private:
 private slots:
 	void slot_selectionChanged ();
 	void slot_action ();
+	void slot_recentFile ();
 };
 
 // -----------------------------------------------------------------------------

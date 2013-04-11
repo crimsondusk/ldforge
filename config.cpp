@@ -65,6 +65,8 @@ static const char* g_ConfigTypeNames[] = {
 // =============================================================================
 // Load the configuration from file
 bool config::load () {
+	printf ("config::load: loading configuration file.\n");
+	
 	// Locale must be disabled for atof
 	setlocale (LC_NUMERIC, "C");
 	
