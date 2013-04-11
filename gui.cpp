@@ -60,6 +60,13 @@ EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 EXTERN_ACTION (showHistory)
 
+EXTERN_ACTION (moveXNeg)
+EXTERN_ACTION (moveYNeg)
+EXTERN_ACTION (moveZNeg)
+EXTERN_ACTION (moveXPos)
+EXTERN_ACTION (moveYPos)
+EXTERN_ACTION (moveZPos)
+
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
 #endif // RELEASE
@@ -179,15 +186,24 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION_NAME (paste));				// Paste
 	qEditMenu->addAction (ACTION_NAME (del));				// Delete
 	qEditMenu->addSeparator ();								// -----
-	qEditMenu->addAction (ACTION_NAME (moveUp));			// Move Up
-	qEditMenu->addAction (ACTION_NAME (moveDown));			// Move Down
-	qEditMenu->addSeparator ();								// -----
 	qEditMenu->addAction (ACTION_NAME (setColor));			// Set Color
 	qEditMenu->addAction (ACTION_NAME (inlineContents));	// Inline
 	qEditMenu->addAction (ACTION_NAME (deepInline));		// Deep Inline
 	qEditMenu->addAction (ACTION_NAME (splitQuads));		// Split Quads
 	qEditMenu->addAction (ACTION_NAME (setContents));		// Set Contents
 	qEditMenu->addAction (ACTION_NAME (makeBorders));		// Make Borders
+	
+	// Move menu
+	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
+	qMoveMenu->addAction (ACTION_NAME (moveUp));			// Move Up
+	qMoveMenu->addAction (ACTION_NAME (moveDown));			// Move Down
+	qMoveMenu->addSeparator ();								// -----
+	qMoveMenu->addAction (ACTION_NAME (moveXPos));			// Move +X
+	qMoveMenu->addAction (ACTION_NAME (moveXNeg));			// Move -X
+	qMoveMenu->addAction (ACTION_NAME (moveYPos));			// Move +Y
+	qMoveMenu->addAction (ACTION_NAME (moveYNeg));			// Move -Y
+	qMoveMenu->addAction (ACTION_NAME (moveZPos));			// Move +Z
+	qMoveMenu->addAction (ACTION_NAME (moveZNeg));			// Move -Z
 	
 	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
@@ -270,6 +286,12 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("Move");
 	ADD_TOOLBAR_ITEM (moveUp)
 	ADD_TOOLBAR_ITEM (moveDown)
+	ADD_TOOLBAR_ITEM (moveXPos)
+	ADD_TOOLBAR_ITEM (moveXNeg)
+	ADD_TOOLBAR_ITEM (moveYPos)
+	ADD_TOOLBAR_ITEM (moveYNeg)
+	ADD_TOOLBAR_ITEM (moveZPos)
+	ADD_TOOLBAR_ITEM (moveZNeg)
 	
 	// ==========================================
 	// Color toolbar

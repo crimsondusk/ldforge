@@ -298,3 +298,22 @@ InlineHistory::~InlineHistory () {
 	for (LDSubfile* ref : paRefs)
 		delete ref;
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MoveHistory::~MoveHistory () {}
+
+void MoveHistory::undo () {
+	const vertex vInverse = -vVector;
+	
+	for (ulong i : ulaIndices)
+		g_CurrentFile->object (i)->move (vInverse);
+	g_ForgeWindow->refresh ();
+}
+
+void MoveHistory::redo () {
+	for (ulong i : ulaIndices)
+		g_CurrentFile->object (i)->move (vVector);
+	g_ForgeWindow->refresh ();
+}

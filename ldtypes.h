@@ -31,7 +31,8 @@
 	virtual str getContents (); \
 	virtual LD##N* clone () { \
 		return new LD##N (*this); \
-	}
+	} \
+	virtual void move (vertex vVector);
 
 class QTreeWidgetItem;
 
@@ -98,6 +99,9 @@ public:
 	
 	// Swap this object with another.
 	void swap (LDObject* other);
+	
+	// Moves this object using the given vertex as a movement vector
+	virtual void move (vertex vVector);
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (std::vector<LDObject*>& objs);

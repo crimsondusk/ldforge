@@ -454,3 +454,40 @@ str LDObject::objectListContents (std::vector<LDObject*>& objs) {
 	
 	return zText;
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void LDObject::move (vertex vVector) { vVector = vVector; /* to shut up GCC */ }
+void LDEmpty::move (vertex vVector) { vVector = vVector; }
+void LDBFC::move (vertex vVector) { vVector = vVector; }
+void LDComment::move (vertex vVector) { vVector = vVector; }
+void LDGibberish::move (vertex vVector) { vVector = vVector; }
+
+void LDVertex::move (vertex vVector) {
+	vPosition += vVector;
+}
+
+void LDSubfile::move (vertex vVector) {
+	vPosition += vVector;
+}
+
+void LDLine::move (vertex vVector) {
+	for (short i = 0; i < 2; ++i)
+		vaCoords[i] += vVector;
+}
+
+void LDTriangle::move (vertex vVector) {
+	for (short i = 0; i < 3; ++i)
+		vaCoords[i] += vVector;
+}
+
+void LDQuad::move (vertex vVector) {
+	for (short i = 0; i < 4; ++i)
+		vaCoords[i] += vVector;
+}
+
+void LDCondLine::move (vertex vVector) {
+	for (short i = 0; i < 4; ++i)
+		vaCoords[i] += vVector;
+}

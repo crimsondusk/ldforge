@@ -37,6 +37,7 @@ enum HistoryType {
 	HISTORY_Add,
 	HISTORY_QuadSplit,
 	HISTORY_Inline,
+	HISTORY_Move,
 };
 
 // =============================================================================
@@ -163,6 +164,20 @@ public:
 	InlineHistory (const std::vector<ulong> ulaBitIndices, const std::vector<ulong> ulaRefIndices,
 		const std::vector<LDSubfile*> paRefs, const bool bDeep) :
 		ulaBitIndices (ulaBitIndices), ulaRefIndices (ulaRefIndices), paRefs (paRefs), bDeep (bDeep) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class MoveHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (Move)
+	
+	const std::vector<ulong> ulaIndices;
+	const vertex vVector;
+	
+	MoveHistory (const std::vector<ulong> ulaIndices, const vertex vVector) :
+		ulaIndices (ulaIndices), vVector (vVector) {}
 };
 
 // =============================================================================

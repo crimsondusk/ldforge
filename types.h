@@ -26,6 +26,19 @@ public:
 	}
 	
 	// =========================================================================
+	vertex& operator+= (vertex& other) {
+		x += other.x;
+		y += other.y;
+		z += other.z;
+		return *this;
+	}
+	
+	// =========================================================================
+	vertex operator- () const {
+		return vertex (-x, -y, -z);
+	}
+	
+	// =========================================================================
 	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
 	str getStringRep (const bool bMangled);

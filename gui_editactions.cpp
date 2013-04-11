@@ -353,3 +353,42 @@ ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0))
 	HistoryDialog dlg;
 	dlg.exec ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void doMoveObjects (const vertex vVector) {
+	vector<ulong> ulaIndices;
+	
+	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
+		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+		obj->move (vVector);
+	}
+	
+	History::addEntry (new MoveHistory (ulaIndices, vVector));
+	g_ForgeWindow->refresh ();
+}
+
+ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
+	doMoveObjects ({-1, 0, 0});
+}
+
+ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (PageUp)) {
+	doMoveObjects ({0, -1, 0});
+}
+
+ACTION (moveZNeg, "Move -Z", "move-z-neg", "Move selected objects negative on the Z axis.", KEY (Down)) {
+	doMoveObjects ({0, 0, -1});
+}
+
+ACTION (moveXPos, "Move +X", "move-x-pos", "Move selected objects positive on the X axis.", KEY (Right)) {
+	doMoveObjects ({1, 0, 0});
+}
+
+ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (PageDown)) {
+	doMoveObjects ({0, 1, 0});
+}
+
+ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on the Z axis.", KEY (Up)) {
+	doMoveObjects ({0, 0, 1});
+}
