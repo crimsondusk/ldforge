@@ -32,6 +32,7 @@ bbox g_BBox;
 QApplication* g_qMainApp = nullptr;
 
 const vertex g_Origin (0.0f, 0.0f, 0.0f);
+const matrix g_mIdentity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
 int main (int dArgc, char* saArgv[]) {
 	// Load or create the configuration

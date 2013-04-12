@@ -44,6 +44,7 @@ EXTERN_ACTION (deepInline)
 EXTERN_ACTION (splitQuads)
 EXTERN_ACTION (setContents)
 EXTERN_ACTION (makeBorders)
+EXTERN_ACTION (makeCornerVerts)
 EXTERN_ACTION (moveUp)
 EXTERN_ACTION (moveDown)
 EXTERN_ACTION (newSubfile)
@@ -192,6 +193,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION_NAME (splitQuads));		// Split Quads
 	qEditMenu->addAction (ACTION_NAME (setContents));		// Set Contents
 	qEditMenu->addAction (ACTION_NAME (makeBorders));		// Make Borders
+	qEditMenu->addAction (ACTION_NAME (makeCornerVerts));	// Make Corner Vertices
 	
 	// Move menu
 	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
@@ -308,6 +310,7 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (splitQuads)
 	ADD_TOOLBAR_ITEM (setContents)
 	ADD_TOOLBAR_ITEM (makeBorders)
+	ADD_TOOLBAR_ITEM (makeCornerVerts)
 	
 	updateToolBars ();
 }

@@ -317,6 +317,57 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
+	"Adds vertex objects to the corners of the given polygons", (0))
+{
+	vector<ulong> ulaIndices;
+	vector<LDObject*> paObjs;
+	
+	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
+		vertex* vaCoords = nullptr;
+		ushort uNumCoords = 0;
+		
+		switch (obj->getType ()) {
+		case OBJ_Quad:
+			uNumCoords = 4;
+			vaCoords = static_cast<LDQuad*> (obj)->vaCoords;
+			break;
+		
+		case OBJ_Triangle:
+			uNumCoords = 3;
+			vaCoords = static_cast<LDTriangle*> (obj)->vaCoords;
+			break;
+		
+		case OBJ_Line:
+			uNumCoords = 2;
+			vaCoords = static_cast<LDLine*> (obj)->vaCoords;
+			break;
+		
+		default:
+			break;
+		}
+		
+		ulong idx = obj->getIndex (g_CurrentFile);
+		for (ushort i = 0; i < uNumCoords; ++i) {
+			LDVertex* pVert = new LDVertex;
+			pVert->vPosition = vaCoords[i];
+			pVert->dColor = obj->dColor;
+			
+			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ++idx, pVert);
+			ulaIndices.push_back (idx);
+			paObjs.push_back (pVert->clone ());
+		}
+	}
+	
+	if (ulaIndices.size() > 0) {
+		History::addEntry (new AddHistory (ulaIndices, paObjs));
+		g_ForgeWindow->refresh ();
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 static void doMoveSelection (const bool bUp) {
 	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
 	

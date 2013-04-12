@@ -447,7 +447,13 @@ str LDObject::objectListContents (std::vector<LDObject*>& objs) {
 			if (!bFirstDetails)
 				zText += ", ";
 			
-			zText.appendformat ("%lu %s%s", ulCount, g_saObjTypeNames[eType], PLURAL (ulCount));
+			str zNoun = str::mkfmt ("%s%s", g_saObjTypeNames[eType], PLURAL (ulCount));
+			
+			// Plural of "vertex" is "vertices". Stupid English.
+			if (eType == OBJ_Vertex && ulCount != 1)
+				zNoun = "vertices";
+			
+			zText.appendformat ("%lu %s", ulCount, zNoun.chars ());
 			bFirstDetails = false;
 		}
 	}

@@ -296,6 +296,40 @@ void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 		}
 		break;
 	
+#if 0
+	TODO: find a proper way to draw vertices without having them be affected by zoom.
+	case OBJ_Vertex:
+		{
+			LDVertex* pVert = static_cast<LDVertex*> (obj);
+			LDTriangle* pPoly;
+			vertex* vPos = &(pVert->vPosition);
+			const double fPolyScale = max (fZoom, 1.0);
+			
+#define BIPYRAMID_COORD(N) ((((i + N) % 4) >= 2 ? 1 : -1) * 0.3f * fPolyScale)
+			
+			for (int i = 0; i < 8; ++i) {
+				pPoly = new LDTriangle;
+				pPoly->vaCoords[0] = {vPos->x, vPos->y + ((i >= 4 ? 1 : -1) * 0.4f * fPolyScale), vPos->z};
+				pPoly->vaCoords[1] = {
+					vPos->x + BIPYRAMID_COORD (0),
+					vPos->y,
+					vPos->z + BIPYRAMID_COORD (1)
+				};
+				
+				pPoly->vaCoords[2] = {
+					vPos->x + BIPYRAMID_COORD (1),
+					vPos->y,
+					vPos->z + BIPYRAMID_COORD (2)
+				};
+				
+				pPoly->dColor = pVert->dColor;
+				compileOneObject (pPoly);
+				delete pPoly;
+			}
+		}
+		break;
+#endif // 0
+	
 	default:
 		break;
 	}

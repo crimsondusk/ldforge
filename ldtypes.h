@@ -76,6 +76,9 @@ public:
 	// do not use this field.
 	short dColor;
 	
+	// OpenGL list for this object
+	uint uGLList;
+	
 	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
 		return OBJ_Unidentified;

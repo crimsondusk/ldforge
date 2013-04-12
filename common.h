@@ -126,7 +126,6 @@ void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
 // -----------------------------------------------------------------------------
 // Vertex at (0, 0, 0)
 extern const vertex g_Origin;
-extern bool g_bApplicationReady;
 
 // -----------------------------------------------------------------------------
 // Pointer to the OpenFile which is currently being edited by the user.
@@ -143,6 +142,10 @@ extern vector<OpenFile*> g_LoadedFiles;
 // -----------------------------------------------------------------------------
 // Pointer to the main application.
 extern QApplication* g_qMainApp;
+
+// -----------------------------------------------------------------------------
+// Identity matrix
+extern const matrix g_mIdentity;
 
 typedef unsigned int uint;
 typedef unsigned long ulong;
