@@ -78,17 +78,14 @@ void renderer::initializeGL () {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::setMainColor () {
+QColor renderer::getMainColor () {
 	QColor col (gl_maincolor.value.chars());
 	
 	if (!col.isValid ())
-		return;
+		return col; // shouldn't happen
 	
-	glColor4f (
-		((double)col.red()) / 255.0f,
-		((double)col.green()) / 255.0f,
-		((double)col.blue()) / 255.0f,
-		gl_maincolor_alpha);
+	col.setAlpha (gl_maincolor_alpha * 255.f);
+	return col;
 }
 
 // ------------------------------------------------------------------------- //
@@ -110,6 +107,8 @@ void renderer::setBackground () {
 // ========================================================================= //
 static vector<short> g_daWarnedColors;
 void renderer::setObjectColor (LDObject* obj) {
+	QColor qCol;
+	
 	if (g_bPicking) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results.
@@ -151,33 +150,47 @@ void renderer::setObjectColor (LDObject* obj) {
 	}
 #endif
 	
-	if (obj->dColor == dMainColor) {
-		setMainColor ();
-		return;
+	if (obj->dColor == dMainColor)
+		qCol = getMainColor ();
+	else {
+		color* col = getColor (obj->dColor);
+		
+		if (col != null)
+			qCol = col->qColor;
+		else {
+			// The color was unknown. Use main color to make the object at least
+			// not appear pitch-black.
+			qCol = getMainColor ();
+			
+			// Warn about the unknown colors, but only once.
+			for (short i : g_daWarnedColors)
+				if (obj->dColor == i)
+					return;
+			
+			printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
+			g_daWarnedColors.push_back (obj->dColor);
+			return;
+		}
 	}
 	
-	color* col = getColor (obj->dColor);
+	long r = qCol.red (),
+		g = qCol.green (),
+		b = qCol.blue (),
+		a = qCol.alpha ();
 	
-	if (!col) {
-		// The color was unknown. Use main color to make the object at least
-		// not appear pitch-black.
-		setMainColor ();
-		
-		// Warn about the unknown colors, but only once.
-		for (short i : g_daWarnedColors)
-			if (obj->dColor == i)
-				return;
-		
-		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
-		g_daWarnedColors.push_back (obj->dColor);
-		return;
+	// If it's selected, brighten it up
+	if (g_ForgeWindow->isSelected (obj) && obj->dColor != dEdgeColor) {
+		r = ((r * 3) + (255 * 2)) / 5;
+		g = ((g * 3) + (255 * 2)) / 5;
+		b = ((b * 3) + (255 * 2)) / 5;
+		a = 255;
 	}
 	
 	glColor4f (
-		((double)col->qColor.red()) / 255.0f,
-		((double)col->qColor.green()) / 255.0f,
-		((double)col->qColor.blue()) / 255.0f,
-		((double)col->qColor.alpha()) / 255.0f);
+		((double) r) / 255.0f,
+		((double) g) / 255.0f,
+		((double) b) / 255.0f,
+		((double) a) / 255.0f);
 }
 
 // ========================================================================= //
@@ -416,6 +429,8 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 
 // ========================================================================= //
 void renderer::pick (uint mx, uint my) {
+	g_ForgeWindow->paSelection.clear ();
+	
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
 	
@@ -431,20 +446,16 @@ void renderer::pick (uint mx, uint my) {
 	
 	if (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255) {
 		ulong idx = pixel[0] + (pixel[1] * 256) + (pixel[2] * 256 * 256);
-		printf ("idx: %lu\n", idx);
 		
 		LDObject* obj = g_CurrentFile->object (idx);
-		
-		g_ForgeWindow->paSelection.clear ();
 		g_ForgeWindow->paSelection.push_back (obj);
 	}
 	
 	g_bPicking = false;
 	glEnable (GL_DITHER);
 	
-	setBackground ();
-	compileObjects ();
-	paintGL ();
-	
 	g_ForgeWindow->updateSelection ();
+	
+	setBackground ();
+	hardRefresh ();
 }

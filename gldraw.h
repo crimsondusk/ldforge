@@ -32,6 +32,7 @@ public:
 	void compileObjects ();
 	void setBackground ();
 	void pick (uint mx, uint my);
+	QColor getMainColor ();
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
@@ -54,7 +55,6 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
-	void setMainColor ();
 	
 	Qt::MouseButtons qMouseButtons;
 	Qt::KeyboardModifiers qKeyMods;

@@ -138,6 +138,7 @@ public:
 	void updateToolBars ();
 	void updateRecentFilesMenu ();
 	void updateSelection ();
+	bool isSelected (LDObject* obj);
 
 private:
 	void createMenuActions ();

@@ -682,6 +682,21 @@ void ForgeWindow::updateSelection () {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
+bool ForgeWindow::isSelected (LDObject* obj) {
+	LDObject* pNeedle = obj->topLevelParent ();
+	
+	if (pNeedle == null)
+		pNeedle = obj;
+	
+	for (LDObject* pHay : paSelection)
+		if (pHay == pNeedle)
+			return true;
+	return false;
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 QIcon getIcon (const char* sIconName) {
 	return (QIcon (str::mkfmt ("./icons/%s.png", sIconName)));
 }
