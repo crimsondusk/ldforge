@@ -78,7 +78,7 @@ public:
 	short dColor;
 	
 	// OpenGL list for this object
-	uint uGLList;
+	uint uGLList, uGLPickList;
 	
 	// Object this object was referenced from, if any
 	LDSubfile* parent;

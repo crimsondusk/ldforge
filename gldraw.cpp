@@ -254,7 +254,7 @@ void GLRenderer::paintGL () {
 		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
 		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList (obj->uGLList);
+			glCallList ((g_bPicking == false) ? obj->uGLList : obj->uGLPickList);
 	glPopMatrix ();
 }
 
@@ -275,14 +275,24 @@ void GLRenderer::compileObjects () {
 	}
 	
 	for (LDObject* obj : g_CurrentFile->objects) {
-		GLuint uList = glGenLists (1);
-		glNewList (uList, GL_COMPILE);
+		GLuint* upaLists[2] = {
+			&obj->uGLList,
+			&obj->uGLPickList
+		};
 		
-		compileOneObject (obj);
+		for (GLuint* upMemberList : upaLists) {
+			GLuint uList = glGenLists (1);
+			glNewList (uList, GL_COMPILE);
+			
+			g_bPicking = (upMemberList == &obj->uGLPickList);
+			compileOneObject (obj);
+			g_bPicking = false;
+			
+			glEndList ();
+			*upMemberList = uList;
+		}
 		
-		glEndList ();
-		uaObjLists.push_back (uList);
-		obj->uGLList = uList;
+		uaObjLists.push_back (obj->uGLList);
 	}
 }
 
@@ -407,12 +417,13 @@ void GLRenderer::clampAngle (double& fAngle) {
 void GLRenderer::mouseReleaseEvent (QMouseEvent* event) {
 	if ((qMouseButtons & Qt::LeftButton) && !(event->buttons() & Qt::LeftButton)) {
 		if (ulTotalMouseMove < 10)
-			pick (event->x(), event->y());
+			pick (event->x(), event->y(), (qKeyMods & Qt::ControlModifier));
 		
 		ulTotalMouseMove = 0;
 	}
 }
 
+// ========================================================================= //
 void GLRenderer::mousePressEvent (QMouseEvent* event) {
 	qMouseButtons = event->buttons();
 	if (event->buttons() & Qt::LeftButton)
@@ -453,27 +464,46 @@ void GLRenderer::mouseMoveEvent (QMouseEvent *event) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void GLRenderer::pick (uint mx, uint my) {
-	g_ForgeWindow->paSelection.clear ();
+void GLRenderer::keyPressEvent (QKeyEvent* qEvent) {
+	qKeyMods = qEvent->modifiers ();
+}
+
+void GLRenderer::keyReleaseEvent (QKeyEvent* qEvent) {
+	qKeyMods = qEvent->modifiers ();
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
+	if (bAdd == false) {
+		// Clear the selection if we don't wish to add to it.
+		std::vector<LDObject*> paOldSelection = g_ForgeWindow->paSelection;
+		g_ForgeWindow->paSelection.clear ();
+		
+		// Recompile the prior selection to remove the highlight color
+		for (LDObject* obj : paOldSelection)
+			recompileObject (obj);
+	}
 	
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
 	
 	g_bPicking = true;
 	
-	compileObjects ();
 	paintGL ();
 	
-	GLubyte pixel[3];
-	GLint viewport[4];
-	glGetIntegerv (GL_VIEWPORT, viewport);
-	glReadPixels (mx, viewport[3] - my, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
-		reinterpret_cast<GLvoid*> (pixel));
+	GLubyte ucaPixel[3];
+	GLint daViewport[4];
+	glGetIntegerv (GL_VIEWPORT, daViewport);
+	glReadPixels (uMouseX, daViewport[3] - uMouseY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid*> (ucaPixel));
 	
-	const bool bHasSelection = (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255);
+	// If we hit a white pixel, we selected the background. This no object is selected.
+	const bool bHasSelection = (ucaPixel[0] != 255 || ucaPixel[1] != 255 || ucaPixel[2] != 255);
 	
 	if (bHasSelection) {
-		ulong idx = pixel[0] + (pixel[1] * 256) + (pixel[2] * 256 * 256);
+		ulong idx = ucaPixel[0] + (ucaPixel[1] * 256) + (ucaPixel[2] * 256 * 256);
 		
 		LDObject* obj = g_CurrentFile->object (idx);
 		g_ForgeWindow->paSelection.push_back (obj);
@@ -493,36 +523,40 @@ void GLRenderer::pick (uint mx, uint my) {
 	g_ForgeWindow->updateSelection ();
 	
 	setBackground ();
-	hardRefresh ();
+	
+	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ())
+		recompileObject (obj);
+	
+	paintGL ();
+	swapBuffers ();
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void GLRenderer::updateObjectColors() {
-	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
-		// Replace the old list with the new one.
-		for (ulong i = 0; i < uaObjLists.size(); ++i)
-			if (uaObjLists[i] == obj->uGLList)
-				uaObjLists.erase (uaObjLists.begin() + i);
-		
-		GLuint uList = glGenLists (1);
-		glNewList (uList, GL_COMPILE);
-		
-		compileOneObject (obj);
-		
-		glEndList ();
-		uaObjLists.push_back (uList);
-		obj->uGLList = uList;
-	}
+void GLRenderer::recompileObject (LDObject* obj) {
+	// Replace the old list with the new one.
+	for (ulong i = 0; i < uaObjLists.size(); ++i)
+		if (uaObjLists[i] == obj->uGLList)
+			uaObjLists.erase (uaObjLists.begin() + i);
+	
+	GLuint uList = glGenLists (1);
+	glNewList (uList, GL_COMPILE);
+	
+	compileOneObject (obj);
+	
+	glEndList ();
+	uaObjLists.push_back (uList);
+	obj->uGLList = uList;
 }
 
 // ========================================================================= //
 void GLRenderer::slot_timerUpdate () {
 	++g_dPulseTick %= g_dNumPulseTicks;
-	printf ("%d\n", g_dPulseTick);
 	
-	updateObjectColors ();
+	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ())
+		recompileObject (obj);
+	
 	paintGL ();
 	swapBuffers ();
 }

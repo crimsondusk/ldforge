@@ -285,8 +285,6 @@ void str::replace (const char* o, const char* n, unsigned int a) {
 }
 
 // ============================================================================
-// It works otherwise but I'm having trouble with the initializer_list
-/*
 void str::strip (char c) {
 	strip ({c});
 }
@@ -315,7 +313,6 @@ void str::strip (std::initializer_list<char> unwanted) {
 	
 	delete[] buf;
 }
-*/
 
 void str::insert (char* c, unsigned int pos) {
 	str s1 = substr (0, pos);

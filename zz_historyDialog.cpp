@@ -260,20 +260,21 @@ void HistoryDialog::slot_selChanged () {
 	QListWidgetItem* qItem = qHistoryList->selectedItems ()[0];
 	
 	// Find the index of the edit
-	long idx = -1;
-	QListWidgetItem* it;
-	while ((it = qHistoryList->item (++idx)) != null)
-		if (it == qItem)
+	long lIdx;
+	for (lIdx = 0; lIdx < qHistoryList->count (); ++lIdx)
+		if (qHistoryList->item (lIdx) == qItem)
 			break;
 	
-	idx--; // qHistoryList is 0-based, History is -1-based.
+	// qHistoryList is 0-based, History is -1-based, thus decrement
+	// the index now
+	lIdx--;
 	
-	if (idx == History::pos ())
+	if (lIdx == History::pos ())
 		return;
 	
 	// Seek to the selected edit by repeadetly undoing or redoing.
-	while (History::pos () != idx) {
-		if (History::pos () > idx)
+	while (History::pos () != lIdx) {
+		if (History::pos () > lIdx)
 			History::undo ();
 		else
 			History::redo ();

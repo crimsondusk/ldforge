@@ -39,7 +39,7 @@ public:
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
-	void pick (uint mx, uint my);
+	void pick (uint uMouseX, uint uMouseY, bool bAdd);
 	QColor getMainColor ();
 	
 	double fRotX, fRotY, fRotZ;
@@ -54,6 +54,8 @@ protected:
 	void mousePressEvent (QMouseEvent* event);
 	void mouseMoveEvent (QMouseEvent* event);
 	void mouseReleaseEvent (QMouseEvent* event);
+	void keyPressEvent (QKeyEvent* qEvent);
+	void keyReleaseEvent (QKeyEvent* qEvent);
 
 private:
 	std::vector<GLuint> uaObjLists;
@@ -63,7 +65,7 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
-	void updateObjectColors ();
+	void recompileObject (LDObject* obj);
 	
 	QTimer* qPulseTimer;
 	
