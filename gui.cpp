@@ -83,7 +83,7 @@ extern_cfg (str, io_recentfiles);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 ForgeWindow::ForgeWindow () {
-	R = new renderer;
+	R = new GLRenderer;
 	
 	qObjList = new QTreeWidget;
 	qObjList->setHeaderHidden (true);

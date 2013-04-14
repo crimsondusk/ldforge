@@ -20,14 +20,22 @@
 #define __GLDRAW_H__
 
 #include <QGLWidget>
+#include <qtimer.h>
 #include "common.h"
 #include "ldtypes.h"
 
-class renderer : public QGLWidget {
+// =============================================================================
+// GLRenderer
+// 
+// The main renderer object, draws the brick on the screen, manages the camera
+// and selection picking. The instance of GLRenderer is accessible as
+// g_ForgeWindow->R
+// =============================================================================
+class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
 public:
-	renderer (QWidget* parent = null);
+	GLRenderer (QWidget* parent = null);
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
@@ -55,10 +63,16 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
+	void updateObjectColors ();
+	
+	QTimer* qPulseTimer;
 	
 	Qt::MouseButtons qMouseButtons;
 	Qt::KeyboardModifiers qKeyMods;
 	ulong ulTotalMouseMove;
+	
+private slots:
+	void slot_timerUpdate ();
 };
 
 #endif // __GLDRAW_H__

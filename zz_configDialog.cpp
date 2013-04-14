@@ -38,6 +38,7 @@ extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
+extern_cfg (bool, gl_selflash);
 
 ConfigDialog* g_ConfigDialog = null;
 
@@ -122,6 +123,9 @@ void ConfigDialog::initMainTab () {
 	qGLColorBFC = new QCheckBox ("Red/green BFC view");
 	INIT_CHECKBOX (qGLColorBFC, gl_colorbfc)
 	
+	qGLSelFlash = new QCheckBox ("Selection flash");
+	INIT_CHECKBOX (qGLSelFlash, gl_selflash)
+	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (qLDrawPathLabel, 0, 0);
 	layout->addWidget (qLDrawPath, 0, 1, 1, 2);
@@ -140,8 +144,9 @@ void ConfigDialog::initMainTab () {
 	layout->addWidget (qToolBarIconSizeLabel, 3, 0);
 	layout->addWidget (qToolBarIconSize, 3, 1);
 	
-	layout->addWidget (qLVColorize, 4, 0, 1, 2);
-	layout->addWidget (qGLColorBFC, 4, 2, 1, 2);
+	layout->addWidget (qLVColorize, 4, 0);
+	layout->addWidget (qGLColorBFC, 5, 0);
+	layout->addWidget (qGLSelFlash, 6, 0);
 	qMainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -545,6 +550,7 @@ void ConfigDialog::staticDialog () {
 		
 		APPLY_CHECKBOX (dlg.qLVColorize, lv_colorize)
 		APPLY_CHECKBOX (dlg.qGLColorBFC, gl_colorbfc)
+		APPLY_CHECKBOX (dlg.qGLSelFlash, gl_selflash)
 		
 		gl_maincolor_alpha = ((double)dlg.qGLForegroundAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.qGLLineThickness->value ();

@@ -40,7 +40,7 @@ public:
 	QLineEdit* qLDrawPath;
 	QPushButton* qLDrawPathFindButton;
 	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
-	QCheckBox* qLVColorize, *qGLColorBFC;
+	QCheckBox* qLVColorize, *qGLColorBFC, *qGLSelFlash;
 	QSlider* qGLForegroundAlpha, *qGLLineThickness, *qToolBarIconSize;
 	
 	// =========================================================================

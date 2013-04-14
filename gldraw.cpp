@@ -31,25 +31,33 @@ static double g_faObjectOffset[3];
 static double g_StoredBBoxSize;
 static bool g_bPicking = false;
 
+static short g_dPulseTick = 0;
+static const short g_dNumPulseTicks = 8;
+static const short g_dPulseInterval = 65;
+
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
 cfg (float, gl_maincolor_alpha, 1.0);
 cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
+cfg (bool, gl_selflash, false);
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-renderer::renderer (QWidget* parent) {
+GLRenderer::GLRenderer (QWidget* parent) {
 	parent = parent; // shhh, GCC
 	fRotX = fRotY = fRotZ = 0.0f;
 	fZoom = 1.0f;
+	
+	qPulseTimer = new QTimer (this);
+	connect (qPulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::initializeGL () {
+void GLRenderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
 	
@@ -62,23 +70,22 @@ void renderer::initializeGL () {
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_MULTISAMPLE);
 	
-	glEnable (GL_DITHER);
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	glEnable (GL_LINE_SMOOTH);
 	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+	
 	glLineWidth (gl_linethickness);
 	
 	setMouseTracking (true);
-	
 	compileObjects ();
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-QColor renderer::getMainColor () {
+QColor GLRenderer::getMainColor () {
 	QColor col (gl_maincolor.value.chars());
 	
 	if (!col.isValid ())
@@ -89,7 +96,7 @@ QColor renderer::getMainColor () {
 }
 
 // ------------------------------------------------------------------------- //
-void renderer::setBackground () {
+void GLRenderer::setBackground () {
 	QColor col (gl_bgcolor.value.chars());
 	
 	if (!col.isValid ())
@@ -106,7 +113,7 @@ void renderer::setBackground () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 static vector<short> g_daWarnedColors;
-void renderer::setObjectColor (LDObject* obj) {
+void GLRenderer::setObjectColor (LDObject* obj) {
 	QColor qCol;
 	
 	if (g_bPicking) {
@@ -178,11 +185,23 @@ void renderer::setObjectColor (LDObject* obj) {
 		b = qCol.blue (),
 		a = qCol.alpha ();
 	
-	// If it's selected, brighten it up
-	if (g_ForgeWindow->isSelected (obj) && obj->dColor != dEdgeColor) {
-		r = ((r * 3) + (255 * 2)) / 5;
-		g = ((g * 3) + (255 * 2)) / 5;
-		b = ((b * 3) + (255 * 2)) / 5;
+	// If it's selected, brighten it up, also pulse flash it if desired.
+	if (g_ForgeWindow->isSelected (obj)) {
+		short dTick, dNumTicks;
+		
+		if (gl_selflash) {
+			dTick = (g_dPulseTick < (g_dNumPulseTicks / 2)) ? g_dPulseTick : (g_dNumPulseTicks - g_dPulseTick);
+			dNumTicks = g_dNumPulseTicks;
+		} else {
+			dTick = 2;
+			dNumTicks = 5;
+		}
+		
+		const long lAdd = ((dTick * 128) / dNumTicks);
+		r = min (r + lAdd, 255l);
+		g = min (g + lAdd, 255l);
+		b = min (b + lAdd, 255l);
+		
 		a = 255;
 	}
 	
@@ -196,7 +215,7 @@ void renderer::setObjectColor (LDObject* obj) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::hardRefresh () {
+void GLRenderer::hardRefresh () {
 	compileObjects ();
 	paintGL ();
 	swapBuffers ();
@@ -207,7 +226,7 @@ void renderer::hardRefresh () {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::resizeGL (int w, int h) {
+void GLRenderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 	glLoadIdentity ();
 	glMatrixMode (GL_PROJECTION);
@@ -217,9 +236,12 @@ void renderer::resizeGL (int w, int h) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::paintGL () {
+void GLRenderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode (GL_MODELVIEW);
+	
+	if (g_CurrentFile == null)
+		return;
 	
 	glPushMatrix ();
 		glLoadIdentity ();
@@ -231,39 +253,45 @@ void renderer::paintGL () {
 		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
 		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
-		for (GLuint uList : uaObjLists)
-			glCallList (uList);
+		for (LDObject* obj : g_CurrentFile->objects)
+			glCallList (obj->uGLList);
 	glPopMatrix ();
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::compileObjects () {
+void GLRenderer::compileObjects () {
 	uaObjLists.clear ();
 	
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
 	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
 	g_StoredBBoxSize = g_BBox.calcSize ();
-	printf ("bbox size is %f\n", g_StoredBBoxSize);
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
 		return;
 	}
 	
-	for (LDObject* obj : g_CurrentFile->objects) 
+	for (LDObject* obj : g_CurrentFile->objects) {
+		GLuint uList = glGenLists (1);
+		glNewList (uList, GL_COMPILE);
+		
 		compileOneObject (obj);
+		
+		glEndList ();
+		uaObjLists.push_back (uList);
+		obj->uGLList = uList;
+	}
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-template<class T> void renderer::compileSubObject (LDObject* obj,
+template<class T> void GLRenderer::compileSubObject (LDObject* obj,
 	const GLenum eGLType, const short dVerts)
 {
-	setObjectColor (obj);
 	T* newobj = static_cast<T*> (obj);
 	glBegin (eGLType);
 	
@@ -276,9 +304,8 @@ template<class T> void renderer::compileSubObject (LDObject* obj,
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::compileOneObject (LDObject* obj) {
-	GLuint uList = glGenLists (1);
-	glNewList (uList, GL_COMPILE);
+void GLRenderer::compileOneObject (LDObject* obj) {
+	setObjectColor (obj);
 	
 	switch (obj->getType ()) {
 	case OBJ_Line:
@@ -352,16 +379,12 @@ void renderer::compileOneObject (LDObject* obj) {
 	default:
 		break;
 	}
-	
-	glEndList ();
-	uaObjLists.push_back (uList);
-	obj->uGLList = uList;
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::compileVertex (vertex& vrt) {
+void GLRenderer::compileVertex (vertex& vrt) {
 	glVertex3d (
 		(vrt.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
 		-(vrt.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
@@ -371,7 +394,7 @@ void renderer::compileVertex (vertex& vrt) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::clampAngle (double& fAngle) {
+void GLRenderer::clampAngle (double& fAngle) {
 	while (fAngle < 0)
 		fAngle += 360.0;
 	while (fAngle > 360.0)
@@ -381,7 +404,7 @@ void renderer::clampAngle (double& fAngle) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::mouseReleaseEvent (QMouseEvent* event) {
+void GLRenderer::mouseReleaseEvent (QMouseEvent* event) {
 	if ((qMouseButtons & Qt::LeftButton) && !(event->buttons() & Qt::LeftButton)) {
 		if (ulTotalMouseMove < 10)
 			pick (event->x(), event->y());
@@ -390,7 +413,7 @@ void renderer::mouseReleaseEvent (QMouseEvent* event) {
 	}
 }
 
-void renderer::mousePressEvent (QMouseEvent* event) {
+void GLRenderer::mousePressEvent (QMouseEvent* event) {
 	qMouseButtons = event->buttons();
 	if (event->buttons() & Qt::LeftButton)
 		ulTotalMouseMove = 0;
@@ -399,7 +422,7 @@ void renderer::mousePressEvent (QMouseEvent* event) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void renderer::mouseMoveEvent (QMouseEvent *event) {
+void GLRenderer::mouseMoveEvent (QMouseEvent *event) {
 	int dx = event->x () - lastPos.x ();
 	int dy = event->y () - lastPos.y ();
 	ulTotalMouseMove += abs (dx) + abs (dy);
@@ -428,7 +451,9 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 }
 
 // ========================================================================= //
-void renderer::pick (uint mx, uint my) {
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+void GLRenderer::pick (uint mx, uint my) {
 	g_ForgeWindow->paSelection.clear ();
 	
 	glDisable (GL_DITHER);
@@ -442,13 +467,24 @@ void renderer::pick (uint mx, uint my) {
 	GLubyte pixel[3];
 	GLint viewport[4];
 	glGetIntegerv (GL_VIEWPORT, viewport);
-	glReadPixels (mx, viewport[3] - my, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> (pixel));
+	glReadPixels (mx, viewport[3] - my, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
+		reinterpret_cast<GLvoid*> (pixel));
 	
-	if (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255) {
+	const bool bHasSelection = (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255);
+	
+	if (bHasSelection) {
 		ulong idx = pixel[0] + (pixel[1] * 256) + (pixel[2] * 256 * 256);
 		
 		LDObject* obj = g_CurrentFile->object (idx);
 		g_ForgeWindow->paSelection.push_back (obj);
+	}
+	
+	if (gl_selflash) {
+		if (bHasSelection) {
+			qPulseTimer->start (g_dPulseInterval);
+			g_dPulseTick = 0;
+		} else
+			qPulseTimer->stop ();
 	}
 	
 	g_bPicking = false;
@@ -458,4 +494,35 @@ void renderer::pick (uint mx, uint my) {
 	
 	setBackground ();
 	hardRefresh ();
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+void GLRenderer::updateObjectColors() {
+	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
+		// Replace the old list with the new one.
+		for (ulong i = 0; i < uaObjLists.size(); ++i)
+			if (uaObjLists[i] == obj->uGLList)
+				uaObjLists.erase (uaObjLists.begin() + i);
+		
+		GLuint uList = glGenLists (1);
+		glNewList (uList, GL_COMPILE);
+		
+		compileOneObject (obj);
+		
+		glEndList ();
+		uaObjLists.push_back (uList);
+		obj->uGLList = uList;
+	}
+}
+
+// ========================================================================= //
+void GLRenderer::slot_timerUpdate () {
+	++g_dPulseTick %= g_dNumPulseTicks;
+	printf ("%d\n", g_dPulseTick);
+	
+	updateObjectColors ();
+	paintGL ();
+	swapBuffers ();
 }

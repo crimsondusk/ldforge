@@ -102,7 +102,7 @@ class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
 public:
-	renderer* R;
+	GLRenderer* R;
 	
 	// Object list view
 	QTreeWidget* qObjList;
