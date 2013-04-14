@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -25,9 +25,11 @@
 #include "gldraw.h"
 #include "bbox.h"
 #include "colors.h"
+#include "gui.h"
 
 static double g_faObjectOffset[3];
 static double g_StoredBBoxSize;
+static bool g_bPicking = false;
 
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
@@ -35,18 +37,18 @@ cfg (float, gl_maincolor_alpha, 1.0);
 cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 renderer::renderer (QWidget* parent) {
 	parent = parent; // shhh, GCC
 	fRotX = fRotY = fRotZ = 0.0f;
 	fZoom = 1.0f;
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::initializeGL () {
 	glLoadIdentity();
 	glMatrixMode (GL_MODELVIEW);
@@ -73,9 +75,9 @@ void renderer::initializeGL () {
 	compileObjects ();
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::setMainColor () {
 	QColor col (gl_maincolor.value.chars());
 	
@@ -89,7 +91,7 @@ void renderer::setMainColor () {
 		gl_maincolor_alpha);
 }
 
-// -----------------------------------------------------------------------------
+// ------------------------------------------------------------------------- //
 void renderer::setBackground () {
 	QColor col (gl_bgcolor.value.chars());
 	
@@ -103,14 +105,40 @@ void renderer::setBackground () {
 		1.0f);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 static vector<short> g_daWarnedColors;
-void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
+void renderer::setObjectColor (LDObject* obj) {
+	if (g_bPicking) {
+		// Make the color by the object's index color if we're picking, so we can
+		// make the index from the color we get from the picking results.
+		long i = obj->getIndex (g_CurrentFile);
+		
+		// If we couldn't find the index, this object must not be from this file,
+		// therefore it must be an object inlined from another file through a
+		// subfile reference. Use the reference's index.
+		if (i == -1)
+			i = obj->topLevelParent ()->getIndex (g_CurrentFile);
+		
+		// We should have the index now.
+		assert (i != -1);
+		
+		// Calculate a color based from this index. This method caters for
+		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
+		// ATM biggest is 53588.dat with 12600 lines.
+		double r = i % 256;
+		double g = (i / 256) % 256;
+		double b = (i / (256 * 256)) % 256;
+		
+		glColor3f (r / 255.f, g / 255.f, b / 255.f);
+		return;
+	}
+	
 	if (obj->dColor == -1)
 		return;
 	
+#if 0
 	if (gl_colorbfc &&
 		obj->getType () != OBJ_Line &&
 		obj->getType () != OBJ_CondLine)
@@ -121,6 +149,7 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 			glColor4f (0.0f, 0.8f, 0.0f, 1.0f);
 		return;
 	}
+#endif
 	
 	if (obj->dColor == dMainColor) {
 		setMainColor ();
@@ -139,7 +168,7 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 			if (obj->dColor == i)
 				return;
 		
-		printf ("setObjectColor Unknown color %d!\n", obj->dColor);
+		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
 		g_daWarnedColors.push_back (obj->dColor);
 		return;
 	}
@@ -151,9 +180,9 @@ void renderer::setObjectColor (LDObject* obj, bool bBackSide) {
 		((double)col->qColor.alpha()) / 255.0f);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::hardRefresh () {
 	compileObjects ();
 	paintGL ();
@@ -162,9 +191,9 @@ void renderer::hardRefresh () {
 	glLineWidth (gl_linethickness);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 	glLoadIdentity ();
@@ -172,9 +201,9 @@ void renderer::resizeGL (int w, int h) {
 	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::paintGL () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glMatrixMode (GL_MODELVIEW);
@@ -189,25 +218,17 @@ void renderer::paintGL () {
 		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
 		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
-		if (gl_colorbfc) {
-			glEnable (GL_CULL_FACE);
-			
-			glCullFace (GL_FRONT);
-			glCallList (uObjList);
-			
-			glCullFace (GL_BACK);
-			glCallList (uObjListBack);
-			
-			glDisable (GL_CULL_FACE);
-		} else
-			glCallList (uObjList);
+		for (GLuint uList : uaObjLists)
+			glCallList (uList);
 	glPopMatrix ();
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::compileObjects () {
+	uaObjLists.clear ();
+	
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
 	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
@@ -219,32 +240,17 @@ void renderer::compileObjects () {
 		return;
 	}
 	
-	GLuint* upaLists[2] = {
-		&uObjList,
-		&uObjListBack,
-	};
-	
-	for (uchar i = 0; i < 2; ++i) {
-		if (i && !gl_colorbfc)
-			continue;
-		
-		*upaLists[i] = glGenLists (1);
-		glNewList (*upaLists[i], GL_COMPILE);
-		
-		for (LDObject* obj : g_CurrentFile->objects)
-			compileOneObject (obj, i);
-		
-		glEndList ();
-	}
+	for (LDObject* obj : g_CurrentFile->objects) 
+		compileOneObject (obj);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 template<class T> void renderer::compileSubObject (LDObject* obj,
-	const bool bBackSide, const GLenum eGLType, const short dVerts)
+	const GLenum eGLType, const short dVerts)
 {
-	setObjectColor (obj, bBackSide);
+	setObjectColor (obj);
 	T* newobj = static_cast<T*> (obj);
 	glBegin (eGLType);
 	
@@ -254,33 +260,33 @@ template<class T> void renderer::compileSubObject (LDObject* obj,
 	glEnd ();
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
-	if (!obj)
-		return;
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+void renderer::compileOneObject (LDObject* obj) {
+	GLuint uList = glGenLists (1);
+	glNewList (uList, GL_COMPILE);
 	
 	switch (obj->getType ()) {
 	case OBJ_Line:
-		compileSubObject<LDLine> (obj, bBackSide, GL_LINES, 2);
+		compileSubObject<LDLine> (obj, GL_LINES, 2);
 		break;
 	
 	case OBJ_CondLine:
 		glLineStipple (1, 0x6666);
 		glEnable (GL_LINE_STIPPLE);
 		
-		compileSubObject<LDCondLine> (obj, bBackSide, GL_LINES, 2);
+		compileSubObject<LDCondLine> (obj, GL_LINES, 2);
 		
 		glDisable (GL_LINE_STIPPLE);
 		break;
 	
 	case OBJ_Triangle:
-		compileSubObject<LDTriangle> (obj, bBackSide, GL_TRIANGLES, 3);
+		compileSubObject<LDTriangle> (obj, GL_TRIANGLES, 3);
 		break;
 	
 	case OBJ_Quad:
-		compileSubObject<LDQuad> (obj, bBackSide, GL_QUADS, 4);
+		compileSubObject<LDQuad> (obj, GL_QUADS, 4);
 		break;
 	
 	case OBJ_Subfile:
@@ -290,7 +296,7 @@ void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 			vector<LDObject*> objs = ref->inlineContents (true, true);
 			
 			for (LDObject* obj : objs) {
-				compileOneObject (obj, bBackSide);
+				compileOneObject (obj);
 				delete obj;
 			}
 		}
@@ -333,11 +339,15 @@ void renderer::compileOneObject (LDObject* obj, bool bBackSide) {
 	default:
 		break;
 	}
+	
+	glEndList ();
+	uaObjLists.push_back (uList);
+	obj->uGLList = uList;
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::compileVertex (vertex& vrt) {
 	glVertex3d (
 		(vrt.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
@@ -345,9 +355,9 @@ void renderer::compileVertex (vertex& vrt) {
 		-(vrt.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::clampAngle (double& fAngle) {
 	while (fAngle < 0)
 		fAngle += 360.0;
@@ -355,12 +365,31 @@ void renderer::clampAngle (double& fAngle) {
 		fAngle -= 360.0;
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+void renderer::mouseReleaseEvent (QMouseEvent* event) {
+	if ((qMouseButtons & Qt::LeftButton) && !(event->buttons() & Qt::LeftButton)) {
+		if (ulTotalMouseMove < 10)
+			pick (event->x(), event->y());
+		
+		ulTotalMouseMove = 0;
+	}
+}
+
+void renderer::mousePressEvent (QMouseEvent* event) {
+	qMouseButtons = event->buttons();
+	if (event->buttons() & Qt::LeftButton)
+		ulTotalMouseMove = 0;
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void renderer::mouseMoveEvent (QMouseEvent *event) {
 	int dx = event->x () - lastPos.x ();
 	int dy = event->y () - lastPos.y ();
+	ulTotalMouseMove += abs (dx) + abs (dy);
 	
 	if (event->buttons () & Qt::LeftButton) {
 		fRotX = fRotX + (dy);
@@ -383,4 +412,39 @@ void renderer::mouseMoveEvent (QMouseEvent *event) {
 	
 	lastPos = event->pos();
 	updateGL ();
+}
+
+// ========================================================================= //
+void renderer::pick (uint mx, uint my) {
+	glDisable (GL_DITHER);
+	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
+	
+	g_bPicking = true;
+	
+	compileObjects ();
+	paintGL ();
+	
+	GLubyte pixel[3];
+	GLint viewport[4];
+	glGetIntegerv (GL_VIEWPORT, viewport);
+	glReadPixels (mx, viewport[3] - my, 1, 1, GL_RGB, GL_UNSIGNED_BYTE, reinterpret_cast<GLvoid*> (pixel));
+	
+	if (pixel[0] != 255 || pixel[1] != 255 || pixel[2] != 255) {
+		ulong idx = pixel[0] + (pixel[1] * 256) + (pixel[2] * 256 * 256);
+		printf ("idx: %lu\n", idx);
+		
+		LDObject* obj = g_CurrentFile->object (idx);
+		
+		g_ForgeWindow->paSelection.clear ();
+		g_ForgeWindow->paSelection.push_back (obj);
+	}
+	
+	g_bPicking = false;
+	glEnable (GL_DITHER);
+	
+	setBackground ();
+	compileObjects ();
+	paintGL ();
+	
+	g_ForgeWindow->updateSelection ();
 }

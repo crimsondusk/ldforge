@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -27,10 +27,11 @@ class renderer : public QGLWidget {
 	Q_OBJECT
 	
 public:
-	renderer (QWidget* parent = nullptr);
+	renderer (QWidget* parent = null);
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
+	void pick (uint mx, uint my);
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
@@ -41,17 +42,23 @@ protected:
 	void resizeGL (int w, int h);
 	void paintGL ();
 	
-	void mouseMoveEvent (QMouseEvent *event);
+	void mousePressEvent (QMouseEvent* event);
+	void mouseMoveEvent (QMouseEvent* event);
+	void mouseReleaseEvent (QMouseEvent* event);
 
 private:
-	GLuint uObjList, uObjListBack;
-	void compileOneObject (LDObject* obj, bool bBackSide);
-	template<class T> void compileSubObject (LDObject* obj, const bool bBackSide,
-		const GLenum eGLType, const short dVerts);
+	std::vector<GLuint> uaObjLists;
+	void compileOneObject (LDObject* obj);
+	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
+		const short dVerts);
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
-	void setObjectColor (LDObject* obj, bool bBackSide);
+	void setObjectColor (LDObject* obj);
 	void setMainColor ();
+	
+	Qt::MouseButtons qMouseButtons;
+	Qt::KeyboardModifiers qKeyMods;
+	ulong ulTotalMouseMove;
 };
 
 #endif // __GLDRAW_H__

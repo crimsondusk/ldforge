@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ void AddObjectDialog::slot_colorButtonClicked () {
 // =============================================================================
 void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* window) {
 	AddObjectDialog dlg (type, window);
-	LDObject* obj = nullptr;
+	LDObject* obj = null;
 	
 	if (dlg.exec ()) {
 		switch (type) {

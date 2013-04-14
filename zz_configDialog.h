@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ private:
 	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
 	void setButtonBackground (QPushButton* qButton, str zValue);
 	void pickColor (strconfig& cfg, QPushButton* qButton);
-	void updateQuickColorList (quickColorMetaEntry* pSel = nullptr);
+	void updateQuickColorList (quickColorMetaEntry* pSel = null);
 	void setShortcutText (QListWidgetItem* qItem, actionmeta meta);
 	long getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack);
 	str makeColorToolBarString ();
@@ -101,8 +101,8 @@ class KeySequenceDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = nullptr, Qt::WindowFlags f = 0);
-	static bool staticDialog (actionmeta& meta, QWidget* parent = nullptr);
+	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);
+	static bool staticDialog (actionmeta& meta, QWidget* parent = null);
 	
 	QLabel* qOutput;
 	QDialogButtonBox* qButtons;

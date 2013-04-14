@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -59,7 +59,8 @@ LDObject::LDObject () {
 }
 
 void LDObject::commonInit () {
-	qObjListEntry = nullptr;
+	qObjListEntry = null;
+	parent = null;
 }
 
 LDGibberish::LDGibberish () {
@@ -379,8 +380,12 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	}
 	
 	// Transform the objects
-	for (LDObject* obj : objs)
+	for (LDObject* obj : objs) {
+		// Set the parent now so we know what inlined this.
+		obj->parent = this;
+		
 		transformObject (obj, mMatrix, vPosition, dColor);
+	}
 	
 	return objs;
 }
@@ -460,6 +465,20 @@ str LDObject::objectListContents (std::vector<LDObject*>& objs) {
 	
 	return zText;
 }
+
+// =============================================================================
+LDSubfile* LDObject::topLevelParent () {
+	if (!parent)
+		return null;
+	
+	LDObject* it = this;
+	
+	while (it->parent)
+		it = it->parent;
+	
+	return static_cast<LDSubfile*> (it);
+}
+
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,6 +35,7 @@
 	virtual void move (vertex vVector);
 
 class QTreeWidgetItem;
+class LDSubfile;
 
 // =============================================================================
 // LDObjectType_e
@@ -79,6 +80,9 @@ public:
 	// OpenGL list for this object
 	uint uGLList;
 	
+	// Object this object was referenced from, if any
+	LDSubfile* parent;
+	
 	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
 		return OBJ_Unidentified;
@@ -94,6 +98,7 @@ public:
 		return new LDObject (*this);
 	}
 	
+	// Sets data common to all objects.
 	void commonInit ();
 	
 	// Replace this LDObject with another LDObject. This method deletes the
@@ -105,6 +110,9 @@ public:
 	
 	// Moves this object using the given vertex as a movement vector
 	virtual void move (vertex vVector);
+	
+	// What subfile in the current file ultimately references this?
+	LDSubfile* topLevelParent ();
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (std::vector<LDObject*>& objs);
@@ -152,7 +160,7 @@ public:
 class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment)
-	LDComment (str zText) : zText (zText) {}
+	LDComment (str zText) : zText (zText) { commonInit (); }
 	
 	str zText; // The text of this comment
 };
@@ -166,7 +174,7 @@ public:
 class LDBFC : public LDComment {
 public:
 	IMPLEMENT_LDTYPE (BFC)
-	LDBFC (const int dType) : dStatement (dType) {}
+	LDBFC (const int dType) : dStatement (dType) { commonInit (); }
 	
 	// Statement strings
 	static const char* saStatements[];
@@ -200,7 +208,7 @@ public:
 	vertex vPosition; // Position of the subpart
 	matrix mMatrix; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
-	OpenFile* pFile; // Pointer to opened file for this subfile. nullptr if unopened.
+	OpenFile* pFile; // Pointer to opened file for this subfile. null if unopened.
 	
 	// Gets the inlined contents of this subfile.
 	std::vector<LDObject*> inlineContents (bool bDeepInline, bool bCache);

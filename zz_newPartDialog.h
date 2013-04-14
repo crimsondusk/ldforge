@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 class NewPartDialog : public QDialog {
 public:
-	explicit NewPartDialog (QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+	explicit NewPartDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	static void StaticDialog ();
 	
 	QLabel* qLB_Icon, *qLB_NameLabel, *qLB_AuthorLabel, *qLB_LicenseLabel, *qLB_BFCLabel;

@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -58,11 +58,11 @@ void newFile ();
 // Opens the given file as the main file. Everything is closed first.
 void openMainFile (str zPath);
 
-// Finds an OpenFile by name or nullptr if not open
+// Finds an OpenFile by name or null if not open
 OpenFile* findLoadedFile (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
-// to the opened file or nullptr on error.
+// to the opened file or null on error.
 OpenFile* openDATFile (str path);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p

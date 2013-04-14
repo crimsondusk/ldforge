@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -70,6 +70,7 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	qView->setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
 	
 	// If we have a default color selected, scroll down so that it is visible.
+	// TODO: find a better way to do this
 	if (dDefault >= ((g_dNumColumns * g_dNumRows) - 2)) {
 		ulong ulNewY = ((dDefault / g_dNumColumns) - 3) * g_dSquareSize;
 		qView->verticalScrollBar ()->setSliderPosition (ulNewY);

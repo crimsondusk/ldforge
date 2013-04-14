@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -26,10 +26,10 @@
 #include "types.h"
 
 vector<OpenFile*> g_LoadedFiles;
-OpenFile* g_CurrentFile = nullptr;
-ForgeWindow* g_ForgeWindow = nullptr; 
+OpenFile* g_CurrentFile = null;
+ForgeWindow* g_ForgeWindow = null; 
 bbox g_BBox;
-QApplication* g_qMainApp = nullptr;
+QApplication* g_qMainApp = null;
 
 const vertex g_Origin (0.0f, 0.0f, 0.0f);
 const matrix g_mIdentity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);

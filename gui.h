@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -118,9 +118,13 @@ public:
 	
 	std::vector<QToolBar*> qaToolBars;
 	
+	// Quick color buttons
 	std::vector<QPushButton*> qaColorButtons;
 	QToolBar* qColorToolBar;
 	std::vector<quickColorMetaEntry> quickColorMeta;
+	
+	// Selected objects
+	std::vector<LDObject*> paSelection;
 	
 	str zMessageLogHTML;
 	
@@ -133,6 +137,7 @@ public:
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
 	void updateRecentFilesMenu ();
+	void updateSelection ();
 
 private:
 	void createMenuActions ();

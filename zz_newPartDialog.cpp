@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -105,14 +105,14 @@ void NewPartDialog::StaticDialog () {
 		const char* sLicense =
 			(idx == LICENSE_CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
 			(idx == LICENSE_NonCA) ? "Not redistributable : see NonCAreadme.txt" :
-			nullptr;
+			null;
 		
 		objs.push_back (new LDComment (dlg.qLE_Name->text ()));
 		objs.push_back (new LDComment ("Name: <untitled>.dat"));
 		objs.push_back (new LDComment (str::mkfmt ("Author: %s", zAuthor.chars())));
 		objs.push_back (new LDComment (str::mkfmt ("!LDRAW_ORG Unofficial_Part")));
 		
-		if (sLicense != nullptr)
+		if (sLicense != null)
 			objs.push_back (new LDComment (str::mkfmt ("!LICENSE %s", sLicense)));
 		
 		objs.push_back (new LDEmpty);

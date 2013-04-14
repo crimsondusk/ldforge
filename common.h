@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -60,6 +60,11 @@
 #ifdef RELEASE
 #define NDEBUG // remove asserts
 #endif // RELEASE
+
+#ifdef null
+#undef null
+#endif // null
+#define null nullptr
 
 static const double fMaxCoord = 10000.0;
 static const short dMainColor = 16;

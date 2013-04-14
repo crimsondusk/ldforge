@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,9 +20,10 @@
 #include <stdlib.h>
 #include <errno.h>
 #include <time.h>
+#include <QDir>
+#include "common.h"
 #include "str.h"
 #include "config.h"
-#include <QDir>
 
 std::vector<config*> g_pConfigPointers;
 
@@ -99,7 +100,7 @@ bool config::load () {
 		str entry = str (line).substr (0, equals - line);
 		
 		// Find the config entry for this.
-		config* cfg = nullptr;
+		config* cfg = null;
 		for (config* i : g_pConfigPointers)
 			if (entry == i->name)
 				cfg = i;

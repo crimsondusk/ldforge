@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -35,7 +35,7 @@ public:
 	QLineEdit* qContents;
 	QDialogButtonBox* qButtons;
 	
-	SetContentsDialog (LDObject* obj, QWidget* parent = nullptr);
+	SetContentsDialog (LDObject* obj, QWidget* parent = null);
 	static void staticDialog (LDObject* obj);
 	
 private slots:

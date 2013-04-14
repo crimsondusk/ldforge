@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,13 +20,14 @@
 #include <qdialogbuttonbox.h>
 #include <qgraphicsscene.h>
 #include <qlabel.h>
+#include "common.h"
 
 class ColorSelectDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	explicit ColorSelectDialog (short dDefault = -1, QWidget* parent = nullptr);
-	static bool staticDialog (short& dValue, short dDefault = -1, QWidget* parent = nullptr);
+	explicit ColorSelectDialog (short dDefault = -1, QWidget* parent = null);
+	static bool staticDialog (short& dValue, short dDefault = -1, QWidget* parent = null);
 	
 	QGraphicsScene* qScene;
 	QGraphicsView* qView;

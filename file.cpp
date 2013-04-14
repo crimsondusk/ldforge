@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@ OpenFile* findLoadedFile (str zName) {
 		if (file->zFileName == zName)
 			return file;
 	
-	return nullptr;
+	return null;
 }
 
 // =============================================================================
@@ -52,7 +52,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 	FILE* fp = fopen (path.chars (), "r");
 	str zFilePath;
 	
-	if (fp != nullptr)
+	if (fp != null)
 		return fp;
 	
 	if (~io_ldpath.value) {
@@ -62,7 +62,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 		printf ("try %s\n", zFilePath.chars());
 		
 		fp = fopen (zFilePath, "r");
-		if (fp != nullptr)
+		if (fp != null)
 			return fp;
 		
 		if (bSubDirectories) {
@@ -84,7 +84,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 		}
 	}
 	
-	return nullptr;
+	return null;
 }
 
 // =============================================================================
@@ -100,7 +100,7 @@ OpenFile* openDATFile (str path) {
 	
 	if (!fp) {
 		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));
-		return nullptr;
+		return null;
 	}
 	
 	OpenFile* load = new OpenFile;

@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -262,7 +262,7 @@ void HistoryDialog::slot_selChanged () {
 	// Find the index of the edit
 	long idx = -1;
 	QListWidgetItem* it;
-	while ((it = qHistoryList->item (++idx)) != nullptr)
+	while ((it = qHistoryList->item (++idx)) != null)
 		if (it == qItem)
 			break;
 	

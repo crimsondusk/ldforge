@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -140,6 +140,10 @@ static void doInline (bool bDeep) {
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
 			ulaBitIndices.push_back (idx);
+			
+			// This object is now inlined so it has no parent anymore.
+			inlineobj->parent = null;
+			
 			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
 		}
 		
@@ -324,7 +328,7 @@ ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	vector<LDObject*> paObjs;
 	
 	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
-		vertex* vaCoords = nullptr;
+		vertex* vaCoords = null;
 		ushort uNumCoords = 0;
 		
 		switch (obj->getType ()) {

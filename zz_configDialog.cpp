@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri `arezey` Piippo
+ *  Copyright (C) 2013 Santeri Piippo
  *  
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@ extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
 
-ConfigDialog* g_ConfigDialog = nullptr;
+ConfigDialog* g_ConfigDialog = null;
 
 #define INIT_CHECKBOX(BOX, CFG) \
 	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
@@ -255,7 +255,7 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
 		} else {
 			color* col = entry.col;
 			
-			if (col == nullptr) {
+			if (col == null) {
 				qItem->setText ("[[unknown color]]");
 				qItem->setIcon (getIcon ("error"));
 			} else {
@@ -278,8 +278,8 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::slot_setColor () {
-	quickColorMetaEntry* pEntry = nullptr;
-	QListWidgetItem* qItem = nullptr;
+	quickColorMetaEntry* pEntry = null;
+	QListWidgetItem* qItem = null;
 	const bool bNew = static_cast<QPushButton*> (sender ()) == qAddColor;
 	
 	if (bNew == false) {
@@ -303,7 +303,7 @@ void ConfigDialog::slot_setColor () {
 	if (pEntry)
 		pEntry->col = getColor (dValue);
 	else {
-		quickColorMetaEntry entry = {getColor (dValue), nullptr, false};
+		quickColorMetaEntry entry = {getColor (dValue), null, false};
 		
 		qItem = getSelectedQuickColor ();
 		ulong idx;
@@ -357,7 +357,7 @@ void ConfigDialog::slot_moveColor () {
 
 // =============================================================================
 void ConfigDialog::slot_addColorSeparator() {
-	quickColorMeta.push_back ({nullptr, nullptr, true});
+	quickColorMeta.push_back ({null, null, true});
 	updateQuickColorList (&quickColorMeta[quickColorMeta.size () - 1]);
 }
 
@@ -384,7 +384,7 @@ void ConfigDialog::makeSlider (QSlider*& qSlider, short int dMin, short int dMax
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ConfigDialog::~ConfigDialog () {
-	g_ConfigDialog = nullptr;
+	g_ConfigDialog = null;
 }
 
 // =============================================================================
@@ -449,7 +449,7 @@ long ConfigDialog::getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetIt
 // =============================================================================
 QListWidgetItem* ConfigDialog::getSelectedQuickColor () {
 	if (qQuickColorList->selectedItems().size() == 0)
-		return nullptr;
+		return null;
 	
 	return qQuickColorList->selectedItems ()[0];
 }
