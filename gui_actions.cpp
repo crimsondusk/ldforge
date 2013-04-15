@@ -119,8 +119,13 @@ ACTION (newCondLine, "New Conditional Line", "add-condline", "Creates a new cond
 ACTION (newComment, "New Comment", "add-comment", "Creates a new comment.", 0) {
 	AddObjectDialog::staticDialog (OBJ_Comment, g_ForgeWindow);
 }
+
 ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) {
 	AddObjectDialog::staticDialog (OBJ_Vertex, g_ForgeWindow);
+}
+
+ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) {
+	AddObjectDialog::staticDialog (OBJ_Radial, g_ForgeWindow);
 }
 
 ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY (F1)) {
@@ -200,9 +205,9 @@ ACTION (selectByType, "Select by Type", "select-type",
 // =============================================================================
 // Debug things
 #ifndef RELEASE
-ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", CTRL_SHIFT (Q)) {
+ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", (0)) {
 	LDQuad* pQuad = new LDQuad;
-	pQuad->dColor = rand () % 16;
+	pQuad->dColor = rand () % 24;
 	pQuad->vaCoords[0] = { 1.0f, 0.0f,  1.0f};
 	pQuad->vaCoords[1] = {-1.0f, 0.0f,  1.0f};
 	pQuad->vaCoords[2] = {-1.0f, 0.0f, -1.0f};
@@ -212,4 +217,20 @@ ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", CTRL_SHIF
 	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_CurrentFile)}, {pQuad->clone ()}));
 	g_ForgeWindow->refresh ();
 }
+
+ACTION (addTestRadial, "Add Test Radial", "add-radial", "Adds a test radial.", (0)) {
+	LDRadial* pRad = new LDRadial;
+	pRad->eRadialType = LDRadial::Cone;
+	pRad->mMatrix = g_mIdentity;
+	pRad->vPosition = vertex (0, 0, 0);
+	pRad->dColor = rand () % 24;
+	pRad->dDivisions = 16;
+	pRad->dRingNum = 2;
+	pRad->dSegments = 16;
+	
+	g_CurrentFile->addObject (pRad);
+	History::addEntry (new AddHistory ({(ulong)pRad->getIndex (g_CurrentFile)}, {pRad->clone ()}));
+	g_ForgeWindow->refresh ();
+}
+
 #endif // RELEASE

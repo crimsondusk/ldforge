@@ -24,6 +24,7 @@
 
 char const* g_saObjTypeNames[] = {
 	"subfile",
+	"radial",
 	"quadrilateral",
 	"triangle",
 	"line",
@@ -39,6 +40,7 @@ char const* g_saObjTypeNames[] = {
 // Should probably get rid of this array sometime
 char const* g_saObjTypeIcons[] = {
 	"subfile",
+	"radial",
 	"quad",
 	"triangle",
 	"line",
@@ -56,16 +58,14 @@ char const* g_saObjTypeIcons[] = {
 // =============================================================================
 // LDObject constructors
 LDObject::LDObject () {
-	commonInit ();
-}
-
-void LDObject::commonInit () {
 	qObjListEntry = null;
 	parent = null;
 }
 
+void LDObject::commonInit () {
+}
+
 LDGibberish::LDGibberish () {
-	commonInit ();
 	dColor = -1;
 }
 
@@ -73,46 +73,42 @@ LDGibberish::LDGibberish (str _zContent, str _zReason) {
 	zContents = _zContent;
 	zReason = _zReason;
 	dColor = -1;
-	
-	commonInit ();
 }
 
 LDEmpty::LDEmpty () {
-	commonInit ();
 	dColor = -1;
 }
 
 LDComment::LDComment () {
-	commonInit ();
 	dColor = -1;
 }
 
 LDSubfile::LDSubfile () {
-	commonInit ();
+	
 }
 
 LDLine::LDLine () {
-	commonInit ();
+	
 }
 
 LDTriangle::LDTriangle () {
-	commonInit ();
+	
 }
 
 LDQuad::LDQuad () {
-	commonInit ();
+	
 }
 
 LDCondLine::LDCondLine () {
-	commonInit ();
+	
 }
 
 LDVertex::LDVertex () {
-	commonInit ();
+	
 }
 
 LDBFC::LDBFC () {
-	commonInit ();
+	
 }
 
 // =============================================================================
@@ -273,6 +269,7 @@ LDSubfile::~LDSubfile () {}
 LDTriangle::~LDTriangle () {}
 LDVertex::~LDVertex () {}
 LDBFC::~LDBFC () {}
+LDRadial::~LDRadial () {}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -474,7 +471,7 @@ str LDObject::objectListContents (std::vector<LDObject*>& objs) {
 }
 
 // =============================================================================
-LDSubfile* LDObject::topLevelParent () {
+LDObject* LDObject::topLevelParent () {
 	if (!parent)
 		return null;
 	
@@ -483,7 +480,7 @@ LDSubfile* LDObject::topLevelParent () {
 	while (it->parent)
 		it = it->parent;
 	
-	return static_cast<LDSubfile*> (it);
+	return it;
 }
 
 
@@ -501,6 +498,10 @@ void LDVertex::move (vertex vVector) {
 }
 
 void LDSubfile::move (vertex vVector) {
+	vPosition += vVector;
+}
+
+void LDRadial::move (vertex vVector) {
 	vPosition += vVector;
 }
 
@@ -522,4 +523,152 @@ void LDQuad::move (vertex vVector) {
 void LDCondLine::move (vertex vVector) {
 	for (short i = 0; i < 4; ++i)
 		vaCoords[i] += vVector;
+}
+
+// ===========================================f==================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+LDRadial::LDRadial () {
+	
+}
+
+const char* g_saRadialTypeNames[] = {
+	"Circle",
+	"Cylinder",
+	"Disc",
+	"Disc Negative",
+	"Ring",
+	"Cone",
+	null
+};
+
+std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
+	std::vector<LDObject*> paObjects;
+	
+	for (short i = 0; i < dSegments; ++i) {
+		double x0 = cos ((i * 2 * pi) / dDivisions),
+			x1 = cos (((i + 1) * 2 * pi) / dDivisions),
+			z0 = sin ((i * 2 * pi) / dDivisions),
+			z1 = sin (((i + 1) * 2 * pi) / dDivisions);
+		
+		switch (eRadialType) {
+		case LDRadial::Circle:
+			{
+				vertex v0 (x0, 0.0f, z0),
+					v1 (x1, 0.0f, z1);
+				
+				if (bTransform) {
+					v0.transform (mMatrix, vPosition);
+					v1.transform (mMatrix, vPosition);
+				}
+				
+				LDLine* pLine = new LDLine;
+				pLine->vaCoords[0] = v0;
+				pLine->vaCoords[1] = v1;
+				pLine->dColor = dEdgeColor;
+				pLine->parent = this;
+				
+				paObjects.push_back (pLine);
+			}
+			break;
+		
+		case LDRadial::Cylinder:
+		case LDRadial::Ring:
+		case LDRadial::Cone:
+			{
+				double x2, x3, z2, z3;
+				double y0, y1, y2, y3;
+				
+				if (eRadialType == LDRadial::Cylinder) {
+					x2 = x1;
+					x3 = x0;
+					z2 = z1;
+					z3 = z0;
+					
+					y0 = y1 = 0.0f;
+					y2 = y3 = 1.0f;
+				} else {
+					x2 = x1 * (dRingNum + 1);
+					x3 = x0 * (dRingNum + 1);
+					z2 = z1 * (dRingNum + 1);
+					z3 = z0 * (dRingNum + 1);
+					
+					x0 *= dRingNum;
+					x1 *= dRingNum;
+					z0 *= dRingNum;
+					z1 *= dRingNum;
+					
+					if (eRadialType == LDRadial::Ring) {
+						y0 = y1 = y2 = y3 = 0.0f;
+					} else {
+						y0 = y1 = 1.0f;
+						y2 = y3 = 0.0f;
+					} 
+				}
+				
+				vertex v0 (x0, y0, z0),
+					v1 (x1, y1, z1),
+					v2 (x2, y2, z2),
+					v3 (x3, y3, z3);
+				
+				if (bTransform) {
+					v0.transform (mMatrix, vPosition);
+					v1.transform (mMatrix, vPosition);
+					v2.transform (mMatrix, vPosition);
+					v3.transform (mMatrix, vPosition);
+				}
+				
+				LDQuad* pQuad = new LDQuad;
+				pQuad->vaCoords[0] = v0;
+				pQuad->vaCoords[1] = v1;
+				pQuad->vaCoords[2] = v2;
+				pQuad->vaCoords[3] = v3;
+				pQuad->dColor = dColor;
+				pQuad->parent = this;
+				
+				paObjects.push_back (pQuad);
+			}
+			break;
+		
+		case LDRadial::Disc:
+		case LDRadial::DiscNeg:
+			{
+				double x2, z2;
+				
+				if (eRadialType == LDRadial::Disc) {
+					x2 = z2 = 0.0f;
+				} else {
+					x2 = (x0 >= 0.0f) ? 1.0f : -1.0f;
+					z2 = (z0 >= 0.0f) ? 1.0f : -1.0f;
+				}
+				
+				vertex v0 (x0, 0.0f, z0),
+					v1 (x1, 0.0f, z1),
+					v2 (x2, 0.0f, z2);
+				
+				if (bTransform) {
+					v0.transform (mMatrix, vPosition);
+					v1.transform (mMatrix, vPosition);
+					v2.transform (mMatrix, vPosition);
+				}
+				
+				LDTriangle* pSeg = new LDTriangle;
+				pSeg->vaCoords[0] = v0;
+				pSeg->vaCoords[1] = v1;
+				pSeg->vaCoords[2] = v2;
+				pSeg->dColor = dColor;
+				pSeg->parent = this;
+				
+				paObjects.push_back (pSeg);
+			}
+			break;
+		}
+	}
+	
+	return paObjects;
+}
+
+str LDRadial::getContents () {
+	// TODO
+	return "0 !LDFORGE RADIAL";
 }

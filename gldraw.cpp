@@ -347,8 +347,19 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 	case OBJ_Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			
 			vector<LDObject*> objs = ref->inlineContents (true, true);
+			
+			for (LDObject* obj : objs) {
+				compileOneObject (obj);
+				delete obj;
+			}
+		}
+		break;
+	
+	case OBJ_Radial:
+		{
+			LDRadial* pRadial = static_cast<LDRadial*> (obj);
+			std::vector<LDObject*> objs = pRadial->decompose (true);
 			
 			for (LDObject* obj : objs) {
 				compileOneObject (obj);

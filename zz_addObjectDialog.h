@@ -26,6 +26,7 @@
 #include <qlabel.h>
 #include <qspinbox.h>
 #include <qpushbutton.h>
+#include <qcombobox.h>
 
 class AddObjectDialog : public QDialog {
 	Q_OBJECT
@@ -45,6 +46,12 @@ public:
 	// Color selection dialog button
 	QPushButton* qColorButton;
 	
+	// Radial stuff
+	QComboBox* qRadialType, *qRadialResolution;
+	QSpinBox* qRadialSegments, *qRadialRingNum;
+	QLabel* qRadialTypeLabel, *qRadialResolutionLabel, *qRadialSegmentsLabel,
+		*qRadialRingNumLabel;
+	
 	QDialogButtonBox* qButtons;
 	
 private:
@@ -54,6 +61,7 @@ private:
 	
 private slots:
 	void slot_colorButtonClicked ();
+	void slot_radialTypeChanged (int dType);
 };
 
 #endif // __ZZ_ADDOBJECTDIALOG_H__

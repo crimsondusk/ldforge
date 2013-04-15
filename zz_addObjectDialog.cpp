@@ -47,18 +47,48 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	case OBJ_Comment:
 		qCommentLine = new QLineEdit;
 		break;
+	
 	case OBJ_Line:
 		dCoordCount = 6;
 		break;
+	
 	case OBJ_Triangle:
 		dCoordCount = 9;
 		break;
+	
 	case OBJ_Quad:
 	case OBJ_CondLine:
 		dCoordCount = 12;
 		break;
+	
 	case OBJ_Vertex:
 		dCoordCount = 3;
+	
+	case OBJ_Radial:
+		dCoordCount = 3;
+		
+		qRadialTypeLabel = new QLabel ("Type:");
+		qRadialResolutionLabel = new QLabel ("Resolution:");
+		qRadialSegmentsLabel = new QLabel ("Segments:");
+		qRadialRingNumLabel = new QLabel ("Ring number:");
+		
+		qRadialType = new QComboBox;
+		
+		for (int i = 0; i < LDRadial::NumTypes; ++i)
+			qRadialType->addItem (g_saRadialTypeNames[i]);
+		
+		connect (qRadialType, SIGNAL (currentIndexChanged (int)), this, SLOT (slot_radialTypeChanged (int)));
+		
+		qRadialResolution = new QComboBox;
+		qRadialResolution->addItems ({"Normal (16)", "Hi-Res (48)"});
+		
+		qRadialSegments = new QSpinBox;
+		qRadialSegments->setMinimum (1);
+		
+		qRadialRingNum = new QSpinBox;
+		qRadialRingNum->setEnabled (false);
+		break;
+	
 	default:
 		break;
 	}
@@ -72,6 +102,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	case OBJ_Triangle:
 	case OBJ_Vertex:
 	case OBJ_Subfile:
+	case OBJ_Radial:
 		bUsesColor = true;
 		break;
 	default:
@@ -102,6 +133,18 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	case OBJ_Comment:
 		qLayout->addWidget (qCommentLine, 0, 1);
 		break;
+	
+	case OBJ_Radial:
+		qLayout->addWidget (qRadialTypeLabel, 1, 1);
+		qLayout->addWidget (qRadialType, 1, 2);
+		qLayout->addWidget (qRadialResolutionLabel, 2, 1);
+		qLayout->addWidget (qRadialResolution, 2, 2);
+		qLayout->addWidget (qRadialSegmentsLabel, 3, 1);
+		qLayout->addWidget (qRadialSegments, 3, 2);
+		qLayout->addWidget (qRadialRingNumLabel, 4, 1);
+		qLayout->addWidget (qRadialRingNum, 4, 2);
+		break;
+	
 	default:
 		break;
 	}
@@ -115,10 +158,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		for (short i = 0; i < dCoordCount; ++i)
 			qCoordLayout->addWidget (qaCoordinates[i], (i / 3), (i % 3));
 		
-		qLayout->addLayout (qCoordLayout, 0, 1, 2, 1);
+		qLayout->addLayout (qCoordLayout, 0, 1, 2, 2);
 	}
 	
-	qLayout->addWidget (qButtons, 2, 1);
+	qLayout->addWidget (qButtons, 5, 1);
 	setLayout (qLayout);
 	setWindowTitle (str::mkfmt (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
@@ -143,6 +186,14 @@ void AddObjectDialog::setButtonBackground (QPushButton* qButton, short dColor) {
 void AddObjectDialog::slot_colorButtonClicked () {
 	ColorSelectDialog::staticDialog (dColor, dColor, this);
 	setButtonBackground (qColorButton, dColor);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void AddObjectDialog::slot_radialTypeChanged (int dType) {
+	LDRadial::Type eType = (LDRadial::Type) dType;
+	qRadialRingNum->setEnabled (eType == LDRadial::Ring || eType == LDRadial::Cone);
 }
 
 // =============================================================================
@@ -202,6 +253,23 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 				vert->vPosition.y = dlg.qaCoordinates[1]->value ();
 				vert->vPosition.z = dlg.qaCoordinates[2]->value ();
 				obj = vert;
+			}
+			break;
+		
+		case OBJ_Radial:
+			{
+				LDRadial* pRad = new LDRadial;
+				pRad->dColor = dlg.dColor;
+				pRad->vPosition.x = dlg.qaCoordinates[0]->value ();
+				pRad->vPosition.y = dlg.qaCoordinates[1]->value ();
+				pRad->vPosition.z = dlg.qaCoordinates[2]->value ();
+				pRad->dDivisions = (dlg.qRadialResolution->currentIndex () == 0) ? 16 : 48;
+				pRad->dSegments = min<short> (dlg.qRadialSegments->value (), pRad->dDivisions);
+				pRad->eRadialType = (LDRadial::Type) dlg.qRadialType->currentIndex ();
+				pRad->dRingNum = dlg.qRadialRingNum->value ();
+				pRad->mMatrix = g_mIdentity;
+				
+				obj = pRad;
 			}
 			break;
 		

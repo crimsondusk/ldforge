@@ -44,6 +44,7 @@ class LDSubfile;
 // =============================================================================
 enum LDObjectType_e {
 	OBJ_Subfile,		// Object represents a sub-file reference
+	OBJ_Radial,			// Object represents a generic radial
 	OBJ_Quad,			// Object represents a quadrilateral
 	OBJ_Triangle,		// Object represents a triangle
 	OBJ_Line,			// Object represents a line
@@ -81,7 +82,7 @@ public:
 	uint uGLList, uGLPickList;
 	
 	// Object this object was referenced from, if any
-	LDSubfile* parent;
+	LDObject* parent;
 	
 	// Type enumerator of this object
 	virtual LDObjectType_e getType () const {
@@ -111,8 +112,8 @@ public:
 	// Moves this object using the given vertex as a movement vector
 	virtual void move (vertex vVector);
 	
-	// What subfile in the current file ultimately references this?
-	LDSubfile* topLevelParent ();
+	// What object in the current file ultimately references this?
+	LDObject* topLevelParent ();
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (std::vector<LDObject*>& objs);
@@ -281,7 +282,7 @@ public:
 // =============================================================================
 // LDVertex
 // 
-// The vertex is another LDForce-specific extension. It represents a single
+// The vertex is an LDForce-specific extension which represents a single
 // vertex which can be used as a parameter to tools or to store coordinates
 // with. Vertices are a part authoring tool and they should not appear in
 // finished parts.
@@ -292,6 +293,44 @@ public:
 	
 	vertex vPosition;
 };
+
+// =============================================================================
+// LDRadial
+// 
+// The generic radial primitive (radial for short) is another LDforge-specific
+// extension which represents an arbitrary circular primitive. Radials can appear
+// as circles, cylinders, rings, cones, discs and disc negatives; the point is to
+// allow part authors to add radial primitives to parts without much hassle about
+// non-existant primitive parts.
+// =============================================================================
+class LDRadial : public LDObject {
+public:
+	enum Type {
+		Circle,
+		Cylinder,
+		Disc,
+		DiscNeg,
+		Ring,
+		Cone,
+		NumTypes
+	};
+	
+	IMPLEMENT_LDTYPE (Radial)
+	
+	LDRadial::Type eRadialType;
+	vertex vPosition;
+	matrix mMatrix;
+	short dDivisions, dSegments, dRingNum;
+	
+	LDRadial (LDRadial::Type eRadialType, vertex vPosition, matrix mMatrix,
+		short dDivisions, short dSegments, short dRingNum) :
+		eRadialType (eRadialType), vPosition (vPosition), mMatrix (mMatrix),
+		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}
+	
+	std::vector<LDObject*> decompose (bool bTransform);
+};
+
+extern const char* g_saRadialTypeNames[];
 
 // =============================================================================
 // Object type names. Pass the return value of getType as the index to get a

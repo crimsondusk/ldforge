@@ -54,6 +54,7 @@ EXTERN_ACTION (newTriangle)
 EXTERN_ACTION (newQuad)
 EXTERN_ACTION (newVertex)
 EXTERN_ACTION (newComment)
+EXTERN_ACTION (newRadial)
 EXTERN_ACTION (help)
 EXTERN_ACTION (about)
 EXTERN_ACTION (aboutQt)
@@ -71,6 +72,7 @@ EXTERN_ACTION (moveZPos)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
+EXTERN_ACTION (addTestRadial)
 #endif // RELEASE
 
 vector<actionmeta> g_ActionMeta;
@@ -180,6 +182,7 @@ void ForgeWindow::createMenus () {
 	qInsertMenu->addAction (ACTION_NAME (newCondLine));		// New Conditional Line
 	qInsertMenu->addAction (ACTION_NAME (newComment));		// New Comment
 	qInsertMenu->addAction (ACTION_NAME (newVertex));		// New Vertex
+	qInsertMenu->addAction (ACTION_NAME (newRadial));		// New Radial
 	
 	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
@@ -222,6 +225,7 @@ void ForgeWindow::createMenus () {
 	// Debug menu
 	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
 	qDebugMenu->addAction (ACTION_NAME (addTestQuad));		// Add Test Quad
+	qDebugMenu->addAction (ACTION_NAME (addTestRadial));	// Add Test Radial
 #endif // RELEASE
 	
 	// Help menu
@@ -283,6 +287,7 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (newCondLine)
 	ADD_TOOLBAR_ITEM (newComment)
 	ADD_TOOLBAR_ITEM (newVertex)
+	ADD_TOOLBAR_ITEM (newRadial)
 	
 	initSingleToolBar ("Edit");
 	ADD_TOOLBAR_ITEM (undo)
