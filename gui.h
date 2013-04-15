@@ -140,7 +140,8 @@ public:
 	void updateRecentFilesMenu ();
 	void updateSelection ();
 	bool isSelected (LDObject* obj);
-	short int getSelectedColor();
+	short getSelectedColor();
+	LDObjectType_e getSelectedType ();
 
 private:
 	void createMenuActions ();

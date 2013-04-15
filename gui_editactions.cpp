@@ -79,11 +79,13 @@ ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paCopies;
 	
+	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	
 	for (LDObject* obj : g_Clipboard) {
-		ulong idx = g_CurrentFile->addObject (obj->clone ());
-		
 		ulaIndices.push_back (idx);
 		paCopies.push_back (obj->clone ());
+		
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, obj->clone ());
 	}
 	
 	History::addEntry (new AddHistory (ulaIndices, paCopies, AddHistory::Paste));

@@ -526,7 +526,6 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	}
 	
 	g_ForgeWindow->buildObjList ();
-	g_ForgeWindow->updateSelection ();
 	
 	bPicking = false;
 	glEnable (GL_DITHER);

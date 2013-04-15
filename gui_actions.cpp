@@ -144,11 +144,9 @@ ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (selectByColor, "Select by Color", "select-color",
-	"Select all objects by the given color.", (0))
+	"Select all objects by the given color.", CTRL_SHIFT (A))
 {
 	short dColor = g_ForgeWindow->getSelectedColor ();
-	
-	printf ("color: %d\n", dColor);
 	
 	if (dColor == -1)
 		return; // no consensus on color
@@ -164,7 +162,38 @@ ACTION (selectByColor, "Select by Color", "select-color",
 ACTION (selectByType, "Select by Type", "select-type",
 	"Select all objects by the given type.", (0))
 {
+	if (g_ForgeWindow->selection ().size () == 0)
+		return;
 	
+	LDObjectType_e eType = g_ForgeWindow->getSelectedType ();
+	
+	if (eType == OBJ_Unidentified)
+		return;
+	
+	// If we're selecting subfile references, the reference filename must also
+	// be uniform.
+	str zRefName;
+	
+	if (eType == OBJ_Subfile) {
+		zRefName = static_cast<LDSubfile*> (g_ForgeWindow->selection ()[0])->zFileName;
+		
+		for (LDObject* pObj : g_ForgeWindow->selection ())
+			if (static_cast<LDSubfile*> (pObj)->zFileName != zRefName)
+				return;
+	}
+	
+	g_ForgeWindow->paSelection.clear ();
+	for (LDObject* obj : g_CurrentFile->objects) {
+		if (obj->getType() != eType)
+			continue;
+		
+		if (eType == OBJ_Subfile && static_cast<LDSubfile*> (obj)->zFileName != zRefName)
+			continue;
+		
+		g_ForgeWindow->paSelection.push_back (obj);
+	}
+	
+	g_ForgeWindow->updateSelection ();
 }
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

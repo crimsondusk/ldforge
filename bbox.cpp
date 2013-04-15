@@ -130,8 +130,8 @@ double bbox::calcSize () {
 	} else if (fYScale > fZScale)
 		fSize = fYScale;
 	
-	printf ("fsize: %f\n", fSize);
 	if (abs (fSize) >= 2.0f)
 		return abs (fSize / 2);
+	
 	return 1.0f;
 }

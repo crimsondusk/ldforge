@@ -302,6 +302,8 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (moveZPos)
 	ADD_TOOLBAR_ITEM (moveZNeg)
 	
+	addToolBarBreak (Qt::TopToolBarArea);
+	
 	initSingleToolBar ("Select");
 	ADD_TOOLBAR_ITEM (selectByColor)
 	ADD_TOOLBAR_ITEM (selectByType)
@@ -430,10 +432,13 @@ void ForgeWindow::slot_action () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
-	bool const bSelectionEmpty = (paSelection.size() == 0);
+	if (selection ().size () == 0)
+		return;
+	
+	std::vector<LDObject*> sel = selection ();
 	
 	// Delete the objects that were being selected
-	for (LDObject* obj : paSelection) {
+	for (LDObject* obj : sel) {
 		if (papObjects && ulapIndices) {
 			papObjects->push_back (obj->clone ());
 			ulapIndices->push_back (obj->getIndex (g_CurrentFile));
@@ -443,8 +448,7 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 		delete obj;
 	}
 	
-	if (bSelectionEmpty == false)
-		refresh ();
+	refresh ();
 }
 
 // ========================================================================= //
@@ -453,6 +457,11 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
+	
+	// Lock the selection while we do this so that refreshing the object list
+	// doesn't trigger selection updating so that the selection doesn't get lost
+	// while this is done
+	g_bSelectionLocked = true;
 	
 	QList<QTreeWidgetItem*> qaItems;
 	
@@ -576,6 +585,9 @@ void ForgeWindow::buildObjList () {
 	}
 	
 	qObjList->insertTopLevelItems (0, qaItems);
+	
+	g_bSelectionLocked = false;
+	updateSelection ();
 }
 
 // ========================================================================= //
@@ -678,6 +690,7 @@ ulong ForgeWindow::getInsertionPoint () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::refresh () {
+	printf ("refreshing.. (%lu)\n", paSelection.size ());
 	buildObjList ();
 	R->hardRefresh ();
 }
@@ -713,6 +726,8 @@ void ForgeWindow::updateSelection () {
 	for (LDObject* obj : paSelection)
 		obj->qObjListEntry->setSelected (true);
 	
+	printf ("updateSelection: %lu objects selected\n", paSelection.size ());
+	
 	g_bSelectionLocked = false;
 	slot_selectionChanged ();
 }
@@ -739,18 +754,31 @@ short ForgeWindow::getSelectedColor() {
 		if (obj->dColor == -1)
 			continue; // doesn't use color
 		
-		if (dResult != -1 && obj->dColor != dResult) {
-			// No consensus in object color, therefore we don't have a
-			// proper default value to use.
-			dResult = -1;
-			break;
-		}
+		if (dResult != -1 && obj->dColor != dResult)
+			return -1; // No consensus in object color
 		
 		if (dResult == -1)
 			dResult = obj->dColor;
 	}
 	
 	return dResult;
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+LDObjectType_e ForgeWindow::getSelectedType () {
+	LDObjectType_e eResult = OBJ_Unidentified;
+	
+	for (LDObject* obj : paSelection) {
+		if (eResult != OBJ_Unidentified && obj->dColor != eResult)
+			return OBJ_Unidentified;
+		
+		if (eResult == OBJ_Unidentified)
+			eResult = obj->getType ();
+	}
+	
+	return eResult;
 }
 
 // ========================================================================= //
