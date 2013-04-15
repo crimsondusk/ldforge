@@ -245,6 +245,7 @@ void openMainFile (str zPath) {
 	
 	// Rebuild the object tree view now.
 	g_ForgeWindow->refresh ();
+	g_ForgeWindow->setTitle ();
 	
 	// Add it to the recent files list.
 	addRecentFile (zPath);

@@ -30,7 +30,7 @@ vector<LDObject*> g_Clipboard;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static bool copyToClipboard () {
-	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	vector<LDObject*> objs = g_ForgeWindow->selection ();
 	
 	if (objs.size() == 0)
 		return false;
@@ -107,7 +107,7 @@ ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doInline (bool bDeep) {
-	vector<LDObject*> sel = g_ForgeWindow->getSelectedObjects ();
+	vector<LDObject*> sel = g_ForgeWindow->selection ();
 	
 	// History stuff
 	vector<LDSubfile*> paRefs;
@@ -170,7 +170,7 @@ ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected s
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
-	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	vector<LDObject*> objs = g_ForgeWindow->selection ();
 	
 	vector<ulong> ulaIndices;
 	vector<LDQuad*> paCopies;
@@ -216,7 +216,7 @@ ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this o
 	if (g_ForgeWindow->qObjList->selectedItems().size() != 1)
 		return;
 	
-	LDObject* obj = g_ForgeWindow->getSelectedObjects ()[0];
+	LDObject* obj = g_ForgeWindow->selection ()[0];
 	SetContentsDialog::staticDialog (obj);
 }
 
@@ -230,24 +230,11 @@ ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY
 	short dColor;
 	short dDefault = -1;
 	
-	std::vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	std::vector<LDObject*> objs = g_ForgeWindow->selection ();
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	for (LDObject* obj : objs) {
-		if (obj->dColor == -1)
-			continue; // doesn't use color
-		
-		if (dDefault != -1 && obj->dColor != dDefault) {
-			// No consensus in object color, therefore we don't have a
-			// proper default value to use.
-			dDefault = -1;
-			break;
-		}
-		
-		if (dDefault == -1)
-			dDefault = obj->dColor;
-	}
+	dDefault = g_ForgeWindow->getSelectedColor ();
 	
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (dColor, dDefault, g_ForgeWindow)) {
@@ -274,7 +261,7 @@ ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY
 ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.",
 	CTRL_SHIFT (B))
 {
-	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	vector<LDObject*> objs = g_ForgeWindow->selection ();
 	
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
@@ -327,7 +314,7 @@ ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
 	
-	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
+	for (LDObject* obj : g_ForgeWindow->selection ()) {
 		vertex* vaCoords = null;
 		ushort uNumCoords = 0;
 		
@@ -373,7 +360,7 @@ ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doMoveSelection (const bool bUp) {
-	vector<LDObject*> objs = g_ForgeWindow->getSelectedObjects ();
+	vector<LDObject*> objs = g_ForgeWindow->selection ();
 	
 	// Get the indices of the objects for history archival
 	vector<ulong> ulaIndices;
@@ -415,7 +402,7 @@ ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0))
 void doMoveObjects (const vertex vVector) {
 	vector<ulong> ulaIndices;
 	
-	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ()) {
+	for (LDObject* obj : g_ForgeWindow->selection ()) {
 		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
 		obj->move (vVector);
 	}

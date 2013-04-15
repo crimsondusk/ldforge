@@ -484,11 +484,8 @@ void GLRenderer::updateSelFlash () {
 	if (gl_selflash && g_ForgeWindow->paSelection.size() > 0) {
 		qPulseTimer->start (g_dPulseInterval);
 		g_dPulseTick = 0;
-	} else {
-		printf ("stop pulse timer\n");
+	} else
 		qPulseTimer->stop ();
-		printf ("done\n");
-	}
 }
 
 // ========================================================================= //
@@ -528,6 +525,7 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 		g_ForgeWindow->paSelection.push_back (obj);
 	}
 	
+	g_ForgeWindow->buildObjList ();
 	g_ForgeWindow->updateSelection ();
 	
 	bPicking = false;
@@ -536,7 +534,7 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	setBackground ();
 	updateSelFlash ();
 	
-	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ())
+	for (LDObject* obj : g_ForgeWindow->selection ())
 		recompileObject (obj);
 	
 	paintGL ();
@@ -566,7 +564,7 @@ void GLRenderer::recompileObject (LDObject* obj) {
 void GLRenderer::slot_timerUpdate () {
 	++g_dPulseTick %= g_dNumPulseTicks;
 	
-	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ())
+	for (LDObject* obj : g_ForgeWindow->selection ())
 		recompileObject (obj);
 	
 	paintGL ();

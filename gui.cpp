@@ -60,7 +60,8 @@ EXTERN_ACTION (aboutQt)
 EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 EXTERN_ACTION (showHistory)
-
+EXTERN_ACTION (selectByColor)
+EXTERN_ACTION (selectByType)
 EXTERN_ACTION (moveXNeg)
 EXTERN_ACTION (moveYNeg)
 EXTERN_ACTION (moveZNeg)
@@ -73,6 +74,8 @@ EXTERN_ACTION (addTestQuad)
 #endif // RELEASE
 
 vector<actionmeta> g_ActionMeta;
+
+static bool g_bSelectionLocked = false;
 
 cfg (bool, lv_colorize, true);
 cfg (int, gui_toolbar_iconsize, 24);
@@ -188,6 +191,9 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION_NAME (paste));				// Paste
 	qEditMenu->addAction (ACTION_NAME (del));				// Delete
 	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addAction (ACTION_NAME (selectByColor));		// Select by Color
+	qEditMenu->addAction (ACTION_NAME (selectByType));		// Select by Type
+	qEditMenu->addSeparator ();								// -----
 	qEditMenu->addAction (ACTION_NAME (setColor));			// Set Color
 	qEditMenu->addAction (ACTION_NAME (inlineContents));	// Inline
 	qEditMenu->addAction (ACTION_NAME (deepInline));		// Deep Inline
@@ -296,6 +302,10 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (moveZPos)
 	ADD_TOOLBAR_ITEM (moveZNeg)
 	
+	initSingleToolBar ("Select");
+	ADD_TOOLBAR_ITEM (selectByColor)
+	ADD_TOOLBAR_ITEM (selectByType)
+	
 	// ==========================================
 	// Color toolbar
 	qColorToolBar = new QToolBar ("Quick Colors");
@@ -383,7 +393,7 @@ void ForgeWindow::setTitle () {
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_CurrentFile->objects[0]);
-			zTitle.appendformat (":%s", comm->zText.chars());
+			zTitle.appendformat (": %s", comm->zText.chars());
 		}
 	}
 	
@@ -420,10 +430,10 @@ void ForgeWindow::slot_action () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
-	vector<LDObject*> objs = getSelectedObjects ();
+	bool const bSelectionEmpty = (paSelection.size() == 0);
 	
 	// Delete the objects that were being selected
-	for (LDObject* obj : objs) {
+	for (LDObject* obj : paSelection) {
 		if (papObjects && ulapIndices) {
 			papObjects->push_back (obj->clone ());
 			ulapIndices->push_back (obj->getIndex (g_CurrentFile));
@@ -433,7 +443,7 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 		delete obj;
 	}
 	
-	if (objs.size() > 0)
+	if (bSelectionEmpty == false)
 		refresh ();
 }
 
@@ -572,6 +582,9 @@ void ForgeWindow::buildObjList () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::slot_selectionChanged () {
+	if (g_bSelectionLocked == true)
+		return;
+	
 	/*
 	// If the selection isn't 1 exact, disable setting contents
 	ACTION (setContents)->setEnabled (qObjList->selectedItems().size() == 1);
@@ -627,7 +640,7 @@ void ForgeWindow::slot_quickColor () {
 	std::vector<short> daColors;
 	short dNewColor = col->index ();
 	
-	for (LDObject* obj : getSelectedObjects ()) {
+	for (LDObject* obj : paSelection) {
 		if (obj->dColor == -1)
 			continue; // uncolored object
 		
@@ -695,10 +708,13 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::updateSelection () {
-	buildObjList ();
+	g_bSelectionLocked = true;
 	
 	for (LDObject* obj : paSelection)
 		obj->qObjListEntry->setSelected (true);
+	
+	g_bSelectionLocked = false;
+	slot_selectionChanged ();
 }
 
 // ========================================================================= //
@@ -714,6 +730,34 @@ bool ForgeWindow::isSelected (LDObject* obj) {
 		if (pHay == pNeedle)
 			return true;
 	return false;
+}
+
+short ForgeWindow::getSelectedColor() {
+	short dResult = -1;
+	
+	for (LDObject* obj : paSelection) {
+		if (obj->dColor == -1)
+			continue; // doesn't use color
+		
+		if (dResult != -1 && obj->dColor != dResult) {
+			// No consensus in object color, therefore we don't have a
+			// proper default value to use.
+			dResult = -1;
+			break;
+		}
+		
+		if (dResult == -1)
+			dResult = obj->dColor;
+	}
+	
+	return dResult;
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
+std::vector<LDObject*>& ForgeWindow::selection () {
+	return paSelection;
 }
 
 // ========================================================================= //

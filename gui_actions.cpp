@@ -143,6 +143,32 @@ ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+ACTION (selectByColor, "Select by Color", "select-color",
+	"Select all objects by the given color.", (0))
+{
+	short dColor = g_ForgeWindow->getSelectedColor ();
+	
+	printf ("color: %d\n", dColor);
+	
+	if (dColor == -1)
+		return; // no consensus on color
+	
+	g_ForgeWindow->paSelection.clear ();
+	for (LDObject* obj : g_CurrentFile->objects)
+		if (obj->dColor == dColor)
+			g_ForgeWindow->paSelection.push_back (obj);
+	
+	g_ForgeWindow->updateSelection ();
+}
+
+ACTION (selectByType, "Select by Type", "select-type",
+	"Select all objects by the given type.", (0))
+{
+	
+}
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 // Debug things
 #ifndef RELEASE
 ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", CTRL_SHIFT (Q)) {

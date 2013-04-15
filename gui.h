@@ -133,12 +133,14 @@ public:
 	void setTitle ();
 	void refresh ();
 	std::vector<LDObject*> getSelectedObjects ();
+	std::vector<LDObject*>& selection ();
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
 	void updateRecentFilesMenu ();
 	void updateSelection ();
 	bool isSelected (LDObject* obj);
+	short int getSelectedColor();
 
 private:
 	void createMenuActions ();
