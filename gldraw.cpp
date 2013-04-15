@@ -29,7 +29,6 @@
 
 static double g_faObjectOffset[3];
 static double g_StoredBBoxSize;
-static bool g_bPicking = false;
 
 static short g_dPulseTick = 0;
 static const short g_dNumPulseTicks = 8;
@@ -49,6 +48,7 @@ GLRenderer::GLRenderer (QWidget* parent) {
 	parent = parent; // shhh, GCC
 	fRotX = fRotY = fRotZ = 0.0f;
 	fZoom = 1.0f;
+	bPicking = false;
 	
 	qPulseTimer = new QTimer (this);
 	connect (qPulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
@@ -116,7 +116,7 @@ static vector<short> g_daWarnedColors;
 void GLRenderer::setObjectColor (LDObject* obj) {
 	QColor qCol;
 	
-	if (g_bPicking) {
+	if (bPicking) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results.
 		long i = obj->getIndex (g_CurrentFile);
@@ -202,7 +202,7 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		g = min (g + lAdd, 255l);
 		b = min (b + lAdd, 255l);
 		
-		a = 255;
+		// a = 255;
 	}
 	
 	glColor4f (
@@ -215,10 +215,15 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void GLRenderer::hardRefresh () {
-	compileObjects ();
+void GLRenderer::refresh () {
 	paintGL ();
 	swapBuffers ();
+}
+
+// ========================================================================= //
+void GLRenderer::hardRefresh () {
+	compileObjects ();
+	refresh ();
 	
 	glLineWidth (gl_linethickness);
 }
@@ -254,7 +259,7 @@ void GLRenderer::paintGL () {
 		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
 		
 		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList ((g_bPicking == false) ? obj->uGLList : obj->uGLPickList);
+			glCallList ((bPicking == false) ? obj->uGLList : obj->uGLPickList);
 	glPopMatrix ();
 }
 
@@ -284,9 +289,9 @@ void GLRenderer::compileObjects () {
 			GLuint uList = glGenLists (1);
 			glNewList (uList, GL_COMPILE);
 			
-			g_bPicking = (upMemberList == &obj->uGLPickList);
+			bPicking = (upMemberList == &obj->uGLPickList);
 			compileOneObject (obj);
-			g_bPicking = false;
+			bPicking = false;
 			
 			glEndList ();
 			*upMemberList = uList;
@@ -475,6 +480,20 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* qEvent) {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
+void GLRenderer::updateSelFlash () {
+	if (gl_selflash && g_ForgeWindow->paSelection.size() > 0) {
+		qPulseTimer->start (g_dPulseInterval);
+		g_dPulseTick = 0;
+	} else {
+		printf ("stop pulse timer\n");
+		qPulseTimer->stop ();
+		printf ("done\n");
+	}
+}
+
+// ========================================================================= //
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
+// ========================================================================= //
 void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	if (bAdd == false) {
 		// Clear the selection if we don't wish to add to it.
@@ -489,7 +508,7 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
 	
-	g_bPicking = true;
+	bPicking = true;
 	
 	paintGL ();
 	
@@ -509,20 +528,13 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 		g_ForgeWindow->paSelection.push_back (obj);
 	}
 	
-	if (gl_selflash) {
-		if (bHasSelection) {
-			qPulseTimer->start (g_dPulseInterval);
-			g_dPulseTick = 0;
-		} else
-			qPulseTimer->stop ();
-	}
-	
-	g_bPicking = false;
-	glEnable (GL_DITHER);
-	
 	g_ForgeWindow->updateSelection ();
 	
+	bPicking = false;
+	glEnable (GL_DITHER);
+	
 	setBackground ();
+	updateSelFlash ();
 	
 	for (LDObject* obj : g_ForgeWindow->getSelectedObjects ())
 		recompileObject (obj);

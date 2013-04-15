@@ -20,6 +20,7 @@
 #include "ldtypes.h"
 #include "file.h"
 #include "misc.h"
+#include "gui.h"
 
 char const* g_saObjTypeNames[] = {
 	"subfile",
@@ -255,7 +256,13 @@ LDLine::LDLine (vertex v1, vertex v2) {
 	vaCoords[1] = v2;
 }
 
-LDObject::~LDObject () {}
+LDObject::~LDObject () {
+	// Remove this object from the selection array if it is there.
+	for (ulong i = 0; i < g_ForgeWindow->paSelection.size(); ++i)
+		if (g_ForgeWindow->paSelection[i] == this)
+			g_ForgeWindow->paSelection.erase (g_ForgeWindow->paSelection.begin() + i);
+}
+
 LDComment::~LDComment () {}
 LDCondLine::~LDCondLine () {}
 LDEmpty::~LDEmpty () {}

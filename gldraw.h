@@ -41,10 +41,14 @@ public:
 	void setBackground ();
 	void pick (uint uMouseX, uint uMouseY, bool bAdd);
 	QColor getMainColor ();
+	void recompileObject (LDObject* obj);
+	void refresh ();
+	void updateSelFlash();
 	
 	double fRotX, fRotY, fRotZ;
 	QPoint lastPos;
 	double fZoom;
+	bool bPicking;
 
 protected:
 	void initializeGL ();
@@ -65,7 +69,6 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
-	void recompileObject (LDObject* obj);
 	
 	QTimer* qPulseTimer;
 	

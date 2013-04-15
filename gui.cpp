@@ -83,6 +83,7 @@ extern_cfg (str, io_recentfiles);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 ForgeWindow::ForgeWindow () {
+	g_ForgeWindow = this;
 	R = new GLRenderer;
 	
 	qObjList = new QTreeWidget;
@@ -578,6 +579,23 @@ void ForgeWindow::slot_selectionChanged () {
 	// If we have no selection, disable splitting quads
 	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
 	*/
+	
+	// Update the shared selection array, unless this was called during GL picking,
+	// in which case the GL renderer takes care of the selection.
+	if (R->bPicking == false) {
+		std::vector<LDObject*> paPriorSelection = paSelection;
+		paSelection = getSelectedObjects ();
+		
+		// Update the GL renderer
+		for (LDObject* obj : paSelection)
+			R->recompileObject (obj);
+		
+		for (LDObject* obj : paPriorSelection)
+			R->recompileObject (obj);
+		
+		R->updateSelFlash ();
+		R->refresh ();
+	}
 }
 
 // ========================================================================= //
@@ -657,7 +675,11 @@ void ForgeWindow::refresh () {
 std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 	std::vector<LDObject*> objs;
 	
-	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems();
+	if (g_CurrentFile == nullptr)
+		return objs;
+	
+	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems ();
+	
 	for (LDObject* obj : g_CurrentFile->objects)
 	for (QTreeWidgetItem* qItem : qaItems) {
 		if (qItem == obj->qObjListEntry) {

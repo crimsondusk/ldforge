@@ -50,7 +50,6 @@ int main (int dArgc, char* saArgv[]) {
 	ForgeWindow* win = new ForgeWindow;
 	
 	g_qMainApp = &app;
-	g_ForgeWindow = win;
 	
 	newFile ();
 	
