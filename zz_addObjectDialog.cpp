@@ -75,7 +75,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		qRadialType = new QComboBox;
 		
 		for (int i = 0; i < LDRadial::NumTypes; ++i)
-			qRadialType->addItem (g_saRadialTypeNames[i]);
+			qRadialType->addItem (LDRadial::radialTypeName ((LDRadial::Type) i));
 		
 		connect (qRadialType, SIGNAL (currentIndexChanged (int)), this, SLOT (slot_radialTypeChanged (int)));
 		

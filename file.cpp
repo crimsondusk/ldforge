@@ -357,6 +357,38 @@ LDObject* parseLine (str zLine) {
 					
 					return obj;
 				}
+				
+				if (tokens[2] == "RADIAL") {
+					CHECK_TOKEN_COUNT (20)
+					CHECK_TOKEN_NUMBERS (4, 19)
+					
+					LDRadial::Type eType = LDRadial::NumTypes;
+					
+					for (int i = 0; i < LDRadial::NumTypes; ++i) {
+						if (str (LDRadial::radialTypeName ((LDRadial::Type) i)).toupper ().strip (' ') == tokens[3]) {
+							eType = (LDRadial::Type) i;
+							break;
+						}
+					}
+					
+					if (eType == LDRadial::NumTypes)
+						return new LDGibberish (zLine, str::mkfmt ("Unknown radial type %s", tokens[3].chars ()));
+					
+					LDRadial* obj = new LDRadial;
+					
+					obj->eRadialType = eType;			// 3
+					obj->dColor = atol (tokens[4]);		// 4
+					obj->dSegments = atol (tokens[5]);	// 5
+					obj->dDivisions = atol (tokens[6]);	// 6
+					obj->dRingNum = atol (tokens[7]);	// 7
+					
+					obj->vPosition = parseVertex (tokens, 8); // 8 - 10
+					
+					for (short i = 0; i < 9; ++i)
+						obj->mMatrix[i] = atof (tokens[i + 11]); // 11 - 19
+					
+					return obj;
+				}
 			}
 			
 			LDComment* obj = new LDComment;

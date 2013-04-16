@@ -81,6 +81,7 @@ public:
 	
 	void zero ();
 	void testOutput ();
+	str getStringRep();
 };
 
 #endif // __TYPES_H__

@@ -118,10 +118,7 @@ str LDComment::getContents () {
 
 str LDSubfile::getContents () {
 	str val = str::mkfmt ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
-	
-	for (short i = 0; i < 9; ++i)
-		val.appendformat ("%s ", ftoa (mMatrix[i]).chars());
-	
+	val += mMatrix.getStringRep ();
 	val += zFileName;
 	return val;
 }
@@ -525,14 +522,14 @@ void LDCondLine::move (vertex vVector) {
 		vaCoords[i] += vVector;
 }
 
-// ===========================================f==================================
+// =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 LDRadial::LDRadial () {
 	
 }
 
-const char* g_saRadialTypeNames[] = {
+static char const* g_saRadialTypeNames[] = {
 	"Circle",
 	"Cylinder",
 	"Disc",
@@ -542,6 +539,17 @@ const char* g_saRadialTypeNames[] = {
 	null
 };
 
+char const* LDRadial::radialTypeName () {
+	return g_saRadialTypeNames[eRadialType];
+}
+
+char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
+	return g_saRadialTypeNames[eType];
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 	std::vector<LDObject*> paObjects;
 	
@@ -662,6 +670,9 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 				paObjects.push_back (pSeg);
 			}
 			break;
+		
+		default:
+			break;
 		}
 	}
 	
@@ -669,6 +680,8 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 }
 
 str LDRadial::getContents () {
-	// TODO
-	return "0 !LDFORGE RADIAL";
+	return str::mkfmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
+		str (radialTypeName()).toupper ().strip (' ').chars (),
+		dColor, dSegments, dDivisions, dRingNum,
+		vPosition.getStringRep (false).chars(), mMatrix.getStringRep().chars());
 }

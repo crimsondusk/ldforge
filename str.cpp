@@ -285,11 +285,11 @@ void str::replace (const char* o, const char* n, unsigned int a) {
 }
 
 // ============================================================================
-void str::strip (char c) {
-	strip ({c});
+str str::strip (char c) {
+	return strip ({c});
 }
 
-void str::strip (std::initializer_list<char> unwanted) {
+str str::strip (std::initializer_list<char> unwanted) {
 	str cache = text;
 	uint oldlen = len();
 	
@@ -308,10 +308,10 @@ void str::strip (std::initializer_list<char> unwanted) {
 	*bufptr = '\0';
 	assert (bufptr <= buf + oldlen);
 	
-	clear();
-	append (buf);
-	
+	str zResult = buf;
 	delete[] buf;
+	
+	return zResult;
 }
 
 void str::insert (char* c, unsigned int pos) {

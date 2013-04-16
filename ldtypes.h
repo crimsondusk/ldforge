@@ -327,10 +327,10 @@ public:
 		eRadialType (eRadialType), vPosition (vPosition), mMatrix (mMatrix),
 		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}
 	
+	char const* radialTypeName ();
+	static char const* radialTypeName (const LDRadial::Type eType);
 	std::vector<LDObject*> decompose (bool bTransform);
 };
-
-extern const char* g_saRadialTypeNames[];
 
 // =============================================================================
 // Object type names. Pass the return value of getType as the index to get a

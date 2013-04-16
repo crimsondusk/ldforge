@@ -563,7 +563,7 @@ void ForgeWindow::buildObjList () {
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
 				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions,
-					g_saRadialTypeNames[pRad->eRadialType]);
+					pRad->radialTypeName());
 				
 				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
 					zText.appendformat (" %d", pRad->dRingNum);
@@ -579,9 +579,9 @@ void ForgeWindow::buildObjList () {
 		
 		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*) (null),
 			QStringList (zText.chars()), 0);
-		item->setIcon (0, QIcon (str::mkfmt ("icons/%s.png", g_saObjTypeIcons[obj->getType ()]).chars()));
+		item->setIcon (0, getIcon (g_saObjTypeIcons[obj->getType ()]));
 		
-		// Color gibberish red
+		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == OBJ_Gibberish) {
 			item->setBackground (0, QColor ("#AA0000"));
 			item->setForeground (0, QColor ("#FFAA00"));

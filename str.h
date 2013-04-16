@@ -159,8 +159,8 @@ public:
 	
 	std::vector<str> split (str del, bool bNoBlanks = false);
 	
-	void strip (char c);
-	void strip (std::initializer_list<char> unwanted);
+	str strip (char c);
+	str strip (std::initializer_list<char> unwanted);
 	
 	// ======================================================================
 	// OPERATORS
