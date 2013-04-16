@@ -559,6 +559,19 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
+		case OBJ_Radial:
+			{
+				LDRadial* pRad = static_cast<LDRadial*> (obj);
+				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions,
+					g_saRadialTypeNames[pRad->eRadialType]);
+				
+				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
+					zText.appendformat (" %d", pRad->dRingNum);
+				
+				zText.appendformat (" %s", pRad->vPosition.getStringRep (true).chars ());
+			}
+			break;
+		
 		default:
 			zText = g_saObjTypeNames[obj->getType ()];
 			break;
