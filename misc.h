@@ -22,6 +22,9 @@
 #include "common.h"
 #include "str.h"
 
+#define NUM_PRIMES 500
+extern const ushort g_uaPrimes[NUM_PRIMES];
+
 inline str GetWord (str& zString, ulong ulIndex) {
 	return (zString / " ")[ulIndex];
 }
@@ -53,6 +56,8 @@ template<class T> std::vector<T> reverseVector (std::vector<T> in) {
 	
 	return out;
 }
+
+void simplify (short& a, short& b);
 
 // =============================================================================
 // stringparser

@@ -153,7 +153,8 @@ extern QApplication* g_qMainApp;
 extern const matrix g_mIdentity;
 
 typedef unsigned int uint;
-typedef unsigned long ulong;
+typedef short unsigned int ushort;
+typedef long unsigned int ulong;
 
 // Typedef out the _t suffices :)
 typedef int8_t int8;

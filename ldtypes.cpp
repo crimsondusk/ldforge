@@ -62,9 +62,6 @@ LDObject::LDObject () {
 	parent = null;
 }
 
-void LDObject::commonInit () {
-}
-
 LDGibberish::LDGibberish () {
 	dColor = -1;
 }
@@ -185,7 +182,7 @@ const char* LDBFC::saStatements[] = {
 };
 
 str LDBFC::getContents () {
-	return str::mkfmt ("0 BFC %s", LDBFC::saStatements[dStatement]);
+	return str::mkfmt ("0 BFC %s", LDBFC::saStatements[eStatement]);
 }
 
 // =============================================================================
@@ -243,8 +240,6 @@ void LDObject::swap (LDObject* other) {
 }
 
 LDLine::LDLine (vertex v1, vertex v2) {
-	commonInit ();
-	
 	vaCoords[0] = v1;
 	vaCoords[1] = v2;
 }
@@ -345,7 +340,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 			
 			case OBJ_BFC:
 				// Filter non-INVERTNEXT statements
-				if (static_cast<LDBFC*> (obj)->dStatement != BFC_InvertNext)
+				if (static_cast<LDBFC*> (obj)->eStatement != LDBFC::InvertNext)
 					continue;
 				break;
 			
@@ -679,9 +674,54 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 	return paObjects;
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 str LDRadial::getContents () {
 	return str::mkfmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName()).toupper ().strip (' ').chars (),
 		dColor, dSegments, dDivisions, dRingNum,
 		vPosition.getStringRep (false).chars(), mMatrix.getStringRep().chars());
+}
+
+char const* g_saRadialNameRoots[] = {
+	"edge",
+	"cyli",
+	"disc",
+	"ndis",
+	"ring",
+	"cone",
+	null
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+str LDRadial::makeFileName () {
+	short dNumerator = dSegments,
+		dDenominator = dDivisions;
+	
+	// Simplify the fractional part, but the denominator is at least 4.
+	simplify (dNumerator, dDenominator);
+	
+	if (dDenominator < 4) {
+		const short dFactor = (4 / dDenominator);
+		
+		dNumerator *= dFactor;
+		dDenominator *= dFactor;
+	}
+	
+	// Compose some general information: prefix, fraction, root, ring number
+	str zPrefix = (dDivisions == 16) ? "" : str::mkfmt ("%d/", dDivisions);
+	str zFrac = str::mkfmt ("%d-%d", dNumerator, dDenominator);
+	str zRoot = g_saRadialNameRoots[eRadialType];
+	str zRingNum = (eRadialType == Ring || eRadialType == Cone) ? str::mkfmt ("%d", dRingNum) : "";
+	
+	// Truncate the root if necessary (7-16rin4.dat for instance).
+	// However, always keep the root at least 2 characters.
+	short dExtra = (~zFrac + ~zRingNum + ~zRoot) - 8;
+	zRoot -= min<short> (max<short> (dExtra, 0), 2);
+	
+	// Stick them all together and return the result.
+	return str::mkfmt ("%s%s%s%s", zPrefix.chars(), zFrac.chars (), zRoot.chars (), zRingNum.chars ());
 }

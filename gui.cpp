@@ -555,15 +555,15 @@ void ForgeWindow::buildObjList () {
 		case OBJ_BFC:
 			{
 				LDBFC* bfc = static_cast<LDBFC*> (obj);
-				zText = LDBFC::saStatements[bfc->dStatement];
+				zText = LDBFC::saStatements[bfc->eStatement];
 			}
 			break;
 		
 		case OBJ_Radial:
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
-				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions,
-					pRad->radialTypeName());
+				zText.format ("%s: %d / %d %s", pRad->makeFileName ().chars (),
+					pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
 				
 				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
 					zText.appendformat (" %d", pRad->dRingNum);

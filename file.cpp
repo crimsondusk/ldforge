@@ -330,15 +330,15 @@ LDObject* parseLine (str zLine) {
 			
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
-				for (short i = 0; i < NUM_BFCStatements; ++i)
+				for (short i = 0; i < LDBFC::NumStatements; ++i)
 					if (zComment == str::mkfmt ("BFC %s", LDBFC::saStatements [i]))
-						return new LDBFC (i);
+						return new LDBFC ((LDBFC::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
 				// creates. The above block only handles valid statements, so we
 				// need to handle MLCAD-style invertnext separately.
 				if (zComment == "BFC CERTIFY INVERTNEXT")
-					return new LDBFC (BFC_InvertNext);
+					return new LDBFC (LDBFC::InvertNext);
 			}
 			
 			if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {

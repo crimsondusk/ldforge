@@ -99,9 +99,6 @@ public:
 		return new LDObject (*this);
 	}
 	
-	// Sets data common to all objects.
-	void commonInit ();
-	
 	// Replace this LDObject with another LDObject. This method deletes the
 	// object and any pointers to it become invalid.
     void replace (LDObject* replacement);
@@ -161,7 +158,7 @@ public:
 class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment)
-	LDComment (str zText) : zText (zText) { commonInit (); }
+	LDComment (str zText) : zText (zText) {}
 	
 	str zText; // The text of this comment
 };
@@ -174,27 +171,23 @@ public:
 // =============================================================================
 class LDBFC : public LDComment {
 public:
+	enum Type {
+		CertifyCCW,
+		CCW,
+		CertifyCW,
+		CW,
+		NoCertify,	// Winding becomes disabled (0 BFC NOCERTIFY)
+		InvertNext,	// Winding is inverted for next object (0 BFC INVERTNEXT)
+		NumStatements
+	};
+	
 	IMPLEMENT_LDTYPE (BFC)
-	LDBFC (const int dType) : dStatement (dType) { commonInit (); }
+	LDBFC (const LDBFC::Type eType) : eStatement (eType) {}
 	
 	// Statement strings
 	static const char* saStatements[];
 	
-	static str statementString (short dValue);
-	short dStatement;
-};
-
-
-// -----------------------------------------------------------------------------
-// Enumerator for LDBFC's dStatement
-enum LDBFCType_e {
-	BFC_CertifyCCW,
-	BFC_CCW,
-	BFC_CertifyCW,
-	BFC_CW,
-	BFC_NoCertify,	// Winding becomes disabled (0 BFC NOCERTIFY)
-	BFC_InvertNext,	// Winding is inverted for next object (0 BFC INVERTNEXT)
-	NUM_BFCStatements
+	Type eStatement;
 };
 
 // =============================================================================
@@ -328,8 +321,10 @@ public:
 		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}
 	
 	char const* radialTypeName ();
-	static char const* radialTypeName (const LDRadial::Type eType);
 	std::vector<LDObject*> decompose (bool bTransform);
+	str makeFileName ();
+	
+	static char const* radialTypeName (const LDRadial::Type eType);
 };
 
 // =============================================================================

@@ -96,10 +96,10 @@ void NewPartDialog::StaticDialog () {
 		vector<LDObject*>& objs = g_CurrentFile->objects;
 		
 		idx = dlg.qCB_BFCBox->currentIndex ();
-		const LDBFCType_e eBFCType =
-			(idx == BFCBOX_CCW) ? BFC_CertifyCCW :
-			(idx == BFCBOX_CW) ? BFC_CertifyCW :
-			BFC_NoCertify;
+		const LDBFC::Type eBFCType =
+			(idx == BFCBOX_CCW) ? LDBFC::CertifyCCW :
+			(idx == BFCBOX_CW) ? LDBFC::CertifyCW :
+			LDBFC::NoCertify;
 		
 		idx = dlg.qCB_LicenseBox->currentIndex ();
 		const char* sLicense =
