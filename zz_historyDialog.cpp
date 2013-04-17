@@ -115,7 +115,7 @@ void HistoryDialog::populateList () {
 						if (eCommonType == OBJ_Unidentified)
 							qEntryIcon = getIcon ("add-subfile");
 						else
-							qEntryIcon = getIcon (str::mkfmt ("add-%s", g_saObjTypeIcons[eCommonType]));
+							qEntryIcon = getIcon (format ("add-%s", g_saObjTypeIcons[eCommonType]));
 					}
 					break;
 				}

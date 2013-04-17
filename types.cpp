@@ -20,7 +20,7 @@ vertex vertex::midpoint (vertex& other) {
 str vertex::getStringRep (const bool bMangled) {
 	const char* sFormat = (bMangled) ? "(%s, %s, %s)" : "%s %s %s";
 	
-	return str::mkfmt (sFormat,
+	return format (sFormat,
 		ftoa (x).chars(),
 		ftoa (y).chars(),
 		ftoa (z).chars());

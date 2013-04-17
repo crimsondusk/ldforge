@@ -373,7 +373,7 @@ void ForgeWindow::updateToolBars () {
 		else {
 			QPushButton* qColorButton = new QPushButton;
 			qColorButton->setAutoFillBackground (true);
-			qColorButton->setStyleSheet (str::mkfmt ("background-color: %s", entry.col->zColorString.chars()));
+			qColorButton->setStyleSheet (format ("background-color: %s", entry.col->zColorString.chars()));
 			qColorButton->setToolTip (entry.col->zName);
 			
 			connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
@@ -810,7 +810,7 @@ std::vector<LDObject*>& ForgeWindow::selection () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 QIcon getIcon (const char* sIconName) {
-	return (QIcon (str::mkfmt ("./icons/%s.png", sIconName)));
+	return (QIcon (format ("./icons/%s.png", sIconName)));
 }
 
 // ========================================================================= //

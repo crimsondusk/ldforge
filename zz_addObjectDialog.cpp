@@ -38,7 +38,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	QDialog (parent)
 {
 	short dCoordCount = 0;
-	str zIconName = str::mkfmt ("icons/add-%s.png", g_saObjTypeIcons[type]);
+	str zIconName = format ("icons/add-%s.png", g_saObjTypeIcons[type]);
 	
 	qTypeIcon = new QLabel;
 	qTypeIcon->setPixmap (QPixmap (zIconName.chars ()));
@@ -163,7 +163,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	
 	qLayout->addWidget (qButtons, 5, 1);
 	setLayout (qLayout);
-	setWindowTitle (str::mkfmt (APPNAME_DISPLAY " - new %s",
+	setWindowTitle (format (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
 	
 	setWindowIcon (QIcon (zIconName.chars ()));
@@ -176,7 +176,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* qButton, short dColor) {
 	qButton->setIcon (QIcon ("icons/palette.png"));
 	qButton->setAutoFillBackground (true);
 	qButton->setStyleSheet (
-		str::mkfmt ("background-color: %s", getColor (dColor)->zColorString.chars()).chars()
+		format ("background-color: %s", getColor (dColor)->zColorString.chars()).chars()
 	);
 }
 

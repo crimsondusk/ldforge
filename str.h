@@ -54,19 +54,6 @@ public:
 	str (QString c);
 	~str ();
 	
-	static str mkfmt (const char* fmt, ...) {
-		va_list va;
-		char* buf;
-		
-		va_start (va, fmt);
-		buf = vdynformat (fmt, va, 256);
-		va_end (va);
-		
-		str val = buf;
-		delete[] buf;
-		return val;
-	}
-	
 	// ======================================================================
 	// METHODS
 	
@@ -280,5 +267,7 @@ public:
 		return operator int();
 	}
 };
+
+str format (const char* fmt, ...);
 
 #endif // __STR_H__

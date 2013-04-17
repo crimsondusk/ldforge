@@ -434,7 +434,7 @@ void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 	qButton->setIcon (QIcon ("icons/colorselect.png"));
 	qButton->setAutoFillBackground (true);
 	qButton->setStyleSheet (
-		str::mkfmt ("background-color: %s", zValue.chars()).chars()
+		format ("background-color: %s", zValue.chars()).chars()
 	);
 }
 
@@ -517,7 +517,7 @@ void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
 	str zLabel = qAct->iconText ();
 	str zKeybind = qAct->shortcut ().toString ();
 	
-	qItem->setText (str::mkfmt ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
+	qItem->setText (format ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
 }
 
 // =============================================================================
@@ -617,7 +617,7 @@ bool KeySequenceDialog::staticDialog (actionmeta& meta, QWidget* parent) {
 void KeySequenceDialog::updateOutput () {
 	str zShortcut = seq.toString ();
 	
-	str zText = str::mkfmt ("<center><b>%s</b></center>", zShortcut.chars ());
+	str zText = format ("<center><b>%s</b></center>", zShortcut.chars ());
 	
 	qOutput->setText (zText);
 }

@@ -57,7 +57,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 	
 	if (~io_ldpath.value) {
 		// Try with just the LDraw path first
-		zFilePath = str::mkfmt ("%s" DIRSLASH "%s",
+		zFilePath = format ("%s" DIRSLASH "%s",
 			io_ldpath.value.chars(), zTruePath.chars());
 		printf ("try %s\n", zFilePath.chars());
 		
@@ -72,7 +72,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 			};
 			
 			for (char const* sSubdir : saSubdirectories) {
-				zFilePath = str::mkfmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
+				zFilePath = format ("%s" DIRSLASH "%s" DIRSLASH "%s",
 					io_ldpath.value.chars(), sSubdir, zTruePath.chars());
 				printf ("try %s\n", zFilePath.chars());
 				
@@ -265,7 +265,7 @@ bool OpenFile::save (str zPath) {
 	// Write all entries now
 	for (LDObject* obj : objects) {
 		// LDraw requires lines to have DOS line endings
-		str zLine = str::mkfmt ("%s\r\n", obj->getContents ().chars ());
+		str zLine = format ("%s\r\n", obj->getContents ().chars ());
 		
 		fwrite (zLine.chars(), 1, ~zLine, fp);
 	}
@@ -281,7 +281,7 @@ bool OpenFile::save (str zPath) {
 #define CHECK_TOKEN_NUMBERS(MIN,MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDGibberish (zLine, str::mkfmt ("Token #%u was `%s`, expected a number", \
+			return new LDGibberish (zLine, format ("Token #%u was `%s`, expected a number", \
 				(i + 1), tokens[i].chars()));
 
 // =============================================================================
@@ -331,7 +331,7 @@ LDObject* parseLine (str zLine) {
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
 				for (short i = 0; i < LDBFC::NumStatements; ++i)
-					if (zComment == str::mkfmt ("BFC %s", LDBFC::saStatements [i]))
+					if (zComment == format ("BFC %s", LDBFC::saStatements [i]))
 						return new LDBFC ((LDBFC::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
@@ -372,7 +372,7 @@ LDObject* parseLine (str zLine) {
 					}
 					
 					if (eType == LDRadial::NumTypes)
-						return new LDGibberish (zLine, str::mkfmt ("Unknown radial type %s", tokens[3].chars ()));
+						return new LDGibberish (zLine, format ("Unknown radial type %s", tokens[3].chars ()));
 					
 					LDRadial* obj = new LDRadial;
 					

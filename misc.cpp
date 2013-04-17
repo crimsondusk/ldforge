@@ -94,7 +94,7 @@ str ftoa (double fCoord) {
 	// turn into anything weird (like commas)
 	setlocale (LC_NUMERIC, "C");
 	
-	str zRep = str::mkfmt ("%f", fCoord);
+	str zRep = format ("%f", fCoord);
 	
 	// Remove trailing zeroes
 	while (zRep[~zRep - 1] == '0')
@@ -143,27 +143,27 @@ bool isNumber (str& zToken) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void simplify (short& a, short& b) {
-	bool repeat;
+void simplify (short& dNumerator, short& dDenominator) {
+	bool bRepeat;
 	
 	do {
-		repeat = false;
+		bRepeat = false;
 		
 		for (ulong x = 0; x < NUM_PRIMES; x++) {
 			ulong i = NUM_PRIMES - x - 1;
 			
-			ushort prime = g_uaPrimes[i];
-			if (a <= prime || b <= prime)
+			ushort uPrime = g_uaPrimes[i];
+			if (dNumerator <= uPrime || dDenominator <= uPrime)
 				continue;
 			
-			if (a % prime == 0 && b % prime == 0) {
-				a /= prime;
-				b /= prime;
-				repeat = true;
+			if (dNumerator % uPrime == 0 && dDenominator % uPrime == 0) {
+				dNumerator /= uPrime;
+				dDenominator /= uPrime;
+				bRepeat = true;
 				break;
 			}
 		}
-	} while (repeat);
+	} while (bRepeat);
 }
 
 // =============================================================================

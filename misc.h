@@ -57,7 +57,7 @@ template<class T> std::vector<T> reverseVector (std::vector<T> in) {
 	return out;
 }
 
-void simplify (short& a, short& b);
+void simplify (short& dNumerator, short& dDenominator);
 
 // =============================================================================
 // stringparser

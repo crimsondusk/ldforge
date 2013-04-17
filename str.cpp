@@ -501,3 +501,16 @@ str& str::operator+= (vertex vrt) {
 	appendformat ("%s", vrt.getStringRep (false).chars());
 	return *this;
 }
+
+str format (const char* fmt, ...) {
+	va_list va;
+	char* buf;
+	
+	va_start (va, fmt);
+	buf = vdynformat (fmt, va, 256);
+	va_end (va);
+	
+	str val = buf;
+	delete[] buf;
+	return val;
+}

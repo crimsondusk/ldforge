@@ -42,7 +42,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	
 	if (obj->getType() == OBJ_Gibberish) {
 		qErrorLabel = new QLabel;
-		qErrorLabel->setText (str::mkfmt ("<span style=\"color: #900\">%s</span>",
+		qErrorLabel->setText (format ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
 		
 		QPixmap qErrorPixmap = QPixmap ("icons/error.png").scaledToHeight (16);

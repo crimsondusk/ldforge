@@ -120,7 +120,7 @@ void ColorSelectDialog::drawScene () {
 		bool bDark = (ucLuma < 80);
 		
 		qScene->addRect (x, y, w, w, qPen, qColor);
-		QGraphicsTextItem* qText = qScene->addText (str::mkfmt ("%lu", i).chars());
+		QGraphicsTextItem* qText = qScene->addText (format ("%lu", i).chars());
 		qText->setDefaultTextColor ((bDark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
 		
@@ -143,7 +143,7 @@ void ColorSelectDialog::drawColorInfo () {
 		return;
 	}
 	
-	qColorInfo->setText (str::mkfmt ("%d - %s",
+	qColorInfo->setText (format ("%d - %s",
 		dSelColor, col->zName.chars()));
 }
 

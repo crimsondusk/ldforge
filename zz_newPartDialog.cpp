@@ -109,11 +109,11 @@ void NewPartDialog::StaticDialog () {
 		
 		objs.push_back (new LDComment (dlg.qLE_Name->text ()));
 		objs.push_back (new LDComment ("Name: <untitled>.dat"));
-		objs.push_back (new LDComment (str::mkfmt ("Author: %s", zAuthor.chars())));
-		objs.push_back (new LDComment (str::mkfmt ("!LDRAW_ORG Unofficial_Part")));
+		objs.push_back (new LDComment (format ("Author: %s", zAuthor.chars())));
+		objs.push_back (new LDComment (format ("!LDRAW_ORG Unofficial_Part")));
 		
 		if (sLicense != null)
-			objs.push_back (new LDComment (str::mkfmt ("!LICENSE %s", sLicense)));
+			objs.push_back (new LDComment (format ("!LICENSE %s", sLicense)));
 		
 		objs.push_back (new LDEmpty);
 		objs.push_back (new LDBFC (eBFCType));
