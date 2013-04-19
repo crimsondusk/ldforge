@@ -429,7 +429,7 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str LDObject::objectListContents (std::vector<LDObject*>& objs) {
+str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 	bool bFirstDetails = true;
 	str zText = "";
 	

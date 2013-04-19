@@ -97,8 +97,8 @@ void SetContentsDialog::staticDialog (LDObject* obj) {
 	
 	// Mark down the history now before we perform the replacement (which
 	// destroys the old object)
-	History::addEntry (new SetContentsHistory (oldobj->getIndex (g_CurrentFile),
-		oldobj->clone (), obj->clone ()));
+	History::addEntry (new EditHistory ({oldobj->getIndex (g_CurrentFile)},
+		{oldobj->clone ()}, {obj->clone ()}));
 	
 	oldobj->replace (obj);
 	

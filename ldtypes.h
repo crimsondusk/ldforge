@@ -113,7 +113,7 @@ public:
 	LDObject* topLevelParent ();
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
-	static str objectListContents (std::vector<LDObject*>& objs);
+	static str objectListContents (const std::vector<LDObject*>& objs);
 	
 	QTreeWidgetItem* qObjListEntry;
 };

@@ -23,53 +23,30 @@
 #include "str.h"
 
 #define NUM_PRIMES 500
+
+// Prime numbers
 extern const ushort g_uaPrimes[NUM_PRIMES];
 
-inline str GetWord (str& zString, ulong ulIndex) {
-	return (zString / " ")[ulIndex];
-}
-
-void stripWhitespace (str& s);
-
-// Returns whether a given string represents a floating point number
-// TODO: Does LDraw support scientific notation?
+// Returns whether a given string represents a floating point number.
 bool isNumber (str& zToken);
 
 // Converts a float value to a string value.
 str ftoa (double fCoord);
 
-template<class T> bool in (T needle, std::initializer_list<T> haystack) {
-	for (T hay : haystack) {
-		printf ("%s: %ld <-> %ld\n", __func__, needle, hay);
-		if (needle == hay)
-			return true;
-	}
-	
-	return false;
-}
-
-template<class T> std::vector<T> reverseVector (std::vector<T> in) {
-	std::vector<T> out;
-	
-	for (T stuff : in)
-		out.insert (out.begin(), in);
-	
-	return out;
-}
-
-void simplify (short& dNumerator, short& dDenominator);
+// Simplifies the given fraction.
+void simplify (short& dNum, short& dDenom);
 
 // =============================================================================
-// stringparser
+// StringParser
 //
 // String parsing utility
 // =============================================================================
-class stringparser {
+class StringParser {
 public:
 	std::vector<str> zaTokens;
 	short dPos;
 	
-	stringparser (str zInText, char cSeparator);
+	StringParser (str zInText, char cSeparator);
 	
 	bool atEnd ();
 	bool atBeginning ();

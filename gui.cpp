@@ -425,7 +425,7 @@ void ForgeWindow::slot_action () {
 	}
 	
 	if (!pMeta) {
-		fprintf (stderr, "unknown signal sender %p!\n", qAct);
+		logf (LOG_Warning, "unknown signal sender %p!\n", qAct);
 		return;
 	}
 	
@@ -708,7 +708,6 @@ ulong ForgeWindow::getInsertionPoint () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
 void ForgeWindow::refresh () {
-	printf ("refreshing.. (%lu)\n", paSelection.size ());
 	buildObjList ();
 	R->hardRefresh ();
 }
@@ -743,8 +742,6 @@ void ForgeWindow::updateSelection () {
 	
 	for (LDObject* obj : paSelection)
 		obj->qObjListEntry->setSelected (true);
-	
-	printf ("updateSelection: %lu objects selected\n", paSelection.size ());
 	
 	g_bSelectionLocked = false;
 	slot_selectionChanged ();

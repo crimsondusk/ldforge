@@ -29,7 +29,7 @@ void initColors () {
 	if (g_bColorsInit)
 		return;
 	
-	printf ("%s: initializing color information.\n", __func__);
+	logf ("%s: initializing color information.\n", __func__);
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	color* maincolor = new color;
@@ -62,7 +62,7 @@ color* getColor (short dColorNum) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static bool parseLDConfigTag (stringparser& pars, char const* sTag, str& zVal) {
+static bool parseLDConfigTag (StringParser& pars, char const* sTag, str& zVal) {
 	short dPos;
 	if (!pars.findToken (dPos, sTag, 1))
 		return false;
@@ -104,7 +104,7 @@ void parseLDConfig () {
 		zLine.replace ("\n", "");
 		zLine.replace ("\r", "");
 		
-		stringparser pars (zLine, ' ');
+		StringParser pars (zLine, ' ');
 		short dCode = 0, dAlpha = 255;
 		str zName, zColor, zEdge, zValue;
 		

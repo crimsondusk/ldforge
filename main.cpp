@@ -34,6 +34,9 @@ QApplication* g_qMainApp = null;
 const vertex g_Origin (0.0f, 0.0f, 0.0f);
 const matrix g_mIdentity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 int main (int dArgc, char* saArgv[]) {
 	// Load or create the configuration
 	if (!config::load()) {
@@ -45,6 +48,7 @@ int main (int dArgc, char* saArgv[]) {
 	}
 	
 	initColors ();
+	initPartList ();
 	
 	QApplication app (dArgc, saArgv);
 	ForgeWindow* win = new ForgeWindow;
@@ -58,65 +62,59 @@ int main (int dArgc, char* saArgv[]) {
 }
 
 // =============================================================================
-// void logVA (logtype_e, const char*, va_list) [static]
-//
-// Common code for the two logfs
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+// Common code for the two logfs
 static void logVA (logtype_e eType, const char* fmt, va_list va) {
-	// Log it to standard output
-	vprintf (fmt, va);
-	
 	return;
 	
-	str zText;
-	char* sBuffer;
-	
-	sBuffer = vdynformat (fmt, va, 128);
-	zText = sBuffer;
+	char* sBuffer = vdynformat (fmt, va, 128);
+	printf ("buffer: %s\n", sBuffer);
+	str zText (sBuffer);
 	delete[] sBuffer;
+	
+	// Log it to standard output
+	printf ("%s", zText.chars ());
 	
 	// Replace some things out with HTML entities
 	zText.replace ("<", "&lt;");
 	zText.replace (">", "&gt;");
 	zText.replace ("\n", "<br />");
 	
-	str* zpHTML = &g_ForgeWindow->zMessageLogHTML;
+	str& zLog = g_ForgeWindow->zMessageLogHTML;
 	
 	switch (eType) {
 	case LOG_Normal:
-		zpHTML->append (zText);
+		printf ("appending \"%s\"\n", zText.chars ());
+		zLog.append (zText);
 		break;
 	
 	case LOG_Error:
-		zpHTML->appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
+		zLog.appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Info:
-		zpHTML->appendformat ("<span style=\"color: #04F\"><b>[INFO]</b> %s</span>",
+		zLog.appendformat ("<span style=\"color: #04F\"><b>[INFO]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Success:
-		zpHTML->appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
+		zLog.appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
 			zText.chars());
 		break;
 	
 	case LOG_Warning:
-		zpHTML->appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
+		zLog.appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
 			zText.chars());
 		break;
 	}
 	
-	g_ForgeWindow->qMessageLog->setHtml (*zpHTML);
+	g_ForgeWindow->qMessageLog->setHtml (zLog);
 }
 
-
 // =============================================================================
-// logf (const char*, ...)
-// logf (logtype_e eType, const char*, ...)
-//
-// Outputs a message into the message log
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void logf (const char* fmt, ...) {
 	va_list va;

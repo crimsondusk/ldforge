@@ -142,21 +142,29 @@ SetColorHistory::~SetColorHistory () {}
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void SetContentsHistory::undo () {
-	LDObject* obj = g_CurrentFile->objects[ulIndex];
-	obj->replace (oldObj->clone ());
+void EditHistory::undo () {
+	for (ulong idx : ulaIndices) {
+		LDObject* obj = g_CurrentFile->objects[idx];
+		obj->replace (paOldObjs[idx]->clone ());
+	}
+	
 	g_ForgeWindow->refresh ();
 }
 
-void SetContentsHistory::redo () {
-	LDObject* obj = g_CurrentFile->objects[ulIndex];
-	obj->replace (newObj->clone ());
+void EditHistory::redo () {
+	for (ulong idx : ulaIndices) {
+		LDObject* obj = g_CurrentFile->objects[idx];
+		obj->replace (paNewObjs[idx]->clone ());
+	}
+	
 	g_ForgeWindow->refresh ();
 }
 
-SetContentsHistory::~SetContentsHistory () {
-	delete oldObj;
-	delete newObj;
+EditHistory::~EditHistory () {
+	for (ulong idx : ulaIndices) {
+		delete paOldObjs[idx];
+		delete paNewObjs[idx];
+	}
 }
 
 // =============================================================================

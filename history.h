@@ -32,7 +32,7 @@
 enum HistoryType {
 	HISTORY_Del,
 	HISTORY_SetColor,
-	HISTORY_SetContents,
+	HISTORY_Edit,
 	HISTORY_ListMove,
 	HISTORY_Add,
 	HISTORY_QuadSplit,
@@ -89,15 +89,16 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class SetContentsHistory : public HistoryEntry {
+class EditHistory : public HistoryEntry {
 public:
-	IMPLEMENT_HISTORY_TYPE (SetContents)
+	IMPLEMENT_HISTORY_TYPE (Edit)
 	
-	ulong ulIndex;
-	LDObject* oldObj, *newObj;
+	const std::vector<ulong> ulaIndices;
+	const std::vector<LDObject*> paOldObjs, paNewObjs;
 	
-	SetContentsHistory (ulong ulIndex, LDObject* oldObj, LDObject* newObj) :
-		ulIndex (ulIndex), oldObj (oldObj), newObj (newObj) {}
+	EditHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paOldObjs,
+		std::vector<LDObject*> paNewObjs) :
+		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
 };
 
 // =============================================================================

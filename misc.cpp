@@ -78,17 +78,6 @@ const ushort g_uaPrimes[NUM_PRIMES] = {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void stripWhitespace (str& s) {
-	str other;
-	
-	for (size_t i = 0; i < ~s; i++)
-		if (s[i] > 32 && s[i] < 127)
-			other += s[i];
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 str ftoa (double fCoord) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)
@@ -143,7 +132,7 @@ bool isNumber (str& zToken) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void simplify (short& dNumerator, short& dDenominator) {
+void simplify (short& dNum, short& dDenom) {
 	bool bRepeat;
 	
 	do {
@@ -151,14 +140,14 @@ void simplify (short& dNumerator, short& dDenominator) {
 		
 		for (ulong x = 0; x < NUM_PRIMES; x++) {
 			ulong i = NUM_PRIMES - x - 1;
-			
 			ushort uPrime = g_uaPrimes[i];
-			if (dNumerator <= uPrime || dDenominator <= uPrime)
+			
+			if (dNum <= uPrime || dDenom <= uPrime)
 				continue;
 			
-			if (dNumerator % uPrime == 0 && dDenominator % uPrime == 0) {
-				dNumerator /= uPrime;
-				dDenominator /= uPrime;
+			if ((dNum % uPrime == 0) && (dDenom % uPrime == 0)) {
+				dNum /= uPrime;
+				dDenom /= uPrime;
 				bRepeat = true;
 				break;
 			}
@@ -169,23 +158,23 @@ void simplify (short& dNumerator, short& dDenominator) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-stringparser::stringparser (str zInText, char cSeparator) {
+StringParser::StringParser (str zInText, char cSeparator) {
 	zaTokens = zInText.split (cSeparator, true);
 	dPos = -1;
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::atBeginning () {
+bool StringParser::atBeginning () {
 	return (dPos == -1);
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::atEnd () {
-	return (dPos == (signed)zaTokens.size() - 1);
+bool StringParser::atEnd () {
+	return (dPos == (signed) zaTokens.size () - 1);
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::getToken (str& zVal, const ushort uInPos) {
+bool StringParser::getToken (str& zVal, const ushort uInPos) {
 	if (uInPos >= zaTokens.size())
 		return false;
 	
@@ -194,18 +183,18 @@ bool stringparser::getToken (str& zVal, const ushort uInPos) {
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::next (str& zVal) {
+bool StringParser::next (str& zVal) {
 	return getToken (zVal, ++dPos);
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::peekNext (str& zVal) {
+bool StringParser::peekNext (str& zVal) {
 	return getToken (zVal, dPos + 1);
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::findToken (short& dResult, char const* sNeedle, short dArgs) {
-	for (ushort i = 0; i < (zaTokens.size() - dArgs); ++i) {
+bool StringParser::findToken (short& dResult, char const* sNeedle, short dArgs) {
+	for (ushort i = 0; i < (zaTokens.size () - dArgs); ++i) {
 		if (zaTokens[i] == sNeedle) {
 			dResult = i;
 			return true;
@@ -216,22 +205,23 @@ bool stringparser::findToken (short& dResult, char const* sNeedle, short dArgs) 
 }
 
 // -----------------------------------------------------------------------------
-void stringparser::rewind () {
+void StringParser::rewind () {
 	dPos = -1;
 }
 
 // -----------------------------------------------------------------------------
-void stringparser::seek (short int dAmount, bool bRelative) {
+void StringParser::seek (short int dAmount, bool bRelative) {
 	dPos = (bRelative ? dPos : 0) + dAmount;
 }
 
 // -----------------------------------------------------------------------------
-size_t stringparser::size () {
+size_t StringParser::size () {
 	return zaTokens.size();
 }
 
 // -----------------------------------------------------------------------------
-bool stringparser::tokenCompare (short int dInPos, const char* sOther) {
+bool StringParser
+::tokenCompare (short int dInPos, const char* sOther) {
 	str tok;
 	if (!getToken (tok, dInPos))
 		return false;

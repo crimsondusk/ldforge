@@ -80,6 +80,13 @@ OpenFile* loadSubfile (str zFile);
 // Re-caches all subfiles.
 void reloadAllSubfiles ();
 
+typedef struct {
+	char sName[65], sTitle[81];
+} partListEntry;
+
+// Init and parse parts.lst
+void initPartList ();
+
 extern vector<OpenFile*> g_LoadedFiles;
 
 #endif // __FILE_H__

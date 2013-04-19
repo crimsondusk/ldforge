@@ -179,14 +179,13 @@ void HistoryDialog::populateList () {
 			}
 			break;
 		
-		case HISTORY_SetContents:
+		case HISTORY_Edit:
 			{
-				SetContentsHistory* setentry = static_cast<SetContentsHistory*> (entry);
+				EditHistory* pEntry = static_cast<EditHistory*> (entry);
 				
-				zText.format ("Set contents of %s\n%s (%s)",
-					g_saObjTypeNames [setentry->oldObj->getType ()],
-					setentry->newObj->getContents ().chars (),
-					g_saObjTypeNames [setentry->newObj->getType ()]);
+				zText.format ("Edited %u objects\n%s",
+					pEntry->paNewObjs.size(),
+					LDObject::objectListContents (pEntry->paOldObjs).chars ());
 				qEntryIcon = getIcon ("set-contents");
 			}
 			break;

@@ -59,7 +59,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 		// Try with just the LDraw path first
 		zFilePath = format ("%s" DIRSLASH "%s",
 			io_ldpath.value.chars(), zTruePath.chars());
-		printf ("try %s\n", zFilePath.chars());
+		logf ("Trying %s\n", zFilePath.chars());
 		
 		fp = fopen (zFilePath, "r");
 		if (fp != null)
@@ -562,4 +562,59 @@ void OpenFile::forgetObject (LDObject* obj) {
 	
 	// Erase it from memory
 	objects.erase (objects.begin() + ulIndex);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+std::vector<partListEntry> g_PartList;
+
+void initPartList () {
+	logf ("%s: initializing parts.lst\n", __func__);
+	
+	FILE* fp = openLDrawFile ("parts.lst", false);
+	
+	if (!fp)
+		return;
+	
+	char sLine[1024];
+	while (fgets (sLine, sizeof sLine, fp)) {
+		// Locate the first whitespace
+		char* cpWhite = strstr (sLine, " ");
+		
+		char sName[65];
+		size_t uLength = (cpWhite - sLine);
+		
+		if (uLength >= 64)
+			continue; // too long
+		
+		strncpy (sName, sLine, uLength);
+		sName[uLength] = '\0';
+		
+		// Surf through the whitespace sea!
+		while (*cpWhite == ' ')
+			cpWhite++;
+		
+		// Get the end point
+		char* cpEnd = strstr (sLine, "\r");
+		
+		if (cpEnd == null) {
+			// must not be DOS-formatted
+			cpEnd = strstr (sLine, "\n");
+		}
+		
+		assert (cpEnd != null);
+		
+		// Make the file title now
+		char sTitle[81];
+		uLength = (cpEnd - cpWhite);
+		strncpy (sTitle, cpWhite, uLength);
+		sTitle[uLength] = '\0';
+		
+		// Add it to the array.
+		partListEntry entry;
+		strcpy (entry.sName, sName);
+		strcpy (entry.sTitle, sTitle);
+		g_PartList.push_back (entry);
+	}
 }
