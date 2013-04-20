@@ -89,7 +89,7 @@ QColor GLRenderer::getMainColor () {
 	QColor col (gl_maincolor.value.chars());
 	
 	if (!col.isValid ())
-		return col; // shouldn't happen
+		return QColor (0, 0, 0); // shouldn't happen
 	
 	col.setAlpha (gl_maincolor_alpha * 255.f);
 	return col;

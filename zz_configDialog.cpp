@@ -66,7 +66,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (qButtons);
 	setLayout (layout);
 	
-	setWindowTitle (APPNAME_DISPLAY " - editing settings");
+	setWindowTitle (APPNAME_DISPLAY " - Settings");
 	setWindowIcon (QIcon ("icons/settings.png"));
 }
 
@@ -78,15 +78,19 @@ void ConfigDialog::initMainTab () {
 	
 	// =========================================================================
 	// LDraw path
+	qLDrawPathLabel = new QLabel ("LDraw path:");
+	
 	qLDrawPath = new QLineEdit;
 	qLDrawPath->setText (io_ldpath.value.chars());
-	
-	qLDrawPathLabel = new QLabel ("LDraw path:");
 	
 	qLDrawPathFindButton = new QPushButton;
 	qLDrawPathFindButton->setIcon (QIcon ("icons/folder.png"));
 	connect (qLDrawPathFindButton, SIGNAL (clicked ()),
 		this, SLOT (slot_findLDrawPath ()));
+	
+	QHBoxLayout* qLDrawPathLayout = new QHBoxLayout;
+	qLDrawPathLayout->addWidget (qLDrawPath);
+	qLDrawPathLayout->addWidget (qLDrawPathFindButton);
 	
 	// =========================================================================
 	// Background and foreground colors
@@ -128,8 +132,7 @@ void ConfigDialog::initMainTab () {
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (qLDrawPathLabel, 0, 0);
-	layout->addWidget (qLDrawPath, 0, 1, 1, 2);
-	layout->addWidget (qLDrawPathFindButton, 0, 3);
+	layout->addLayout (qLDrawPathLayout, 0, 1, 1, 3);
 	
 	layout->addWidget (qGLBackgroundLabel, 1, 0);
 	layout->addWidget (qGLBackgroundButton, 1, 1);
@@ -144,9 +147,9 @@ void ConfigDialog::initMainTab () {
 	layout->addWidget (qToolBarIconSizeLabel, 3, 0);
 	layout->addWidget (qToolBarIconSize, 3, 1);
 	
-	layout->addWidget (qLVColorize, 4, 0);
-	layout->addWidget (qGLColorBFC, 5, 0);
-	layout->addWidget (qGLSelFlash, 6, 0);
+	layout->addWidget (qLVColorize, 4, 0, 1, 4);
+	layout->addWidget (qGLColorBFC, 5, 0, 1, 4);
+	layout->addWidget (qGLSelFlash, 6, 0, 1, 4);
 	qMainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -167,6 +170,10 @@ void ConfigDialog::initShortcutsTab () {
 	ulong i = 0;
 	for (actionmeta meta : g_ActionMeta) {
 		QAction* const qAct = *meta.qAct;
+		
+		if (qAct->isEnabled() == false)
+			continue;
+		
 		QListWidgetItem* qItem = new QListWidgetItem;
 		setShortcutText (qItem, meta);
 		qItem->setIcon (qAct->icon ());
