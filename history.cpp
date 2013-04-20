@@ -144,18 +144,16 @@ SetColorHistory::~SetColorHistory () {}
 // =============================================================================
 void EditHistory::undo () {
 	for (ulong idx : ulaIndices) {
-		LDObject* obj = g_CurrentFile->objects[idx];
-		obj->replace (paOldObjs[idx]->clone ());
+		printf ("undo %lu\n", idx);
+		g_CurrentFile->object (idx)->replace (paOldObjs[idx]->clone ());
 	}
 	
 	g_ForgeWindow->refresh ();
 }
 
 void EditHistory::redo () {
-	for (ulong idx : ulaIndices) {
-		LDObject* obj = g_CurrentFile->objects[idx];
-		obj->replace (paNewObjs[idx]->clone ());
-	}
+	for (ulong idx : ulaIndices)
+		g_CurrentFile->object (idx)->replace (paNewObjs[idx]->clone ());
 	
 	g_ForgeWindow->refresh ();
 }
@@ -324,4 +322,24 @@ void MoveHistory::redo () {
 	for (ulong i : ulaIndices)
 		g_CurrentFile->object (i)->move (vVector);
 	g_ForgeWindow->refresh ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+ComboHistory::~ComboHistory () {
+	for (HistoryEntry* pEntry : paEntries)
+		delete pEntry;
+}
+
+void ComboHistory::undo () {
+	for (long i = paEntries.size() - 1; i >= 0; --i) {
+		HistoryEntry* pEntry = paEntries[i];
+		pEntry->undo ();
+	}
+}
+
+void ComboHistory::redo () {
+	for (HistoryEntry* pEntry : paEntries)
+		pEntry->redo ();
 }

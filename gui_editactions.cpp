@@ -436,3 +436,128 @@ ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on th
 ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on the Z axis.", KEY (Up)) {
 	doMoveObjects ({0, 0, 1});
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// invert - reverse winding
+// 
+// NOTE: History management gets a little tricky here. For lines, cond-lines,
+// triangles and quads, we edit the object, thus we record an EditHistory. For
+// subfiles and radials we create or delete invertnext objects. Since we have
+// multiple actions of different types, we store a history entry for each of
+// them and wrap them into a ComboHistory, which allows storage of multiple
+// simultaneous edits with different type. This is what we ultimately store into
+// History.
+// =============================================================================
+ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
+	std::vector<LDObject*> paSelection = g_ForgeWindow->selection ();
+	std::vector<HistoryEntry*> paHistory;
+	
+	for (LDObject* obj : paSelection) {
+		// For the objects we end up editing, we store information into these
+		// variables and we store them into an EditHistory after the switch
+		// block. Subfile and radial management is stored into the history
+		// list immediately.
+		ulong ulHistoryIndex = obj->getIndex (g_CurrentFile);
+		LDObject* pOldCopy, *pNewCopy;
+		bool bEdited = false;
+		
+		switch (obj->getType ()) {
+		case OBJ_Line:
+		case OBJ_CondLine:
+			{
+				// For lines, we swap the vertices. I don't think that a
+				// cond-line's control points need to be swapped, do they?
+				LDLine* pLine = static_cast<LDLine*> (obj);
+				vertex vTemp = pLine->vaCoords[0];
+				
+				pOldCopy = pLine->clone ();
+				pLine->vaCoords[0] = pLine->vaCoords[1];
+				pLine->vaCoords[1] = vTemp;
+				pNewCopy = pLine->clone ();
+				bEdited = true;
+			}
+			break;
+		
+		case OBJ_Triangle:
+			{
+				// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
+				// Thus, we swap 1 and 2.
+				LDTriangle* pTri = static_cast<LDTriangle*> (obj);
+				vertex vTemp = pTri->vaCoords[1];
+				
+				pOldCopy = pTri->clone ();
+				pTri->vaCoords[1] = pTri->vaCoords[2];
+				pTri->vaCoords[2] = vTemp;
+				pNewCopy = pTri->clone ();
+				bEdited = true;
+			}
+			break;
+		
+		case OBJ_Quad:
+			{
+				// Quad: 0 -> 1 -> 2 -> 3
+				// rev:  0 -> 3 -> 2 -> 1
+				// Thus, we swap 1 and 3.
+				LDQuad* pQuad = static_cast<LDQuad*> (obj);
+				vertex vTemp = pQuad->vaCoords[1];
+				
+				pOldCopy = pQuad->clone ();
+				pQuad->vaCoords[1] = pQuad->vaCoords[3];
+				pQuad->vaCoords[3] = vTemp;
+				pNewCopy = pQuad->clone ();
+				bEdited = true;
+			}
+			break;
+		
+		case OBJ_Subfile:
+		case OBJ_Radial:
+			{
+				// Subfiles and radials are inverted when they're prefixed with
+				// a BFC INVERTNEXT statement. Thus we need to toggle this status.
+				// For flat primitives it's sufficient that the determinant is
+				// flipped but I don't have a method for checking flatness yet.
+				// Food for thought...
+				
+				bool inverted = false;
+				ulong idx = obj->getIndex (g_CurrentFile);
+				
+				if (idx > 0) {
+					LDObject* prev = g_CurrentFile->object (idx - 1);
+					LDBFC* bfc = dynamic_cast<LDBFC*> (prev);
+					
+					if (bfc && bfc->eStatement == LDBFC::InvertNext) {
+						// Object is prefixed with an invertnext, thus remove it.
+						paHistory.push_back (new DelHistory ({idx - 1}, {bfc->clone ()}));
+						
+						inverted = true;
+						g_CurrentFile->forgetObject (bfc);
+						delete bfc;
+					}
+				}
+				
+				if (!inverted) {
+					// Not inverted, thus prefix it with a new invertnext.
+					LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
+					g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, bfc);
+					
+					paHistory.push_back (new AddHistory ({idx}, {bfc->clone ()}));
+				}
+			}
+			break;
+		
+		default:
+			break;
+		}
+		
+		// If we edited this object, store the EditHistory based on collected
+		// information now.
+		if (bEdited == true)
+			paHistory.push_back (new EditHistory ({ulHistoryIndex}, {pOldCopy}, {pNewCopy}));
+	}
+	
+	if (paHistory.size () > 0) {
+		History::addEntry (new ComboHistory (paHistory));
+		g_ForgeWindow->refresh ();
+	}
+}

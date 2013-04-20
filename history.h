@@ -38,6 +38,7 @@ enum HistoryType {
 	HISTORY_QuadSplit,
 	HISTORY_Inline,
 	HISTORY_Move,
+	HISTORY_Combo,
 };
 
 // =============================================================================
@@ -179,6 +180,18 @@ public:
 	
 	MoveHistory (const std::vector<ulong> ulaIndices, const vertex vVector) :
 		ulaIndices (ulaIndices), vVector (vVector) {}
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+class ComboHistory : public HistoryEntry {
+public:
+	IMPLEMENT_HISTORY_TYPE (Combo)
+	
+	const std::vector<HistoryEntry*> paEntries;
+	
+	ComboHistory (const std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
 };
 
 // =============================================================================

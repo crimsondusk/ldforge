@@ -69,6 +69,7 @@ EXTERN_ACTION (moveZNeg)
 EXTERN_ACTION (moveXPos)
 EXTERN_ACTION (moveYPos)
 EXTERN_ACTION (moveZPos)
+EXTERN_ACTION (invert)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -117,6 +118,8 @@ ForgeWindow::ForgeWindow () {
 	createMenuActions ();
 	createMenus ();
 	createToolbars ();
+	
+	setStatusBar (new QStatusBar);
 	
 	slot_selectionChanged ();
 	
@@ -198,6 +201,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION_NAME (selectByType));		// Select by Type
 	qEditMenu->addSeparator ();								// -----
 	qEditMenu->addAction (ACTION_NAME (setColor));			// Set Color
+	qEditMenu->addAction (ACTION_NAME (invert));			// Invert
 	qEditMenu->addAction (ACTION_NAME (inlineContents));	// Inline
 	qEditMenu->addAction (ACTION_NAME (deepInline));		// Deep Inline
 	qEditMenu->addAction (ACTION_NAME (splitQuads));		// Split Quads
@@ -323,6 +327,7 @@ void ForgeWindow::createToolbars () {
 	g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Objects");
 	ADD_TOOLBAR_ITEM (setColor)
+	ADD_TOOLBAR_ITEM (invert)
 	ADD_TOOLBAR_ITEM (inlineContents)
 	ADD_TOOLBAR_ITEM (deepInline)
 	ADD_TOOLBAR_ITEM (splitQuads)
