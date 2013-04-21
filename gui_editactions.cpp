@@ -592,11 +592,16 @@ static void doRotate (const short l, const short m, const short n) {
 	);
 	
 	// Calculate center vertex
-	for (LDObject* obj : sel)
-		box << obj;
+	for (LDObject* obj : sel) {
+		if (obj->getType () == OBJ_Subfile)
+			box << static_cast<LDSubfile*> (obj)->vPosition;
+		else if (obj->getType () == OBJ_Radial)
+			box << static_cast<LDRadial*> (obj)->vPosition;
+		else
+			box << obj;
+	}
 	
 	origin = box.center ();
-	printf ("origin: %s\n", origin.getStringRep (true).chars ());
 	
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel) {
@@ -612,7 +617,7 @@ static void doRotate (const short l, const short m, const short n) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
 			queue.push_back (&rad->vPosition);
-			// rad->mMatrix = rad->mMatrix * transform;
+			rad->mMatrix = rad->mMatrix * transform;
 		} else if (obj->getType () == OBJ_Vertex)
 			queue.push_back (&static_cast<LDVertex*> (obj)->vPosition);
 	}
