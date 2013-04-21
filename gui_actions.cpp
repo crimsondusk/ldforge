@@ -16,14 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <errno.h>
 #include <qfiledialog.h>
 #include <qmessagebox.h>
+#include <qboxlayout.h>
 #include "gui.h"
 #include "file.h"
+#include "history.h"
 #include "zz_newPartDialog.h"
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
-#include "history.h"
+#include "zz_aboutDialog.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -138,7 +141,8 @@ ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY 
 ACTION (about, "About " APPNAME_DISPLAY, "ldforge",
 	"Shows information about " APPNAME_DISPLAY ".", CTRL (F1))
 {
-	
+	AboutDialog dlg;
+	dlg.exec ();
 }
 
 ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1)) {

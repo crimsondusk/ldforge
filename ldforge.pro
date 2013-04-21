@@ -22,6 +22,7 @@ HEADERS += bbox.h \
 	misc.h \
 	str.h \
 	types.h \
+	zz_aboutDialog.h \
 	zz_addObjectDialog.h \
 	zz_colorSelectDialog.h \
 	zz_configDialog.h \
@@ -43,6 +44,7 @@ SOURCES += bbox.cpp \
 	misc.cpp \
 	str.cpp \ 
 	types.cpp \
+	zz_aboutDialog.cpp \
 	zz_addObjectDialog.cpp \
 	zz_colorSelectDialog.cpp \
 	zz_configDialog.cpp \

@@ -153,7 +153,6 @@ void ForgeWindow::createMenuActions () {
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
 		ACTION_NAME (newSubfile),
-		ACTION_NAME (about),
 		ACTION_NAME (help),
 	};
 	
