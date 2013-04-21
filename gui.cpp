@@ -70,6 +70,13 @@ EXTERN_ACTION (moveXPos)
 EXTERN_ACTION (moveYPos)
 EXTERN_ACTION (moveZPos)
 EXTERN_ACTION (invert)
+EXTERN_ACTION (rotateXNeg)
+EXTERN_ACTION (rotateYNeg)
+EXTERN_ACTION (rotateZNeg)
+EXTERN_ACTION (rotateXPos)
+EXTERN_ACTION (rotateYPos)
+EXTERN_ACTION (rotateZPos)
+EXTERN_ACTION (roundCoords)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -208,6 +215,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION_NAME (setContents));		// Set Contents
 	qEditMenu->addAction (ACTION_NAME (makeBorders));		// Make Borders
 	qEditMenu->addAction (ACTION_NAME (makeCornerVerts));	// Make Corner Vertices
+	qEditMenu->addAction (ACTION_NAME (roundCoords));		// Round Coordinates
 	
 	// Move menu
 	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
@@ -220,6 +228,13 @@ void ForgeWindow::createMenus () {
 	qMoveMenu->addAction (ACTION_NAME (moveYNeg));			// Move -Y
 	qMoveMenu->addAction (ACTION_NAME (moveZPos));			// Move +Z
 	qMoveMenu->addAction (ACTION_NAME (moveZNeg));			// Move -Z
+	qMoveMenu->addSeparator ();								// -----
+	qMoveMenu->addAction (ACTION_NAME (rotateXPos));		// Rotate +X
+	qMoveMenu->addAction (ACTION_NAME (rotateXNeg));		// Rotate -X
+	qMoveMenu->addAction (ACTION_NAME (rotateYPos));		// Rotate +Y
+	qMoveMenu->addAction (ACTION_NAME (rotateYNeg));		// Rotate -Y
+	qMoveMenu->addAction (ACTION_NAME (rotateZPos));		// Rotate +Z
+	qMoveMenu->addAction (ACTION_NAME (rotateZNeg));		// Rotate -Z
 	
 	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
@@ -301,6 +316,12 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (paste)
 	ADD_TOOLBAR_ITEM (del)
 	
+	initSingleToolBar ("Select");
+	ADD_TOOLBAR_ITEM (selectByColor)
+	ADD_TOOLBAR_ITEM (selectByType)
+	
+	addToolBarBreak (Qt::TopToolBarArea);
+	
 	initSingleToolBar ("Move");
 	ADD_TOOLBAR_ITEM (moveUp)
 	ADD_TOOLBAR_ITEM (moveDown)
@@ -311,11 +332,13 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (moveZPos)
 	ADD_TOOLBAR_ITEM (moveZNeg)
 	
-	addToolBarBreak (Qt::TopToolBarArea);
-	
-	initSingleToolBar ("Select");
-	ADD_TOOLBAR_ITEM (selectByColor)
-	ADD_TOOLBAR_ITEM (selectByType)
+	initSingleToolBar ("Rotate");
+	ADD_TOOLBAR_ITEM (rotateXPos)
+	ADD_TOOLBAR_ITEM (rotateXNeg)
+	ADD_TOOLBAR_ITEM (rotateYPos)
+	ADD_TOOLBAR_ITEM (rotateYNeg)
+	ADD_TOOLBAR_ITEM (rotateZPos)
+	ADD_TOOLBAR_ITEM (rotateZNeg)
 	
 	// ==========================================
 	// Color toolbar
@@ -334,6 +357,7 @@ void ForgeWindow::createToolbars () {
 	ADD_TOOLBAR_ITEM (setContents)
 	ADD_TOOLBAR_ITEM (makeBorders)
 	ADD_TOOLBAR_ITEM (makeCornerVerts)
+	ADD_TOOLBAR_ITEM (roundCoords)
 	
 	updateToolBars ();
 }

@@ -171,9 +171,6 @@ void ConfigDialog::initShortcutsTab () {
 	for (actionmeta meta : g_ActionMeta) {
 		QAction* const qAct = *meta.qAct;
 		
-		if (qAct->isEnabled() == false)
-			continue;
-		
 		QListWidgetItem* qItem = new QListWidgetItem;
 		setShortcutText (qItem, meta);
 		qItem->setIcon (qAct->icon ());

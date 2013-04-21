@@ -22,17 +22,18 @@
 #include "common.h"
 #include "types.h"
 
-#define IMPLEMENT_LDTYPE(N) \
-	LD##N (); \
-	virtual ~LD##N (); \
+#define IMPLEMENT_LDTYPE(T, NUMVERTS) \
+	LD##T (); \
+	virtual ~LD##T (); \
 	virtual LDObjectType_e getType () const { \
-		return OBJ_##N; \
+		return OBJ_##T; \
 	} \
 	virtual str getContents (); \
-	virtual LD##N* clone () { \
-		return new LD##N (*this); \
+	virtual LD##T* clone () { \
+		return new LD##T (*this); \
 	} \
-	virtual void move (vertex vVector);
+	virtual void move (vertex vVector); \
+	virtual short vertices () const { return NUMVERTS; }
 
 class QTreeWidgetItem;
 class LDSubfile;
@@ -81,6 +82,9 @@ public:
 	// OpenGL list for this object
 	uint uGLList, uGLPickList;
 	
+	// Vertices of this object
+	vertex vaCoords[4];
+	
 	// Object this object was referenced from, if any
 	LDObject* parent;
 	
@@ -112,6 +116,9 @@ public:
 	// What object in the current file ultimately references this?
 	LDObject* topLevelParent ();
 	
+	// Number of vertices this object has
+	virtual short vertices () const { return 0; }
+	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (const std::vector<LDObject*>& objs);
 	
@@ -128,7 +135,7 @@ public:
 // =============================================================================
 class LDGibberish : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Gibberish)
+	IMPLEMENT_LDTYPE (Gibberish, 0)
 	
 	LDGibberish (str _zContent, str _zReason);
 	
@@ -146,7 +153,7 @@ public:
 // =============================================================================
 class LDEmpty : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Empty)
+	IMPLEMENT_LDTYPE (Empty, 0)
 };
 
 // =============================================================================
@@ -157,7 +164,7 @@ public:
 // =============================================================================
 class LDComment : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Comment)
+	IMPLEMENT_LDTYPE (Comment, 0)
 	LDComment (str zText) : zText (zText) {}
 	
 	str zText; // The text of this comment
@@ -181,7 +188,7 @@ public:
 		NumStatements
 	};
 	
-	IMPLEMENT_LDTYPE (BFC)
+	IMPLEMENT_LDTYPE (BFC, 0)
 	LDBFC (const LDBFC::Type eType) : eStatement (eType) {}
 	
 	// Statement strings
@@ -197,7 +204,7 @@ public:
 // =============================================================================
 class LDSubfile : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Subfile)
+	IMPLEMENT_LDTYPE (Subfile, 0)
 	
 	vertex vPosition; // Position of the subpart
 	matrix mMatrix; // Transformation matrix for the subpart
@@ -217,10 +224,8 @@ public:
 // =============================================================================
 class LDLine : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Line)
+	IMPLEMENT_LDTYPE (Line, 2)
 	LDLine (vertex v1, vertex v2);
-	
-	vertex vaCoords[2]; // End points of this line
 };
 
 // =============================================================================
@@ -231,9 +236,7 @@ public:
 // =============================================================================
 class LDCondLine : public LDLine {
 public:
-	IMPLEMENT_LDTYPE (CondLine)
-	
-	vertex vaCoords[4]; // End points + control points of this line
+	IMPLEMENT_LDTYPE (CondLine, 4)
 };
 
 // =============================================================================
@@ -245,9 +248,7 @@ public:
 // =============================================================================
 class LDTriangle : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Triangle)
-	
-	vertex vaCoords[3];
+	IMPLEMENT_LDTYPE (Triangle, 3)
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
 		vaCoords[0] = _v0;
@@ -264,9 +265,7 @@ public:
 // =============================================================================
 class LDQuad : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Quad)
-	
-	vertex vaCoords[4];
+	IMPLEMENT_LDTYPE (Quad, 4)
 	
 	// Split this quad into two triangles
 	vector<LDTriangle*> splitToTriangles ();
@@ -282,7 +281,7 @@ public:
 // =============================================================================
 class LDVertex : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Vertex)
+	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move vPosition to vaCoords[0]
 	
 	vertex vPosition;
 };
@@ -308,7 +307,7 @@ public:
 		NumTypes
 	};
 	
-	IMPLEMENT_LDTYPE (Radial)
+	IMPLEMENT_LDTYPE (Radial, 0)
 	
 	LDRadial::Type eRadialType;
 	vertex vPosition;

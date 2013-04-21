@@ -23,6 +23,7 @@
 #include "zz_colorSelectDialog.h"
 #include "zz_historyDialog.h"
 #include "zz_setContentsDialog.h"
+#include "misc.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -374,11 +375,11 @@ static void doMoveSelection (const bool bUp) {
 	g_ForgeWindow->buildObjList ();
 }
 
-ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", CTRL (Up)) {
+ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", SHIFT (Up)) {
 	doMoveSelection (true);
 }
 
-ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", CTRL (Down)) {
+ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", SHIFT (Down)) {
 	doMoveSelection (false);
 }
 
@@ -560,4 +561,111 @@ ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTR
 		History::addEntry (new ComboHistory (paHistory));
 		g_ForgeWindow->refresh ();
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+static void doRotate (const short l, const short m, const short n) {
+	std::vector<LDObject*> sel = g_ForgeWindow->selection ();
+	const double angle = (pi * 22.5f) / 360; // TODO
+	
+	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
+	matrix transform (
+		(l * l * (1 - cos (angle))) + cos (angle),
+		(m * l * (1 - cos (angle))) - (n * sin (angle)),
+		(n * l * (1 - cos (angle))) + (m * sin (angle)),
+		
+		(l * m * (1 - cos (angle))) + (n * sin (angle)),
+		(m * m * (1 - cos (angle))) + cos (angle),
+		(n * m * (1 - cos (angle))) - (l * sin (angle)),
+		
+		(l * n * (1 - cos (angle))) - (m * sin (angle)),
+		(m * n * (1 - cos (angle))) + (l * sin (angle)),
+		(n * n * (1 - cos (angle))) + cos (angle)
+	);
+	
+	// Calculate center vertex
+	vertex origin;
+	short numverts = 0;
+	
+	for (LDObject* obj : sel) {
+		for (short i = 0; i < obj->vertices (); ++i) {
+			origin.x += obj->vaCoords[i].x;
+			origin.y += obj->vaCoords[i].y;
+			origin.z += obj->vaCoords[i].z;
+			numverts++;
+		}
+	}
+	
+	origin.x /= numverts;
+	origin.y /= numverts;
+	origin.z /= numverts;
+	
+	std::vector<vertex*> verticesToTransform;
+	
+	// Apply the above matrix to everything
+	for (LDObject* obj : sel) {
+		if (obj->vertices ())
+			for (short i = 0; i < obj->vertices (); ++i)
+				verticesToTransform.push_back (&obj->vaCoords[i]);
+		else if (obj->getType () == OBJ_Subfile)
+			verticesToTransform.push_back (&(static_cast<LDSubfile*> (obj)->vPosition));
+		else if (obj->getType () == OBJ_Radial)
+			verticesToTransform.push_back (&(static_cast<LDRadial*> (obj)->vPosition));
+		else if (obj->getType () == OBJ_Vertex)
+			verticesToTransform.push_back (&(static_cast<LDVertex*> (obj)->vPosition));
+	}
+	
+	for (vertex* v : verticesToTransform) {
+		v->transform (transform, origin);
+	}
+	
+	g_ForgeWindow->refresh ();
+}
+
+ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
+	doRotate (1, 0, 0);
+}
+
+ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (PageDown)) {
+	doRotate (0, 1, 0);
+}
+
+ACTION (rotateZPos, "Rotate +Z", "rotate-z-pos", "Rotate objects around Z axis", CTRL (Up)) {
+	doRotate (0, 0, 1);
+}
+
+ACTION (rotateXNeg, "Rotate -X", "rotate-x-neg", "Rotate objects around X axis", CTRL (Left)) {
+	doRotate (-1, 0, 0);
+}
+
+ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (PageUp)) {
+	doRotate (0, -1, 0);
+}
+
+ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z axis", CTRL (Down)) {
+	doRotate (0, 0, -1);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
+	setlocale (LC_ALL, "C");
+	
+	for (LDObject* obj : g_ForgeWindow->selection ()) {
+		for (short i = 0; i < obj->vertices (); ++i) {
+			double* coords[3] = {
+				&obj->vaCoords[i].x,
+				&obj->vaCoords[i].y,
+				&obj->vaCoords[i].z,
+			};
+			
+			for (double* coord : coords)
+				*coord = atof (format ("%.3f", *coord));
+		}
+	}
+	
+	g_ForgeWindow->refresh ();
 }

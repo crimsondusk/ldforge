@@ -25,11 +25,15 @@ public:
 		z = fZ;
 	}
 	
-	// =========================================================================
-	vertex& operator+= (vertex& other) {
+	void move (vertex other) {
 		x += other.x;
 		y += other.y;
 		z += other.z;
+	}
+	
+	// =========================================================================
+	vertex& operator+= (vertex other) {
+		move (other);
 		return *this;
 	}
 	
