@@ -272,7 +272,7 @@ void GLRenderer::compileObjects () {
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
 	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
-	g_StoredBBoxSize = g_BBox.calcSize ();
+	g_StoredBBoxSize = g_BBox.size ();
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");

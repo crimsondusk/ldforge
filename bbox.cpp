@@ -28,6 +28,13 @@
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+bbox::bbox () {
+	reset ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void bbox::calculate () {
 	reset ();
 	
@@ -35,19 +42,19 @@ void bbox::calculate () {
 		return;
 	
 	for (LDObject* obj : g_CurrentFile->objects)
-		checkObject (obj);
+		calcObject (obj);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::checkObject (LDObject* obj) {
+void bbox::calcObject (LDObject* obj) {
 	switch (obj->getType ()) {
 	case OBJ_Line:
 		{
 			LDLine* line = static_cast<LDLine*> (obj);
 			for (short i = 0; i < 2; ++i)
-				checkVertex (line->vaCoords[i]);
+				calcVertex (line->vaCoords[i]);
 		}
 		break;
 	
@@ -55,7 +62,7 @@ void bbox::checkObject (LDObject* obj) {
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
 			for (short i = 0; i < 3; ++i)
-				checkVertex (tri->vaCoords[i]);
+				calcVertex (tri->vaCoords[i]);
 		}
 		break;
 	
@@ -63,7 +70,7 @@ void bbox::checkObject (LDObject* obj) {
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
 			for (short i = 0; i < 4; ++i)
-				checkVertex (quad->vaCoords[i]);
+				calcVertex (quad->vaCoords[i]);
 		}
 		break;
 	
@@ -71,7 +78,7 @@ void bbox::checkObject (LDObject* obj) {
 		{
 			LDCondLine* line = static_cast<LDCondLine*> (obj);
 			for (short i = 0; i < 4; ++i)
-				checkVertex (line->vaCoords[i]);
+				calcVertex (line->vaCoords[i]);
 		}
 		break;
 	
@@ -81,10 +88,23 @@ void bbox::checkObject (LDObject* obj) {
 			vector<LDObject*> objs = ref->inlineContents (true, true);
 			
 			for (LDObject* obj : objs) {
-				checkObject (obj);
+				calcObject (obj);
 				delete obj;
 			}
 		}
+		break;
+	
+	case OBJ_Radial:
+		{
+			LDRadial* rad = static_cast<LDRadial*> (obj);
+			vector<LDObject*> objs = rad->decompose (true);
+			
+			for (LDObject* obj : objs) {
+				calcObject (obj);
+				delete obj;
+			}
+		}
+		break;
 	
 	default:
 		break;
@@ -94,7 +114,7 @@ void bbox::checkObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::checkVertex (vertex v) {
+void bbox::calcVertex (vertex v) {
 	CHECK_DIMENSION (v, x)
 	CHECK_DIMENSION (v, y)
 	CHECK_DIMENSION (v, z)
@@ -103,22 +123,15 @@ void bbox::checkVertex (vertex v) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bbox::bbox () {
-	reset ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void bbox::reset () {
-	memset (&v0, 0, sizeof v0);
-	memset (&v1, 0, sizeof v1);
+	v0.x = v0.y = v0.z = +0x7FFFFFFF;
+	v1.x = v1.y = v1.z = -0x7FFFFFFF;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-double bbox::calcSize () {
+double bbox::size () const {
 	double fXScale = (v0.x - v1.x);
 	double fYScale = (v0.y - v1.y);
 	double fZScale = (v0.z - v1.z);
@@ -134,4 +147,12 @@ double bbox::calcSize () {
 		return abs (fSize / 2);
 	
 	return 1.0f;
+}
+
+// =============================================================================
+vertex bbox::center () const {
+	return vertex (
+		(v0.x + v1.x) / 2,
+		(v0.y + v1.y) / 2,
+		(v0.z + v1.z) / 2);
 }

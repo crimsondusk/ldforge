@@ -20,13 +20,14 @@
 #define __BBOX_H__
 
 #include "common.h"
+#include "types.h"
 
 // =============================================================================
-// The bounding box, bbox for short, is the
-// box that encompasses the model we have open.
+// bbox
+//
+// The bounding box is the box that encompasses a given set of objects. The
+// global instance g_BBox is the bbox for the model we have open.
 // v0 is the minimum vertex, v1 is the maximum vertex.
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class bbox {
 public:
@@ -36,11 +37,20 @@ public:
 	
 	void reset ();
 	void calculate ();
-	double calcSize ();
+	double size () const;
+	void calcObject (LDObject* obj);
+	void calcVertex (vertex v);
+	vertex center () const;
 	
-private:
-	void checkObject (LDObject* obj);
-	void checkVertex (vertex v);
+	bbox& operator<< (LDObject* obj) {
+		calcObject (obj);
+		return *this;
+	}
+	
+	bbox& operator<< (vertex& v) {
+		calcVertex (v);
+		return *this;
+	}
 };
 
 #endif

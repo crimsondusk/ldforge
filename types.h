@@ -25,6 +25,7 @@ public:
 		z = fZ;
 	}
 	
+	// =========================================================================
 	void move (vertex other) {
 		x += other.x;
 		y += other.y;
@@ -34,6 +35,20 @@ public:
 	// =========================================================================
 	vertex& operator+= (vertex other) {
 		move (other);
+		return *this;
+	}
+	
+	// =========================================================================
+	vertex operator/ (const double d) {
+		vertex other (*this);
+		return other /= d;
+	}
+	
+	// =========================================================================
+	vertex& operator/= (const double d) {
+		x /= d;
+		y /= d;
+		z /= d;
 		return *this;
 	}
 	

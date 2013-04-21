@@ -24,6 +24,7 @@
 #include "zz_historyDialog.h"
 #include "zz_setContentsDialog.h"
 #include "misc.h"
+#include "bbox.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -125,20 +126,20 @@ static void doInline (bool bDeep) {
 	}
 	
 	for (LDObject* obj : sel) {
-		// Obviously, only subfiles can be inlined.
-		if (obj->getType() != OBJ_Subfile)
-			continue;
-		
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
 		long idx = obj->getIndex (g_CurrentFile);
 		if (idx == -1)
 			continue;
 		
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		vector<LDObject*> objs;
 		
-		// Get the inlined objects. These are clones of the subfile's contents.
-		vector<LDObject*> objs = ref->inlineContents (bDeep, true);
+		if (obj->getType() == OBJ_Subfile)
+			objs = static_cast<LDSubfile*> (obj)->inlineContents (bDeep, true);
+		else if (obj->getType() == OBJ_Radial)
+			objs = static_cast<LDRadial*> (obj)->decompose (true);
+		else
+			continue;
 		
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
@@ -151,8 +152,8 @@ static void doInline (bool bDeep) {
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		g_CurrentFile->forgetObject (ref);
-		delete ref;
+		g_CurrentFile->forgetObject (obj);
+		delete obj;
 	}
 	
 	History::addEntry (new InlineHistory (ulaBitIndices, ulaRefIndices, paRefs, bDeep));
@@ -568,7 +569,12 @@ ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTR
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
 	std::vector<LDObject*> sel = g_ForgeWindow->selection ();
-	const double angle = (pi * 22.5f) / 360; // TODO
+	bbox box;
+	vertex origin;
+	std::vector<vertex*> queue;
+	
+	// TODO: generalize the angle
+	const double angle = (pi * 22.5f) / 360;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	matrix transform (
@@ -586,39 +592,35 @@ static void doRotate (const short l, const short m, const short n) {
 	);
 	
 	// Calculate center vertex
-	vertex origin;
-	short numverts = 0;
+	for (LDObject* obj : sel)
+		box << obj;
 	
-	for (LDObject* obj : sel) {
-		for (short i = 0; i < obj->vertices (); ++i) {
-			origin.x += obj->vaCoords[i].x;
-			origin.y += obj->vaCoords[i].y;
-			origin.z += obj->vaCoords[i].z;
-			numverts++;
-		}
-	}
-	
-	origin.x /= numverts;
-	origin.y /= numverts;
-	origin.z /= numverts;
-	
-	std::vector<vertex*> verticesToTransform;
+	origin = box.center ();
+	printf ("origin: %s\n", origin.getStringRep (true).chars ());
 	
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
-				verticesToTransform.push_back (&obj->vaCoords[i]);
-		else if (obj->getType () == OBJ_Subfile)
-			verticesToTransform.push_back (&(static_cast<LDSubfile*> (obj)->vPosition));
-		else if (obj->getType () == OBJ_Radial)
-			verticesToTransform.push_back (&(static_cast<LDRadial*> (obj)->vPosition));
-		else if (obj->getType () == OBJ_Vertex)
-			verticesToTransform.push_back (&(static_cast<LDVertex*> (obj)->vPosition));
+				queue.push_back (&obj->vaCoords[i]);
+		else if (obj->getType () == OBJ_Subfile) {
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			
+			queue.push_back (&ref->vPosition);
+			ref->mMatrix = ref->mMatrix * transform;
+		} else if (obj->getType () == OBJ_Radial) {
+			LDRadial* rad = static_cast<LDRadial*> (obj);
+			
+			queue.push_back (&rad->vPosition);
+			// rad->mMatrix = rad->mMatrix * transform;
+		} else if (obj->getType () == OBJ_Vertex)
+			queue.push_back (&static_cast<LDVertex*> (obj)->vPosition);
 	}
 	
-	for (vertex* v : verticesToTransform) {
-		v->transform (transform, origin);
+	for (vertex* v : queue) {
+		v->move (-origin);
+		v->transform (transform, g_Origin);
+		v->move (origin);
 	}
 	
 	g_ForgeWindow->refresh ();
