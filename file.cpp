@@ -317,7 +317,6 @@ bool OpenFile::save (str path) {
 	savePos = History::pos ();
 	
 	g_ForgeWindow->setTitle ();
-	logf ("Saved successfully to %s\n", path.chars ());
 	
 	return true;
 }

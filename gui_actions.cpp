@@ -49,36 +49,56 @@ ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void doSaveAs () {
-	str zName;
-	zName += QFileDialog::getSaveFileName (g_ForgeWindow, "Save As",
-		"", "LDraw files (*.dat *.ldr)");
+void doSave (bool saveAs) {
+	str path = g_CurrentFile->zFileName;
 	
-	if (~zName && g_CurrentFile->save (zName))
-		g_CurrentFile->zFileName = zName;
+	if (~path == 0 || saveAs) {
+		path = QFileDialog::getSaveFileName (g_ForgeWindow, "Save As",
+		"", "LDraw files (*.dat *.ldr)");
+		
+		if (~path == 0) {
+			// User didn't give a file name. This happens if the user cancelled
+			// saving in the save file dialog. Abort.
+			return;
+		}
+	}
+	
+	if (g_CurrentFile->save (path)) {
+		g_CurrentFile->zFileName = path;
+		g_ForgeWindow->setTitle ();
+		
+		logf ("Saved successfully to %s\n", path.chars ());
+	} else {
+		setlocale (LC_ALL, "C");
+		
+		// Tell the user the save failed, and give the option for saving as with it.
+		QMessageBox dlg (QMessageBox::Warning, "Save Failure",
+			format ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_CurrentFile->lastError)),
+			QMessageBox::Close, g_ForgeWindow);
+		
+		QPushButton* saveAsBtn = new QPushButton ("Save As");
+		saveAsBtn->setIcon (getIcon ("file-save-as"));
+		dlg.addButton (saveAsBtn, QMessageBox::ActionRole);
+		dlg.setDefaultButton (QMessageBox::Close);
+		dlg.exec ();
+		
+		if (dlg.clickedButton () == saveAsBtn)
+			doSave (true); // yay recursion!
+	}
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S)) {
-	if (!~g_CurrentFile->zFileName) {
-		// If we don't have a file name, this is an anonymous file created
-		// with the new file command. We cannot save without a name so ask
-		// the user for one.
-		doSaveAs ();
-		return;
-	}
-	
-	g_CurrentFile->save ();
+	doSave (false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S))
-{
-	doSaveAs ();
+ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S)) {
+	doSave (true);
 }
 
 // =============================================================================
