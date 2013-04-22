@@ -44,14 +44,20 @@ cfg (bool, gl_selflash, false);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-GLRenderer::GLRenderer (QWidget* parent) {
-	parent = parent; // shhh, GCC
-	fRotX = fRotY = fRotZ = 0.0f;
-	fZoom = 1.0f;
-	bPicking = false;
+GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
+	resetAngles ();
+	picking = false;
 	
 	qPulseTimer = new QTimer (this);
 	connect (qPulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
+}
+
+// =============================================================================
+void GLRenderer::resetAngles () {
+	rotX = 30.0f;
+	rotY = 325.f;
+	panX = panY = rotZ = 0.0f;
+	zoom = 1.0f;
 }
 
 // =============================================================================
@@ -116,7 +122,7 @@ static vector<short> g_daWarnedColors;
 void GLRenderer::setObjectColor (LDObject* obj) {
 	QColor qCol;
 	
-	if (bPicking) {
+	if (picking) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results.
 		long i = obj->getIndex (g_CurrentFile);
@@ -252,14 +258,14 @@ void GLRenderer::paintGL () {
 		glLoadIdentity ();
 		
 		glTranslatef (0.0f, 0.0f, -5.0f);
-		glTranslatef (0.0f, 0.0f, -fZoom);
+		glTranslatef (panX, panY, -zoom);
 		
-		glRotatef (fRotX, 1.0f, 0.0f, 0.0f);
-		glRotatef (fRotY, 0.0f, 1.0f, 0.0f);
-		glRotatef (fRotZ, 0.0f, 0.0f, 1.0f);
+		glRotatef (rotX, 1.0f, 0.0f, 0.0f);
+		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
+		glRotatef (rotZ, 0.0f, 0.0f, 1.0f);
 		
 		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList ((bPicking == false) ? obj->uGLList : obj->uGLPickList);
+			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
 	glPopMatrix ();
 }
 
@@ -289,9 +295,9 @@ void GLRenderer::compileObjects () {
 			GLuint uList = glGenLists (1);
 			glNewList (uList, GL_COMPILE);
 			
-			bPicking = (upMemberList == &obj->uGLPickList);
+			picking = (upMemberList == &obj->uGLPickList);
 			compileOneObject (obj);
-			bPicking = false;
+			picking = false;
 			
 			glEndList ();
 			*upMemberList = uList;
@@ -410,83 +416,88 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::compileVertex (vertex& vrt) {
+void GLRenderer::compileVertex (vertex& vert) {
 	glVertex3d (
-		(vrt.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
-		-(vrt.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
-		-(vrt.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
+		(vert.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
+		-(vert.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
+		-(vert.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::clampAngle (double& fAngle) {
-	while (fAngle < 0)
-		fAngle += 360.0;
-	while (fAngle > 360.0)
-		fAngle -= 360.0;
+void GLRenderer::clampAngle (double& angle) {
+	while (angle < 0)
+		angle += 360.0;
+	while (angle > 360.0)
+		angle -= 360.0;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::mouseReleaseEvent (QMouseEvent* event) {
-	if ((qMouseButtons & Qt::LeftButton) && !(event->buttons() & Qt::LeftButton)) {
+void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
+	if ((qMouseButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
 		if (ulTotalMouseMove < 10)
-			pick (event->x(), event->y(), (qKeyMods & Qt::ControlModifier));
+			pick (ev->x(), ev->y(), (qKeyMods & Qt::ControlModifier));
 		
 		ulTotalMouseMove = 0;
 	}
 }
 
 // =============================================================================
-void GLRenderer::mousePressEvent (QMouseEvent* event) {
-	qMouseButtons = event->buttons();
-	if (event->buttons() & Qt::LeftButton)
+void GLRenderer::mousePressEvent (QMouseEvent* ev) {
+	qMouseButtons = ev->buttons();
+	if (ev->buttons() & Qt::LeftButton)
 		ulTotalMouseMove = 0;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::mouseMoveEvent (QMouseEvent *event) {
-	int dx = event->x () - lastPos.x ();
-	int dy = event->y () - lastPos.y ();
+void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
+	int dx = ev->x () - lastPos.x ();
+	int dy = ev->y () - lastPos.y ();
 	ulTotalMouseMove += abs (dx) + abs (dy);
 	
-	if (event->buttons () & Qt::LeftButton) {
-		fRotX = fRotX + (dy);
-		fRotY = fRotY + (dx);
-		clampAngle (fRotX);
-		clampAngle (fRotY);
+	if (ev->buttons () & Qt::LeftButton) {
+		rotX = rotX + (dy);
+		rotY = rotY + (dx);
+		clampAngle (rotX);
+		clampAngle (rotY);
 	}
 	
-	if (event->buttons () & Qt::RightButton) {
-		fRotX = fRotX + (dy);
-		fRotZ = fRotZ + (dx);
-		clampAngle (fRotX);
-		clampAngle (fRotZ);
+	if (ev->buttons () & Qt::RightButton) {
+		rotX = rotX + (dy);
+		rotZ = rotZ + (dx);
+		clampAngle (rotX);
+		clampAngle (rotZ);
 	}
 	
-	lastPos = event->pos();
+	if (ev->buttons () & Qt::MidButton) {
+		panX += 0.03f * dx;
+		panY -= 0.03f * dy;
+	}
+	
+	lastPos = ev->pos ();
 	updateGL ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::keyPressEvent (QKeyEvent* qEvent) {
-	qKeyMods = qEvent->modifiers ();
+void GLRenderer::keyPressEvent (QKeyEvent* ev) {
+	qKeyMods = ev->modifiers ();
 }
 
-void GLRenderer::keyReleaseEvent (QKeyEvent* qEvent) {
-	qKeyMods = qEvent->modifiers ();
+void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
+	qKeyMods = ev->modifiers ();
 }
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	fZoom += (-ev->delta () / 100.0);
-	fZoom = clamp (fZoom, 0.01, 100.0);
+	zoom += (-ev->delta () / 100.0);
+	zoom = clamp (zoom, 0.01, 100.0);
 	ev->accept ();
 	updateGL ();
 }
@@ -519,7 +530,7 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
 	
-	bPicking = true;
+	picking = true;
 	
 	paintGL ();
 	
@@ -541,7 +552,7 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 	
 	g_ForgeWindow->buildObjList ();
 	
-	bPicking = false;
+	picking = false;
 	glEnable (GL_DITHER);
 	
 	setBackground ();
@@ -573,7 +584,7 @@ void GLRenderer::recompileObject (LDObject* obj) {
 	obj->uGLList = uList;
 }
 
-// ========================================================================= //
+// =============================================================================
 void GLRenderer::slot_timerUpdate () {
 	++g_dPulseTick %= g_dNumPulseTicks;
 	

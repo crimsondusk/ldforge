@@ -43,23 +43,25 @@ public:
 	QColor getMainColor ();
 	void recompileObject (LDObject* obj);
 	void refresh ();
-	void updateSelFlash();
+	void updateSelFlash ();
+	void resetAngles ();
 	
-	double fRotX, fRotY, fRotZ;
+	double rotX, rotY, rotZ;
+	double panX, panY;
 	QPoint lastPos;
-	double fZoom;
-	bool bPicking;
+	double zoom;
+	bool picking;
 
 protected:
 	void initializeGL ();
 	void resizeGL (int w, int h);
 	void paintGL ();
 	
-	void mousePressEvent (QMouseEvent* event);
-	void mouseMoveEvent (QMouseEvent* event);
-	void mouseReleaseEvent (QMouseEvent* event);
-	void keyPressEvent (QKeyEvent* qEvent);
-	void keyReleaseEvent (QKeyEvent* qEvent);
+	void mousePressEvent (QMouseEvent* ev);
+	void mouseMoveEvent (QMouseEvent* ev);
+	void mouseReleaseEvent (QMouseEvent* ev);
+	void keyPressEvent (QKeyEvent* ev);
+	void keyReleaseEvent (QKeyEvent* ev);
 	void wheelEvent (QWheelEvent* ev);
 
 private:

@@ -80,6 +80,7 @@ EXTERN_ACTION (roundCoords)
 EXTERN_ACTION (gridCoarse)
 EXTERN_ACTION (gridMedium)
 EXTERN_ACTION (gridFine)
+EXTERN_ACTION (resetView)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -189,6 +190,10 @@ void ForgeWindow::createMenus () {
 	qFileMenu->addAction (ACTION_NAME (settings));			// Settings
 	qFileMenu->addSeparator ();								// -------
 	qFileMenu->addAction (ACTION_NAME (exit));				// Exit
+	
+	// View menu
+	qViewMenu = menuBar ()->addMenu (tr ("&View"));
+	qViewMenu->addAction (ACTION_NAME (resetView));
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
@@ -692,7 +697,7 @@ void ForgeWindow::slot_selectionChanged () {
 	
 	// Update the shared selection array, unless this was called during GL picking,
 	// in which case the GL renderer takes care of the selection.
-	if (R->bPicking == false) {
+	if (R->picking == false) {
 		std::vector<LDObject*> paPriorSelection = paSelection;
 		paSelection = getSelectedObjects ();
 		

@@ -107,7 +107,8 @@ public:
 	// Object list view
 	QTreeWidget* qObjList;
 	QTextEdit* qMessageLog;
-	QMenu* qFileMenu, *qEditMenu, *qInsertMenu, *qMoveMenu, *qHelpMenu, *qControlMenu;
+	QMenu* qFileMenu, *qEditMenu, *qViewMenu, *qInsertMenu, *qMoveMenu,
+		*qHelpMenu, *qControlMenu;
 	QMenu* qRecentFilesMenu;
 	std::vector<QAction*> qaRecentFiles;
 	
