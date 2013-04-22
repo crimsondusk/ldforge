@@ -77,6 +77,9 @@ EXTERN_ACTION (rotateXPos)
 EXTERN_ACTION (rotateYPos)
 EXTERN_ACTION (rotateZPos)
 EXTERN_ACTION (roundCoords)
+EXTERN_ACTION (gridCoarse)
+EXTERN_ACTION (gridMedium)
+EXTERN_ACTION (gridFine)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -92,9 +95,9 @@ cfg (int, gui_toolbar_iconsize, 24);
 cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 ForgeWindow::ForgeWindow () {
 	g_ForgeWindow = this;
 	R = new GLRenderer;
@@ -136,9 +139,9 @@ ForgeWindow::ForgeWindow () {
 	resize (800, 600);
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::createMenuActions () {
 	// Create the actions based on stored meta.
 	for (actionmeta meta : g_ActionMeta) {
@@ -149,6 +152,11 @@ void ForgeWindow::createMenuActions () {
 		
 		connect (qAct, SIGNAL (triggered ()), this, SLOT (slot_action ()));
 	}
+	
+	// Grid actions are checkable
+	ACTION_NAME (gridCoarse)->setCheckable (true);
+	ACTION_NAME (gridMedium)->setCheckable (true);
+	ACTION_NAME (gridFine)->setCheckable (true);
 	
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
@@ -162,9 +170,9 @@ void ForgeWindow::createMenuActions () {
 	History::updateActions ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::createMenus () {
 	qRecentFilesMenu = new QMenu (tr ("Open &Recent"));
 	qRecentFilesMenu->setIcon (getIcon ("open-recent"));
@@ -221,6 +229,10 @@ void ForgeWindow::createMenus () {
 	qMoveMenu->addAction (ACTION_NAME (moveUp));			// Move Up
 	qMoveMenu->addAction (ACTION_NAME (moveDown));			// Move Down
 	qMoveMenu->addSeparator ();								// -----
+	qMoveMenu->addAction (ACTION_NAME (gridCoarse));		// Coarse Grid
+	qMoveMenu->addAction (ACTION_NAME (gridMedium));		// Medium Grid
+	qMoveMenu->addAction (ACTION_NAME (gridFine));			// Fine Grid
+	qMoveMenu->addSeparator ();								// -----
 	qMoveMenu->addAction (ACTION_NAME (moveXPos));			// Move +X
 	qMoveMenu->addAction (ACTION_NAME (moveXNeg));			// Move -X
 	qMoveMenu->addAction (ACTION_NAME (moveYPos));			// Move +Y
@@ -254,9 +266,9 @@ void ForgeWindow::createMenus () {
 	qHelpMenu->addAction (ACTION_NAME (aboutQt));			// About Qt
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::updateRecentFilesMenu () {
 	// First, clear any items in the recent files menu
 	for (QAction* qRecent : qaRecentFiles)
@@ -275,9 +287,9 @@ void ForgeWindow::updateRecentFilesMenu () {
 	}
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 #define ADD_TOOLBAR_ITEM(ACT) g_CurrentToolBar->addAction (ACTION_NAME (ACT));
 static QToolBar* g_CurrentToolBar;
 static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
@@ -346,18 +358,10 @@ void ForgeWindow::createToolbars () {
 	
 	// ==========================================
 	// Grid toolbar
-	qGridToolBar = new QToolBar ("Grids");
-	addToolBar (Qt::TopToolBarArea, qGridToolBar);
-	
-	for (int i = 0; i < g_NumGrids; ++i) {
-		QIcon icon = getIcon (format ("grid-%s", str (g_GridInfo[i].name).tolower ().chars ()));
-		gridActions[i] = new QAction (icon, "", this);
-		gridActions[i]->setCheckable (true);
-		
-		qGridToolBar->addAction (gridActions[i]);
-		
-		connect (gridActions[i], SIGNAL (triggered ()), this, SLOT (slot_setGrid ()));
-	}
+	initSingleToolBar ("Grids");
+	ADD_TOOLBAR_ITEM (gridCoarse)
+	ADD_TOOLBAR_ITEM (gridMedium)
+	ADD_TOOLBAR_ITEM (gridFine)
 	
 	// ==========================================
 	// Color toolbar
@@ -381,9 +385,9 @@ void ForgeWindow::createToolbars () {
 	updateToolBars ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 	std::vector<quickColorMetaEntry> meta;
 	
@@ -399,9 +403,9 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 	return meta;
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::updateToolBars () {
 	for (QToolBar* qBar : qaToolBars)
 		qBar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
@@ -432,13 +436,22 @@ void ForgeWindow::updateToolBars () {
 		}
 	}
 	
-	for (short i = 0; i < g_NumGrids; ++i)
-		gridActions[i]->setChecked (i == grid);
+	updateGridToolBar ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::updateGridToolBar () {
+	// Ensure that the current grid - and only the current grid - is selected.
+	ACTION_NAME (gridCoarse)->setChecked (grid == Grid::Coarse);
+	ACTION_NAME (gridMedium)->setChecked (grid == Grid::Medium);
+	ACTION_NAME (gridFine)->setChecked (grid == Grid::Fine);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::setTitle () {
 	str zTitle = APPNAME_DISPLAY " v" VERSION_STRING;
 	
@@ -458,9 +471,9 @@ void ForgeWindow::setTitle () {
 	setWindowTitle (zTitle.chars());
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_action () {
 	// Get the action that triggered this slot.
 	QAction* qAct = static_cast<QAction*> (sender ());
@@ -484,9 +497,9 @@ void ForgeWindow::slot_action () {
 	(*pMeta->handler) ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
 	if (selection ().size () == 0)
 		return;
@@ -507,9 +520,9 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 	refresh ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::buildObjList () {
 	if (!g_CurrentFile)
 		return;
@@ -731,24 +744,6 @@ void ForgeWindow::slot_quickColor () {
 	
 	History::addEntry (new SetColorHistory (ulaIndices, daColors, dNewColor));
 	refresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void ForgeWindow::slot_setGrid () {
-	short idx;
-	for (idx = 0; idx < g_NumGrids; ++idx)
-		if (sender () == gridActions[idx])
-			break;
-	
-	assert (idx < g_NumGrids);
-	
-	grid = idx;
-	
-	for (short i = 0; i < g_NumGrids; ++i)
-		if (i != idx)
-			gridActions[i]->setChecked (false);
 }
 
 // =============================================================================

@@ -25,6 +25,7 @@
 #include "zz_configDialog.h"
 #include "zz_addObjectDialog.h"
 #include "zz_aboutDialog.h"
+#include "misc.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -202,6 +203,25 @@ ACTION (selectByType, "Select by Type", "select-type",
 	
 	g_ForgeWindow->updateSelection ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", CTRL (1)) {
+	grid = Grid::Coarse;
+	g_ForgeWindow->updateGridToolBar ();
+}
+
+ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", CTRL (2)) {
+	grid = Grid::Medium;
+	g_ForgeWindow->updateGridToolBar ();
+}
+
+ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3)) {
+	grid = Grid::Fine;
+	g_ForgeWindow->updateGridToolBar ();
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
