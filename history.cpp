@@ -31,37 +31,37 @@ EXTERN_ACTION (redo)
 namespace History {
 	std::vector<HistoryEntry*> entries;
 	
-	static long lPos = -1;
+	static long m_pos = -1;
 	
 	// =========================================================================
 	void addEntry (HistoryEntry* entry) {
 		// If there's any entries after our current position, we need to remove them now
-		for (ulong i = lPos + 1; i < entries.size(); ++i) {
+		for (ulong i = m_pos + 1; i < entries.size(); ++i) {
 			delete entries[i];
 			entries.erase (entries.begin() + i);
 		}
 		
 		entries.push_back (entry);
-		lPos++;
+		m_pos++;
 		
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void undo () {
-		if (lPos == -1)
+		if (m_pos == -1)
 			return; // nothing to undo
 		
-		entries[lPos--]->undo ();
+		entries[m_pos--]->undo ();
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void redo () {
-		if (lPos == (long) entries.size () - 1)
+		if (m_pos == (long) entries.size () - 1)
 			return; // nothing to redo;
 		
-		entries[++lPos]->redo ();
+		entries[++m_pos]->redo ();
 		updateActions ();
 	}
 	
@@ -71,19 +71,22 @@ namespace History {
 			delete entry;
 		
 		entries.clear ();
-		lPos = -1;
+		m_pos = -1;
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void updateActions () {
-		ACTION_NAME (undo)->setEnabled (lPos > -1);
-		ACTION_NAME (redo)->setEnabled (lPos < (long) entries.size () - 1);
+		ACTION_NAME (undo)->setEnabled (m_pos > -1);
+		ACTION_NAME (redo)->setEnabled (m_pos < (long) entries.size () - 1);
+		
+		// Update the window title as well
+		g_ForgeWindow->setTitle ();
 	}
 	
 	// =========================================================================
 	long pos () {
-		return lPos;
+		return m_pos;
 	}
 }
 

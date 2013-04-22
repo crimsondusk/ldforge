@@ -35,17 +35,29 @@ public:
 	vector<LDObject*> objects;
 	vector<LDObject*> objCache; // Cache of this file's contents, if desired
 	
-	// Closes this OpenFile. The object is deleted in the process.
-	void close ();
+	int lastError;
+	
+	// Is this file implicit? Implicit files are opened automatically for
+	// caching purposes and are hidden from the user.
+	bool implicit;
+	
+	OpenFile ();
+	~OpenFile ();
 	
 	// Saves this file to disk.
 	bool save (str zPath = "");
+	
+	// Perform safety checks. Do this before closing any files!
+	bool safeToClose ();
 	
 	// Adds an object to this file at the appropriate location.
 	ulong addObject (LDObject* obj);
 	
 	// Deletes the given object from the object chain.
 	void forgetObject (LDObject* obj);
+	
+	// At what point was this file last saved?
+	long savePos;
 	
 	LDObject* object (size_t uPos) const {
 		return objects[uPos];

@@ -116,6 +116,7 @@ str LDComment::getContents () {
 str LDSubfile::getContents () {
 	str val = format ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
 	val += mMatrix.getStringRep ();
+	val += ' ';
 	val += zFileName;
 	return val;
 }

@@ -143,7 +143,10 @@ public:
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
 	LDObjectType_e getSelectedType ();
-
+	
+protected:
+	void closeEvent (QCloseEvent* ev);
+	
 private:
 	void createMenuActions ();
 	void createMenus ();
@@ -161,7 +164,8 @@ private slots:
 // Other GUI-related stuff not directly part of ForgeWindow:
 QIcon getIcon (const char* sIconName);
 std::vector<quickColorMetaEntry> parseQuickColorMeta ();
-bool confirm (str zMessage);
+bool confirm (str title, str msg);
+bool confirm (str msg);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

@@ -18,15 +18,34 @@
 
 #include <vector>
 #include <stdio.h>
+#include <qmessagebox.h>
 #include "common.h"
 #include "config.h"
 #include "file.h"
 #include "misc.h"
 #include "bbox.h"
 #include "gui.h"
+#include "history.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
+
+// =============================================================================
+OpenFile::OpenFile () {
+	implicit = true;
+	savePos = -1;
+}
+
+// =============================================================================
+OpenFile::~OpenFile () {
+	// Clear everything from the model
+	for (LDObject* obj : objects)
+		delete obj;
+	
+	// Clear the cache as well
+	for (LDObject* obj : objCache)
+		delete obj;
+}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -150,16 +169,34 @@ OpenFile* openDATFile (str path) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// Clear everything from the model
-void OpenFile::close () {
-	for (LDObject* obj : objects)
-		delete obj;
+bool OpenFile::safeToClose () {
+	setlocale (LC_ALL, "C");
 	
-	// Clear the cache as well
-	for (LDObject* obj : objCache)
-		delete obj;
+	// If we have unsaved changes, warn and give the option of saving.
+	if (!implicit && History::pos () != savePos) {
+		switch (QMessageBox::question (g_ForgeWindow, "Unsaved Changes",
+			format ("There are unsaved changes to %s. Should it be saved?", zFileName.chars ()),
+			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
+		{
+		case QMessageBox::Yes:
+			if (!save ()) {
+				str errormsg = format ("Failed to save %s: %s\nDo you still want to close?",
+					zFileName.chars (), strerror (lastError));
+				if (!confirm ("Save Failure", errormsg))
+					return false;
+			}
+			
+			break;
+		
+		case QMessageBox::Cancel:
+			return false;
+		
+		default:
+			break;
+		}
+	}
 	
-	delete this;
+	return true;
 }
 
 // =============================================================================
@@ -171,7 +208,7 @@ void closeAll () {
 	
 	// Remove all loaded files and the objects they contain
 	for (OpenFile* file : g_LoadedFiles)
-		file->close ();
+		delete file;
 	
 	// Clear the array
 	g_LoadedFiles.clear();
@@ -238,6 +275,7 @@ void openMainFile (str zPath) {
 	if (!pFile)
 		return;
 	
+	pFile->implicit = false;
 	g_CurrentFile = pFile;
 	
 	// Recalculate the bounding box
@@ -254,13 +292,16 @@ void openMainFile (str zPath) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool OpenFile::save (str zPath) {
-	if (!~zPath)
-		zPath = zFileName;
+bool OpenFile::save (str path) {
+	if (!~path)
+		path = zFileName;
 	
-	FILE* fp = fopen (zPath, "w");
-	if (!fp)
+	FILE* fp = fopen (path, "w");
+	
+	if (!fp) {
+		lastError = errno;
 		return false;
+	}
 	
 	// Write all entries now
 	for (LDObject* obj : objects) {
@@ -271,6 +312,13 @@ bool OpenFile::save (str zPath) {
 	}
 	
 	fclose (fp);
+	
+	// We have successfully saved, update the save position now.
+	savePos = History::pos ();
+	
+	g_ForgeWindow->setTitle ();
+	logf ("Saved successfully to %s\n", path.chars ());
+	
 	return true;
 }
 
@@ -506,7 +554,7 @@ void reloadAllSubfiles () {
 	// First, close all but the current open file.
 	for (OpenFile* file : g_LoadedFiles)
 		if (file != g_CurrentFile)
-			file->close ();
+			delete file;
 	
 	g_LoadedFiles.clear ();
 	g_LoadedFiles.push_back (g_CurrentFile);

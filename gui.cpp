@@ -453,22 +453,25 @@ void ForgeWindow::updateGridToolBar () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::setTitle () {
-	str zTitle = APPNAME_DISPLAY " v" VERSION_STRING;
+	str title = APPNAME_DISPLAY " v" VERSION_STRING;
 	
 	// Append our current file if we have one
 	if (g_CurrentFile) {
-		zTitle.appendformat (": %s", basename (g_CurrentFile->zFileName.chars()));
+		title += format (": %s", basename (g_CurrentFile->zFileName.chars()));
 		
 		if (g_CurrentFile->objects.size() > 0 &&
 			g_CurrentFile->objects[0]->getType() == OBJ_Comment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_CurrentFile->objects[0]);
-			zTitle.appendformat (": %s", comm->zText.chars());
+			title += format (": %s", comm->zText.chars());
 		}
+		
+		if (History::pos () != g_CurrentFile->savePos)
+			title += '*';
 	}
 	
-	setWindowTitle (zTitle.chars());
+	setWindowTitle (title);
 }
 
 // =============================================================================
@@ -861,6 +864,21 @@ LDObjectType_e ForgeWindow::getSelectedType () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ForgeWindow::closeEvent (QCloseEvent* ev) {
+	// Check whether it's safe to close all files.
+	for (OpenFile* f : g_LoadedFiles) {
+		if (!f->safeToClose ()) {
+			ev->ignore ();
+			return;
+		}
+	}
+	
+	ev->accept ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 std::vector<LDObject*>& ForgeWindow::selection () {
 	return paSelection;
 }
@@ -873,7 +891,11 @@ QIcon getIcon (const char* sIconName) {
 }
 
 // =============================================================================
-bool confirm (str zMessage) {
-	return QMessageBox::question (g_ForgeWindow, "Confirm", zMessage,
+bool confirm (str msg) {
+	return confirm ("Confirm", msg);
+}
+
+bool confirm (str title, str msg) {
+	return QMessageBox::question (g_ForgeWindow, title, msg,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
