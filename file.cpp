@@ -182,8 +182,12 @@ bool OpenFile::safeToClose () {
 			if (!save ()) {
 				str errormsg = format ("Failed to save %s: %s\nDo you still want to close?",
 					zFileName.chars (), strerror (lastError));
-				if (!confirm ("Save Failure", errormsg))
+				
+				if (QMessageBox::critical (g_ForgeWindow, "Save Failure", errormsg,
+					(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::No)
+				{
 					return false;
+				}
 			}
 			
 			break;

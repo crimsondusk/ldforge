@@ -72,7 +72,7 @@ void doSave (bool saveAs) {
 		setlocale (LC_ALL, "C");
 		
 		// Tell the user the save failed, and give the option for saving as with it.
-		QMessageBox dlg (QMessageBox::Warning, "Save Failure",
+		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
 			format ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_CurrentFile->lastError)),
 			QMessageBox::Close, g_ForgeWindow);
 		
