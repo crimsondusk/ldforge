@@ -75,7 +75,7 @@ OpenFile* findLoadedFile (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-OpenFile* openDATFile (str path);
+OpenFile* openDATFile (str path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 FILE* openLDrawFile (str path, bool bSubDirectories);

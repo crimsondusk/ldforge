@@ -109,13 +109,17 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* openDATFile (str path) {
+OpenFile* openDATFile (str path, bool search) {
 	logf ("Opening %s...\n", path.chars());
 	
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
-	FILE* fp = openLDrawFile (-path, true);
+	FILE* fp;
+	if (search)
+		fp = openLDrawFile (-path, true);
+	else
+		fp = fopen (path, "r");
 	
 	if (!fp) {
 		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));
@@ -274,10 +278,17 @@ void addRecentFile (str zPath) {
 void openMainFile (str zPath) {
 	closeAll ();
 	
-	OpenFile* pFile = openDATFile (zPath);
+	OpenFile* pFile = openDATFile (zPath, false);
 	
-	if (!pFile)
+	if (!pFile) {
+		// Tell the user loading failed.
+		setlocale (LC_ALL, "C");
+		QMessageBox::critical (g_ForgeWindow, "Load Failure",
+			format ("Failed to open %s\nReason: %s", zPath.chars(), strerror (errno)),
+			(QMessageBox::Close), QMessageBox::Close);
+		
 		return;
+	}
 	
 	pFile->implicit = false;
 	g_CurrentFile = pFile;
@@ -542,7 +553,7 @@ OpenFile* loadSubfile (str zFile) {
 	// Try open the file
 	OpenFile* pFile = findLoadedFile (zFile);
 	if (!pFile)
-		pFile = openDATFile (zFile);
+		pFile = openDATFile (zFile, true);
 	
 	return pFile;
 }
