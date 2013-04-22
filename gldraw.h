@@ -60,6 +60,7 @@ protected:
 	void mouseReleaseEvent (QMouseEvent* event);
 	void keyPressEvent (QKeyEvent* qEvent);
 	void keyReleaseEvent (QKeyEvent* qEvent);
+	void wheelEvent (QWheelEvent* ev);
 
 private:
 	std::vector<GLuint> uaObjLists;
