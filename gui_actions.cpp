@@ -16,10 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <errno.h>
 #include <qfiledialog.h>
 #include <qmessagebox.h>
-#include <qboxlayout.h>
 #include "gui.h"
 #include "file.h"
 #include "history.h"

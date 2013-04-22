@@ -78,6 +78,31 @@ const ushort g_uaPrimes[NUM_PRIMES] = {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+// Grid stuff
+cfg (int, grid, Grid::Medium);
+
+cfg (float, grid_coarse_x,		5.0f);
+cfg (float, grid_coarse_y,		5.0f);
+cfg (float, grid_coarse_z,		5.0f);
+cfg (float, grid_coarse_angle,	45.0f);
+cfg (float, grid_medium_x,		1.0f);
+cfg (float, grid_medium_y,		1.0f);
+cfg (float, grid_medium_z,		1.0f);
+cfg (float, grid_medium_angle,	22.5f);
+cfg (float, grid_fine_x,		0.1f);
+cfg (float, grid_fine_y,		0.1f);
+cfg (float, grid_fine_z,		0.1f);
+cfg (float, grid_fine_angle,	7.5f);
+
+const gridinfo g_GridInfo[3] = {
+	{ "Coarse",	{ &grid_coarse_x,	&grid_coarse_y,	&grid_coarse_z,	&grid_coarse_angle	} },
+	{ "Medium",	{ &grid_medium_x,	&grid_medium_y,	&grid_medium_z,	&grid_medium_angle	} },
+	{ "Fine",	{ &grid_fine_x,		&grid_fine_y,	&grid_fine_z,	&grid_fine_angle	} }
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 str ftoa (double fCoord) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)

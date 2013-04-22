@@ -36,6 +36,35 @@ str ftoa (double fCoord);
 // Simplifies the given fraction.
 void simplify (short& dNum, short& dDenom);
 
+// Grid stuff
+typedef struct {
+	const char* const name;
+	floatconfig* const confs[4];
+} gridinfo;
+
+namespace Grid {
+	enum Type {
+		Coarse,
+		Medium,
+		Fine
+	};
+	
+	enum Config {
+		X,
+		Y,
+		Z,
+		Angle
+	};
+};
+
+extern_cfg (int, grid);
+static const short g_NumGrids = 3;
+extern const gridinfo g_GridInfo[3];
+
+inline const gridinfo& currentGrid () {
+	return g_GridInfo[grid];
+}
+
 // =============================================================================
 // StringParser
 //

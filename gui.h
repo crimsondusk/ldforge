@@ -123,6 +123,10 @@ public:
 	QToolBar* qColorToolBar;
 	std::vector<quickColorMetaEntry> quickColorMeta;
 	
+	// Grid buttons
+	QAction* gridActions[3];
+	QToolBar* qGridToolBar;
+	
 	// Selected objects
 	std::vector<LDObject*> paSelection;
 	
@@ -154,6 +158,7 @@ private slots:
 	void slot_action ();
 	void slot_recentFile ();
 	void slot_quickColor ();
+	void slot_setGrid ();
 };
 
 // -----------------------------------------------------------------------------

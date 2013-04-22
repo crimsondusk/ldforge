@@ -24,6 +24,7 @@
 #include <qpushbutton.h>
 #include <qcheckbox.h>
 #include <qlistwidget.h>
+#include <qspinbox.h>
 
 class ConfigDialog : public QDialog {
 	Q_OBJECT
@@ -58,6 +59,12 @@ public:
 	std::vector<quickColorMetaEntry> quickColorMeta;
 	
 	// =========================================================================
+	// Grid tab
+	QLabel* gridLabels[3];
+	QLabel* gridIcons[3];
+	QDoubleSpinBox* gridData[3][4];
+	
+	// =========================================================================
 	QDialogButtonBox* qButtons;
 	
 	ConfigDialog (ForgeWindow* parent);
@@ -68,6 +75,7 @@ private:
 	void initMainTab ();
 	void initShortcutsTab ();
 	void initQuickColorTab ();
+	void initGridTab ();
 	
 	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
 	void setButtonBackground (QPushButton* qButton, str zValue);

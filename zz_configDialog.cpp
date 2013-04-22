@@ -58,6 +58,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	initMainTab ();
 	initShortcutsTab ();
 	initQuickColorTab ();
+	initGridTab ();
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -243,6 +244,53 @@ void ConfigDialog::initQuickColorTab () {
 	
 	qQuickColorTab->setLayout (qLayout);
 	qTabs->addTab (qQuickColorTab, "Quick Colors");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ConfigDialog::initGridTab () {
+	QWidget* tab = new QWidget;
+	QGridLayout* layout = new QGridLayout;
+	QVBoxLayout* l2 = new QVBoxLayout;
+	
+	QLabel* xlabel = new QLabel ("X"),
+		*ylabel = new QLabel ("Y"),
+		*zlabel = new QLabel ("Z"),
+		*anglabel = new QLabel ("Angle");
+	
+	short i = 1;
+	for (QLabel* label : std::initializer_list<QLabel*> ({xlabel, ylabel, zlabel, anglabel})) {
+		label->setAlignment (Qt::AlignCenter);
+		layout->addWidget (label, 0, i++);
+	}
+	
+	for (int i = 0; i < g_NumGrids; ++i) {
+		// Icon
+		gridIcons[i] = new QLabel;
+		gridIcons[i]->setPixmap (QPixmap (format ("icons/grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
+		
+		// Text label
+		gridLabels[i] = new QLabel (format ("%s:", g_GridInfo[i].name));
+		
+		QHBoxLayout* labellayout = new QHBoxLayout;
+		labellayout->addWidget (gridIcons[i]);
+		labellayout->addWidget (gridLabels[i]);
+		layout->addLayout (labellayout, i + 1, 0);
+		
+		// Add the widgets
+		for (int j = 0; j < 4; ++j) {
+			gridData[i][j] = new QDoubleSpinBox;
+			gridData[i][j]->setValue (g_GridInfo[i].confs[j]->value);
+			layout->addWidget (gridData[i][j], i + 1, j + 1);
+		}
+	}
+	
+	l2->addLayout (layout);
+	l2->addStretch (1);
+	
+	tab->setLayout (l2);
+	qTabs->addTab (tab, "Grids");
 }
 
 // =============================================================================
@@ -563,6 +611,11 @@ void ConfigDialog::staticDialog () {
 		// Manage the quick color toolbar
 		g_ForgeWindow->quickColorMeta = dlg.quickColorMeta;
 		gui_colortoolbar = dlg.makeColorToolBarString ();
+		
+		// Set the grid settings
+		for (int i = 0; i < g_NumGrids; ++i)
+			for (int j = 0; j < 4; ++j)
+				g_GridInfo[i].confs[j]->value = dlg.gridData[i][j]->value ();
 		
 		// Save the config
 		config::save ();

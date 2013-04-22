@@ -403,8 +403,13 @@ ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0))
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void doMoveObjects (const vertex vVector) {
+void doMoveObjects (vertex vVector) {
 	vector<ulong> ulaIndices;
+	
+	// Apply the grid values
+	vVector.x *= currentGrid ().confs[Grid::X]->value;
+	vVector.y *= currentGrid ().confs[Grid::Y]->value;
+	vVector.z *= currentGrid ().confs[Grid::Z]->value;
 	
 	for (LDObject* obj : g_ForgeWindow->selection ()) {
 		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
@@ -572,9 +577,7 @@ static void doRotate (const short l, const short m, const short n) {
 	bbox box;
 	vertex origin;
 	std::vector<vertex*> queue;
-	
-	// TODO: generalize the angle
-	const double angle = (pi * 22.5f) / 360;
+	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 360;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	matrix transform (
