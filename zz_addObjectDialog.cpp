@@ -17,6 +17,8 @@
  */
 
 #include <qgridlayout.h>
+#include <qradiobutton.h>
+#include <qcheckbox.h>
 #include "gui.h"
 #include "zz_addObjectDialog.h"
 #include "file.h"
@@ -72,15 +74,18 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		lb_radSegments = new QLabel ("Segments:");
 		lb_radRingNum = new QLabel ("Ring number:");
 		
-		qRadialType = new QComboBox;
+		bb_radType = new ButtonBox<QRadioButton> ("Type", {}, 0, Qt::Vertical);
 		
-		for (int i = 0; i < LDRadial::NumTypes; ++i)
-			qRadialType->addItem (LDRadial::radialTypeName ((LDRadial::Type) i));
+		for (int i = 0; i < LDRadial::NumTypes; ++i) {
+			bb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
+			
+			if (i % (LDRadial::NumTypes / 2) == ((LDRadial::NumTypes / 2) - 1))
+				bb_radType->rowBreak ();
+		}
 		
-		connect (qRadialType, SIGNAL (currentIndexChanged (int)), this, SLOT (slot_radialTypeChanged (int)));
+		connect (bb_radType->buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
 		
-		qRadialResolution = new QComboBox;
-		qRadialResolution->addItems ({"Normal (16)", "Hi-Res (48)"});
+		cb_radHiRes = new QCheckBox ("Hi-Res");
 		
 		sb_radSegments = new QSpinBox;
 		sb_radSegments->setMinimum (1);
@@ -135,14 +140,12 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		break;
 	
 	case OBJ_Radial:
-		qLayout->addWidget (lb_radType, 1, 1);
-		qLayout->addWidget (qRadialType, 1, 2);
-		qLayout->addWidget (lb_radResolution, 2, 1);
-		qLayout->addWidget (qRadialResolution, 2, 2);
-		qLayout->addWidget (lb_radSegments, 3, 1);
-		qLayout->addWidget (sb_radSegments, 3, 2);
-		qLayout->addWidget (lb_radRingNum, 4, 1);
-		qLayout->addWidget (sb_radRingNum, 4, 2);
+		qLayout->addWidget (bb_radType, 1, 1, 3, 1);
+		qLayout->addWidget (cb_radHiRes, 1, 2);
+		qLayout->addWidget (lb_radSegments, 2, 2);
+		qLayout->addWidget (sb_radSegments, 2, 3);
+		qLayout->addWidget (lb_radRingNum, 3, 2);
+		qLayout->addWidget (sb_radRingNum, 3, 3);
 		break;
 	
 	default:
@@ -158,10 +161,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		for (short i = 0; i < dCoordCount; ++i)
 			qCoordLayout->addWidget (qaCoordinates[i], (i / 3), (i % 3));
 		
-		qLayout->addLayout (qCoordLayout, 0, 1, 2, 2);
+		qLayout->addLayout (qCoordLayout, 0, 1, (dCoordCount / 3), 3);
 	}
 	
-	qLayout->addWidget (bbx_buttons, 5, 1);
+	qLayout->addWidget (bbx_buttons, 5, 0, 1, 4);
 	setLayout (qLayout);
 	setWindowTitle (format (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
@@ -263,9 +266,9 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 				pRad->vPosition.x = dlg.qaCoordinates[0]->value ();
 				pRad->vPosition.y = dlg.qaCoordinates[1]->value ();
 				pRad->vPosition.z = dlg.qaCoordinates[2]->value ();
-				pRad->dDivisions = (dlg.qRadialResolution->currentIndex () == 0) ? 16 : 48;
+				pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
 				pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
-				pRad->eRadialType = (LDRadial::Type) dlg.qRadialType->currentIndex ();
+				pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
 				pRad->dRingNum = dlg.sb_radRingNum->value ();
 				pRad->mMatrix = g_mIdentity;
 				

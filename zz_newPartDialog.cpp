@@ -48,21 +48,21 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	lb_author = new QLabel ("Author:");
 	le_author = new QLineEdit;
 	
-	lb_license = new QLabel ("License:");
-	qCB_LicenseBox = new QComboBox;
-	qCB_LicenseBox->addItems ({
+	bb_license = new ButtonBox<QRadioButton> ("License", {
 		"CCAL Redistributable",
 		"Non-redistributable",
-		"[none]",
-	});
+		"Don't append a license",
+	}, LICENSE_CCAL);
 	
-	lb_BFC = new QLabel ("BFC:");
-	qCB_BFCBox = new QComboBox;
-	qCB_BFCBox->addItems ({
+	bb_BFC = new ButtonBox<QRadioButton> ("BFC Winding", {
 		"CCW",
 		"CW",
 		"No winding"
-	});
+	}, BFCBOX_CCW);
+	
+	QHBoxLayout* boxes = new QHBoxLayout;
+	boxes->addWidget (bb_license);
+	boxes->addWidget (bb_BFC);
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -72,11 +72,8 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	layout->addWidget (le_name, 0, 2);
 	layout->addWidget (lb_author, 1, 1);
 	layout->addWidget (le_author, 1, 2);
-	layout->addWidget (lb_license, 2, 1);
-	layout->addWidget (qCB_LicenseBox, 2, 2);
-	layout->addWidget (lb_BFC, 3, 1);
-	layout->addWidget (qCB_BFCBox, 3, 2);
-	layout->addWidget (bbx_buttons, 4, 2);
+	layout->addLayout (boxes, 2, 1, 1, 2);
+	layout->addWidget (bbx_buttons, 3, 2);
 	
 	setLayout (layout);
 	setWindowIcon (QIcon ("icons/brick.png"));
@@ -95,13 +92,13 @@ void NewPartDialog::StaticDialog () {
 		str zAuthor = dlg.le_author->text ();
 		vector<LDObject*>& objs = g_CurrentFile->objects;
 		
-		idx = dlg.qCB_BFCBox->currentIndex ();
+		idx = dlg.bb_BFC->value ();
 		const LDBFC::Type eBFCType =
 			(idx == BFCBOX_CCW) ? LDBFC::CertifyCCW :
 			(idx == BFCBOX_CW) ? LDBFC::CertifyCW :
 			LDBFC::NoCertify;
 		
-		idx = dlg.qCB_LicenseBox->currentIndex ();
+		idx = dlg.bb_license->value ();
 		const char* sLicense =
 			(idx == LICENSE_CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
 			(idx == LICENSE_NonCA) ? "Not redistributable : see NonCAreadme.txt" :

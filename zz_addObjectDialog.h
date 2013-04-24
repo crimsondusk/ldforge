@@ -20,13 +20,14 @@
 #define ZZ_ADDOBJECTDIALOG_H
 
 #include "gui.h"
+#include "buttonbox.h"
 #include <qdialog.h>
 #include <qlineedit.h>
 #include <qdialogbuttonbox.h>
-#include <qlabel.h>
+#include <qcheckbox.h>
 #include <qspinbox.h>
-#include <qpushbutton.h>
-#include <qcombobox.h>
+#include <qlabel.h>
+#include <qradiobutton.h>
 
 class AddObjectDialog : public QDialog {
 	Q_OBJECT
@@ -47,7 +48,8 @@ public:
 	QPushButton* qColorButton;
 	
 	// Radial stuff
-	QComboBox* qRadialType, *qRadialResolution;
+	QCheckBox* cb_radHiRes;
+	ButtonBox<QRadioButton>* bb_radType;
 	QSpinBox* sb_radSegments, *sb_radRingNum;
 	QLabel* lb_radType, *lb_radResolution, *lb_radSegments,
 		*lb_radRingNum;

@@ -11,6 +11,7 @@ RC_FILE = ldforge.rc
 
 # Input
 HEADERS += bbox.h \
+	buttonbox.h \
 	colors.h \
 	common.h \
 	config.h \
