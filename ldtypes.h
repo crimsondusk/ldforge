@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __LDTYPES_H__
-#define __LDTYPES_H__
+#ifndef LDTYPES_H
+#define LDTYPES_H
 
 #include "common.h"
 #include "types.h"
@@ -334,4 +334,4 @@ extern const char* g_saObjTypeNames[];
 // Icons for these types
 extern const char* g_saObjTypeIcons[];
 
-#endif
+#endif // LDTYPES_H

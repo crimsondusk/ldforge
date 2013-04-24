@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __BBOX_H__
-#define __BBOX_H__
+#ifndef BBOX_H
+#define BBOX_H
 
 #include "common.h"
 #include "types.h"
@@ -53,4 +53,4 @@ public:
 	}
 };
 
-#endif
+#endif // BBOX_H

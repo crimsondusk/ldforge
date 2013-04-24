@@ -27,7 +27,7 @@ class AboutDialog : public QDialog {
 	
 public:
 	AboutDialog (QWidget* parent = nullptr, Qt::WindowFlags f = 0);
-	QPushButton* mailButton;
+	QPushButton* pb_mailAuthor;
 	
 private slots:
 	void slot_mail ();

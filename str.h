@@ -16,13 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __STR_H__
-#define __STR_H__
+#ifndef STR_H
+#define STR_H
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdarg.h>
-// #include <initializer_list>
 #include <vector>
 #include <QString>
 
@@ -270,4 +269,4 @@ public:
 
 str format (const char* fmt, ...);
 
-#endif // __STR_H__
+#endif // STR_H

@@ -248,8 +248,6 @@ void GLRenderer::resizeGL (int w, int h) {
 	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
 }
 
-template<class T> using initlist = std::initializer_list<T>;
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -287,7 +285,7 @@ void GLRenderer::paintGL () {
 			glLoadIdentity ();
 			glOrtho (.0, width, height, .0, -1.0, 1.0);
 			
-			for (int x : vector<int> ({GL_QUADS, GL_LINE_LOOP})) {
+			for (int x : {GL_QUADS, GL_LINE_LOOP}) {
 				if (x == GL_QUADS)
 					glColor4f (.0, .8, 1.0, .6);
 				else
@@ -545,7 +543,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::updateSelFlash () {
-	if (gl_selflash && g_ForgeWindow->paSelection.size() > 0) {
+	if (gl_selflash && g_ForgeWindow->sel.size() > 0) {
 		qPulseTimer->start (g_dPulseInterval);
 		g_dPulseTick = 0;
 	} else
@@ -560,8 +558,8 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	
 	// Clear the selection if we do not wish to add to it.
 	if (add == false) {
-		std::vector<LDObject*> paOldSelection = g_ForgeWindow->paSelection;
-		g_ForgeWindow->paSelection.clear ();
+		std::vector<LDObject*> paOldSelection = g_ForgeWindow->sel;
+		g_ForgeWindow->sel.clear ();
 		
 		// Recompile the prior selection to remove the highlight color
 		for (LDObject* obj : paOldSelection)
@@ -629,14 +627,14 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 			continue; // White is background; skip
 		
 		LDObject* obj = g_CurrentFile->object (idx);
-		g_ForgeWindow->paSelection.push_back (obj);
+		g_ForgeWindow->sel.push_back (obj);
 	}
 	
 	delete[] pixeldata;
 	
 	// Remove duplicate entries. For this to be effective, the vector must be
 	// sorted first.
-	std::vector<LDObject*>& sel = g_ForgeWindow->paSelection;
+	std::vector<LDObject*>& sel = g_ForgeWindow->sel;
 	std::sort (sel.begin(), sel.end ());
 	std::vector<LDObject*>::iterator pos = std::unique (sel.begin (), sel.end ());
 	sel.resize (std::distance (sel.begin (), pos));
@@ -651,7 +649,7 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	setBackground ();
 	updateSelFlash ();
 	
-	for (LDObject* obj : g_ForgeWindow->selection ())
+	for (LDObject* obj : g_ForgeWindow->sel)
 		recompileObject (obj);
 	
 	paintGL ();
@@ -681,7 +679,7 @@ void GLRenderer::recompileObject (LDObject* obj) {
 void GLRenderer::slot_timerUpdate () {
 	++g_dPulseTick %= g_dNumPulseTicks;
 	
-	for (LDObject* obj : g_ForgeWindow->selection ())
+	for (LDObject* obj : g_ForgeWindow->sel)
 		recompileObject (obj);
 	
 	paintGL ();

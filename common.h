@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __COMMON_H__
-#define __COMMON_H__
+#ifndef COMMON_H
+#define COMMON_H
 
 #define APPNAME "ldforge"
 #define APPNAME_DISPLAY "LDForge"
@@ -69,8 +69,6 @@
 static const double fMaxCoord = 10000.0;
 static const short dMainColor = 16;
 static const short dEdgeColor = 24;
-
-using std::vector;
 
 class ForgeWindow;
 class LDObject;
@@ -152,18 +150,4 @@ extern QApplication* g_qMainApp;
 // Identity matrix
 extern const matrix g_mIdentity;
 
-typedef unsigned int uint;
-typedef short unsigned int ushort;
-typedef long unsigned int ulong;
-
-// Typedef out the _t suffices :)
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
-
-#endif
+#endif // COMMON_H

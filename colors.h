@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __COLORS_H__
-#define __COLORS_H__
+#ifndef COLORS_H
+#define COLORS_H
 
 #include <qcolor.h>
 #include "common.h"
@@ -44,4 +44,4 @@ void parseLDConfig ();
 // Safely gets a color with the given number or null if no such color.
 color* getColor (short dColorNum);
 
-#endif // __COLORS_H__
+#endif // COLORS_H

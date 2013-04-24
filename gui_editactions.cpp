@@ -32,7 +32,7 @@ vector<LDObject*> g_Clipboard;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static bool copyToClipboard () {
-	vector<LDObject*> objs = g_ForgeWindow->selection ();
+	vector<LDObject*> objs = g_ForgeWindow->sel;
 	
 	if (objs.size() == 0)
 		return false;
@@ -56,7 +56,7 @@ static bool copyToClipboard () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
+MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> copies;
 	
@@ -70,14 +70,14 @@ ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", CTRL (C)) {
+MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", CTRL (C)) {
 	copyToClipboard ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
+MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paCopies;
 	
@@ -97,7 +97,7 @@ ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
+MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> copies;
 	
@@ -111,7 +111,7 @@ ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doInline (bool bDeep) {
-	vector<LDObject*> sel = g_ForgeWindow->selection ();
+	vector<LDObject*> sel = g_ForgeWindow->sel;
 	
 	// History stuff
 	vector<LDSubfile*> paRefs;
@@ -160,11 +160,11 @@ static void doInline (bool bDeep) {
 	g_ForgeWindow->refresh ();
 }
 
-ACTION (inlineContents, "Inline", "inline", "Inline selected subfiles.", CTRL (I)) {
+MAKE_ACTION (inlineContents, "Inline", "inline", "Inline selected subfiles.", CTRL (I)) {
 	doInline (false);
 }
 
-ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected subfiles "
+MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected subfiles "
 	"down to polygons only.", CTRL_SHIFT (I))
 {
 	doInline (true);
@@ -173,8 +173,8 @@ ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected s
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
-	vector<LDObject*> objs = g_ForgeWindow->selection ();
+MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
+	vector<LDObject*> objs = g_ForgeWindow->sel;
 	
 	vector<ulong> ulaIndices;
 	vector<LDQuad*> paCopies;
@@ -216,25 +216,25 @@ ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this object.", KEY (F9)) {
+MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this object.", KEY (F9)) {
 	if (g_ForgeWindow->qObjList->selectedItems().size() != 1)
 		return;
 	
-	LDObject* obj = g_ForgeWindow->selection ()[0];
+	LDObject* obj = g_ForgeWindow->sel[0];
 	SetContentsDialog::staticDialog (obj);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (F10)) {
+MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (F10)) {
 	if (g_ForgeWindow->qObjList->selectedItems().size() <= 0)
 		return;
 	
 	short dColor;
 	short dDefault = -1;
 	
-	std::vector<LDObject*> objs = g_ForgeWindow->selection ();
+	std::vector<LDObject*> objs = g_ForgeWindow->sel;
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
@@ -262,10 +262,10 @@ ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.",
+MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.",
 	CTRL_SHIFT (B))
 {
-	vector<LDObject*> objs = g_ForgeWindow->selection ();
+	vector<LDObject*> objs = g_ForgeWindow->sel;
 	
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
@@ -312,13 +312,13 @@ ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given p
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
+MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	"Adds vertex objects to the corners of the given polygons", (0))
 {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
 	
-	for (LDObject* obj : g_ForgeWindow->selection ()) {
+	for (LDObject* obj : g_ForgeWindow->sel) {
 		vertex* vaCoords = null;
 		ushort uNumCoords = 0;
 		
@@ -364,7 +364,7 @@ ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doMoveSelection (const bool bUp) {
-	vector<LDObject*> objs = g_ForgeWindow->selection ();
+	vector<LDObject*> objs = g_ForgeWindow->sel;
 	
 	// Get the indices of the objects for history archival
 	vector<ulong> ulaIndices;
@@ -376,26 +376,26 @@ static void doMoveSelection (const bool bUp) {
 	g_ForgeWindow->buildObjList ();
 }
 
-ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", SHIFT (Up)) {
+MAKE_ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", SHIFT (Up)) {
 	doMoveSelection (true);
 }
 
-ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", SHIFT (Down)) {
+MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", SHIFT (Down)) {
 	doMoveSelection (false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
+MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
 	History::undo ();
 }
 
-ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
+MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
 	History::redo ();
 }
 
-ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0)) {
+MAKE_ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0)) {
 	HistoryDialog dlg;
 	dlg.exec ();
 }
@@ -411,7 +411,7 @@ void doMoveObjects (vertex vVector) {
 	vVector.y *= currentGrid ().confs[Grid::Y]->value;
 	vVector.z *= currentGrid ().confs[Grid::Z]->value;
 	
-	for (LDObject* obj : g_ForgeWindow->selection ()) {
+	for (LDObject* obj : g_ForgeWindow->sel) {
 		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
 		obj->move (vVector);
 	}
@@ -420,27 +420,27 @@ void doMoveObjects (vertex vVector) {
 	g_ForgeWindow->refresh ();
 }
 
-ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
+MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
 	doMoveObjects ({-1, 0, 0});
 }
 
-ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (PageUp)) {
+MAKE_ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (PageUp)) {
 	doMoveObjects ({0, -1, 0});
 }
 
-ACTION (moveZNeg, "Move -Z", "move-z-neg", "Move selected objects negative on the Z axis.", KEY (Down)) {
+MAKE_ACTION (moveZNeg, "Move -Z", "move-z-neg", "Move selected objects negative on the Z axis.", KEY (Down)) {
 	doMoveObjects ({0, 0, -1});
 }
 
-ACTION (moveXPos, "Move +X", "move-x-pos", "Move selected objects positive on the X axis.", KEY (Right)) {
+MAKE_ACTION (moveXPos, "Move +X", "move-x-pos", "Move selected objects positive on the X axis.", KEY (Right)) {
 	doMoveObjects ({1, 0, 0});
 }
 
-ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (PageDown)) {
+MAKE_ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (PageDown)) {
 	doMoveObjects ({0, 1, 0});
 }
 
-ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on the Z axis.", KEY (Up)) {
+MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on the Z axis.", KEY (Up)) {
 	doMoveObjects ({0, 0, 1});
 }
 
@@ -456,8 +456,8 @@ ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on th
 // simultaneous edits with different type. This is what we ultimately store into
 // History.
 // =============================================================================
-ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
-	std::vector<LDObject*> paSelection = g_ForgeWindow->selection ();
+MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
+	std::vector<LDObject*> paSelection = g_ForgeWindow->sel;
 	std::vector<HistoryEntry*> paHistory;
 	
 	for (LDObject* obj : paSelection) {
@@ -573,7 +573,7 @@ ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTR
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
-	std::vector<LDObject*> sel = g_ForgeWindow->selection ();
+	std::vector<LDObject*> sel = g_ForgeWindow->sel;
 	bbox box;
 	vertex origin;
 	std::vector<vertex*> queue;
@@ -634,37 +634,37 @@ static void doRotate (const short l, const short m, const short n) {
 	g_ForgeWindow->refresh ();
 }
 
-ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
+MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
 	doRotate (1, 0, 0);
 }
 
-ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (PageDown)) {
+MAKE_ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (PageDown)) {
 	doRotate (0, 1, 0);
 }
 
-ACTION (rotateZPos, "Rotate +Z", "rotate-z-pos", "Rotate objects around Z axis", CTRL (Up)) {
+MAKE_ACTION (rotateZPos, "Rotate +Z", "rotate-z-pos", "Rotate objects around Z axis", CTRL (Up)) {
 	doRotate (0, 0, 1);
 }
 
-ACTION (rotateXNeg, "Rotate -X", "rotate-x-neg", "Rotate objects around X axis", CTRL (Left)) {
+MAKE_ACTION (rotateXNeg, "Rotate -X", "rotate-x-neg", "Rotate objects around X axis", CTRL (Left)) {
 	doRotate (-1, 0, 0);
 }
 
-ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (PageUp)) {
+MAKE_ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (PageUp)) {
 	doRotate (0, -1, 0);
 }
 
-ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z axis", CTRL (Down)) {
+MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z axis", CTRL (Down)) {
 	doRotate (0, 0, -1);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
+MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
 	setlocale (LC_ALL, "C");
 	
-	for (LDObject* obj : g_ForgeWindow->selection ()) {
+	for (LDObject* obj : g_ForgeWindow->sel) {
 		for (short i = 0; i < obj->vertices (); ++i) {
 			double* coords[3] = {
 				&obj->vaCoords[i].x,

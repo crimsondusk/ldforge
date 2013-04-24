@@ -32,7 +32,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	{
 		mainTab = new QWidget;
 		
-		// Application icon - in full 64x64 glory.
+		// Application icon - in full 64 x 64 glory.
 		QLabel* icon = new QLabel;
 		icon->setPixmap (QPixmap ("icons/ldforge.png"));
 		

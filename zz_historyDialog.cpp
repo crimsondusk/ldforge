@@ -29,35 +29,35 @@ EXTERN_ACTION (redo);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	qHistoryList = new QListWidget;
-	qUndoButton = new QPushButton ("Undo");
-	qRedoButton = new QPushButton ("Redo");
-	qClearButton = new QPushButton ("Clear");
-	qButtons = new QDialogButtonBox (QDialogButtonBox::Close);
+	historyList = new QListWidget;
+	undoButton = new QPushButton ("Undo");
+	redoButton = new QPushButton ("Redo");
+	clearButton = new QPushButton ("Clear");
+	buttons = new QDialogButtonBox (QDialogButtonBox::Close);
 	
-	qHistoryList->setAlternatingRowColors (true);
+	historyList->setAlternatingRowColors (true);
 	
-	qUndoButton->setIcon (getIcon ("undo"));
-	qRedoButton->setIcon (getIcon ("redo"));
+	undoButton->setIcon (getIcon ("undo"));
+	redoButton->setIcon (getIcon ("redo"));
 	
-	connect (qUndoButton, SIGNAL (clicked ()), this, SLOT (slot_undo ()));
-	connect (qRedoButton, SIGNAL (clicked ()), this, SLOT (slot_redo ()));
-	connect (qClearButton, SIGNAL (clicked ()), this, SLOT (slot_clear ()));
-	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ()));
-	connect (qHistoryList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selChanged ()));
+	connect (undoButton, SIGNAL (clicked ()), this, SLOT (slot_undo ()));
+	connect (redoButton, SIGNAL (clicked ()), this, SLOT (slot_redo ()));
+	connect (clearButton, SIGNAL (clicked ()), this, SLOT (slot_clear ()));
+	connect (buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
+	connect (historyList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selChanged ()));
 	
 	QVBoxLayout* qButtonLayout = new QVBoxLayout;
 	qButtonLayout->setDirection (QBoxLayout::TopToBottom);
-	qButtonLayout->addWidget (qUndoButton);
-	qButtonLayout->addWidget (qRedoButton);
-	qButtonLayout->addWidget (qClearButton);
+	qButtonLayout->addWidget (undoButton);
+	qButtonLayout->addWidget (redoButton);
+	qButtonLayout->addWidget (clearButton);
 	qButtonLayout->addStretch ();
 	
 	QGridLayout* qLayout = new QGridLayout;
 	qLayout->setColumnStretch (0, 1);
-	qLayout->addWidget (qHistoryList, 0, 0, 2, 1);
+	qLayout->addWidget (historyList, 0, 0, 2, 1);
 	qLayout->addLayout (qButtonLayout, 0, 1);
-	qLayout->addWidget (qButtons, 1, 1);
+	qLayout->addWidget (buttons, 1, 1);
 	
 	setLayout (qLayout);
 	setWindowIcon (getIcon ("history"));
@@ -72,12 +72,12 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void HistoryDialog::populateList () {
-	qHistoryList->clear ();
+	historyList->clear ();
 	
 	QListWidgetItem* qItem = new QListWidgetItem;
 	qItem->setText ("[[ initial state ]]");
 	qItem->setIcon (getIcon ("empty"));
-	qHistoryList->addItem (qItem);
+	historyList->addItem (qItem);
 	
 	for (HistoryEntry* entry : History::entries) {
 		str zText;
@@ -211,7 +211,7 @@ void HistoryDialog::populateList () {
 		QListWidgetItem* qItem = new QListWidgetItem;
 		qItem->setText (zText);
 		qItem->setIcon (qEntryIcon);
-		qHistoryList->addItem (qItem);
+		historyList->addItem (qItem);
 	}
 }
 
@@ -232,7 +232,7 @@ void HistoryDialog::slot_redo () {
 }
 
 void HistoryDialog::updateSelection () {
-	qHistoryList->setCurrentItem (qHistoryList->item (History::pos () + 1));
+	historyList->setCurrentItem (historyList->item (History::pos () + 1));
 }
 
 // =============================================================================
@@ -247,21 +247,21 @@ void HistoryDialog::slot_clear () {
 
 // =============================================================================
 void HistoryDialog::updateButtons () {
-	qUndoButton->setEnabled (ACTION_NAME (undo)->isEnabled ());
-	qRedoButton->setEnabled (ACTION_NAME (redo)->isEnabled ());
+	undoButton->setEnabled (ACTION (undo)->isEnabled ());
+	redoButton->setEnabled (ACTION (redo)->isEnabled ());
 }
 
 // =============================================================================
 void HistoryDialog::slot_selChanged () {
-	if (qHistoryList->selectedItems ().size () != 1)
+	if (historyList->selectedItems ().size () != 1)
 		return;
 	
-	QListWidgetItem* qItem = qHistoryList->selectedItems ()[0];
+	QListWidgetItem* qItem = historyList->selectedItems ()[0];
 	
 	// Find the index of the edit
 	long lIdx;
-	for (lIdx = 0; lIdx < qHistoryList->count (); ++lIdx)
-		if (qHistoryList->item (lIdx) == qItem)
+	for (lIdx = 0; lIdx < historyList->count (); ++lIdx)
+		if (historyList->item (lIdx) == qItem)
 			break;
 	
 	// qHistoryList is 0-based, History is -1-based, thus decrement

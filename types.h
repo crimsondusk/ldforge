@@ -1,8 +1,42 @@
-#ifndef __TYPES_H__
-#define __TYPES_H__
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013 Santeri Piippo
+ *  
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *  
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *  
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
-#include "types.h"
+#ifndef TYPES_H
+#define TYPES_H
+
 #include "common.h"
+
+typedef unsigned int uint;
+typedef short unsigned int ushort;
+typedef long unsigned int ulong;
+
+// Typedef out the _t suffices :)
+typedef int8_t int8;
+typedef int16_t int16;
+typedef int32_t int32;
+typedef int64_t int64;
+typedef uint8_t uint8;
+typedef uint16_t uint16;
+typedef uint32_t uint32;
+typedef uint64_t uint64;
+
+template<class T> using initlist = std::initializer_list<T>;
+using std::vector;
 
 class matrix;
 
@@ -19,11 +53,7 @@ public:
 	double x, y, z;
 	
 	vertex () {}
-	vertex (double fX, double fY, double fZ) {
-		x = fX;
-		y = fY;
-		z = fZ;
-	}
+	vertex (double x, double y, double z) : x (x), y (y), z (z) {}
 	
 	// =========================================================================
 	void move (vertex other) {
@@ -60,7 +90,7 @@ public:
 	// =========================================================================
 	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
-	str getStringRep (const bool bMangled);
+	str stringRep (const bool bMangled);
 	void transform (matrix mMatrix, vertex pos);
 };
 
@@ -100,7 +130,7 @@ public:
 	
 	void zero ();
 	void testOutput ();
-	str getStringRep();
+	str stringRep ();
 };
 
-#endif // __TYPES_H__
+#endif // TYPES_H

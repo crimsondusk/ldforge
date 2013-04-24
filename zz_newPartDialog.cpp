@@ -38,17 +38,17 @@ enum {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	qLB_Icon = new QLabel;
-	qLB_Icon->setPixmap (QPixmap ("icons/brick.png"));
+	lb_brickIcon = new QLabel;
+	lb_brickIcon->setPixmap (QPixmap ("icons/brick.png"));
 	
-	qLB_NameLabel = new QLabel ("Name:");
-	qLE_Name = new QLineEdit;
-	qLE_Name->setMinimumWidth (320);
+	lb_name = new QLabel ("Name:");
+	le_name = new QLineEdit;
+	le_name->setMinimumWidth (320);
 	
-	qLB_AuthorLabel = new QLabel ("Author:");
-	qLE_Author = new QLineEdit;
+	lb_author = new QLabel ("Author:");
+	le_author = new QLineEdit;
 	
-	qLB_LicenseLabel = new QLabel ("License:");
+	lb_license = new QLabel ("License:");
 	qCB_LicenseBox = new QComboBox;
 	qCB_LicenseBox->addItems ({
 		"CCAL Redistributable",
@@ -56,7 +56,7 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 		"[none]",
 	});
 	
-	qLB_BFCLabel = new QLabel ("BFC:");
+	lb_BFC = new QLabel ("BFC:");
 	qCB_BFCBox = new QComboBox;
 	qCB_BFCBox->addItems ({
 		"CCW",
@@ -67,16 +67,16 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	IMPLEMENT_DIALOG_BUTTONS
 	
 	QGridLayout* layout = new QGridLayout;
-	layout->addWidget (qLB_Icon, 0, 0);
-	layout->addWidget (qLB_NameLabel, 0, 1);
-	layout->addWidget (qLE_Name, 0, 2);
-	layout->addWidget (qLB_AuthorLabel, 1, 1);
-	layout->addWidget (qLE_Author, 1, 2);
-	layout->addWidget (qLB_LicenseLabel, 2, 1);
+	layout->addWidget (lb_brickIcon, 0, 0);
+	layout->addWidget (lb_name, 0, 1);
+	layout->addWidget (le_name, 0, 2);
+	layout->addWidget (lb_author, 1, 1);
+	layout->addWidget (le_author, 1, 2);
+	layout->addWidget (lb_license, 2, 1);
 	layout->addWidget (qCB_LicenseBox, 2, 2);
-	layout->addWidget (qLB_BFCLabel, 3, 1);
+	layout->addWidget (lb_BFC, 3, 1);
 	layout->addWidget (qCB_BFCBox, 3, 2);
-	layout->addWidget (qButtons, 4, 2);
+	layout->addWidget (bbx_buttons, 4, 2);
 	
 	setLayout (layout);
 	setWindowIcon (QIcon ("icons/brick.png"));
@@ -92,7 +92,7 @@ void NewPartDialog::StaticDialog () {
 		newFile ();
 		
 		short idx;
-		str zAuthor = dlg.qLE_Author->text ();
+		str zAuthor = dlg.le_author->text ();
 		vector<LDObject*>& objs = g_CurrentFile->objects;
 		
 		idx = dlg.qCB_BFCBox->currentIndex ();
@@ -107,7 +107,7 @@ void NewPartDialog::StaticDialog () {
 			(idx == LICENSE_NonCA) ? "Not redistributable : see NonCAreadme.txt" :
 			null;
 		
-		objs.push_back (new LDComment (dlg.qLE_Name->text ()));
+		objs.push_back (new LDComment (dlg.le_name->text ()));
 		objs.push_back (new LDComment ("Name: <untitled>.dat"));
 		objs.push_back (new LDComment (format ("Author: %s", zAuthor.chars())));
 		objs.push_back (new LDComment (format ("!LDRAW_ORG Unofficial_Part")));

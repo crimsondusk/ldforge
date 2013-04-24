@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZZ_HISTORYDIALOG_H
-#define ZZ_HISTORYDIALOG_H
+#ifndef HISTORYDIALOG_H
+#define HISTORYDIALOG_H
 
 #include <qdialog.h>
 #include <qdialogbuttonbox.h>
@@ -32,9 +32,9 @@ public:
 	explicit HistoryDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	void populateList ();
 	
-	QListWidget* qHistoryList;
-	QPushButton* qUndoButton, *qRedoButton, *qClearButton;
-	QDialogButtonBox* qButtons;
+	QListWidget* historyList;
+	QPushButton* undoButton, *redoButton, *clearButton;
+	QDialogButtonBox* buttons;
 	
 private:
 	void updateButtons ();
@@ -47,4 +47,4 @@ private slots:
 	void slot_selChanged ();
 };
 
-#endif // ZZ_HISTORYDIALOG_H
+#endif // HISTORYDIALOG_H

@@ -17,7 +17,7 @@ vertex vertex::midpoint (vertex& other) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str vertex::getStringRep (const bool bMangled) {
+str vertex::stringRep (const bool bMangled) {
 	const char* sFormat = (bMangled) ? "(%s, %s, %s)" : "%s %s %s";
 	
 	return format (sFormat,
@@ -103,7 +103,7 @@ void matrix::testOutput () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str matrix::getStringRep () {
+str matrix::stringRep () {
 	str val;
 	for (short i = 0; i < 9; ++i) {
 		if (i > 0)

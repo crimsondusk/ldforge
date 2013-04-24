@@ -77,8 +77,8 @@ namespace History {
 	
 	// =========================================================================
 	void updateActions () {
-		ACTION_NAME (undo)->setEnabled (m_pos > -1);
-		ACTION_NAME (redo)->setEnabled (m_pos < (long) entries.size () - 1);
+		ACTION (undo)->setEnabled (m_pos > -1);
+		ACTION (redo)->setEnabled (m_pos < (long) entries.size () - 1);
 		
 		// Update the window title as well
 		g_ForgeWindow->setTitle ();

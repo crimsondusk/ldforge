@@ -114,8 +114,8 @@ str LDComment::getContents () {
 }
 
 str LDSubfile::getContents () {
-	str val = format ("1 %d %s ", dColor, vPosition.getStringRep (false).chars ());
-	val += mMatrix.getStringRep ();
+	str val = format ("1 %d %s ", dColor, vPosition.stringRep (false).chars ());
+	val += mMatrix.stringRep ();
 	val += ' ';
 	val += zFileName;
 	return val;
@@ -125,7 +125,7 @@ str LDLine::getContents () {
 	str val = format ("2 %d", dColor);
 	
 	for (ushort i = 0; i < 2; ++i)
-		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -134,7 +134,7 @@ str LDTriangle::getContents () {
 	str val = format ("3 %d", dColor);
 	
 	for (ushort i = 0; i < 3; ++i)
-		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -143,7 +143,7 @@ str LDQuad::getContents () {
 	str val = format ("4 %d", dColor);
 	
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -153,7 +153,7 @@ str LDCondLine::getContents () {
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", vaCoords[i].getStringRep (false).chars ());
+		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -163,7 +163,7 @@ str LDGibberish::getContents () {
 }
 
 str LDVertex::getContents () {
-	return format ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.getStringRep (false).chars());
+	return format ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.stringRep (false).chars());
 }
 
 str LDEmpty::getContents () {
@@ -247,9 +247,9 @@ LDLine::LDLine (vertex v1, vertex v2) {
 
 LDObject::~LDObject () {
 	// Remove this object from the selection array if it is there.
-	for (ulong i = 0; i < g_ForgeWindow->paSelection.size(); ++i)
-		if (g_ForgeWindow->paSelection[i] == this)
-			g_ForgeWindow->paSelection.erase (g_ForgeWindow->paSelection.begin() + i);
+	for (ulong i = 0; i < g_ForgeWindow->sel.size(); ++i)
+		if (g_ForgeWindow->sel[i] == this)
+			g_ForgeWindow->sel.erase (g_ForgeWindow->sel.begin() + i);
 }
 
 LDComment::~LDComment () {}
@@ -662,7 +662,7 @@ str LDRadial::getContents () {
 	return format ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName()).toupper ().strip (' ').chars (),
 		dColor, dSegments, dDivisions, dRingNum,
-		vPosition.getStringRep (false).chars(), mMatrix.getStringRep().chars());
+		vPosition.stringRep (false).chars(), mMatrix.stringRep().chars());
 }
 
 char const* g_saRadialNameRoots[] = {

@@ -155,14 +155,14 @@ void ForgeWindow::createMenuActions () {
 	}
 	
 	// Grid actions are checkable
-	ACTION_NAME (gridCoarse)->setCheckable (true);
-	ACTION_NAME (gridMedium)->setCheckable (true);
-	ACTION_NAME (gridFine)->setCheckable (true);
+	ACTION (gridCoarse)->setCheckable (true);
+	ACTION (gridMedium)->setCheckable (true);
+	ACTION (gridFine)->setCheckable (true);
 	
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
-		ACTION_NAME (newSubfile),
-		ACTION_NAME (help),
+		ACTION (newSubfile),
+		ACTION (help),
 	};
 	
 	for (QAction* act : qaDisabledActions)
@@ -181,94 +181,94 @@ void ForgeWindow::createMenus () {
 	
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
-	qFileMenu->addAction (ACTION_NAME (newFile));			// New
-	qFileMenu->addAction (ACTION_NAME (open));				// Open
+	qFileMenu->addAction (ACTION (newFile));			// New
+	qFileMenu->addAction (ACTION (open));				// Open
 	qFileMenu->addMenu (qRecentFilesMenu);					// Open Recent
-	qFileMenu->addAction (ACTION_NAME (save));				// Save
-	qFileMenu->addAction (ACTION_NAME (saveAs));			// Save As
+	qFileMenu->addAction (ACTION (save));				// Save
+	qFileMenu->addAction (ACTION (saveAs));			// Save As
 	qFileMenu->addSeparator ();								// -------
-	qFileMenu->addAction (ACTION_NAME (settings));			// Settings
+	qFileMenu->addAction (ACTION (settings));			// Settings
 	qFileMenu->addSeparator ();								// -------
-	qFileMenu->addAction (ACTION_NAME (exit));				// Exit
+	qFileMenu->addAction (ACTION (exit));				// Exit
 	
 	// View menu
 	qViewMenu = menuBar ()->addMenu (tr ("&View"));
-	qViewMenu->addAction (ACTION_NAME (resetView));
+	qViewMenu->addAction (ACTION (resetView));
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
-	qInsertMenu->addAction (ACTION_NAME (newSubfile));		// New Subfile
-	qInsertMenu->addAction (ACTION_NAME (newLine));			// New Line
-	qInsertMenu->addAction (ACTION_NAME (newTriangle));		// New Triangle
-	qInsertMenu->addAction (ACTION_NAME (newQuad));			// New Quad
-	qInsertMenu->addAction (ACTION_NAME (newCondLine));		// New Conditional Line
-	qInsertMenu->addAction (ACTION_NAME (newComment));		// New Comment
-	qInsertMenu->addAction (ACTION_NAME (newVertex));		// New Vertex
-	qInsertMenu->addAction (ACTION_NAME (newRadial));		// New Radial
+	qInsertMenu->addAction (ACTION (newSubfile));		// New Subfile
+	qInsertMenu->addAction (ACTION (newLine));			// New Line
+	qInsertMenu->addAction (ACTION (newTriangle));		// New Triangle
+	qInsertMenu->addAction (ACTION (newQuad));			// New Quad
+	qInsertMenu->addAction (ACTION (newCondLine));		// New Conditional Line
+	qInsertMenu->addAction (ACTION (newComment));		// New Comment
+	qInsertMenu->addAction (ACTION (newVertex));		// New Vertex
+	qInsertMenu->addAction (ACTION (newRadial));		// New Radial
 	
 	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
-	qEditMenu->addAction (ACTION_NAME (undo));				// Undo
-	qEditMenu->addAction (ACTION_NAME (redo));				// Redo
+	qEditMenu->addAction (ACTION (undo));				// Undo
+	qEditMenu->addAction (ACTION (redo));				// Redo
 	qEditMenu->addSeparator ();								// -----
-	qEditMenu->addAction (ACTION_NAME (cut));				// Cut
-	qEditMenu->addAction (ACTION_NAME (copy));				// Copy
-	qEditMenu->addAction (ACTION_NAME (paste));				// Paste
-	qEditMenu->addAction (ACTION_NAME (del));				// Delete
+	qEditMenu->addAction (ACTION (cut));				// Cut
+	qEditMenu->addAction (ACTION (copy));				// Copy
+	qEditMenu->addAction (ACTION (paste));				// Paste
+	qEditMenu->addAction (ACTION (del));				// Delete
 	qEditMenu->addSeparator ();								// -----
-	qEditMenu->addAction (ACTION_NAME (selectByColor));		// Select by Color
-	qEditMenu->addAction (ACTION_NAME (selectByType));		// Select by Type
+	qEditMenu->addAction (ACTION (selectByColor));		// Select by Color
+	qEditMenu->addAction (ACTION (selectByType));		// Select by Type
 	qEditMenu->addSeparator ();								// -----
-	qEditMenu->addAction (ACTION_NAME (setColor));			// Set Color
-	qEditMenu->addAction (ACTION_NAME (invert));			// Invert
-	qEditMenu->addAction (ACTION_NAME (inlineContents));	// Inline
-	qEditMenu->addAction (ACTION_NAME (deepInline));		// Deep Inline
-	qEditMenu->addAction (ACTION_NAME (splitQuads));		// Split Quads
-	qEditMenu->addAction (ACTION_NAME (setContents));		// Set Contents
-	qEditMenu->addAction (ACTION_NAME (makeBorders));		// Make Borders
-	qEditMenu->addAction (ACTION_NAME (makeCornerVerts));	// Make Corner Vertices
-	qEditMenu->addAction (ACTION_NAME (roundCoords));		// Round Coordinates
+	qEditMenu->addAction (ACTION (setColor));			// Set Color
+	qEditMenu->addAction (ACTION (invert));			// Invert
+	qEditMenu->addAction (ACTION (inlineContents));	// Inline
+	qEditMenu->addAction (ACTION (deepInline));		// Deep Inline
+	qEditMenu->addAction (ACTION (splitQuads));		// Split Quads
+	qEditMenu->addAction (ACTION (setContents));		// Set Contents
+	qEditMenu->addAction (ACTION (makeBorders));		// Make Borders
+	qEditMenu->addAction (ACTION (makeCornerVerts));	// Make Corner Vertices
+	qEditMenu->addAction (ACTION (roundCoords));		// Round Coordinates
 	
 	// Move menu
 	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
-	qMoveMenu->addAction (ACTION_NAME (moveUp));			// Move Up
-	qMoveMenu->addAction (ACTION_NAME (moveDown));			// Move Down
+	qMoveMenu->addAction (ACTION (moveUp));			// Move Up
+	qMoveMenu->addAction (ACTION (moveDown));			// Move Down
 	qMoveMenu->addSeparator ();								// -----
-	qMoveMenu->addAction (ACTION_NAME (gridCoarse));		// Coarse Grid
-	qMoveMenu->addAction (ACTION_NAME (gridMedium));		// Medium Grid
-	qMoveMenu->addAction (ACTION_NAME (gridFine));			// Fine Grid
+	qMoveMenu->addAction (ACTION (gridCoarse));		// Coarse Grid
+	qMoveMenu->addAction (ACTION (gridMedium));		// Medium Grid
+	qMoveMenu->addAction (ACTION (gridFine));			// Fine Grid
 	qMoveMenu->addSeparator ();								// -----
-	qMoveMenu->addAction (ACTION_NAME (moveXPos));			// Move +X
-	qMoveMenu->addAction (ACTION_NAME (moveXNeg));			// Move -X
-	qMoveMenu->addAction (ACTION_NAME (moveYPos));			// Move +Y
-	qMoveMenu->addAction (ACTION_NAME (moveYNeg));			// Move -Y
-	qMoveMenu->addAction (ACTION_NAME (moveZPos));			// Move +Z
-	qMoveMenu->addAction (ACTION_NAME (moveZNeg));			// Move -Z
+	qMoveMenu->addAction (ACTION (moveXPos));			// Move +X
+	qMoveMenu->addAction (ACTION (moveXNeg));			// Move -X
+	qMoveMenu->addAction (ACTION (moveYPos));			// Move +Y
+	qMoveMenu->addAction (ACTION (moveYNeg));			// Move -Y
+	qMoveMenu->addAction (ACTION (moveZPos));			// Move +Z
+	qMoveMenu->addAction (ACTION (moveZNeg));			// Move -Z
 	qMoveMenu->addSeparator ();								// -----
-	qMoveMenu->addAction (ACTION_NAME (rotateXPos));		// Rotate +X
-	qMoveMenu->addAction (ACTION_NAME (rotateXNeg));		// Rotate -X
-	qMoveMenu->addAction (ACTION_NAME (rotateYPos));		// Rotate +Y
-	qMoveMenu->addAction (ACTION_NAME (rotateYNeg));		// Rotate -Y
-	qMoveMenu->addAction (ACTION_NAME (rotateZPos));		// Rotate +Z
-	qMoveMenu->addAction (ACTION_NAME (rotateZNeg));		// Rotate -Z
+	qMoveMenu->addAction (ACTION (rotateXPos));		// Rotate +X
+	qMoveMenu->addAction (ACTION (rotateXNeg));		// Rotate -X
+	qMoveMenu->addAction (ACTION (rotateYPos));		// Rotate +Y
+	qMoveMenu->addAction (ACTION (rotateYNeg));		// Rotate -Y
+	qMoveMenu->addAction (ACTION (rotateZPos));		// Rotate +Z
+	qMoveMenu->addAction (ACTION (rotateZNeg));		// Rotate -Z
 	
 	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
-	qControlMenu->addAction (ACTION_NAME (showHistory));	// Show History
+	qControlMenu->addAction (ACTION (showHistory));	// Show History
 	
 #ifndef RELEASE
 	// Debug menu
 	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
-	qDebugMenu->addAction (ACTION_NAME (addTestQuad));		// Add Test Quad
-	qDebugMenu->addAction (ACTION_NAME (addTestRadial));	// Add Test Radial
+	qDebugMenu->addAction (ACTION (addTestQuad));		// Add Test Quad
+	qDebugMenu->addAction (ACTION (addTestRadial));	// Add Test Radial
 #endif // RELEASE
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
-	qHelpMenu->addAction (ACTION_NAME (help));				// Help
+	qHelpMenu->addAction (ACTION (help));				// Help
 	qHelpMenu->addSeparator ();								// -----
-	qHelpMenu->addAction (ACTION_NAME (about));				// About
-	qHelpMenu->addAction (ACTION_NAME (aboutQt));			// About Qt
+	qHelpMenu->addAction (ACTION (about));				// About
+	qHelpMenu->addAction (ACTION (aboutQt));			// About Qt
 }
 
 // =============================================================================
@@ -295,78 +295,77 @@ void ForgeWindow::updateRecentFilesMenu () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ADD_TOOLBAR_ITEM(ACT) g_CurrentToolBar->addAction (ACTION_NAME (ACT));
 static QToolBar* g_CurrentToolBar;
 static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
 
 void ForgeWindow::initSingleToolBar (const char* sName) {
-	QToolBar* qBar = new QToolBar (sName);
-	addToolBar (g_ToolBarArea, qBar);
-	qaToolBars.push_back (qBar);
+	QToolBar* toolbar = new QToolBar (sName);
+	addToolBar (g_ToolBarArea, toolbar);
+	qaToolBars.push_back (toolbar);
 	
-	g_CurrentToolBar = qBar;
+	g_CurrentToolBar = toolbar;
 }
 
 void ForgeWindow::createToolbars () {
 	initSingleToolBar ("File");
-	ADD_TOOLBAR_ITEM (newFile)
-	ADD_TOOLBAR_ITEM (open)
-	ADD_TOOLBAR_ITEM (save)
-	ADD_TOOLBAR_ITEM (saveAs)
+	g_CurrentToolBar->addAction (ACTION (newFile));
+	g_CurrentToolBar->addAction (ACTION (open));
+	g_CurrentToolBar->addAction (ACTION (save));
+	g_CurrentToolBar->addAction (ACTION (saveAs));
 	
 	// ==========================================
 	initSingleToolBar ("Insert");
-	ADD_TOOLBAR_ITEM (newSubfile)
-	ADD_TOOLBAR_ITEM (newLine)
-	ADD_TOOLBAR_ITEM (newTriangle)
-	ADD_TOOLBAR_ITEM (newQuad)
-	ADD_TOOLBAR_ITEM (newCondLine)
-	ADD_TOOLBAR_ITEM (newComment)
-	ADD_TOOLBAR_ITEM (newVertex)
-	ADD_TOOLBAR_ITEM (newRadial)
+	g_CurrentToolBar->addAction (ACTION (newSubfile));
+	g_CurrentToolBar->addAction (ACTION (newLine));
+	g_CurrentToolBar->addAction (ACTION (newTriangle));
+	g_CurrentToolBar->addAction (ACTION (newQuad));
+	g_CurrentToolBar->addAction (ACTION (newCondLine));
+	g_CurrentToolBar->addAction (ACTION (newComment));
+	g_CurrentToolBar->addAction (ACTION (newVertex));
+	g_CurrentToolBar->addAction (ACTION (newRadial));
 	
 	// ==========================================
 	initSingleToolBar ("Edit");
-	ADD_TOOLBAR_ITEM (undo)
-	ADD_TOOLBAR_ITEM (redo)
-	ADD_TOOLBAR_ITEM (cut)
-	ADD_TOOLBAR_ITEM (copy)
-	ADD_TOOLBAR_ITEM (paste)
-	ADD_TOOLBAR_ITEM (del)
+	g_CurrentToolBar->addAction (ACTION (undo));
+	g_CurrentToolBar->addAction (ACTION (redo));
+	g_CurrentToolBar->addAction (ACTION (cut));
+	g_CurrentToolBar->addAction (ACTION (copy));
+	g_CurrentToolBar->addAction (ACTION (paste));
+	g_CurrentToolBar->addAction (ACTION (del));
 	
 	// ==========================================
 	initSingleToolBar ("Select");
-	ADD_TOOLBAR_ITEM (selectByColor)
-	ADD_TOOLBAR_ITEM (selectByType)
+	g_CurrentToolBar->addAction (ACTION (selectByColor));
+	g_CurrentToolBar->addAction (ACTION (selectByType));
 	
 	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	initSingleToolBar ("Move");
-	ADD_TOOLBAR_ITEM (moveUp)
-	ADD_TOOLBAR_ITEM (moveDown)
-	ADD_TOOLBAR_ITEM (moveXPos)
-	ADD_TOOLBAR_ITEM (moveXNeg)
-	ADD_TOOLBAR_ITEM (moveYPos)
-	ADD_TOOLBAR_ITEM (moveYNeg)
-	ADD_TOOLBAR_ITEM (moveZPos)
-	ADD_TOOLBAR_ITEM (moveZNeg)
+	g_CurrentToolBar->addAction (ACTION (moveUp));
+	g_CurrentToolBar->addAction (ACTION (moveDown));
+	g_CurrentToolBar->addAction (ACTION (moveXPos));
+	g_CurrentToolBar->addAction (ACTION (moveXNeg));
+	g_CurrentToolBar->addAction (ACTION (moveYPos));
+	g_CurrentToolBar->addAction (ACTION (moveYNeg));
+	g_CurrentToolBar->addAction (ACTION (moveZPos));
+	g_CurrentToolBar->addAction (ACTION (moveZNeg));
 	
 	// ==========================================
 	initSingleToolBar ("Rotate");
-	ADD_TOOLBAR_ITEM (rotateXPos)
-	ADD_TOOLBAR_ITEM (rotateXNeg)
-	ADD_TOOLBAR_ITEM (rotateYPos)
-	ADD_TOOLBAR_ITEM (rotateYNeg)
-	ADD_TOOLBAR_ITEM (rotateZPos)
-	ADD_TOOLBAR_ITEM (rotateZNeg)
+	g_CurrentToolBar->addAction (ACTION (rotateXPos));
+	g_CurrentToolBar->addAction (ACTION (rotateXNeg));
+	g_CurrentToolBar->addAction (ACTION (rotateYPos));
+	g_CurrentToolBar->addAction (ACTION (rotateYNeg));
+	g_CurrentToolBar->addAction (ACTION (rotateZPos));
+	g_CurrentToolBar->addAction (ACTION (rotateZNeg));
 	
 	// ==========================================
 	// Grid toolbar
 	initSingleToolBar ("Grids");
-	ADD_TOOLBAR_ITEM (gridCoarse)
-	ADD_TOOLBAR_ITEM (gridMedium)
-	ADD_TOOLBAR_ITEM (gridFine)
+	g_CurrentToolBar->addAction (ACTION (gridCoarse));
+	g_CurrentToolBar->addAction (ACTION (gridMedium));
+	g_CurrentToolBar->addAction (ACTION (gridFine));
 	
 	// ==========================================
 	// Color toolbar
@@ -377,15 +376,15 @@ void ForgeWindow::createToolbars () {
 	// Left area toolbars
 	g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Objects");
-	ADD_TOOLBAR_ITEM (setColor)
-	ADD_TOOLBAR_ITEM (invert)
-	ADD_TOOLBAR_ITEM (inlineContents)
-	ADD_TOOLBAR_ITEM (deepInline)
-	ADD_TOOLBAR_ITEM (splitQuads)
-	ADD_TOOLBAR_ITEM (setContents)
-	ADD_TOOLBAR_ITEM (makeBorders)
-	ADD_TOOLBAR_ITEM (makeCornerVerts)
-	ADD_TOOLBAR_ITEM (roundCoords)
+	g_CurrentToolBar->addAction (ACTION (setColor));
+	g_CurrentToolBar->addAction (ACTION (invert));
+	g_CurrentToolBar->addAction (ACTION (inlineContents));
+	g_CurrentToolBar->addAction (ACTION (deepInline));
+	g_CurrentToolBar->addAction (ACTION (splitQuads));
+	g_CurrentToolBar->addAction (ACTION (setContents));
+	g_CurrentToolBar->addAction (ACTION (makeBorders));
+	g_CurrentToolBar->addAction (ACTION (makeCornerVerts));
+	g_CurrentToolBar->addAction (ACTION (roundCoords));
 	
 	updateToolBars ();
 }
@@ -449,9 +448,9 @@ void ForgeWindow::updateToolBars () {
 // =============================================================================
 void ForgeWindow::updateGridToolBar () {
 	// Ensure that the current grid - and only the current grid - is selected.
-	ACTION_NAME (gridCoarse)->setChecked (grid == Grid::Coarse);
-	ACTION_NAME (gridMedium)->setChecked (grid == Grid::Medium);
-	ACTION_NAME (gridFine)->setChecked (grid == Grid::Fine);
+	ACTION (gridCoarse)->setChecked (grid == Grid::Coarse);
+	ACTION (gridMedium)->setChecked (grid == Grid::Medium);
+	ACTION (gridFine)->setChecked (grid == Grid::Fine);
 }
 
 // =============================================================================
@@ -509,13 +508,13 @@ void ForgeWindow::slot_action () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
-	if (selection ().size () == 0)
+	if (sel.size () == 0)
 		return;
 	
-	std::vector<LDObject*> sel = selection ();
+	std::vector<LDObject*> selCopy = sel;
 	
 	// Delete the objects that were being selected
-	for (LDObject* obj : sel) {
+	for (LDObject* obj : selCopy) {
 		if (papObjects && ulapIndices) {
 			papObjects->push_back (obj->clone ());
 			ulapIndices->push_back (obj->getIndex (g_CurrentFile));
@@ -562,8 +561,8 @@ void ForgeWindow::buildObjList () {
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
 				zText.format ("%s, %s",
-					line->vaCoords[0].getStringRep (true).chars(),
-					line->vaCoords[1].getStringRep (true).chars());
+					line->vaCoords[0].stringRep (true).chars(),
+					line->vaCoords[1].stringRep (true).chars());
 			}
 			break;
 		
@@ -571,9 +570,9 @@ void ForgeWindow::buildObjList () {
 			{
 				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
 				zText.format ("%s, %s, %s",
-					triangle->vaCoords[0].getStringRep (true).chars(),
-					triangle->vaCoords[1].getStringRep (true).chars(),
-					triangle->vaCoords[2].getStringRep (true).chars());
+					triangle->vaCoords[0].stringRep (true).chars(),
+					triangle->vaCoords[1].stringRep (true).chars(),
+					triangle->vaCoords[2].stringRep (true).chars());
 			}
 			break;
 		
@@ -581,10 +580,10 @@ void ForgeWindow::buildObjList () {
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
 				zText.format ("%s, %s, %s, %s",
-					quad->vaCoords[0].getStringRep (true).chars(),
-					quad->vaCoords[1].getStringRep (true).chars(),
-					quad->vaCoords[2].getStringRep (true).chars(),
-					quad->vaCoords[3].getStringRep (true).chars());
+					quad->vaCoords[0].stringRep (true).chars(),
+					quad->vaCoords[1].stringRep (true).chars(),
+					quad->vaCoords[2].stringRep (true).chars(),
+					quad->vaCoords[3].stringRep (true).chars());
 			}
 			break;
 		
@@ -592,10 +591,10 @@ void ForgeWindow::buildObjList () {
 			{
 				LDCondLine* line = static_cast<LDCondLine*> (obj);
 				zText.format ("%s, %s, %s, %s",
-					line->vaCoords[0].getStringRep (true).chars(),
-					line->vaCoords[1].getStringRep (true).chars(),
-					line->vaCoords[2].getStringRep (true).chars(),
-					line->vaCoords[3].getStringRep (true).chars());
+					line->vaCoords[0].stringRep (true).chars(),
+					line->vaCoords[1].stringRep (true).chars(),
+					line->vaCoords[2].stringRep (true).chars(),
+					line->vaCoords[3].stringRep (true).chars());
 			}
 			break;
 		
@@ -605,7 +604,7 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case OBJ_Vertex:
-			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.getStringRep (true).chars());
+			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.stringRep (true).chars());
 			break;
 		
 		case OBJ_Subfile:
@@ -613,7 +612,7 @@ void ForgeWindow::buildObjList () {
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				zText.format ("%s %s, (",
-					ref->zFileName.chars(), ref->vPosition.getStringRep (true).chars());
+					ref->zFileName.chars(), ref->vPosition.stringRep (true).chars());
 				
 				for (short i = 0; i < 9; ++i)
 					zText.appendformat ("%s%s",
@@ -640,7 +639,7 @@ void ForgeWindow::buildObjList () {
 				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
 					zText.appendformat (" %d", pRad->dRingNum);
 				
-				zText.appendformat (" %s", pRad->vPosition.getStringRep (true).chars ());
+				zText.appendformat (" %s", pRad->vPosition.stringRep (true).chars ());
 			}
 			break;
 		
@@ -698,11 +697,11 @@ void ForgeWindow::slot_selectionChanged () {
 	// Update the shared selection array, unless this was called during GL picking,
 	// in which case the GL renderer takes care of the selection.
 	if (R->picking == false) {
-		std::vector<LDObject*> paPriorSelection = paSelection;
-		paSelection = getSelectedObjects ();
+		std::vector<LDObject*> paPriorSelection = sel;
+		sel = getSelectedObjects ();
 		
 		// Update the GL renderer
-		for (LDObject* obj : paSelection)
+		for (LDObject* obj : sel)
 			R->recompileObject (obj);
 		
 		for (LDObject* obj : paPriorSelection)
@@ -723,11 +722,11 @@ void ForgeWindow::slot_recentFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_quickColor () {
-	QPushButton* qBtn = static_cast<QPushButton*> (sender ());
+	QPushButton* button = static_cast<QPushButton*> (sender ());
 	color* col = null;
 	
 	for (quickColorMetaEntry entry : quickColorMeta) {
-		if (entry.btn == qBtn) {
+		if (entry.btn == button) {
 			col = entry.col;
 			break;
 		}
@@ -736,21 +735,21 @@ void ForgeWindow::slot_quickColor () {
 	if (col == null)
 		return;
 	
-	std::vector<ulong> ulaIndices;
-	std::vector<short> daColors;
-	short dNewColor = col->index ();
+	std::vector<ulong> indices;
+	std::vector<short> colors;
+	short newColor = col->index ();
 	
-	for (LDObject* obj : paSelection) {
+	for (LDObject* obj : sel) {
 		if (obj->dColor == -1)
 			continue; // uncolored object
 		
-		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
-		daColors.push_back (obj->dColor);
+		indices.push_back (obj->getIndex (g_CurrentFile));
+		colors.push_back (obj->dColor);
 		
-		obj->dColor = dNewColor;
+		obj->dColor = newColor;
 	}
 	
-	History::addEntry (new SetColorHistory (ulaIndices, daColors, dNewColor));
+	History::addEntry (new SetColorHistory (indices, colors, newColor));
 	refresh ();
 }
 
@@ -810,7 +809,7 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
-	for (LDObject* obj : paSelection)
+	for (LDObject* obj : sel)
 		obj->qObjListEntry->setSelected (true);
 	
 	g_bSelectionLocked = false;
@@ -826,36 +825,36 @@ bool ForgeWindow::isSelected (LDObject* obj) {
 	if (pNeedle == null)
 		pNeedle = obj;
 	
-	for (LDObject* pHay : paSelection)
+	for (LDObject* pHay : sel)
 		if (pHay == pNeedle)
 			return true;
 	return false;
 }
 
 short ForgeWindow::getSelectedColor() {
-	short dResult = -1;
+	short result = -1;
 	
-	for (LDObject* obj : paSelection) {
+	for (LDObject* obj : sel) {
 		if (obj->dColor == -1)
 			continue; // doesn't use color
 		
-		if (dResult != -1 && obj->dColor != dResult)
+		if (result != -1 && obj->dColor != result)
 			return -1; // No consensus in object color
 		
-		if (dResult == -1)
-			dResult = obj->dColor;
+		if (result == -1)
+			result = obj->dColor;
 	}
 	
-	return dResult;
+	return result;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDObjectType_e ForgeWindow::getSelectedType () {
+LDObjectType_e ForgeWindow::uniformSelectedType () {
 	LDObjectType_e eResult = OBJ_Unidentified;
 	
-	for (LDObject* obj : paSelection) {
+	for (LDObject* obj : sel) {
 		if (eResult != OBJ_Unidentified && obj->dColor != eResult)
 			return OBJ_Unidentified;
 		
@@ -883,13 +882,6 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 	config::save ();
 	
 	ev->accept ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-std::vector<LDObject*>& ForgeWindow::selection () {
-	return paSelection;
 }
 
 // =============================================================================

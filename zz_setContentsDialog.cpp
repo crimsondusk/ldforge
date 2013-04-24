@@ -29,42 +29,42 @@
 SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(parent) {
 	setWindowTitle (APPNAME_DISPLAY ": Set Contents");
 	
-	qContentsLabel = new QLabel ("Set contents:", parent);
+	lb_contents = new QLabel ("Set contents:", parent);
 	
-	qContents = new QLineEdit (parent);
-	qContents->setText (obj->getContents ().chars());
-	qContents->setWhatsThis ("The LDraw code of this object. The code written "
+	le_contents = new QLineEdit (parent);
+	le_contents->setText (obj->getContents ().chars());
+	le_contents->setWhatsThis ("The LDraw code of this object. The code written "
 		"here is expected to be valid LDraw code, invalid code here results "
 		"the object being turned into an error object. Please do refer to the "
 		"<a href=\"http://www.ldraw.org/article/218.html\">official file format "
 		"standard</a> for further information.");
-	qContents->setMinimumWidth (384);
+	le_contents->setMinimumWidth (384);
 	
 	if (obj->getType() == OBJ_Gibberish) {
-		qErrorLabel = new QLabel;
-		qErrorLabel->setText (format ("<span style=\"color: #900\">%s</span>",
+		lb_error = new QLabel;
+		lb_error->setText (format ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
 		
 		QPixmap qErrorPixmap = QPixmap ("icons/error.png").scaledToHeight (16);
 		
-		qErrorIcon = new QLabel;
-		qErrorIcon->setPixmap (qErrorPixmap);
+		lb_errorIcon = new QLabel;
+		lb_errorIcon->setPixmap (qErrorPixmap);
 	}
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
 	QVBoxLayout* layout = new QVBoxLayout;
-	layout->addWidget (qContentsLabel);
-	layout->addWidget (qContents);
+	layout->addWidget (lb_contents);
+	layout->addWidget (le_contents);
 	
 	QHBoxLayout* layout2 = new QHBoxLayout;
 	
 	if (obj->getType() == OBJ_Gibberish) {
-		layout2->addWidget (qErrorIcon);
-		layout2->addWidget (qErrorLabel);
+		layout2->addWidget (lb_errorIcon);
+		layout2->addWidget (lb_error);
 	}
 	
-	layout2->addWidget (qButtons);
+	layout2->addWidget (bbx_buttons);
 	layout->addLayout (layout2);
 	setLayout (layout);
 	
@@ -93,7 +93,7 @@ void SetContentsDialog::staticDialog (LDObject* obj) {
 	LDObject* oldobj = obj;
 	
 	// Reinterpret it from the text of the input field
-	obj = parseLine (dlg.qContents->text ().toStdString ().c_str ());
+	obj = parseLine (dlg.le_contents->text ().toStdString ().c_str ());
 	
 	// Mark down the history now before we perform the replacement (which
 	// destroys the old object)

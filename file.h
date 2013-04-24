@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __FILE_H__
-#define __FILE_H__
+#ifndef FILE_H
+#define FILE_H
 
 #include "common.h"
 #include "ldtypes.h"
@@ -101,4 +101,4 @@ void initPartList ();
 
 extern vector<OpenFile*> g_LoadedFiles;
 
-#endif // __FILE_H__
+#endif // FILE_H

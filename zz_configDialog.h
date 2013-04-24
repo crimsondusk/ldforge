@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef CONFIGDIALOG_H
+#define CONFIGDIALOG_H
+
 #include "gui.h"
 #include <qdialog.h>
 #include <qlabel.h>
@@ -30,42 +33,42 @@ class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	QTabWidget* qTabs;
-	QWidget* qMainTab, *qShortcutsTab, *qQuickColorTab;
+	QTabWidget* tabs;
+	QWidget* mainTab, *shortcutsTab, *quickColorTab;
 	
 	// =========================================================================
 	// Main tab widgets
-	QLabel* qLDrawPathLabel;
-	QLabel* qGLBackgroundLabel, *qGLForegroundLabel, *qGLForegroundAlphaLabel;
-	QLabel* qGLLineThicknessLabel, *qToolBarIconSizeLabel;
-	QLineEdit* qLDrawPath;
-	QPushButton* qLDrawPathFindButton;
-	QPushButton* qGLBackgroundButton, *qGLForegroundButton;
-	QCheckBox* qLVColorize, *qGLColorBFC, *qGLSelFlash;
-	QSlider* qGLForegroundAlpha, *qGLLineThickness, *qToolBarIconSize;
+	QLabel* lb_LDrawPath;
+	QLabel* lb_viewBg, *lb_viewFg, *lb_viewFgAlpha;
+	QLabel* lb_lineThickness, *lb_iconSize;
+	QLineEdit* le_LDrawPath;
+	QPushButton* pb_findLDrawPath;
+	QPushButton* pb_viewBg, *pb_viewFg;
+	QCheckBox* cb_colorize, *cb_colorBFC, *cb_selFlash;
+	QSlider* sl_viewFgAlpha, *sl_lineThickness, *sl_iconSize;
 	
 	// =========================================================================
 	// Shortcuts tab
-	QListWidget* qShortcutList;
-	QPushButton* qSetShortcut, *qResetShortcut, *qClearShortcut;
-	std::vector<QListWidgetItem*> qaShortcutItems;
+	QListWidget* lw_shortcutList;
+	QPushButton* pb_setShortcut, *pb_resetShortcut, *pb_clearShortcut;
+	std::vector<QListWidgetItem*> shortcutItems;
 	
 	// =========================================================================
 	// Quick color toolbar tab
-	QListWidget* qQuickColorList;
-	QPushButton* qAddColor, *qDelColor, *qChangeColor, *qAddColorSeparator,
-		*qMoveColorUp, *qMoveColorDown, *qClearColors;
-	std::vector<QListWidgetItem*> qaQuickColorItems;
+	QListWidget* lw_quickColors;
+	QPushButton* pb_addColor, *pb_delColor, *pb_changeColor, *pb_addColorSeparator,
+		*pb_moveColorUp, *pb_moveColorDown, *pb_clearColors;
+	std::vector<QListWidgetItem*> quickColorItems;
 	std::vector<quickColorMetaEntry> quickColorMeta;
 	
 	// =========================================================================
 	// Grid tab
-	QLabel* gridLabels[3];
-	QLabel* gridIcons[3];
-	QDoubleSpinBox* gridData[3][4];
+	QLabel* lb_gridLabels[3];
+	QLabel* lb_gridIcons[3];
+	QDoubleSpinBox* dsb_gridData[3][4];
 	
 	// =========================================================================
-	QDialogButtonBox* qButtons;
+	QDialogButtonBox* bbx_buttons;
 	
 	ConfigDialog (ForgeWindow* parent);
 	~ConfigDialog ();
@@ -112,8 +115,8 @@ public:
 	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);
 	static bool staticDialog (actionmeta& meta, QWidget* parent = null);
 	
-	QLabel* qOutput;
-	QDialogButtonBox* qButtons;
+	QLabel* lb_output;
+	QDialogButtonBox* bbx_buttons;
 	QKeySequence seq;
 	
 private:
@@ -122,3 +125,5 @@ private:
 private slots:
 	virtual void keyPressEvent (QKeyEvent* ev);
 };
+
+#endif // CONFIGDIALOG_H

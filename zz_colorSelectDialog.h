@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef COLORSELECTOR_H
+#define COLORSELECTOR_H
+
 #include <qdialog.h>
 #include <qdialogbuttonbox.h>
 #include <qgraphicsscene.h>
@@ -29,11 +32,11 @@ public:
 	explicit ColorSelectDialog (short dDefault = -1, QWidget* parent = null);
 	static bool staticDialog (short& dValue, short dDefault = -1, QWidget* parent = null);
 	
-	QGraphicsScene* qScene;
-	QGraphicsView* qView;
-	QLabel* qColorInfo;
-	QDialogButtonBox* qButtons;
-	short dSelColor;
+	QGraphicsScene* gs_scene;
+	QGraphicsView* gv_view;
+	QLabel* lb_colorInfo;
+	QDialogButtonBox* bbx_buttons;
+	short selColor;
 	
 private:
 	void drawScene ();
@@ -42,3 +45,5 @@ private:
 private slots:
 	void mousePressEvent (QMouseEvent* event);
 };
+
+#endif // COLORSELECTOR_H

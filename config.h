@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __OPTIONS_H__
-#define __OPTIONS_H__
+#ifndef CONFIG_H
+#define CONFIG_H
 
 #include "common.h"
 #include "str.h"
@@ -225,4 +225,4 @@ public:
 	DEFINE_ASSIGN_OPERATOR (keyseq, =)
 };
 
-#endif // __OPTIONS_H__
+#endif // CONFIG_H

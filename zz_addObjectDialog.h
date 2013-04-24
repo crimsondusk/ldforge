@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __ZZ_ADDOBJECTDIALOG_H__
-#define __ZZ_ADDOBJECTDIALOG_H__
+#ifndef ZZ_ADDOBJECTDIALOG_H
+#define ZZ_ADDOBJECTDIALOG_H
 
 #include "gui.h"
 #include <qdialog.h>
@@ -48,11 +48,11 @@ public:
 	
 	// Radial stuff
 	QComboBox* qRadialType, *qRadialResolution;
-	QSpinBox* qRadialSegments, *qRadialRingNum;
-	QLabel* qRadialTypeLabel, *qRadialResolutionLabel, *qRadialSegmentsLabel,
-		*qRadialRingNumLabel;
+	QSpinBox* sb_radSegments, *sb_radRingNum;
+	QLabel* lb_radType, *lb_radResolution, *lb_radSegments,
+		*lb_radRingNum;
 	
-	QDialogButtonBox* qButtons;
+	QDialogButtonBox* bbx_buttons;
 	
 private:
 	void setButtonBackground (QPushButton* qButton, short dColor);
@@ -64,4 +64,4 @@ private slots:
 	void slot_radialTypeChanged (int dType);
 };
 
-#endif // __ZZ_ADDOBJECTDIALOG_H__
+#endif // ZZ_ADDOBJECTDIALOG_H

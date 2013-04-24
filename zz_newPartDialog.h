@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZZ_NEWPARTDIALOG_H
-#define ZZ_NEWPARTDIALOG_H
+#ifndef NEWPARTDIALOG_H
+#define NEWPARTDIALOG_H
 
 #include "gui.h"
 #include <qdialog.h>
@@ -31,10 +31,10 @@ public:
 	explicit NewPartDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	static void StaticDialog ();
 	
-	QLabel* qLB_Icon, *qLB_NameLabel, *qLB_AuthorLabel, *qLB_LicenseLabel, *qLB_BFCLabel;
-	QLineEdit* qLE_Name, *qLE_Author;
+	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
+	QLineEdit* le_name, *le_author;
 	QComboBox* qCB_LicenseBox, *qCB_BFCBox;
-	QDialogButtonBox* qButtons;
+	QDialogButtonBox* bbx_buttons;
 };
 
-#endif // ZZ_NEWPARTDIALOG_H
+#endif // NEWPARTDIALOG_H

@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __MISC_H__
-#define __MISC_H__
+#ifndef MISC_H
+#define MISC_H
 
 #include "common.h"
 #include "str.h"
@@ -99,4 +99,4 @@ public:
 	}
 };
 
-#endif // __MISC_H__
+#endif // MISC_H

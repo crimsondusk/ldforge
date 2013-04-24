@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef SETCONTENTSDIALOG_H
+
 #include <qdialog.h>
 #include <qlineedit.h>
 #include <qlabel.h>
@@ -31,9 +33,9 @@
 // =============================================================================
 class SetContentsDialog : public QDialog {
 public:
-	QLabel* qContentsLabel, *qErrorIcon, *qErrorLabel;
-	QLineEdit* qContents;
-	QDialogButtonBox* qButtons;
+	QLabel* lb_contents, *lb_errorIcon, *lb_error;
+	QLineEdit* le_contents;
+	QDialogButtonBox* bbx_buttons;
 	
 	SetContentsDialog (LDObject* obj, QWidget* parent = null);
 	static void staticDialog (LDObject* obj);
@@ -41,3 +43,5 @@ public:
 private slots:
 	void slot_handleButtons (QAbstractButton* qButton);
 };
+
+#endif // SETCONTENTSDIALOG_H

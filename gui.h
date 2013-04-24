@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GUI_H__
-#define __GUI_H__
+#ifndef GUI_H
+#define GUI_H
 
 #include <QMainWindow>
 #include <QMenu>
@@ -32,9 +32,9 @@
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
-	qButtons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
-	connect (qButtons, SIGNAL (accepted ()), this, SLOT (accept ())); \
-	connect (qButtons, SIGNAL (rejected ()), this, SLOT (reject ())); \
+	bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
+	connect (bbx_buttons, SIGNAL (accepted ()), this, SLOT (accept ())); \
+	connect (bbx_buttons, SIGNAL (rejected ()), this, SLOT (reject ())); \
 
 // =============================================================================
 // Metadata for actions
@@ -50,16 +50,16 @@ extern vector<actionmeta> g_ActionMeta;
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define ACTION(NAME, DISPLAYNAME, ICONNAME, DESCR, DEFSHORTCUT) \
-	QAction* ACTION_NAME (NAME); \
+#define MAKE_ACTION(NAME, DISPLAYNAME, ICONNAME, DESCR, DEFSHORTCUT) \
+	QAction* ACTION (NAME); \
 	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
 	static void actionHandler_##NAME (); \
-	static ActionAdder ActionAdderInstance_##NAME (&ACTION_NAME(NAME), DISPLAYNAME, \
+	static ActionAdder ActionAdderInstance_##NAME (&ACTION(NAME), DISPLAYNAME, \
 		ICONNAME, DESCR, &key_##NAME, actionHandler_##NAME); \
 	static void actionHandler_##NAME ()
 
-#define EXTERN_ACTION(NAME) extern QAction* ACTION_NAME (NAME);
-#define ACTION_NAME(N) LDForgeAction_##N
+#define EXTERN_ACTION(NAME) extern QAction* ACTION (NAME);
+#define ACTION(N) LDForgeAction_##N
 
 // Convenience macros for key sequences.
 #define KEY(N) (Qt::Key_##N)
@@ -125,7 +125,7 @@ public:
 	std::vector<quickColorMetaEntry> quickColorMeta;
 	
 	// Selected objects
-	std::vector<LDObject*> paSelection;
+	std::vector<LDObject*> sel;
 	
 	str zMessageLogHTML;
 	
@@ -134,7 +134,6 @@ public:
 	void setTitle ();
 	void refresh ();
 	std::vector<LDObject*> getSelectedObjects ();
-	std::vector<LDObject*>& selection ();
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
@@ -143,7 +142,7 @@ public:
 	void updateGridToolBar ();
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
-	LDObjectType_e getSelectedType ();
+	LDObjectType_e uniformSelectedType ();
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
@@ -179,4 +178,4 @@ enum {
 	NUM_LDOL_Columns
 };
 
-#endif
+#endif // GUI_H

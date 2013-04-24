@@ -47,15 +47,15 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	if (!getColor (dDefault))
 		dDefault = -1;
 	
-	qScene = new QGraphicsScene;
-	qView = new QGraphicsView (qScene);
-	dSelColor = dDefault;
+	gs_scene = new QGraphicsScene;
+	gv_view = new QGraphicsView (gs_scene);
+	selColor = dDefault;
 	
 	// not really an icon but eh
-	qScene->setBackgroundBrush (QPixmap ("icons/checkerboard.png"));
+	gs_scene->setBackgroundBrush (QPixmap ("icons/checkerboard.png"));
 	
-	qScene->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
-	qView->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
+	gs_scene->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
+	gv_view->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
 	
 	drawScene ();
 	
@@ -63,26 +63,26 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	
 	// Set the size of the view
 	const long lWidth = g_lWidth + 21; // HACK
-	qView->setMaximumWidth (lWidth);
-	qView->setMinimumWidth (lWidth);
-	qView->setMaximumHeight (g_lHeight);
-	qView->setMinimumHeight (g_lHeight);
-	qView->setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
+	gv_view->setMaximumWidth (lWidth);
+	gv_view->setMinimumWidth (lWidth);
+	gv_view->setMaximumHeight (g_lHeight);
+	gv_view->setMinimumHeight (g_lHeight);
+	gv_view->setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
 	
 	// If we have a default color selected, scroll down so that it is visible.
 	// TODO: find a better way to do this
 	if (dDefault >= ((g_dNumColumns * g_dNumRows) - 2)) {
 		ulong ulNewY = ((dDefault / g_dNumColumns) - 3) * g_dSquareSize;
-		qView->verticalScrollBar ()->setSliderPosition (ulNewY);
+		gv_view->verticalScrollBar ()->setSliderPosition (ulNewY);
 	}
 	
-	qColorInfo = new QLabel;
+	lb_colorInfo = new QLabel;
 	drawColorInfo ();
 	
 	QVBoxLayout* qLayout = new QVBoxLayout;
-	qLayout->addWidget (qView);
-	qLayout->addWidget (qColorInfo);
-	qLayout->addWidget (qButtons);
+	qLayout->addWidget (gv_view);
+	qLayout->addWidget (lb_colorInfo);
+	qLayout->addWidget (bbx_buttons);
 	setLayout (qLayout);
 	
 	setWindowIcon (QIcon ("icons/palette.png"));
@@ -97,7 +97,7 @@ void ColorSelectDialog::drawScene () {
 	QPen qPen (Qt::black, fPenWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	
 	// Draw the color rectangles.
-	qScene->clear ();
+	gs_scene->clear ();
 	for (short i = 0; i < MAX_COLORS; ++i) {
 		color* meta = getColor (i);
 		if (!meta)
@@ -119,14 +119,14 @@ void ColorSelectDialog::drawScene () {
 			(0.7152f * qColor.green()) + (0.0722f * qColor.blue());
 		bool bDark = (ucLuma < 80);
 		
-		qScene->addRect (x, y, w, w, qPen, qColor);
-		QGraphicsTextItem* qText = qScene->addText (format ("%lu", i).chars());
+		gs_scene->addRect (x, y, w, w, qPen, qColor);
+		QGraphicsTextItem* qText = gs_scene->addText (format ("%lu", i).chars());
 		qText->setDefaultTextColor ((bDark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
 		
-		if (i == dSelColor) {
+		if (i == selColor) {
 			QGraphicsPixmapItem* qCursorPic;
-			qCursorPic = qScene->addPixmap (QPixmap ("icons/colorcursor.png"));
+			qCursorPic = gs_scene->addPixmap (QPixmap ("icons/colorcursor.png"));
 			qCursorPic->setPos (x, y);
 		}
 	}
@@ -136,22 +136,22 @@ void ColorSelectDialog::drawScene () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ColorSelectDialog::drawColorInfo () {
-	color* col = getColor (dSelColor);
+	color* col = getColor (selColor);
 	
-	if (dSelColor == -1 || !col) {
-		qColorInfo->setText ("---");
+	if (selColor == -1 || !col) {
+		lb_colorInfo->setText ("---");
 		return;
 	}
 	
-	qColorInfo->setText (format ("%d - %s",
-		dSelColor, col->zName.chars()));
+	lb_colorInfo->setText (format ("%d - %s",
+		selColor, col->zName.chars()));
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
-	QPointF qPoint = qView->mapToScene (event->pos ());
+	QPointF qPoint = gv_view->mapToScene (event->pos ());
 	
 	ulong x = ((ulong)qPoint.x () - (g_dSquareSize / 2)) / g_dSquareSize;
 	ulong y = ((ulong)qPoint.y () - (g_dSquareSize / 2)) / g_dSquareSize;
@@ -161,7 +161,7 @@ void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
 	if (!col)
 		return;
 	
-	dSelColor = idx;
+	selColor = idx;
 	drawScene ();
 	drawColorInfo ();
 }
@@ -172,8 +172,8 @@ void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
 bool ColorSelectDialog::staticDialog (short& dValue, short dDefault, QWidget* parent) {
 	ColorSelectDialog dlg (dDefault, parent);
 	
-	if (dlg.exec () && dlg.dSelColor != -1) {
-		dValue = dlg.dSelColor;
+	if (dlg.exec () && dlg.selColor != -1) {
+		dValue = dlg.selColor;
 		return true;
 	}
 	

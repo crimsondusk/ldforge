@@ -498,7 +498,7 @@ std::vector<str> str::operator/ (char* splitstring) {return split(splitstring);}
 std::vector<str> str::operator/ (const char* splitstring) {return split(splitstring);}
 
 str& str::operator+= (vertex vrt) {
-	appendformat ("%s", vrt.getStringRep (false).chars());
+	appendformat ("%s", vrt.stringRep (false).chars());
 	return *this;
 }
 
