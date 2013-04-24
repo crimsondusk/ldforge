@@ -267,52 +267,32 @@ LDRadial::~LDRadial () {}
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-template<class T> static void transformSubObject (LDObject* obj, matrix mMatrix,
-	vertex vPos, short dColor)
-{
-	T* newobj = static_cast<T*> (obj);
-	for (short i = 0; i < (short)(sizeof newobj->vaCoords / sizeof *newobj->vaCoords); ++i)
-		newobj->vaCoords[i].transform (mMatrix, vPos);
-	
-	if (newobj->dColor == dMainColor)
-		newobj->dColor = dColor;
-}
-
-// -----------------------------------------------------------------------------
-static void transformObject (LDObject* obj, matrix mMatrix, vertex vPos,
-	short dColor)
-{
+static void transformObject (LDObject* obj, matrix transform, vertex pos, short parentcolor) {
 	switch (obj->getType()) {
 	case OBJ_Line:
-		transformSubObject<LDLine> (obj, mMatrix, vPos, dColor);
-		break;
-	
 	case OBJ_CondLine:
-		transformSubObject<LDCondLine> (obj, mMatrix, vPos, dColor);
-		break;
-	
 	case OBJ_Triangle:
-		transformSubObject<LDTriangle> (obj, mMatrix, vPos, dColor);
-		break;
-	
 	case OBJ_Quad:
-		transformSubObject<LDQuad> (obj, mMatrix, vPos, dColor);
+		for (short i = 0; i < obj->vertices (); ++i)
+			obj->vaCoords[i].transform (transform, pos);
 		break;
 	
 	case OBJ_Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			matrix mNewMatrix = mMatrix * ref->mMatrix;
-			ref->vPosition.transform (mMatrix, vPos);
+			matrix mNewMatrix = transform * ref->mMatrix;
+			ref->vPosition.transform (transform, pos);
 			ref->mMatrix = mNewMatrix;
 		}
-		
 		break;
 	
 	default:
 		break;
 	}
+	
+	if (obj->dColor == dMainColor)
+		obj->dColor = parentcolor;
 }
 
 // =============================================================================

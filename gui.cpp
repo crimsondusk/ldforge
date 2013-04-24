@@ -878,6 +878,10 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 		}
 	}
 	
+	// Save the configuration before leaving so that, for instance, grid choice
+	// is preserved across instances.
+	config::save ();
+	
 	ev->accept ();
 }
 

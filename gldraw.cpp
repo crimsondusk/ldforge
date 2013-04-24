@@ -558,8 +558,8 @@ void GLRenderer::updateSelFlash () {
 void GLRenderer::pick (uint mx, uint my, bool add) {
 	GLint viewport[4];
 	
+	// Clear the selection if we do not wish to add to it.
 	if (add == false) {
-		// Clear the selection if we don't wish to add to it.
 		std::vector<LDObject*> paOldSelection = g_ForgeWindow->paSelection;
 		g_ForgeWindow->paSelection.clear ();
 		
@@ -581,6 +581,8 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 		y0 = my;
 	short x1, y1;
 	
+	// Determine how big an area to read - with range picking, we pick by
+	// the area given, with single pixel picking, we use an 1 x 1 area.
 	if (rangepick) {
 		x1 = rangeStart.x ();
 		y1 = rangeStart.y ();
@@ -589,6 +591,7 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 		y1 = y0 + 1;
 	}
 	
+	// x0 and y0 must be less than x1 and y1, respectively.
 	if (x0 > x1)
 		dataswap (x0, x1);
 	
@@ -601,17 +604,20 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	x1 = min<short> (x1, width);
 	y1 = min<short> (y1, height);
 	
-	short areawidth = (x1 - x0);
-	short areaheight = (y1 - y0);
-	
+	const short areawidth = (x1 - x0);
+	const short areaheight = (y1 - y0);
 	const long numpixels = areawidth * areaheight;
+	
+	// Allocate space for the pixel data.
 	uchar* const pixeldata = new uchar[4 * numpixels];
 	uchar* pixelptr = &pixeldata[0];
 	
 	assert (viewport[3] == height);
 	
+	// Read pixels from the color buffer.
 	glReadPixels (x0, viewport[3] - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
 	
+	// Go through each pixel read and add them to the selection.
 	for (long i = 0; i < numpixels; ++i) {
 		uint32 idx =
 			(*(pixelptr) * 0x10000) +
@@ -628,11 +634,14 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	
 	delete[] pixeldata;
 	
+	// Remove duplicate entries. For this to be effective, the vector must be
+	// sorted first.
 	std::vector<LDObject*>& sel = g_ForgeWindow->paSelection;
 	std::sort (sel.begin(), sel.end ());
 	std::vector<LDObject*>::iterator pos = std::unique (sel.begin (), sel.end ());
 	sel.resize (std::distance (sel.begin (), pos));
 	
+	// Update everything now.
 	g_ForgeWindow->buildObjList ();
 	
 	picking = false;
