@@ -65,6 +65,12 @@ inline const gridinfo& currentGrid () {
 	return g_GridInfo[grid];
 }
 
+template<class T> void dataswap (T& a, T& b) {
+	T c = a;
+	a = b;
+	b = c;
+}
+
 // =============================================================================
 // StringParser
 //

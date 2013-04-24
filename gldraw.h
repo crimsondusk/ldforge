@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef __GLDRAW_H__
-#define __GLDRAW_H__
+#ifndef GLDRAW_H
+#define GLDRAW_H
 
 #include <QGLWidget>
 #include <qtimer.h>
@@ -39,7 +39,7 @@ public:
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
-	void pick (uint uMouseX, uint uMouseY, bool bAdd);
+	void pick (uint mouseX, uint mouseY, bool add);
 	QColor getMainColor ();
 	void recompileObject (LDObject* obj);
 	void refresh ();
@@ -48,9 +48,12 @@ public:
 	
 	double rotX, rotY, rotZ;
 	double panX, panY;
-	QPoint lastPos;
+	QPoint pos;
 	double zoom;
 	bool picking;
+	bool rangepick;
+	short width, height;
+	QPoint rangeStart;
 
 protected:
 	void initializeGL ();
@@ -75,7 +78,7 @@ private:
 	
 	QTimer* qPulseTimer;
 	
-	Qt::MouseButtons qMouseButtons;
+	Qt::MouseButtons lastButtons;
 	Qt::KeyboardModifiers qKeyMods;
 	ulong ulTotalMouseMove;
 	
@@ -83,4 +86,4 @@ private slots:
 	void slot_timerUpdate ();
 };
 
-#endif // __GLDRAW_H__
+#endif // GLDRAW_H

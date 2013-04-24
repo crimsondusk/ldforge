@@ -26,6 +26,7 @@
 #include "bbox.h"
 #include "colors.h"
 #include "gui.h"
+#include "misc.h"
 
 static double g_faObjectOffset[3];
 static double g_StoredBBoxSize;
@@ -46,7 +47,7 @@ cfg (bool, gl_selflash, false);
 // =============================================================================
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
-	picking = false;
+	picking = rangepick = false;
 	
 	qPulseTimer = new QTimer (this);
 	connect (qPulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
@@ -139,9 +140,9 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		// Calculate a color based from this index. This method caters for
 		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
 		// ATM biggest is 53588.dat with 12600 lines.
-		double r = i % 256;
-		double g = (i / 256) % 256;
-		double b = (i / (256 * 256)) % 256;
+		double r = (i / (256 * 256)) % 256,
+			g = (i / 256) % 256,
+			b = i % 256;
 		
 		glColor3f (r / 255.f, g / 255.f, b / 255.f);
 		return;
@@ -238,11 +239,16 @@ void GLRenderer::hardRefresh () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::resizeGL (int w, int h) {
+	width = w;
+	height = h;
+	
 	glViewport (0, 0, w, h);
 	glLoadIdentity ();
 	glMatrixMode (GL_PROJECTION);
 	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
 }
+
+template<class T> using initlist = std::initializer_list<T>;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -267,6 +273,37 @@ void GLRenderer::paintGL () {
 		for (LDObject* obj : g_CurrentFile->objects)
 			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
 	glPopMatrix ();
+	
+	// If we're range-picking, draw a rectangle encompassing the selection area.
+	if (rangepick && !picking) {
+		const short x0 = rangeStart.x (),
+			y0 = rangeStart.y (),
+			x1 = pos.x (),
+			y1 = pos.y ();
+		
+		glMatrixMode (GL_PROJECTION);
+		
+		glPushMatrix ();
+			glLoadIdentity ();
+			glOrtho (.0, width, height, .0, -1.0, 1.0);
+			
+			for (int x : vector<int> ({GL_QUADS, GL_LINE_LOOP})) {
+				if (x == GL_QUADS)
+					glColor4f (.0, .8, 1.0, .6);
+				else
+					glColor4f (1.0, 1.0, 1.0, 1.0);
+				
+				glBegin (x);
+					glVertex2i (x0, y0);
+					glVertex2i (x1, y0);
+					glVertex2i (x1, y1);
+					glVertex2i (x0, y1);
+				glEnd ();
+			}
+		glPopMatrix ();
+		
+		glMatrixMode (GL_MODELVIEW);
+	}
 }
 
 // =============================================================================
@@ -437,41 +474,43 @@ void GLRenderer::clampAngle (double& angle) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
-	if ((qMouseButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
-		if (ulTotalMouseMove < 10)
-			pick (ev->x(), ev->y(), (qKeyMods & Qt::ControlModifier));
+	if ((lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
+		if (ulTotalMouseMove < 10 || rangepick)
+			pick (ev->x (), ev->y (), (qKeyMods & Qt::ControlModifier));
 		
+		rangepick = false;
 		ulTotalMouseMove = 0;
 	}
 }
 
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
-	qMouseButtons = ev->buttons();
-	if (ev->buttons() & Qt::LeftButton)
+	if (ev->buttons () & Qt::LeftButton)
 		ulTotalMouseMove = 0;
+	
+	if (ev->modifiers () & Qt::ShiftModifier) {
+		rangepick = true;
+		rangeStart.setX (ev->x ());
+		rangeStart.setY (ev->y ());
+	}
+	
+	lastButtons = ev->buttons ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
-	int dx = ev->x () - lastPos.x ();
-	int dy = ev->y () - lastPos.y ();
+	int dx = ev->x () - pos.x ();
+	int dy = ev->y () - pos.y ();
 	ulTotalMouseMove += abs (dx) + abs (dy);
 	
-	if (ev->buttons () & Qt::LeftButton) {
+	if (ev->buttons () & Qt::LeftButton && !rangepick) {
 		rotX = rotX + (dy);
 		rotY = rotY + (dx);
+		
 		clampAngle (rotX);
 		clampAngle (rotY);
-	}
-	
-	if (ev->buttons () & Qt::RightButton) {
-		rotX = rotX + (dy);
-		rotZ = rotZ + (dx);
-		clampAngle (rotX);
-		clampAngle (rotZ);
 	}
 	
 	if (ev->buttons () & Qt::MidButton) {
@@ -479,7 +518,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 		panY -= 0.03f * dy;
 	}
 	
-	lastPos = ev->pos ();
+	pos = ev->pos ();
 	updateGL ();
 }
 
@@ -516,8 +555,10 @@ void GLRenderer::updateSelFlash () {
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
-	if (bAdd == false) {
+void GLRenderer::pick (uint mx, uint my, bool add) {
+	GLint viewport[4];
+	
+	if (add == false) {
 		// Clear the selection if we don't wish to add to it.
 		std::vector<LDObject*> paOldSelection = g_ForgeWindow->paSelection;
 		g_ForgeWindow->paSelection.clear ();
@@ -527,32 +568,75 @@ void GLRenderer::pick (uint uMouseX, uint uMouseY, bool bAdd) {
 			recompileObject (obj);
 	}
 	
-	glDisable (GL_DITHER);
-	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
-	
 	picking = true;
 	
+	// Paint the picking scene
+	glDisable (GL_DITHER);
+	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
 	paintGL ();
 	
-	GLubyte ucaPixel[3];
-	GLint daViewport[4];
-	glGetIntegerv (GL_VIEWPORT, daViewport);
-	glReadPixels (uMouseX, daViewport[3] - uMouseY, 1, 1, GL_RGB, GL_UNSIGNED_BYTE,
-		reinterpret_cast<GLvoid*> (ucaPixel));
+	glGetIntegerv (GL_VIEWPORT, viewport);
 	
-	// If we hit a white pixel, we selected the background. This no object is selected.
-	const bool bHasSelection = (ucaPixel[0] != 255 || ucaPixel[1] != 255 || ucaPixel[2] != 255);
+	short x0 = mx,
+		y0 = my;
+	short x1, y1;
 	
-	if (bHasSelection) {
-		ulong idx = ucaPixel[0] + (ucaPixel[1] * 256) + (ucaPixel[2] * 256 * 256);
+	if (rangepick) {
+		x1 = rangeStart.x ();
+		y1 = rangeStart.y ();
+	} else {
+		x1 = x0 + 1;
+		y1 = y0 + 1;
+	}
+	
+	if (x0 > x1)
+		dataswap (x0, x1);
+	
+	if (y0 > y1)
+		dataswap (y0, y1);
+	
+	// Clamp the values to ensure they're within bounds
+	x0 = max<short> (0, x0);
+	y0 = max<short> (0, y0);
+	x1 = min<short> (x1, width);
+	y1 = min<short> (y1, height);
+	
+	short areawidth = (x1 - x0);
+	short areaheight = (y1 - y0);
+	
+	const long numpixels = areawidth * areaheight;
+	uchar* const pixeldata = new uchar[4 * numpixels];
+	uchar* pixelptr = &pixeldata[0];
+	
+	assert (viewport[3] == height);
+	
+	glReadPixels (x0, viewport[3] - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+	
+	for (long i = 0; i < numpixels; ++i) {
+		uint32 idx =
+			(*(pixelptr) * 0x10000) +
+			(*(pixelptr + 1) * 0x00100) +
+			(*(pixelptr + 2) * 0x00001);
+		pixelptr += 4;
+		
+		if (idx == 0xFFFFFF)
+			continue; // White is background; skip
 		
 		LDObject* obj = g_CurrentFile->object (idx);
 		g_ForgeWindow->paSelection.push_back (obj);
 	}
 	
+	delete[] pixeldata;
+	
+	std::vector<LDObject*>& sel = g_ForgeWindow->paSelection;
+	std::sort (sel.begin(), sel.end ());
+	std::vector<LDObject*>::iterator pos = std::unique (sel.begin (), sel.end ());
+	sel.resize (std::distance (sel.begin (), pos));
+	
 	g_ForgeWindow->buildObjList ();
 	
 	picking = false;
+	rangepick = false;
 	glEnable (GL_DITHER);
 	
 	setBackground ();
