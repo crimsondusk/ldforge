@@ -24,6 +24,7 @@
 
 #define NUM_PRIMES 500
 
+class QColor;
 // Prime numbers
 extern const ushort g_uaPrimes[NUM_PRIMES];
 
@@ -70,6 +71,8 @@ template<class T> void dataswap (T& a, T& b) {
 	a = b;
 	b = c;
 }
+
+uchar luma (QColor& col);
 
 // =============================================================================
 // StringParser

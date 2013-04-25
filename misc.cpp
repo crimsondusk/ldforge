@@ -18,6 +18,7 @@
 
 #include <math.h>
 #include <locale.h>
+#include <qcolor.h>
 #include "common.h"
 #include "misc.h"
 
@@ -178,6 +179,13 @@ void simplify (short& dNum, short& dDenom) {
 			}
 		}
 	} while (bRepeat);
+}
+
+// =============================================================================
+uchar luma (QColor& col) {
+	return (0.2126f * col.red ()) +
+		(0.7152f * col.green ()) +
+		(0.0722f * col.blue ());
 }
 
 // =============================================================================

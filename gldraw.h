@@ -39,7 +39,7 @@ public:
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
-	void pick (uint mouseX, uint mouseY, bool add);
+	void pick (uint mouseX, uint mouseY);
 	QColor getMainColor ();
 	void recompileObject (LDObject* obj);
 	void refresh ();
@@ -52,6 +52,7 @@ public:
 	double zoom;
 	bool picking;
 	bool rangepick;
+	bool addpick;
 	short width, height;
 	QPoint rangeStart;
 
@@ -68,19 +69,19 @@ protected:
 	void wheelEvent (QWheelEvent* ev);
 
 private:
-	std::vector<GLuint> uaObjLists;
+	std::vector<GLuint> objLists;
+	QTimer* pulseTimer;
+	Qt::MouseButtons lastButtons;
+	Qt::KeyboardModifiers keymods;
+	ulong totalmove;
+	bool darkbg;
+	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
 		const short dVerts);
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
-	
-	QTimer* qPulseTimer;
-	
-	Qt::MouseButtons lastButtons;
-	Qt::KeyboardModifiers qKeyMods;
-	ulong ulTotalMouseMove;
 	
 private slots:
 	void slot_timerUpdate ();

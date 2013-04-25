@@ -28,6 +28,7 @@
 #include "zz_colorSelectDialog.h"
 #include "colors.h"
 #include "config.h"
+#include "misc.h"
 
 static const short g_dNumColumns = 8;
 static const short g_dNumRows = 10;
@@ -115,13 +116,11 @@ void ColorSelectDialog::drawScene () {
 			qColor.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
-		uchar ucLuma = (0.2126f * qColor.red()) +
-			(0.7152f * qColor.green()) + (0.0722f * qColor.blue());
-		bool bDark = (ucLuma < 80);
+		bool dark = (luma (qColor) < 80);
 		
 		gs_scene->addRect (x, y, w, w, qPen, qColor);
 		QGraphicsTextItem* qText = gs_scene->addText (format ("%lu", i).chars());
-		qText->setDefaultTextColor ((bDark) ? Qt::white : Qt::black);
+		qText->setDefaultTextColor ((dark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
 		
 		if (i == selColor) {

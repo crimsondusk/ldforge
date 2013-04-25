@@ -27,7 +27,6 @@
 #include <QToolBar>
 #include <QTextEdit>
 #include <qpushbutton.h>
-#include <qbuttongroup.h>
 #include "gldraw.h"
 #include "config.h"
 

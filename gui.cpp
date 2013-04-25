@@ -16,8 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
-
+#include <qgridlayout.h>
+#include <qmessagebox.h>
+#include <qevent.h>
+#include <qmenubar.h>
+#include <qstatusbar.h>
 #include "common.h"
 #include "gldraw.h"
 #include "gui.h"

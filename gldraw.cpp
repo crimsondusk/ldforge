@@ -49,8 +49,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
 	picking = rangepick = false;
 	
-	qPulseTimer = new QTimer (this);
-	connect (qPulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
+	pulseTimer = new QTimer (this);
+	connect (pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
 }
 
 // =============================================================================
@@ -86,6 +86,7 @@ void GLRenderer::initializeGL () {
 	glLineWidth (gl_linethickness);
 	
 	setMouseTracking (true);
+	setFocusPolicy (Qt::WheelFocus);
 	compileObjects ();
 }
 
@@ -108,6 +109,8 @@ void GLRenderer::setBackground () {
 	
 	if (!col.isValid ())
 		return;
+	
+	darkbg = luma (col) < 80;
 	
 	glClearColor (
 		((double)col.red()) / 255.0f,
@@ -286,10 +289,18 @@ void GLRenderer::paintGL () {
 			glOrtho (.0, width, height, .0, -1.0, 1.0);
 			
 			for (int x : {GL_QUADS, GL_LINE_LOOP}) {
-				if (x == GL_QUADS)
-					glColor4f (.0, .8, 1.0, .6);
-				else
-					glColor4f (1.0, 1.0, 1.0, 1.0);
+				if (x == GL_QUADS) {
+					// Use a green color when picking additive, a blue color when normally.
+					if (addpick)
+						glColor4f (0.5f, 1.f, 0.f, 0.2f);
+					else
+						glColor4f (0.f, 0.8f, 1.f, 0.2f);
+				} else {
+					if (darkbg)
+						glColor4f (1.f, 1.f, 1.f, 0.7f);
+					else
+						glColor4f (0.f, 0.f, 0.f, 0.7f);
+				}
 				
 				glBegin (x);
 					glVertex2i (x0, y0);
@@ -308,7 +319,7 @@ void GLRenderer::paintGL () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObjects () {
-	uaObjLists.clear ();
+	objLists.clear ();
 	
 	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
 	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
@@ -338,7 +349,7 @@ void GLRenderer::compileObjects () {
 			*upMemberList = uList;
 		}
 		
-		uaObjLists.push_back (obj->uGLList);
+		objLists.push_back (obj->uGLList);
 	}
 }
 
@@ -473,23 +484,28 @@ void GLRenderer::clampAngle (double& angle) {
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	if ((lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
-		if (ulTotalMouseMove < 10 || rangepick)
-			pick (ev->x (), ev->y (), (qKeyMods & Qt::ControlModifier));
+		if (!rangepick)
+			addpick = (keymods & Qt::ControlModifier);
+		
+		if (totalmove < 10 || rangepick)
+			pick (ev->x (), ev->y ());
 		
 		rangepick = false;
-		ulTotalMouseMove = 0;
+		totalmove = 0;
 	}
 }
 
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 	if (ev->buttons () & Qt::LeftButton)
-		ulTotalMouseMove = 0;
+		totalmove = 0;
 	
 	if (ev->modifiers () & Qt::ShiftModifier) {
 		rangepick = true;
 		rangeStart.setX (ev->x ());
 		rangeStart.setY (ev->y ());
+		
+		addpick = (keymods & Qt::ControlModifier);
 	}
 	
 	lastButtons = ev->buttons ();
@@ -501,7 +517,7 @@ void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	int dx = ev->x () - pos.x ();
 	int dy = ev->y () - pos.y ();
-	ulTotalMouseMove += abs (dx) + abs (dy);
+	totalmove += abs (dx) + abs (dy);
 	
 	if (ev->buttons () & Qt::LeftButton && !rangepick) {
 		rotX = rotX + (dy);
@@ -524,11 +540,11 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::keyPressEvent (QKeyEvent* ev) {
-	qKeyMods = ev->modifiers ();
+	keymods = ev->modifiers ();
 }
 
 void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
-	qKeyMods = ev->modifiers ();
+	keymods = ev->modifiers ();
 }
 
 // =============================================================================
@@ -544,20 +560,21 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 // =============================================================================
 void GLRenderer::updateSelFlash () {
 	if (gl_selflash && g_ForgeWindow->sel.size() > 0) {
-		qPulseTimer->start (g_dPulseInterval);
+		pulseTimer->start (g_dPulseInterval);
 		g_dPulseTick = 0;
 	} else
-		qPulseTimer->stop ();
+		pulseTimer->stop ();
 }
 
 // ========================================================================= //
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
 // ========================================================================= //
-void GLRenderer::pick (uint mx, uint my, bool add) {
+void GLRenderer::pick (uint mouseX, uint mouseY) {
 	GLint viewport[4];
+	LDObject* removedObject = null;
 	
 	// Clear the selection if we do not wish to add to it.
-	if (add == false) {
+	if (addpick == false) {
 		std::vector<LDObject*> paOldSelection = g_ForgeWindow->sel;
 		g_ForgeWindow->sel.clear ();
 		
@@ -575,8 +592,8 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	
 	glGetIntegerv (GL_VIEWPORT, viewport);
 	
-	short x0 = mx,
-		y0 = my;
+	short x0 = mouseX,
+		y0 = mouseY;
 	short x1, y1;
 	
 	// Determine how big an area to read - with range picking, we pick by
@@ -627,6 +644,24 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 			continue; // White is background; skip
 		
 		LDObject* obj = g_CurrentFile->object (idx);
+		
+		// If this is an additive single pick and the object is currently selected,
+		// we remove it from selection instead.
+		if (!rangepick && addpick) {
+			bool removed = false;
+			
+			for (ulong i = 0; i < g_ForgeWindow->sel.size(); ++i) {
+				if (g_ForgeWindow->sel[i] == obj) {
+					g_ForgeWindow->sel.erase (g_ForgeWindow->sel.begin () + i);
+					removedObject = obj;
+					removed = true;
+				}
+			}
+			
+			if (removed)
+				break;
+		}
+		
 		g_ForgeWindow->sel.push_back (obj);
 	}
 	
@@ -652,6 +687,9 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 	for (LDObject* obj : g_ForgeWindow->sel)
 		recompileObject (obj);
 	
+	if (removedObject != null)
+		recompileObject (removedObject);
+	
 	paintGL ();
 	swapBuffers ();
 }
@@ -661,9 +699,9 @@ void GLRenderer::pick (uint mx, uint my, bool add) {
 // ========================================================================= //
 void GLRenderer::recompileObject (LDObject* obj) {
 	// Replace the old list with the new one.
-	for (ulong i = 0; i < uaObjLists.size(); ++i)
-		if (uaObjLists[i] == obj->uGLList)
-			uaObjLists.erase (uaObjLists.begin() + i);
+	for (ulong i = 0; i < objLists.size(); ++i)
+		if (objLists[i] == obj->uGLList)
+			objLists.erase (objLists.begin() + i);
 	
 	GLuint uList = glGenLists (1);
 	glNewList (uList, GL_COMPILE);
@@ -671,7 +709,7 @@ void GLRenderer::recompileObject (LDObject* obj) {
 	compileOneObject (obj);
 	
 	glEndList ();
-	uaObjLists.push_back (uList);
+	objLists.push_back (uList);
 	obj->uGLList = uList;
 }
 
