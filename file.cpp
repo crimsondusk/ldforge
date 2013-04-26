@@ -109,45 +109,40 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ulong loadFileContents (FILE* fp, OpenFile* load, std::vector<LDObject*>* copies, ulong* idx) {
+std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 	char line[1024];
 	vector<str> lines;
-	ulong numWarnings = 0;
+	vector<LDObject*> objs;
+	ulong lnum = 0;
+	
+	if (numWarnings)
+		*numWarnings = 0;
 	
 	while (fgets (line, sizeof line, fp)) {
 		// Trim the trailing newline
-		str zLine = line;
-		while (zLine[~zLine - 1] == '\n' || zLine[~zLine - 1] == '\r')
-			zLine -= 1;
+		str data = line;
+		while (data[~data - 1] == '\n' || data[~data - 1] == '\r')
+			data -= 1;
 		
-		lines.push_back (zLine);
-	}
-	
-	if (idx)
-		*idx = load->objects.size ();
-	
-	ulong lnum = 1;
-	for (str line : lines) {
-		LDObject* obj = parseLine (line);
-		
-		if (copies)
-			copies->push_back (obj->clone ());
-		
-		load->objects.push_back (obj);
+		LDObject* obj = parseLine (data);
+		assert (obj != null);
 		
 		// Check for parse errors and warn about tthem
 		if (obj->getType() == OBJ_Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
 				lnum, static_cast<LDGibberish*> (obj)->zReason.chars());
 			
-			logf (LOG_Warning, "- Line was: %s\n", line.chars());
-			numWarnings++;
+			logf (LOG_Warning, "- Line was: %s\n", data.chars());
+			
+			if (numWarnings)
+				(*numWarnings)++;
 		}
 		
+		objs.push_back (obj);
 		lnum++;
 	}
 	
-	return numWarnings;
+	return objs;
 }
 
 // =============================================================================
@@ -172,7 +167,11 @@ OpenFile* openDATFile (str path, bool search) {
 	
 	OpenFile* load = new OpenFile;
 	load->zFileName = path;
-	ulong numWarnings	= loadFileContents (fp, load);
+	ulong numWarnings;
+	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings);
+	
+	for (LDObject* obj : objs)
+		load->objects.push_back (obj);
 	
 	fclose (fp);
 	g_LoadedFiles.push_back (load);

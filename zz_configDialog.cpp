@@ -39,6 +39,7 @@ extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, gl_selflash);
+extern_cfg (bool, edit_insertSchemanticsOnly);
 
 ConfigDialog* g_ConfigDialog = null;
 
@@ -131,6 +132,9 @@ void ConfigDialog::initMainTab () {
 	cb_selFlash = new QCheckBox ("Selection flash");
 	INIT_CHECKBOX (cb_selFlash, gl_selflash)
 	
+	cb_insertSchemanticsOnly = new QCheckBox ("Only insert schemantic objects from a file");
+	INIT_CHECKBOX (cb_insertSchemanticsOnly, edit_insertSchemanticsOnly)
+	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (lb_LDrawPath, 0, 0);
 	layout->addLayout (qLDrawPathLayout, 0, 1, 1, 3);
@@ -151,6 +155,7 @@ void ConfigDialog::initMainTab () {
 	layout->addWidget (cb_colorize, 4, 0, 1, 4);
 	layout->addWidget (cb_colorBFC, 5, 0, 1, 4);
 	layout->addWidget (cb_selFlash, 6, 0, 1, 4);
+	layout->addWidget (cb_insertSchemanticsOnly, 7, 0, 1, 4);
 	mainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -603,6 +608,7 @@ void ConfigDialog::staticDialog () {
 		APPLY_CHECKBOX (dlg.cb_colorize, lv_colorize)
 		APPLY_CHECKBOX (dlg.cb_colorBFC, gl_colorbfc)
 		APPLY_CHECKBOX (dlg.cb_selFlash, gl_selflash)
+		APPLY_CHECKBOX (dlg.cb_insertSchemanticsOnly, edit_insertSchemanticsOnly)
 		
 		gl_maincolor_alpha = ((double)dlg.sl_viewFgAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.sl_lineThickness->value ();

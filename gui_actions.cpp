@@ -251,6 +251,7 @@ MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and 
 // =============================================================================
 MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data from a file.", (0)) {
 	str fname = QFileDialog::getOpenFileName ();
+	ulong idx = g_ForgeWindow->getInsertionPoint ();
 	
 	if (!~fname)
 		return;
@@ -263,16 +264,23 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	
 	std::vector<LDObject*> historyCopies;
 	std::vector<ulong> historyIndices;
-	ulong idx;
+	std::vector<LDObject*> objs = loadFileContents (fp, null);
 	
-	loadFileContents (fp, g_CurrentFile, &historyCopies, &idx);
+	g_ForgeWindow->sel.clear ();
 	
-	for (LDObject* obj : historyCopies)
-		historyIndices.push_back (idx++);
+	for (LDObject* obj : objs) {
+		historyCopies.push_back (obj->clone ());
+		historyIndices.push_back (idx);
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, obj);
+		g_ForgeWindow->sel.push_back (obj);
+		
+		idx++;
+	}
 	
 	if (historyCopies.size() > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
 		g_ForgeWindow->refresh ();
+		g_ForgeWindow->scrollToSelection ();
 	}
 }
 
