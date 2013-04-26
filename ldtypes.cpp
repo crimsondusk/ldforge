@@ -411,36 +411,37 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
-	bool bFirstDetails = true;
-	str zText = "";
+	bool firstDetails = true;
+	str text = "";
 	
 	if (objs.size() == 0)
 		return "nothing"; // :)
 	
 	for (long i = 0; i < NUM_ObjectTypes; ++i) {
-		LDObjectType_e eType = (LDObjectType_e) i;
-		ulong ulCount = 0;
+		LDObjectType_e objType = (LDObjectType_e) i;
+		ulong objCount = 0;
 		
 		for (LDObject* obj : objs)
-			if (obj->getType() == eType)
-				ulCount++;
+			if (obj->getType() == objType)
+				objCount++;
 		
-		if (ulCount > 0) {
-			if (!bFirstDetails)
-				zText += ", ";
-			
-			str zNoun = format ("%s%s", g_saObjTypeNames[eType], PLURAL (ulCount));
-			
-			// Plural of "vertex" is "vertices". Stupid English.
-			if (eType == OBJ_Vertex && ulCount != 1)
-				zNoun = "vertices";
-			
-			zText.appendformat ("%lu %s", ulCount, zNoun.chars ());
-			bFirstDetails = false;
-		}
+		if (objCount == 0)
+			continue;
+		
+		if (!firstDetails)
+			text += ", ";
+		
+		str noun = format ("%s%s", g_saObjTypeNames[objType], PLURAL (objCount));
+		
+		// Plural of "vertex" is "vertices". Stupid English.
+		if (objType == OBJ_Vertex && objCount != 1)
+			noun = "vertices";
+		
+		text.appendformat ("%lu %s", objCount, noun.chars ());
+		firstDetails = false;
 	}
 	
-	return zText;
+	return text;
 }
 
 // =============================================================================

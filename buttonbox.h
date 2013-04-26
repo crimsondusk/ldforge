@@ -133,6 +133,10 @@ public:
 		return buttonGroup->checkedId ();
 	}
 	
+	void setValue (int val) {
+		static_cast<R*> (buttonGroup->button (val))->setChecked (true);
+	}
+	
 	R* const& begin () {
 		return objects.begin ();
 	}

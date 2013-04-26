@@ -109,6 +109,50 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+ulong loadFileContents (FILE* fp, OpenFile* load, std::vector<LDObject*>* copies, ulong* idx) {
+	char line[1024];
+	vector<str> lines;
+	ulong numWarnings = 0;
+	
+	while (fgets (line, sizeof line, fp)) {
+		// Trim the trailing newline
+		str zLine = line;
+		while (zLine[~zLine - 1] == '\n' || zLine[~zLine - 1] == '\r')
+			zLine -= 1;
+		
+		lines.push_back (zLine);
+	}
+	
+	if (idx)
+		*idx = load->objects.size ();
+	
+	ulong lnum = 1;
+	for (str line : lines) {
+		LDObject* obj = parseLine (line);
+		
+		if (copies)
+			copies->push_back (obj->clone ());
+		
+		load->objects.push_back (obj);
+		
+		// Check for parse errors and warn about tthem
+		if (obj->getType() == OBJ_Gibberish) {
+			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
+				lnum, static_cast<LDGibberish*> (obj)->zReason.chars());
+			
+			logf (LOG_Warning, "- Line was: %s\n", line.chars());
+			numWarnings++;
+		}
+		
+		lnum++;
+	}
+	
+	return numWarnings;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 OpenFile* openDATFile (str path, bool search) {
 	logf ("Opening %s...\n", path.chars());
 	
@@ -127,41 +171,10 @@ OpenFile* openDATFile (str path, bool search) {
 	}
 	
 	OpenFile* load = new OpenFile;
-	ulong numWarnings = 0;
-	
 	load->zFileName = path;
-	
-	vector<str> lines;
-	
-	{
-		char line[1024];
-		while (fgets (line, sizeof line, fp)) {
-			// Trim the trailing newline
-			str zLine = line;
-			while (zLine[~zLine - 1] == '\n' || zLine[~zLine - 1] == '\r')
-				zLine -= 1;
-			
-			lines.push_back (zLine);
-		}
-	}
+	ulong numWarnings	= loadFileContents (fp, load);
 	
 	fclose (fp);
-	
-	for (str line : lines) {
-		LDObject* obj = parseLine (line);
-		load->objects.push_back (obj);
-		
-		// Check for parse errors and warn about tthem
-		if (obj->getType() == OBJ_Gibberish) {
-			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				(&line - &(lines[0])),
-				static_cast<LDGibberish*> (obj)->zReason.chars());
-			
-			logf (LOG_Warning, "- Line was: %s\n", line.chars());
-			numWarnings++;
-		}
-	}
-	
 	g_LoadedFiles.push_back (load);
 	
 	logf (LOG_Success, "File %s parsed successfully (%lu warning%s).\n",

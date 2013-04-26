@@ -167,6 +167,7 @@ QIcon getIcon (const char* sIconName);
 std::vector<quickColorMetaEntry> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
+void critical (str msg);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

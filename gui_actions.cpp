@@ -119,35 +119,35 @@ MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME_DISPLAY ".", CTRL (Q)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (newSubfile, "New Subfile", "add-subfile", "Creates a new subfile reference.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Subfile, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Subfile, null);
 }
 
 MAKE_ACTION (newLine, "New Line",  "add-line", "Creates a new line.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Line, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Line, null);
 }
 
 MAKE_ACTION (newTriangle, "New Triangle", "add-triangle", "Creates a new triangle.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Triangle, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Triangle, null);
 }
 
 MAKE_ACTION (newQuad, "New Quadrilateral", "add-quad", "Creates a new quadrilateral.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Quad, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Quad, null);
 }
 
 MAKE_ACTION (newCondLine, "New Conditional Line", "add-condline", "Creates a new conditional line.", 0) {
-	AddObjectDialog::staticDialog (OBJ_CondLine, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_CondLine, null);
 }
 
 MAKE_ACTION (newComment, "New Comment", "add-comment", "Creates a new comment.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Comment, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Comment, null);
 }
 
 MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Vertex, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Vertex, null);
 }
 
 MAKE_ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Radial, g_ForgeWindow);
+	AddObjectDialog::staticDialog (OBJ_Radial, null);
 }
 
 MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY (F1)) {
@@ -246,6 +246,34 @@ MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3
 MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
 	g_ForgeWindow->R->resetAngles ();
 	g_ForgeWindow->R->updateGL ();
+}
+
+// =============================================================================
+MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data from a file.", (0)) {
+	str fname = QFileDialog::getOpenFileName ();
+	
+	if (!~fname)
+		return;
+	
+	FILE* fp = fopen (fname, "r");
+	if (!fp) {
+		critical (format ("Couldn't open %s\n%s", fname.chars(), strerror (errno)));
+		return;
+	}
+	
+	std::vector<LDObject*> historyCopies;
+	std::vector<ulong> historyIndices;
+	ulong idx;
+	
+	loadFileContents (fp, g_CurrentFile, &historyCopies, &idx);
+	
+	for (LDObject* obj : historyCopies)
+		historyIndices.push_back (idx++);
+	
+	if (historyCopies.size() > 0) {
+		History::addEntry (new AddHistory (historyIndices, historyCopies));
+		g_ForgeWindow->refresh ();
+	}
 }
 
 // =============================================================================

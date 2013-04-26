@@ -47,7 +47,7 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
+AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWidget* parent) :
 	QDialog (parent)
 {
 	short coordCount = 0;
@@ -55,11 +55,13 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	LDObject* defaults = LDObject::getDefault (type);
 	
 	lb_typeIcon = new QLabel;
-	lb_typeIcon->setPixmap (QPixmap (iconName.chars ()));
+	lb_typeIcon->setPixmap (QPixmap (iconName));
 	
 	switch (type) {
 	case OBJ_Comment:
 		le_comment = new QLineEdit;
+		if (obj)
+			le_comment->setText (static_cast<LDComment*> (obj)->zText);
 		break;
 	
 	case OBJ_Line:
@@ -151,6 +153,15 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		
 		sb_radRingNum = new QSpinBox;
 		sb_radRingNum->setEnabled (false);
+		
+		if (obj) {
+			LDRadial* rad = static_cast<LDRadial*> (obj);
+			
+			bb_radType->setValue (rad->eRadialType);
+			sb_radSegments->setValue (rad->dSegments);
+			cb_radHiRes->setChecked ((rad->dDivisions == 48) ? Qt::Checked : Qt::Unchecked);
+			sb_radRingNum->setValue (rad->dRingNum);
+		}
 		break;
 	
 	default:
@@ -178,6 +189,18 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	layout->addWidget (lb_typeIcon, 0, 0);
 	
 	switch (type) {
+	case OBJ_Line:
+	case OBJ_CondLine:
+	case OBJ_Triangle:
+	case OBJ_Quad:
+		// Apply coordinates
+		if (obj) {
+			for (short i = 0; i < coordCount / 3; ++i)
+			for (short j = 0; j < 3; ++j)
+				dsb_coords[(i * 3) + j]->setValue (obj->vaCoords[i].coord (j));
+		}
+		break;
+	
 	case OBJ_Comment:
 		layout->addWidget (le_comment, 0, 1);
 		break;
@@ -189,11 +212,20 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		layout->addWidget (sb_radSegments, 2, 3);
 		layout->addWidget (lb_radRingNum, 3, 2);
 		layout->addWidget (sb_radRingNum, 3, 3);
+		
+		if (obj)
+			for (short i = 0; i < 3; ++i)
+				dsb_coords[0]->setValue (static_cast<LDRadial*> (obj)->vPosition.coord (i));
 		break;
 	
 	case OBJ_Subfile:
 		layout->addWidget (tw_subfileList, 1, 1);
 		layout->addWidget (le_subfileName, 2, 1);
+		
+		if (obj)
+			for (short i = 0; i < 3; ++i)
+				dsb_coords[0]->setValue (static_cast<LDSubfile*> (obj)->vPosition.coord (i));
+		break;
 	
 	default:
 		break;
@@ -269,71 +301,78 @@ void AddObjectDialog::slot_subfileTypeChanged () {
 		le_subfileName->setText (name);
 }
 
+template<class T> T* initObj (LDObject*& obj) {
+	if (obj == null)
+		obj = new T;
+	
+	return static_cast<T*> (obj);
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* window) {
-	AddObjectDialog dlg (type, window);
-	LDObject* obj = null;
+void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
+	AddObjectDialog dlg (type, obj);
+	
+	if (obj)
+		assert (obj->getType () == type);
 	
 	if (dlg.exec () == false)
 		return;
 	
 	switch (type) {
 	case OBJ_Comment:
-		obj = new LDComment (dlg.le_comment->text ());
+		{
+			LDComment* comm = initObj<LDComment> (obj);
+			comm->zText = dlg.le_comment->text ();
+		}
 		break;
 	
 	case OBJ_Line:
 		{
-			LDLine* line = new LDLine;
+			LDLine* line = initObj<LDLine> (obj);
 			line->dColor = dlg.dColor;
 			APPLY_COORDS (line, 2)
-			obj = line;
 		}
 		break;
 	
 	case OBJ_Triangle:
 		{
-			LDTriangle* tri = new LDTriangle;
+			LDTriangle* tri = initObj<LDTriangle> (obj);
 			tri->dColor = dlg.dColor;
 			APPLY_COORDS (tri, 3)
-			obj = tri;
 		}
 		break;
 	
 	case OBJ_Quad:
 		{
-			LDQuad* quad = new LDQuad;
+			LDQuad* quad = initObj<LDQuad> (obj);
 			quad->dColor = dlg.dColor;
 			APPLY_COORDS (quad, 4)
-			obj = quad;
 		}
 		break;
 	
 	case OBJ_CondLine:
 		{
-			LDCondLine* line = new LDCondLine;
+			LDCondLine* line = initObj<LDCondLine> (obj);
 			line->dColor = dlg.dColor;
 			APPLY_COORDS (line, 4)
-			obj = line;
 		}
 		break;
 	
 	case OBJ_Vertex:
 		{
-			LDVertex* vert = new LDVertex;
+			LDVertex* vert = initObj<LDVertex> (obj);
 			vert->dColor = dlg.dColor;
 			vert->vPosition.x = dlg.dsb_coords[0]->value ();
 			vert->vPosition.y = dlg.dsb_coords[1]->value ();
 			vert->vPosition.z = dlg.dsb_coords[2]->value ();
-			obj = vert;
 		}
 		break;
 	
 	case OBJ_Radial:
 		{
-			LDRadial* pRad = new LDRadial;
+			LDRadial* pRad = initObj<LDRadial> (obj);
 			pRad->dColor = dlg.dColor;
 			pRad->vPosition.x = dlg.dsb_coords[0]->value ();
 			pRad->vPosition.y = dlg.dsb_coords[1]->value ();
@@ -343,8 +382,6 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
 			pRad->dRingNum = dlg.sb_radRingNum->value ();
 			pRad->mMatrix = g_mIdentity;
-			
-			obj = pRad;
 		}
 		break;
 	
@@ -354,7 +391,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			if (~name == 0)
 				return; // no subfile filename
 			
-			LDSubfile* ref = new LDSubfile;
+			LDSubfile* ref = initObj<LDSubfile> (obj);
 			ref->dColor = dlg.dColor;
 			ref->vPosition.x = dlg.dsb_coords[0]->value ();
 			ref->vPosition.y = dlg.dsb_coords[1]->value ();
@@ -362,8 +399,6 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 			ref->zFileName = name;
 			ref->mMatrix = g_mIdentity;
 			ref->pFile = loadSubfile (name);
-			
-			obj = ref;
 		}
 		break;
 	
@@ -373,5 +408,5 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* wind
 	
 	ulong idx = g_CurrentFile->addObject (obj);
 	History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
-	window->refresh ();
+	g_ForgeWindow->refresh ();
 }

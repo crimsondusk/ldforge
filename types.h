@@ -88,9 +88,14 @@ public:
 	}
 	
 	// =========================================================================
+	double coord (const ushort n) const {
+		return *(&x + n);
+	}
+	
+	// =========================================================================
 	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
-	str stringRep (const bool bMangled);
+	str stringRep (const bool mangled);
 	void transform (matrix mMatrix, vertex pos);
 };
 

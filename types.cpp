@@ -17,10 +17,10 @@ vertex vertex::midpoint (vertex& other) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str vertex::stringRep (const bool bMangled) {
-	const char* sFormat = (bMangled) ? "(%s, %s, %s)" : "%s %s %s";
+str vertex::stringRep (const bool mangled) {
+	const char* fmt = mangled ? "(%s, %s, %s)" : "%s %s %s";
 	
-	return format (sFormat,
+	return format (fmt,
 		ftoa (x).chars(),
 		ftoa (y).chars(),
 		ftoa (z).chars());
@@ -29,11 +29,11 @@ str vertex::stringRep (const bool bMangled) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void vertex::transform (matrix mMatrix, vertex pos) {
+void vertex::transform (matrix transmatrx, vertex pos) {
 	double x2, y2, z2;
-	x2 = (mMatrix[0] * x) + (mMatrix[1] * y) + (mMatrix[2] * z) + pos.x;
-	y2 = (mMatrix[3] * x) + (mMatrix[4] * y) + (mMatrix[5] * z) + pos.y;
-	z2 = (mMatrix[6] * x) + (mMatrix[7] * y) + (mMatrix[8] * z) + pos.z;
+	x2 = (transmatrx[0] * x) + (transmatrx[1] * y) + (transmatrx[2] * z) + pos.x;
+	y2 = (transmatrx[3] * x) + (transmatrx[4] * y) + (transmatrx[5] * z) + pos.y;
+	z2 = (transmatrx[6] * x) + (transmatrx[7] * y) + (transmatrx[8] * z) + pos.z;
 	
 	x = x2;
 	y = y2;

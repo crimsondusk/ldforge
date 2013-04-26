@@ -99,6 +99,8 @@ typedef struct {
 // Init and parse parts.lst
 void initPartList ();
 
+ulong loadFileContents (FILE* fp, OpenFile* load, std::vector<LDObject*>* copies = null, ulong* idx = null);
+
 extern vector<OpenFile*> g_LoadedFiles;
 extern vector<partListEntry> g_PartList;
 

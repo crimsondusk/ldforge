@@ -84,6 +84,7 @@ EXTERN_ACTION (gridCoarse)
 EXTERN_ACTION (gridMedium)
 EXTERN_ACTION (gridFine)
 EXTERN_ACTION (resetView)
+EXTERN_ACTION (insertFrom)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -183,15 +184,17 @@ void ForgeWindow::createMenus () {
 	
 	// File menu
 	qFileMenu = menuBar ()->addMenu (tr ("&File"));
-	qFileMenu->addAction (ACTION (newFile));			// New
+	qFileMenu->addAction (ACTION (newFile));				// New
 	qFileMenu->addAction (ACTION (open));				// Open
-	qFileMenu->addMenu (qRecentFilesMenu);					// Open Recent
-	qFileMenu->addAction (ACTION (save));				// Save
-	qFileMenu->addAction (ACTION (saveAs));			// Save As
-	qFileMenu->addSeparator ();								// -------
-	qFileMenu->addAction (ACTION (settings));			// Settings
-	qFileMenu->addSeparator ();								// -------
-	qFileMenu->addAction (ACTION (exit));				// Exit
+	qFileMenu->addMenu (qRecentFilesMenu);				// Open Recent
+	qFileMenu->addAction (ACTION (save));					// Save
+	qFileMenu->addAction (ACTION (saveAs));				// Save As
+	qFileMenu->addSeparator ();							// -------
+	qFileMenu->addAction (ACTION (insertFrom));			// Insert from File
+	qFileMenu->addSeparator ();							// -------
+	qFileMenu->addAction (ACTION (settings));				// Settings
+	qFileMenu->addSeparator ();							// -------
+	qFileMenu->addAction (ACTION (exit));					// Exit
 	
 	// View menu
 	qViewMenu = menuBar ()->addMenu (tr ("&View"));
@@ -205,72 +208,72 @@ void ForgeWindow::createMenus () {
 	qInsertMenu->addAction (ACTION (newQuad));			// New Quad
 	qInsertMenu->addAction (ACTION (newCondLine));		// New Conditional Line
 	qInsertMenu->addAction (ACTION (newComment));		// New Comment
-	qInsertMenu->addAction (ACTION (newVertex));		// New Vertex
-	qInsertMenu->addAction (ACTION (newRadial));		// New Radial
+	qInsertMenu->addAction (ACTION (newVertex));			// New Vertex
+	qInsertMenu->addAction (ACTION (newRadial));			// New Radial
 	
 	// Edit menu
 	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
-	qEditMenu->addAction (ACTION (undo));				// Undo
+	qEditMenu->addAction (ACTION (undo));					// Undo
 	qEditMenu->addAction (ACTION (redo));				// Redo
-	qEditMenu->addSeparator ();								// -----
-	qEditMenu->addAction (ACTION (cut));				// Cut
-	qEditMenu->addAction (ACTION (copy));				// Copy
+	qEditMenu->addSeparator ();							// -----
+	qEditMenu->addAction (ACTION (cut));					// Cut
+	qEditMenu->addAction (ACTION (copy));					// Copy
 	qEditMenu->addAction (ACTION (paste));				// Paste
-	qEditMenu->addAction (ACTION (del));				// Delete
-	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addAction (ACTION (del));					// Delete
+	qEditMenu->addSeparator ();							// -----
 	qEditMenu->addAction (ACTION (selectByColor));		// Select by Color
 	qEditMenu->addAction (ACTION (selectByType));		// Select by Type
-	qEditMenu->addSeparator ();								// -----
+	qEditMenu->addSeparator ();							// -----
 	qEditMenu->addAction (ACTION (setColor));			// Set Color
-	qEditMenu->addAction (ACTION (invert));			// Invert
-	qEditMenu->addAction (ACTION (inlineContents));	// Inline
-	qEditMenu->addAction (ACTION (deepInline));		// Deep Inline
-	qEditMenu->addAction (ACTION (splitQuads));		// Split Quads
-	qEditMenu->addAction (ACTION (setContents));		// Set Contents
-	qEditMenu->addAction (ACTION (makeBorders));		// Make Borders
-	qEditMenu->addAction (ACTION (makeCornerVerts));	// Make Corner Vertices
-	qEditMenu->addAction (ACTION (roundCoords));		// Round Coordinates
+	qEditMenu->addAction (ACTION (invert));				// Invert
+	qEditMenu->addAction (ACTION (inlineContents));		// Inline
+	qEditMenu->addAction (ACTION (deepInline));			// Deep Inline
+	qEditMenu->addAction (ACTION (splitQuads));			// Split Quads
+	qEditMenu->addAction (ACTION (setContents));			// Set Contents
+	qEditMenu->addAction (ACTION (makeBorders));			// Make Borders
+	qEditMenu->addAction (ACTION (makeCornerVerts));		// Make Corner Vertices
+	qEditMenu->addAction (ACTION (roundCoords));			// Round Coordinates
 	
 	// Move menu
 	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
-	qMoveMenu->addAction (ACTION (moveUp));			// Move Up
+	qMoveMenu->addAction (ACTION (moveUp));				// Move Up
 	qMoveMenu->addAction (ACTION (moveDown));			// Move Down
-	qMoveMenu->addSeparator ();								// -----
-	qMoveMenu->addAction (ACTION (gridCoarse));		// Coarse Grid
-	qMoveMenu->addAction (ACTION (gridMedium));		// Medium Grid
+	qMoveMenu->addSeparator ();							// -----
+	qMoveMenu->addAction (ACTION (gridCoarse));			// Coarse Grid
+	qMoveMenu->addAction (ACTION (gridMedium));			// Medium Grid
 	qMoveMenu->addAction (ACTION (gridFine));			// Fine Grid
-	qMoveMenu->addSeparator ();								// -----
+	qMoveMenu->addSeparator ();							// -----
 	qMoveMenu->addAction (ACTION (moveXPos));			// Move +X
 	qMoveMenu->addAction (ACTION (moveXNeg));			// Move -X
 	qMoveMenu->addAction (ACTION (moveYPos));			// Move +Y
 	qMoveMenu->addAction (ACTION (moveYNeg));			// Move -Y
 	qMoveMenu->addAction (ACTION (moveZPos));			// Move +Z
 	qMoveMenu->addAction (ACTION (moveZNeg));			// Move -Z
-	qMoveMenu->addSeparator ();								// -----
-	qMoveMenu->addAction (ACTION (rotateXPos));		// Rotate +X
-	qMoveMenu->addAction (ACTION (rotateXNeg));		// Rotate -X
-	qMoveMenu->addAction (ACTION (rotateYPos));		// Rotate +Y
-	qMoveMenu->addAction (ACTION (rotateYNeg));		// Rotate -Y
-	qMoveMenu->addAction (ACTION (rotateZPos));		// Rotate +Z
-	qMoveMenu->addAction (ACTION (rotateZNeg));		// Rotate -Z
+	qMoveMenu->addSeparator ();							// -----
+	qMoveMenu->addAction (ACTION (rotateXPos));			// Rotate +X
+	qMoveMenu->addAction (ACTION (rotateXNeg));			// Rotate -X
+	qMoveMenu->addAction (ACTION (rotateYPos));			// Rotate +Y
+	qMoveMenu->addAction (ACTION (rotateYNeg));			// Rotate -Y
+	qMoveMenu->addAction (ACTION (rotateZPos));			// Rotate +Z
+	qMoveMenu->addAction (ACTION (rotateZNeg));			// Rotate -Z
 	
 	// Control menu
 	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
-	qControlMenu->addAction (ACTION (showHistory));	// Show History
+	qControlMenu->addAction (ACTION (showHistory));		// Show History
 	
 #ifndef RELEASE
 	// Debug menu
 	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
 	qDebugMenu->addAction (ACTION (addTestQuad));		// Add Test Quad
-	qDebugMenu->addAction (ACTION (addTestRadial));	// Add Test Radial
+	qDebugMenu->addAction (ACTION (addTestRadial));		// Add Test Radial
 #endif // RELEASE
 	
 	// Help menu
 	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
 	qHelpMenu->addAction (ACTION (help));				// Help
-	qHelpMenu->addSeparator ();								// -----
+	qHelpMenu->addSeparator ();							// -----
 	qHelpMenu->addAction (ACTION (about));				// About
-	qHelpMenu->addAction (ACTION (aboutQt));			// About Qt
+	qHelpMenu->addAction (ACTION (aboutQt));				// About Qt
 }
 
 // =============================================================================
@@ -906,4 +909,10 @@ bool confirm (str msg) {
 bool confirm (str title, str msg) {
 	return QMessageBox::question (g_ForgeWindow, title, msg,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
+}
+
+// =============================================================================
+void critical (str msg) {
+	QMessageBox::critical (g_ForgeWindow, APPNAME_DISPLAY ": Critical Error", msg,
+		(QMessageBox::Close), QMessageBox::Close);
 }
