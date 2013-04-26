@@ -33,7 +33,9 @@
 		return new LD##T (*this); \
 	} \
 	virtual void move (vertex vVector); \
-	virtual short vertices () const { return NUMVERTS; }
+	virtual short vertices () const { return NUMVERTS; } \
+
+#define LDOBJ_COLORED(V) virtual bool isColored () const { return V; }
 
 class QTreeWidgetItem;
 class LDSubfile;
@@ -117,7 +119,17 @@ public:
 	LDObject* topLevelParent ();
 	
 	// Number of vertices this object has
-	virtual short vertices () const { return 0; }
+	virtual short vertices () const {
+		return 0;
+	}
+	
+	// Is this object colored?
+	virtual bool isColored () const {
+		return false;
+	}
+	
+	// Returns a sample object by the given value
+	static LDObject* getDefault (const LDObjectType_e type);
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (const std::vector<LDObject*>& objs);
@@ -136,6 +148,7 @@ public:
 class LDGibberish : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Gibberish, 0)
+	LDOBJ_COLORED (false)
 	
 	LDGibberish (str _zContent, str _zReason);
 	
@@ -154,6 +167,7 @@ public:
 class LDEmpty : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Empty, 0)
+	LDOBJ_COLORED (false)
 };
 
 // =============================================================================
@@ -165,6 +179,8 @@ public:
 class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment, 0)
+	LDOBJ_COLORED (false)
+	
 	LDComment (str zText) : zText (zText) {}
 	
 	str zText; // The text of this comment
@@ -189,6 +205,8 @@ public:
 	};
 	
 	IMPLEMENT_LDTYPE (BFC, 0)
+	LDOBJ_COLORED (false)
+	
 	LDBFC (const LDBFC::Type eType) : eStatement (eType) {}
 	
 	// Statement strings
@@ -205,6 +223,7 @@ public:
 class LDSubfile : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Subfile, 0)
+	LDOBJ_COLORED (true)
 	
 	vertex vPosition; // Position of the subpart
 	matrix mMatrix; // Transformation matrix for the subpart
@@ -225,6 +244,8 @@ public:
 class LDLine : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Line, 2)
+	LDOBJ_COLORED (true)
+	
 	LDLine (vertex v1, vertex v2);
 };
 
@@ -237,6 +258,7 @@ public:
 class LDCondLine : public LDLine {
 public:
 	IMPLEMENT_LDTYPE (CondLine, 4)
+	LDOBJ_COLORED (true)
 };
 
 // =============================================================================
@@ -249,6 +271,7 @@ public:
 class LDTriangle : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Triangle, 3)
+	LDOBJ_COLORED (true)
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
 		vaCoords[0] = _v0;
@@ -266,6 +289,7 @@ public:
 class LDQuad : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Quad, 4)
+	LDOBJ_COLORED (true)
 	
 	// Split this quad into two triangles
 	vector<LDTriangle*> splitToTriangles ();
@@ -282,6 +306,7 @@ public:
 class LDVertex : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move vPosition to vaCoords[0]
+	LDOBJ_COLORED (true)
 	
 	vertex vPosition;
 };
@@ -308,6 +333,7 @@ public:
 	};
 	
 	IMPLEMENT_LDTYPE (Radial, 0)
+	LDOBJ_COLORED (true)
 	
 	LDRadial::Type eRadialType;
 	vertex vPosition;

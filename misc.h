@@ -72,8 +72,6 @@ template<class T> void dataswap (T& a, T& b) {
 	b = c;
 }
 
-uchar luma (QColor& col);
-
 // =============================================================================
 // StringParser
 //

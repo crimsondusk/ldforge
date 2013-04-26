@@ -28,10 +28,21 @@
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) { \
-		OBJ->vaCoords[i].x = dlg.qaCoordinates[(i * 3) + 0]->value (); \
-		OBJ->vaCoords[i].y = dlg.qaCoordinates[(i * 3) + 1]->value (); \
-		OBJ->vaCoords[i].z = dlg.qaCoordinates[(i * 3) + 2]->value (); \
+		OBJ->vaCoords[i].x = dlg.dsb_coords[(i * 3) + 0]->value (); \
+		OBJ->vaCoords[i].y = dlg.dsb_coords[(i * 3) + 1]->value (); \
+		OBJ->vaCoords[i].z = dlg.dsb_coords[(i * 3) + 2]->value (); \
 	}
+
+// =============================================================================
+class SubfileListItem : public QTreeWidgetItem {
+public:
+	SubfileListItem (QTreeWidgetItem* parent, int subfileID) :
+		QTreeWidgetItem (parent), subfileID (subfileID) {}
+	SubfileListItem (QTreeWidget* parent, int subfileID) :
+		QTreeWidgetItem (parent), subfileID (subfileID) {}
+	
+	int subfileID;
+};
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -39,35 +50,83 @@
 AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	QDialog (parent)
 {
-	short dCoordCount = 0;
-	str zIconName = format ("icons/add-%s.png", g_saObjTypeIcons[type]);
+	short coordCount = 0;
+	str iconName = format ("icons/add-%s.png", g_saObjTypeIcons[type]);
+	LDObject* defaults = LDObject::getDefault (type);
 	
-	qTypeIcon = new QLabel;
-	qTypeIcon->setPixmap (QPixmap (zIconName.chars ()));
+	lb_typeIcon = new QLabel;
+	lb_typeIcon->setPixmap (QPixmap (iconName.chars ()));
 	
 	switch (type) {
 	case OBJ_Comment:
-		qCommentLine = new QLineEdit;
+		le_comment = new QLineEdit;
 		break;
 	
 	case OBJ_Line:
-		dCoordCount = 6;
+		coordCount = 6;
 		break;
 	
 	case OBJ_Triangle:
-		dCoordCount = 9;
+		coordCount = 9;
 		break;
 	
 	case OBJ_Quad:
 	case OBJ_CondLine:
-		dCoordCount = 12;
+		coordCount = 12;
 		break;
 	
 	case OBJ_Vertex:
-		dCoordCount = 3;
+		coordCount = 3;
+	
+	case OBJ_Subfile:
+		coordCount = 3;
+		
+		enum {
+			Parts,
+			Subparts,
+			Primitives,
+			HiRes,
+		};
+		
+		tw_subfileList = new QTreeWidget ();
+		for (int i : vector<int> ({Parts, Subparts, Primitives, HiRes})) {
+			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, -1);
+			parentItem->setText (0, (i == Parts) ? "Parts" :
+				(i == Subparts) ? "Subparts" :
+				(i == Primitives) ? "Primitives" :
+				"Hi-Res");
+			
+			ulong j = 0;
+			for (partListEntry& part : g_PartList) {
+				QList<QTreeWidgetItem*> subfileItems;
+				
+				str fileName = part.sName;
+				const bool isSubpart = fileName.substr (0, 2) == "s\\";
+				const bool isPrimitive = str (part.sTitle).substr (0, 9) == "Primitive";
+				const bool isHiRes = fileName.substr (0, 3) == "48\\";
+				
+				if ((i == Subparts && isSubpart) ||
+					(i == Primitives && isPrimitive) ||
+					(i == HiRes && isHiRes) ||
+					(i == Parts && !isSubpart && !isPrimitive && !isHiRes))
+				{
+					SubfileListItem* item = new SubfileListItem (parentItem, j);
+					item->setText (0, format ("%s - %s", part.sName, part.sTitle));
+					subfileItems.append (item);
+				}
+				
+				j++;
+			}
+			
+			tw_subfileList->addTopLevelItem (parentItem);
+		}
+		
+		connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
+		le_subfileName = new QLineEdit ();
+		break;
 	
 	case OBJ_Radial:
-		dCoordCount = 3;
+		coordCount = 3;
 		
 		lb_radType = new QLabel ("Type:");
 		lb_radResolution = new QLabel ("Resolution:");
@@ -77,10 +136,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 		bb_radType = new ButtonBox<QRadioButton> ("Type", {}, 0, Qt::Vertical);
 		
 		for (int i = 0; i < LDRadial::NumTypes; ++i) {
-			bb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
-			
-			if (i % (LDRadial::NumTypes / 2) == ((LDRadial::NumTypes / 2) - 1))
+			if (i % (LDRadial::NumTypes / 2) == 0)
 				bb_radType->rowBreak ();
+			
+			bb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
 		}
 		
 		connect (bb_radType->buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
@@ -99,77 +158,66 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, QWidget* parent) :
 	}
 	
 	// Show a color edit dialog for the types that actually use the color
-	bool bUsesColor = false;
-	switch (type) {
-	case OBJ_CondLine:
-	case OBJ_Line:
-	case OBJ_Quad:
-	case OBJ_Triangle:
-	case OBJ_Vertex:
-	case OBJ_Subfile:
-	case OBJ_Radial:
-		bUsesColor = true;
-		break;
-	default:
-		break;
-	}
-	
-	if (bUsesColor) {
+	if (defaults->isColored ()) {
 		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? dEdgeColor : dMainColor;
 		
-		qColorButton = new QPushButton;
-		setButtonBackground (qColorButton, dColor);
-		connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_colorButtonClicked ()));
+		pb_color = new QPushButton;
+		setButtonBackground (pb_color, dColor);
+		connect (pb_color, SIGNAL (clicked ()), this, SLOT (slot_colorButtonClicked ()));
 	}
 	
-	for (short i = 0; i < dCoordCount; ++i) {
-		qaCoordinates[i] = new QDoubleSpinBox;
-		qaCoordinates[i]->setMaximumWidth (96);
-		qaCoordinates[i]->setMinimum (-fMaxCoord);
-		qaCoordinates[i]->setMaximum (fMaxCoord);
+	for (short i = 0; i < coordCount; ++i) {
+		dsb_coords[i] = new QDoubleSpinBox;
+		dsb_coords[i]->setMinimum (-fMaxCoord);
+		dsb_coords[i]->setMaximum (fMaxCoord);
 	}
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
-	QGridLayout* const qLayout = new QGridLayout;
-	qLayout->addWidget (qTypeIcon, 0, 0);
+	QGridLayout* const layout = new QGridLayout;
+	layout->addWidget (lb_typeIcon, 0, 0);
 	
 	switch (type) {
 	case OBJ_Comment:
-		qLayout->addWidget (qCommentLine, 0, 1);
+		layout->addWidget (le_comment, 0, 1);
 		break;
 	
 	case OBJ_Radial:
-		qLayout->addWidget (bb_radType, 1, 1, 3, 1);
-		qLayout->addWidget (cb_radHiRes, 1, 2);
-		qLayout->addWidget (lb_radSegments, 2, 2);
-		qLayout->addWidget (sb_radSegments, 2, 3);
-		qLayout->addWidget (lb_radRingNum, 3, 2);
-		qLayout->addWidget (sb_radRingNum, 3, 3);
+		layout->addWidget (bb_radType, 1, 1, 3, 1);
+		layout->addWidget (cb_radHiRes, 1, 2);
+		layout->addWidget (lb_radSegments, 2, 2);
+		layout->addWidget (sb_radSegments, 2, 3);
+		layout->addWidget (lb_radRingNum, 3, 2);
+		layout->addWidget (sb_radRingNum, 3, 3);
 		break;
+	
+	case OBJ_Subfile:
+		layout->addWidget (tw_subfileList, 1, 1);
+		layout->addWidget (le_subfileName, 2, 1);
 	
 	default:
 		break;
 	}
 	
-	if (bUsesColor)
-		qLayout->addWidget (qColorButton, 1, 0);
+	if (defaults->isColored ())
+		layout->addWidget (pb_color, 1, 0);
 	
-	if (dCoordCount > 0) {
+	if (coordCount > 0) {
 		QGridLayout* const qCoordLayout = new QGridLayout;
 		
-		for (short i = 0; i < dCoordCount; ++i)
-			qCoordLayout->addWidget (qaCoordinates[i], (i / 3), (i % 3));
+		for (short i = 0; i < coordCount; ++i)
+			qCoordLayout->addWidget (dsb_coords[i], (i / 3), (i % 3));
 		
-		qLayout->addLayout (qCoordLayout, 0, 1, (dCoordCount / 3), 3);
+		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
 	}
 	
-	qLayout->addWidget (bbx_buttons, 5, 0, 1, 4);
-	setLayout (qLayout);
+	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
+	setLayout (layout);
 	setWindowTitle (format (APPNAME_DISPLAY " - new %s",
 		g_saObjTypeNames[type]).chars());
 	
-	setWindowIcon (QIcon (zIconName.chars ()));
+	setWindowIcon (QIcon (iconName.chars ()));
+	delete defaults;
 }
 
 // =============================================================================
@@ -186,9 +234,21 @@ void AddObjectDialog::setButtonBackground (QPushButton* qButton, short dColor) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+char* AddObjectDialog::currentSubfileName() {
+	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem ());
+	
+	if (item->subfileID == -1)
+		return null; // selected a heading
+	
+	return g_PartList[item->subfileID].sName;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void AddObjectDialog::slot_colorButtonClicked () {
 	ColorSelectDialog::staticDialog (dColor, dColor, this);
-	setButtonBackground (qColorButton, dColor);
+	setButtonBackground (pb_color, dColor);
 }
 
 // =============================================================================
@@ -202,86 +262,116 @@ void AddObjectDialog::slot_radialTypeChanged (int dType) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void AddObjectDialog::slot_subfileTypeChanged () {
+	char* name = currentSubfileName ();
+	
+	if (name)
+		le_subfileName->setText (name);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void AddObjectDialog::staticDialog (const LDObjectType_e type, ForgeWindow* window) {
 	AddObjectDialog dlg (type, window);
 	LDObject* obj = null;
 	
-	if (dlg.exec ()) {
-		switch (type) {
-		case OBJ_Comment:
-			obj = new LDComment (dlg.qCommentLine->text ());
-			break;
-		
-		case OBJ_Line:
-			{
-				LDLine* line = new LDLine;
-				line->dColor = dlg.dColor;
-				APPLY_COORDS (line, 2)
-				obj = line;
-			}
-			break;
-		
-		case OBJ_Triangle:
-			{
-				LDTriangle* tri = new LDTriangle;
-				tri->dColor = dlg.dColor;
-				APPLY_COORDS (tri, 3)
-				obj = tri;
-			}
-			break;
-		
-		case OBJ_Quad:
-			{
-				LDQuad* quad = new LDQuad;
-				quad->dColor = dlg.dColor;
-				APPLY_COORDS (quad, 4)
-				obj = quad;
-			}
-			break;
-		
-		case OBJ_CondLine:
-			{
-				LDCondLine* line = new LDCondLine;
-				line->dColor = dlg.dColor;
-				APPLY_COORDS (line, 4)
-				obj = line;
-			}
-			break;
-		
-		case OBJ_Vertex:
-			{
-				LDVertex* vert = new LDVertex;
-				vert->dColor = dlg.dColor;
-				vert->vPosition.x = dlg.qaCoordinates[0]->value ();
-				vert->vPosition.y = dlg.qaCoordinates[1]->value ();
-				vert->vPosition.z = dlg.qaCoordinates[2]->value ();
-				obj = vert;
-			}
-			break;
-		
-		case OBJ_Radial:
-			{
-				LDRadial* pRad = new LDRadial;
-				pRad->dColor = dlg.dColor;
-				pRad->vPosition.x = dlg.qaCoordinates[0]->value ();
-				pRad->vPosition.y = dlg.qaCoordinates[1]->value ();
-				pRad->vPosition.z = dlg.qaCoordinates[2]->value ();
-				pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
-				pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
-				pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
-				pRad->dRingNum = dlg.sb_radRingNum->value ();
-				pRad->mMatrix = g_mIdentity;
-				
-				obj = pRad;
-			}
-			break;
-		
-		default:
-			break;
+	if (dlg.exec () == false)
+		return;
+	
+	switch (type) {
+	case OBJ_Comment:
+		obj = new LDComment (dlg.le_comment->text ());
+		break;
+	
+	case OBJ_Line:
+		{
+			LDLine* line = new LDLine;
+			line->dColor = dlg.dColor;
+			APPLY_COORDS (line, 2)
+			obj = line;
 		}
-		
-		ulong idx = g_CurrentFile->addObject (obj);
-		History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
-		window->refresh ();
+		break;
+	
+	case OBJ_Triangle:
+		{
+			LDTriangle* tri = new LDTriangle;
+			tri->dColor = dlg.dColor;
+			APPLY_COORDS (tri, 3)
+			obj = tri;
+		}
+		break;
+	
+	case OBJ_Quad:
+		{
+			LDQuad* quad = new LDQuad;
+			quad->dColor = dlg.dColor;
+			APPLY_COORDS (quad, 4)
+			obj = quad;
+		}
+		break;
+	
+	case OBJ_CondLine:
+		{
+			LDCondLine* line = new LDCondLine;
+			line->dColor = dlg.dColor;
+			APPLY_COORDS (line, 4)
+			obj = line;
+		}
+		break;
+	
+	case OBJ_Vertex:
+		{
+			LDVertex* vert = new LDVertex;
+			vert->dColor = dlg.dColor;
+			vert->vPosition.x = dlg.dsb_coords[0]->value ();
+			vert->vPosition.y = dlg.dsb_coords[1]->value ();
+			vert->vPosition.z = dlg.dsb_coords[2]->value ();
+			obj = vert;
+		}
+		break;
+	
+	case OBJ_Radial:
+		{
+			LDRadial* pRad = new LDRadial;
+			pRad->dColor = dlg.dColor;
+			pRad->vPosition.x = dlg.dsb_coords[0]->value ();
+			pRad->vPosition.y = dlg.dsb_coords[1]->value ();
+			pRad->vPosition.z = dlg.dsb_coords[2]->value ();
+			pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
+			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
+			pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
+			pRad->dRingNum = dlg.sb_radRingNum->value ();
+			pRad->mMatrix = g_mIdentity;
+			
+			obj = pRad;
+		}
+		break;
+	
+	case OBJ_Subfile:
+		{
+			str name = dlg.le_subfileName->text ();
+			if (~name == 0)
+				return; // no subfile filename
+			
+			LDSubfile* ref = new LDSubfile;
+			ref->dColor = dlg.dColor;
+			ref->vPosition.x = dlg.dsb_coords[0]->value ();
+			ref->vPosition.y = dlg.dsb_coords[1]->value ();
+			ref->vPosition.z = dlg.dsb_coords[2]->value ();
+			ref->zFileName = name;
+			ref->mMatrix = g_mIdentity;
+			ref->pFile = loadSubfile (name);
+			
+			obj = ref;
+		}
+		break;
+	
+	default:
+		break;
 	}
+	
+	ulong idx = g_CurrentFile->addObject (obj);
+	History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
+	window->refresh ();
 }

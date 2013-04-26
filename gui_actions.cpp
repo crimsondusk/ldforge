@@ -119,7 +119,7 @@ MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME_DISPLAY ".", CTRL (Q)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (newSubfile, "New Subfile", "add-subfile", "Creates a new subfile reference.", 0) {
-	
+	AddObjectDialog::staticDialog (OBJ_Subfile, g_ForgeWindow);
 }
 
 MAKE_ACTION (newLine, "New Line",  "add-line", "Creates a new line.", 0) {

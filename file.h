@@ -100,5 +100,6 @@ typedef struct {
 void initPartList ();
 
 extern vector<OpenFile*> g_LoadedFiles;
+extern vector<partListEntry> g_PartList;
 
 #endif // FILE_H

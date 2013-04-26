@@ -706,3 +706,25 @@ str LDRadial::makeFileName () {
 	// Stick them all together and return the result.
 	return format ("%s%s%s%s", zPrefix.chars(), zFrac.chars (), zRoot.chars (), zRingNum.chars ());
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+#define CHECK_FOR_OBJ(N) \
+	if (type == OBJ_##N) \
+		return new LD##N;
+LDObject* LDObject::getDefault (const LDObjectType_e type) {
+	CHECK_FOR_OBJ (Comment)
+	CHECK_FOR_OBJ (BFC)
+	CHECK_FOR_OBJ (Line)
+	CHECK_FOR_OBJ (CondLine)
+	CHECK_FOR_OBJ (Radial)
+	CHECK_FOR_OBJ (Subfile)
+	CHECK_FOR_OBJ (Triangle)
+	CHECK_FOR_OBJ (Quad)
+	CHECK_FOR_OBJ (Empty)
+	CHECK_FOR_OBJ (BFC)
+	CHECK_FOR_OBJ (Gibberish)
+	CHECK_FOR_OBJ (Vertex)
+	return null;
+}

@@ -40,6 +40,7 @@ typedef struct {
 
 void initColors ();
 void parseLDConfig ();
+uchar luma (QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
 color* getColor (short dColorNum);

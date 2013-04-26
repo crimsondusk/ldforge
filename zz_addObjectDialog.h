@@ -28,6 +28,7 @@
 #include <qspinbox.h>
 #include <qlabel.h>
 #include <qradiobutton.h>
+#include <qlistwidget.h>
 
 class AddObjectDialog : public QDialog {
 	Q_OBJECT
@@ -36,16 +37,20 @@ public:
     AddObjectDialog (const LDObjectType_e type, QWidget* parent = null);
 	static void staticDialog (const LDObjectType_e type, ForgeWindow* window);
 	
-	QLabel* qTypeIcon;
+	QLabel* lb_typeIcon;
 	
 	// -- COMMENT --
-	QLineEdit* qCommentLine;
+	QLineEdit* le_comment;
 	
 	// Coordinate edits for.. anything with coordinates, really.
-	QDoubleSpinBox* qaCoordinates[12];
+	QDoubleSpinBox* dsb_coords[12];
 	
 	// Color selection dialog button
-	QPushButton* qColorButton;
+	QPushButton* pb_color;
+	
+	// Subfile stuff
+	QTreeWidget* tw_subfileList;
+	QLineEdit* le_subfileName;
 	
 	// Radial stuff
 	QCheckBox* cb_radHiRes;
@@ -58,12 +63,14 @@ public:
 	
 private:
 	void setButtonBackground (QPushButton* qButton, short dColor);
+	char* currentSubfileName ();
 	
 	short dColor;
 	
 private slots:
 	void slot_colorButtonClicked ();
 	void slot_radialTypeChanged (int dType);
+	void slot_subfileTypeChanged ();
 };
 
 #endif // ZZ_ADDOBJECTDIALOG_H
