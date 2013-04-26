@@ -684,6 +684,17 @@ void ForgeWindow::buildObjList () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ForgeWindow::scrollToSelection () {
+	if (sel.size() == 0)
+		return;
+	
+	LDObject* obj = sel[sel.size () - 1];
+	qObjList->scrollToItem (obj->qObjListEntry);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ForgeWindow::slot_selectionChanged () {
 	if (g_bSelectionLocked == true)
 		return;
@@ -759,16 +770,9 @@ void ForgeWindow::slot_quickColor () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong ForgeWindow::getInsertionPoint () {
-	ulong ulIndex;
-	
-	if (qObjList->selectedItems().size() == 1) {
+	if (sel.size () > 0) {
 		// If we have a selection, put the item after it.
-		for (ulIndex = 0; ulIndex < g_CurrentFile->objects.size(); ++ulIndex)
-			if (g_CurrentFile->objects[ulIndex]->qObjListEntry == qObjList->selectedItems()[0])
-				break;
-		
-		if (ulIndex >= g_CurrentFile->objects.size())
-			return ulIndex + 1;
+		return (sel[sel.size() - 1]->getIndex (g_CurrentFile)) + 1;
 	}
 	
 	// Otherwise place the object at the end.
@@ -811,6 +815,7 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
+	qObjList->clearSelection ();
 	for (LDObject* obj : sel)
 		obj->qObjListEntry->setSelected (true);
 	

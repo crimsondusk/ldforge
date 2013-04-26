@@ -78,20 +78,24 @@ MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", C
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
-	vector<ulong> ulaIndices;
-	vector<LDObject*> paCopies;
+	vector<ulong> historyIndices;
+	vector<LDObject*> historyCopies;
 	
 	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	g_ForgeWindow->sel.clear ();
 	
 	for (LDObject* obj : g_Clipboard) {
-		ulaIndices.push_back (idx);
-		paCopies.push_back (obj->clone ());
+		historyIndices.push_back (idx);
+		historyCopies.push_back (obj->clone ());
 		
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, obj->clone ());
+		LDObject* copy = obj->clone ();
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, copy);
+		g_ForgeWindow->sel.push_back (copy);
 	}
 	
-	History::addEntry (new AddHistory (ulaIndices, paCopies, AddHistory::Paste));
+	History::addEntry (new AddHistory (historyIndices, historyCopies, AddHistory::Paste));
 	g_ForgeWindow->refresh ();
+	g_ForgeWindow->scrollToSelection ();
 }
 
 // =============================================================================

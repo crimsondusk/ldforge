@@ -143,6 +143,7 @@ public:
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
 	LDObjectType_e uniformSelectedType ();
+	void scrollToSelection ();
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
