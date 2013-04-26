@@ -85,6 +85,7 @@ EXTERN_ACTION (gridMedium)
 EXTERN_ACTION (gridFine)
 EXTERN_ACTION (resetView)
 EXTERN_ACTION (insertFrom)
+EXTERN_ACTION (insertRaw)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -190,8 +191,6 @@ void ForgeWindow::createMenus () {
 	qFileMenu->addAction (ACTION (save));					// Save
 	qFileMenu->addAction (ACTION (saveAs));				// Save As
 	qFileMenu->addSeparator ();							// -------
-	qFileMenu->addAction (ACTION (insertFrom));			// Insert from File
-	qFileMenu->addSeparator ();							// -------
 	qFileMenu->addAction (ACTION (settings));				// Settings
 	qFileMenu->addSeparator ();							// -------
 	qFileMenu->addAction (ACTION (exit));					// Exit
@@ -202,6 +201,9 @@ void ForgeWindow::createMenus () {
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
+	qInsertMenu->addAction (ACTION (insertFrom));			// Insert from File
+	qInsertMenu->addAction (ACTION (insertRaw));			// Insert Raw
+	qInsertMenu->addSeparator ();							// -------
 	qInsertMenu->addAction (ACTION (newSubfile));		// New Subfile
 	qInsertMenu->addAction (ACTION (newLine));			// New Line
 	qInsertMenu->addAction (ACTION (newTriangle));		// New Triangle

@@ -243,11 +243,15 @@ MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3
 }
 
 // =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
 	g_ForgeWindow->R->resetAngles ();
 	g_ForgeWindow->R->updateGL ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data from a file.", (0)) {
 	str fname = QFileDialog::getOpenFileName ();
@@ -278,6 +282,47 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	}
 	
 	if (historyCopies.size() > 0) {
+		History::addEntry (new AddHistory (historyIndices, historyCopies));
+		g_ForgeWindow->refresh ();
+		g_ForgeWindow->scrollToSelection ();
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to insert.", (0)) {
+	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	
+	QDialog* const dlg = new QDialog;
+	QVBoxLayout* const layout = new QVBoxLayout;
+	QTextEdit* const te_edit = new QTextEdit;
+	QDialogButtonBox* const bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	std::vector<LDObject*> historyCopies;
+	std::vector<ulong> historyIndices;
+	
+	layout->addWidget (te_edit);
+	layout->addWidget (bbx_buttons);
+	dlg->setLayout (layout);
+	dlg->connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
+	dlg->connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	
+	if (dlg->exec () == false)
+		return;
+	
+	g_ForgeWindow->sel.clear ();
+	
+	for (str line : str (te_edit->toPlainText ()).split ("\n")) {
+		LDObject* obj = parseLine (line);
+		
+		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, obj);
+		historyIndices.push_back (idx);
+		historyCopies.push_back (obj->clone ());
+		g_ForgeWindow->sel.push_back (obj);
+		idx++;
+	}
+	
+	if (historyCopies.size () > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
 		g_ForgeWindow->refresh ();
 		g_ForgeWindow->scrollToSelection ();
