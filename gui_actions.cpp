@@ -304,6 +304,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	layout->addWidget (te_edit);
 	layout->addWidget (bbx_buttons);
 	dlg->setLayout (layout);
+	dlg->setWindowTitle (APPNAME_DISPLAY ": Insert Raw");
 	dlg->connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
 	dlg->connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
 	
@@ -327,6 +328,23 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 		g_ForgeWindow->refresh ();
 		g_ForgeWindow->scrollToSelection ();
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the model", (0)) {
+	ushort w, h;
+	uchar* imagedata = g_ForgeWindow->R->screencap (w, h);
+	
+	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
+	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
+	
+	str fname = QFileDialog::getSaveFileName ();
+	if (~fname > 0 && !img.save (fname))
+		critical (format ("Couldn't open %s for saving screencap: %s", fname.chars(), strerror (errno)));
+	
+	delete[] imagedata;
 }
 
 // =============================================================================

@@ -86,6 +86,7 @@ EXTERN_ACTION (gridFine)
 EXTERN_ACTION (resetView)
 EXTERN_ACTION (insertFrom)
 EXTERN_ACTION (insertRaw)
+EXTERN_ACTION (screencap)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -197,11 +198,13 @@ void ForgeWindow::createMenus () {
 	
 	// View menu
 	qViewMenu = menuBar ()->addMenu (tr ("&View"));
-	qViewMenu->addAction (ACTION (resetView));
+	qViewMenu->addAction (ACTION (resetView));			// Reset View
+	qViewMenu->addSeparator ();							// -----
+	qViewMenu->addAction (ACTION (screencap));			// Screencap Part
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
-	qInsertMenu->addAction (ACTION (insertFrom));			// Insert from File
+	qInsertMenu->addAction (ACTION (insertFrom));		// Insert from File
 	qInsertMenu->addAction (ACTION (insertRaw));			// Insert Raw
 	qInsertMenu->addSeparator ();							// -------
 	qInsertMenu->addAction (ACTION (newSubfile));		// New Subfile
@@ -392,6 +395,7 @@ void ForgeWindow::createToolbars () {
 	g_CurrentToolBar->addAction (ACTION (makeBorders));
 	g_CurrentToolBar->addAction (ACTION (makeCornerVerts));
 	g_CurrentToolBar->addAction (ACTION (roundCoords));
+	g_CurrentToolBar->addAction (ACTION (screencap));
 	
 	updateToolBars ();
 }

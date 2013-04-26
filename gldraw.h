@@ -45,6 +45,7 @@ public:
 	void refresh ();
 	void updateSelFlash ();
 	void resetAngles ();
+	uchar* screencap (ushort& w, ushort& h);
 	
 	double rotX, rotY, rotZ;
 	double panX, panY;

@@ -723,3 +723,19 @@ void GLRenderer::slot_timerUpdate () {
 	paintGL ();
 	swapBuffers ();
 }
+
+// =============================================================================
+uchar* GLRenderer::screencap (ushort& w, ushort& h) {
+	w = width;
+	h = height;
+	uchar* cap = new uchar[4 * w * h];
+	paintGL ();
+	
+	// Capture the pixels
+	glReadPixels (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, cap);
+	
+	// Restore the background
+	setBackground ();
+	
+	return cap;
+}
