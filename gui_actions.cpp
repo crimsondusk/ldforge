@@ -334,6 +334,8 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the model", (0)) {
+	setlocale (LC_ALL, "C");
+	
 	ushort w, h;
 	uchar* imagedata = g_ForgeWindow->R->screencap (w, h);
 	
@@ -342,7 +344,7 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	
 	str fname = QFileDialog::getSaveFileName ();
 	if (~fname > 0 && !img.save (fname))
-		critical (format ("Couldn't open %s for saving screencap: %s", fname.chars(), strerror (errno)));
+		critical (format ("Couldn't open %s for writing to save screencap: %s", fname.chars(), strerror (errno)));
 	
 	delete[] imagedata;
 }

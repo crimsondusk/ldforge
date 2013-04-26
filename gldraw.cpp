@@ -112,11 +112,8 @@ void GLRenderer::setBackground () {
 	
 	darkbg = luma (col) < 80;
 	
-	glClearColor (
-		((double)col.red()) / 255.0f,
-		((double)col.green()) / 255.0f,
-		((double)col.blue()) / 255.0f,
-		1.0f);
+	col.setAlpha (255);
+	qglClearColor (col);
 }
 
 // =============================================================================
@@ -246,9 +243,10 @@ void GLRenderer::resizeGL (int w, int h) {
 	height = h;
 	
 	glViewport (0, 0, w, h);
-	glLoadIdentity ();
 	glMatrixMode (GL_PROJECTION);
+	glLoadIdentity ();
 	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
+	glMatrixMode (GL_MODELVIEW);
 }
 
 // =============================================================================
