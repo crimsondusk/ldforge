@@ -56,6 +56,7 @@ public:
 	bool addpick;
 	short width, height;
 	QPoint rangeStart;
+	ushort mouseX, mouseY;
 
 protected:
 	void initializeGL ();

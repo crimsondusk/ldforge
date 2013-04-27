@@ -30,6 +30,10 @@
 #include "gldraw.h"
 #include "config.h"
 
+class ForgeWindow;
+class color;
+class QSplitter;
+
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
 	bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
@@ -67,7 +71,7 @@ extern vector<actionmeta> g_ActionMeta;
 #define SHIFT(N) (Qt::SHIFT | Qt::Key_##N)
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
 
-class color;
+// =============================================================================
 typedef struct {
 	color* col;
 	QPushButton* btn;
@@ -111,6 +115,7 @@ public:
 		*qHelpMenu, *qControlMenu;
 	QMenu* qRecentFilesMenu;
 	std::vector<QAction*> qaRecentFiles;
+	QSplitter* hsplit, *vsplit;
 	
 #ifndef RELEASE
 	QMenu* qDebugMenu;

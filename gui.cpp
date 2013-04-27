@@ -21,6 +21,7 @@
 #include <qevent.h>
 #include <qmenubar.h>
 #include <qstatusbar.h>
+#include <qsplitter.h>
 #include "common.h"
 #include "gldraw.h"
 #include "gui.h"
@@ -111,7 +112,6 @@ ForgeWindow::ForgeWindow () {
 	
 	qObjList = new QTreeWidget;
 	qObjList->setHeaderHidden (true);
-	qObjList->setMaximumWidth (256);
 	qObjList->setSelectionMode (QTreeWidget::ExtendedSelection);
 	qObjList->setAlternatingRowColors (true);
 	connect (qObjList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
@@ -120,15 +120,15 @@ ForgeWindow::ForgeWindow () {
 	qMessageLog->setReadOnly (true);
 	qMessageLog->setMaximumHeight (96);
 	
-	QWidget* w = new QWidget;
-	QGridLayout* layout = new QGridLayout;
-	layout->setColumnMinimumWidth (0, 192);
-	layout->setColumnStretch (0, 1);
-	layout->addWidget (R,			0, 0);
-	layout->addWidget (qObjList,	0, 1);
-	layout->addWidget (qMessageLog,	1, 0, 1, 2);
-	w->setLayout (layout);
-	setCentralWidget (w);
+	hsplit = new QSplitter;
+	hsplit->addWidget (R);
+	hsplit->addWidget (qObjList);
+	
+	vsplit = new QSplitter (Qt::Vertical);
+	vsplit->addWidget (hsplit);
+	vsplit->addWidget (qMessageLog);
+	
+	setCentralWidget (vsplit);
 	
 	quickColorMeta = parseQuickColorMeta ();
 	
@@ -136,10 +136,9 @@ ForgeWindow::ForgeWindow () {
 	createMenus ();
 	createToolbars ();
 	
-	setStatusBar (new QStatusBar);
-	
 	slot_selectionChanged ();
 	
+	setStatusBar (new QStatusBar);
 	setWindowIcon (QIcon ("icons/ldforge.png"));
 	setTitle ();
 	setMinimumSize (320, 200);
@@ -376,6 +375,7 @@ void ForgeWindow::createToolbars () {
 	g_CurrentToolBar->addAction (ACTION (gridCoarse));
 	g_CurrentToolBar->addAction (ACTION (gridMedium));
 	g_CurrentToolBar->addAction (ACTION (gridFine));
+	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	// Color toolbar
@@ -384,7 +384,7 @@ void ForgeWindow::createToolbars () {
 	
 	// ==========================================
 	// Left area toolbars
-	g_ToolBarArea = Qt::LeftToolBarArea;
+	//g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Objects");
 	g_CurrentToolBar->addAction (ACTION (setColor));
 	g_CurrentToolBar->addAction (ACTION (invert));

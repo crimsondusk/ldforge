@@ -253,11 +253,31 @@ void GLRenderer::resizeGL (int w, int h) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::paintGL () {
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glMatrixMode (GL_MODELVIEW);
-	
 	if (g_CurrentFile == null)
 		return;
+	
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	
+	glMatrixMode (GL_PROJECTION);
+	
+	glPushMatrix ();
+		glLoadIdentity ();
+		
+		double x = zoom;
+		double y = (height * x) / width;
+		
+		glOrtho (-x, x, -y, y, -100.0, 100.0);
+		
+		glTranslatef (panX, panY, -5.0f);
+		glRotatef (90.f, 0.0f, 1.0f, 0.0f);
+		
+		for (LDObject* obj : g_CurrentFile->objects)
+			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
+	glPopMatrix ();
+	glMatrixMode (GL_MODELVIEW);
+	
+#if 0
+	glMatrixMode (GL_MODELVIEW);
 	
 	glPushMatrix ();
 		glLoadIdentity ();
@@ -272,6 +292,7 @@ void GLRenderer::paintGL () {
 		for (LDObject* obj : g_CurrentFile->objects)
 			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
 	glPopMatrix ();
+#endif
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (rangepick && !picking) {
@@ -513,6 +534,9 @@ void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
+	mouseX = pos.x ();
+	mouseY = pos.y ();
+	
 	int dx = ev->x () - pos.x ();
 	int dy = ev->y () - pos.y ();
 	totalmove += abs (dx) + abs (dy);
@@ -526,8 +550,8 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	}
 	
 	if (ev->buttons () & Qt::MidButton) {
-		panX += 0.03f * dx;
-		panY -= 0.03f * dy;
+		panX += 0.03f * dx * (zoom / 7.5f);
+		panY -= 0.03f * dy * (zoom / 7.5f);
 	}
 	
 	pos = ev->pos ();
@@ -547,7 +571,10 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	zoom += (-ev->delta () / 100.0);
+	printf ("%.5f -> ", zoom);
+	// zoom += (-ev->delta () / 100.0);
+	zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
+	printf ("%.5f\n", zoom);
 	zoom = clamp (zoom, 0.01, 100.0);
 	ev->accept ();
 	updateGL ();
