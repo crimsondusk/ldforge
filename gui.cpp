@@ -22,6 +22,7 @@
 #include <qmenubar.h>
 #include <qstatusbar.h>
 #include <qsplitter.h>
+#include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
 #include "gui.h"
@@ -143,6 +144,14 @@ ForgeWindow::ForgeWindow () {
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
+	
+	connect (QCoreApplication::instance (), SIGNAL (aboutToQuit ()), this, SLOT (slot_lastSecondCleanup ()));
+}
+
+// =============================================================================
+void ForgeWindow::slot_lastSecondCleanup () {
+	R->setParent (null);
+	delete R;
 }
 
 // =============================================================================
@@ -200,6 +209,7 @@ void ForgeWindow::createMenus () {
 	qViewMenu->addAction (ACTION (resetView));			// Reset View
 	qViewMenu->addSeparator ();							// -----
 	qViewMenu->addAction (ACTION (screencap));			// Screencap Part
+	qViewMenu->addAction (ACTION (showHistory));			// Edit History
 	
 	// Insert menu
 	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
@@ -260,10 +270,6 @@ void ForgeWindow::createMenus () {
 	qMoveMenu->addAction (ACTION (rotateYNeg));			// Rotate -Y
 	qMoveMenu->addAction (ACTION (rotateZPos));			// Rotate +Z
 	qMoveMenu->addAction (ACTION (rotateZNeg));			// Rotate -Z
-	
-	// Control menu
-	qControlMenu = menuBar ()->addMenu (tr ("&Control"));
-	qControlMenu->addAction (ACTION (showHistory));		// Show History
 	
 #ifndef RELEASE
 	// Debug menu

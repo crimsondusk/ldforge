@@ -146,10 +146,8 @@ SetColorHistory::~SetColorHistory () {}
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void EditHistory::undo () {
-	for (ulong idx : ulaIndices) {
-		printf ("undo %lu\n", idx);
+	for (ulong idx : ulaIndices)
 		g_CurrentFile->object (idx)->replace (paOldObjs[idx]->clone ());
-	}
 	
 	g_ForgeWindow->refresh ();
 }

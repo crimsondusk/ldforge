@@ -275,7 +275,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	for (LDObject* obj : objs) {
 		historyCopies.push_back (obj->clone ());
 		historyIndices.push_back (idx);
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, obj);
+		g_CurrentFile->insertObj (idx, obj);
 		g_ForgeWindow->sel.push_back (obj);
 		
 		idx++;
@@ -316,7 +316,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	for (str line : str (te_edit->toPlainText ()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, obj);
+		g_CurrentFile->insertObj (idx, obj);
 		historyIndices.push_back (idx);
 		historyCopies.push_back (obj->clone ());
 		g_ForgeWindow->sel.push_back (obj);

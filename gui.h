@@ -164,6 +164,7 @@ private slots:
 	void slot_action ();
 	void slot_recentFile ();
 	void slot_quickColor ();
+	void slot_lastSecondCleanup ();
 };
 
 // -----------------------------------------------------------------------------

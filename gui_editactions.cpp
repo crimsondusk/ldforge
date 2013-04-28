@@ -91,7 +91,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 		historyCopies.push_back (obj->clone ());
 		
 		LDObject* copy = obj->clone ();
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, copy);
+		g_CurrentFile->insertObj (idx, copy);
 		g_ForgeWindow->sel.push_back (copy);
 	}
 	
@@ -154,7 +154,7 @@ static void doInline (bool bDeep) {
 			// This object is now inlined so it has no parent anymore.
 			inlineobj->parent = null;
 			
-			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, inlineobj);
+			g_CurrentFile->insertObj (idx++, inlineobj);
 		}
 		
 		// Delete the subfile now as it's been inlined.
@@ -209,7 +209,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
 		g_CurrentFile->objects[lIndex] = triangles[0];
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + lIndex + 1, triangles[1]);
+		g_CurrentFile->insertObj (lIndex + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
@@ -304,7 +304,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			ulong idx = obj->getIndex (g_CurrentFile) + i + 1;
 			
 			lines[i]->dColor = dEdgeColor;
-			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx, lines[i]);
+			g_CurrentFile->insertObj (idx, lines[i]);
 			
 			ulaIndices.push_back (idx);
 			paObjs.push_back (lines[i]->clone ());
@@ -354,7 +354,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 			pVert->vPosition = vaCoords[i];
 			pVert->dColor = obj->dColor;
 			
-			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ++idx, pVert);
+			g_CurrentFile->insertObj (++idx, pVert);
 			ulaIndices.push_back (idx);
 			paObjs.push_back (pVert->clone ());
 		}
@@ -401,7 +401,7 @@ MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
 	History::redo ();
 }
 
-MAKE_ACTION (showHistory, "Show History", "history", "Show the history dialog.", (0)) {
+MAKE_ACTION (showHistory, "Edit History", "history", "Show the history dialog.", (0)) {
 	HistoryDialog dlg;
 	dlg.exec ();
 }
@@ -552,7 +552,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				if (!inverted) {
 					// Not inverted, thus prefix it with a new invertnext.
 					LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-					g_CurrentFile->objects.insert (g_CurrentFile->objects.begin () + idx, bfc);
+					g_CurrentFile->insertObj (idx, bfc);
 					
 					paHistory.push_back (new AddHistory ({idx}, {bfc->clone ()}));
 				}

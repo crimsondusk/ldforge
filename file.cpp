@@ -612,7 +612,7 @@ void reloadAllSubfiles () {
 // =============================================================================
 ulong OpenFile::addObject (LDObject* obj) {
 	if (this != g_CurrentFile) {
-		objects.insert (objects.end (), obj);
+		objects.push_back (obj);
 		return objects.size() - 1;
 	}
 	

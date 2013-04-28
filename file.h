@@ -59,8 +59,12 @@ public:
 	// At what point was this file last saved?
 	long savePos;
 	
-	LDObject* object (size_t uPos) const {
-		return objects[uPos];
+	LDObject* object (ulong pos) const {
+		return objects[pos];
+	}
+	
+	void insertObj (const ulong pos, LDObject* obj) {
+		objects.insert (objects.begin () + pos, obj);
 	}
 };
 

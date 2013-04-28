@@ -101,6 +101,27 @@ const gridinfo g_GridInfo[3] = {
 	{ "Fine",	{ &grid_fine_x,		&grid_fine_y,	&grid_fine_z,	&grid_fine_angle	} }
 };
 
+template<class T> inline T abs (T a) {
+	return (a >= 0) ? a : -a;
+}
+
+// =============================================================================
+double Grid::snap (double in, const Grid::Config axis) {
+	const double gridval = currentGrid ().confs[axis]->value;
+	const long mult = abs (in / gridval);
+	const bool neg = (in < 0);
+	
+	double out = mult * gridval;
+	
+	if (abs<double> (in) - (mult * gridval) > gridval / 2)
+		out += gridval;
+	
+	if (neg && out != 0)
+		out *= -1;
+	
+	return out;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================

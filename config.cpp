@@ -121,7 +121,7 @@ bool config::load () {
 				break;
 		}
 		
-		switch (const_cast<config*> (cfg)->getType()) {
+		switch (cfg->getType()) {
 		case CONFIG_int:
 			static_cast<intconfig*> (cfg)->value = atoi (valstring.chars());
 			break;

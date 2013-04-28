@@ -58,7 +58,7 @@ void GLRenderer::resetAngles () {
 	rotX = 30.0f;
 	rotY = 325.f;
 	panX = panY = rotZ = 0.0f;
-	zoom = 1.0f;
+	zoom = 5.0f;
 }
 
 // =============================================================================
@@ -85,6 +85,7 @@ void GLRenderer::initializeGL () {
 	
 	glLineWidth (gl_linethickness);
 	
+	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
 	compileObjects ();
@@ -223,7 +224,7 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::refresh () {
-	paintGL ();
+	update ();
 	swapBuffers ();
 }
 
@@ -245,54 +246,74 @@ void GLRenderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	gluPerspective (45.0f, (double)w / (double)h, 0.1f, 100.0f);
+	gluPerspective (45.0f, (double)w / (double)h, 1.0f, 100.0f);
+	glMatrixMode (GL_MODELVIEW);
+}
+
+char g_staticCameras[6][3] = {
+	{ 0, 0, 1 },
+	{ 0, 0, -1 },
+	{ 1, 0, 0 },
+	{ -1, 0, 0 },
+	{ 0, 1, 0 },
+	{ 0, -1, 0 },
+};
+
+GLRenderer::Camera cam = GLRenderer::Front;
+
+void GLRenderer::drawGLScene () {
+	if (g_CurrentFile == null)
+		return;
+	
+	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable (GL_DEPTH_TEST);
+	
+	if (cam != GLRenderer::Free) {
+		glMatrixMode (GL_PROJECTION);
+		glPushMatrix ();
+		
+		glLoadIdentity ();
+		glOrtho (-vw, vw, -vh, vh, -100.0, 100.0);
+		glTranslatef (panX, panY, 0.0f);
+		glRotatef (90.f, g_staticCameras[cam][0], g_staticCameras[cam][1], g_staticCameras[cam][2]);
+	} else {
+		glMatrixMode (GL_MODELVIEW);
+		glPushMatrix ();
+		glLoadIdentity ();
+		
+		glTranslatef (0.0f, 0.0f, -5.0f);
+		glTranslatef (panX, panY, -zoom);
+		glRotatef (rotX, 1.0f, 0.0f, 0.0f);
+		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
+		glRotatef (rotZ, 0.0f, 0.0f, 1.0f);
+	}
+			
+		for (LDObject* obj : g_CurrentFile->objects)
+			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
+	glPopMatrix ();
 	glMatrixMode (GL_MODELVIEW);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::paintGL () {
-	if (g_CurrentFile == null)
-		return;
+void GLRenderer::paintEvent (QPaintEvent* ev) {
+	drawGLScene ();
 	
-	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	vw = zoom;
+	vh = (height * vw) / width;
+	const double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_StoredBBoxSize - (g_faObjectOffset[0]), Grid::X);
+	const double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_StoredBBoxSize - (g_faObjectOffset[2]), Grid::Z);
 	
-	glMatrixMode (GL_PROJECTION);
+	str text;
+	text.format ("(%.3f, %.3f)", cx, cy);
+	QFontMetrics metrics = QFontMetrics (font ());
+	QRect textSize = metrics.boundingRect (0, 0, width, height, Qt::AlignCenter, text);
 	
-	glPushMatrix ();
-		glLoadIdentity ();
-		
-		double x = zoom;
-		double y = (height * x) / width;
-		
-		glOrtho (-x, x, -y, y, -100.0, 100.0);
-		
-		glTranslatef (panX, panY, -5.0f);
-		glRotatef (90.f, 0.0f, 1.0f, 0.0f);
-		
-		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
-	glPopMatrix ();
-	glMatrixMode (GL_MODELVIEW);
-	
-#if 0
-	glMatrixMode (GL_MODELVIEW);
-	
-	glPushMatrix ();
-		glLoadIdentity ();
-		
-		glTranslatef (0.0f, 0.0f, -5.0f);
-		glTranslatef (panX, panY, -zoom);
-		
-		glRotatef (rotX, 1.0f, 0.0f, 0.0f);
-		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
-		glRotatef (rotZ, 0.0f, 0.0f, 1.0f);
-		
-		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
-	glPopMatrix ();
-#endif
+	QPainter paint (this);
+	paint.setRenderHint (QPainter::Antialiasing);
+	paint.drawText (width - textSize.width (), height - 16, textSize.width (),
+		textSize.height (), Qt::AlignCenter, text);
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (rangepick && !picking) {
@@ -301,6 +322,18 @@ void GLRenderer::paintGL () {
 			x1 = pos.x (),
 			y1 = pos.y ();
 		
+		QRect rect (x0, y0, x1 - x0, y1 - y0);
+		QColor fillColor = (addpick ? "#80FF00" : "#00CCFF");
+		QColor borderColor = Qt::black;
+		fillColor.setAlphaF (0.2f);
+		borderColor.setAlphaF (0.8f);
+		QPen borderPen (borderColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+		
+		paint.setPen (borderPen);
+		paint.setBrush (QBrush (fillColor));
+		paint.drawRect (rect);
+		
+#if 0
 		glMatrixMode (GL_PROJECTION);
 		
 		glPushMatrix ();
@@ -331,6 +364,7 @@ void GLRenderer::paintGL () {
 		glPopMatrix ();
 		
 		glMatrixMode (GL_MODELVIEW);
+#endif
 	}
 }
 
@@ -515,6 +549,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 }
 
 // =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 	if (ev->buttons () & Qt::LeftButton)
 		totalmove = 0;
@@ -555,7 +591,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	}
 	
 	pos = ev->pos ();
-	updateGL ();
+	update ();
 }
 
 // =============================================================================
@@ -571,13 +607,11 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	printf ("%.5f -> ", zoom);
-	// zoom += (-ev->delta () / 100.0);
 	zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
-	printf ("%.5f\n", zoom);
 	zoom = clamp (zoom, 0.01, 100.0);
+	
+	update ();
 	ev->accept ();
-	updateGL ();
 }
 
 // =============================================================================
@@ -591,9 +625,9 @@ void GLRenderer::updateSelFlash () {
 		pulseTimer->stop ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	GLint viewport[4];
 	LDObject* removedObject = null;
@@ -613,7 +647,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Paint the picking scene
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
-	paintGL ();
+	drawGLScene ();
 	
 	glGetIntegerv (GL_VIEWPORT, viewport);
 	
@@ -715,8 +749,9 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	if (removedObject != null)
 		recompileObject (removedObject);
 	
-	paintGL ();
+	drawGLScene ();
 	swapBuffers ();
+	update ();
 }
 
 // ========================================================================= //
@@ -745,8 +780,7 @@ void GLRenderer::slot_timerUpdate () {
 	for (LDObject* obj : g_ForgeWindow->sel)
 		recompileObject (obj);
 	
-	paintGL ();
-	swapBuffers ();
+	update ();
 }
 
 // =============================================================================
@@ -754,7 +788,7 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	w = width;
 	h = height;
 	uchar* cap = new uchar[4 * w * h];
-	paintGL ();
+	update ();
 	
 	// Capture the pixels
 	glReadPixels (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, cap);

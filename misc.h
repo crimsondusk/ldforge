@@ -43,6 +43,14 @@ typedef struct {
 	floatconfig* const confs[4];
 } gridinfo;
 
+extern_cfg (int, grid);
+static const short g_NumGrids = 3;
+extern const gridinfo g_GridInfo[3];
+
+inline const gridinfo& currentGrid () {
+	return g_GridInfo[grid];
+}
+
 namespace Grid {
 	enum Type {
 		Coarse,
@@ -56,15 +64,9 @@ namespace Grid {
 		Z,
 		Angle
 	};
+	
+	double snap (double value, const Grid::Config axis);
 };
-
-extern_cfg (int, grid);
-static const short g_NumGrids = 3;
-extern const gridinfo g_GridInfo[3];
-
-inline const gridinfo& currentGrid () {
-	return g_GridInfo[grid];
-}
 
 template<class T> void dataswap (T& a, T& b) {
 	T c = a;

@@ -35,6 +35,16 @@ class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
 public:
+	enum Camera {
+		Front,
+		Back,
+		Top,
+		Bottom,
+		Left,
+		Right,
+		Free
+	};
+	
 	GLRenderer (QWidget* parent = null);
 	void hardRefresh ();
 	void compileObjects ();
@@ -61,7 +71,7 @@ public:
 protected:
 	void initializeGL ();
 	void resizeGL (int w, int h);
-	void paintGL ();
+	// void paintGL ();
 	
 	void mousePressEvent (QMouseEvent* ev);
 	void mouseMoveEvent (QMouseEvent* ev);
@@ -69,6 +79,7 @@ protected:
 	void keyPressEvent (QKeyEvent* ev);
 	void keyReleaseEvent (QKeyEvent* ev);
 	void wheelEvent (QWheelEvent* ev);
+	void paintEvent (QPaintEvent* ev);
 
 private:
 	std::vector<GLuint> objLists;
@@ -77,6 +88,7 @@ private:
 	Qt::KeyboardModifiers keymods;
 	ulong totalmove;
 	bool darkbg;
+	double vw, vh;
 	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
@@ -84,6 +96,7 @@ private:
 	void compileVertex (vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
+	void drawGLScene ();
 	
 private slots:
 	void slot_timerUpdate ();
