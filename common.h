@@ -62,9 +62,8 @@ static const str versionString = format ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 #ifdef null
 #undef null
 #endif // null
-#define null nullptr
 
-static const double fMaxCoord = 10000.0;
+static const std::nullptr_t null = nullptr;
 static const short maincolor = 16;
 static const short edgecolor = 24;
 

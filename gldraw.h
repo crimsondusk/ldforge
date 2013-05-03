@@ -46,6 +46,8 @@ public:
 	};
 	
 	GLRenderer (QWidget* parent = null);
+	~GLRenderer ();
+	
 	void hardRefresh ();
 	void compileObjects ();
 	void setBackground ();
@@ -89,6 +91,7 @@ private:
 	double rotX, rotY, rotZ, panX, panY, zoom;
 	bool rangepick, addpick;
 	QPoint pos, rangeStart;
+	QPen thinBorderPen, thickBorderPen;
 	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
@@ -97,6 +100,7 @@ private:
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
 	void drawGLScene ();
+	void calcCameraIconRects ();
 	
 private slots:
 	void slot_timerUpdate ();

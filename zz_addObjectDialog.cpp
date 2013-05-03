@@ -177,8 +177,8 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	for (short i = 0; i < coordCount; ++i) {
 		dsb_coords[i] = new QDoubleSpinBox;
-		dsb_coords[i]->setMinimum (-fMaxCoord);
-		dsb_coords[i]->setMaximum (fMaxCoord);
+		dsb_coords[i]->setMinimum (-10000.0);
+		dsb_coords[i]->setMaximum (10000.0);
 	}
 	
 	IMPLEMENT_DIALOG_BUTTONS

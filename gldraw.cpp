@@ -55,6 +55,15 @@ cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
 cfg (bool, gl_selflash, false);
 
+struct CameraIcon {
+	QPixmap* img;
+	QRect srcRect, destRect, selRect;
+	GLRenderer::Camera cam;
+} g_CameraIcons[7];
+
+const QBrush g_CameraIconSelBG (QColor (0, 0, 0, 128));
+const char* g_CameraNames[] = { "Front", "Top", "Left", "Back", "Bottom", "Right", "Free" };
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -65,6 +74,49 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	
 	pulseTimer = new QTimer (this);
 	connect (pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
+	
+	thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+	thinBorderPen = thickBorderPen;
+	thinBorderPen.setWidth (1);
+	
+	// Init camera icons
+	ushort i = 0;
+	for (str name : g_CameraNames) {
+		str path;
+		path.format ("./icons/camera-%s.png", name.tolower ().chars ());
+		
+		CameraIcon* info = &g_CameraIcons[i];
+		info->img = new QPixmap (path);
+		info->cam = (GLRenderer::Camera) i;
+		
+		++i;
+	}
+	
+	calcCameraIconRects ();
+}
+
+// =============================================================================
+GLRenderer::~GLRenderer() {
+	for (CameraIcon& info : g_CameraIcons)
+		delete info.img;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void GLRenderer::calcCameraIconRects () {
+	ushort i = 0;
+	
+	for (CameraIcon& info : g_CameraIcons) {
+		const long x1 = width - (((i % 3) + 1) * 16) - 1,
+			y1 = ((i / 3) * 16);
+		
+		info.srcRect = QRect (0, 0, 16, 16);
+		info.destRect = QRect (x1, y1, 16, 16);
+		info.selRect = QRect (info.destRect.x (), info.destRect.y (),
+			info.destRect.width () + 1, info.destRect.height () + 1);
+		++i;
+	}
 }
 
 // =============================================================================
@@ -141,8 +193,9 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		long i = obj->getIndex (g_CurrentFile);
 		
 		// If we couldn't find the index, this object must not be from this file,
-		// therefore it must be an object inlined from another file through a
-		// subfile reference. Use the reference's index.
+		// therefore it must be an object inlined from a subfile reference or
+		// decomposed from a radial. Find the top level parent object and use
+		// its index.
 		if (i == -1)
 			i = obj->topLevelParent ()->getIndex (g_CurrentFile);
 		
@@ -156,7 +209,7 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 			g = (i / 256) % 256,
 			b = i % 256;
 		
-		glColor3f (r / 255.f, g / 255.f, b / 255.f);
+		qglColor (QColor (r, g, b, 255));
 		return;
 	}
 	
@@ -254,6 +307,8 @@ void GLRenderer::resizeGL (int w, int h) {
 	width = w;
 	height = h;
 	
+	calcCameraIconRects ();
+	
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
@@ -311,6 +366,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	drawGLScene ();
 	
 	QPainter paint (this);
+	
 	vw = zoom;
 	vh = (height * vw) / width;
 	
@@ -343,6 +399,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			textSize.height (), Qt::AlignCenter, text);
 	}
 	
+	// Camera icons
+	if (!picking) {
+		// Draw a background for the selected camera
+		paint.setPen (thinBorderPen);
+		paint.setBrush (g_CameraIconSelBG);
+		paint.drawRect (g_CameraIcons[camera ()].selRect);
+		
+		for (CameraIcon& info : g_CameraIcons)
+			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
+	}
+	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (rangepick && !picking) {
 		const short x0 = rangeStart.x (),
@@ -352,12 +419,9 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		QRect rect (x0, y0, x1 - x0, y1 - y0);
 		QColor fillColor = (addpick ? "#80FF00" : "#00CCFF");
-		QColor borderColor = Qt::black;
 		fillColor.setAlphaF (0.2f);
-		borderColor.setAlphaF (0.8f);
-		QPen borderPen (borderColor, 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 		
-		paint.setPen (borderPen);
+		paint.setPen (thickBorderPen);
 		paint.setBrush (QBrush (fillColor));
 		paint.drawRect (rect);
 	}
@@ -624,11 +688,24 @@ void GLRenderer::updateSelFlash () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
+	// Check if we selected a camera icon
+	if (!rangepick) {
+		QPoint pos (mouseX, mouseY);
+		
+		for (CameraIcon& info : g_CameraIcons) {
+			if (info.destRect.contains (pos)) {
+				setCamera (info.cam);
+				update ();
+				return;
+			}
+		}
+	}
+	
 	GLint viewport[4];
 	LDObject* removedObject = null;
 	
 	// Clear the selection if we do not wish to add to it.
-	if (addpick == false) {
+	if (!addpick) {
 		std::vector<LDObject*> paOldSelection = g_ForgeWindow->sel;
 		g_ForgeWindow->sel.clear ();
 		
