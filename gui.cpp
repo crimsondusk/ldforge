@@ -57,8 +57,9 @@ EXTERN_ACTION (newLine)
 EXTERN_ACTION (newCondLine)
 EXTERN_ACTION (newTriangle)
 EXTERN_ACTION (newQuad)
-EXTERN_ACTION (newVertex)
 EXTERN_ACTION (newComment)
+EXTERN_ACTION (newBFC)
+EXTERN_ACTION (newVertex)
 EXTERN_ACTION (newRadial)
 EXTERN_ACTION (help)
 EXTERN_ACTION (about)
@@ -222,6 +223,7 @@ void ForgeWindow::createMenus () {
 	qInsertMenu->addAction (ACTION (newQuad));			// New Quad
 	qInsertMenu->addAction (ACTION (newCondLine));		// New Conditional Line
 	qInsertMenu->addAction (ACTION (newComment));		// New Comment
+	qInsertMenu->addAction (ACTION (newBFC));			// New BFC Statment
 	qInsertMenu->addAction (ACTION (newVertex));			// New Vertex
 	qInsertMenu->addAction (ACTION (newRadial));			// New Radial
 	
@@ -336,6 +338,7 @@ void ForgeWindow::createToolbars () {
 	g_CurrentToolBar->addAction (ACTION (newQuad));
 	g_CurrentToolBar->addAction (ACTION (newCondLine));
 	g_CurrentToolBar->addAction (ACTION (newComment));
+	g_CurrentToolBar->addAction (ACTION (newBFC));
 	g_CurrentToolBar->addAction (ACTION (newVertex));
 	g_CurrentToolBar->addAction (ACTION (newRadial));
 	

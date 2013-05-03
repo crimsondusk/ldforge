@@ -77,6 +77,18 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	case OBJ_Vertex:
 		coordCount = 3;
+		break;
+	
+	case OBJ_BFC:
+		bb_bfcType = new ButtonBox<QRadioButton> ("Statement", {}, 0, Qt::Horizontal);
+		
+		for (int i = 0; i < LDBFC::NumStatements; ++i) {
+			if (i % (LDBFC::NumStatements / 2) == 0)
+				bb_bfcType->rowBreak ();
+			
+			bb_bfcType->addButton (new QRadioButton (LDBFC::saStatements[i]));
+		}
+		break;
 	
 	case OBJ_Subfile:
 		coordCount = 3;
@@ -203,6 +215,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		layout->addWidget (le_comment, 0, 1);
 		break;
 	
+	case OBJ_BFC:
+		layout->addWidget (bb_bfcType, 0, 1);
+		break;
+	
 	case OBJ_Radial:
 		layout->addWidget (bb_radType, 1, 1, 3, 1);
 		layout->addWidget (cb_radHiRes, 1, 2);
@@ -243,7 +259,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
 	setLayout (layout);
-	setWindowTitle (format (APPNAME_DISPLAY " - new %s",
+	setWindowTitle (format (APPNAME_DISPLAY ": New %s",
 		g_saObjTypeNames[type]).chars());
 	
 	setWindowIcon (QIcon (iconName.chars ()));
@@ -253,11 +269,11 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void AddObjectDialog::setButtonBackground (QPushButton* qButton, short dColor) {
-	qButton->setIcon (QIcon ("icons/palette.png"));
-	qButton->setAutoFillBackground (true);
-	qButton->setStyleSheet (
-		format ("background-color: %s", getColor (dColor)->zColorString.chars()).chars()
+void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
+	button->setIcon (QIcon ("icons/palette.png"));
+	button->setAutoFillBackground (true);
+	button->setStyleSheet (
+		format ("background-color: %s", getColor (color)->zColorString.chars()).chars()
 	);
 }
 
@@ -299,6 +315,9 @@ void AddObjectDialog::slot_subfileTypeChanged () {
 		le_subfileName->setText (name);
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 template<class T> T* initObj (LDObject*& obj) {
 	if (obj == null)
 		obj = new T;
@@ -355,6 +374,13 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 			LDCondLine* line = initObj<LDCondLine> (obj);
 			line->dColor = dlg.dColor;
 			APPLY_COORDS (line, 4)
+		}
+		break;
+	
+	case OBJ_BFC:
+		{
+			LDBFC* bfc = initObj<LDBFC> (obj);
+			bfc->eStatement = (LDBFC::Type) dlg.bb_bfcType->value ();
 		}
 		break;
 	

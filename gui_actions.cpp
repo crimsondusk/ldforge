@@ -142,6 +142,10 @@ MAKE_ACTION (newComment, "New Comment", "add-comment", "Creates a new comment.",
 	AddObjectDialog::staticDialog (OBJ_Comment, null);
 }
 
+MAKE_ACTION (newBFC, "New BFC Statement", "add-bfc", "Creates a new BFC statement.", 0) {
+	AddObjectDialog::staticDialog (OBJ_BFC, null);
+}
+
 MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) {
 	AddObjectDialog::staticDialog (OBJ_Vertex, null);
 }

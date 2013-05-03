@@ -48,6 +48,9 @@ public:
 	// Color selection dialog button
 	QPushButton* pb_color;
 	
+	// BFC-related widgets
+	ButtonBox<QRadioButton>* bb_bfcType;
+	
 	// Subfile stuff
 	QTreeWidget* tw_subfileList;
 	QLineEdit* le_subfileName;
@@ -62,14 +65,14 @@ public:
 	QDialogButtonBox* bbx_buttons;
 	
 private:
-	void setButtonBackground (QPushButton* qButton, short dColor);
+	void setButtonBackground (QPushButton* button, short color);
 	char* currentSubfileName ();
 	
 	short dColor;
 	
 private slots:
 	void slot_colorButtonClicked ();
-	void slot_radialTypeChanged (int dType);
+	void slot_radialTypeChanged (int type);
 	void slot_subfileTypeChanged ();
 };
 
