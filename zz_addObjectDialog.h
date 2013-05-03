@@ -20,7 +20,7 @@
 #define ZZ_ADDOBJECTDIALOG_H
 
 #include "gui.h"
-#include "buttonbox.h"
+#include "radiobox.h"
 #include <qdialog.h>
 #include <qlineedit.h>
 #include <qdialogbuttonbox.h>
@@ -50,7 +50,7 @@ public:
 	QPushButton* pb_color;
 	
 	// BFC-related widgets
-	ButtonBox<QRadioButton>* bb_bfcType;
+	RadioBox* rb_bfcType;
 	
 	// Subfile stuff
 	QTreeWidget* tw_subfileList;
@@ -58,7 +58,7 @@ public:
 	
 	// Radial stuff
 	QCheckBox* cb_radHiRes;
-	ButtonBox<QRadioButton>* bb_radType;
+	RadioBox* rb_radType;
 	QSpinBox* sb_radSegments, *sb_radRingNum;
 	QLabel* lb_radType, *lb_radResolution, *lb_radSegments,
 		*lb_radRingNum;

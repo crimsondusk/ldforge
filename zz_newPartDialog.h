@@ -27,7 +27,7 @@
 #include <qradiobutton.h>
 #include <qbuttongroup.h>
 #include "gui.h"
-#include "buttonbox.h"
+#include "radiobox.h"
 
 class NewPartDialog : public QDialog {
 public:
@@ -37,7 +37,7 @@ public:
 	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
 	QLineEdit* le_name, *le_author;
 	
-	ButtonBox<QRadioButton>* bb_license, *bb_BFC;
+	RadioBox* rb_license, *rb_BFC;
 	QDialogButtonBox* bbx_buttons;
 };
 

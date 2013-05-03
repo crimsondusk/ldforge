@@ -80,17 +80,17 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		break;
 	
 	case OBJ_BFC:
-		bb_bfcType = new ButtonBox<QRadioButton> ("Statement", {}, 0, Qt::Horizontal);
+		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Horizontal);
 		
 		for (int i = 0; i < LDBFC::NumStatements; ++i) {
 			if (i % (LDBFC::NumStatements / 2) == 0)
-				bb_bfcType->rowBreak ();
+				rb_bfcType->rowBreak ();
 			
-			bb_bfcType->addButton (new QRadioButton (LDBFC::saStatements[i]));
+			rb_bfcType->addButton (new QRadioButton (LDBFC::saStatements[i]));
 		}
 		
 		if (obj)
-			bb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->eStatement);
+			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->eStatement);
 		break;
 	
 	case OBJ_Subfile:
@@ -153,16 +153,16 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		lb_radSegments = new QLabel ("Segments:");
 		lb_radRingNum = new QLabel ("Ring number:");
 		
-		bb_radType = new ButtonBox<QRadioButton> ("Type", {}, 0, Qt::Vertical);
+		rb_radType = new RadioBox ("Type", {}, 0, Qt::Vertical);
 		
 		for (int i = 0; i < LDRadial::NumTypes; ++i) {
 			if (i % (LDRadial::NumTypes / 2) == 0)
-				bb_radType->rowBreak ();
+				rb_radType->rowBreak ();
 			
-			bb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
+			rb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
 		}
 		
-		connect (bb_radType->buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
+		connect (rb_radType, SIGNAL (sig_buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
 		
 		cb_radHiRes = new QCheckBox ("Hi-Res");
 		
@@ -175,7 +175,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		if (obj) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
-			bb_radType->setValue (rad->eRadialType);
+			rb_radType->setValue (rad->eRadialType);
 			sb_radSegments->setValue (rad->dSegments);
 			cb_radHiRes->setChecked ((rad->dDivisions == 48) ? Qt::Checked : Qt::Unchecked);
 			sb_radRingNum->setValue (rad->dRingNum);
@@ -228,11 +228,11 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		break;
 	
 	case OBJ_BFC:
-		layout->addWidget (bb_bfcType, 0, 1);
+		layout->addWidget (rb_bfcType, 0, 1);
 		break;
 	
 	case OBJ_Radial:
-		layout->addWidget (bb_radType, 1, 1, 3, 1);
+		layout->addWidget (rb_radType, 1, 1, 3, 1);
 		layout->addWidget (cb_radHiRes, 1, 2);
 		layout->addWidget (lb_radSegments, 2, 2);
 		layout->addWidget (sb_radSegments, 2, 3);
@@ -397,7 +397,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	case OBJ_BFC:
 		{
 			LDBFC* bfc = initObj<LDBFC> (obj);
-			bfc->eStatement = (LDBFC::Type) dlg.bb_bfcType->value ();
+			bfc->eStatement = (LDBFC::Type) dlg.rb_bfcType->value ();
 		}
 		break;
 	
@@ -421,7 +421,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 			
 			pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
 			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
-			pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
+			pRad->eRadialType = (LDRadial::Type) dlg.rb_radType->value ();
 			pRad->dRingNum = dlg.sb_radRingNum->value ();
 			pRad->mMatrix = g_mIdentity;
 		}
@@ -452,9 +452,9 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	if (newObject) {
 		ulong idx = g_ForgeWindow->getInsertionPoint ();
 		g_CurrentFile->insertObj (idx, obj);
-		History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
+		History::addEntry (new AddHistory ({(ulong) idx}, {obj->clone ()}));
 	} else {
-		History::addEntry (new EditHistory ({obj->getIndex (g_CurrentFile)}, {backup}, {obj->clone ()}));
+		History::addEntry (new EditHistory ({(ulong) obj->getIndex (g_CurrentFile)}, {backup}, {obj->clone ()}));
 	}
 	
 	g_ForgeWindow->refresh ();

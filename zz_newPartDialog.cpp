@@ -48,21 +48,21 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	lb_author = new QLabel ("Author:");
 	le_author = new QLineEdit;
 	
-	bb_license = new ButtonBox<QRadioButton> ("License", {
+	rb_license = new RadioBox ("License", {
 		"CCAL Redistributable",
 		"Non-redistributable",
 		"Don't append a license",
 	}, LICENSE_CCAL);
 	
-	bb_BFC = new ButtonBox<QRadioButton> ("BFC Winding", {
+	rb_BFC = new RadioBox ("BFC Winding", {
 		"CCW",
 		"CW",
 		"No winding"
 	}, BFCBOX_CCW);
 	
 	QHBoxLayout* boxes = new QHBoxLayout;
-	boxes->addWidget (bb_license);
-	boxes->addWidget (bb_BFC);
+	boxes->addWidget (rb_license);
+	boxes->addWidget (rb_BFC);
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -92,13 +92,13 @@ void NewPartDialog::StaticDialog () {
 		str zAuthor = dlg.le_author->text ();
 		vector<LDObject*>& objs = g_CurrentFile->objects;
 		
-		idx = dlg.bb_BFC->value ();
+		idx = dlg.rb_BFC->value ();
 		const LDBFC::Type eBFCType =
 			(idx == BFCBOX_CCW) ? LDBFC::CertifyCCW :
 			(idx == BFCBOX_CW) ? LDBFC::CertifyCW :
 			LDBFC::NoCertify;
 		
-		idx = dlg.bb_license->value ();
+		idx = dlg.rb_license->value ();
 		const char* sLicense =
 			(idx == LICENSE_CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
 			(idx == LICENSE_NonCA) ? "Not redistributable : see NonCAreadme.txt" :

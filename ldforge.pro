@@ -11,7 +11,6 @@ RC_FILE = ldforge.rc
 
 # Input
 HEADERS += bbox.h \
-	buttonbox.h \
 	colors.h \
 	common.h \
 	config.h \
@@ -21,6 +20,7 @@ HEADERS += bbox.h \
 	history.h \
 	ldtypes.h \
 	misc.h \
+	radiobox.h \
 	str.h \
 	types.h \
 	zz_aboutDialog.h \
@@ -43,6 +43,7 @@ SOURCES += bbox.cpp \
 	ldtypes.cpp \
 	main.cpp \
 	misc.cpp \
+	radiobox.cpp \
 	str.cpp \ 
 	types.cpp \
 	zz_aboutDialog.cpp \
