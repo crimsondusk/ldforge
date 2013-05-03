@@ -60,7 +60,7 @@ public:
 	uchar* screencap (ushort& w, ushort& h);
 	
 	GLRenderer::Camera camera () { return m_camera; }
-	void setCamera (const GLRenderer::Camera cam) { m_camera = cam; }
+	void setCamera (const GLRenderer::Camera cam);
 	
 	bool picking;
 	short width, height;

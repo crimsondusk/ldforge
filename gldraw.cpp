@@ -54,6 +54,7 @@ cfg (float, gl_maincolor_alpha, 1.0);
 cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
 cfg (bool, gl_selflash, false);
+cfg (int, gl_camera, GLRenderer::Free);
 
 struct CameraIcon {
 	QPixmap* img;
@@ -79,7 +80,7 @@ const GLRenderer::Camera g_Cameras[7] = {
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
 	picking = rangepick = false;
-	m_camera = Free;
+	m_camera = (GLRenderer::Camera) gl_camera.value;
 	drawToolTip = false;
 	
 	pulseTimer = new QTimer (this);
@@ -747,6 +748,12 @@ void GLRenderer::leaveEvent (QEvent* ev) {
 	drawToolTip = false;
 	toolTipTimer->stop ();
 	update ();
+}
+
+// =============================================================================
+void GLRenderer::setCamera (const GLRenderer::Camera cam) {
+	m_camera = cam;
+	gl_camera = (int) cam;
 }
 
 // =============================================================================
