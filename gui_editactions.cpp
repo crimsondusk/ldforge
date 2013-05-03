@@ -661,7 +661,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors from everything selected to main and edge colors", (0)) {
+MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everything selected to main and edge colors", (0)) {
 	vector<LDObject*> oldCopies, newCopies;
 	vector<ulong> indices;
 	

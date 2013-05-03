@@ -359,7 +359,7 @@ void GLRenderer::drawGLScene () {
 		glPushMatrix ();
 		glLoadIdentity ();
 		
-		glTranslatef (0.0f, 0.0f, -5.0f);
+		glTranslatef (0.0f, 0.0f, -2.0f);
 		glTranslatef (panX, panY, -zoom);
 		glRotatef (rotX, 1.0f, 0.0f, 0.0f);
 		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
@@ -941,7 +941,10 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	w = width;
 	h = height;
 	uchar* cap = new uchar[4 * w * h];
+	
+	screencapping = true;
 	update ();
+	screencapping = false;
 	
 	// Capture the pixels
 	glReadPixels (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, cap);

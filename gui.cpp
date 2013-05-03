@@ -68,6 +68,7 @@ EXTERN_ACTION (aboutQt)
 EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 EXTERN_ACTION (showHistory)
+EXTERN_ACTION (selectAll)
 EXTERN_ACTION (selectByColor)
 EXTERN_ACTION (selectByType)
 EXTERN_ACTION (moveXNeg)
@@ -239,6 +240,7 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION (paste));				// Paste
 	qEditMenu->addAction (ACTION (del));					// Delete
 	qEditMenu->addSeparator ();							// -----
+	qEditMenu->addAction (ACTION (selectAll));			// Select All
 	qEditMenu->addAction (ACTION (selectByColor));		// Select by Color
 	qEditMenu->addAction (ACTION (selectByType));		// Select by Type
 	qEditMenu->addSeparator ();							// -----
@@ -358,6 +360,7 @@ void ForgeWindow::createToolbars () {
 	
 	// ==========================================
 	initSingleToolBar ("Select");
+	g_CurrentToolBar->addAction (ACTION (selectAll));
 	g_CurrentToolBar->addAction (ACTION (selectByColor));
 	g_CurrentToolBar->addAction (ACTION (selectByType));
 	
@@ -911,15 +914,24 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::spawnContextMenu (const QPoint pos) {
+	const bool single = (g_ForgeWindow->sel.size () == 1);
+	
 	QMenu* contextMenu = new QMenu;
-	contextMenu->addAction (ACTION (editObject));
-	contextMenu->addSeparator ();
+	
+	if (single) {
+		contextMenu->addAction (ACTION (editObject));
+		contextMenu->addSeparator ();
+	}
+	
 	contextMenu->addAction (ACTION (cut));
 	contextMenu->addAction (ACTION (copy));
 	contextMenu->addAction (ACTION (paste));
 	contextMenu->addAction (ACTION (del));
-	
-	ACTION (editObject)->setEnabled (g_ForgeWindow->sel.size () == 1);
+	contextMenu->addSeparator ();
+	contextMenu->addAction (ACTION (setColor));
+	if (single)
+		contextMenu->addAction (ACTION (setContents));
+	contextMenu->addAction (ACTION (makeBorders));
 	
 	contextMenu->exec (pos);
 }

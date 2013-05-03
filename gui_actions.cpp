@@ -183,6 +183,16 @@ MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIF
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
+	g_ForgeWindow->sel.clear ();
+	
+	for (LDObject* obj : g_CurrentFile->objects)
+		g_ForgeWindow->sel.push_back (obj);
+	
+	g_ForgeWindow->updateSelection ();
+}
+
+// =============================================================================
 MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	"Select all objects by the given color.", CTRL_SHIFT (A))
 {
@@ -199,6 +209,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	g_ForgeWindow->updateSelection ();
 }
 
+// =============================================================================
 MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	"Select all objects by the given type.", (0))
 {

@@ -91,7 +91,7 @@ private:
 	Camera m_camera;
 	vertex m_hoverpos;
 	double rotX, rotY, rotZ, panX, panY, zoom;
-	bool rangepick, addpick, drawToolTip;
+	bool rangepick, addpick, drawToolTip, screencapping;
 	QPoint pos, rangeStart;
 	QPen thinBorderPen, thickBorderPen;
 	Camera toolTipCamera;
