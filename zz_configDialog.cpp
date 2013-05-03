@@ -39,7 +39,8 @@ extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, gl_selflash);
-extern_cfg (bool, edit_insertSchemanticsOnly);
+extern_cfg (bool, edit_schemanticinline);
+extern_cfg (bool, gl_blackedges);
 
 ConfigDialog* g_ConfigDialog = null;
 
@@ -132,8 +133,13 @@ void ConfigDialog::initMainTab () {
 	cb_selFlash = new QCheckBox ("Selection flash");
 	INIT_CHECKBOX (cb_selFlash, gl_selflash)
 	
-	cb_insertSchemanticsOnly = new QCheckBox ("Only insert schemantic objects from a file");
-	INIT_CHECKBOX (cb_insertSchemanticsOnly, edit_insertSchemanticsOnly)
+	cb_blackEdges = new QCheckBox ("Black edges");
+	cb_blackEdges->setWhatsThis ("If this is set, all edgelines appear black. If this is "
+		"not set, edge lines take their color as defined in LDConfig.ldr");
+	INIT_CHECKBOX (cb_blackEdges, gl_blackedges)
+	
+	cb_schemanticInline = new QCheckBox ("Only insert schemantic objects from a file");
+	INIT_CHECKBOX (cb_schemanticInline, edit_schemanticinline)
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (lb_LDrawPath, 0, 0);
@@ -155,7 +161,8 @@ void ConfigDialog::initMainTab () {
 	layout->addWidget (cb_colorize, 4, 0, 1, 4);
 	layout->addWidget (cb_colorBFC, 5, 0, 1, 4);
 	layout->addWidget (cb_selFlash, 6, 0, 1, 4);
-	layout->addWidget (cb_insertSchemanticsOnly, 7, 0, 1, 4);
+	layout->addWidget (cb_blackEdges, 7, 0, 1, 4);
+	layout->addWidget (cb_schemanticInline, 8, 0, 1, 4);
 	mainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -171,6 +178,12 @@ void ConfigDialog::initShortcutsTab () {
 	shortcutsTab = new QWidget;
 	lw_shortcutList = new QListWidget;
 	qLayout = new QGridLayout;
+	
+	shortcutsTab->setWhatsThis ("Here you can alter keyboard shortcuts for "
+		"almost all LDForge actions. Only exceptions are the controls for the "
+		"viewport. Use the set button to set a key shortcut, clear to remove it "
+		"and reset to restore the shortcut to its default value.\n"
+		"\tShortcut changes apply immediately after closing this dialog." );
 	
 	// Init table items
 	ulong i = 0;
@@ -608,7 +621,8 @@ void ConfigDialog::staticDialog () {
 		APPLY_CHECKBOX (dlg.cb_colorize, lv_colorize)
 		APPLY_CHECKBOX (dlg.cb_colorBFC, gl_colorbfc)
 		APPLY_CHECKBOX (dlg.cb_selFlash, gl_selflash)
-		APPLY_CHECKBOX (dlg.cb_insertSchemanticsOnly, edit_insertSchemanticsOnly)
+		APPLY_CHECKBOX (dlg.cb_schemanticInline, edit_schemanticinline)
+		APPLY_CHECKBOX (dlg.cb_blackEdges, gl_blackedges)
 		
 		gl_maincolor_alpha = ((double)dlg.sl_viewFgAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.sl_lineThickness->value ();

@@ -94,6 +94,7 @@ EXTERN_ACTION (insertRaw)
 EXTERN_ACTION (screencap)
 EXTERN_ACTION (editObject)
 EXTERN_ACTION (uncolorize)
+EXTERN_ACTION (axes)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -108,6 +109,7 @@ cfg (bool, lv_colorize, true);
 cfg (int, gui_toolbar_iconsize, 24);
 cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
+extern_cfg (bool, gl_axes);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -172,10 +174,13 @@ void ForgeWindow::createMenuActions () {
 		connect (qAct, SIGNAL (triggered ()), this, SLOT (slot_action ()));
 	}
 	
-	// Grid actions are checkable
+	// Grid actions and axes are checkable
 	ACTION (gridCoarse)->setCheckable (true);
 	ACTION (gridMedium)->setCheckable (true);
 	ACTION (gridFine)->setCheckable (true);
+	
+	ACTION (axes)->setCheckable (true);
+	ACTION (axes)->setChecked (gl_axes);
 	
 	// things not implemented yet
 	QAction* const qaDisabledActions[] = {
@@ -211,6 +216,7 @@ void ForgeWindow::createMenus () {
 	// View menu
 	qViewMenu = menuBar ()->addMenu (tr ("&View"));
 	qViewMenu->addAction (ACTION (resetView));			// Reset View
+	qViewMenu->addAction (ACTION (axes));					// Draw Axes
 	qViewMenu->addSeparator ();							// -----
 	qViewMenu->addAction (ACTION (screencap));			// Screencap Part
 	qViewMenu->addAction (ACTION (showHistory));			// Edit History
@@ -395,6 +401,10 @@ void ForgeWindow::createToolbars () {
 	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
+	initSingleToolBar ("View");
+	g_CurrentToolBar->addAction (ACTION (axes));
+	
+	// ==========================================
 	// Color toolbar
 	qColorToolBar = new QToolBar ("Quick Colors");
 	addToolBar (Qt::RightToolBarArea, qColorToolBar);
@@ -414,6 +424,7 @@ void ForgeWindow::createToolbars () {
 	g_CurrentToolBar->addAction (ACTION (roundCoords));
 	g_CurrentToolBar->addAction (ACTION (screencap));
 	g_CurrentToolBar->addAction (ACTION (uncolorize));
+	
 	
 	updateToolBars ();
 }

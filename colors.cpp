@@ -37,12 +37,12 @@ void initColors () {
 	col = new color;
 	col->zColorString = "#AAAAAA";
 	col->qColor = col->zColorString.chars ();
-	col->qEdge = "#000000";
+	col->qEdge = Qt::black;
 	g_LDColors[maincolor] = col;
 	
 	col = new color;
 	col->zColorString = "#000000";
-	col->qEdge = col->qColor = col->zColorString.chars ();
+	col->qEdge = col->qColor = Qt::black;
 	g_LDColors[edgecolor] = col;
 	
 	parseLDConfig ();

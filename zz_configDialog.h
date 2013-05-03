@@ -44,7 +44,8 @@ public:
 	QLineEdit* le_LDrawPath;
 	QPushButton* pb_findLDrawPath;
 	QPushButton* pb_viewBg, *pb_viewFg;
-	QCheckBox* cb_colorize, *cb_colorBFC, *cb_selFlash, *cb_insertSchemanticsOnly;
+	QCheckBox* cb_colorize, *cb_colorBFC, *cb_selFlash, *cb_schemanticInline,
+		*cb_blackEdges;
 	QSlider* sl_viewFgAlpha, *sl_lineThickness, *sl_iconSize;
 	
 	// =========================================================================

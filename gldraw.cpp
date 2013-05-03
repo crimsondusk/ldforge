@@ -55,6 +55,8 @@ cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
 cfg (bool, gl_selflash, false);
 cfg (int, gl_camera, GLRenderer::Free);
+cfg (bool, gl_blackedges, true);
+cfg (bool, gl_axes, false);
 
 // CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
 // initialized before program gets to main() and constructs a QApplication
@@ -248,23 +250,31 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		qCol = getMainColor ();
 	else {
 		color* col = getColor (obj->dColor);
+		qCol = col->qColor;
+	}
+	
+	if (obj->dColor == edgecolor) {
+		qCol = Qt::black;
+		color* col;
 		
-		if (col != null)
-			qCol = col->qColor;
-		else {
-			// The color was unknown. Use main color to make the object at least
-			// not appear pitch-black.
+		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->dColor)) != null)
+			qCol = col->qEdge;
+	}
+	
+	if (qCol.isValid () == false) {
+		// The color was unknown. Use main color to make the object at least
+		// not appear pitch-black.
+		if (obj->dColor != edgecolor)
 			qCol = getMainColor ();
-			
-			// Warn about the unknown colors, but only once.
-			for (short i : g_daWarnedColors)
-				if (obj->dColor == i)
-					return;
-			
-			printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
-			g_daWarnedColors.push_back (obj->dColor);
-			return;
-		}
+		
+		// Warn about the unknown colors, but only once.
+		for (short i : g_daWarnedColors)
+			if (obj->dColor == i)
+				return;
+		
+		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
+		g_daWarnedColors.push_back (obj->dColor);
+		return;
 	}
 	
 	long r = qCol.red (),
@@ -331,6 +341,15 @@ void GLRenderer::resizeGL (int w, int h) {
 	glMatrixMode (GL_MODELVIEW);
 }
 
+const struct GLAxis {
+	const QColor col;
+	const vertex vert;
+} g_GLAxes[3] = {
+	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
+	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
+	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
+};
+
 void GLRenderer::drawGLScene () {
 	if (g_CurrentFile == null)
 		return;
@@ -369,6 +388,9 @@ void GLRenderer::drawGLScene () {
 	for (LDObject* obj : g_CurrentFile->objects)
 		glCallList (picking == false ? obj->uGLList : obj->uGLPickList);
 	
+	if (gl_axes && !picking)
+		glCallList (axeslist);
+	
 	glPopMatrix ();
 	glMatrixMode (GL_MODELVIEW);
 }
@@ -378,14 +400,14 @@ void GLRenderer::drawGLScene () {
 // =============================================================================
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
+	vw = zoom;
+	vh = (height * vw) / width;
 	drawGLScene ();
 	
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
 	paint.setRenderHint (QPainter::Antialiasing);
 	
-	vw = zoom;
-	vh = (height * vw) / width;
 	m_hoverpos = g_Origin;
 	
 	if (m_camera != Free) {
@@ -531,6 +553,18 @@ void GLRenderer::compileObjects () {
 		
 		objLists.push_back (obj->uGLList);
 	}
+	
+	// Compile axes
+	axeslist = glGenLists (1);
+	glNewList (axeslist, GL_COMPILE);
+	glBegin (GL_LINES);
+	for (const GLAxis& ax : g_GLAxes) {
+		qglColor (ax.col);
+		compileVertex (ax.vert);
+		compileVertex (-ax.vert);
+	}
+	glEnd ();
+	glEndList ();
 }
 
 // =============================================================================
@@ -642,11 +676,11 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::compileVertex (vertex& vert) {
+void GLRenderer::compileVertex (const vertex& vrt) {
 	glVertex3d (
-		(vert[X] + g_objOffset[0]) / g_storedBBoxSize,
-		-(vert[Y] + g_objOffset[1]) / g_storedBBoxSize,
-		-(vert[Z] + g_objOffset[2]) / g_storedBBoxSize);
+		(vrt[X] + g_objOffset[0]) / g_storedBBoxSize,
+		-(vrt[Y] + g_objOffset[1]) / g_storedBBoxSize,
+		-(vrt[Z] + g_objOffset[2]) / g_storedBBoxSize);
 }
 
 // =============================================================================

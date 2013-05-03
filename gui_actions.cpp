@@ -382,6 +382,16 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+extern_cfg (bool, gl_axes);
+MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
+	gl_axes = !gl_axes;
+	ACTION (axes)->setChecked (gl_axes);
+	g_ForgeWindow->R->update ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 // Debug things
 #ifndef RELEASE
 MAKE_ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", (0)) {

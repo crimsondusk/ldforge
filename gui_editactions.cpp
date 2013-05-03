@@ -28,7 +28,7 @@
 
 vector<LDObject*> g_Clipboard;
 
-cfg (bool, edit_insertSchemanticsOnly, false);
+cfg (bool, edit_schemanticinline, false);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

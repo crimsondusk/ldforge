@@ -95,11 +95,12 @@ private:
 	QPoint pos, rangeStart;
 	QPen thinBorderPen, thickBorderPen;
 	Camera toolTipCamera;
+	uint axeslist;
 	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
 		const short dVerts);
-	void compileVertex (vertex& vrt);
+	void compileVertex (const vertex& vrt);
 	void clampAngle (double& fAngle);
 	void setObjectColor (LDObject* obj);
 	void drawGLScene ();
