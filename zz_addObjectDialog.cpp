@@ -88,6 +88,9 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 			
 			bb_bfcType->addButton (new QRadioButton (LDBFC::saStatements[i]));
 		}
+		
+		if (obj)
+			bb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->eStatement);
 		break;
 	
 	case OBJ_Subfile:
@@ -135,6 +138,11 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		
 		connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
 		le_subfileName = new QLineEdit ();
+		
+		if (obj) {
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			le_subfileName->setText (ref->zFileName);
+		}
 		break;
 	
 	case OBJ_Radial:
@@ -180,7 +188,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored ()) {
-		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
+		if (obj != null)
+			dColor = obj->dColor;
+		else
+			dColor = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
 		
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, dColor);
@@ -189,6 +200,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	for (short i = 0; i < coordCount; ++i) {
 		dsb_coords[i] = new QDoubleSpinBox;
+		dsb_coords[i]->setDecimals (5);
 		dsb_coords[i]->setMinimum (-10000.0);
 		dsb_coords[i]->setMaximum (10000.0);
 	}
@@ -229,7 +241,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
-				dsb_coords[0]->setValue (static_cast<LDRadial*> (obj)->vPosition.coord (i));
+				dsb_coords[i]->setValue (static_cast<LDRadial*> (obj)->vPosition.coord (i));
 		break;
 	
 	case OBJ_Subfile:
@@ -238,7 +250,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
-				dsb_coords[0]->setValue (static_cast<LDSubfile*> (obj)->vPosition.coord (i));
+				dsb_coords[i]->setValue (static_cast<LDSubfile*> (obj)->vPosition.coord (i));
 		break;
 	
 	default:
@@ -329,6 +341,7 @@ template<class T> T* initObj (LDObject*& obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
+	const bool newObject = (obj == null);
 	AddObjectDialog dlg (type, obj);
 	
 	if (obj)
@@ -336,6 +349,10 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	
 	if (dlg.exec () == false)
 		return;
+	
+	LDObject* backup = null;
+	if (!newObject)
+		backup = obj->clone ();
 	
 	switch (type) {
 	case OBJ_Comment:
@@ -432,8 +449,13 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		break;
 	}
 	
-	ulong idx = g_ForgeWindow->getInsertionPoint ();
-	g_CurrentFile->insertObj (idx, obj);
-	History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
+	if (newObject) {
+		ulong idx = g_ForgeWindow->getInsertionPoint ();
+		g_CurrentFile->insertObj (idx, obj);
+		History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
+	} else {
+		History::addEntry (new EditHistory ({obj->getIndex (g_CurrentFile)}, {backup}, {obj->clone ()}));
+	}
+	
 	g_ForgeWindow->refresh ();
 }

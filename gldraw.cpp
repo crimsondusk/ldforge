@@ -754,6 +754,11 @@ void GLRenderer::leaveEvent (QEvent* ev) {
 }
 
 // =============================================================================
+void GLRenderer::contextMenuEvent (QContextMenuEvent* ev) {
+	g_ForgeWindow->spawnContextMenu (ev->globalPos ());
+}
+
+// =============================================================================
 void GLRenderer::setCamera (const GLRenderer::Camera cam) {
 	m_camera = cam;
 	gl_camera = (int) cam;

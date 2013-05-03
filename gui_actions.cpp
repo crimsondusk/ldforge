@@ -154,6 +154,14 @@ MAKE_ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) 
 	AddObjectDialog::staticDialog (OBJ_Radial, null);
 }
 
+MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {
+	if (g_ForgeWindow->sel.size () != 1)
+		return;
+	
+	LDObject* obj = g_ForgeWindow->sel[0];
+	AddObjectDialog::staticDialog (obj->getType (), obj);
+}
+
 MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY (F1)) {
 	
 }

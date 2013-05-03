@@ -161,6 +161,7 @@ public:
 	short getSelectedColor();
 	LDObjectType_e uniformSelectedType ();
 	void scrollToSelection ();
+	void spawnContextMenu (const QPoint pos);
 	
 protected:
 	void closeEvent (QCloseEvent* ev);

@@ -657,3 +657,27 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	
 	g_ForgeWindow->refresh ();
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors from everything selected to main and edge colors", (0)) {
+	vector<LDObject*> oldCopies, newCopies;
+	vector<ulong> indices;
+	
+	for (LDObject* obj : g_ForgeWindow->sel) {
+		if (obj->isColored () == false)
+			continue;
+		
+		indices.push_back (obj->getIndex (g_CurrentFile));
+		oldCopies.push_back (obj->clone ());
+		
+		obj->dColor = (obj->getType () == OBJ_Line || obj->getType () == OBJ_CondLine) ? edgecolor : maincolor;
+		newCopies.push_back (obj->clone ());
+	}
+	
+	if (indices.size () > 0) {
+		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
+		g_ForgeWindow->refresh ();
+	}
+}

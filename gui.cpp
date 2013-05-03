@@ -91,6 +91,8 @@ EXTERN_ACTION (resetView)
 EXTERN_ACTION (insertFrom)
 EXTERN_ACTION (insertRaw)
 EXTERN_ACTION (screencap)
+EXTERN_ACTION (editObject)
+EXTERN_ACTION (uncolorize)
 
 #ifndef RELEASE
 EXTERN_ACTION (addTestQuad)
@@ -240,15 +242,18 @@ void ForgeWindow::createMenus () {
 	qEditMenu->addAction (ACTION (selectByColor));		// Select by Color
 	qEditMenu->addAction (ACTION (selectByType));		// Select by Type
 	qEditMenu->addSeparator ();							// -----
-	qEditMenu->addAction (ACTION (setColor));			// Set Color
-	qEditMenu->addAction (ACTION (invert));				// Invert
-	qEditMenu->addAction (ACTION (inlineContents));		// Inline
-	qEditMenu->addAction (ACTION (deepInline));			// Deep Inline
-	qEditMenu->addAction (ACTION (splitQuads));			// Split Quads
-	qEditMenu->addAction (ACTION (setContents));			// Set Contents
-	qEditMenu->addAction (ACTION (makeBorders));			// Make Borders
-	qEditMenu->addAction (ACTION (makeCornerVerts));		// Make Corner Vertices
-	qEditMenu->addAction (ACTION (roundCoords));			// Round Coordinates
+	
+	QMenu* toolsMenu = menuBar ()->addMenu (tr ("&Tools"));
+	toolsMenu->addAction (ACTION (setColor));			// Set Color
+	toolsMenu->addAction (ACTION (invert));				// Invert
+	toolsMenu->addAction (ACTION (inlineContents));		// Inline
+	toolsMenu->addAction (ACTION (deepInline));			// Deep Inline
+	toolsMenu->addAction (ACTION (splitQuads));			// Split Quads
+	toolsMenu->addAction (ACTION (setContents));			// Set Contents
+	toolsMenu->addAction (ACTION (makeBorders));			// Make Borders
+	toolsMenu->addAction (ACTION (makeCornerVerts));		// Make Corner Vertices
+	toolsMenu->addAction (ACTION (roundCoords));			// Round Coordinates
+	toolsMenu->addAction (ACTION (uncolorize));			// Uncolorize
 	
 	// Move menu
 	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
@@ -394,7 +399,7 @@ void ForgeWindow::createToolbars () {
 	// ==========================================
 	// Left area toolbars
 	//g_ToolBarArea = Qt::LeftToolBarArea;
-	initSingleToolBar ("Objects");
+	initSingleToolBar ("Tools");
 	g_CurrentToolBar->addAction (ACTION (setColor));
 	g_CurrentToolBar->addAction (ACTION (invert));
 	g_CurrentToolBar->addAction (ACTION (inlineContents));
@@ -405,6 +410,7 @@ void ForgeWindow::createToolbars () {
 	g_CurrentToolBar->addAction (ACTION (makeCornerVerts));
 	g_CurrentToolBar->addAction (ACTION (roundCoords));
 	g_CurrentToolBar->addAction (ACTION (screencap));
+	g_CurrentToolBar->addAction (ACTION (uncolorize));
 	
 	updateToolBars ();
 }
@@ -652,8 +658,7 @@ void ForgeWindow::buildObjList () {
 		case OBJ_Radial:
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
-				zText.format ("%s: %d / %d %s", pRad->makeFileName ().chars (),
-					pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
+				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
 				
 				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
 					zText.appendformat (" %d", pRad->dRingNum);
@@ -905,9 +910,23 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ForgeWindow::spawnContextMenu (const QPoint pos) {
+	QMenu* contextMenu = new QMenu;
+	contextMenu->addAction (ACTION (editObject));
+	contextMenu->addSeparator ();
+	contextMenu->addAction (ACTION (cut));
+	contextMenu->addAction (ACTION (copy));
+	contextMenu->addAction (ACTION (paste));
+	contextMenu->addAction (ACTION (del));
+	
+	ACTION (editObject)->setEnabled (g_ForgeWindow->sel.size () == 1);
+	
+	contextMenu->exec (pos);
+}
+
+// =============================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
-	Q_UNUSED (ev);
-	printf ("context menu!\n");
+	g_ForgeWindow->spawnContextMenu (ev->globalPos ());
 }
 
 // =============================================================================
