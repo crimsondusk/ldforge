@@ -19,6 +19,16 @@
 #ifndef COMMON_H
 #define COMMON_H
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <assert.h>
+#include <vector>
+#include <stdint.h>
+#include <stdarg.h>
+#include "str.h"
+#include "config.h"
+#include "types.h"
+
 #define APPNAME "ldforge"
 #define APPNAME_DISPLAY "LDForge"
 #define APPNAME_CAPS "LDFORGE"
@@ -31,19 +41,7 @@
 // ============---
 // #define RELEASE
 
-#define VERSION_STRING VERSION_MAJOR_STR "." VERSION_MINOR_STR
-
-#define CONFIG_WITH_QT
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <assert.h>
-#include <vector>
-#include <stdint.h>
-#include <stdarg.h>
-#include "str.h"
-#include "config.h"
-#include "types.h"
+static const str versionString = format ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 #ifdef __GNUC__
  #define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
@@ -67,8 +65,8 @@
 #define null nullptr
 
 static const double fMaxCoord = 10000.0;
-static const short dMainColor = 16;
-static const short dEdgeColor = 24;
+static const short maincolor = 16;
+static const short edgecolor = 24;
 
 class ForgeWindow;
 class LDObject;
@@ -94,18 +92,27 @@ class QApplication;
 #define FVERTEX(V) V.x, V.y, V.z
 
 // -----------------------------------------------------------------------------
-template<class T> inline T clamp (T a, T min, T max) {
+// Templated clamp
+template<class T> static inline T clamp (T a, T min, T max) {
 	return (a > max) ? max : (a < min) ? min : a;
 }
 
-template<class T> inline T min (T a, T b) {
+// Templated minimum
+template<class T> static inline T min (T a, T b) {
 	return (a < b) ? a : b;
 }
 
-template<class T> inline T max (T a, T b) {
+// Templated maximum
+template<class T> static inline T max (T a, T b) {
 	return (a > b) ? a : b;
 }
 
+// Templated absolute value
+template<class T> static inline T abs (T a) {
+	return (a >= 0) ? a : -a;
+}
+
+// Quick QString to const char* conversion
 static inline const char* qchars (QString qstr) {
 	return qstr.toStdString ().c_str ();
 }
@@ -144,7 +151,7 @@ extern vector<OpenFile*> g_LoadedFiles;
 
 // -----------------------------------------------------------------------------
 // Pointer to the main application.
-extern QApplication* g_qMainApp;
+extern const QApplication* g_qMainApp;
 
 // -----------------------------------------------------------------------------
 // Identity matrix

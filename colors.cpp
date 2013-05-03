@@ -31,17 +31,19 @@ void initColors () {
 	
 	logf ("%s: initializing color information.\n", __func__);
 	
-	// Always make sure there's 16 and 24 available. They're special like that.
-	color* maincolor = new color;
-	maincolor->zColorString = "#AAAAAA";
-	maincolor->qColor = maincolor->zColorString.chars();
-	maincolor->qEdge = "#000000";
-	g_LDColors[dMainColor] = maincolor;
+	color* col;
 	
-	color* edgecolor = new color;
-	edgecolor->zColorString = "#000000";
-	edgecolor->qEdge = edgecolor->qColor = edgecolor->zColorString.chars();
-	g_LDColors[dEdgeColor] = edgecolor;
+	// Always make sure there's 16 and 24 available. They're special like that.
+	col = new color;
+	col->zColorString = "#AAAAAA";
+	col->qColor = col->zColorString.chars ();
+	col->qEdge = "#000000";
+	g_LDColors[maincolor] = col;
+	
+	col = new color;
+	col->zColorString = "#000000";
+	col->qEdge = col->qColor = col->zColorString.chars ();
+	g_LDColors[edgecolor] = col;
 	
 	parseLDConfig ();
 	
@@ -133,7 +135,7 @@ void parseLDConfig () {
 		
 		// Don't let LDConfig.ldr override the special colors 16 and 24. However,
 		// do take the name it gives for the color
-		if (dCode == dMainColor || dCode == dEdgeColor) {
+		if (dCode == maincolor || dCode == edgecolor) {
 			g_LDColors[dCode]->zName = zName;
 			continue;
 		}

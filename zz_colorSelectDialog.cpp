@@ -110,7 +110,7 @@ void ColorSelectDialog::drawScene () {
 		
 		QColor qColor = meta->qColor;
 		
-		if (i == dMainColor) {
+		if (i == maincolor) {
 			// Use the user preferences for main color here
 			qColor = gl_maincolor.value.chars ();
 			qColor.setAlpha (gl_maincolor_alpha * 255.0f);

@@ -25,6 +25,8 @@
 #define NUM_PRIMES 500
 
 class QColor;
+class QAction;
+
 // Prime numbers
 extern const ushort g_uaPrimes[NUM_PRIMES];
 
@@ -41,6 +43,7 @@ void simplify (short& dNum, short& dDenom);
 typedef struct {
 	const char* const name;
 	floatconfig* const confs[4];
+	QAction** const actionptr;
 } gridinfo;
 
 extern_cfg (int, grid);

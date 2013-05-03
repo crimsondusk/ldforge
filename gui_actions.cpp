@@ -346,7 +346,7 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	if (root.substr (~root - 4, -1) == ".dat")
 		root -= 4;
 	
-	str defaultname = format ("%s.png", root.chars ());
+	str defaultname = (~root > 0) ? format ("%s.png", root.chars ()) : "";
 	str fname = QFileDialog::getSaveFileName (g_ForgeWindow, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	

@@ -368,9 +368,8 @@ static vertex parseVertex (vector<str>& s, const ushort n) {
 	setlocale (LC_NUMERIC, "C");
 	
 	vertex v;
-	v.x = atof (s[n]);
-	v.y = atof (s[n + 1]);
-	v.z = atof (s[n + 2]);
+	for (const Axis ax : g_Axes)
+		v[ax] = atof (s[n + ax]);
 	
 	return v;
 }
@@ -425,9 +424,9 @@ LDObject* parseLine (str zLine) {
 					
 					LDVertex* obj = new LDVertex;
 					obj->dColor = atol (tokens[3]);
-					obj->vPosition.x = atof (tokens[4]);
-					obj->vPosition.y = atof (tokens[5]);
-					obj->vPosition.z = atof (tokens[6]);
+					
+					for (const Axis ax : g_Axes)
+						obj->vPosition[ax] = atof (tokens[4 + ax]); // 4 - 6
 					
 					return obj;
 				}

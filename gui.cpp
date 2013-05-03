@@ -474,7 +474,8 @@ void ForgeWindow::updateGridToolBar () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::setTitle () {
-	str title = APPNAME_DISPLAY " v" VERSION_STRING;
+	str title = APPNAME_DISPLAY " v";
+	title += versionString;
 	
 	// Append our current file if we have one
 	if (g_CurrentFile) {
@@ -675,8 +676,8 @@ void ForgeWindow::buildObjList () {
 			item->setForeground (0, QColor ("#FFAA00"));
 		} else if (lv_colorize &&
 			obj->dColor != -1 &&
-			obj->dColor != dMainColor &&
-			obj->dColor != dEdgeColor)
+			obj->dColor != maincolor &&
+			obj->dColor != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.

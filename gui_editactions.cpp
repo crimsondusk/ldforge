@@ -303,7 +303,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 		for (short i = 0; i < dNumLines; ++i) {
 			ulong idx = obj->getIndex (g_CurrentFile) + i + 1;
 			
-			lines[i]->dColor = dEdgeColor;
+			lines[i]->dColor = edgecolor;
 			g_CurrentFile->insertObj (idx, lines[i]);
 			
 			ulaIndices.push_back (idx);
@@ -325,38 +325,18 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	vector<LDObject*> paObjs;
 	
 	for (LDObject* obj : g_ForgeWindow->sel) {
-		vertex* vaCoords = null;
-		ushort uNumCoords = 0;
-		
-		switch (obj->getType ()) {
-		case OBJ_Quad:
-			uNumCoords = 4;
-			vaCoords = static_cast<LDQuad*> (obj)->vaCoords;
-			break;
-		
-		case OBJ_Triangle:
-			uNumCoords = 3;
-			vaCoords = static_cast<LDTriangle*> (obj)->vaCoords;
-			break;
-		
-		case OBJ_Line:
-			uNumCoords = 2;
-			vaCoords = static_cast<LDLine*> (obj)->vaCoords;
-			break;
-		
-		default:
-			break;
-		}
+		if (obj->vertices () < 2)
+			continue;
 		
 		ulong idx = obj->getIndex (g_CurrentFile);
-		for (ushort i = 0; i < uNumCoords; ++i) {
-			LDVertex* pVert = new LDVertex;
-			pVert->vPosition = vaCoords[i];
-			pVert->dColor = obj->dColor;
+		for (short i = 0; i < obj->vertices(); ++i) {
+			LDVertex* vert = new LDVertex;
+			vert->vPosition = obj->vaCoords[i];
+			vert->dColor = obj->dColor;
 			
-			g_CurrentFile->insertObj (++idx, pVert);
+			g_CurrentFile->insertObj (++idx, vert);
 			ulaIndices.push_back (idx);
-			paObjs.push_back (pVert->clone ());
+			paObjs.push_back (vert->clone ());
 		}
 	}
 	
@@ -413,9 +393,9 @@ void doMoveObjects (vertex vVector) {
 	vector<ulong> ulaIndices;
 	
 	// Apply the grid values
-	vVector.x *= currentGrid ().confs[Grid::X]->value;
-	vVector.y *= currentGrid ().confs[Grid::Y]->value;
-	vVector.z *= currentGrid ().confs[Grid::Z]->value;
+	vVector[X] *= currentGrid ().confs[Grid::X]->value;
+	vVector[Y] *= currentGrid ().confs[Grid::Y]->value;
+	vVector[Z] *= currentGrid ().confs[Grid::Z]->value;
 	
 	for (LDObject* obj : g_ForgeWindow->sel) {
 		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
@@ -670,18 +650,10 @@ MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z a
 MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
 	setlocale (LC_ALL, "C");
 	
-	for (LDObject* obj : g_ForgeWindow->sel) {
-		for (short i = 0; i < obj->vertices (); ++i) {
-			double* coords[3] = {
-				&obj->vaCoords[i].x,
-				&obj->vaCoords[i].y,
-				&obj->vaCoords[i].z,
-			};
-			
-			for (double* coord : coords)
-				*coord = atof (format ("%.3f", *coord));
-		}
-	}
+	for (LDObject* obj : g_ForgeWindow->sel)
+	for (short i = 0; i < obj->vertices (); ++i)
+	for (const Axis ax : g_Axes)
+		obj->vaCoords[i][ax] = atof (format ("%.3f", obj->vaCoords[i][ax]));
 	
 	g_ForgeWindow->refresh ();
 }

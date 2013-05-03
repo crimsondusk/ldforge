@@ -21,10 +21,6 @@
 #include "ldtypes.h"
 #include "file.h"
 
-#define CHECK_DIMENSION(V,X) \
-	if (V.X < v0.X) v0.X = V.X; \
-	if (V.X > v1.X) v1.X = V.X;
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -115,26 +111,30 @@ void bbox::calcObject (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void bbox::calcVertex (vertex v) {
-	CHECK_DIMENSION (v, x)
-	CHECK_DIMENSION (v, y)
-	CHECK_DIMENSION (v, z)
+	for (const Axis ax : g_Axes) {
+		if (v[ax] < v0[ax])
+			v0[ax] = v[ax];
+		
+		if (v[ax] > v1[ax])
+			v1[ax] = v[ax];
+	}
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void bbox::reset () {
-	v0.x = v0.y = v0.z = +0x7FFFFFFF;
-	v1.x = v1.y = v1.z = -0x7FFFFFFF;
+	v0[X] = v0[Y] = v0[Z] = +0x7FFFFFFF;
+	v1[X] = v1[Y] = v1[Z] = -0x7FFFFFFF;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 double bbox::size () const {
-	double fXScale = (v0.x - v1.x);
-	double fYScale = (v0.y - v1.y);
-	double fZScale = (v0.z - v1.z);
+	double fXScale = (v0[X] - v1[X]);
+	double fYScale = (v0[Y] - v1[Y]);
+	double fZScale = (v0[Z] - v1[Z]);
 	double fSize = fZScale;
 	
 	if (fXScale > fYScale) {
@@ -152,7 +152,7 @@ double bbox::size () const {
 // =============================================================================
 vertex bbox::center () const {
 	return vertex (
-		(v0.x + v1.x) / 2,
-		(v0.y + v1.y) / 2,
-		(v0.z + v1.z) / 2);
+		(v0[X] + v1[X]) / 2,
+		(v0[Y] + v1[Y]) / 2,
+		(v0[Z] + v1[Z]) / 2);
 }

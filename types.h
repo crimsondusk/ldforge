@@ -40,6 +40,9 @@ using std::vector;
 
 class matrix;
 
+enum Axis { X, Y, Z };
+static const Axis g_Axes[3] = {X, Y, Z};
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -50,16 +53,19 @@ class matrix;
 // =============================================================================
 class vertex {
 public:
-	double x, y, z;
+	double m_coords[3];
 	
 	vertex () {}
-	vertex (double x, double y, double z) : x (x), y (y), z (z) {}
+	vertex (double x, double y, double z) {
+		m_coords[X] = x;
+		m_coords[Y] = y;
+		m_coords[Z] = z;
+	}
 	
 	// =========================================================================
 	void move (vertex other) {
-		x += other.x;
-		y += other.y;
-		z += other.z;
+		for (const Axis ax : g_Axes)
+			m_coords[ax] += other[ax];
 	}
 	
 	// =========================================================================
@@ -76,20 +82,27 @@ public:
 	
 	// =========================================================================
 	vertex& operator/= (const double d) {
-		x /= d;
-		y /= d;
-		z /= d;
+		for (const Axis ax : g_Axes)
+			m_coords[ax] /= d;
 		return *this;
 	}
 	
 	// =========================================================================
 	vertex operator- () const {
-		return vertex (-x, -y, -z);
+		return vertex (-m_coords[X], -m_coords[Y], -m_coords[Z]);
 	}
 	
 	// =========================================================================
-	double coord (const ushort n) const {
-		return *(&x + n);
+	double& coord (const ushort n) const {
+		return const_cast<double&> (m_coords[n]);
+	}
+	
+	double& operator[] (const Axis ax) const {
+		return coord ((ushort) ax);
+	}
+	
+	double& operator[] (const ushort n) const {
+		return coord (n);
 	}
 	
 	// =========================================================================

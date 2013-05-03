@@ -28,12 +28,25 @@
 #include "gui.h"
 #include "misc.h"
 
-static double g_faObjectOffset[3];
-static double g_StoredBBoxSize;
+static double g_objOffset[3];
+static double g_storedBBoxSize;
 
-static short g_dPulseTick = 0;
-static const short g_dNumPulseTicks = 8;
-static const short g_dPulseInterval = 65;
+static short g_pulseTick = 0;
+static const short g_numPulseTicks = 8;
+static const short g_pulseInterval = 65;
+
+static const struct staticCameraMeta {
+	const char glrotate[3];
+	const Axis axisX, axisY;
+	const bool negX, negY;
+} g_staticCameras[6] = {
+	{ { 0, 0, 0 }, X, Y, false, true },
+	{ { 0, 0, 0 }, X, Y, true, true },
+	{ { 1, 0, 0 }, X, Z, false, false },
+	{ { -1, 0, 0 }, X, Z, false, true },
+	{ { 0, 1, 0 }, Z, Y, true, true },
+	{ { 0, -1, 0 }, Z, Y, false, true },
+};
 
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
@@ -48,6 +61,7 @@ cfg (bool, gl_selflash, false);
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
 	picking = rangepick = false;
+	m_camera = Free;
 	
 	pulseTimer = new QTimer (this);
 	connect (pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
@@ -65,9 +79,6 @@ void GLRenderer::resetAngles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::initializeGL () {
-	glLoadIdentity();
-	glMatrixMode (GL_MODELVIEW);
-	
 	setBackground ();
 	
 	glEnable (GL_POLYGON_OFFSET_FILL);
@@ -98,7 +109,7 @@ QColor GLRenderer::getMainColor () {
 	QColor col (gl_maincolor.value.chars());
 	
 	if (!col.isValid ())
-		return QColor (0, 0, 0); // shouldn't happen
+		return QColor (0, 0, 0);
 	
 	col.setAlpha (gl_maincolor_alpha * 255.f);
 	return col;
@@ -165,7 +176,7 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 	}
 #endif
 	
-	if (obj->dColor == dMainColor)
+	if (obj->dColor == maincolor)
 		qCol = getMainColor ();
 	else {
 		color* col = getColor (obj->dColor);
@@ -195,20 +206,20 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 	
 	// If it's selected, brighten it up, also pulse flash it if desired.
 	if (g_ForgeWindow->isSelected (obj)) {
-		short dTick, dNumTicks;
+		short tick, numTicks;
 		
 		if (gl_selflash) {
-			dTick = (g_dPulseTick < (g_dNumPulseTicks / 2)) ? g_dPulseTick : (g_dNumPulseTicks - g_dPulseTick);
-			dNumTicks = g_dNumPulseTicks;
+			tick = (g_pulseTick < (g_numPulseTicks / 2)) ? g_pulseTick : (g_numPulseTicks - g_pulseTick);
+			numTicks = g_numPulseTicks;
 		} else {
-			dTick = 2;
-			dNumTicks = 5;
+			tick = 2;
+			numTicks = 5;
 		}
 		
-		const long lAdd = ((dTick * 128) / dNumTicks);
-		r = min (r + lAdd, 255l);
-		g = min (g + lAdd, 255l);
-		b = min (b + lAdd, 255l);
+		const long add = ((tick * 128) / numTicks);
+		r = min (r + add, 255l);
+		g = min (g + add, 255l);
+		b = min (b + add, 255l);
 		
 		// a = 255;
 	}
@@ -250,17 +261,6 @@ void GLRenderer::resizeGL (int w, int h) {
 	glMatrixMode (GL_MODELVIEW);
 }
 
-char g_staticCameras[6][3] = {
-	{ 0, 0, 1 },
-	{ 0, 0, -1 },
-	{ 1, 0, 0 },
-	{ -1, 0, 0 },
-	{ 0, 1, 0 },
-	{ 0, -1, 0 },
-};
-
-GLRenderer::Camera cam = GLRenderer::Front;
-
 void GLRenderer::drawGLScene () {
 	if (g_CurrentFile == null)
 		return;
@@ -268,14 +268,22 @@ void GLRenderer::drawGLScene () {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 	
-	if (cam != GLRenderer::Free) {
+	if (m_camera != GLRenderer::Free) {
 		glMatrixMode (GL_PROJECTION);
 		glPushMatrix ();
 		
 		glLoadIdentity ();
-		glOrtho (-vw, vw, -vh, vh, -100.0, 100.0);
+		glOrtho (-vw, vw, -vh, vh, -100.0f, 100.0f);
 		glTranslatef (panX, panY, 0.0f);
-		glRotatef (90.f, g_staticCameras[cam][0], g_staticCameras[cam][1], g_staticCameras[cam][2]);
+		glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
+			g_staticCameras[m_camera].glrotate[1],
+			g_staticCameras[m_camera].glrotate[2]);
+		
+		// Back camera needs to be handled differently
+		if (m_camera == GLRenderer::Back) {
+			glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
+			glRotatef (180.0f, 0.0f, 0.0f, 1.0f);
+		}
 	} else {
 		glMatrixMode (GL_MODELVIEW);
 		glPushMatrix ();
@@ -287,9 +295,10 @@ void GLRenderer::drawGLScene () {
 		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
 		glRotatef (rotZ, 0.0f, 0.0f, 1.0f);
 	}
-			
-		for (LDObject* obj : g_CurrentFile->objects)
-			glCallList ((picking == false) ? obj->uGLList : obj->uGLPickList);
+	
+	for (LDObject* obj : g_CurrentFile->objects)
+		glCallList (picking == false ? obj->uGLList : obj->uGLPickList);
+	
 	glPopMatrix ();
 	glMatrixMode (GL_MODELVIEW);
 }
@@ -298,22 +307,41 @@ void GLRenderer::drawGLScene () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::paintEvent (QPaintEvent* ev) {
+	Q_UNUSED (ev)
 	drawGLScene ();
 	
+	QPainter paint (this);
 	vw = zoom;
 	vh = (height * vw) / width;
-	const double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_StoredBBoxSize - (g_faObjectOffset[0]), Grid::X);
-	const double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_StoredBBoxSize - (g_faObjectOffset[2]), Grid::Z);
 	
-	str text;
-	text.format ("(%.3f, %.3f)", cx, cy);
-	QFontMetrics metrics = QFontMetrics (font ());
-	QRect textSize = metrics.boundingRect (0, 0, width, height, Qt::AlignCenter, text);
-	
-	QPainter paint (this);
-	paint.setRenderHint (QPainter::Antialiasing);
-	paint.drawText (width - textSize.width (), height - 16, textSize.width (),
-		textSize.height (), Qt::AlignCenter, text);
+	if (m_camera != Free) {
+		const staticCameraMeta* cam = &g_staticCameras[m_camera];
+		const Axis axisX = cam->axisX;
+		const Axis axisY = cam->axisY;
+		const short negXFac = cam->negX ? -1 : 1,
+			negYFac = cam->negY ? -1 : 1;
+		
+		double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]), (Grid::Config) axisX);
+		double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_storedBBoxSize - (negYFac * g_objOffset[axisY]), (Grid::Config) axisY);
+		cx *= negXFac;
+		cy *= negYFac;
+		
+		m_hoverpos = g_Origin;
+		m_hoverpos[axisX] = cx;
+		m_hoverpos[axisY] = cy;
+		
+		paint.setRenderHint (QPainter::Antialiasing);
+		
+		str text;
+		text.format ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
+			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
+		
+		QFontMetrics metrics = QFontMetrics (font ());
+		QRect textSize = metrics.boundingRect (0, 0, width, height, Qt::AlignCenter, text);
+		
+		paint.drawText (width - textSize.width (), height - 16, textSize.width (),
+			textSize.height (), Qt::AlignCenter, text);
+	}
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (rangepick && !picking) {
@@ -332,39 +360,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		paint.setPen (borderPen);
 		paint.setBrush (QBrush (fillColor));
 		paint.drawRect (rect);
-		
-#if 0
-		glMatrixMode (GL_PROJECTION);
-		
-		glPushMatrix ();
-			glLoadIdentity ();
-			glOrtho (.0, width, height, .0, -1.0, 1.0);
-			
-			for (int x : {GL_QUADS, GL_LINE_LOOP}) {
-				if (x == GL_QUADS) {
-					// Use a green color when picking additive, a blue color when normally.
-					if (addpick)
-						glColor4f (0.5f, 1.f, 0.f, 0.2f);
-					else
-						glColor4f (0.f, 0.8f, 1.f, 0.2f);
-				} else {
-					if (darkbg)
-						glColor4f (1.f, 1.f, 1.f, 0.7f);
-					else
-						glColor4f (0.f, 0.f, 0.f, 0.7f);
-				}
-				
-				glBegin (x);
-					glVertex2i (x0, y0);
-					glVertex2i (x1, y0);
-					glVertex2i (x1, y1);
-					glVertex2i (x0, y1);
-				glEnd ();
-			}
-		glPopMatrix ();
-		
-		glMatrixMode (GL_MODELVIEW);
-#endif
 	}
 }
 
@@ -374,10 +369,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 void GLRenderer::compileObjects () {
 	objLists.clear ();
 	
-	g_faObjectOffset[0] = -(g_BBox.v0.x + g_BBox.v1.x) / 2;
-	g_faObjectOffset[1] = -(g_BBox.v0.y + g_BBox.v1.y) / 2;
-	g_faObjectOffset[2] = -(g_BBox.v0.z + g_BBox.v1.z) / 2;
-	g_StoredBBoxSize = g_BBox.size ();
+	g_objOffset[0] = -(g_BBox.v0[X] + g_BBox.v1[X]) / 2;
+	g_objOffset[1] = -(g_BBox.v0[Y] + g_BBox.v1[Y]) / 2;
+	g_objOffset[2] = -(g_BBox.v0[Z] + g_BBox.v1[Z]) / 2;
+	g_storedBBoxSize = g_BBox.size ();
 	
 	if (!g_CurrentFile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -517,9 +512,9 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 // =============================================================================
 void GLRenderer::compileVertex (vertex& vert) {
 	glVertex3d (
-		(vert.x + g_faObjectOffset[0]) / g_StoredBBoxSize,
-		-(vert.y + g_faObjectOffset[1]) / g_StoredBBoxSize,
-		-(vert.z + g_faObjectOffset[2]) / g_StoredBBoxSize);
+		(vert[X] + g_objOffset[0]) / g_storedBBoxSize,
+		-(vert[Y] + g_objOffset[1]) / g_storedBBoxSize,
+		-(vert[Z] + g_objOffset[2]) / g_storedBBoxSize);
 }
 
 // =============================================================================
@@ -619,8 +614,8 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 // =============================================================================
 void GLRenderer::updateSelFlash () {
 	if (gl_selflash && g_ForgeWindow->sel.size() > 0) {
-		pulseTimer->start (g_dPulseInterval);
-		g_dPulseTick = 0;
+		pulseTimer->start (g_pulseInterval);
+		g_pulseTick = 0;
 	} else
 		pulseTimer->stop ();
 }
@@ -775,7 +770,7 @@ void GLRenderer::recompileObject (LDObject* obj) {
 
 // =============================================================================
 void GLRenderer::slot_timerUpdate () {
-	++g_dPulseTick %= g_dNumPulseTicks;
+	++g_pulseTick %= g_numPulseTicks;
 	
 	for (LDObject* obj : g_ForgeWindow->sel)
 		recompileObject (obj);

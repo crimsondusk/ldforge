@@ -29,7 +29,7 @@ vector<OpenFile*> g_LoadedFiles;
 OpenFile* g_CurrentFile = null;
 ForgeWindow* g_ForgeWindow = null; 
 bbox g_BBox;
-QApplication* g_qMainApp = null;
+const QApplication* g_qMainApp = null;
 
 const vertex g_Origin (0.0f, 0.0f, 0.0f);
 const matrix g_mIdentity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
@@ -50,7 +50,7 @@ int main (int dArgc, char* saArgv[]) {
 	initColors ();
 	initPartList ();
 	
-	QApplication app (dArgc, saArgv);
+	const QApplication app (dArgc, saArgv);
 	ForgeWindow* win = new ForgeWindow;
 	
 	g_qMainApp = &app;

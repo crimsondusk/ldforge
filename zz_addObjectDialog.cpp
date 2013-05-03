@@ -27,11 +27,9 @@
 #include "history.h"
 
 #define APPLY_COORDS(OBJ, N) \
-	for (short i = 0; i < N; ++i) { \
-		OBJ->vaCoords[i].x = dlg.dsb_coords[(i * 3) + 0]->value (); \
-		OBJ->vaCoords[i].y = dlg.dsb_coords[(i * 3) + 1]->value (); \
-		OBJ->vaCoords[i].z = dlg.dsb_coords[(i * 3) + 2]->value (); \
-	}
+	for (short i = 0; i < N; ++i) \
+		for (const Axis ax : g_Axes) \
+			OBJ->vaCoords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
 
 // =============================================================================
 class SubfileListItem : public QTreeWidgetItem {
@@ -170,7 +168,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored ()) {
-		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? dEdgeColor : dMainColor;
+		dColor = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
 		
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, dColor);
@@ -364,9 +362,9 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
 			vert->dColor = dlg.dColor;
-			vert->vPosition.x = dlg.dsb_coords[0]->value ();
-			vert->vPosition.y = dlg.dsb_coords[1]->value ();
-			vert->vPosition.z = dlg.dsb_coords[2]->value ();
+			
+			for (const Axis ax : g_Axes)
+				vert->vPosition[ax] = dlg.dsb_coords[ax]->value ();
 		}
 		break;
 	
@@ -374,9 +372,10 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		{
 			LDRadial* pRad = initObj<LDRadial> (obj);
 			pRad->dColor = dlg.dColor;
-			pRad->vPosition.x = dlg.dsb_coords[0]->value ();
-			pRad->vPosition.y = dlg.dsb_coords[1]->value ();
-			pRad->vPosition.z = dlg.dsb_coords[2]->value ();
+			
+			for (const Axis ax : g_Axes)
+				pRad->vPosition[ax] = dlg.dsb_coords[ax]->value ();
+			
 			pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
 			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
 			pRad->eRadialType = (LDRadial::Type) dlg.bb_radType->value ();
@@ -393,9 +392,10 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 			
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 			ref->dColor = dlg.dColor;
-			ref->vPosition.x = dlg.dsb_coords[0]->value ();
-			ref->vPosition.y = dlg.dsb_coords[1]->value ();
-			ref->vPosition.z = dlg.dsb_coords[2]->value ();
+			
+			for (const Axis ax : g_Axes)
+				ref->vPosition[ax] = dlg.dsb_coords[ax]->value ();
+			
 			ref->zFileName = name;
 			ref->mMatrix = g_mIdentity;
 			ref->pFile = loadSubfile (name);

@@ -57,21 +57,16 @@ public:
 	void resetAngles ();
 	uchar* screencap (ushort& w, ushort& h);
 	
-	double rotX, rotY, rotZ;
-	double panX, panY;
-	QPoint pos;
-	double zoom;
+	GLRenderer::Camera camera () { return m_camera; }
+	void setCamera (const GLRenderer::Camera cam) { m_camera = cam; }
+	
 	bool picking;
-	bool rangepick;
-	bool addpick;
 	short width, height;
-	QPoint rangeStart;
 	ushort mouseX, mouseY;
 
 protected:
 	void initializeGL ();
 	void resizeGL (int w, int h);
-	// void paintGL ();
 	
 	void mousePressEvent (QMouseEvent* ev);
 	void mouseMoveEvent (QMouseEvent* ev);
@@ -89,6 +84,11 @@ private:
 	ulong totalmove;
 	bool darkbg;
 	double vw, vh;
+	Camera m_camera;
+	vertex m_hoverpos;
+	double rotX, rotY, rotZ, panX, panY, zoom;
+	bool rangepick, addpick;
+	QPoint pos, rangeStart;
 	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,

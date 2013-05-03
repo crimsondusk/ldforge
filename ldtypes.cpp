@@ -291,7 +291,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 		break;
 	}
 	
-	if (obj->dColor == dMainColor)
+	if (obj->dColor == maincolor)
 		obj->dColor = parentcolor;
 }
 
@@ -550,7 +550,7 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 				LDLine* pLine = new LDLine;
 				pLine->vaCoords[0] = v0;
 				pLine->vaCoords[1] = v1;
-				pLine->dColor = dEdgeColor;
+				pLine->dColor = edgecolor;
 				pLine->parent = this;
 				
 				paObjects.push_back (pLine);
