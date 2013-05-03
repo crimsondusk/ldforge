@@ -247,7 +247,7 @@ MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3
 // =============================================================================
 MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
 	g_ForgeWindow->R->resetAngles ();
-	g_ForgeWindow->R->updateGL ();
+	g_ForgeWindow->R->update ();
 }
 
 // =============================================================================

@@ -40,11 +40,11 @@ static const struct staticCameraMeta {
 	const Axis axisX, axisY;
 	const bool negX, negY;
 } g_staticCameras[6] = {
-	{ { 0, 0, 0 }, X, Y, false, true },
-	{ { 0, 0, 0 }, X, Y, true, true },
 	{ { 1, 0, 0 }, X, Z, false, false },
-	{ { -1, 0, 0 }, X, Z, false, true },
+	{ { 0, 0, 0 }, X, Y, false, true },
 	{ { 0, 1, 0 }, Z, Y, true, true },
+	{ { -1, 0, 0 }, X, Z, false, true },
+	{ { 0, 0, 0 }, X, Y, true, true },
 	{ { 0, -1, 0 }, Z, Y, false, true },
 };
 
@@ -61,9 +61,18 @@ struct CameraIcon {
 	GLRenderer::Camera cam;
 } g_CameraIcons[7];
 
-const QBrush g_CameraIconSelBG (QColor (0, 0, 0, 128));
-const char* g_CameraNames[] = { "Front", "Top", "Left", "Back", "Bottom", "Right", "Free" };
+const char* g_CameraNames[7] = { "Top", "Front", "Left", "Bottom", "Back", "Right", "Free" };
 
+const GLRenderer::Camera g_Cameras[7] = {
+	GLRenderer::Top,
+	GLRenderer::Front,
+	GLRenderer::Left,
+	GLRenderer::Bottom,
+	GLRenderer::Back,
+	GLRenderer::Right,
+	GLRenderer::Free
+};
+	
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -71,25 +80,27 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
 	picking = rangepick = false;
 	m_camera = Free;
+	drawToolTip = false;
 	
 	pulseTimer = new QTimer (this);
 	connect (pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
+	
+	toolTipTimer = new QTimer (this);
+	toolTipTimer->setSingleShot (true);
+	connect (toolTipTimer, SIGNAL (timeout ()), this, SLOT (slot_toolTipTimer ()));
 	
 	thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 	thinBorderPen = thickBorderPen;
 	thinBorderPen.setWidth (1);
 	
 	// Init camera icons
-	ushort i = 0;
-	for (str name : g_CameraNames) {
+	for (const GLRenderer::Camera cam : g_Cameras) {
 		str path;
-		path.format ("./icons/camera-%s.png", name.tolower ().chars ());
+		path.format ("./icons/camera-%s.png", str (g_CameraNames[cam]).tolower ().chars ());
 		
-		CameraIcon* info = &g_CameraIcons[i];
+		CameraIcon* info = &g_CameraIcons[cam];
 		info->img = new QPixmap (path);
-		info->cam = (GLRenderer::Camera) i;
-		
-		++i;
+		info->cam = cam;
 	}
 	
 	calcCameraIconRects ();
@@ -108,8 +119,8 @@ void GLRenderer::calcCameraIconRects () {
 	ushort i = 0;
 	
 	for (CameraIcon& info : g_CameraIcons) {
-		const long x1 = width - (((i % 3) + 1) * 16) - 1,
-			y1 = ((i / 3) * 16);
+		const long x1 = (width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
+			y1 = ((i / 3) * 16) + 1;
 		
 		info.srcRect = QRect (0, 0, 16, 16);
 		info.destRect = QRect (x1, y1, 16, 16);
@@ -366,9 +377,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	drawGLScene ();
 	
 	QPainter paint (this);
+	QFontMetrics metrics = QFontMetrics (QFont ());
+	paint.setRenderHint (QPainter::Antialiasing);
 	
 	vw = zoom;
 	vh = (height * vw) / width;
+	m_hoverpos = g_Origin;
 	
 	if (m_camera != Free) {
 		const staticCameraMeta* cam = &g_staticCameras[m_camera];
@@ -377,17 +391,19 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		const short negXFac = cam->negX ? -1 : 1,
 			negYFac = cam->negY ? -1 : 1;
 		
-		double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]), (Grid::Config) axisX);
-		double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_storedBBoxSize - (negYFac * g_objOffset[axisY]), (Grid::Config) axisY);
+		// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
+		double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_storedBBoxSize -
+			(negXFac * g_objOffset[axisX]), (Grid::Config) axisX);
+		double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_storedBBoxSize -
+			(negYFac * g_objOffset[axisY]), (Grid::Config) axisY);
 		cx *= negXFac;
 		cy *= negYFac;
 		
-		m_hoverpos = g_Origin;
+		// Set the position we're hovering over based on this
 		m_hoverpos[axisX] = cx;
 		m_hoverpos[axisY] = cy;
 		
-		paint.setRenderHint (QPainter::Antialiasing);
-		
+		// Paint the coordinates onto the screen.
 		str text;
 		text.format ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
 			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
@@ -403,11 +419,59 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	if (!picking) {
 		// Draw a background for the selected camera
 		paint.setPen (thinBorderPen);
-		paint.setBrush (g_CameraIconSelBG);
+		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
 		paint.drawRect (g_CameraIcons[camera ()].selRect);
 		
+		// Draw the actual icons
 		for (CameraIcon& info : g_CameraIcons)
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
+		
+		// Draw a label for the current camera in the top left corner
+		{
+			const ushort margin = 4;
+			
+			str label;
+			label.format ("%s Camera", g_CameraNames[camera ()]);
+			paint.setBrush (Qt::black);
+			paint.drawText (QPoint (margin, margin + metrics.ascent ()), label);
+		}
+		
+		// Tool tips
+		if (drawToolTip) {
+			if (g_CameraIcons[toolTipCamera].destRect.contains (QPoint (mouseX, mouseY)) == false)
+				drawToolTip = false;
+			else {
+				QPen bord = thinBorderPen;
+				bord.setBrush (Qt::black);
+				
+				const ushort margin = 2;
+				ushort x0 = mouseX,
+					y0 = mouseY;
+				
+				str label;
+				label.format ("%s Camera", g_CameraNames[toolTipCamera]);
+				
+				const ushort textWidth = metrics.width (label),
+					textHeight = metrics.height (),
+					fullWidth = textWidth + (2 * margin),
+					fullHeight = textHeight + (2 * margin);
+				
+				QRect area (mouseX, mouseY, fullWidth, fullHeight);
+				
+				if (x0 + fullWidth > width)
+					x0 -= fullWidth;
+				
+				if (y0 + fullHeight > height)
+					y0 -= fullHeight;
+				
+				paint.setBrush (QColor (0, 128, 255, 208));
+				paint.setPen (bord);
+				paint.drawRect (x0, y0, fullWidth, fullHeight);
+				
+				paint.setBrush (Qt::black);
+				paint.drawText (QPoint (x0 + margin, y0 + margin + metrics.ascent ()), label);
+			}
+		}
 	}
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
@@ -649,6 +713,10 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 		panY -= 0.03f * dy * (zoom / 7.5f);
 	}
 	
+	// Start the tool tip timer
+	if (!drawToolTip)
+		toolTipTimer->start (1000);
+	
 	pos = ev->pos ();
 	update ();
 }
@@ -846,16 +914,6 @@ void GLRenderer::recompileObject (LDObject* obj) {
 }
 
 // =============================================================================
-void GLRenderer::slot_timerUpdate () {
-	++g_pulseTick %= g_numPulseTicks;
-	
-	for (LDObject* obj : g_ForgeWindow->sel)
-		recompileObject (obj);
-	
-	update ();
-}
-
-// =============================================================================
 uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	w = width;
 	h = height;
@@ -869,4 +927,29 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	setBackground ();
 	
 	return cap;
+}
+
+// =============================================================================
+void GLRenderer::slot_timerUpdate () {
+	++g_pulseTick %= g_numPulseTicks;
+	
+	for (LDObject* obj : g_ForgeWindow->sel)
+		recompileObject (obj);
+	
+	update ();
+}
+
+// =============================================================================
+void GLRenderer::slot_toolTipTimer () {
+	// We come here if the cursor has stayed in one place for longer than a
+	// a second. Check if we're holding it over a camera icon - if so, draw
+	// a tooltip.
+	for (CameraIcon& icon : g_CameraIcons) {
+		if (icon.destRect.contains (QPoint (mouseX, mouseY))) {
+			toolTipCamera = icon.cam;
+			drawToolTip = true;
+			update ();
+			break;
+		}
+	}
 }

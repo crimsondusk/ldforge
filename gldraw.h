@@ -36,11 +36,11 @@ class GLRenderer : public QGLWidget {
 	
 public:
 	enum Camera {
-		Front,
-		Back,
 		Top,
-		Bottom,
+		Front,
 		Left,
+		Bottom,
+		Back,
 		Right,
 		Free
 	};
@@ -80,7 +80,7 @@ protected:
 
 private:
 	std::vector<GLuint> objLists;
-	QTimer* pulseTimer;
+	QTimer* pulseTimer, *toolTipTimer;
 	Qt::MouseButtons lastButtons;
 	Qt::KeyboardModifiers keymods;
 	ulong totalmove;
@@ -89,9 +89,10 @@ private:
 	Camera m_camera;
 	vertex m_hoverpos;
 	double rotX, rotY, rotZ, panX, panY, zoom;
-	bool rangepick, addpick;
+	bool rangepick, addpick, drawToolTip;
 	QPoint pos, rangeStart;
 	QPen thinBorderPen, thickBorderPen;
+	Camera toolTipCamera;
 	
 	void compileOneObject (LDObject* obj);
 	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
@@ -104,6 +105,7 @@ private:
 	
 private slots:
 	void slot_timerUpdate ();
+	void slot_toolTipTimer ();
 };
 
 #endif // GLDRAW_H
