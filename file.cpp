@@ -610,14 +610,22 @@ void reloadAllSubfiles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong OpenFile::addObject (LDObject* obj) {
-	if (this != g_CurrentFile) {
-		objects.push_back (obj);
-		return objects.size() - 1;
-	}
+	objects.push_back (obj);
 	
-	const ulong ulSpot = g_ForgeWindow->getInsertionPoint ();
-	objects.insert (objects.begin() + ulSpot, obj);
-	return ulSpot;
+	if (this == g_CurrentFile)
+		g_BBox.calcObject (obj);
+	
+	return objects.size() - 1;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void OpenFile::insertObj (const ulong pos, LDObject* obj) {
+	objects.insert (objects.begin () + pos, obj);
+	
+	if (this == g_CurrentFile)
+		g_BBox.calcObject (obj);
 }
 
 // =============================================================================
@@ -635,6 +643,10 @@ void OpenFile::forgetObject (LDObject* obj) {
 	
 	// Erase it from memory
 	objects.erase (objects.begin() + ulIndex);
+	
+	// Update the bounding box
+	if (this == g_CurrentFile)
+		g_BBox.calculate ();
 }
 
 // =============================================================================

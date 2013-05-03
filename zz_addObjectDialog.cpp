@@ -432,7 +432,8 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		break;
 	}
 	
-	ulong idx = g_CurrentFile->addObject (obj);
+	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	g_CurrentFile->insertObj (idx, obj);
 	History::addEntry (new AddHistory ({idx}, {obj->clone ()}));
 	g_ForgeWindow->refresh ();
 }

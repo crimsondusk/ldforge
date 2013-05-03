@@ -97,7 +97,7 @@ void DelHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		ulong idx = cache.size() - i - 1;
 		LDObject* obj = cache[idx]->clone ();
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + indices[idx], obj);
+		g_CurrentFile->insertObj (indices[idx], obj);
 	}
 	
 	g_ForgeWindow->refresh ();
@@ -217,7 +217,7 @@ void AddHistory::redo () {
 		ulong idx = ulaIndices[i];
 		LDObject* obj = paObjs[i]->clone ();
 		
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx, obj);
+		g_CurrentFile->insertObj (idx, obj);
 	}
 	
 	g_ForgeWindow->refresh ();
@@ -258,7 +258,7 @@ void QuadSplitHistory::redo () {
 		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
 		
 		g_CurrentFile->objects[idx] = paTriangles[0];
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx + 1, paTriangles[1]);
+		g_CurrentFile->insertObj (idx + 1, paTriangles[1]);
 		delete pQuad;
 	}
 	
@@ -277,7 +277,7 @@ void InlineHistory::undo () {
 	
 	for (ulong i = 0; i < ulaRefIndices.size(); ++i) {
 		LDSubfile* obj = paRefs[i]->clone ();
-		g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + ulaRefIndices[i], obj);
+		g_CurrentFile->insertObj (ulaRefIndices[i], obj);
 	}
 	
 	g_ForgeWindow->refresh ();
@@ -292,7 +292,7 @@ void InlineHistory::redo () {
 		vector<LDObject*> objs = ref->inlineContents (bDeep, false);
 		
 		for (LDObject* obj : objs)
-			g_CurrentFile->objects.insert (g_CurrentFile->objects.begin() + idx++, obj);
+			g_CurrentFile->insertObj (idx++, obj);
 		
 		g_CurrentFile->forgetObject (ref);
 		delete ref;

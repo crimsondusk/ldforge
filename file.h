@@ -50,7 +50,7 @@ public:
 	// Perform safety checks. Do this before closing any files!
 	bool safeToClose ();
 	
-	// Adds an object to this file at the appropriate location.
+	// Adds an object to this file at the end of the file.
 	ulong addObject (LDObject* obj);
 	
 	// Deletes the given object from the object chain.
@@ -63,9 +63,7 @@ public:
 		return objects[pos];
 	}
 	
-	void insertObj (const ulong pos, LDObject* obj) {
-		objects.insert (objects.begin () + pos, obj);
-	}
+	void insertObj (const ulong pos, LDObject* obj);
 };
 
 // Close all current loaded files and start off blank.

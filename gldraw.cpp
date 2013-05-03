@@ -56,6 +56,9 @@ cfg (bool, gl_colorbfc, true);
 cfg (bool, gl_selflash, false);
 cfg (int, gl_camera, GLRenderer::Free);
 
+// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
+// initialized before program gets to main() and constructs a QApplication
+// and Qt doesn't like that.
 struct CameraIcon {
 	QPixmap* img;
 	QRect srcRect, destRect, selRect;

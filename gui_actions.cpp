@@ -373,7 +373,7 @@ MAKE_ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", (0))
 	pQuad->vaCoords[2] = {-1.0f, 0.0f, -1.0f};
 	pQuad->vaCoords[3] = { 1.0f, 0.0f, -1.0f};
 	
-	g_CurrentFile->addObject (pQuad);
+	g_CurrentFile->insertObj (g_ForgeWindow->getInsertionPoint (), pQuad);
 	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_CurrentFile)}, {pQuad->clone ()}));
 	g_ForgeWindow->refresh ();
 }
@@ -388,7 +388,7 @@ MAKE_ACTION (addTestRadial, "Add Test Radial", "add-radial", "Adds a test radial
 	pRad->dRingNum = 2;
 	pRad->dSegments = 16;
 	
-	g_CurrentFile->addObject (pRad);
+	g_CurrentFile->insertObj (g_ForgeWindow->getInsertionPoint (), pRad);
 	History::addEntry (new AddHistory ({(ulong)pRad->getIndex (g_CurrentFile)}, {pRad->clone ()}));
 	g_ForgeWindow->refresh ();
 }
