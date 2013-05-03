@@ -29,6 +29,7 @@
 #include <qlabel.h>
 #include <qradiobutton.h>
 #include <qlistwidget.h>
+#include <qtreewidget.h>
 
 class AddObjectDialog : public QDialog {
 	Q_OBJECT

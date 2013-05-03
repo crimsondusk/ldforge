@@ -223,7 +223,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this object.", KEY (F9)) {
-	if (g_ForgeWindow->qObjList->selectedItems().size() != 1)
+	if (g_ForgeWindow->objList->selectedItems().size() != 1)
 		return;
 	
 	LDObject* obj = g_ForgeWindow->sel[0];
@@ -234,7 +234,7 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (F10)) {
-	if (g_ForgeWindow->qObjList->selectedItems().size() <= 0)
+	if (g_ForgeWindow->objList->selectedItems().size() <= 0)
 		return;
 	
 	short dColor;

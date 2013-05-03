@@ -37,7 +37,7 @@
 
 #define LDOBJ_COLORED(V) virtual bool isColored () const { return V; }
 
-class QTreeWidgetItem;
+class QListWidgetItem;
 class LDSubfile;
 
 // =============================================================================
@@ -134,7 +134,8 @@ public:
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (const std::vector<LDObject*>& objs);
 	
-	QTreeWidgetItem* qObjListEntry;
+	// Object list entry for this object
+	QListWidgetItem* qObjListEntry;
 };
 
 // =============================================================================

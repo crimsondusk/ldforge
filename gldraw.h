@@ -77,6 +77,7 @@ protected:
 	void keyReleaseEvent (QKeyEvent* ev);
 	void wheelEvent (QWheelEvent* ev);
 	void paintEvent (QPaintEvent* ev);
+	void leaveEvent (QEvent* ev);
 
 private:
 	std::vector<GLuint> objLists;

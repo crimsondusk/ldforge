@@ -23,10 +23,10 @@
 #include <QMenu>
 #include <QToolBar>
 #include <QAction>
-#include <QTreeWidget>
 #include <QToolBar>
 #include <QTextEdit>
 #include <qpushbutton.h>
+#include <qlistwidget.h>
 #include "gldraw.h"
 #include "config.h"
 
@@ -96,6 +96,18 @@ public:
 };
 
 // =============================================================================
+// ObjectList
+// 
+// Object list class for ForgeWindow
+// =============================================================================
+class ObjectList : public QListWidget {
+	Q_OBJECT
+	
+protected:
+	void contextMenuEvent (QContextMenuEvent* ev);
+};
+
+// =============================================================================
 // ForgeWindow
 // 
 // The one main GUI class. Hosts the renderer, object list, message log. Contains
@@ -109,7 +121,7 @@ public:
 	GLRenderer* R;
 	
 	// Object list view
-	QTreeWidget* qObjList;
+	ObjectList* objList;
 	QTextEdit* qMessageLog;
 	QMenu* qFileMenu, *qEditMenu, *qViewMenu, *qInsertMenu, *qMoveMenu,
 		*qHelpMenu, *qControlMenu;

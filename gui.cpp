@@ -22,6 +22,7 @@
 #include <qmenubar.h>
 #include <qstatusbar.h>
 #include <qsplitter.h>
+#include <qlistwidget.h>
 #include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
@@ -112,11 +113,10 @@ ForgeWindow::ForgeWindow () {
 	g_ForgeWindow = this;
 	R = new GLRenderer;
 	
-	qObjList = new QTreeWidget;
-	qObjList->setHeaderHidden (true);
-	qObjList->setSelectionMode (QTreeWidget::ExtendedSelection);
-	qObjList->setAlternatingRowColors (true);
-	connect (qObjList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
+	objList = new ObjectList;
+	objList->setSelectionMode (QListWidget::ExtendedSelection);
+	objList->setAlternatingRowColors (true);
+	connect (objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	
 	qMessageLog = new QTextEdit;
 	qMessageLog->setReadOnly (true);
@@ -124,7 +124,7 @@ ForgeWindow::ForgeWindow () {
 	
 	hsplit = new QSplitter;
 	hsplit->addWidget (R);
-	hsplit->addWidget (qObjList);
+	hsplit->addWidget (objList);
 	
 	vsplit = new QSplitter (Qt::Vertical);
 	vsplit->addWidget (hsplit);
@@ -557,12 +557,10 @@ void ForgeWindow::buildObjList () {
 	
 	// Lock the selection while we do this so that refreshing the object list
 	// doesn't trigger selection updating so that the selection doesn't get lost
-	// while this is done
+	// while this is done.
 	g_bSelectionLocked = true;
 	
-	QList<QTreeWidgetItem*> qaItems;
-	
-	qObjList->clear ();
+	objList->clear ();
 	
 	for (LDObject* obj : g_CurrentFile->objects) {
 		str zText;
@@ -669,32 +667,26 @@ void ForgeWindow::buildObjList () {
 			break;
 		}
 		
-		QTreeWidgetItem* item = new QTreeWidgetItem ((QTreeWidget*) (null),
-			QStringList (zText.chars()), 0);
-		item->setIcon (0, getIcon (g_saObjTypeIcons[obj->getType ()]));
+		QListWidgetItem* item = new QListWidgetItem (zText.chars());
+		item->setIcon (getIcon (g_saObjTypeIcons[obj->getType ()]));
 		
 		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == OBJ_Gibberish) {
-			item->setBackground (0, QColor ("#AA0000"));
-			item->setForeground (0, QColor ("#FFAA00"));
-		} else if (lv_colorize &&
-			obj->dColor != -1 &&
-			obj->dColor != maincolor &&
-			obj->dColor != edgecolor)
+			item->setBackground (QColor ("#AA0000"));
+			item->setForeground (QColor ("#FFAA00"));
+		} else if (lv_colorize && obj->dColor != -1 &&
+			obj->dColor != maincolor && obj->dColor != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
 			color* col = getColor (obj->dColor);
 			if (col)
-				item->setForeground (0, col->qColor);
+				item->setForeground (col->qColor);
 		}
 		
 		obj->qObjListEntry = item;
-		
-		qaItems.append (item);
+		objList->insertItem (objList->count (), item);
 	}
-	
-	qObjList->insertTopLevelItems (0, qaItems);
 	
 	g_bSelectionLocked = false;
 	updateSelection ();
@@ -708,7 +700,7 @@ void ForgeWindow::scrollToSelection () {
 		return;
 	
 	LDObject* obj = sel[sel.size () - 1];
-	qObjList->scrollToItem (obj->qObjListEntry);
+	objList->scrollToItem (obj->qObjListEntry);
 }
 
 // =============================================================================
@@ -815,10 +807,10 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 	if (g_CurrentFile == nullptr)
 		return objs;
 	
-	QList<QTreeWidgetItem*> const qaItems = qObjList->selectedItems ();
+	QList<QListWidgetItem*> const qaItems = objList->selectedItems ();
 	
 	for (LDObject* obj : g_CurrentFile->objects)
-	for (QTreeWidgetItem* qItem : qaItems) {
+	for (QListWidgetItem* qItem : qaItems) {
 		if (qItem == obj->qObjListEntry) {
 			objs.push_back (obj);
 			break;
@@ -834,7 +826,7 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
-	qObjList->clearSelection ();
+	objList->clearSelection ();
 	for (LDObject* obj : sel)
 		obj->qObjListEntry->setSelected (true);
 	
@@ -908,6 +900,14 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 	config::save ();
 	
 	ev->accept ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
+	Q_UNUSED (ev);
+	printf ("context menu!\n");
 }
 
 // =============================================================================
