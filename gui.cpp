@@ -115,29 +115,29 @@ extern_cfg (bool, gl_axes);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ForgeWindow::ForgeWindow () {
-	g_ForgeWindow = this;
-	R = new GLRenderer;
+	g_win = this;
+	m_renderer = new GLRenderer;
 	
-	objList = new ObjectList;
-	objList->setSelectionMode (QListWidget::ExtendedSelection);
-	objList->setAlternatingRowColors (true);
-	connect (objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
+	m_objList = new ObjectList;
+	m_objList->setSelectionMode (QListWidget::ExtendedSelection);
+	m_objList->setAlternatingRowColors (true);
+	connect (m_objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	
-	qMessageLog = new QTextEdit;
-	qMessageLog->setReadOnly (true);
-	qMessageLog->setMaximumHeight (96);
+	m_msglog = new QTextEdit;
+	m_msglog->setReadOnly (true);
+	m_msglog->setMaximumHeight (96);
 	
-	hsplit = new QSplitter;
-	hsplit->addWidget (R);
-	hsplit->addWidget (objList);
+	m_hsplit = new QSplitter;
+	m_hsplit->addWidget (m_renderer);
+	m_hsplit->addWidget (m_objList);
 	
-	vsplit = new QSplitter (Qt::Vertical);
-	vsplit->addWidget (hsplit);
-	vsplit->addWidget (qMessageLog);
+	m_vsplit = new QSplitter (Qt::Vertical);
+	m_vsplit->addWidget (m_hsplit);
+	m_vsplit->addWidget (m_msglog);
 	
-	setCentralWidget (vsplit);
+	setCentralWidget (m_vsplit);
 	
-	quickColorMeta = parseQuickColorMeta ();
+	m_colorMeta = parseQuickColorMeta ();
 	
 	createMenuActions ();
 	createMenus ();
@@ -156,8 +156,8 @@ ForgeWindow::ForgeWindow () {
 
 // =============================================================================
 void ForgeWindow::slot_lastSecondCleanup () {
-	R->setParent (null);
-	delete R;
+	m_renderer->setParent (null);
+	delete m_renderer;
 }
 
 // =============================================================================
@@ -197,15 +197,15 @@ void ForgeWindow::createMenuActions () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::createMenus () {
-	qRecentFilesMenu = new QMenu (tr ("Open &Recent"));
-	qRecentFilesMenu->setIcon (getIcon ("open-recent"));
+	m_recentFilesMenu = new QMenu (tr ("Open &Recent"));
+	m_recentFilesMenu->setIcon (getIcon ("open-recent"));
 	updateRecentFilesMenu ();
 	
 	// File menu
-	qFileMenu = menuBar ()->addMenu (tr ("&File"));
+	QMenu* qFileMenu = menuBar ()->addMenu (tr ("&File"));
 	qFileMenu->addAction (ACTION (newFile));				// New
 	qFileMenu->addAction (ACTION (open));				// Open
-	qFileMenu->addMenu (qRecentFilesMenu);				// Open Recent
+	qFileMenu->addMenu (m_recentFilesMenu);				// Open Recent
 	qFileMenu->addAction (ACTION (save));					// Save
 	qFileMenu->addAction (ACTION (saveAs));				// Save As
 	qFileMenu->addSeparator ();							// -------
@@ -214,7 +214,7 @@ void ForgeWindow::createMenus () {
 	qFileMenu->addAction (ACTION (exit));					// Exit
 	
 	// View menu
-	qViewMenu = menuBar ()->addMenu (tr ("&View"));
+	QMenu* qViewMenu = menuBar ()->addMenu (tr ("&View"));
 	qViewMenu->addAction (ACTION (resetView));			// Reset View
 	qViewMenu->addAction (ACTION (axes));					// Draw Axes
 	qViewMenu->addSeparator ();							// -----
@@ -222,7 +222,7 @@ void ForgeWindow::createMenus () {
 	qViewMenu->addAction (ACTION (showHistory));			// Edit History
 	
 	// Insert menu
-	qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
+	QMenu* qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
 	qInsertMenu->addAction (ACTION (insertFrom));		// Insert from File
 	qInsertMenu->addAction (ACTION (insertRaw));			// Insert Raw
 	qInsertMenu->addSeparator ();							// -------
@@ -237,7 +237,7 @@ void ForgeWindow::createMenus () {
 	qInsertMenu->addAction (ACTION (newRadial));			// New Radial
 	
 	// Edit menu
-	qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
+	QMenu* qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
 	qEditMenu->addAction (ACTION (undo));					// Undo
 	qEditMenu->addAction (ACTION (redo));				// Redo
 	qEditMenu->addSeparator ();							// -----
@@ -264,7 +264,7 @@ void ForgeWindow::createMenus () {
 	toolsMenu->addAction (ACTION (uncolorize));			// Uncolorize
 	
 	// Move menu
-	qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
+	QMenu* qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
 	qMoveMenu->addAction (ACTION (moveUp));				// Move Up
 	qMoveMenu->addAction (ACTION (moveDown));			// Move Down
 	qMoveMenu->addSeparator ();							// -----
@@ -288,13 +288,13 @@ void ForgeWindow::createMenus () {
 	
 #ifndef RELEASE
 	// Debug menu
-	qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
+	QMenu* qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
 	qDebugMenu->addAction (ACTION (addTestQuad));		// Add Test Quad
 	qDebugMenu->addAction (ACTION (addTestRadial));		// Add Test Radial
 #endif // RELEASE
 	
 	// Help menu
-	qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
+	QMenu* qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
 	qHelpMenu->addAction (ACTION (help));				// Help
 	qHelpMenu->addSeparator ();							// -----
 	qHelpMenu->addAction (ACTION (about));				// About
@@ -306,9 +306,9 @@ void ForgeWindow::createMenus () {
 // =============================================================================
 void ForgeWindow::updateRecentFilesMenu () {
 	// First, clear any items in the recent files menu
-	for (QAction* qRecent : qaRecentFiles)
+	for (QAction* qRecent : m_recentFiles)
 		delete qRecent;
-	qaRecentFiles.clear ();
+	m_recentFiles.clear ();
 	
 	std::vector<str> zaFiles = io_recentfiles.value / "@";
 	for (long i = zaFiles.size() - 1; i >= 0; --i) {
@@ -317,8 +317,8 @@ void ForgeWindow::updateRecentFilesMenu () {
 		QAction* qRecent = new QAction (getIcon ("open-recent"), zFile, this);
 		
 		connect (qRecent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
-		qRecentFilesMenu->addAction (qRecent);
-		qaRecentFiles.push_back (qRecent);
+		m_recentFilesMenu->addAction (qRecent);
+		m_recentFiles.push_back (qRecent);
 	}
 }
 
@@ -331,7 +331,7 @@ static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
 void ForgeWindow::initSingleToolBar (const char* sName) {
 	QToolBar* toolbar = new QToolBar (sName);
 	addToolBar (g_ToolBarArea, toolbar);
-	qaToolBars.push_back (toolbar);
+	m_toolBars.push_back (toolbar);
 	
 	g_CurrentToolBar = toolbar;
 }
@@ -406,8 +406,8 @@ void ForgeWindow::createToolbars () {
 	
 	// ==========================================
 	// Color toolbar
-	qColorToolBar = new QToolBar ("Quick Colors");
-	addToolBar (Qt::RightToolBarArea, qColorToolBar);
+	m_colorToolBar = new QToolBar ("Quick Colors");
+	addToolBar (Qt::RightToolBarArea, m_colorToolBar);
 	
 	// ==========================================
 	// Left area toolbars
@@ -451,21 +451,21 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateToolBars () {
-	for (QToolBar* qBar : qaToolBars)
+	for (QToolBar* qBar : m_toolBars)
 		qBar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
 	
 	// Update the quick color toolbar.
-	for (QPushButton* qButton : qaColorButtons)
+	for (QPushButton* qButton : m_colorButtons)
 		delete qButton;
 	
-	qaColorButtons.clear ();
+	m_colorButtons.clear ();
 	
 	// Clear the toolbar to remove separators
-	qColorToolBar->clear ();
+	m_colorToolBar->clear ();
 	
-	for (quickColorMetaEntry& entry : quickColorMeta) {
+	for (quickColorMetaEntry& entry : m_colorMeta) {
 		if (entry.bSeparator)
-			qColorToolBar->addSeparator ();
+			m_colorToolBar->addSeparator ();
 		else {
 			QPushButton* qColorButton = new QPushButton;
 			qColorButton->setAutoFillBackground (true);
@@ -473,8 +473,8 @@ void ForgeWindow::updateToolBars () {
 			qColorButton->setToolTip (entry.col->zName);
 			
 			connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
-			qColorToolBar->addWidget (qColorButton);
-			qaColorButtons.push_back (qColorButton);
+			m_colorToolBar->addWidget (qColorButton);
+			m_colorButtons.push_back (qColorButton);
 			
 			entry.btn = qColorButton;
 		}
@@ -501,18 +501,18 @@ void ForgeWindow::setTitle () {
 	title += versionString;
 	
 	// Append our current file if we have one
-	if (g_CurrentFile) {
-		title += format (": %s", basename (g_CurrentFile->zFileName.chars()));
+	if (g_curfile) {
+		title += format (": %s", basename (g_curfile->m_filename.chars()));
 		
-		if (g_CurrentFile->objects.size() > 0 &&
-			g_CurrentFile->objects[0]->getType() == OBJ_Comment)
+		if (g_curfile->m_objs.size() > 0 &&
+			g_curfile->m_objs[0]->getType() == OBJ_Comment)
 		{
 			// Append title
-			LDComment* comm = static_cast<LDComment*> (g_CurrentFile->objects[0]);
+			LDComment* comm = static_cast<LDComment*> (g_curfile->m_objs[0]);
 			title += format (": %s", comm->zText.chars());
 		}
 		
-		if (History::pos () != g_CurrentFile->savePos)
+		if (History::pos () != g_curfile->savePos)
 			title += '*';
 	}
 	
@@ -549,19 +549,19 @@ void ForgeWindow::slot_action () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
-	if (sel.size () == 0)
+	if (m_sel.size () == 0)
 		return;
 	
-	std::vector<LDObject*> selCopy = sel;
+	std::vector<LDObject*> selCopy = m_sel;
 	
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy) {
 		if (papObjects && ulapIndices) {
 			papObjects->push_back (obj->clone ());
-			ulapIndices->push_back (obj->getIndex (g_CurrentFile));
+			ulapIndices->push_back (obj->getIndex (g_curfile));
 		}
 		
-		g_CurrentFile->forgetObject (obj);
+		g_curfile->forgetObject (obj);
 		delete obj;
 	}
 	
@@ -572,7 +572,7 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::buildObjList () {
-	if (!g_CurrentFile)
+	if (!g_curfile)
 		return;
 	
 	// Lock the selection while we do this so that refreshing the object list
@@ -580,9 +580,9 @@ void ForgeWindow::buildObjList () {
 	// while this is done.
 	g_bSelectionLocked = true;
 	
-	objList->clear ();
+	m_objList->clear ();
 	
-	for (LDObject* obj : g_CurrentFile->objects) {
+	for (LDObject* obj : g_curfile->m_objs) {
 		str zText;
 		switch (obj->getType ()) {
 		case OBJ_Comment:
@@ -704,7 +704,7 @@ void ForgeWindow::buildObjList () {
 		}
 		
 		obj->qObjListEntry = item;
-		objList->insertItem (objList->count (), item);
+		m_objList->insertItem (m_objList->count (), item);
 	}
 	
 	g_bSelectionLocked = false;
@@ -715,18 +715,18 @@ void ForgeWindow::buildObjList () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::scrollToSelection () {
-	if (sel.size() == 0)
+	if (m_sel.size() == 0)
 		return;
 	
-	LDObject* obj = sel[sel.size () - 1];
-	objList->scrollToItem (obj->qObjListEntry);
+	LDObject* obj = m_sel[m_sel.size () - 1];
+	m_objList->scrollToItem (obj->qObjListEntry);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_selectionChanged () {
-	if (g_bSelectionLocked == true)
+	if (g_bSelectionLocked == true || g_curfile == null)
 		return;
 	
 	/*
@@ -737,22 +737,35 @@ void ForgeWindow::slot_selectionChanged () {
 	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
 	*/
 	
-	// Update the shared selection array, unless this was called during GL picking,
-	// in which case the GL renderer takes care of the selection.
-	if (R->picking == false) {
-		std::vector<LDObject*> paPriorSelection = sel;
-		sel = getSelectedObjects ();
-		
-		// Update the GL renderer
-		for (LDObject* obj : sel)
-			R->recompileObject (obj);
-		
-		for (LDObject* obj : paPriorSelection)
-			R->recompileObject (obj);
-		
-		R->updateSelFlash ();
-		R->refresh ();
+	// Update the shared selection array, though don't do this if this was
+	// called during GL picking, in which case the GL renderer takes care
+	// of the selection.
+	if (m_renderer->picking ())
+		return;
+	
+	std::vector<LDObject*> priorSelection = m_sel;
+	
+	// Get the objects from the object list selection
+	m_sel.clear ();	
+	const QList<QListWidgetItem*> items = m_objList->selectedItems ();
+	
+	for (LDObject* obj : g_curfile->m_objs)
+	for (QListWidgetItem* qItem : items) {
+		if (qItem == obj->qObjListEntry) {
+			m_sel.push_back (obj);
+			break;
+		}
 	}
+	
+	// Update the GL renderer
+	for (LDObject* obj : m_sel)
+		m_renderer->recompileObject (obj);
+	
+	for (LDObject* obj : priorSelection)
+		m_renderer->recompileObject (obj);
+	
+	m_renderer->updateSelFlash ();
+	m_renderer->refresh ();
 }
 
 // =============================================================================
@@ -768,7 +781,7 @@ void ForgeWindow::slot_quickColor () {
 	QPushButton* button = static_cast<QPushButton*> (sender ());
 	color* col = null;
 	
-	for (quickColorMetaEntry entry : quickColorMeta) {
+	for (quickColorMetaEntry entry : m_colorMeta) {
 		if (entry.btn == button) {
 			col = entry.col;
 			break;
@@ -782,11 +795,11 @@ void ForgeWindow::slot_quickColor () {
 	std::vector<short> colors;
 	short newColor = col->index ();
 	
-	for (LDObject* obj : sel) {
+	for (LDObject* obj : m_sel) {
 		if (obj->dColor == -1)
 			continue; // uncolored object
 		
-		indices.push_back (obj->getIndex (g_CurrentFile));
+		indices.push_back (obj->getIndex (g_curfile));
 		colors.push_back (obj->dColor);
 		
 		obj->dColor = newColor;
@@ -800,13 +813,13 @@ void ForgeWindow::slot_quickColor () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong ForgeWindow::getInsertionPoint () {
-	if (sel.size () > 0) {
+	if (m_sel.size () > 0) {
 		// If we have a selection, put the item after it.
-		return (sel[sel.size() - 1]->getIndex (g_CurrentFile)) + 1;
+		return (m_sel[m_sel.size() - 1]->getIndex (g_curfile)) + 1;
 	}
 	
 	// Otherwise place the object at the end.
-	return g_CurrentFile->objects.size();
+	return g_curfile->m_objs.size();
 }
 
 // =============================================================================
@@ -814,29 +827,7 @@ ulong ForgeWindow::getInsertionPoint () {
 // =============================================================================
 void ForgeWindow::refresh () {
 	buildObjList ();
-	R->hardRefresh ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
-	std::vector<LDObject*> objs;
-	
-	if (g_CurrentFile == nullptr)
-		return objs;
-	
-	QList<QListWidgetItem*> const qaItems = objList->selectedItems ();
-	
-	for (LDObject* obj : g_CurrentFile->objects)
-	for (QListWidgetItem* qItem : qaItems) {
-		if (qItem == obj->qObjListEntry) {
-			objs.push_back (obj);
-			break;
-		}
-	}
-	
-	return objs;
+	m_renderer->hardRefresh ();
 }
 
 // =============================================================================
@@ -845,8 +836,8 @@ std::vector<LDObject*> ForgeWindow::getSelectedObjects () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
-	objList->clearSelection ();
-	for (LDObject* obj : sel)
+	m_objList->clearSelection ();
+	for (LDObject* obj : m_sel)
 		obj->qObjListEntry->setSelected (true);
 	
 	g_bSelectionLocked = false;
@@ -857,21 +848,22 @@ void ForgeWindow::updateSelection () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 bool ForgeWindow::isSelected (LDObject* obj) {
-	LDObject* pNeedle = obj->topLevelParent ();
+	LDObject* needle = obj->topLevelParent ();
 	
-	if (pNeedle == null)
-		pNeedle = obj;
+	if (needle == null)
+		needle = obj;
 	
-	for (LDObject* pHay : sel)
-		if (pHay == pNeedle)
+	for (LDObject* hay : m_sel)
+		if (hay == needle)
 			return true;
+	
 	return false;
 }
 
 short ForgeWindow::getSelectedColor() {
 	short result = -1;
 	
-	for (LDObject* obj : sel) {
+	for (LDObject* obj : m_sel) {
 		if (obj->dColor == -1)
 			continue; // doesn't use color
 		
@@ -891,7 +883,7 @@ short ForgeWindow::getSelectedColor() {
 LDObjectType_e ForgeWindow::uniformSelectedType () {
 	LDObjectType_e eResult = OBJ_Unidentified;
 	
-	for (LDObject* obj : sel) {
+	for (LDObject* obj : m_sel) {
 		if (eResult != OBJ_Unidentified && obj->dColor != eResult)
 			return OBJ_Unidentified;
 		
@@ -907,7 +899,7 @@ LDObjectType_e ForgeWindow::uniformSelectedType () {
 // =============================================================================
 void ForgeWindow::closeEvent (QCloseEvent* ev) {
 	// Check whether it's safe to close all files.
-	for (OpenFile* f : g_LoadedFiles) {
+	for (OpenFile* f : g_loadedFiles) {
 		if (!f->safeToClose ()) {
 			ev->ignore ();
 			return;
@@ -925,7 +917,7 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::spawnContextMenu (const QPoint pos) {
-	const bool single = (g_ForgeWindow->sel.size () == 1);
+	const bool single = (g_win->sel ().size () == 1);
 	
 	QMenu* contextMenu = new QMenu;
 	
@@ -949,7 +941,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 
 // =============================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
-	g_ForgeWindow->spawnContextMenu (ev->globalPos ());
+	g_win->spawnContextMenu (ev->globalPos ());
 }
 
 // =============================================================================
@@ -965,12 +957,69 @@ bool confirm (str msg) {
 }
 
 bool confirm (str title, str msg) {
-	return QMessageBox::question (g_ForgeWindow, title, msg,
+	return QMessageBox::question (g_win, title, msg,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
 void critical (str msg) {
-	QMessageBox::critical (g_ForgeWindow, APPNAME_DISPLAY ": Critical Error", msg,
+	QMessageBox::critical (g_win, APPNAME_DISPLAY ": Critical Error", msg,
 		(QMessageBox::Close), QMessageBox::Close);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// Print to message log
+void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
+	return; // FIXME: crashes for some reason o_O
+	
+	char* buf = vdynformat (fmtstr, va, 128);
+	str zText (buf);
+	delete[] buf;
+	
+	// Log it to standard output
+	printf ("%s", zText.chars ());
+	
+	// Replace some things out with HTML entities
+	zText.replace ("<", "&lt;");
+	zText.replace (">", "&gt;");
+	zText.replace ("\n", "<br />");
+	
+	str& log = m_msglogHTML;
+	
+	switch (type) {
+	case LOG_Normal:
+		log.append (zText);
+		break;
+	
+	case LOG_Error:
+		log.appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
+			zText.chars());
+		break;
+	
+	case LOG_Info:
+		log.appendformat ("<span style=\"color: #0AC\"><b>[INFO]</b> %s</span>",
+			zText.chars());
+		break;
+	
+	case LOG_Success:
+		log.appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
+			zText.chars());
+		break;
+	
+	case LOG_Warning:
+		log.appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
+			zText.chars());
+		break;
+		
+	case LOG_Dev:
+#ifndef RELEASE
+		log.appendformat ("<span style=\"color: #0AC\"><b>[DEV]</b> %s</span>",
+			zText.chars());
+#endif // RELEASE
+		break;
+	}
+	
+	m_msglog->setHtml (log);
 }

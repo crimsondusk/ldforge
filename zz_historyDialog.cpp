@@ -79,7 +79,7 @@ void HistoryDialog::populateList () {
 	qItem->setIcon (getIcon ("empty"));
 	historyList->addItem (qItem);
 	
-	for (HistoryEntry* entry : History::entries) {
+	for (HistoryEntry* entry : History::entries ()) {
 		str zText;
 		QIcon qEntryIcon;
 		

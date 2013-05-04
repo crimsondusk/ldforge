@@ -220,7 +220,7 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace all instances of the old object with the new object
-	for (LDObject*& obj : g_CurrentFile->objects)
+	for (LDObject*& obj : g_curfile->m_objs)
 		if (obj == this)
 			obj = replacement;
 	
@@ -232,7 +232,7 @@ void LDObject::replace (LDObject* replacement) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : g_CurrentFile->objects) {
+	for (LDObject*& obj : g_curfile->m_objs) {
 		if (obj == this)
 			obj = other;
 		else if (obj == other)
@@ -247,9 +247,9 @@ LDLine::LDLine (vertex v1, vertex v2) {
 
 LDObject::~LDObject () {
 	// Remove this object from the selection array if it is there.
-	for (ulong i = 0; i < g_ForgeWindow->sel.size(); ++i)
-		if (g_ForgeWindow->sel[i] == this)
-			g_ForgeWindow->sel.erase (g_ForgeWindow->sel.begin() + i);
+	for (ulong i = 0; i < g_win->sel ().size(); ++i)
+		if (g_win->sel ()[i] == this)
+			g_win->sel ().erase (g_win->sel ().begin() + i);
 }
 
 LDComment::~LDComment () {}
@@ -302,14 +302,14 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	vector<LDObject*> objs, cache;
 	
 	// If we have this cached, just clone that
-	if (bDeepInline && pFile->objCache.size ()) {
-		for (LDObject* obj : pFile->objCache)
+	if (bDeepInline && pFile->m_objCache.size ()) {
+		for (LDObject* obj : pFile->m_objCache)
 			objs.push_back (obj->clone ());
 	} else {
 		if (!bDeepInline)
 			bCache = false;
 		
-		for (LDObject* obj : pFile->objects) {
+		for (LDObject* obj : pFile->m_objs) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
 			case OBJ_Comment:
@@ -353,7 +353,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 		}
 		
 		if (bCache)
-			pFile->objCache = cache;
+			pFile->m_objCache = cache;
 	}
 	
 	// Transform the objects
@@ -371,8 +371,8 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 long LDObject::getIndex (OpenFile* pFile) {
-	for (ulong i = 0; i < pFile->objects.size(); ++i)
-		if (pFile->objects[i] == this)
+	for (ulong i = 0; i < pFile->m_objs.size(); ++i)
+		if (pFile->m_objs[i] == this)
 			return i;
 	
 	return -1;
@@ -390,11 +390,11 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
 		
-		const long lIndex = obj->getIndex (g_CurrentFile),
+		const long lIndex = obj->getIndex (g_curfile),
 			lTarget = lIndex + (bUp ? -1 : 1);
 		
 		if ((bUp == true and lIndex == 0) or
-			(bUp == false and lIndex == (long)(g_CurrentFile->objects.size() - 1)))
+			(bUp == false and lIndex == (long)(g_curfile->m_objs.size() - 1)))
 		{
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
@@ -403,7 +403,7 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 			return;
 		}
 		
-		obj->swap (g_CurrentFile->objects[lTarget]);
+		obj->swap (g_curfile->m_objs[lTarget]);
 	}
 }
 

@@ -16,6 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// =============================================================================
+// This file is included one way or another in every source file of LDForge.
+// Stuff defined and included here is universally included.
+
 #ifndef COMMON_H
 #define COMMON_H
 
@@ -41,12 +45,15 @@
 // ============---
 // #define RELEASE
 
+// Version string identifier
 static const str versionString = format ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 #ifdef __GNUC__
- #define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
+# define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
+# define ATTR(N) __attribute__ ((N))
 #else
- #define FORMAT_PRINTF(M,N)
+# define FORMAT_PRINTF(M,N)
+# define ATTR(N)
 #endif // __GNUC__
 
 #ifdef WIN32
@@ -63,7 +70,10 @@ static const str versionString = format ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 #undef null
 #endif // null
 
+// Null pointer
 static const std::nullptr_t null = nullptr;
+
+// Main and edge color identifiers
 static const short maincolor = 16;
 static const short edgecolor = 24;
 
@@ -119,8 +129,7 @@ static inline const char* qchars (QString qstr) {
 static const double pi = 3.14159265358979323846f;
 
 // -----------------------------------------------------------------------------
-// main.cpp
-enum logtype_e {
+enum LogType {
 	LOG_Normal,
 	LOG_Success,
 	LOG_Info,
@@ -129,16 +138,19 @@ enum logtype_e {
 	LOG_Dev,
 };
 
-void logf (const char* fmt, ...) FORMAT_PRINTF (1, 2);
-void logf (logtype_e eType, const char* fmt, ...) FORMAT_PRINTF (2, 3);
+// logf - universal access to the message log. Defined here so that I don't have
+// to include gui.h here and recompile everything every time that file changes.
+// logf is defined in main.cpp
+void logf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
+void logf (LogType type, const char* fmtstr, ...) FORMAT_PRINTF (2, 3);
 
 // -----------------------------------------------------------------------------
 // Vertex at (0, 0, 0)
-extern const vertex g_Origin;
+extern const vertex g_origin;
 
 // -----------------------------------------------------------------------------
 // Pointer to the OpenFile which is currently being edited by the user.
-extern OpenFile* g_CurrentFile;
+extern OpenFile* g_curfile;
 
 // -----------------------------------------------------------------------------
 // Pointer to the bounding box.
@@ -146,14 +158,14 @@ extern bbox g_BBox;
 
 // -----------------------------------------------------------------------------
 // Vector of all currently opened files.
-extern vector<OpenFile*> g_LoadedFiles;
+extern vector<OpenFile*> g_loadedFiles;
 
 // -----------------------------------------------------------------------------
 // Pointer to the main application.
-extern const QApplication* g_qMainApp;
+extern const QApplication* g_app;
 
 // -----------------------------------------------------------------------------
 // Identity matrix
-extern const matrix g_mIdentity;
+extern const matrix g_identity;
 
 #endif // COMMON_H

@@ -29,64 +29,69 @@ EXTERN_ACTION (redo)
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 namespace History {
-	std::vector<HistoryEntry*> entries;
-	
-	static long m_pos = -1;
+	std::vector<HistoryEntry*> s_entries;
+	static long s_pos = -1;
 	
 	// =========================================================================
 	void addEntry (HistoryEntry* entry) {
-		// If there's any entries after our current position, we need to remove them now
-		for (ulong i = m_pos + 1; i < entries.size(); ++i) {
-			delete entries[i];
-			entries.erase (entries.begin() + i);
+		// If there's any entries ahead the current position, we need to
+		// remove them now
+		for (ulong i = s_pos + 1; i < s_entries.size(); ++i) {
+			delete s_entries[i];
+			s_entries.erase (s_entries.begin() + i);
 		}
 		
-		entries.push_back (entry);
-		m_pos++;
+		s_entries.push_back (entry);
+		s_pos++;
 		
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void undo () {
-		if (m_pos == -1)
+		if (s_pos == -1)
 			return; // nothing to undo
 		
-		entries[m_pos--]->undo ();
+		s_entries[s_pos--]->undo ();
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void redo () {
-		if (m_pos == (long) entries.size () - 1)
+		if (s_pos == (long) s_entries.size () - 1)
 			return; // nothing to redo;
 		
-		entries[++m_pos]->redo ();
+		s_entries[++s_pos]->redo ();
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void clear () {
-		for (HistoryEntry* entry : entries)
+		for (HistoryEntry* entry : s_entries)
 			delete entry;
 		
-		entries.clear ();
-		m_pos = -1;
+		s_entries.clear ();
+		s_pos = -1;
 		updateActions ();
 	}
 	
 	// =========================================================================
 	void updateActions () {
-		ACTION (undo)->setEnabled (m_pos > -1);
-		ACTION (redo)->setEnabled (m_pos < (long) entries.size () - 1);
+		ACTION (undo)->setEnabled (s_pos > -1);
+		ACTION (redo)->setEnabled (s_pos < (long) s_entries.size () - 1);
 		
 		// Update the window title as well
-		g_ForgeWindow->setTitle ();
+		g_win->setTitle ();
 	}
 	
 	// =========================================================================
 	long pos () {
-		return m_pos;
+		return s_pos;
+	}
+	
+	// =========================================================================
+	std::vector<HistoryEntry*>& entries () {
+		return s_entries;
 	}
 }
 
@@ -97,22 +102,22 @@ void DelHistory::undo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
 		ulong idx = cache.size() - i - 1;
 		LDObject* obj = cache[idx]->clone ();
-		g_CurrentFile->insertObj (indices[idx], obj);
+		g_curfile->insertObj (indices[idx], obj);
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
 void DelHistory::redo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
-		LDObject* obj = g_CurrentFile->objects[indices[i]];
+		LDObject* obj = g_curfile->m_objs[indices[i]];
 		
-		g_CurrentFile->forgetObject (obj);
+		g_curfile->forgetObject (obj);
 		delete obj;
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -127,17 +132,17 @@ DelHistory::~DelHistory () {
 void SetColorHistory::undo () {
 	// Restore colors
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_CurrentFile->objects[ulaIndices[i]]->dColor = daColors[i];
+		g_curfile->m_objs[ulaIndices[i]]->dColor = daColors[i];
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 void SetColorHistory::redo () {
 	// Re-set post color
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_CurrentFile->objects[ulaIndices[i]]->dColor = dNewColor;
+		g_curfile->m_objs[ulaIndices[i]]->dColor = dNewColor;
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 SetColorHistory::~SetColorHistory () {}
@@ -147,16 +152,16 @@ SetColorHistory::~SetColorHistory () {}
 // =============================================================================
 void EditHistory::undo () {
 	for (ulong idx : ulaIndices)
-		g_CurrentFile->object (idx)->replace (paOldObjs[idx]->clone ());
+		g_curfile->object (idx)->replace (paOldObjs[idx]->clone ());
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 void EditHistory::redo () {
 	for (ulong idx : ulaIndices)
-		g_CurrentFile->object (idx)->replace (paNewObjs[idx]->clone ());
+		g_curfile->object (idx)->replace (paNewObjs[idx]->clone ());
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 EditHistory::~EditHistory () {
@@ -173,7 +178,7 @@ std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
 	std::vector<LDObject*> objs;
 	
 	for (ulong idx : ulaIndices)
-		objs.push_back (g_CurrentFile->objects[idx + ofs]);
+		objs.push_back (g_curfile->m_objs[idx + ofs]);
 	
 	return objs;
 }
@@ -181,13 +186,13 @@ std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
 void ListMoveHistory::undo () {
 	std::vector<LDObject*> objs = getObjects (bUp ? -1 : 1);
 	LDObject::moveObjects (objs, !bUp);
-	g_ForgeWindow->buildObjList ();
+	g_win->buildObjList ();
 }
 
 void ListMoveHistory::redo () {
 	std::vector<LDObject*> objs = getObjects (0);
 	LDObject::moveObjects (objs, bUp);
-	g_ForgeWindow->buildObjList ();
+	g_win->buildObjList ();
 }
 
 ListMoveHistory::~ListMoveHistory() {}
@@ -203,13 +208,13 @@ AddHistory::~AddHistory () {
 void AddHistory::undo () {
 	for (ulong i = 0; i < paObjs.size(); ++i) {
 		ulong idx = ulaIndices[ulaIndices.size() - i - 1];
-		LDObject* obj = g_CurrentFile->objects[idx];
+		LDObject* obj = g_curfile->m_objs[idx];
 		
-		g_CurrentFile->forgetObject (obj);
+		g_curfile->forgetObject (obj);
 		delete obj;
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 void AddHistory::redo () {
@@ -217,10 +222,10 @@ void AddHistory::redo () {
 		ulong idx = ulaIndices[i];
 		LDObject* obj = paObjs[i]->clone ();
 		
-		g_CurrentFile->insertObj (idx, obj);
+		g_curfile->insertObj (idx, obj);
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -238,31 +243,31 @@ void QuadSplitHistory::undo () {
 		// the first with a copy of the quad.
 		ulong idx = ulaIndices[i];
 		
-		LDTriangle* tri1 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx]),
-			*tri2 = static_cast<LDTriangle*> (g_CurrentFile->objects[idx + 1]);
+		LDTriangle* tri1 = static_cast<LDTriangle*> (g_curfile->m_objs[idx]),
+			*tri2 = static_cast<LDTriangle*> (g_curfile->m_objs[idx + 1]);
 		LDQuad* pCopy = paQuads[i]->clone ();
 		
 		tri1->replace (pCopy);
-		g_CurrentFile->forgetObject (tri2);
+		g_curfile->forgetObject (tri2);
 		delete tri2;
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 void QuadSplitHistory::redo () {
 	for (long i = paQuads.size() - 1; i >= 0; --i) {
 		ulong idx = ulaIndices[i];
 		
-		LDQuad* pQuad = static_cast<LDQuad*> (g_CurrentFile->objects[idx]);
+		LDQuad* pQuad = static_cast<LDQuad*> (g_curfile->m_objs[idx]);
 		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
 		
-		g_CurrentFile->objects[idx] = paTriangles[0];
-		g_CurrentFile->insertObj (idx + 1, paTriangles[1]);
+		g_curfile->m_objs[idx] = paTriangles[0];
+		g_curfile->insertObj (idx + 1, paTriangles[1]);
 		delete pQuad;
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -270,35 +275,35 @@ void QuadSplitHistory::redo () {
 // =============================================================================
 void InlineHistory::undo () {
 	for (long i = ulaBitIndices.size() - 1; i >= 0; --i) {
-		LDObject* obj = g_CurrentFile->objects [ulaBitIndices[i]];
-		g_CurrentFile->forgetObject (obj);
+		LDObject* obj = g_curfile->m_objs [ulaBitIndices[i]];
+		g_curfile->forgetObject (obj);
 		delete obj;
 	}
 	
 	for (ulong i = 0; i < ulaRefIndices.size(); ++i) {
 		LDSubfile* obj = paRefs[i]->clone ();
-		g_CurrentFile->insertObj (ulaRefIndices[i], obj);
+		g_curfile->insertObj (ulaRefIndices[i], obj);
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 void InlineHistory::redo () {
 	for (long i = ulaRefIndices.size() - 1; i >= 0; --i) {
 		ulong idx = ulaRefIndices[i];
 		
-		assert (g_CurrentFile->object (idx)->getType () == OBJ_Subfile);
-		LDSubfile* ref = static_cast<LDSubfile*> (g_CurrentFile->object (idx));
+		assert (g_curfile->object (idx)->getType () == OBJ_Subfile);
+		LDSubfile* ref = static_cast<LDSubfile*> (g_curfile->object (idx));
 		vector<LDObject*> objs = ref->inlineContents (bDeep, false);
 		
 		for (LDObject* obj : objs)
-			g_CurrentFile->insertObj (idx++, obj);
+			g_curfile->insertObj (idx++, obj);
 		
-		g_CurrentFile->forgetObject (ref);
+		g_curfile->forgetObject (ref);
 		delete ref;
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 InlineHistory::~InlineHistory () {
@@ -315,14 +320,14 @@ void MoveHistory::undo () {
 	const vertex vInverse = -vVector;
 	
 	for (ulong i : ulaIndices)
-		g_CurrentFile->object (i)->move (vInverse);
-	g_ForgeWindow->refresh ();
+		g_curfile->object (i)->move (vInverse);
+	g_win->refresh ();
 }
 
 void MoveHistory::redo () {
 	for (ulong i : ulaIndices)
-		g_CurrentFile->object (i)->move (vVector);
-	g_ForgeWindow->refresh ();
+		g_curfile->object (i)->move (vVector);
+	g_win->refresh ();
 }
 
 // =============================================================================

@@ -25,14 +25,14 @@
 #include "colors.h"
 #include "types.h"
 
-vector<OpenFile*> g_LoadedFiles;
-OpenFile* g_CurrentFile = null;
-ForgeWindow* g_ForgeWindow = null; 
+vector<OpenFile*> g_loadedFiles;
+OpenFile* g_curfile = null;
+ForgeWindow* g_win = null; 
 bbox g_BBox;
-const QApplication* g_qMainApp = null;
+const QApplication* g_app = null;
 
-const vertex g_Origin (0.0f, 0.0f, 0.0f);
-const matrix g_mIdentity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
+const vertex g_origin (0.0f, 0.0f, 0.0f);
+const matrix g_identity (1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -53,7 +53,7 @@ int main (int dArgc, char* saArgv[]) {
 	const QApplication app (dArgc, saArgv);
 	ForgeWindow* win = new ForgeWindow;
 	
-	g_qMainApp = &app;
+	g_app = &app;
 	
 	newFile ();
 	
@@ -64,70 +64,18 @@ int main (int dArgc, char* saArgv[]) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// Common code for the two logfs
-static void logVA (logtype_e eType, const char* fmt, va_list va) {
-	return;
-	
-	char* sBuffer = vdynformat (fmt, va, 128);
-	printf ("buffer: %s\n", sBuffer);
-	str zText (sBuffer);
-	delete[] sBuffer;
-	
-	// Log it to standard output
-	printf ("%s", zText.chars ());
-	
-	// Replace some things out with HTML entities
-	zText.replace ("<", "&lt;");
-	zText.replace (">", "&gt;");
-	zText.replace ("\n", "<br />");
-	
-	str& zLog = g_ForgeWindow->zMessageLogHTML;
-	
-	switch (eType) {
-	case LOG_Normal:
-		printf ("appending \"%s\"\n", zText.chars ());
-		zLog.append (zText);
-		break;
-	
-	case LOG_Error:
-		zLog.appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
-			zText.chars());
-		break;
-	
-	case LOG_Info:
-		zLog.appendformat ("<span style=\"color: #04F\"><b>[INFO]</b> %s</span>",
-			zText.chars());
-		break;
-	
-	case LOG_Success:
-		zLog.appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
-			zText.chars());
-		break;
-	
-	case LOG_Warning:
-		zLog.appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
-			zText.chars());
-		break;
-	}
-	
-	g_ForgeWindow->qMessageLog->setHtml (zLog);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void logf (const char* fmt, ...) {
+void logf (const char* fmtstr, ...) {
 	va_list va;
 	
-	va_start (va, fmt);
-	logVA (LOG_Normal, fmt, va);
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Normal, fmtstr, va);
 	va_end (va);
 }
 
-void logf (logtype_e eType, const char* fmt, ...) {
+void logf (LogType type, const char* fmtstr, ...) {
 	va_list va;
 	
-	va_start (va, fmt);
-	logVA (eType, fmt, va);
+	va_start (va, fmtstr);
+	g_win->logVA (type, fmtstr, va);
 	va_end (va);
 }

@@ -31,15 +31,15 @@
 // =============================================================================
 class OpenFile {
 public:
-	str zFileName, zTitle;
-	vector<LDObject*> objects;
-	vector<LDObject*> objCache; // Cache of this file's contents, if desired
+	str m_filename, m_title;
+	vector<LDObject*> m_objs;
+	vector<LDObject*> m_objCache; // Cache of this file's contents, if desired
 	
 	int lastError;
 	
 	// Is this file implicit? Implicit files are opened automatically for
 	// caching purposes and are hidden from the user.
-	bool implicit;
+	bool m_implicit;
 	
 	OpenFile ();
 	~OpenFile ();
@@ -60,7 +60,7 @@ public:
 	long savePos;
 	
 	LDObject* object (ulong pos) const {
-		return objects[pos];
+		return m_objs[pos];
 	}
 	
 	void insertObj (const ulong pos, LDObject* obj);
@@ -103,7 +103,7 @@ void initPartList ();
 
 std::vector< LDObject* > loadFileContents (FILE* fp, ulong* numWarnings);
 
-extern vector<OpenFile*> g_LoadedFiles;
+extern vector<OpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
 
 #endif // FILE_H

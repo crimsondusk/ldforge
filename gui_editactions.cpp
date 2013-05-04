@@ -34,7 +34,7 @@ cfg (bool, edit_schemanticinline, false);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static bool copyToClipboard () {
-	vector<LDObject*> objs = g_ForgeWindow->sel;
+	vector<LDObject*> objs = g_win->sel ();
 	
 	if (objs.size() == 0)
 		return false;
@@ -65,7 +65,7 @@ MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL 
 	if (!copyToClipboard ())
 		return;
 	
-	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
+	g_win->deleteSelection (&ulaIndices, &copies);
 	History::addEntry (new DelHistory (ulaIndices, copies, DelHistory::Cut));
 }
 
@@ -83,21 +83,21 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	vector<ulong> historyIndices;
 	vector<LDObject*> historyCopies;
 	
-	ulong idx = g_ForgeWindow->getInsertionPoint ();
-	g_ForgeWindow->sel.clear ();
+	ulong idx = g_win->getInsertionPoint ();
+	g_win->sel ().clear ();
 	
 	for (LDObject* obj : g_Clipboard) {
 		historyIndices.push_back (idx);
 		historyCopies.push_back (obj->clone ());
 		
 		LDObject* copy = obj->clone ();
-		g_CurrentFile->insertObj (idx, copy);
-		g_ForgeWindow->sel.push_back (copy);
+		g_curfile->insertObj (idx, copy);
+		g_win->sel ().push_back (copy);
 	}
 	
 	History::addEntry (new AddHistory (historyIndices, historyCopies, AddHistory::Paste));
-	g_ForgeWindow->refresh ();
-	g_ForgeWindow->scrollToSelection ();
+	g_win->refresh ();
+	g_win->scrollToSelection ();
 }
 
 // =============================================================================
@@ -107,7 +107,7 @@ MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 	vector<ulong> ulaIndices;
 	vector<LDObject*> copies;
 	
-	g_ForgeWindow->deleteSelection (&ulaIndices, &copies);
+	g_win->deleteSelection (&ulaIndices, &copies);
 	
 	if (copies.size ())
 		History::addEntry (new DelHistory (ulaIndices, copies));
@@ -117,7 +117,7 @@ MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doInline (bool bDeep) {
-	vector<LDObject*> sel = g_ForgeWindow->sel;
+	vector<LDObject*> sel = g_win->sel ();
 	
 	// History stuff
 	vector<LDSubfile*> paRefs;
@@ -127,14 +127,14 @@ static void doInline (bool bDeep) {
 		if (obj->getType() != OBJ_Subfile)
 			continue;
 		
-		ulaRefIndices.push_back (obj->getIndex (g_CurrentFile));
+		ulaRefIndices.push_back (obj->getIndex (g_curfile));
 		paRefs.push_back (static_cast<LDSubfile*> (obj)->clone ());
 	}
 	
 	for (LDObject* obj : sel) {
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
-		long idx = obj->getIndex (g_CurrentFile);
+		long idx = obj->getIndex (g_curfile);
 		if (idx == -1)
 			continue;
 		
@@ -154,16 +154,16 @@ static void doInline (bool bDeep) {
 			// This object is now inlined so it has no parent anymore.
 			inlineobj->parent = null;
 			
-			g_CurrentFile->insertObj (idx++, inlineobj);
+			g_curfile->insertObj (idx++, inlineobj);
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		g_CurrentFile->forgetObject (obj);
+		g_curfile->forgetObject (obj);
 		delete obj;
 	}
 	
 	History::addEntry (new InlineHistory (ulaBitIndices, ulaRefIndices, paRefs, bDeep));
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 MAKE_ACTION (inlineContents, "Inline", "inline", "Inline selected subfiles.", CTRL (I)) {
@@ -180,7 +180,7 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
-	vector<LDObject*> objs = g_ForgeWindow->sel;
+	vector<LDObject*> objs = g_win->sel ();
 	
 	vector<ulong> ulaIndices;
 	vector<LDQuad*> paCopies;
@@ -190,7 +190,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		if (obj->getType() != OBJ_Quad)
 			continue;
 		
-		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+		ulaIndices.push_back (obj->getIndex (g_curfile));
 		paCopies.push_back (static_cast<LDQuad*> (obj)->clone ());
 	}
 	
@@ -199,7 +199,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 			continue;
 		
 		// Find the index of this quad
-		long lIndex = obj->getIndex (g_CurrentFile);
+		long lIndex = obj->getIndex (g_curfile);
 		
 		if (lIndex == -1)
 			return;
@@ -208,25 +208,25 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		g_CurrentFile->objects[lIndex] = triangles[0];
-		g_CurrentFile->insertObj (lIndex + 1, triangles[1]);
+		g_curfile->m_objs[lIndex] = triangles[0];
+		g_curfile->insertObj (lIndex + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
 	}
 	
 	History::addEntry (new QuadSplitHistory (ulaIndices, paCopies));
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this object.", KEY (F9)) {
-	if (g_ForgeWindow->objList->selectedItems().size() != 1)
+	if (g_win->sel ().size() != 1)
 		return;
 	
-	LDObject* obj = g_ForgeWindow->sel[0];
+	LDObject* obj = g_win->sel ()[0];
 	SetContentsDialog::staticDialog (obj);
 }
 
@@ -234,26 +234,26 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (F10)) {
-	if (g_ForgeWindow->objList->selectedItems().size() <= 0)
+	if (g_win->sel ().size() <= 0)
 		return;
 	
 	short dColor;
 	short dDefault = -1;
 	
-	std::vector<LDObject*> objs = g_ForgeWindow->sel;
+	std::vector<LDObject*> objs = g_win->sel ();
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	dDefault = g_ForgeWindow->getSelectedColor ();
+	dDefault = g_win->getSelectedColor ();
 	
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelectDialog::staticDialog (dColor, dDefault, g_ForgeWindow)) {
+	if (ColorSelectDialog::staticDialog (dColor, dDefault, g_win)) {
 		std::vector<ulong> ulaIndices;
 		std::vector<short> daColors;
 		
 		for (LDObject* obj : objs) {
 			if (obj->dColor != -1) {
-				ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+				ulaIndices.push_back (obj->getIndex (g_curfile));
 				daColors.push_back (obj->dColor);
 				
 				obj->dColor = dColor;
@@ -261,7 +261,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 		}
 		
 		History::addEntry (new SetColorHistory (ulaIndices, daColors, dColor));
-		g_ForgeWindow->refresh ();
+		g_win->refresh ();
 	}
 }
 
@@ -271,7 +271,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.",
 	CTRL_SHIFT (B))
 {
-	vector<LDObject*> objs = g_ForgeWindow->sel;
+	vector<LDObject*> objs = g_win->sel ();
 	
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
@@ -301,10 +301,10 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 		}
 		
 		for (short i = 0; i < dNumLines; ++i) {
-			ulong idx = obj->getIndex (g_CurrentFile) + i + 1;
+			ulong idx = obj->getIndex (g_curfile) + i + 1;
 			
 			lines[i]->dColor = edgecolor;
-			g_CurrentFile->insertObj (idx, lines[i]);
+			g_curfile->insertObj (idx, lines[i]);
 			
 			ulaIndices.push_back (idx);
 			paObjs.push_back (lines[i]->clone ());
@@ -312,7 +312,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 	}
 	
 	History::addEntry (new AddHistory (ulaIndices, paObjs));
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -324,17 +324,17 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	vector<ulong> ulaIndices;
 	vector<LDObject*> paObjs;
 	
-	for (LDObject* obj : g_ForgeWindow->sel) {
+	for (LDObject* obj : g_win->sel ()) {
 		if (obj->vertices () < 2)
 			continue;
 		
-		ulong idx = obj->getIndex (g_CurrentFile);
+		ulong idx = obj->getIndex (g_curfile);
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertex* vert = new LDVertex;
 			vert->vPosition = obj->vaCoords[i];
 			vert->dColor = obj->dColor;
 			
-			g_CurrentFile->insertObj (++idx, vert);
+			g_curfile->insertObj (++idx, vert);
 			ulaIndices.push_back (idx);
 			paObjs.push_back (vert->clone ());
 		}
@@ -342,7 +342,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	
 	if (ulaIndices.size() > 0) {
 		History::addEntry (new AddHistory (ulaIndices, paObjs));
-		g_ForgeWindow->refresh ();
+		g_win->refresh ();
 	}
 }
 
@@ -350,16 +350,16 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doMoveSelection (const bool bUp) {
-	vector<LDObject*> objs = g_ForgeWindow->sel;
+	vector<LDObject*> objs = g_win->sel ();
 	
 	// Get the indices of the objects for history archival
 	vector<ulong> ulaIndices;
 	for (LDObject* obj : objs)
-		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+		ulaIndices.push_back (obj->getIndex (g_curfile));
 	
 	LDObject::moveObjects (objs, bUp);
 	History::addEntry (new ListMoveHistory (ulaIndices, bUp));
-	g_ForgeWindow->buildObjList ();
+	g_win->buildObjList ();
 }
 
 MAKE_ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", SHIFT (Up)) {
@@ -397,13 +397,13 @@ void doMoveObjects (vertex vVector) {
 	vVector[Y] *= currentGrid ().confs[Grid::Y]->value;
 	vVector[Z] *= currentGrid ().confs[Grid::Z]->value;
 	
-	for (LDObject* obj : g_ForgeWindow->sel) {
-		ulaIndices.push_back (obj->getIndex (g_CurrentFile));
+	for (LDObject* obj : g_win->sel ()) {
+		ulaIndices.push_back (obj->getIndex (g_curfile));
 		obj->move (vVector);
 	}
 	
 	History::addEntry (new MoveHistory (ulaIndices, vVector));
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
@@ -443,7 +443,7 @@ MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive 
 // History.
 // =============================================================================
 MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
-	std::vector<LDObject*> paSelection = g_ForgeWindow->sel;
+	std::vector<LDObject*> paSelection = g_win->sel ();
 	std::vector<HistoryEntry*> paHistory;
 	
 	for (LDObject* obj : paSelection) {
@@ -451,7 +451,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 		// variables and we store them into an EditHistory after the switch
 		// block. Subfile and radial management is stored into the history
 		// list immediately.
-		ulong ulHistoryIndex = obj->getIndex (g_CurrentFile);
+		ulong ulHistoryIndex = obj->getIndex (g_curfile);
 		LDObject* pOldCopy, *pNewCopy;
 		bool bEdited = false;
 		
@@ -513,10 +513,10 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				// Food for thought...
 				
 				bool inverted = false;
-				ulong idx = obj->getIndex (g_CurrentFile);
+				ulong idx = obj->getIndex (g_curfile);
 				
 				if (idx > 0) {
-					LDObject* prev = g_CurrentFile->object (idx - 1);
+					LDObject* prev = g_curfile->object (idx - 1);
 					LDBFC* bfc = dynamic_cast<LDBFC*> (prev);
 					
 					if (bfc && bfc->eStatement == LDBFC::InvertNext) {
@@ -524,7 +524,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 						paHistory.push_back (new DelHistory ({idx - 1}, {bfc->clone ()}));
 						
 						inverted = true;
-						g_CurrentFile->forgetObject (bfc);
+						g_curfile->forgetObject (bfc);
 						delete bfc;
 					}
 				}
@@ -532,7 +532,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				if (!inverted) {
 					// Not inverted, thus prefix it with a new invertnext.
 					LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-					g_CurrentFile->insertObj (idx, bfc);
+					g_curfile->insertObj (idx, bfc);
 					
 					paHistory.push_back (new AddHistory ({idx}, {bfc->clone ()}));
 				}
@@ -551,7 +551,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 	
 	if (paHistory.size () > 0) {
 		History::addEntry (new ComboHistory (paHistory));
-		g_ForgeWindow->refresh ();
+		g_win->refresh ();
 	}
 }
 
@@ -559,7 +559,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
-	std::vector<LDObject*> sel = g_ForgeWindow->sel;
+	std::vector<LDObject*> sel = g_win->sel ();
 	bbox box;
 	vertex origin;
 	std::vector<vertex*> queue;
@@ -613,11 +613,11 @@ static void doRotate (const short l, const short m, const short n) {
 	
 	for (vertex* v : queue) {
 		v->move (-origin);
-		v->transform (transform, g_Origin);
+		v->transform (transform, g_origin);
 		v->move (origin);
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
@@ -650,12 +650,12 @@ MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z a
 MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
 	setlocale (LC_ALL, "C");
 	
-	for (LDObject* obj : g_ForgeWindow->sel)
+	for (LDObject* obj : g_win->sel ())
 	for (short i = 0; i < obj->vertices (); ++i)
 	for (const Axis ax : g_Axes)
 		obj->vaCoords[i][ax] = atof (format ("%.3f", obj->vaCoords[i][ax]));
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -665,11 +665,11 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 	vector<LDObject*> oldCopies, newCopies;
 	vector<ulong> indices;
 	
-	for (LDObject* obj : g_ForgeWindow->sel) {
+	for (LDObject* obj : g_win->sel ()) {
 		if (obj->isColored () == false)
 			continue;
 		
-		indices.push_back (obj->getIndex (g_CurrentFile));
+		indices.push_back (obj->getIndex (g_curfile));
 		oldCopies.push_back (obj->clone ());
 		
 		obj->dColor = (obj->getType () == OBJ_Line || obj->getType () == OBJ_CondLine) ? edgecolor : maincolor;
@@ -678,6 +678,6 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 	
 	if (indices.size () > 0) {
 		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
-		g_ForgeWindow->refresh ();
+		g_win->refresh ();
 	}
 }

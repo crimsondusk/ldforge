@@ -118,39 +118,10 @@ class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
 public:
-	GLRenderer* R;
-	
-	// Object list view
-	ObjectList* objList;
-	QTextEdit* qMessageLog;
-	QMenu* qFileMenu, *qEditMenu, *qViewMenu, *qInsertMenu, *qMoveMenu,
-		*qHelpMenu, *qControlMenu;
-	QMenu* qRecentFilesMenu;
-	std::vector<QAction*> qaRecentFiles;
-	QSplitter* hsplit, *vsplit;
-	
-#ifndef RELEASE
-	QMenu* qDebugMenu;
-	QToolBar* qDebugToolBar;
-#endif // RELEASE
-	
-	std::vector<QToolBar*> qaToolBars;
-	
-	// Quick color buttons
-	std::vector<QPushButton*> qaColorButtons;
-	QToolBar* qColorToolBar;
-	std::vector<quickColorMetaEntry> quickColorMeta;
-	
-	// Selected objects
-	std::vector<LDObject*> sel;
-	
-	str zMessageLogHTML;
-	
 	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
 	void refresh ();
-	std::vector<LDObject*> getSelectedObjects ();
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
@@ -162,11 +133,33 @@ public:
 	LDObjectType_e uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
+	GLRenderer* R () { return m_renderer; }
+	std::vector<LDObject*>& sel () { return m_sel; }
+	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {
+		m_colorMeta = quickColorMeta;
+	}
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
+	void logVA (LogType eType, const char* fmtstr, va_list va);
+	
+	friend void logf (const char* fmt, ...);
+	friend void logf (LogType eType, const char* fmt, ...);
 	
 private:
+	GLRenderer* m_renderer;
+	ObjectList* m_objList;
+	QTextEdit* m_msglog;
+	QMenu* m_recentFilesMenu;
+	QSplitter* m_hsplit, *m_vsplit;
+	str m_msglogHTML;
+	QToolBar* m_colorToolBar;
+	std::vector<QToolBar*> m_toolBars;
+	std::vector<LDObject*> m_sel;
+	std::vector<quickColorMetaEntry> m_colorMeta;
+	std::vector<QPushButton*> m_colorButtons;
+	std::vector<QAction*> m_recentFiles;
+	
 	void createMenuActions ();
 	void createMenus ();
 	void createToolbars ();
@@ -190,7 +183,7 @@ void critical (str msg);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.
-extern ForgeWindow* g_ForgeWindow;
+extern ForgeWindow* g_win;
 
 // Is this still needed?
 enum {

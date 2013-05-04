@@ -39,7 +39,7 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 // =============================================================================
 MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) {
 	str zName;
-	zName += QFileDialog::getOpenFileName (g_ForgeWindow, "Open File",
+	zName += QFileDialog::getOpenFileName (g_win, "Open File",
 		"", "LDraw files (*.dat *.ldr)");
 	
 	if (~zName)
@@ -50,10 +50,10 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void doSave (bool saveAs) {
-	str path = g_CurrentFile->zFileName;
+	str path = g_curfile->m_filename;
 	
 	if (~path == 0 || saveAs) {
-		path = QFileDialog::getSaveFileName (g_ForgeWindow, "Save As",
+		path = QFileDialog::getSaveFileName (g_win, "Save As",
 		"", "LDraw files (*.dat *.ldr)");
 		
 		if (~path == 0) {
@@ -63,9 +63,9 @@ void doSave (bool saveAs) {
 		}
 	}
 	
-	if (g_CurrentFile->save (path)) {
-		g_CurrentFile->zFileName = path;
-		g_ForgeWindow->setTitle ();
+	if (g_curfile->save (path)) {
+		g_curfile->m_filename = path;
+		g_win->setTitle ();
 		
 		logf ("Saved successfully to %s\n", path.chars ());
 	} else {
@@ -73,8 +73,8 @@ void doSave (bool saveAs) {
 		
 		// Tell the user the save failed, and give the option for saving as with it.
 		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
-			format ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_CurrentFile->lastError)),
-			QMessageBox::Close, g_ForgeWindow);
+			format ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_curfile->lastError)),
+			QMessageBox::Close, g_win);
 		
 		QPushButton* saveAsBtn = new QPushButton ("Save As");
 		saveAsBtn->setIcon (getIcon ("file-save-as"));
@@ -155,10 +155,10 @@ MAKE_ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) 
 }
 
 MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {
-	if (g_ForgeWindow->sel.size () != 1)
+	if (g_win->sel ().size () != 1)
 		return;
 	
-	LDObject* obj = g_ForgeWindow->sel[0];
+	LDObject* obj = g_win->sel ()[0];
 	AddObjectDialog::staticDialog (obj->getType (), obj);
 }
 
@@ -177,46 +177,46 @@ MAKE_ACTION (about, "About " APPNAME_DISPLAY, "ldforge",
 }
 
 MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", CTRL_SHIFT (F1)) {
-	QMessageBox::aboutQt (g_ForgeWindow);
+	QMessageBox::aboutQt (g_win);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
-	g_ForgeWindow->sel.clear ();
+	g_win->sel ().clear ();
 	
-	for (LDObject* obj : g_CurrentFile->objects)
-		g_ForgeWindow->sel.push_back (obj);
+	for (LDObject* obj : g_curfile->m_objs)
+		g_win->sel ().push_back (obj);
 	
-	g_ForgeWindow->updateSelection ();
+	g_win->updateSelection ();
 }
 
 // =============================================================================
 MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	"Select all objects by the given color.", CTRL_SHIFT (A))
 {
-	short dColor = g_ForgeWindow->getSelectedColor ();
+	short dColor = g_win->getSelectedColor ();
 	
 	if (dColor == -1)
 		return; // no consensus on color
 	
-	g_ForgeWindow->sel.clear ();
-	for (LDObject* obj : g_CurrentFile->objects)
+	g_win->sel ().clear ();
+	for (LDObject* obj : g_curfile->m_objs)
 		if (obj->dColor == dColor)
-			g_ForgeWindow->sel.push_back (obj);
+			g_win->sel ().push_back (obj);
 	
-	g_ForgeWindow->updateSelection ();
+	g_win->updateSelection ();
 }
 
 // =============================================================================
 MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	"Select all objects by the given type.", (0))
 {
-	if (g_ForgeWindow->sel.size () == 0)
+	if (g_win->sel ().size () == 0)
 		return;
 	
-	LDObjectType_e eType = g_ForgeWindow->uniformSelectedType ();
+	LDObjectType_e eType = g_win->uniformSelectedType ();
 	
 	if (eType == OBJ_Unidentified)
 		return;
@@ -226,25 +226,25 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	str zRefName;
 	
 	if (eType == OBJ_Subfile) {
-		zRefName = static_cast<LDSubfile*> (g_ForgeWindow->sel[0])->zFileName;
+		zRefName = static_cast<LDSubfile*> (g_win->sel ()[0])->zFileName;
 		
-		for (LDObject* pObj : g_ForgeWindow->sel)
+		for (LDObject* pObj : g_win->sel ())
 			if (static_cast<LDSubfile*> (pObj)->zFileName != zRefName)
 				return;
 	}
 	
-	g_ForgeWindow->sel.clear ();
-	for (LDObject* obj : g_CurrentFile->objects) {
+	g_win->sel ().clear ();
+	for (LDObject* obj : g_curfile->m_objs) {
 		if (obj->getType() != eType)
 			continue;
 		
 		if (eType == OBJ_Subfile && static_cast<LDSubfile*> (obj)->zFileName != zRefName)
 			continue;
 		
-		g_ForgeWindow->sel.push_back (obj);
+		g_win->sel ().push_back (obj);
 	}
 	
-	g_ForgeWindow->updateSelection ();
+	g_win->updateSelection ();
 }
 
 // =============================================================================
@@ -252,25 +252,25 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 // =============================================================================
 MAKE_ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", CTRL (1)) {
 	grid = Grid::Coarse;
-	g_ForgeWindow->updateGridToolBar ();
+	g_win->updateGridToolBar ();
 }
 
 MAKE_ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", CTRL (2)) {
 	grid = Grid::Medium;
-	g_ForgeWindow->updateGridToolBar ();
+	g_win->updateGridToolBar ();
 }
 
 MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3)) {
 	grid = Grid::Fine;
-	g_ForgeWindow->updateGridToolBar ();
+	g_win->updateGridToolBar ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
-	g_ForgeWindow->R->resetAngles ();
-	g_ForgeWindow->R->update ();
+	g_win->R ()->resetAngles ();
+	g_win->R ()->update ();
 }
 
 // =============================================================================
@@ -278,7 +278,7 @@ MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and 
 // =============================================================================
 MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data from a file.", (0)) {
 	str fname = QFileDialog::getOpenFileName ();
-	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	ulong idx = g_win->getInsertionPoint ();
 	
 	if (!~fname)
 		return;
@@ -293,21 +293,21 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	std::vector<ulong> historyIndices;
 	std::vector<LDObject*> objs = loadFileContents (fp, null);
 	
-	g_ForgeWindow->sel.clear ();
+	g_win->sel ().clear ();
 	
 	for (LDObject* obj : objs) {
 		historyCopies.push_back (obj->clone ());
 		historyIndices.push_back (idx);
-		g_CurrentFile->insertObj (idx, obj);
-		g_ForgeWindow->sel.push_back (obj);
+		g_curfile->insertObj (idx, obj);
+		g_win->sel ().push_back (obj);
 		
 		idx++;
 	}
 	
 	if (historyCopies.size() > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_ForgeWindow->refresh ();
-		g_ForgeWindow->scrollToSelection ();
+		g_win->refresh ();
+		g_win->scrollToSelection ();
 	}
 }
 
@@ -315,7 +315,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to insert.", (0)) {
-	ulong idx = g_ForgeWindow->getInsertionPoint ();
+	ulong idx = g_win->getInsertionPoint ();
 	
 	QDialog* const dlg = new QDialog;
 	QVBoxLayout* const layout = new QVBoxLayout;
@@ -334,22 +334,22 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	if (dlg->exec () == false)
 		return;
 	
-	g_ForgeWindow->sel.clear ();
+	g_win->sel ().clear ();
 	
 	for (str line : str (te_edit->toPlainText ()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
-		g_CurrentFile->insertObj (idx, obj);
+		g_curfile->insertObj (idx, obj);
 		historyIndices.push_back (idx);
 		historyCopies.push_back (obj->clone ());
-		g_ForgeWindow->sel.push_back (obj);
+		g_win->sel ().push_back (obj);
 		idx++;
 	}
 	
 	if (historyCopies.size () > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_ForgeWindow->refresh ();
-		g_ForgeWindow->scrollToSelection ();
+		g_win->refresh ();
+		g_win->scrollToSelection ();
 	}
 }
 
@@ -360,17 +360,17 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	setlocale (LC_ALL, "C");
 	
 	ushort w, h;
-	uchar* imagedata = g_ForgeWindow->R->screencap (w, h);
+	uchar* imagedata = g_win->R ()->screencap (w, h);
 	
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
 	
-	str root = basename (g_CurrentFile->zFileName.chars ());
+	str root = basename (g_curfile->m_filename.chars ());
 	if (root.substr (~root - 4, -1) == ".dat")
 		root -= 4;
 	
 	str defaultname = (~root > 0) ? format ("%s.png", root.chars ()) : "";
-	str fname = QFileDialog::getSaveFileName (g_ForgeWindow, "Save Screencap", defaultname,
+	str fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	
 	if (~fname > 0 && !img.save (fname))
@@ -386,7 +386,7 @@ extern_cfg (bool, gl_axes);
 MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
 	gl_axes = !gl_axes;
 	ACTION (axes)->setChecked (gl_axes);
-	g_ForgeWindow->R->update ();
+	g_win->R ()->update ();
 }
 
 // =============================================================================
@@ -402,24 +402,24 @@ MAKE_ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", (0))
 	pQuad->vaCoords[2] = {-1.0f, 0.0f, -1.0f};
 	pQuad->vaCoords[3] = { 1.0f, 0.0f, -1.0f};
 	
-	g_CurrentFile->insertObj (g_ForgeWindow->getInsertionPoint (), pQuad);
-	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_CurrentFile)}, {pQuad->clone ()}));
-	g_ForgeWindow->refresh ();
+	g_curfile->insertObj (g_win->getInsertionPoint (), pQuad);
+	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_curfile)}, {pQuad->clone ()}));
+	g_win->refresh ();
 }
 
 MAKE_ACTION (addTestRadial, "Add Test Radial", "add-radial", "Adds a test radial.", (0)) {
 	LDRadial* pRad = new LDRadial;
 	pRad->eRadialType = LDRadial::Cone;
-	pRad->mMatrix = g_mIdentity;
+	pRad->mMatrix = g_identity;
 	pRad->vPosition = vertex (0, 0, 0);
 	pRad->dColor = rand () % 24;
 	pRad->dDivisions = 16;
 	pRad->dRingNum = 2;
 	pRad->dSegments = 16;
 	
-	g_CurrentFile->insertObj (g_ForgeWindow->getInsertionPoint (), pRad);
-	History::addEntry (new AddHistory ({(ulong)pRad->getIndex (g_CurrentFile)}, {pRad->clone ()}));
-	g_ForgeWindow->refresh ();
+	g_curfile->insertObj (g_win->getInsertionPoint (), pRad);
+	History::addEntry (new AddHistory ({(ulong)pRad->getIndex (g_curfile)}, {pRad->clone ()}));
+	g_win->refresh ();
 }
 
 #endif // RELEASE

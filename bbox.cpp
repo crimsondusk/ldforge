@@ -34,10 +34,10 @@ bbox::bbox () {
 void bbox::calculate () {
 	reset ();
 	
-	if (!g_CurrentFile)
+	if (!g_curfile)
 		return;
 	
-	for (LDObject* obj : g_CurrentFile->objects)
+	for (LDObject* obj : g_curfile->m_objs)
 		calcObject (obj);
 }
 

@@ -84,13 +84,13 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void NewPartDialog::StaticDialog () {
-	NewPartDialog dlg (g_ForgeWindow);
+	NewPartDialog dlg (g_win);
 	if (dlg.exec ()) {
 		newFile ();
 		
 		short idx;
 		str zAuthor = dlg.le_author->text ();
-		vector<LDObject*>& objs = g_CurrentFile->objects;
+		vector<LDObject*>& objs = g_curfile->m_objs;
 		
 		idx = dlg.rb_BFC->value ();
 		const LDBFC::Type eBFCType =
@@ -116,6 +116,6 @@ void NewPartDialog::StaticDialog () {
 		objs.push_back (new LDBFC (eBFCType));
 		objs.push_back (new LDEmpty);
 		
-		g_ForgeWindow->refresh ();
+		g_win->refresh ();
 	}
 }

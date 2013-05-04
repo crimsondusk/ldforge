@@ -29,7 +29,7 @@
 // 
 // The main renderer object, draws the brick on the screen, manages the camera
 // and selection picking. The instance of GLRenderer is accessible as
-// g_ForgeWindow->R
+// g_win->R ()
 // =============================================================================
 class GLRenderer : public QGLWidget {
 	Q_OBJECT
@@ -58,13 +58,10 @@ public:
 	void updateSelFlash ();
 	void resetAngles ();
 	uchar* screencap (ushort& w, ushort& h);
-	
+	void beginPlaneDraw ();
 	GLRenderer::Camera camera () { return m_camera; }
 	void setCamera (const GLRenderer::Camera cam);
-	
-	bool picking;
-	short width, height;
-	ushort mouseX, mouseY;
+	bool picking () { return m_picking; }
 
 protected:
 	void initializeGL ();
@@ -81,29 +78,28 @@ protected:
 	void contextMenuEvent (QContextMenuEvent* ev);
 
 private:
-	std::vector<GLuint> objLists;
-	QTimer* pulseTimer, *toolTipTimer;
-	Qt::MouseButtons lastButtons;
-	Qt::KeyboardModifiers keymods;
-	ulong totalmove;
-	bool darkbg;
-	double vw, vh;
+	QTimer* m_pulseTimer, *m_toolTipTimer;
+	Qt::MouseButtons m_lastButtons;
+	Qt::KeyboardModifiers m_keymods;
+	ulong m_totalmove;
+	bool m_darkbg;
+	double m_virtWidth, m_virtHeight;
 	Camera m_camera;
 	vertex m_hoverpos;
-	double rotX, rotY, rotZ, panX, panY, zoom;
-	bool rangepick, addpick, drawToolTip, screencapping;
-	QPoint pos, rangeStart;
-	QPen thinBorderPen, thickBorderPen;
-	Camera toolTipCamera;
-	uint axeslist;
+	double m_rotX, m_rotY, m_rotZ, m_panX, m_panY, m_zoom;
+	bool m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
+	QPoint m_pos, m_rangeStart;
+	QPen m_thinBorderPen, m_thickBorderPen;
+	Camera m_toolTipCamera;
+	uint m_axeslist;
+	short m_width, m_height;
 	
 	void compileOneObject (LDObject* obj);
-	template<class T> void compileSubObject (LDObject* obj, const GLenum eGLType,
-		const short dVerts);
+	void compileSubObject (LDObject* obj, const GLenum gltype);
 	void compileVertex (const vertex& vrt);
-	void clampAngle (double& fAngle);
+	void clampAngle (double& angle);
 	void setObjectColor (LDObject* obj);
-	void drawGLScene ();
+	void drawGLScene () const;
 	void calcCameraIconRects ();
 	
 private slots:

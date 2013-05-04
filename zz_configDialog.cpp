@@ -613,7 +613,7 @@ str ConfigDialog::makeColorToolBarString () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::staticDialog () {
-	ConfigDialog dlg (g_ForgeWindow);
+	ConfigDialog dlg (g_win);
 	
 	if (dlg.exec ()) {
 		io_ldpath = dlg.le_LDrawPath->text();
@@ -629,7 +629,7 @@ void ConfigDialog::staticDialog () {
 		gui_toolbar_iconsize = (dlg.sl_iconSize->value () * 4) + 12;
 		
 		// Manage the quick color toolbar
-		g_ForgeWindow->quickColorMeta = dlg.quickColorMeta;
+		g_win->setQuickColorMeta (dlg.quickColorMeta);
 		gui_colortoolbar = dlg.makeColorToolBarString ();
 		
 		// Set the grid settings
@@ -643,9 +643,9 @@ void ConfigDialog::staticDialog () {
 		// Reload all subfiles
 		reloadAllSubfiles ();
 		
-		g_ForgeWindow->R->setBackground ();
-		g_ForgeWindow->refresh ();
-		g_ForgeWindow->updateToolBars ();
+		g_win->R ()->setBackground ();
+		g_win->refresh ();
+		g_win->updateToolBars ();
 	}
 }
 

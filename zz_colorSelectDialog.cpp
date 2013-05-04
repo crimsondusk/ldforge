@@ -43,14 +43,14 @@ extern_cfg (float, gl_maincolor_alpha);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog (parent) {
+ColorSelectDialog::ColorSelectDialog (short int defval, QWidget* parent) : QDialog (parent) {
 	// Remove the default color if it's invalid
-	if (!getColor (dDefault))
-		dDefault = -1;
+	if (!getColor (defval))
+		defval = -1;
 	
 	gs_scene = new QGraphicsScene;
 	gv_view = new QGraphicsView (gs_scene);
-	selColor = dDefault;
+	selColor = defval;
 	
 	// not really an icon but eh
 	gs_scene->setBackgroundBrush (getIcon ("checkerboard"));
@@ -72,8 +72,8 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	
 	// If we have a default color selected, scroll down so that it is visible.
 	// TODO: find a better way to do this
-	if (dDefault >= ((g_dNumColumns * g_dNumRows) - 2)) {
-		ulong ulNewY = ((dDefault / g_dNumColumns) - 3) * g_dSquareSize;
+	if (defval >= ((g_dNumColumns * g_dNumRows) - 2)) {
+		ulong ulNewY = ((defval / g_dNumColumns) - 3) * g_dSquareSize;
 		gv_view->verticalScrollBar ()->setSliderPosition (ulNewY);
 	}
 	
@@ -108,25 +108,24 @@ void ColorSelectDialog::drawScene () {
 		const double y = (i / g_dNumColumns) * g_dSquareSize;
 		const double w = (g_dSquareSize) - (fPenWidth / 2);
 		
-		QColor qColor = meta->qColor;
+		QColor col = meta->qColor;
 		
 		if (i == maincolor) {
 			// Use the user preferences for main color here
-			qColor = gl_maincolor.value.chars ();
-			qColor.setAlpha (gl_maincolor_alpha * 255.0f);
+			col = gl_maincolor.value.chars ();
+			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
-		bool dark = (luma (qColor) < 80);
+		bool dark = (luma (col) < 80);
 		
-		gs_scene->addRect (x, y, w, w, qPen, qColor);
+		gs_scene->addRect (x, y, w, w, qPen, col);
 		QGraphicsTextItem* qText = gs_scene->addText (format ("%lu", i).chars());
 		qText->setDefaultTextColor ((dark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
 		
 		if (i == selColor) {
-			QGraphicsPixmapItem* qCursorPic;
-			qCursorPic = gs_scene->addPixmap (getIcon ("colorcursor"));
-			qCursorPic->setPos (x, y);
+			auto curspic = gs_scene->addPixmap (getIcon ("colorcursor"));
+			curspic->setPos (x, y);
 		}
 	}
 }
@@ -168,8 +167,8 @@ void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool ColorSelectDialog::staticDialog (short& dValue, short dDefault, QWidget* parent) {
-	ColorSelectDialog dlg (dDefault, parent);
+bool ColorSelectDialog::staticDialog (short int& dValue, short int defval, QWidget* parent) {
+	ColorSelectDialog dlg (defval, parent);
 	
 	if (dlg.exec () && dlg.selColor != -1) {
 		dValue = dlg.selColor;

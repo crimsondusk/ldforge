@@ -86,7 +86,7 @@ void SetContentsDialog::staticDialog (LDObject* obj) {
 	if (!obj)
 		return;
 	
-	SetContentsDialog dlg (obj, g_ForgeWindow);
+	SetContentsDialog dlg (obj, g_win);
 	if (dlg.exec () == false)
 		return;
 	
@@ -97,11 +97,11 @@ void SetContentsDialog::staticDialog (LDObject* obj) {
 	
 	// Mark down the history now before we perform the replacement (which
 	// destroys the old object)
-	History::addEntry (new EditHistory ({(ulong) oldobj->getIndex (g_CurrentFile)},
+	History::addEntry (new EditHistory ({(ulong) oldobj->getIndex (g_curfile)},
 		{oldobj->clone ()}, {obj->clone ()}));
 	
 	oldobj->replace (obj);
 	
 	// Rebuild stuff after this
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }

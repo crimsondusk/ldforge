@@ -67,7 +67,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		layout->addWidget (memorial);
 		
 		// Align everything to the center.
-		for (QLabel* label : {icon, title, info, memorial})
+		for (QLabel* label : vector<QLabel*> ({icon, title, info, memorial}))
 			label->setAlignment (Qt::AlignCenter);
 		
 		mainTab->setLayout (layout);
@@ -136,12 +136,11 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	}
 	
 	QDialogButtonBox* buttons = new QDialogButtonBox (QDialogButtonBox::Close);
-	
 	QPushButton* helpButton = new QPushButton;
+	
 	helpButton->setText ("Mail Author");
 	helpButton->setIcon (getIcon ("mail"));
-	
-	buttons->addButton (dynamic_cast<QAbstractButton*> (helpButton), QDialogButtonBox::HelpRole);
+	buttons->addButton (static_cast<QAbstractButton*> (helpButton), QDialogButtonBox::HelpRole);
 	connect (buttons, SIGNAL (helpRequested ()), this, SLOT (slot_mail ()));
 	connect (buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
 	

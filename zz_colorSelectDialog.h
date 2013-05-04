@@ -29,8 +29,8 @@ class ColorSelectDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	explicit ColorSelectDialog (short dDefault = -1, QWidget* parent = null);
-	static bool staticDialog (short& dValue, short dDefault = -1, QWidget* parent = null);
+	explicit ColorSelectDialog (short defval = -1, QWidget* parent = null);
+	static bool staticDialog (short& val, short defval = -1, QWidget* parent = null);
 	
 	QGraphicsScene* gs_scene;
 	QGraphicsView* gv_view;

@@ -40,7 +40,7 @@ public:
 	
 	QLabel* lb_typeIcon;
 	
-	// -- COMMENT --
+	// Comment line edit
 	QLineEdit* le_comment;
 	
 	// Coordinate edits for.. anything with coordinates, really.

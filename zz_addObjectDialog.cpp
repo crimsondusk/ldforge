@@ -423,7 +423,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
 			pRad->eRadialType = (LDRadial::Type) dlg.rb_radType->value ();
 			pRad->dRingNum = dlg.sb_radRingNum->value ();
-			pRad->mMatrix = g_mIdentity;
+			pRad->mMatrix = g_identity;
 		}
 		break;
 	
@@ -440,7 +440,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 				ref->vPosition[ax] = dlg.dsb_coords[ax]->value ();
 			
 			ref->zFileName = name;
-			ref->mMatrix = g_mIdentity;
+			ref->mMatrix = g_identity;
 			ref->pFile = loadSubfile (name);
 		}
 		break;
@@ -450,12 +450,12 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	}
 	
 	if (newObject) {
-		ulong idx = g_ForgeWindow->getInsertionPoint ();
-		g_CurrentFile->insertObj (idx, obj);
+		ulong idx = g_win->getInsertionPoint ();
+		g_curfile->insertObj (idx, obj);
 		History::addEntry (new AddHistory ({(ulong) idx}, {obj->clone ()}));
 	} else {
-		History::addEntry (new EditHistory ({(ulong) obj->getIndex (g_CurrentFile)}, {backup}, {obj->clone ()}));
+		History::addEntry (new EditHistory ({(ulong) obj->getIndex (g_curfile)}, {backup}, {obj->clone ()}));
 	}
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }

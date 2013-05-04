@@ -198,14 +198,13 @@ public:
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 namespace History {
-	extern std::vector<HistoryEntry*> entries;
-	
 	void addEntry (HistoryEntry* entry);
 	void undo ();
 	void redo ();
 	void clear ();
 	void updateActions ();
 	long pos ();
+	std::vector<HistoryEntry*>& entries ();
 };
 
 #endif // HISTORY_H

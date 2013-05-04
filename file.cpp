@@ -32,18 +32,18 @@ cfg (str, io_recentfiles, "");
 
 // =============================================================================
 OpenFile::OpenFile () {
-	implicit = true;
+	m_implicit = true;
 	savePos = -1;
 }
 
 // =============================================================================
 OpenFile::~OpenFile () {
 	// Clear everything from the model
-	for (LDObject* obj : objects)
+	for (LDObject* obj : m_objs)
 		delete obj;
 	
 	// Clear the cache as well
-	for (LDObject* obj : objCache)
+	for (LDObject* obj : m_objCache)
 		delete obj;
 }
 
@@ -51,8 +51,8 @@ OpenFile::~OpenFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 OpenFile* findLoadedFile (str zName) {
-	for (OpenFile* file : g_LoadedFiles)
-		if (file->zFileName == zName)
+	for (OpenFile* file : g_loadedFiles)
+		if (file->m_filename == zName)
 			return file;
 	
 	return null;
@@ -166,15 +166,15 @@ OpenFile* openDATFile (str path, bool search) {
 	}
 	
 	OpenFile* load = new OpenFile;
-	load->zFileName = path;
+	load->m_filename = path;
 	ulong numWarnings;
 	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings);
 	
 	for (LDObject* obj : objs)
-		load->objects.push_back (obj);
+		load->m_objs.push_back (obj);
 	
 	fclose (fp);
-	g_LoadedFiles.push_back (load);
+	g_loadedFiles.push_back (load);
 	
 	logf (LOG_Success, "File %s parsed successfully (%lu warning%s).\n",
 		path.chars(), numWarnings, PLURAL (numWarnings));
@@ -189,17 +189,17 @@ bool OpenFile::safeToClose () {
 	setlocale (LC_ALL, "C");
 	
 	// If we have unsaved changes, warn and give the option of saving.
-	if (!implicit && History::pos () != savePos) {
-		switch (QMessageBox::question (g_ForgeWindow, "Unsaved Changes",
-			format ("There are unsaved changes to %s. Should it be saved?", zFileName.chars ()),
+	if (!m_implicit && History::pos () != savePos) {
+		switch (QMessageBox::question (g_win, "Unsaved Changes",
+			format ("There are unsaved changes to %s. Should it be saved?", m_filename.chars ()),
 			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
 		{
 		case QMessageBox::Yes:
 			if (!save ()) {
 				str errormsg = format ("Failed to save %s: %s\nDo you still want to close?",
-					zFileName.chars (), strerror (lastError));
+					m_filename.chars (), strerror (lastError));
 				
-				if (QMessageBox::critical (g_ForgeWindow, "Save Failure", errormsg,
+				if (QMessageBox::critical (g_win, "Save Failure", errormsg,
 					(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::No)
 				{
 					return false;
@@ -223,18 +223,18 @@ bool OpenFile::safeToClose () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void closeAll () {
-	if (!g_LoadedFiles.size())
+	if (!g_loadedFiles.size())
 		return;
 	
 	// Remove all loaded files and the objects they contain
-	for (OpenFile* file : g_LoadedFiles)
+	for (OpenFile* file : g_loadedFiles)
 		delete file;
 	
 	// Clear the array
-	g_LoadedFiles.clear();
-	g_CurrentFile = NULL;
+	g_loadedFiles.clear();
+	g_curfile = NULL;
 	
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -245,12 +245,12 @@ void newFile () {
 	closeAll ();
 	
 	OpenFile* f = new OpenFile;
-	f->zFileName = "";
-	g_LoadedFiles.push_back (f);
-	g_CurrentFile = f;
+	f->m_filename = "";
+	g_loadedFiles.push_back (f);
+	g_curfile = f;
 	
 	g_BBox.calculate();
-	g_ForgeWindow->refresh ();
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -281,7 +281,7 @@ void addRecentFile (str zPath) {
 	io_recentfiles += zPath;
 	
 	config::save ();
-	g_ForgeWindow->updateRecentFilesMenu ();
+	g_win->updateRecentFilesMenu ();
 }
 
 // =============================================================================
@@ -295,22 +295,22 @@ void openMainFile (str zPath) {
 	if (!pFile) {
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
-		QMessageBox::critical (g_ForgeWindow, "Load Failure",
+		QMessageBox::critical (g_win, "Load Failure",
 			format ("Failed to open %s\nReason: %s", zPath.chars(), strerror (errno)),
 			(QMessageBox::Close), QMessageBox::Close);
 		
 		return;
 	}
 	
-	pFile->implicit = false;
-	g_CurrentFile = pFile;
+	pFile->m_implicit = false;
+	g_curfile = pFile;
 	
 	// Recalculate the bounding box
 	g_BBox.calculate();
 	
 	// Rebuild the object tree view now.
-	g_ForgeWindow->refresh ();
-	g_ForgeWindow->setTitle ();
+	g_win->refresh ();
+	g_win->setTitle ();
 	
 	// Add it to the recent files list.
 	addRecentFile (zPath);
@@ -321,7 +321,7 @@ void openMainFile (str zPath) {
 // =============================================================================
 bool OpenFile::save (str path) {
 	if (!~path)
-		path = zFileName;
+		path = m_filename;
 	
 	FILE* fp = fopen (path, "w");
 	
@@ -331,7 +331,7 @@ bool OpenFile::save (str path) {
 	}
 	
 	// Write all entries now
-	for (LDObject* obj : objects) {
+	for (LDObject* obj : m_objs) {
 		// LDraw requires lines to have DOS line endings
 		str zLine = format ("%s\r\n", obj->getContents ().chars ());
 		
@@ -343,7 +343,7 @@ bool OpenFile::save (str path) {
 	// We have successfully saved, update the save position now.
 	savePos = History::pos ();
 	
-	g_ForgeWindow->setTitle ();
+	g_win->setTitle ();
 	
 	return true;
 }
@@ -573,19 +573,19 @@ OpenFile* loadSubfile (str zFile) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void reloadAllSubfiles () {
-	if (!g_CurrentFile)
+	if (!g_curfile)
 		return;
 	
 	// First, close all but the current open file.
-	for (OpenFile* file : g_LoadedFiles)
-		if (file != g_CurrentFile)
+	for (OpenFile* file : g_loadedFiles)
+		if (file != g_curfile)
 			delete file;
 	
-	g_LoadedFiles.clear ();
-	g_LoadedFiles.push_back (g_CurrentFile);
+	g_loadedFiles.clear ();
+	g_loadedFiles.push_back (g_curfile);
 	
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : g_CurrentFile->objects) {
+	for (LDObject* obj : g_curfile->m_objs) {
 		if (obj->getType() == OBJ_Subfile) {
 			// Note: ref->pFile is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
@@ -610,21 +610,21 @@ void reloadAllSubfiles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong OpenFile::addObject (LDObject* obj) {
-	objects.push_back (obj);
+	m_objs.push_back (obj);
 	
-	if (this == g_CurrentFile)
+	if (this == g_curfile)
 		g_BBox.calcObject (obj);
 	
-	return objects.size() - 1;
+	return m_objs.size() - 1;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void OpenFile::insertObj (const ulong pos, LDObject* obj) {
-	objects.insert (objects.begin () + pos, obj);
+	m_objs.insert (m_objs.begin () + pos, obj);
 	
-	if (this == g_CurrentFile)
+	if (this == g_curfile)
 		g_BBox.calcObject (obj);
 }
 
@@ -634,18 +634,18 @@ void OpenFile::insertObj (const ulong pos, LDObject* obj) {
 void OpenFile::forgetObject (LDObject* obj) {
 	// Find the index for the given object
 	ulong ulIndex;
-	for (ulIndex = 0; ulIndex < (ulong)objects.size(); ++ulIndex)
-		if (objects[ulIndex] == obj)
+	for (ulIndex = 0; ulIndex < (ulong)m_objs.size(); ++ulIndex)
+		if (m_objs[ulIndex] == obj)
 			break; // found it
 	
-	if (ulIndex >= objects.size ())
+	if (ulIndex >= m_objs.size ())
 		return; // was not found
 	
 	// Erase it from memory
-	objects.erase (objects.begin() + ulIndex);
+	m_objs.erase (m_objs.begin() + ulIndex);
 	
 	// Update the bounding box
-	if (this == g_CurrentFile)
+	if (this == g_curfile)
 		g_BBox.calculate ();
 }
 

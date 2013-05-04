@@ -48,8 +48,8 @@ static const Axis g_Axes[3] = {X, Y, Z};
 // =============================================================================
 // vertex
 // 
-// Vertex class. Not to be confused with LDVertex, which is a vertex used in an
-// LDraw code file.
+// Vertex class, contains a single point in 3D space. Not to be confused with
+// LDVertex, which is a vertex used in an LDraw part file.
 // =============================================================================
 class vertex {
 public:
@@ -105,8 +105,6 @@ public:
 		return coord (n);
 	}
 	
-	// =========================================================================
-	// Midpoint between this vertex and another vertex.
 	vertex midpoint (vertex& other);
 	str stringRep (const bool mangled);
 	void transform (matrix mMatrix, vertex pos);
@@ -121,12 +119,10 @@ public:
 // =============================================================================
 class matrix {
 public:
-	double faValues[9];
-	
 	// Constructors
 	matrix () {}
 	matrix (std::vector<double> vals);
-	matrix (double fVal);
+	matrix (double fillval);
 	matrix (double a, double b, double c,
 		double d, double e, double f,
 		double g, double h, double i);
@@ -134,7 +130,7 @@ public:
 	matrix mult (matrix mOther);
 	
 	matrix& operator= (matrix mOther) {
-		memcpy (&faValues[0], &mOther.faValues[0], sizeof faValues);
+		memcpy (&m_vals[0], &mOther.m_vals[0], sizeof m_vals);
 		return *this;
 	}
 	
@@ -143,12 +139,15 @@ public:
 	}
 	
 	inline double& operator[] (const uint uIndex) {
-		return faValues[uIndex];
+		return m_vals[uIndex];
 	}
 	
 	void zero ();
 	void testOutput ();
 	str stringRep ();
+
+private:
+	double m_vals[9];
 };
 
 #endif // TYPES_H

@@ -19,9 +19,7 @@ vertex vertex::midpoint (vertex& other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str vertex::stringRep (const bool mangled) {
-	const char* fmt = mangled ? "(%s, %s, %s)" : "%s %s %s";
-	
-	return format (fmt,
+	return format (mangled ? "(%s, %s, %s)" : "%s %s %s",
 		ftoa (coord (X)).chars(),
 		ftoa (coord (Y)).chars(),
 		ftoa (coord (Z)).chars());
@@ -45,48 +43,45 @@ void vertex::transform (matrix transmatrx, vertex pos) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 matrix::matrix (vector<double> vals) {
-	assert (vals.size() == (sizeof faValues / sizeof *faValues));
-	memcpy (&faValues[0], &(*vals.begin ()), sizeof faValues);
+	assert (vals.size() == (sizeof m_vals / sizeof *m_vals));
+	memcpy (&m_vals[0], &(*vals.begin ()), sizeof m_vals);
 }
 
 // -----------------------------------------------------------------------------
-matrix::matrix (double fVal) {
+matrix::matrix (double fillval) {
 	for (short i = 0; i < 9; ++i)
-		faValues[i] = fVal;
+		m_vals[i] = fillval;
 }
 
 // -----------------------------------------------------------------------------
 matrix::matrix (double a, double b, double c, double d, double e, double f,
 	double g, double h, double i)
 {
-	faValues[0] = a; faValues[1] = b; faValues[2] = c;
-	faValues[3] = d; faValues[4] = e; faValues[5] = f;
-	faValues[6] = g; faValues[7] = h; faValues[8] = i;
+	m_vals[0] = a; m_vals[1] = b; m_vals[2] = c;
+	m_vals[3] = d; m_vals[4] = e; m_vals[5] = f;
+	m_vals[6] = g; m_vals[7] = h; m_vals[8] = i;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void matrix::zero () {
-	memset (&faValues[0], 0, sizeof faValues);
+	memset (&m_vals[0], 0, sizeof m_vals);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-matrix matrix::mult (matrix mOther) {
-	matrix mVal;
-	matrix& mThis = *this;
+matrix matrix::mult (matrix other) {
+	matrix val;
+	val.zero ();
 	
-	mVal.zero ();
-	
-	// arrrrrrrrrrrgh
 	for (short i = 0; i < 3; ++i)
 	for (short j = 0; j < 3; ++j)
 	for (short k = 0; k < 3; ++k)
-		mVal[(i * 3) + j] += mThis[(i * 3) + k] * mOther[(k * 3) + j];
+		val[(i * 3) + j] += m_vals[(i * 3) + k] * other[(k * 3) + j];
 	
-	return mVal;
+	return val;
 }
 
 // =============================================================================
@@ -95,7 +90,7 @@ matrix matrix::mult (matrix mOther) {
 void matrix::testOutput () {
 	for (short i = 0; i < 3; ++i) {
 		for (short j = 0; j < 3; ++j)
-			printf ("%*f\t", 10, faValues[(i * 3) + j]);
+			printf ("%*f\t", 10, m_vals[(i * 3) + j]);
 		
 		printf ("\n");
 	}
@@ -110,7 +105,7 @@ str matrix::stringRep () {
 		if (i > 0)
 			val += ' ';
 		
-		val.appendformat ("%s", ftoa (faValues[i]).chars());
+		val.appendformat ("%s", ftoa (m_vals[i]).chars());
 	}
 	
 	return val;

@@ -84,20 +84,20 @@ const GLRenderer::Camera g_Cameras[7] = {
 // =============================================================================
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	resetAngles ();
-	picking = rangepick = false;
+	m_picking = m_rangepick = false;
 	m_camera = (GLRenderer::Camera) gl_camera.value;
-	drawToolTip = false;
+	m_drawToolTip = false;
 	
-	pulseTimer = new QTimer (this);
-	connect (pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
+	m_pulseTimer = new QTimer (this);
+	connect (m_pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
 	
-	toolTipTimer = new QTimer (this);
-	toolTipTimer->setSingleShot (true);
-	connect (toolTipTimer, SIGNAL (timeout ()), this, SLOT (slot_toolTipTimer ()));
+	m_toolTipTimer = new QTimer (this);
+	m_toolTipTimer->setSingleShot (true);
+	connect (m_toolTipTimer, SIGNAL (timeout ()), this, SLOT (slot_toolTipTimer ()));
 	
-	thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
-	thinBorderPen = thickBorderPen;
-	thinBorderPen.setWidth (1);
+	m_thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+	m_thinBorderPen = m_thickBorderPen;
+	m_thinBorderPen.setWidth (1);
 	
 	// Init camera icons
 	for (const GLRenderer::Camera cam : g_Cameras) {
@@ -125,7 +125,7 @@ void GLRenderer::calcCameraIconRects () {
 	ushort i = 0;
 	
 	for (CameraIcon& info : g_CameraIcons) {
-		const long x1 = (width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
+		const long x1 = (m_width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
 			y1 = ((i / 3) * 16) + 1;
 		
 		info.srcRect = QRect (0, 0, 16, 16);
@@ -138,10 +138,10 @@ void GLRenderer::calcCameraIconRects () {
 
 // =============================================================================
 void GLRenderer::resetAngles () {
-	rotX = 30.0f;
-	rotY = 325.f;
-	panX = panY = rotZ = 0.0f;
-	zoom = 5.0f;
+	m_rotX = 30.0f;
+	m_rotY = 325.f;
+	m_panX = m_panY = m_rotZ = 0.0f;
+	m_zoom = 5.0f;
 }
 
 // =============================================================================
@@ -191,7 +191,7 @@ void GLRenderer::setBackground () {
 	if (!col.isValid ())
 		return;
 	
-	darkbg = luma (col) < 80;
+	m_darkbg = luma (col) < 80;
 	
 	col.setAlpha (255);
 	qglClearColor (col);
@@ -204,17 +204,17 @@ static vector<short> g_daWarnedColors;
 void GLRenderer::setObjectColor (LDObject* obj) {
 	QColor qCol;
 	
-	if (picking) {
+	if (m_picking) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results.
-		long i = obj->getIndex (g_CurrentFile);
+		long i = obj->getIndex (g_curfile);
 		
 		// If we couldn't find the index, this object must not be from this file,
 		// therefore it must be an object inlined from a subfile reference or
 		// decomposed from a radial. Find the top level parent object and use
 		// its index.
 		if (i == -1)
-			i = obj->topLevelParent ()->getIndex (g_CurrentFile);
+			i = obj->topLevelParent ()->getIndex (g_curfile);
 		
 		// We should have the index now.
 		assert (i != -1);
@@ -283,7 +283,7 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		a = qCol.alpha ();
 	
 	// If it's selected, brighten it up, also pulse flash it if desired.
-	if (g_ForgeWindow->isSelected (obj)) {
+	if (g_win->isSelected (obj)) {
 		short tick, numTicks;
 		
 		if (gl_selflash) {
@@ -329,8 +329,8 @@ void GLRenderer::hardRefresh () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::resizeGL (int w, int h) {
-	width = w;
-	height = h;
+	m_width = w;
+	m_height = h;
 	
 	calcCameraIconRects ();
 	
@@ -350,8 +350,8 @@ const struct GLAxis {
 	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
 };
 
-void GLRenderer::drawGLScene () {
-	if (g_CurrentFile == null)
+void GLRenderer::drawGLScene () const {
+	if (g_curfile == null)
 		return;
 	
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -362,8 +362,8 @@ void GLRenderer::drawGLScene () {
 		glPushMatrix ();
 		
 		glLoadIdentity ();
-		glOrtho (-vw, vw, -vh, vh, -100.0f, 100.0f);
-		glTranslatef (panX, panY, 0.0f);
+		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
+		glTranslatef (m_panX, m_panY, 0.0f);
 		glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
 			g_staticCameras[m_camera].glrotate[1],
 			g_staticCameras[m_camera].glrotate[2]);
@@ -379,17 +379,17 @@ void GLRenderer::drawGLScene () {
 		glLoadIdentity ();
 		
 		glTranslatef (0.0f, 0.0f, -2.0f);
-		glTranslatef (panX, panY, -zoom);
-		glRotatef (rotX, 1.0f, 0.0f, 0.0f);
-		glRotatef (rotY, 0.0f, 1.0f, 0.0f);
-		glRotatef (rotZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef (m_panX, m_panY, -m_zoom);
+		glRotatef (m_rotX, 1.0f, 0.0f, 0.0f);
+		glRotatef (m_rotY, 0.0f, 1.0f, 0.0f);
+		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	for (LDObject* obj : g_CurrentFile->objects)
-		glCallList (picking == false ? obj->uGLList : obj->uGLPickList);
+	for (LDObject* obj : g_curfile->m_objs)
+		glCallList (m_picking == false ? obj->uGLList : obj->uGLPickList);
 	
-	if (gl_axes && !picking)
-		glCallList (axeslist);
+	if (gl_axes && !m_picking)
+		glCallList (m_axeslist);
 	
 	glPopMatrix ();
 	glMatrixMode (GL_MODELVIEW);
@@ -400,15 +400,15 @@ void GLRenderer::drawGLScene () {
 // =============================================================================
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
-	vw = zoom;
-	vh = (height * vw) / width;
+	m_virtWidth = m_zoom;
+	m_virtHeight = (m_height * m_virtWidth) / m_width;
 	drawGLScene ();
 	
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
 	paint.setRenderHint (QPainter::Antialiasing);
 	
-	m_hoverpos = g_Origin;
+	m_hoverpos = g_origin;
 	
 	if (m_camera != Free) {
 		const staticCameraMeta* cam = &g_staticCameras[m_camera];
@@ -418,9 +418,9 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			negYFac = cam->negY ? -1 : 1;
 		
 		// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-		double cx = Grid::snap ((-vw + ((2 * mouseX * vw) / width) - panX) * g_storedBBoxSize -
+		double cx = Grid::snap ((-m_virtWidth + ((2 * m_pos.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize -
 			(negXFac * g_objOffset[axisX]), (Grid::Config) axisX);
-		double cy = Grid::snap ((vh - ((2 * mouseY * vh) / height) - panY) * g_storedBBoxSize -
+		double cy = Grid::snap ((m_virtHeight - ((2 * m_pos.y () * m_virtHeight) / m_height) - m_panY) * g_storedBBoxSize -
 			(negYFac * g_objOffset[axisY]), (Grid::Config) axisY);
 		cx *= negXFac;
 		cy *= negYFac;
@@ -435,16 +435,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
 		
 		QFontMetrics metrics = QFontMetrics (font ());
-		QRect textSize = metrics.boundingRect (0, 0, width, height, Qt::AlignCenter, text);
+		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		
-		paint.drawText (width - textSize.width (), height - 16, textSize.width (),
+		paint.drawText (m_width - textSize.width (), m_height - 16, textSize.width (),
 			textSize.height (), Qt::AlignCenter, text);
 	}
 	
 	// Camera icons
-	if (!picking) {
+	if (!m_picking) {
 		// Draw a background for the selected camera
-		paint.setPen (thinBorderPen);
+		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
 		paint.drawRect (g_CameraIcons[camera ()].selRect);
 		
@@ -463,31 +463,31 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		}
 		
 		// Tool tips
-		if (drawToolTip) {
-			if (g_CameraIcons[toolTipCamera].destRect.contains (QPoint (mouseX, mouseY)) == false)
-				drawToolTip = false;
+		if (m_drawToolTip) {
+			if (g_CameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
+				m_drawToolTip = false;
 			else {
-				QPen bord = thinBorderPen;
+				QPen bord = m_thinBorderPen;
 				bord.setBrush (Qt::black);
 				
 				const ushort margin = 2;
-				ushort x0 = mouseX,
-					y0 = mouseY;
+				ushort x0 = m_pos.x (),
+					y0 = m_pos.y ();
 				
 				str label;
-				label.format ("%s Camera", g_CameraNames[toolTipCamera]);
+				label.format ("%s Camera", g_CameraNames[m_toolTipCamera]);
 				
 				const ushort textWidth = metrics.width (label),
 					textHeight = metrics.height (),
 					fullWidth = textWidth + (2 * margin),
 					fullHeight = textHeight + (2 * margin);
 				
-				QRect area (mouseX, mouseY, fullWidth, fullHeight);
+				QRect area (m_pos.x (), m_pos.y (), fullWidth, fullHeight);
 				
-				if (x0 + fullWidth > width)
+				if (x0 + fullWidth > m_width)
 					x0 -= fullWidth;
 				
-				if (y0 + fullHeight > height)
+				if (y0 + fullHeight > m_height)
 					y0 -= fullHeight;
 				
 				paint.setBrush (QColor (0, 128, 255, 208));
@@ -501,17 +501,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	}
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
-	if (rangepick && !picking) {
-		const short x0 = rangeStart.x (),
-			y0 = rangeStart.y (),
-			x1 = pos.x (),
-			y1 = pos.y ();
+	if (m_rangepick && !m_picking) {
+		const short x0 = m_rangeStart.x (),
+			y0 = m_rangeStart.y (),
+			x1 = m_pos.x (),
+			y1 = m_pos.y ();
 		
 		QRect rect (x0, y0, x1 - x0, y1 - y0);
-		QColor fillColor = (addpick ? "#80FF00" : "#00CCFF");
+		QColor fillColor = (m_addpick ? "#80FF00" : "#00CCFF");
 		fillColor.setAlphaF (0.2f);
 		
-		paint.setPen (thickBorderPen);
+		paint.setPen (m_thickBorderPen);
 		paint.setBrush (QBrush (fillColor));
 		paint.drawRect (rect);
 	}
@@ -521,19 +521,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObjects () {
-	objLists.clear ();
-	
 	g_objOffset[0] = -(g_BBox.v0[X] + g_BBox.v1[X]) / 2;
 	g_objOffset[1] = -(g_BBox.v0[Y] + g_BBox.v1[Y]) / 2;
 	g_objOffset[2] = -(g_BBox.v0[Z] + g_BBox.v1[Z]) / 2;
 	g_storedBBoxSize = g_BBox.size ();
 	
-	if (!g_CurrentFile) {
+	if (!g_curfile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
 		return;
 	}
 	
-	for (LDObject* obj : g_CurrentFile->objects) {
+	for (LDObject* obj : g_curfile->m_objs) {
 		GLuint* upaLists[2] = {
 			&obj->uGLList,
 			&obj->uGLPickList
@@ -543,20 +541,18 @@ void GLRenderer::compileObjects () {
 			GLuint uList = glGenLists (1);
 			glNewList (uList, GL_COMPILE);
 			
-			picking = (upMemberList == &obj->uGLPickList);
+			m_picking = (upMemberList == &obj->uGLPickList);
 			compileOneObject (obj);
-			picking = false;
+			m_picking = false;
 			
 			glEndList ();
 			*upMemberList = uList;
 		}
-		
-		objLists.push_back (obj->uGLList);
 	}
 	
 	// Compile axes
-	axeslist = glGenLists (1);
-	glNewList (axeslist, GL_COMPILE);
+	m_axeslist = glGenLists (1);
+	glNewList (m_axeslist, GL_COMPILE);
 	glBegin (GL_LINES);
 	for (const GLAxis& ax : g_GLAxes) {
 		qglColor (ax.col);
@@ -570,14 +566,13 @@ void GLRenderer::compileObjects () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-template<class T> void GLRenderer::compileSubObject (LDObject* obj,
-	const GLenum eGLType, const short dVerts)
-{
-	T* newobj = static_cast<T*> (obj);
-	glBegin (eGLType);
+void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
+	glBegin (gltype);
 	
-	for (short i = 0; i < dVerts; ++i)
-		compileVertex (newobj->vaCoords[i]);
+	const short numverts = (obj->getType () != OBJ_CondLine) ? obj->vertices () : 2;
+	
+	for (short i = 0; i < numverts; ++i)
+		compileVertex (obj->vaCoords[i]);
 	
 	glEnd ();
 }
@@ -590,24 +585,24 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 	
 	switch (obj->getType ()) {
 	case OBJ_Line:
-		compileSubObject<LDLine> (obj, GL_LINES, 2);
+		compileSubObject (obj, GL_LINES);
 		break;
 	
 	case OBJ_CondLine:
 		glLineStipple (1, 0x6666);
 		glEnable (GL_LINE_STIPPLE);
 		
-		compileSubObject<LDCondLine> (obj, GL_LINES, 2);
+		compileSubObject (obj, GL_LINES);
 		
 		glDisable (GL_LINE_STIPPLE);
 		break;
 	
 	case OBJ_Triangle:
-		compileSubObject<LDTriangle> (obj, GL_TRIANGLES, 3);
+		compileSubObject (obj, GL_TRIANGLES);
 		break;
 	
 	case OBJ_Quad:
-		compileSubObject<LDQuad> (obj, GL_QUADS, 4);
+		compileSubObject (obj, GL_QUADS);
 		break;
 	
 	case OBJ_Subfile:
@@ -697,15 +692,15 @@ void GLRenderer::clampAngle (double& angle) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
-	if ((lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
-		if (!rangepick)
-			addpick = (keymods & Qt::ControlModifier);
+	if ((m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
+		if (!m_rangepick)
+			m_addpick = (m_keymods & Qt::ControlModifier);
 		
-		if (totalmove < 10 || rangepick)
+		if (m_totalmove < 10 || m_rangepick)
 			pick (ev->x (), ev->y ());
 		
-		rangepick = false;
-		totalmove = 0;
+		m_rangepick = false;
+		m_totalmove = 0;
 	}
 }
 
@@ -714,48 +709,45 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 	if (ev->buttons () & Qt::LeftButton)
-		totalmove = 0;
+		m_totalmove = 0;
 	
 	if (ev->modifiers () & Qt::ShiftModifier) {
-		rangepick = true;
-		rangeStart.setX (ev->x ());
-		rangeStart.setY (ev->y ());
+		m_rangepick = true;
+		m_rangeStart.setX (ev->x ());
+		m_rangeStart.setY (ev->y ());
 		
-		addpick = (keymods & Qt::ControlModifier);
+		m_addpick = (m_keymods & Qt::ControlModifier);
 	}
 	
-	lastButtons = ev->buttons ();
+	m_lastButtons = ev->buttons ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
-	mouseX = pos.x ();
-	mouseY = pos.y ();
+	int dx = ev->x () - m_pos.x ();
+	int dy = ev->y () - m_pos.y ();
+	m_totalmove += abs (dx) + abs (dy);
 	
-	int dx = ev->x () - pos.x ();
-	int dy = ev->y () - pos.y ();
-	totalmove += abs (dx) + abs (dy);
-	
-	if (ev->buttons () & Qt::LeftButton && !rangepick) {
-		rotX = rotX + (dy);
-		rotY = rotY + (dx);
+	if (ev->buttons () & Qt::LeftButton && !m_rangepick) {
+		m_rotX = m_rotX + (dy);
+		m_rotY = m_rotY + (dx);
 		
-		clampAngle (rotX);
-		clampAngle (rotY);
+		clampAngle (m_rotX);
+		clampAngle (m_rotY);
 	}
 	
 	if (ev->buttons () & Qt::MidButton) {
-		panX += 0.03f * dx * (zoom / 7.5f);
-		panY -= 0.03f * dy * (zoom / 7.5f);
+		m_panX += 0.03f * dx * (m_zoom / 7.5f);
+		m_panY -= 0.03f * dy * (m_zoom / 7.5f);
 	}
 	
 	// Start the tool tip timer
-	if (!drawToolTip)
-		toolTipTimer->start (1000);
+	if (!m_drawToolTip)
+		m_toolTipTimer->start (1000);
 	
-	pos = ev->pos ();
+	m_pos = ev->pos ();
 	update ();
 }
 
@@ -763,17 +755,17 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::keyPressEvent (QKeyEvent* ev) {
-	keymods = ev->modifiers ();
+	m_keymods = ev->modifiers ();
 }
 
 void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
-	keymods = ev->modifiers ();
+	m_keymods = ev->modifiers ();
 }
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
-	zoom = clamp (zoom, 0.01, 100.0);
+	m_zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
+	m_zoom = clamp (m_zoom, 0.01, 100.0);
 	
 	update ();
 	ev->accept ();
@@ -782,14 +774,14 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 // =============================================================================
 void GLRenderer::leaveEvent (QEvent* ev) {
 	Q_UNUSED (ev);
-	drawToolTip = false;
-	toolTipTimer->stop ();
+	m_drawToolTip = false;
+	m_toolTipTimer->stop ();
 	update ();
 }
 
 // =============================================================================
 void GLRenderer::contextMenuEvent (QContextMenuEvent* ev) {
-	g_ForgeWindow->spawnContextMenu (ev->globalPos ());
+	g_win->spawnContextMenu (ev->globalPos ());
 }
 
 // =============================================================================
@@ -802,11 +794,11 @@ void GLRenderer::setCamera (const GLRenderer::Camera cam) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::updateSelFlash () {
-	if (gl_selflash && g_ForgeWindow->sel.size() > 0) {
-		pulseTimer->start (g_pulseInterval);
+	if (gl_selflash && g_win->sel ().size() > 0) {
+		m_pulseTimer->start (g_pulseInterval);
 		g_pulseTick = 0;
 	} else
-		pulseTimer->stop ();
+		m_pulseTimer->stop ();
 }
 
 // =============================================================================
@@ -814,7 +806,7 @@ void GLRenderer::updateSelFlash () {
 // =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Check if we selected a camera icon
-	if (!rangepick) {
+	if (!m_rangepick) {
 		QPoint pos (mouseX, mouseY);
 		
 		for (CameraIcon& info : g_CameraIcons) {
@@ -830,16 +822,16 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	LDObject* removedObject = null;
 	
 	// Clear the selection if we do not wish to add to it.
-	if (!addpick) {
-		std::vector<LDObject*> paOldSelection = g_ForgeWindow->sel;
-		g_ForgeWindow->sel.clear ();
+	if (!m_addpick) {
+		std::vector<LDObject*> paOldSelection = g_win->sel ();
+		g_win->sel ().clear ();
 		
 		// Recompile the prior selection to remove the highlight color
 		for (LDObject* obj : paOldSelection)
 			recompileObject (obj);
 	}
 	
-	picking = true;
+	m_picking = true;
 	
 	// Paint the picking scene
 	glDisable (GL_DITHER);
@@ -854,9 +846,9 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Determine how big an area to read - with range picking, we pick by
 	// the area given, with single pixel picking, we use an 1 x 1 area.
-	if (rangepick) {
-		x1 = rangeStart.x ();
-		y1 = rangeStart.y ();
+	if (m_rangepick) {
+		x1 = m_rangeStart.x ();
+		y1 = m_rangeStart.y ();
 	} else {
 		x1 = x0 + 1;
 		y1 = y0 + 1;
@@ -872,8 +864,8 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Clamp the values to ensure they're within bounds
 	x0 = max<short> (0, x0);
 	y0 = max<short> (0, y0);
-	x1 = min<short> (x1, width);
-	y1 = min<short> (y1, height);
+	x1 = min<short> (x1, m_width);
+	y1 = min<short> (y1, m_height);
 	
 	const short areawidth = (x1 - x0);
 	const short areaheight = (y1 - y0);
@@ -883,7 +875,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	uchar* const pixeldata = new uchar[4 * numpixels];
 	uchar* pixelptr = &pixeldata[0];
 	
-	assert (viewport[3] == height);
+	assert (viewport[3] == m_height);
 	
 	// Read pixels from the color buffer.
 	glReadPixels (x0, viewport[3] - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
@@ -899,16 +891,16 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = g_CurrentFile->object (idx);
+		LDObject* obj = g_curfile->object (idx);
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
-		if (!rangepick && addpick) {
+		if (!m_rangepick && m_addpick) {
 			bool removed = false;
 			
-			for (ulong i = 0; i < g_ForgeWindow->sel.size(); ++i) {
-				if (g_ForgeWindow->sel[i] == obj) {
-					g_ForgeWindow->sel.erase (g_ForgeWindow->sel.begin () + i);
+			for (ulong i = 0; i < g_win->sel ().size(); ++i) {
+				if (g_win->sel ()[i] == obj) {
+					g_win->sel ().erase (g_win->sel ().begin () + i);
 					removedObject = obj;
 					removed = true;
 				}
@@ -918,29 +910,29 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 				break;
 		}
 		
-		g_ForgeWindow->sel.push_back (obj);
+		g_win->sel ().push_back (obj);
 	}
 	
 	delete[] pixeldata;
 	
 	// Remove duplicate entries. For this to be effective, the vector must be
 	// sorted first.
-	std::vector<LDObject*>& sel = g_ForgeWindow->sel;
+	std::vector<LDObject*>& sel = g_win->sel ();
 	std::sort (sel.begin(), sel.end ());
 	std::vector<LDObject*>::iterator pos = std::unique (sel.begin (), sel.end ());
 	sel.resize (std::distance (sel.begin (), pos));
 	
 	// Update everything now.
-	g_ForgeWindow->buildObjList ();
+	g_win->buildObjList ();
 	
-	picking = false;
-	rangepick = false;
+	m_picking = false;
+	m_rangepick = false;
 	glEnable (GL_DITHER);
 	
 	setBackground ();
 	updateSelFlash ();
 	
-	for (LDObject* obj : g_ForgeWindow->sel)
+	for (LDObject* obj : g_win->sel ())
 		recompileObject (obj);
 	
 	if (removedObject != null)
@@ -956,29 +948,24 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 // ========================================================================= //
 void GLRenderer::recompileObject (LDObject* obj) {
 	// Replace the old list with the new one.
-	for (ulong i = 0; i < objLists.size(); ++i)
-		if (objLists[i] == obj->uGLList)
-			objLists.erase (objLists.begin() + i);
-	
 	GLuint uList = glGenLists (1);
 	glNewList (uList, GL_COMPILE);
 	
 	compileOneObject (obj);
 	
 	glEndList ();
-	objLists.push_back (uList);
 	obj->uGLList = uList;
 }
 
 // =============================================================================
 uchar* GLRenderer::screencap (ushort& w, ushort& h) {
-	w = width;
-	h = height;
+	w = m_width;
+	h = m_height;
 	uchar* cap = new uchar[4 * w * h];
 	
-	screencapping = true;
+	m_screencap = true;
 	update ();
-	screencapping = false;
+	m_screencap = false;
 	
 	// Capture the pixels
 	glReadPixels (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, cap);
@@ -993,7 +980,7 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 void GLRenderer::slot_timerUpdate () {
 	++g_pulseTick %= g_numPulseTicks;
 	
-	for (LDObject* obj : g_ForgeWindow->sel)
+	for (LDObject* obj : g_win->sel ())
 		recompileObject (obj);
 	
 	update ();
@@ -1005,9 +992,9 @@ void GLRenderer::slot_toolTipTimer () {
 	// a second. Check if we're holding it over a camera icon - if so, draw
 	// a tooltip.
 	for (CameraIcon& icon : g_CameraIcons) {
-		if (icon.destRect.contains (QPoint (mouseX, mouseY))) {
-			toolTipCamera = icon.cam;
-			drawToolTip = true;
+		if (icon.destRect.contains (m_pos)) {
+			m_toolTipCamera = icon.cam;
+			m_drawToolTip = true;
 			update ();
 			break;
 		}
