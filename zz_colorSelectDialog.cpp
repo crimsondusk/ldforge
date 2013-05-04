@@ -87,7 +87,7 @@ ColorSelectDialog::ColorSelectDialog (short int defval, QWidget* parent) : QDial
 	setLayout (qLayout);
 	
 	setWindowIcon (getIcon ("palette"));
-	setWindowTitle (APPNAME_DISPLAY);
+	setWindowTitle (APPNAME);
 }
 
 // =============================================================================
@@ -119,7 +119,7 @@ void ColorSelectDialog::drawScene () {
 		bool dark = (luma (col) < 80);
 		
 		gs_scene->addRect (x, y, w, w, qPen, col);
-		QGraphicsTextItem* qText = gs_scene->addText (format ("%lu", i).chars());
+		QGraphicsTextItem* qText = gs_scene->addText (fmt ("%lu", i).chars());
 		qText->setDefaultTextColor ((dark) ? Qt::white : Qt::black);
 		qText->setPos (x, y);
 		
@@ -141,7 +141,7 @@ void ColorSelectDialog::drawColorInfo () {
 		return;
 	}
 	
-	lb_colorInfo->setText (format ("%d - %s",
+	lb_colorInfo->setText (fmt ("%d - %s",
 		selColor, col->zName.chars()));
 }
 

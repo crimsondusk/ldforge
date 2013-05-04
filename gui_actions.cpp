@@ -73,7 +73,7 @@ void doSave (bool saveAs) {
 		
 		// Tell the user the save failed, and give the option for saving as with it.
 		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
-			format ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_curfile->lastError)),
+			fmt ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_curfile->lastError)),
 			QMessageBox::Close, g_win);
 		
 		QPushButton* saveAsBtn = new QPushButton ("Save As");
@@ -104,14 +104,14 @@ MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a speci
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME_DISPLAY ".", (0)) {
+MAKE_ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME ".", (0)) {
 	ConfigDialog::staticDialog ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME_DISPLAY ".", CTRL (Q)) {
+MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME ".", CTRL (Q)) {
 	exit (0);
 }
 
@@ -162,15 +162,15 @@ MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) 
 	AddObjectDialog::staticDialog (obj->getType (), obj);
 }
 
-MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME_DISPLAY " help manual.", KEY (F1)) {
+MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME " help manual.", KEY (F1)) {
 	
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (about, "About " APPNAME_DISPLAY, "ldforge",
-	"Shows information about " APPNAME_DISPLAY ".", CTRL (F1))
+MAKE_ACTION (about, "About " APPNAME, "ldforge",
+	"Shows information about " APPNAME ".", CTRL (F1))
 {
 	AboutDialog dlg;
 	dlg.exec ();
@@ -285,7 +285,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	
 	FILE* fp = fopen (fname, "r");
 	if (!fp) {
-		critical (format ("Couldn't open %s\n%s", fname.chars(), strerror (errno)));
+		critical (fmt ("Couldn't open %s\n%s", fname.chars(), strerror (errno)));
 		return;
 	}
 	
@@ -327,7 +327,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	layout->addWidget (te_edit);
 	layout->addWidget (bbx_buttons);
 	dlg->setLayout (layout);
-	dlg->setWindowTitle (APPNAME_DISPLAY ": Insert Raw");
+	dlg->setWindowTitle (APPNAME ": Insert Raw");
 	dlg->connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
 	dlg->connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
 	
@@ -369,12 +369,12 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	if (root.substr (~root - 4, -1) == ".dat")
 		root -= 4;
 	
-	str defaultname = (~root > 0) ? format ("%s.png", root.chars ()) : "";
+	str defaultname = (~root > 0) ? fmt ("%s.png", root.chars ()) : "";
 	str fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	
 	if (~fname > 0 && !img.save (fname))
-		critical (format ("Couldn't open %s for writing to save screencap: %s", fname.chars(), strerror (errno)));
+		critical (fmt ("Couldn't open %s for writing to save screencap: %s", fname.chars(), strerror (errno)));
 	
 	delete[] imagedata;
 }

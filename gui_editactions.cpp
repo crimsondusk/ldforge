@@ -653,7 +653,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	for (LDObject* obj : g_win->sel ())
 	for (short i = 0; i < obj->vertices (); ++i)
 	for (const Axis ax : g_Axes)
-		obj->vaCoords[i][ax] = atof (format ("%.3f", obj->vaCoords[i][ax]));
+		obj->vaCoords[i][ax] = atof (fmt ("%.3f", obj->vaCoords[i][ax]));
 	
 	g_win->refresh ();
 }

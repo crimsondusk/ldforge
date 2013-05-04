@@ -66,7 +66,6 @@ int main (int dArgc, char* saArgv[]) {
 // =============================================================================
 void logf (const char* fmtstr, ...) {
 	va_list va;
-	
 	va_start (va, fmtstr);
 	g_win->logVA (LOG_Normal, fmtstr, va);
 	va_end (va);
@@ -74,8 +73,44 @@ void logf (const char* fmtstr, ...) {
 
 void logf (LogType type, const char* fmtstr, ...) {
 	va_list va;
-	
 	va_start (va, fmtstr);
 	g_win->logVA (type, fmtstr, va);
 	va_end (va);
 }
+
+void warnf (const char* fmtstr, ...) {
+	va_list va;
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Warning, fmtstr, va);
+	va_end (va);
+}
+
+void succf (const char* fmtstr, ...) {
+	va_list va;
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Success, fmtstr, va);
+	va_end (va);
+}
+
+void errf (const char* fmtstr, ...) {
+	va_list va;
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Error, fmtstr, va);
+	va_end (va);
+}
+
+void infof (const char* fmtstr, ...) {
+	va_list va;
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Info, fmtstr, va);
+	va_end (va);
+}
+
+#ifndef RELEASE
+void devf (const char* fmtstr, ...) {
+	va_list va;
+	va_start (va, fmtstr);
+	g_win->logVA (LOG_Dev, fmtstr, va);
+	va_end (va);
+}
+#endif // RELEASE

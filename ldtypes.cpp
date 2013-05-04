@@ -110,11 +110,11 @@ LDBFC::LDBFC () {
 
 // =============================================================================
 str LDComment::getContents () {
-	return format ("0 %s", zText.chars ());
+	return fmt ("0 %s", zText.chars ());
 }
 
 str LDSubfile::getContents () {
-	str val = format ("1 %d %s ", dColor, vPosition.stringRep (false).chars ());
+	str val = fmt ("1 %d %s ", dColor, vPosition.stringRep (false).chars ());
 	val += mMatrix.stringRep ();
 	val += ' ';
 	val += zFileName;
@@ -122,7 +122,7 @@ str LDSubfile::getContents () {
 }
 
 str LDLine::getContents () {
-	str val = format ("2 %d", dColor);
+	str val = fmt ("2 %d", dColor);
 	
 	for (ushort i = 0; i < 2; ++i)
 		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
@@ -131,7 +131,7 @@ str LDLine::getContents () {
 }
 
 str LDTriangle::getContents () {
-	str val = format ("3 %d", dColor);
+	str val = fmt ("3 %d", dColor);
 	
 	for (ushort i = 0; i < 3; ++i)
 		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
@@ -140,7 +140,7 @@ str LDTriangle::getContents () {
 }
 
 str LDQuad::getContents () {
-	str val = format ("4 %d", dColor);
+	str val = fmt ("4 %d", dColor);
 	
 	for (ushort i = 0; i < 4; ++i)
 		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
@@ -149,7 +149,7 @@ str LDQuad::getContents () {
 }
 
 str LDCondLine::getContents () {
-	str val = format ("5 %d", dColor);
+	str val = fmt ("5 %d", dColor);
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
@@ -163,7 +163,7 @@ str LDGibberish::getContents () {
 }
 
 str LDVertex::getContents () {
-	return format ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.stringRep (false).chars());
+	return fmt ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.stringRep (false).chars());
 }
 
 str LDEmpty::getContents () {
@@ -183,7 +183,7 @@ const char* LDBFC::saStatements[] = {
 };
 
 str LDBFC::getContents () {
-	return format ("0 BFC %s", LDBFC::saStatements[eStatement]);
+	return fmt ("0 BFC %s", LDBFC::saStatements[eStatement]);
 }
 
 // =============================================================================
@@ -431,7 +431,7 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 		if (!firstDetails)
 			text += ", ";
 		
-		str noun = format ("%s%s", g_saObjTypeNames[objType], PLURAL (objCount));
+		str noun = fmt ("%s%s", g_saObjTypeNames[objType], PLURAL (objCount));
 		
 		// Plural of "vertex" is "vertices". Stupid English.
 		if (objType == OBJ_Vertex && objCount != 1)
@@ -660,7 +660,7 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::getContents () {
-	return format ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
+	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName()).toupper ().strip (' ').chars (),
 		dColor, dSegments, dDivisions, dRingNum,
 		vPosition.stringRep (false).chars(), mMatrix.stringRep().chars());
@@ -694,10 +694,10 @@ str LDRadial::makeFileName () {
 	}
 	
 	// Compose some general information: prefix, fraction, root, ring number
-	str zPrefix = (dDivisions == 16) ? "" : format ("%d/", dDivisions);
-	str zFrac = format ("%d-%d", dNumerator, dDenominator);
+	str zPrefix = (dDivisions == 16) ? "" : fmt ("%d/", dDivisions);
+	str zFrac = fmt ("%d-%d", dNumerator, dDenominator);
 	str zRoot = g_saRadialNameRoots[eRadialType];
-	str zRingNum = (eRadialType == Ring || eRadialType == Cone) ? format ("%d", dRingNum) : "";
+	str zRingNum = (eRadialType == Ring || eRadialType == Cone) ? fmt ("%d", dRingNum) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
@@ -705,7 +705,7 @@ str LDRadial::makeFileName () {
 	zRoot -= min<short> (max<short> (dExtra, 0), 2);
 	
 	// Stick them all together and return the result.
-	return format ("%s%s%s%s", zPrefix.chars(), zFrac.chars (), zRoot.chars (), zRingNum.chars ());
+	return fmt ("%s%s%s%s", zPrefix.chars(), zFrac.chars (), zRoot.chars (), zRingNum.chars ());
 }
 
 // =============================================================================

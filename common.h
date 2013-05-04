@@ -33,9 +33,7 @@
 #include "config.h"
 #include "types.h"
 
-#define APPNAME "ldforge"
-#define APPNAME_DISPLAY "LDForge"
-#define APPNAME_CAPS "LDFORGE"
+#define APPNAME "LDForge"
 
 #define VERSION_MAJOR 0
 #define VERSION_MAJOR_STR "0"
@@ -46,7 +44,7 @@
 // #define RELEASE
 
 // Version string identifier
-static const str versionString = format ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
+static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 #ifdef __GNUC__
 # define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
@@ -76,6 +74,9 @@ static const std::nullptr_t null = nullptr;
 // Main and edge color identifiers
 static const short maincolor = 16;
 static const short edgecolor = 24;
+
+static const bool yup = true;
+static const bool nope = false;
 
 class ForgeWindow;
 class LDObject;
@@ -143,6 +144,16 @@ enum LogType {
 // logf is defined in main.cpp
 void logf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
 void logf (LogType type, const char* fmtstr, ...) FORMAT_PRINTF (2, 3);
+void warnf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
+void infof (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
+void succf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
+void errf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
+
+#ifndef RELEASE
+void devf (const char* fmtstr, ...);
+#else
+# define devf(...)
+#endif // RELEASE
 
 // -----------------------------------------------------------------------------
 // Vertex at (0, 0, 0)

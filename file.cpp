@@ -76,7 +76,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 	
 	if (~io_ldpath.value) {
 		// Try with just the LDraw path first
-		zFilePath = format ("%s" DIRSLASH "%s",
+		zFilePath = fmt ("%s" DIRSLASH "%s",
 			io_ldpath.value.chars(), zTruePath.chars());
 		logf ("Trying %s\n", zFilePath.chars());
 		
@@ -91,7 +91,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories) {
 			};
 			
 			for (char const* sSubdir : saSubdirectories) {
-				zFilePath = format ("%s" DIRSLASH "%s" DIRSLASH "%s",
+				zFilePath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
 					io_ldpath.value.chars(), sSubdir, zTruePath.chars());
 				printf ("try %s\n", zFilePath.chars());
 				
@@ -191,12 +191,12 @@ bool OpenFile::safeToClose () {
 	// If we have unsaved changes, warn and give the option of saving.
 	if (!m_implicit && History::pos () != savePos) {
 		switch (QMessageBox::question (g_win, "Unsaved Changes",
-			format ("There are unsaved changes to %s. Should it be saved?", m_filename.chars ()),
+			fmt ("There are unsaved changes to %s. Should it be saved?", m_filename.chars ()),
 			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
 		{
 		case QMessageBox::Yes:
 			if (!save ()) {
-				str errormsg = format ("Failed to save %s: %s\nDo you still want to close?",
+				str errormsg = fmt ("Failed to save %s: %s\nDo you still want to close?",
 					m_filename.chars (), strerror (lastError));
 				
 				if (QMessageBox::critical (g_win, "Save Failure", errormsg,
@@ -296,7 +296,7 @@ void openMainFile (str zPath) {
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
 		QMessageBox::critical (g_win, "Load Failure",
-			format ("Failed to open %s\nReason: %s", zPath.chars(), strerror (errno)),
+			fmt ("Failed to open %s\nReason: %s", zPath.chars(), strerror (errno)),
 			(QMessageBox::Close), QMessageBox::Close);
 		
 		return;
@@ -333,7 +333,7 @@ bool OpenFile::save (str path) {
 	// Write all entries now
 	for (LDObject* obj : m_objs) {
 		// LDraw requires lines to have DOS line endings
-		str zLine = format ("%s\r\n", obj->getContents ().chars ());
+		str zLine = fmt ("%s\r\n", obj->getContents ().chars ());
 		
 		fwrite (zLine.chars(), 1, ~zLine, fp);
 	}
@@ -355,7 +355,7 @@ bool OpenFile::save (str path) {
 #define CHECK_TOKEN_NUMBERS(MIN,MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDGibberish (zLine, format ("Token #%u was `%s`, expected a number", \
+			return new LDGibberish (zLine, fmt ("Token #%u was `%s`, expected a number", \
 				(i + 1), tokens[i].chars()));
 
 // =============================================================================
@@ -393,24 +393,24 @@ LDObject* parseLine (str zLine) {
 	case 0:
 		{
 			// Comment
-			str zComment;
+			str comm;
 			for (uint i = 1; i < tokens.size(); ++i) {
-				zComment += tokens[i];
+				comm += tokens[i];
 				
 				if (i != tokens.size() - 1)
-					zComment += ' ';
+					comm += ' ';
 			}
 			
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
 				for (short i = 0; i < LDBFC::NumStatements; ++i)
-					if (zComment == format ("BFC %s", LDBFC::saStatements [i]))
+					if (comm == fmt ("BFC %s", LDBFC::saStatements [i]))
 						return new LDBFC ((LDBFC::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
 				// creates. The above block only handles valid statements, so we
 				// need to handle MLCAD-style invertnext separately.
-				if (zComment == "BFC CERTIFY INVERTNEXT")
+				if (comm == "BFC CERTIFY INVERTNEXT")
 					return new LDBFC (LDBFC::InvertNext);
 			}
 			
@@ -445,7 +445,7 @@ LDObject* parseLine (str zLine) {
 					}
 					
 					if (eType == LDRadial::NumTypes)
-						return new LDGibberish (zLine, format ("Unknown radial type %s", tokens[3].chars ()));
+						return new LDGibberish (zLine, fmt ("Unknown radial type %s", tokens[3].chars ()));
 					
 					LDRadial* obj = new LDRadial;
 					
@@ -465,7 +465,7 @@ LDObject* parseLine (str zLine) {
 			}
 			
 			LDComment* obj = new LDComment;
-			obj->zText = zComment;
+			obj->zText = comm;
 			return obj;
 		}
 	

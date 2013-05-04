@@ -69,7 +69,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (bbx_buttons);
 	setLayout (layout);
 	
-	setWindowTitle (APPNAME_DISPLAY " - Settings");
+	setWindowTitle (APPNAME " - Settings");
 	setWindowIcon (getIcon ("settings"));
 }
 
@@ -286,10 +286,10 @@ void ConfigDialog::initGridTab () {
 	for (int i = 0; i < g_NumGrids; ++i) {
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
+		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
 		
 		// Text label
-		lb_gridLabels[i] = new QLabel (format ("%s:", g_GridInfo[i].name));
+		lb_gridLabels[i] = new QLabel (fmt ("%s:", g_GridInfo[i].name));
 		
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
@@ -504,7 +504,7 @@ void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 	qButton->setIcon (getIcon ("colorselect"));
 	qButton->setAutoFillBackground (true);
 	qButton->setStyleSheet (
-		format ("background-color: %s", zValue.chars()).chars()
+		fmt ("background-color: %s", zValue.chars()).chars()
 	);
 }
 
@@ -587,7 +587,7 @@ void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
 	str zLabel = qAct->iconText ();
 	str zKeybind = qAct->shortcut ().toString ();
 	
-	qItem->setText (format ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
+	qItem->setText (fmt ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
 }
 
 // =============================================================================
@@ -694,7 +694,7 @@ bool KeySequenceDialog::staticDialog (actionmeta& meta, QWidget* parent) {
 void KeySequenceDialog::updateOutput () {
 	str zShortcut = seq.toString ();
 	
-	str zText = format ("<center><b>%s</b></center>", zShortcut.chars ());
+	str zText = fmt ("<center><b>%s</b></center>", zShortcut.chars ());
 	
 	lb_output->setText (zText);
 }

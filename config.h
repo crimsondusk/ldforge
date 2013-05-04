@@ -23,7 +23,6 @@
 #include "str.h"
 
 // =============================================================================
-#define CONFIGFILE APPNAME ".cfg"
 #include <QString>
 #include <qkeysequence.h>
 

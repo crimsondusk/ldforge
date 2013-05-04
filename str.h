@@ -78,7 +78,6 @@ public:
 	
 	// Formats text to the string.
 	void format (const char* fmt, ...);
-	str format (...);
 	
 	// Appends formatted text to the string.
 	void appendformat (const char* c, ...);
@@ -267,6 +266,6 @@ public:
 	}
 };
 
-str format (const char* fmt, ...);
+str fmt (const char* fmt, ...);
 
 #endif // STR_H

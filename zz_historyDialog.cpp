@@ -61,7 +61,7 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	
 	setLayout (qLayout);
 	setWindowIcon (getIcon ("history"));
-	setWindowTitle (APPNAME_DISPLAY " - Edit history");
+	setWindowTitle (APPNAME " - Edit history");
 	
 	populateList ();
 	updateButtons ();
@@ -80,20 +80,20 @@ void HistoryDialog::populateList () {
 	historyList->addItem (qItem);
 	
 	for (HistoryEntry* entry : History::entries ()) {
-		str zText;
-		QIcon qEntryIcon;
+		str text;
+		QIcon entryIcon;
 		
 		switch (entry->type ()) {
 		case HISTORY_Add:
 			{
-				AddHistory* addentry = static_cast<AddHistory*> (entry);
-				ulong ulCount = addentry->paObjs.size ();
-				str zVerb = "Added";
+				AddHistory* subentry = static_cast<AddHistory*> (entry);
+				ulong count = subentry->paObjs.size ();
+				str verb = "Added";
 				
-				switch (addentry->eType) {
+				switch (subentry->eType) {
 				case AddHistory::Paste:
-					zVerb = "Pasted";
-					qEntryIcon = getIcon ("paste");
+					verb = "Pasted";
+					entryIcon = getIcon ("paste");
 					break;
 				
 				default:
@@ -102,7 +102,7 @@ void HistoryDialog::populateList () {
 						// type, we display its addition icon. Otherwise, we draw a subfile addition
 						// one as a default.
 						LDObjectType_e eCommonType = OBJ_Unidentified;
-						for (LDObject* obj : addentry->paObjs) {
+						for (LDObject* obj : subentry->paObjs) {
 							if (eCommonType == OBJ_Unidentified or obj->getType() == eCommonType)
 								eCommonType = obj->getType ();
 							else {
@@ -113,80 +113,80 @@ void HistoryDialog::populateList () {
 						
 						// Set the icon based on the common type decided above.
 						if (eCommonType == OBJ_Unidentified)
-							qEntryIcon = getIcon ("add-subfile");
+							entryIcon = getIcon ("add-subfile");
 						else
-							qEntryIcon = getIcon (format ("add-%s", g_saObjTypeIcons[eCommonType]));
+							entryIcon = getIcon (fmt ("add-%s", g_saObjTypeIcons[eCommonType]));
 					}
 					break;
 				}
 				
-				zText.format ("%s %lu objects\n%s", zVerb.chars(), ulCount,
-					LDObject::objectListContents (addentry->paObjs).chars());
+				text.format ("%s %lu objects\n%s", verb.chars(), count,
+					LDObject::objectListContents (subentry->paObjs).chars());
 			}
 			break;
 		
 		case HISTORY_QuadSplit:
 			{
-				QuadSplitHistory* splitentry = static_cast<QuadSplitHistory*> (entry);
-				ulong ulCount = splitentry->paQuads.size ();
-				zText.format ("Split %lu quad%s to triangles", ulCount, PLURAL (ulCount));
+				QuadSplitHistory* subentry = static_cast<QuadSplitHistory*> (entry);
+				ulong ulCount = subentry->paQuads.size ();
+				text.format ("Split %lu quad%s to triangles", ulCount, PLURAL (ulCount));
 				
-				qEntryIcon = getIcon ("quad-split");
+				entryIcon = getIcon ("quad-split");
 			}
 			break;
 		
 		case HISTORY_Del:
 			{
-				DelHistory* delentry = static_cast<DelHistory*> (entry);
-				ulong ulCount = delentry->cache.size ();
-				str zVerb = "Deleted";
-				qEntryIcon = getIcon ("delete");
+				DelHistory* subentry = static_cast<DelHistory*> (entry);
+				ulong count = subentry->cache.size ();
+				str verb = "Deleted";
+				entryIcon = getIcon ("delete");
 				
-				switch (delentry->eType) {
+				switch (subentry->eType) {
 				case DelHistory::Cut:
-					qEntryIcon = getIcon ("cut");
-					zVerb = "Cut";
+					entryIcon = getIcon ("cut");
+					verb = "Cut";
 					break;
 				
 				default:
 					break;
 				}
 				
-				zText.format ("%s %lu objects:\n%s", zVerb.chars(), ulCount,
-					LDObject::objectListContents (delentry->cache).chars ());
+				text.format ("%s %lu objects:\n%s", verb.chars(), count,
+					LDObject::objectListContents (subentry->cache).chars ());
 			}
 			break;
 		
 		case HISTORY_SetColor:
 			{
-				SetColorHistory* colentry = static_cast<SetColorHistory*> (entry);
-				ulong ulCount = colentry->ulaIndices.size ();
-				zText.format ("Set color of %lu objects to %d (%s)", ulCount,
-					colentry->dNewColor, getColor (colentry->dNewColor)->zName.chars());
+				SetColorHistory* subentry = static_cast<SetColorHistory*> (entry);
+				ulong count = subentry->ulaIndices.size ();
+				text.format ("Set color of %lu objects to %d (%s)", count,
+					subentry->dNewColor, getColor (subentry->dNewColor)->zName.chars());
 				
-				qEntryIcon = getIcon ("palette");
+				entryIcon = getIcon ("palette");
 			}
 			break;
 		
 		case HISTORY_ListMove:
 			{
-				ListMoveHistory* moveentry = static_cast<ListMoveHistory*> (entry);
-				ulong ulCount = moveentry->ulaIndices.size ();
+				ListMoveHistory* subentry = static_cast<ListMoveHistory*> (entry);
+				ulong ulCount = subentry->ulaIndices.size ();
 				
-				zText.format ("Moved %lu objects %s", ulCount,
-					moveentry->bUp ? "up" : "down");
-				qEntryIcon = getIcon (moveentry->bUp ? "arrow-up" : "arrow-down");
+				text.format ("Moved %lu objects %s", ulCount,
+					subentry->bUp ? "up" : "down");
+				entryIcon = getIcon (subentry->bUp ? "arrow-up" : "arrow-down");
 			}
 			break;
 		
 		case HISTORY_Edit:
 			{
-				EditHistory* pEntry = static_cast<EditHistory*> (entry);
+				EditHistory* subentry = static_cast<EditHistory*> (entry);
 				
-				zText.format ("Edited %u objects\n%s",
-					pEntry->paNewObjs.size(),
-					LDObject::objectListContents (pEntry->paOldObjs).chars ());
-				qEntryIcon = getIcon ("set-contents");
+				text.format ("Edited %u objects\n%s",
+					subentry->paNewObjs.size(),
+					LDObject::objectListContents (subentry->paOldObjs).chars ());
+				entryIcon = getIcon ("set-contents");
 			}
 			break;
 		
@@ -194,24 +194,24 @@ void HistoryDialog::populateList () {
 			{
 				InlineHistory* subentry = static_cast<InlineHistory*> (entry);
 				
-				zText.format ("%s %lu subfiles:\n%lu resultants",
+				text.format ("%s %lu subfiles:\n%lu resultants",
 					(subentry->bDeep) ? "Deep-inlined" : "Inlined",
 					(ulong) subentry->paRefs.size(),
 					(ulong) subentry->ulaBitIndices.size());
 				
-				qEntryIcon = getIcon (subentry->bDeep ? "inline-deep" : "inline");
+				entryIcon = getIcon (subentry->bDeep ? "inline-deep" : "inline");
 			}
 			break;
 		
 		default:
-			zText = "???";
+			text = "???";
 			break;
 		}
 		
-		QListWidgetItem* qItem = new QListWidgetItem;
-		qItem->setText (zText);
-		qItem->setIcon (qEntryIcon);
-		historyList->addItem (qItem);
+		QListWidgetItem* item = new QListWidgetItem;
+		item->setText (text);
+		item->setIcon (entryIcon);
+		historyList->addItem (item);
 	}
 }
 

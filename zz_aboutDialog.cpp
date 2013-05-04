@@ -37,7 +37,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		icon->setPixmap (getIcon ("ldforge"));
 		
 		// Heading - application label and copyright information
-		QLabel* title = new QLabel (format ("<b>" APPNAME_DISPLAY " v%d.%d</b><br />"
+		QLabel* title = new QLabel (fmt ("<b>" APPNAME " v%d.%d</b><br />"
 			"Copyright (C) 2013 Santeri Piippo",
 			VERSION_MAJOR, VERSION_MINOR));
 		
@@ -46,7 +46,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 			"<p>This software is intended for usage as a parts<br />"
 			"authoring tool for the <a href=\"http://ldraw.org/\">LDraw</a> parts library.</p>"
 			
-			"<p>" APPNAME_DISPLAY " is free software, and you are welcome<br />"
+			"<p>" APPNAME " is free software, and you are welcome<br />"
 			"to redistribute it under the terms of GPL v3. See the LICENSE<br />"
 			"text file or the license tab in this dialog for details. If the<br />"
 			"license text is not available for some reason, see<br />"
@@ -71,7 +71,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 			label->setAlignment (Qt::AlignCenter);
 		
 		mainTab->setLayout (layout);
-		tabs->addTab (mainTab, "About " APPNAME_DISPLAY);
+		tabs->addTab (mainTab, "About " APPNAME);
 	}
 	
 	{
@@ -96,10 +96,10 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		if (fp == null) {
 			// Failed; tell the user how to get the license text instead.
 			setlocale (LC_ALL, "C");
-			char const* fmt = "Couldn't open LICENSE: %s.<br />"
+			char const* text = "Couldn't open LICENSE: %s.<br />"
 				"See <a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a> for the GPLv3 text.";
 			
-			license->setHtml (format (fmt, strerror (errno)));
+			license->setHtml (fmt (text, strerror (errno)));
 		} else {
 			// Figure out file size
 			fseek (fp, 0, SEEK_END);
@@ -148,7 +148,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	layout->addWidget (tabs);
 	layout->addWidget (buttons);
 	setLayout (layout);
-	setWindowTitle ("About " APPNAME_DISPLAY);
+	setWindowTitle ("About " APPNAME);
 }
 
 void AboutDialog::slot_mail () {

@@ -157,19 +157,6 @@ void str::format (const char* fmt, ...) {
 	delete[] buf;
 }
 
-str str::format (...) {
-	va_list va;
-	char* buf;
-	
-	va_start (va, this);
-	buf = vdynformat (text, va, 256);
-	va_end (va);
-	
-	str val = buf;
-	delete[] buf;
-	return val;
-}
-
 // ============================================================================
 char* str::chars () {
 	return text;
@@ -502,7 +489,7 @@ str& str::operator+= (vertex vrt) {
 	return *this;
 }
 
-str format (const char* fmt, ...) {
+str fmt (const char* fmt, ...) {
 	va_list va;
 	char* buf;
 	

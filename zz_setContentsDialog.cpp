@@ -27,7 +27,7 @@
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(parent) {
-	setWindowTitle (APPNAME_DISPLAY ": Set Contents");
+	setWindowTitle (APPNAME ": Set Contents");
 	
 	lb_contents = new QLabel ("Set contents:", parent);
 	
@@ -42,7 +42,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	
 	if (obj->getType() == OBJ_Gibberish) {
 		lb_error = new QLabel;
-		lb_error->setText (format ("<span style=\"color: #900\">%s</span>",
+		lb_error->setText (fmt ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
 		
 		QPixmap qErrorPixmap = getIcon ("error").scaledToHeight (16);
@@ -68,7 +68,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	layout->addLayout (layout2);
 	setLayout (layout);
 	
-	setWindowTitle (APPNAME_DISPLAY ": Set Contents");
+	setWindowTitle (APPNAME ": Set Contents");
 	setWindowIcon (getIcon ("set-contents"));
 }
 

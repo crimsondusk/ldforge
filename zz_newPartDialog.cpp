@@ -77,7 +77,7 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	
 	setLayout (layout);
 	setWindowIcon (getIcon ("brick"));
-	setWindowTitle (APPNAME_DISPLAY ": New Part");
+	setWindowTitle (APPNAME ": New Part");
 }
 
 // =============================================================================
@@ -106,11 +106,11 @@ void NewPartDialog::StaticDialog () {
 		
 		objs.push_back (new LDComment (dlg.le_name->text ()));
 		objs.push_back (new LDComment ("Name: <untitled>.dat"));
-		objs.push_back (new LDComment (format ("Author: %s", zAuthor.chars())));
-		objs.push_back (new LDComment (format ("!LDRAW_ORG Unofficial_Part")));
+		objs.push_back (new LDComment (fmt ("Author: %s", zAuthor.chars())));
+		objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
 		
 		if (sLicense != null)
-			objs.push_back (new LDComment (format ("!LICENSE %s", sLicense)));
+			objs.push_back (new LDComment (fmt ("!LICENSE %s", sLicense)));
 		
 		objs.push_back (new LDEmpty);
 		objs.push_back (new LDBFC (eBFCType));

@@ -181,10 +181,10 @@ bool config::save () {
 	setlocale (LC_NUMERIC, "C");
 	
 	// If the directory doesn't exist, create it now.
-	if (!QDir (dirpath().chars()).exists ()) {
+	if (QDir (dirpath ()).exists () == nope) {
 		fprintf (stderr, "Creating config path %s...\n", dirpath().chars());
 		if (!QDir ().mkpath (dirpath().chars())) {
-			fprintf (stderr, "Failed to create the directory. Configuration cannot be saved!\n");
+			logf (LOG_Warning, "Failed to create the directory. Configuration cannot be saved!\n");
 			return false; // Couldn't create directory
 		}
 	}
@@ -264,14 +264,13 @@ void config::reset () {
 // =============================================================================
 str config::filepath () {
 	str path;
-	path.format ("%s" CONFIGFILE, dirpath().chars());
+	path.format ("%s%s.cfg", dirpath ().chars (),
+		str (APPNAME).tolower ().chars ());
 	return path;
 }
 
 // =============================================================================
 str config::dirpath () {
-	str path = (QDir::homePath ().toStdString().c_str());
-	path += "/." APPNAME "/";
-	
-	return path;
+	return fmt ("%s/.%s/", qchars (QDir::homePath ()),
+		str (APPNAME).tolower ().chars ());
 }

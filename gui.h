@@ -145,6 +145,11 @@ protected:
 	
 	friend void logf (const char* fmt, ...);
 	friend void logf (LogType eType, const char* fmt, ...);
+	friend void warnf (const char* fmt, ...);
+	friend void infof (const char* fmt, ...);
+	friend void succf (const char* fmt, ...);
+	friend void errf (const char* fmt, ...);
+	friend void devf (const char* fmt, ...);
 	
 private:
 	GLRenderer* m_renderer;

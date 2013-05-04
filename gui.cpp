@@ -469,7 +469,7 @@ void ForgeWindow::updateToolBars () {
 		else {
 			QPushButton* qColorButton = new QPushButton;
 			qColorButton->setAutoFillBackground (true);
-			qColorButton->setStyleSheet (format ("background-color: %s", entry.col->zColorString.chars()));
+			qColorButton->setStyleSheet (fmt ("background-color: %s", entry.col->zColorString.chars()));
 			qColorButton->setToolTip (entry.col->zName);
 			
 			connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
@@ -497,19 +497,19 @@ void ForgeWindow::updateGridToolBar () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::setTitle () {
-	str title = APPNAME_DISPLAY " v";
+	str title = APPNAME " v";
 	title += versionString;
 	
 	// Append our current file if we have one
 	if (g_curfile) {
-		title += format (": %s", basename (g_curfile->m_filename.chars()));
+		title += fmt (": %s", basename (g_curfile->m_filename.chars()));
 		
 		if (g_curfile->m_objs.size() > 0 &&
 			g_curfile->m_objs[0]->getType() == OBJ_Comment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_curfile->m_objs[0]);
-			title += format (": %s", comm->zText.chars());
+			title += fmt (": %s", comm->zText.chars());
 		}
 		
 		if (History::pos () != g_curfile->savePos)
@@ -948,7 +948,7 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 QPixmap getIcon (const char* sIconName) {
-	return (QPixmap (format (":/icons/%s.png", sIconName)));
+	return (QPixmap (fmt (":/icons/%s.png", sIconName)));
 }
 
 // =============================================================================
@@ -963,7 +963,7 @@ bool confirm (str title, str msg) {
 
 // =============================================================================
 void critical (str msg) {
-	QMessageBox::critical (g_win, APPNAME_DISPLAY ": Critical Error", msg,
+	QMessageBox::critical (g_win, APPNAME ": Critical Error", msg,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 

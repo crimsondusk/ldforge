@@ -19,7 +19,7 @@ vertex vertex::midpoint (vertex& other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str vertex::stringRep (const bool mangled) {
-	return format (mangled ? "(%s, %s, %s)" : "%s %s %s",
+	return fmt (mangled ? "(%s, %s, %s)" : "%s %s %s",
 		ftoa (coord (X)).chars(),
 		ftoa (coord (Y)).chars(),
 		ftoa (coord (Z)).chars());

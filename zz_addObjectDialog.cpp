@@ -49,7 +49,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	QDialog (parent)
 {
 	short coordCount = 0;
-	QPixmap icon = getIcon (format ("add-%s", g_saObjTypeIcons[type]));
+	QPixmap icon = getIcon (fmt ("add-%s", g_saObjTypeIcons[type]));
 	LDObject* defaults = LDObject::getDefault (type);
 	
 	lb_typeIcon = new QLabel;
@@ -126,7 +126,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 					(i == Parts && !isSubpart && !isPrimitive && !isHiRes))
 				{
 					SubfileListItem* item = new SubfileListItem (parentItem, j);
-					item->setText (0, format ("%s - %s", part.sName, part.sTitle));
+					item->setText (0, fmt ("%s - %s", part.sName, part.sTitle));
 					subfileItems.append (item);
 				}
 				
@@ -271,7 +271,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	
 	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
 	setLayout (layout);
-	setWindowTitle (format (APPNAME_DISPLAY ": New %s",
+	setWindowTitle (fmt (APPNAME ": New %s",
 		g_saObjTypeNames[type]).chars());
 	
 	setWindowIcon (icon);
@@ -285,7 +285,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
 	button->setStyleSheet (
-		format ("background-color: %s", getColor (color)->zColorString.chars()).chars()
+		fmt ("background-color: %s", getColor (color)->zColorString.chars()).chars()
 	);
 }
 
