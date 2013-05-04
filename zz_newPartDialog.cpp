@@ -39,7 +39,7 @@ enum {
 // =============================================================================
 NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	lb_brickIcon = new QLabel;
-	lb_brickIcon->setPixmap (QPixmap ("icons/brick.png"));
+	lb_brickIcon->setPixmap (getIcon ("brick"));
 	
 	lb_name = new QLabel ("Name:");
 	le_name = new QLineEdit;
@@ -76,8 +76,8 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	layout->addWidget (bbx_buttons, 3, 2);
 	
 	setLayout (layout);
-	setWindowIcon (QIcon ("icons/brick.png"));
-	setWindowTitle (APPNAME_DISPLAY " - new part");
+	setWindowIcon (getIcon ("brick"));
+	setWindowTitle (APPNAME_DISPLAY ": New Part");
 }
 
 // =============================================================================

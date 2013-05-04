@@ -53,7 +53,7 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	selColor = dDefault;
 	
 	// not really an icon but eh
-	gs_scene->setBackgroundBrush (QPixmap ("icons/checkerboard.png"));
+	gs_scene->setBackgroundBrush (getIcon ("checkerboard"));
 	
 	gs_scene->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
 	gv_view->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
@@ -86,8 +86,8 @@ ColorSelectDialog::ColorSelectDialog (short dDefault, QWidget* parent) : QDialog
 	qLayout->addWidget (bbx_buttons);
 	setLayout (qLayout);
 	
-	setWindowIcon (QIcon ("icons/palette.png"));
-	setWindowTitle (APPNAME_DISPLAY " - choose a color");
+	setWindowIcon (getIcon ("palette"));
+	setWindowTitle (APPNAME_DISPLAY);
 }
 
 // =============================================================================
@@ -125,7 +125,7 @@ void ColorSelectDialog::drawScene () {
 		
 		if (i == selColor) {
 			QGraphicsPixmapItem* qCursorPic;
-			qCursorPic = gs_scene->addPixmap (QPixmap ("icons/colorcursor.png"));
+			qCursorPic = gs_scene->addPixmap (getIcon ("colorcursor"));
 			qCursorPic->setPos (x, y);
 		}
 	}

@@ -146,7 +146,7 @@ ForgeWindow::ForgeWindow () {
 	slot_selectionChanged ();
 	
 	setStatusBar (new QStatusBar);
-	setWindowIcon (QIcon ("icons/ldforge.png"));
+	setWindowIcon (getIcon ("ldforge"));
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
@@ -955,8 +955,8 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-QIcon getIcon (const char* sIconName) {
-	return (QIcon (format ("./icons/%s.png", sIconName)));
+QPixmap getIcon (const char* sIconName) {
+	return (QPixmap (format (":/icons/%s.png", sIconName)));
 }
 
 // =============================================================================

@@ -70,7 +70,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	setLayout (layout);
 	
 	setWindowTitle (APPNAME_DISPLAY " - Settings");
-	setWindowIcon (QIcon ("icons/settings.png"));
+	setWindowIcon (getIcon ("settings"));
 }
 
 // =============================================================================
@@ -87,7 +87,7 @@ void ConfigDialog::initMainTab () {
 	le_LDrawPath->setText (io_ldpath.value.chars());
 	
 	pb_findLDrawPath = new QPushButton;
-	pb_findLDrawPath->setIcon (QIcon ("icons/folder.png"));
+	pb_findLDrawPath->setIcon (getIcon ("folder"));
 	connect (pb_findLDrawPath, SIGNAL (clicked ()),
 		this, SLOT (slot_findLDrawPath ()));
 	
@@ -286,7 +286,7 @@ void ConfigDialog::initGridTab () {
 	for (int i = 0; i < g_NumGrids; ++i) {
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (QPixmap (format ("icons/grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
+		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
 		
 		// Text label
 		lb_gridLabels[i] = new QLabel (format ("%s:", g_GridInfo[i].name));
@@ -478,7 +478,7 @@ void ConfigDialog::slot_findLDrawPath () {
 // =============================================================================
 void ConfigDialog::pickColor (strconfig& cfg, QPushButton* qButton) {
 	QColorDialog dlg (QColor (cfg.value.chars()));
-	dlg.setWindowIcon (QIcon ("icons/colorselect.png"));
+	dlg.setWindowIcon (getIcon ("colorselect"));
 	
 	if (dlg.exec ()) {
 		uchar r = dlg.currentColor ().red (),
@@ -501,7 +501,7 @@ void ConfigDialog::slot_setGLForeground () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
-	qButton->setIcon (QIcon ("icons/colorselect.png"));
+	qButton->setIcon (getIcon ("colorselect"));
 	qButton->setAutoFillBackground (true);
 	qButton->setStyleSheet (
 		format ("background-color: %s", zValue.chars()).chars()

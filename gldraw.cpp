@@ -101,11 +101,11 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	
 	// Init camera icons
 	for (const GLRenderer::Camera cam : g_Cameras) {
-		str path;
-		path.format ("./icons/camera-%s.png", str (g_CameraNames[cam]).tolower ().chars ());
+		str iconname;
+		iconname.format ("camera-%s", str (g_CameraNames[cam]).tolower ().chars ());
 		
 		CameraIcon* info = &g_CameraIcons[cam];
-		info->img = new QPixmap (path);
+		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
 	}
 	

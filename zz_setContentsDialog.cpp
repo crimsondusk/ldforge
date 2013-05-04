@@ -45,7 +45,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		lb_error->setText (format ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
 		
-		QPixmap qErrorPixmap = QPixmap ("icons/error.png").scaledToHeight (16);
+		QPixmap qErrorPixmap = getIcon ("error").scaledToHeight (16);
 		
 		lb_errorIcon = new QLabel;
 		lb_errorIcon->setPixmap (qErrorPixmap);
@@ -68,8 +68,8 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	layout->addLayout (layout2);
 	setLayout (layout);
 	
-	setWindowTitle (APPNAME_DISPLAY " - setting contents");
-	setWindowIcon (QIcon ("icons/set-contents.png"));
+	setWindowTitle (APPNAME_DISPLAY ": Set Contents");
+	setWindowIcon (getIcon ("set-contents"));
 }
 
 // =============================================================================

@@ -8,6 +8,7 @@ DEPENDPATH += .
 INCLUDEPATH += .
 OBJECTS_DIR = build/
 RC_FILE = ldforge.rc
+RESOURCES = ldforge.qrc
 
 # Input
 HEADERS += bbox.h \

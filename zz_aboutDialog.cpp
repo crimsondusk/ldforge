@@ -34,7 +34,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		
 		// Application icon - in full 64 x 64 glory.
 		QLabel* icon = new QLabel;
-		icon->setPixmap (QPixmap ("icons/ldforge.png"));
+		icon->setPixmap (getIcon ("ldforge"));
 		
 		// Heading - application label and copyright information
 		QLabel* title = new QLabel (format ("<b>" APPNAME_DISPLAY " v%d.%d</b><br />"

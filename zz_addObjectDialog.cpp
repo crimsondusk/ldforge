@@ -49,11 +49,11 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	QDialog (parent)
 {
 	short coordCount = 0;
-	str iconName = format ("icons/add-%s.png", g_saObjTypeIcons[type]);
+	QPixmap icon = getIcon (format ("add-%s", g_saObjTypeIcons[type]));
 	LDObject* defaults = LDObject::getDefault (type);
 	
 	lb_typeIcon = new QLabel;
-	lb_typeIcon->setPixmap (QPixmap (iconName));
+	lb_typeIcon->setPixmap (icon);
 	
 	switch (type) {
 	case OBJ_Comment:
@@ -274,7 +274,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	setWindowTitle (format (APPNAME_DISPLAY ": New %s",
 		g_saObjTypeNames[type]).chars());
 	
-	setWindowIcon (QIcon (iconName.chars ()));
+	setWindowIcon (icon);
 	delete defaults;
 }
 
@@ -282,7 +282,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
-	button->setIcon (QIcon ("icons/palette.png"));
+	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
 	button->setStyleSheet (
 		format ("background-color: %s", getColor (color)->zColorString.chars()).chars()
