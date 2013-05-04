@@ -87,6 +87,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_picking = m_rangepick = false;
 	m_camera = (GLRenderer::Camera) gl_camera.value;
 	m_drawToolTip = false;
+	m_planeDraw = false;
 	
 	m_pulseTimer = new QTimer (this);
 	connect (m_pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
@@ -395,6 +396,44 @@ void GLRenderer::drawGLScene () const {
 	glMatrixMode (GL_MODELVIEW);
 }
 
+vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
+	vertex pos3d;
+	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	const Axis axisX = cam->axisX;
+	const Axis axisY = cam->axisY;
+	const short negXFac = cam->negX ? -1 : 1,
+		negYFac = cam->negY ? -1 : 1;
+	
+	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
+	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
+	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) * g_storedBBoxSize - (negYFac * g_objOffset[axisY]);
+	
+	if (snap) {
+		cx = Grid::snap (cx, (Grid::Config) axisX);
+		cy = Grid::snap (cy, (Grid::Config) axisY);
+	}
+	
+	cx *= negXFac;
+	cy *= negYFac;
+	
+	pos3d = g_origin;
+	pos3d[axisX] = cx;
+	pos3d[axisY] = cy;
+	return pos3d;
+}
+
+QPoint GLRenderer::coord_3to2 (const vertex& pos3d) const {
+	QPoint pos2d (0, 0);
+	GLdouble glmatr[16];
+	glGetDoublev (GL_MODELVIEW, glmatr);
+	
+	matrix<4> matr (glmatr);
+	
+	vertex copy = pos3d;
+	copy.transform (matrix<3> (matr), g_origin);
+	return QPoint (copy[X], copy[Y]);
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -411,23 +450,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	m_hoverpos = g_origin;
 	
 	if (m_camera != Free) {
-		const staticCameraMeta* cam = &g_staticCameras[m_camera];
-		const Axis axisX = cam->axisX;
-		const Axis axisY = cam->axisY;
-		const short negXFac = cam->negX ? -1 : 1,
-			negYFac = cam->negY ? -1 : 1;
-		
-		// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-		double cx = Grid::snap ((-m_virtWidth + ((2 * m_pos.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize -
-			(negXFac * g_objOffset[axisX]), (Grid::Config) axisX);
-		double cy = Grid::snap ((m_virtHeight - ((2 * m_pos.y () * m_virtHeight) / m_height) - m_panY) * g_storedBBoxSize -
-			(negYFac * g_objOffset[axisY]), (Grid::Config) axisY);
-		cx *= negXFac;
-		cy *= negYFac;
-		
-		// Set the position we're hovering over based on this
-		m_hoverpos[axisX] = cx;
-		m_hoverpos[axisY] = cy;
+		// Calculate 3d position of the cursor
+		m_hoverpos = coord_2to3 (m_pos, true);
 		
 		// Paint the coordinates onto the screen.
 		str text;
@@ -439,10 +463,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		paint.drawText (m_width - textSize.width (), m_height - 16, textSize.width (),
 			textSize.height (), Qt::AlignCenter, text);
+		
+		// If we're plane drawing, draw the vertices onto the screen.
+		
 	}
 	
 	// Camera icons
-	if (!m_picking) {
+	if (!m_picking && m_planeDraw == false) {
 		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
@@ -693,11 +720,15 @@ void GLRenderer::clampAngle (double& angle) {
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	if ((m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
-		if (!m_rangepick)
-			m_addpick = (m_keymods & Qt::ControlModifier);
-		
-		if (m_totalmove < 10 || m_rangepick)
-			pick (ev->x (), ev->y ());
+		if (m_planeDraw) {
+			m_planeDrawVerts.push_back ({m_hoverpos, m_pos});
+		} else {
+			if (!m_rangepick)
+				m_addpick = (m_keymods & Qt::ControlModifier);
+			
+			if (m_totalmove < 10 || m_rangepick)
+				pick (ev->x (), ev->y ());
+		}
 		
 		m_rangepick = false;
 		m_totalmove = 0;
@@ -940,6 +971,14 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	drawGLScene ();
 	swapBuffers ();
+	update ();
+}
+
+void GLRenderer::beginPlaneDraw () {
+	if (m_camera == Free)
+		return;
+	
+	m_planeDraw = true;
 	update ();
 }
 

@@ -227,7 +227,7 @@ public:
 	LDOBJ_COLORED (true)
 	
 	vertex vPosition; // Position of the subpart
-	matrix mMatrix; // Transformation matrix for the subpart
+	matrix<3> mMatrix; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
 	OpenFile* pFile; // Pointer to opened file for this subfile. null if unopened.
 	
@@ -338,10 +338,10 @@ public:
 	
 	LDRadial::Type eRadialType;
 	vertex vPosition;
-	matrix mMatrix;
+	matrix<3> mMatrix;
 	short dDivisions, dSegments, dRingNum;
 	
-	LDRadial (LDRadial::Type eRadialType, vertex vPosition, matrix mMatrix,
+	LDRadial (LDRadial::Type eRadialType, vertex vPosition, matrix<3> mMatrix,
 		short dDivisions, short dSegments, short dRingNum) :
 		eRadialType (eRadialType), vPosition (vPosition), mMatrix (mMatrix),
 		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}

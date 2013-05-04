@@ -24,6 +24,11 @@
 #include "common.h"
 #include "ldtypes.h"
 
+typedef struct {
+	vertex pos3d;
+	QPoint pos2d;
+} GLPlaneDrawVertex;
+
 // =============================================================================
 // GLRenderer
 // 
@@ -82,17 +87,15 @@ private:
 	Qt::MouseButtons m_lastButtons;
 	Qt::KeyboardModifiers m_keymods;
 	ulong m_totalmove;
-	bool m_darkbg;
-	double m_virtWidth, m_virtHeight;
-	Camera m_camera;
 	vertex m_hoverpos;
-	double m_rotX, m_rotY, m_rotZ, m_panX, m_panY, m_zoom;
-	bool m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
+	double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY, m_zoom;
+	bool m_darkbg, m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap, m_planeDraw;
 	QPoint m_pos, m_rangeStart;
 	QPen m_thinBorderPen, m_thickBorderPen;
-	Camera m_toolTipCamera;
+	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
-	short m_width, m_height;
+	ushort m_width, m_height;
+	std::vector<GLPlaneDrawVertex> m_planeDrawVerts;
 	
 	void compileOneObject (LDObject* obj);
 	void compileSubObject (LDObject* obj, const GLenum gltype);
@@ -101,6 +104,9 @@ private:
 	void setObjectColor (LDObject* obj);
 	void drawGLScene () const;
 	void calcCameraIconRects ();
+	
+	vertex coord_2to3 (const QPoint& pos2d, const bool snap) const;
+	QPoint coord_3to2 (const vertex& pos3d) const;
 	
 private slots:
 	void slot_timerUpdate ();

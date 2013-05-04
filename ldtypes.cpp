@@ -267,7 +267,7 @@ LDRadial::~LDRadial () {}
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void transformObject (LDObject* obj, matrix transform, vertex pos, short parentcolor) {
+static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, short parentcolor) {
 	switch (obj->getType()) {
 	case OBJ_Line:
 	case OBJ_CondLine:
@@ -281,9 +281,9 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			matrix mNewMatrix = transform * ref->mMatrix;
+			matrix<3> newMatrix = transform * ref->mMatrix;
 			ref->vPosition.transform (transform, pos);
-			ref->mMatrix = mNewMatrix;
+			ref->mMatrix = newMatrix;
 		}
 		break;
 	
