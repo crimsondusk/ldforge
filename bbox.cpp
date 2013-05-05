@@ -112,29 +112,33 @@ void bbox::calcObject (LDObject* obj) {
 // =============================================================================
 void bbox::calcVertex (vertex v) {
 	for (const Axis ax : g_Axes) {
-		if (v[ax] < v0[ax])
-			v0[ax] = v[ax];
+		if (v[ax] < m_v0[ax])
+			m_v0[ax] = v[ax];
 		
-		if (v[ax] > v1[ax])
-			v1[ax] = v[ax];
+		if (v[ax] > m_v1[ax])
+			m_v1[ax] = v[ax];
 	}
+	
+	m_empty = false;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void bbox::reset () {
-	v0[X] = v0[Y] = v0[Z] = +0x7FFFFFFF;
-	v1[X] = v1[Y] = v1[Z] = -0x7FFFFFFF;
+	m_v0[X] = m_v0[Y] = m_v0[Z] = +0x7FFFFFFF;
+	m_v1[X] = m_v1[Y] = m_v1[Z] = -0x7FFFFFFF;
+	
+	m_empty = true;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 double bbox::size () const {
-	double fXScale = (v0[X] - v1[X]);
-	double fYScale = (v0[Y] - v1[Y]);
-	double fZScale = (v0[Z] - v1[Z]);
+	double fXScale = (m_v0[X] - m_v1[X]);
+	double fYScale = (m_v0[Y] - m_v1[Y]);
+	double fZScale = (m_v0[Z] - m_v1[Z]);
 	double fSize = fZScale;
 	
 	if (fXScale > fYScale) {
@@ -152,7 +156,12 @@ double bbox::size () const {
 // =============================================================================
 vertex bbox::center () const {
 	return vertex (
-		(v0[X] + v1[X]) / 2,
-		(v0[Y] + v1[Y]) / 2,
-		(v0[Z] + v1[Z]) / 2);
+		(m_v0[X] + m_v1[X]) / 2,
+		(m_v0[Y] + m_v1[Y]) / 2,
+		(m_v0[Z] + m_v1[Z]) / 2);
+}
+
+// =============================================================================
+bool bbox::empty() const {
+	return m_empty;
 }

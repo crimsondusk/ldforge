@@ -31,16 +31,14 @@
 // =============================================================================
 class bbox {
 public:
-	vertex v0, v1;
-	
 	bbox ();
-	
 	void reset ();
 	void calculate ();
 	double size () const;
 	void calcObject (LDObject* obj);
 	void calcVertex (vertex v);
 	vertex center () const;
+	bool empty () const;
 	
 	bbox& operator<< (LDObject* obj) {
 		calcObject (obj);
@@ -51,6 +49,13 @@ public:
 		calcVertex (v);
 		return *this;
 	}
+	
+	const vertex& v0 () { return m_v0; }
+	const vertex& v1 () { return m_v1; }
+	
+private:
+	vertex m_v0, m_v1;
+	bool m_empty;
 };
 
 #endif // BBOX_H

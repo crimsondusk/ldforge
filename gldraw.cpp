@@ -213,7 +213,10 @@ void GLRenderer::setBackground () {
 // =============================================================================
 static vector<short> g_daWarnedColors;
 void GLRenderer::setObjectColor (LDObject* obj) {
-	QColor qCol;
+	QColor qcol;
+	
+	if (!obj->isColored())
+		return;
 	
 	if (m_picking) {
 		// Make the color by the object's index color if we're picking, so we can
@@ -241,9 +244,6 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		return;
 	}
 	
-	if (obj->dColor == -1)
-		return;
-	
 #if 0
 	if (gl_colorbfc &&
 		obj->getType () != OBJ_Line &&
@@ -258,25 +258,25 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 #endif
 	
 	if (obj->dColor == maincolor)
-		qCol = getMainColor ();
+		qcol = getMainColor ();
 	else {
 		color* col = getColor (obj->dColor);
-		qCol = col->qColor;
+		qcol = col->qColor;
 	}
 	
 	if (obj->dColor == edgecolor) {
-		qCol = Qt::black;
+		qcol = Qt::black;
 		color* col;
 		
 		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->dColor)) != null)
-			qCol = col->qEdge;
+			qcol = col->qEdge;
 	}
 	
-	if (qCol.isValid () == false) {
+	if (qcol.isValid () == false) {
 		// The color was unknown. Use main color to make the object at least
 		// not appear pitch-black.
 		if (obj->dColor != edgecolor)
-			qCol = getMainColor ();
+			qcol = getMainColor ();
 		
 		// Warn about the unknown colors, but only once.
 		for (short i : g_daWarnedColors)
@@ -288,10 +288,10 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		return;
 	}
 	
-	long r = qCol.red (),
-		g = qCol.green (),
-		b = qCol.blue (),
-		a = qCol.alpha ();
+	long r = qcol.red (),
+		g = qcol.green (),
+		b = qcol.blue (),
+		a = qcol.alpha ();
 	
 	// If it's selected, brighten it up, also pulse flash it if desired.
 	if (g_win->isSelected (obj)) {
@@ -608,10 +608,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObjects () {
-	g_objOffset[0] = -(g_BBox.v0[X] + g_BBox.v1[X]) / 2;
-	g_objOffset[1] = -(g_BBox.v0[Y] + g_BBox.v1[Y]) / 2;
-	g_objOffset[2] = -(g_BBox.v0[Z] + g_BBox.v1[Z]) / 2;
-	g_storedBBoxSize = g_BBox.size ();
+	if (g_BBox.empty () == false) {
+		g_objOffset[X] = -(g_BBox.v0 ()[X] + g_BBox.v1 ()[X]) / 2;
+		g_objOffset[Y] = -(g_BBox.v0 ()[Y] + g_BBox.v1 ()[Y]) / 2;
+		g_objOffset[Z] = -(g_BBox.v0 ()[Z] + g_BBox.v1 ()[Z]) / 2;
+		g_storedBBoxSize = g_BBox.size ();
+	} else {
+		// use a default bbox if we need 
+		g_objOffset[X] = g_objOffset[Y] = g_objOffset[Z] = 0;
+		g_storedBBoxSize = 5.0f;
+	}
+	printf ("size: %.3f\n", g_storedBBoxSize);
 	
 	if (!g_curfile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -784,8 +791,6 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	
 	if (wasLeft) {
 		if (m_planeDraw) {
-			printf ("vert: %s\n", m_hoverpos.stringRep (true).chars ());
-			
 			// If we picked an already-existing vertex, stop drawing
 			for (vertex& vert : m_planeDrawVerts) {
 				if (vert == m_hoverpos) {
@@ -1094,8 +1099,6 @@ void GLRenderer::endPlaneDraw (bool accept) {
 	// If we accepted, clean the selection and create the object
 	if (accept) {
 		vector<vertex>& verts = m_planeDrawVerts;
-		printf ("accepted (%lu verts)\n", verts.size ());
-		
 		LDObject* obj = null;
 		
 		switch (verts.size ()) {

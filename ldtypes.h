@@ -23,8 +23,8 @@
 #include "types.h"
 
 #define IMPLEMENT_LDTYPE(T, NUMVERTS) \
-	LD##T (); \
-	virtual ~LD##T (); \
+	LD##T () {} \
+	virtual ~LD##T () {} \
 	virtual LDObjectType_e getType () const { \
 		return OBJ_##T; \
 	} \
@@ -35,7 +35,9 @@
 	virtual void move (vertex vVector); \
 	virtual short vertices () const { return NUMVERTS; } \
 
-#define LDOBJ_COLORED(V) virtual bool isColored () const { return V; }
+#define LDOBJ_SETCOLORED(V) virtual bool isColored () const { return V; }
+#define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
+#define LDOBJ_UNCOLORED LDOBJ_SETCOLORED (false)
 
 class QListWidgetItem;
 class LDSubfile;
@@ -149,7 +151,7 @@ public:
 class LDGibberish : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Gibberish, 0)
-	LDOBJ_COLORED (false)
+	LDOBJ_UNCOLORED
 	
 	LDGibberish (str _zContent, str _zReason);
 	
@@ -168,7 +170,7 @@ public:
 class LDEmpty : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Empty, 0)
-	LDOBJ_COLORED (false)
+	LDOBJ_UNCOLORED
 };
 
 // =============================================================================
@@ -180,11 +182,11 @@ public:
 class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment, 0)
-	LDOBJ_COLORED (false)
+	LDOBJ_UNCOLORED
 	
-	LDComment (str zText) : zText (zText) {}
+	LDComment (str zText) : text (zText) {}
 	
-	str zText; // The text of this comment
+	str text; // The text of this comment
 };
 
 // =============================================================================
@@ -206,14 +208,14 @@ public:
 	};
 	
 	IMPLEMENT_LDTYPE (BFC, 0)
-	LDOBJ_COLORED (false)
+	LDOBJ_UNCOLORED
 	
-	LDBFC (const LDBFC::Type eType) : eStatement (eType) {}
+	LDBFC (const LDBFC::Type eType) : type (eType) {}
 	
 	// Statement strings
-	static const char* saStatements[];
+	static const char* statements[];
 	
-	Type eStatement;
+	Type type;
 };
 
 // =============================================================================
@@ -224,14 +226,15 @@ public:
 class LDSubfile : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Subfile, 0)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
-	vertex vPosition; // Position of the subpart
+	vertex vPosition; // Position of the subpart (FIXME: should get rid of this)
 	matrix<3> mMatrix; // Transformation matrix for the subpart
 	str zFileName; // Filename of the subpart
 	OpenFile* pFile; // Pointer to opened file for this subfile. null if unopened.
 	
-	// Gets the inlined contents of this subfile.
+	// Inlines this subfile. Note that return type is an array of heap-allocated
+	// LDObject-clones, they must be deleted one way or another.
 	std::vector<LDObject*> inlineContents (bool bDeepInline, bool bCache);
 };
 
@@ -245,7 +248,7 @@ public:
 class LDLine : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Line, 2)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
 	LDLine (vertex v1, vertex v2);
 };
@@ -259,7 +262,7 @@ public:
 class LDCondLine : public LDLine {
 public:
 	IMPLEMENT_LDTYPE (CondLine, 4)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 };
 
 // =============================================================================
@@ -272,7 +275,7 @@ public:
 class LDTriangle : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Triangle, 3)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
 		vaCoords[0] = _v0;
@@ -290,9 +293,9 @@ public:
 class LDQuad : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Quad, 4)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
-	// Split this quad into two triangles
+	// Split this quad into two triangles (note: heap-allocated)
 	vector<LDTriangle*> splitToTriangles ();
 };
 
@@ -307,7 +310,7 @@ public:
 class LDVertex : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move vPosition to vaCoords[0]
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
 	vertex vPosition;
 };
@@ -334,7 +337,7 @@ public:
 	};
 	
 	IMPLEMENT_LDTYPE (Radial, 0)
-	LDOBJ_COLORED (true)
+	LDOBJ_COLORED
 	
 	LDRadial::Type eRadialType;
 	vertex vPosition;
@@ -346,10 +349,14 @@ public:
 		eRadialType (eRadialType), vPosition (vPosition), mMatrix (mMatrix),
 		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}
 	
-	char const* radialTypeName ();
+	// Returns a set of objects that provide the equivalent of this radial.
+	// Note: objects are heap-allocated.
 	std::vector<LDObject*> decompose (bool bTransform);
+	
+	// Compose a file name for this radial.
 	str makeFileName ();
 	
+	char const* radialTypeName ();
 	static char const* radialTypeName (const LDRadial::Type eType);
 };
 

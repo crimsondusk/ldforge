@@ -519,7 +519,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 					LDObject* prev = g_curfile->object (idx - 1);
 					LDBFC* bfc = dynamic_cast<LDBFC*> (prev);
 					
-					if (bfc && bfc->eStatement == LDBFC::InvertNext) {
+					if (bfc && bfc->type == LDBFC::InvertNext) {
 						// Object is prefixed with an invertnext, thus remove it.
 						paHistory.push_back (new DelHistory ({idx - 1}, {bfc->clone ()}));
 						

@@ -190,17 +190,10 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
-QAction* const& findAction (str name);
+QAction* findAction (str name);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.
 extern ForgeWindow* g_win;
-
-// Is this still needed?
-enum {
-	LDOLC_Icon,
-	LDOLC_Data,
-	NUM_LDOL_Columns
-};
 
 #endif // GUI_H

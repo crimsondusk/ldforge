@@ -460,7 +460,7 @@ void ForgeWindow::setTitle () {
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_curfile->m_objs[0]);
-			title += fmt (": %s", comm->zText.chars());
+			title += fmt (": %s", comm->text.chars());
 		}
 		
 		if (History::pos () != g_curfile->savePos)
@@ -537,7 +537,7 @@ void ForgeWindow::buildObjList () {
 		str zText;
 		switch (obj->getType ()) {
 		case OBJ_Comment:
-			zText = static_cast<LDComment*> (obj)->zText.chars();
+			zText = static_cast<LDComment*> (obj)->text.chars();
 			
 			// Remove leading whitespace
 			while (~zText && zText[0] == ' ')
@@ -616,7 +616,7 @@ void ForgeWindow::buildObjList () {
 		case OBJ_BFC:
 			{
 				LDBFC* bfc = static_cast<LDBFC*> (obj);
-				zText = LDBFC::saStatements[bfc->eStatement];
+				zText = LDBFC::statements[bfc->type];
 			}
 			break;
 		
@@ -644,7 +644,7 @@ void ForgeWindow::buildObjList () {
 		if (obj->getType() == OBJ_Gibberish) {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
-		} else if (lv_colorize && obj->dColor != -1 &&
+		} else if (lv_colorize && obj->isColored () &&
 			obj->dColor != maincolor && obj->dColor != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
@@ -898,8 +898,8 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-QPixmap getIcon (const char* sIconName) {
-	return (QPixmap (fmt (":/icons/%s.png", sIconName)));
+QPixmap getIcon (const char* iconName) {
+	return (QPixmap (fmt (":/icons/%s.png", iconName)));
 }
 
 // =============================================================================
@@ -976,7 +976,7 @@ void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
 }
 
 // =============================================================================
-QAction* const& findAction (str name) {
+QAction* findAction (str name) {
 	for (actionmeta& meta : g_ActionMeta)
 		if (name == meta.name)
 			return *meta.qAct;

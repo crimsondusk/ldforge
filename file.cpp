@@ -404,7 +404,7 @@ LDObject* parseLine (str zLine) {
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
 				for (short i = 0; i < LDBFC::NumStatements; ++i)
-					if (comm == fmt ("BFC %s", LDBFC::saStatements [i]))
+					if (comm == fmt ("BFC %s", LDBFC::statements [i]))
 						return new LDBFC ((LDBFC::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
@@ -465,7 +465,7 @@ LDObject* parseLine (str zLine) {
 			}
 			
 			LDComment* obj = new LDComment;
-			obj->zText = comm;
+			obj->text = comm;
 			return obj;
 		}
 	

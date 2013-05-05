@@ -62,55 +62,14 @@ LDObject::LDObject () {
 	parent = null;
 }
 
-LDGibberish::LDGibberish () {
-	dColor = -1;
-}
-
 LDGibberish::LDGibberish (str _zContent, str _zReason) {
 	zContents = _zContent;
 	zReason = _zReason;
-	dColor = -1;
-}
-
-LDEmpty::LDEmpty () {
-	dColor = -1;
-}
-
-LDComment::LDComment () {
-	dColor = -1;
-}
-
-LDSubfile::LDSubfile () {
-	
-}
-
-LDLine::LDLine () {
-	
-}
-
-LDTriangle::LDTriangle () {
-	
-}
-
-LDQuad::LDQuad () {
-	
-}
-
-LDCondLine::LDCondLine () {
-	
-}
-
-LDVertex::LDVertex () {
-	
-}
-
-LDBFC::LDBFC () {
-	
 }
 
 // =============================================================================
 str LDComment::getContents () {
-	return fmt ("0 %s", zText.chars ());
+	return fmt ("0 %s", text.chars ());
 }
 
 str LDSubfile::getContents () {
@@ -173,7 +132,7 @@ str LDEmpty::getContents () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-const char* LDBFC::saStatements[] = {
+const char* LDBFC::statements[] = {
 	"CERTIFY CCW",
 	"CCW",
 	"CERTIFY CW",
@@ -183,7 +142,7 @@ const char* LDBFC::saStatements[] = {
 };
 
 str LDBFC::getContents () {
-	return fmt ("0 BFC %s", LDBFC::saStatements[eStatement]);
+	return fmt ("0 BFC %s", LDBFC::statements[type]);
 }
 
 // =============================================================================
@@ -252,18 +211,6 @@ LDObject::~LDObject () {
 			g_win->sel ().erase (g_win->sel ().begin() + i);
 }
 
-LDComment::~LDComment () {}
-LDCondLine::~LDCondLine () {}
-LDEmpty::~LDEmpty () {}
-LDGibberish::~LDGibberish () {}
-LDLine::~LDLine () {}
-LDQuad::~LDQuad () {}
-LDSubfile::~LDSubfile () {}
-LDTriangle::~LDTriangle () {}
-LDVertex::~LDVertex () {}
-LDBFC::~LDBFC () {}
-LDRadial::~LDRadial () {}
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -321,7 +268,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 			
 			case OBJ_BFC:
 				// Filter non-INVERTNEXT statements
-				if (static_cast<LDBFC*> (obj)->eStatement != LDBFC::InvertNext)
+				if (static_cast<LDBFC*> (obj)->type != LDBFC::InvertNext)
 					continue;
 				break;
 			
@@ -502,10 +449,6 @@ void LDCondLine::move (vertex vVector) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDRadial::LDRadial () {
-	
-}
-
 static char const* g_saRadialTypeNames[] = {
 	"Circle",
 	"Cylinder",
@@ -683,7 +626,7 @@ str LDRadial::makeFileName () {
 	short dNumerator = dSegments,
 		dDenominator = dDivisions;
 	
-	// Simplify the fractional part, but the denominator is at least 4.
+	// Simplify the fractional part, but the denominator must be at least 4.
 	simplify (dNumerator, dDenominator);
 	
 	if (dDenominator < 4) {

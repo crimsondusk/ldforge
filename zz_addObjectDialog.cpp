@@ -59,7 +59,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	case OBJ_Comment:
 		le_comment = new QLineEdit;
 		if (obj)
-			le_comment->setText (static_cast<LDComment*> (obj)->zText);
+			le_comment->setText (static_cast<LDComment*> (obj)->text);
 		break;
 	
 	case OBJ_Line:
@@ -80,17 +80,13 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		break;
 	
 	case OBJ_BFC:
-		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Horizontal);
+		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
-		for (int i = 0; i < LDBFC::NumStatements; ++i) {
-			if (i % (LDBFC::NumStatements / 2) == 0)
-				rb_bfcType->rowBreak ();
-			
-			rb_bfcType->addButton (new QRadioButton (LDBFC::saStatements[i]));
-		}
+		for (int i = 0; i < LDBFC::NumStatements; ++i)
+			rb_bfcType->addButton (new QRadioButton (LDBFC::statements[i]));
 		
 		if (obj)
-			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->eStatement);
+			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->type);
 		break;
 	
 	case OBJ_Subfile:
@@ -358,7 +354,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	case OBJ_Comment:
 		{
 			LDComment* comm = initObj<LDComment> (obj);
-			comm->zText = dlg.le_comment->text ();
+			comm->text = dlg.le_comment->text ();
 		}
 		break;
 	
@@ -397,7 +393,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 	case OBJ_BFC:
 		{
 			LDBFC* bfc = initObj<LDBFC> (obj);
-			bfc->eStatement = (LDBFC::Type) dlg.rb_bfcType->value ();
+			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value ();
 		}
 		break;
 	
