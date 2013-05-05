@@ -114,7 +114,7 @@ public:
 	void puts () const {
 		for (short i = 0; i < N; ++i) {
 			for (short j = 0; j < N; ++j)
-				printf ("%*f\t", 10, m_vals[(i * 3) + j]);
+				printf ("%*f\t", 10, m_vals[(i * N) + j]);
 			
 			printf ("\n");
 		}
@@ -176,6 +176,16 @@ public:
 		return *this;
 	}
 	
+	bool operator== (const vertex& other) const {
+		return coord (X) == other[X] &&
+			coord (Y) == other[Y] &&
+			coord (Z) == other[Z];
+	}
+	
+	bool operator!= (const vertex& other) const {
+		return !operator== (other);
+	}
+	
 	vertex operator- () const {
 		return vertex (-m_coords[X], -m_coords[Y], -m_coords[Z]);
 	}
@@ -196,9 +206,17 @@ public:
 		return coord ((ushort) ax);
 	}
 	
+	double& x () { return m_coords[X]; }
+	double& y () { return m_coords[Y]; }
+	double& z () { return m_coords[Z]; }
+	const double& x () const { return m_coords[X]; }
+	const double& y () const { return m_coords[Y]; }
+	const double& z () const { return m_coords[Z]; }
+	
 	vertex midpoint (vertex& other);
 	str stringRep (const bool mangled);
 	void transform (matrix<3> matr, vertex pos);
+	void transform (matrix<4> matr);
 };
 
 #endif // TYPES_H

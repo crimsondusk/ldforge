@@ -45,7 +45,7 @@ class QSplitter;
 typedef struct {
 	QAction** const qAct;
 	keyseqconfig* const conf;
-	const char* const sDisplayName, *sIconName, *sDescription;
+	const char* const name, *sDisplayName, *sIconName, *sDescription;
 	void (*const handler) ();
 } actionmeta;
 
@@ -59,7 +59,7 @@ extern vector<actionmeta> g_ActionMeta;
 	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
 	static void actionHandler_##NAME (); \
 	static ActionAdder ActionAdderInstance_##NAME (&ACTION(NAME), DISPLAYNAME, \
-		ICONNAME, DESCR, &key_##NAME, actionHandler_##NAME); \
+		ICONNAME, DESCR, &key_##NAME, actionHandler_##NAME, #NAME); \
 	static void actionHandler_##NAME ()
 
 #define EXTERN_ACTION(NAME) extern QAction* ACTION (NAME);
@@ -88,9 +88,10 @@ typedef struct {
 class ActionAdder {
 public:
 	ActionAdder (QAction** qAct, const char* sDisplayName, const char* sIconName,
-		const char* sDescription, keyseqconfig* conf, void (*const handler) ())
+		const char* sDescription, keyseqconfig* conf, void (*const handler) (),
+		const char* name)
 	{
-		actionmeta meta = {qAct, conf, sDisplayName, sIconName, sDescription, handler};
+		actionmeta meta = {qAct, conf, name, sDisplayName, sIconName, sDescription, handler};
 		g_ActionMeta.push_back (meta);
 	}
 };
@@ -168,7 +169,11 @@ private:
 	void createMenuActions ();
 	void createMenus ();
 	void createToolbars ();
-	void initSingleToolBar (const char* sName);
+	void initSingleToolBar (const char* name);
+	void addToolBarAction (const char* name);
+	
+	void initMenu (const char* name);
+	void addMenuAction (const char* name);
 
 private slots:
 	void slot_selectionChanged ();
@@ -185,6 +190,7 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
+QAction* const& findAction (str name);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

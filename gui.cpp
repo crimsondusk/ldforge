@@ -34,73 +34,6 @@
 #include "history.h"
 #include "config.h"
 
-EXTERN_ACTION (newFile)
-EXTERN_ACTION (open)
-EXTERN_ACTION (save)
-EXTERN_ACTION (saveAs)
-EXTERN_ACTION (settings)
-EXTERN_ACTION (exit)
-EXTERN_ACTION (cut)
-EXTERN_ACTION (copy)
-EXTERN_ACTION (paste)
-EXTERN_ACTION (del)
-EXTERN_ACTION (setColor)
-EXTERN_ACTION (inlineContents)
-EXTERN_ACTION (deepInline)
-EXTERN_ACTION (splitQuads)
-EXTERN_ACTION (setContents)
-EXTERN_ACTION (makeBorders)
-EXTERN_ACTION (makeCornerVerts)
-EXTERN_ACTION (moveUp)
-EXTERN_ACTION (moveDown)
-EXTERN_ACTION (newSubfile)
-EXTERN_ACTION (newLine)
-EXTERN_ACTION (newCondLine)
-EXTERN_ACTION (newTriangle)
-EXTERN_ACTION (newQuad)
-EXTERN_ACTION (newComment)
-EXTERN_ACTION (newBFC)
-EXTERN_ACTION (newVertex)
-EXTERN_ACTION (newRadial)
-EXTERN_ACTION (help)
-EXTERN_ACTION (about)
-EXTERN_ACTION (aboutQt)
-EXTERN_ACTION (undo)
-EXTERN_ACTION (redo)
-EXTERN_ACTION (showHistory)
-EXTERN_ACTION (selectAll)
-EXTERN_ACTION (selectByColor)
-EXTERN_ACTION (selectByType)
-EXTERN_ACTION (moveXNeg)
-EXTERN_ACTION (moveYNeg)
-EXTERN_ACTION (moveZNeg)
-EXTERN_ACTION (moveXPos)
-EXTERN_ACTION (moveYPos)
-EXTERN_ACTION (moveZPos)
-EXTERN_ACTION (invert)
-EXTERN_ACTION (rotateXNeg)
-EXTERN_ACTION (rotateYNeg)
-EXTERN_ACTION (rotateZNeg)
-EXTERN_ACTION (rotateXPos)
-EXTERN_ACTION (rotateYPos)
-EXTERN_ACTION (rotateZPos)
-EXTERN_ACTION (roundCoords)
-EXTERN_ACTION (gridCoarse)
-EXTERN_ACTION (gridMedium)
-EXTERN_ACTION (gridFine)
-EXTERN_ACTION (resetView)
-EXTERN_ACTION (insertFrom)
-EXTERN_ACTION (insertRaw)
-EXTERN_ACTION (screencap)
-EXTERN_ACTION (editObject)
-EXTERN_ACTION (uncolorize)
-EXTERN_ACTION (axes)
-
-#ifndef RELEASE
-EXTERN_ACTION (addTestQuad)
-EXTERN_ACTION (addTestRadial)
-#endif // RELEASE
-
 vector<actionmeta> g_ActionMeta;
 
 static bool g_bSelectionLocked = false;
@@ -175,20 +108,15 @@ void ForgeWindow::createMenuActions () {
 	}
 	
 	// Grid actions and axes are checkable
-	ACTION (gridCoarse)->setCheckable (true);
-	ACTION (gridMedium)->setCheckable (true);
-	ACTION (gridFine)->setCheckable (true);
+	findAction ("gridCoarse")->setCheckable (true);
+	findAction ("gridMedium")->setCheckable (true);
+	findAction ("gridFine")->setCheckable (true);
 	
-	ACTION (axes)->setCheckable (true);
-	ACTION (axes)->setChecked (gl_axes);
+	findAction ("axes")->setCheckable (true);
+	findAction ("axes")->setChecked (gl_axes);
 	
 	// things not implemented yet
-	QAction* const qaDisabledActions[] = {
-		ACTION (help),
-	};
-	
-	for (QAction* act : qaDisabledActions)
-		act->setEnabled (false);
+	findAction ("help")->setEnabled (false);
 	
 	History::updateActions ();
 }
@@ -196,109 +124,126 @@ void ForgeWindow::createMenuActions () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+QMenu* g_CurrentMenu;
+
+void ForgeWindow::initMenu (const char* name) {
+	g_CurrentMenu = menuBar ()->addMenu (tr (name));
+}
+
+void ForgeWindow::addMenuAction (const char* name) {
+	g_CurrentMenu->addAction (findAction (name));
+}
+
+
+// =============================================================================
 void ForgeWindow::createMenus () {
 	m_recentFilesMenu = new QMenu (tr ("Open &Recent"));
 	m_recentFilesMenu->setIcon (getIcon ("open-recent"));
 	updateRecentFilesMenu ();
 	
+	QMenu*& menu = g_CurrentMenu;
+	
 	// File menu
-	QMenu* qFileMenu = menuBar ()->addMenu (tr ("&File"));
-	qFileMenu->addAction (ACTION (newFile));				// New
-	qFileMenu->addAction (ACTION (open));				// Open
-	qFileMenu->addMenu (m_recentFilesMenu);				// Open Recent
-	qFileMenu->addAction (ACTION (save));					// Save
-	qFileMenu->addAction (ACTION (saveAs));				// Save As
-	qFileMenu->addSeparator ();							// -------
-	qFileMenu->addAction (ACTION (settings));				// Settings
-	qFileMenu->addSeparator ();							// -------
-	qFileMenu->addAction (ACTION (exit));					// Exit
+	initMenu ("&File");
+	addMenuAction ("newFile");				// New
+	addMenuAction ("open");				// Open
+	menu->addMenu (m_recentFilesMenu);	// Open Recent
+	addMenuAction ("save");				// Save
+	addMenuAction ("saveAs");				// Save As
+	menu->addSeparator ();					// -------
+	addMenuAction ("settings");			// Settings
+	menu->addSeparator ();					// -------
+	addMenuAction ("exit");				// Exit
 	
 	// View menu
-	QMenu* qViewMenu = menuBar ()->addMenu (tr ("&View"));
-	qViewMenu->addAction (ACTION (resetView));			// Reset View
-	qViewMenu->addAction (ACTION (axes));					// Draw Axes
-	qViewMenu->addSeparator ();							// -----
-	qViewMenu->addAction (ACTION (screencap));			// Screencap Part
-	qViewMenu->addAction (ACTION (showHistory));			// Edit History
+	initMenu ("&View");
+	addMenuAction ("resetView");			// Reset View
+	addMenuAction ("axes");				// Draw Axes
+	menu->addSeparator ();					// -----
+	addMenuAction ("screencap");			// Screencap Part
+	addMenuAction ("showHistory");		// Edit History
 	
 	// Insert menu
-	QMenu* qInsertMenu = menuBar ()->addMenu (tr ("&Insert"));
-	qInsertMenu->addAction (ACTION (insertFrom));		// Insert from File
-	qInsertMenu->addAction (ACTION (insertRaw));			// Insert Raw
-	qInsertMenu->addSeparator ();							// -------
-	qInsertMenu->addAction (ACTION (newSubfile));		// New Subfile
-	qInsertMenu->addAction (ACTION (newLine));			// New Line
-	qInsertMenu->addAction (ACTION (newTriangle));		// New Triangle
-	qInsertMenu->addAction (ACTION (newQuad));			// New Quad
-	qInsertMenu->addAction (ACTION (newCondLine));		// New Conditional Line
-	qInsertMenu->addAction (ACTION (newComment));		// New Comment
-	qInsertMenu->addAction (ACTION (newBFC));			// New BFC Statment
-	qInsertMenu->addAction (ACTION (newVertex));			// New Vertex
-	qInsertMenu->addAction (ACTION (newRadial));			// New Radial
+	initMenu ("&Insert");
+	addMenuAction ("insertFrom");			// Insert from File
+	addMenuAction ("insertRaw");			// Insert Raw
+	menu->addSeparator ();					// -------
+	addMenuAction ("newSubfile");			// New Subfile
+	addMenuAction ("newLine");			// New Line
+	addMenuAction ("newTriangle");		// New Triangle
+	addMenuAction ("newQuad");				// New Quad
+	addMenuAction ("newCondLine");		// New Conditional Line
+	addMenuAction ("newComment");			// New Comment
+	addMenuAction ("newBFC");				// New BFC Statment
+	addMenuAction ("newVertex");			// New Vertex
+	addMenuAction ("newRadial");			// New Radial
+	menu->addSeparator ();					// -----
+	addMenuAction ("beginDraw");			// Begin Drawing
+	addMenuAction ("doneDraw");			// Cancel Drawing
+	addMenuAction ("cancelDraw");			// Done Drawing
 	
 	// Edit menu
-	QMenu* qEditMenu = menuBar ()->addMenu (tr ("&Edit"));
-	qEditMenu->addAction (ACTION (undo));					// Undo
-	qEditMenu->addAction (ACTION (redo));				// Redo
-	qEditMenu->addSeparator ();							// -----
-	qEditMenu->addAction (ACTION (cut));					// Cut
-	qEditMenu->addAction (ACTION (copy));					// Copy
-	qEditMenu->addAction (ACTION (paste));				// Paste
-	qEditMenu->addAction (ACTION (del));					// Delete
-	qEditMenu->addSeparator ();							// -----
-	qEditMenu->addAction (ACTION (selectAll));			// Select All
-	qEditMenu->addAction (ACTION (selectByColor));		// Select by Color
-	qEditMenu->addAction (ACTION (selectByType));		// Select by Type
-	qEditMenu->addSeparator ();							// -----
+	initMenu ("&Edit");
+	addMenuAction ("undo");				// Undo
+	addMenuAction ("redo");				// Redo
+	menu->addSeparator ();					// -----
+	addMenuAction ("cut");					// Cut
+	addMenuAction ("copy");				// Copy
+	addMenuAction ("paste");				// Paste
+	addMenuAction ("del");					// Delete
+	menu->addSeparator ();					// -----
+	addMenuAction ("selectAll");			// Select All
+	addMenuAction ("selectByColor");		// Select by Color
+	addMenuAction ("selectByType");		// Select by Type
 	
-	QMenu* toolsMenu = menuBar ()->addMenu (tr ("&Tools"));
-	toolsMenu->addAction (ACTION (setColor));			// Set Color
-	toolsMenu->addAction (ACTION (invert));				// Invert
-	toolsMenu->addAction (ACTION (inlineContents));		// Inline
-	toolsMenu->addAction (ACTION (deepInline));			// Deep Inline
-	toolsMenu->addAction (ACTION (splitQuads));			// Split Quads
-	toolsMenu->addAction (ACTION (setContents));			// Set Contents
-	toolsMenu->addAction (ACTION (makeBorders));			// Make Borders
-	toolsMenu->addAction (ACTION (makeCornerVerts));		// Make Corner Vertices
-	toolsMenu->addAction (ACTION (roundCoords));			// Round Coordinates
-	toolsMenu->addAction (ACTION (uncolorize));			// Uncolorize
+	initMenu ("&Tools");
+	addMenuAction ("setColor");			// Set Color
+	addMenuAction ("invert");				// Invert
+	addMenuAction ("inlineContents");		// Inline
+	addMenuAction ("deepInline");			// Deep Inline
+	addMenuAction ("splitQuads");			// Split Quads
+	addMenuAction ("setContents");		// Set Contents
+	addMenuAction ("makeBorders");		// Make Borders
+	addMenuAction ("makeCornerVerts");	// Make Corner Vertices
+	addMenuAction ("roundCoords");		// Round Coordinates
+	addMenuAction ("uncolorize");			// Uncolorize
 	
 	// Move menu
-	QMenu* qMoveMenu = menuBar ()->addMenu (tr ("&Move"));
-	qMoveMenu->addAction (ACTION (moveUp));				// Move Up
-	qMoveMenu->addAction (ACTION (moveDown));			// Move Down
-	qMoveMenu->addSeparator ();							// -----
-	qMoveMenu->addAction (ACTION (gridCoarse));			// Coarse Grid
-	qMoveMenu->addAction (ACTION (gridMedium));			// Medium Grid
-	qMoveMenu->addAction (ACTION (gridFine));			// Fine Grid
-	qMoveMenu->addSeparator ();							// -----
-	qMoveMenu->addAction (ACTION (moveXPos));			// Move +X
-	qMoveMenu->addAction (ACTION (moveXNeg));			// Move -X
-	qMoveMenu->addAction (ACTION (moveYPos));			// Move +Y
-	qMoveMenu->addAction (ACTION (moveYNeg));			// Move -Y
-	qMoveMenu->addAction (ACTION (moveZPos));			// Move +Z
-	qMoveMenu->addAction (ACTION (moveZNeg));			// Move -Z
-	qMoveMenu->addSeparator ();							// -----
-	qMoveMenu->addAction (ACTION (rotateXPos));			// Rotate +X
-	qMoveMenu->addAction (ACTION (rotateXNeg));			// Rotate -X
-	qMoveMenu->addAction (ACTION (rotateYPos));			// Rotate +Y
-	qMoveMenu->addAction (ACTION (rotateYNeg));			// Rotate -Y
-	qMoveMenu->addAction (ACTION (rotateZPos));			// Rotate +Z
-	qMoveMenu->addAction (ACTION (rotateZNeg));			// Rotate -Z
+	initMenu ("&Move");
+	addMenuAction ("moveUp");				// Move Up
+	addMenuAction ("moveDown");			// Move Down
+	menu->addSeparator ();					// -----
+	addMenuAction ("gridCoarse");			// Coarse Grid
+	addMenuAction ("gridMedium");			// Medium Grid
+	addMenuAction ("gridFine");			// Fine Grid
+	menu->addSeparator ();					// -----
+	addMenuAction ("moveXPos");			// Move +X
+	addMenuAction ("moveXNeg");			// Move -X
+	addMenuAction ("moveYPos");			// Move +Y
+	addMenuAction ("moveYNeg");			// Move -Y
+	addMenuAction ("moveZPos");			// Move +Z
+	addMenuAction ("moveZNeg");			// Move -Z
+	menu->addSeparator ();					// -----
+	addMenuAction ("rotateXPos");			// Rotate +X
+	addMenuAction ("rotateXNeg");			// Rotate -X
+	addMenuAction ("rotateYPos");			// Rotate +Y
+	addMenuAction ("rotateYNeg");			// Rotate -Y
+	addMenuAction ("rotateZPos");			// Rotate +Z
+	addMenuAction ("rotateZNeg");			// Rotate -Z
 	
 #ifndef RELEASE
 	// Debug menu
-	QMenu* qDebugMenu = menuBar ()->addMenu (tr ("&Debug"));
-	qDebugMenu->addAction (ACTION (addTestQuad));		// Add Test Quad
-	qDebugMenu->addAction (ACTION (addTestRadial));		// Add Test Radial
+	initMenu ("&Debug");
+	addMenuAction ("addTestQuad");		// Add Test Quad
+	addMenuAction ("addTestRadial");		// Add Test Radial
 #endif // RELEASE
 	
 	// Help menu
-	QMenu* qHelpMenu = menuBar ()->addMenu (tr ("&Help"));
-	qHelpMenu->addAction (ACTION (help));				// Help
-	qHelpMenu->addSeparator ();							// -----
-	qHelpMenu->addAction (ACTION (about));				// About
-	qHelpMenu->addAction (ACTION (aboutQt));				// About Qt
+	initMenu ("&Help");
+	addMenuAction ("help");				// Help
+	menu->addSeparator ();					// -----
+	addMenuAction ("about");				// About
+	addMenuAction ("aboutQt");				// About Qt
 }
 
 // =============================================================================
@@ -306,19 +251,19 @@ void ForgeWindow::createMenus () {
 // =============================================================================
 void ForgeWindow::updateRecentFilesMenu () {
 	// First, clear any items in the recent files menu
-	for (QAction* qRecent : m_recentFiles)
-		delete qRecent;
+	for (QAction* recent : m_recentFiles)
+		delete recent;
 	m_recentFiles.clear ();
 	
-	std::vector<str> zaFiles = io_recentfiles.value / "@";
-	for (long i = zaFiles.size() - 1; i >= 0; --i) {
-		str zFile = zaFiles[i];
+	std::vector<str> files = io_recentfiles.value / "@";
+	for (long i = files.size() - 1; i >= 0; --i) {
+		str file = files[i];
 		
-		QAction* qRecent = new QAction (getIcon ("open-recent"), zFile, this);
+		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 		
-		connect (qRecent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
-		m_recentFilesMenu->addAction (qRecent);
-		m_recentFiles.push_back (qRecent);
+		connect (recent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
+		m_recentFilesMenu->addAction (recent);
+		m_recentFiles.push_back (recent);
 	}
 }
 
@@ -328,81 +273,87 @@ void ForgeWindow::updateRecentFilesMenu () {
 static QToolBar* g_CurrentToolBar;
 static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
 
-void ForgeWindow::initSingleToolBar (const char* sName) {
-	QToolBar* toolbar = new QToolBar (sName);
+void ForgeWindow::initSingleToolBar (const char* name) {
+	QToolBar* toolbar = new QToolBar (name);
 	addToolBar (g_ToolBarArea, toolbar);
 	m_toolBars.push_back (toolbar);
 	
 	g_CurrentToolBar = toolbar;
 }
 
+// =============================================================================
+void ForgeWindow::addToolBarAction (const char* name) {
+	g_CurrentToolBar->addAction (findAction (name));
+}
+
+// =============================================================================
 void ForgeWindow::createToolbars () {
 	initSingleToolBar ("File");
-	g_CurrentToolBar->addAction (ACTION (newFile));
-	g_CurrentToolBar->addAction (ACTION (open));
-	g_CurrentToolBar->addAction (ACTION (save));
-	g_CurrentToolBar->addAction (ACTION (saveAs));
+	addToolBarAction ("newFile");
+	addToolBarAction ("open");
+	addToolBarAction ("save");
+	addToolBarAction ("saveAs");
 	
 	// ==========================================
 	initSingleToolBar ("Insert");
-	g_CurrentToolBar->addAction (ACTION (newSubfile));
-	g_CurrentToolBar->addAction (ACTION (newLine));
-	g_CurrentToolBar->addAction (ACTION (newTriangle));
-	g_CurrentToolBar->addAction (ACTION (newQuad));
-	g_CurrentToolBar->addAction (ACTION (newCondLine));
-	g_CurrentToolBar->addAction (ACTION (newComment));
-	g_CurrentToolBar->addAction (ACTION (newBFC));
-	g_CurrentToolBar->addAction (ACTION (newVertex));
-	g_CurrentToolBar->addAction (ACTION (newRadial));
+	addToolBarAction ("newSubfile");
+	addToolBarAction ("newLine");
+	addToolBarAction ("newTriangle");
+	addToolBarAction ("newQuad");
+	addToolBarAction ("newCondLine");
+	addToolBarAction ("newComment");
+	addToolBarAction ("newBFC");
+	addToolBarAction ("newVertex");
+	addToolBarAction ("newRadial");
 	
 	// ==========================================
 	initSingleToolBar ("Edit");
-	g_CurrentToolBar->addAction (ACTION (undo));
-	g_CurrentToolBar->addAction (ACTION (redo));
-	g_CurrentToolBar->addAction (ACTION (cut));
-	g_CurrentToolBar->addAction (ACTION (copy));
-	g_CurrentToolBar->addAction (ACTION (paste));
-	g_CurrentToolBar->addAction (ACTION (del));
+	addToolBarAction ("undo");
+	addToolBarAction ("redo");
+	addToolBarAction ("cut");
+	addToolBarAction ("copy");
+	addToolBarAction ("paste");
+	addToolBarAction ("del");
 	
 	// ==========================================
 	initSingleToolBar ("Select");
-	g_CurrentToolBar->addAction (ACTION (selectAll));
-	g_CurrentToolBar->addAction (ACTION (selectByColor));
-	g_CurrentToolBar->addAction (ACTION (selectByType));
+	addToolBarAction ("selectAll");
+	addToolBarAction ("selectByColor");
+	addToolBarAction ("selectByType");
 	
 	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	initSingleToolBar ("Move");
-	g_CurrentToolBar->addAction (ACTION (moveUp));
-	g_CurrentToolBar->addAction (ACTION (moveDown));
-	g_CurrentToolBar->addAction (ACTION (moveXPos));
-	g_CurrentToolBar->addAction (ACTION (moveXNeg));
-	g_CurrentToolBar->addAction (ACTION (moveYPos));
-	g_CurrentToolBar->addAction (ACTION (moveYNeg));
-	g_CurrentToolBar->addAction (ACTION (moveZPos));
-	g_CurrentToolBar->addAction (ACTION (moveZNeg));
+	addToolBarAction ("moveUp");
+	addToolBarAction ("moveDown");
+	addToolBarAction ("moveXPos");
+	addToolBarAction ("moveXNeg");
+	addToolBarAction ("moveYPos");
+	addToolBarAction ("moveYNeg");
+	addToolBarAction ("moveZPos");
+	addToolBarAction ("moveZNeg");
 	
 	// ==========================================
 	initSingleToolBar ("Rotate");
-	g_CurrentToolBar->addAction (ACTION (rotateXPos));
-	g_CurrentToolBar->addAction (ACTION (rotateXNeg));
-	g_CurrentToolBar->addAction (ACTION (rotateYPos));
-	g_CurrentToolBar->addAction (ACTION (rotateYNeg));
-	g_CurrentToolBar->addAction (ACTION (rotateZPos));
-	g_CurrentToolBar->addAction (ACTION (rotateZNeg));
+	addToolBarAction ("rotateXPos");
+	addToolBarAction ("rotateXNeg");
+	addToolBarAction ("rotateYPos");
+	addToolBarAction ("rotateYNeg");
+	addToolBarAction ("rotateZPos");
+	addToolBarAction ("rotateZNeg");
 	
 	// ==========================================
 	// Grid toolbar
 	initSingleToolBar ("Grids");
-	g_CurrentToolBar->addAction (ACTION (gridCoarse));
-	g_CurrentToolBar->addAction (ACTION (gridMedium));
-	g_CurrentToolBar->addAction (ACTION (gridFine));
+	addToolBarAction ("gridCoarse");
+	addToolBarAction ("gridMedium");
+	addToolBarAction ("gridFine");
 	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	initSingleToolBar ("View");
-	g_CurrentToolBar->addAction (ACTION (axes));
+	addToolBarAction ("axes");
 	
 	// ==========================================
 	// Color toolbar
@@ -413,17 +364,17 @@ void ForgeWindow::createToolbars () {
 	// Left area toolbars
 	//g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Tools");
-	g_CurrentToolBar->addAction (ACTION (setColor));
-	g_CurrentToolBar->addAction (ACTION (invert));
-	g_CurrentToolBar->addAction (ACTION (inlineContents));
-	g_CurrentToolBar->addAction (ACTION (deepInline));
-	g_CurrentToolBar->addAction (ACTION (splitQuads));
-	g_CurrentToolBar->addAction (ACTION (setContents));
-	g_CurrentToolBar->addAction (ACTION (makeBorders));
-	g_CurrentToolBar->addAction (ACTION (makeCornerVerts));
-	g_CurrentToolBar->addAction (ACTION (roundCoords));
-	g_CurrentToolBar->addAction (ACTION (screencap));
-	g_CurrentToolBar->addAction (ACTION (uncolorize));
+	addToolBarAction ("setColor");
+	addToolBarAction ("invert");
+	addToolBarAction ("inlineContents");
+	addToolBarAction ("deepInline");
+	addToolBarAction ("splitQuads");
+	addToolBarAction ("setContents");
+	addToolBarAction ("makeBorders");
+	addToolBarAction ("makeCornerVerts");
+	addToolBarAction ("roundCoords");
+	addToolBarAction ("screencap");
+	addToolBarAction ("uncolorize");
 	
 	
 	updateToolBars ();
@@ -488,9 +439,9 @@ void ForgeWindow::updateToolBars () {
 // =============================================================================
 void ForgeWindow::updateGridToolBar () {
 	// Ensure that the current grid - and only the current grid - is selected.
-	ACTION (gridCoarse)->setChecked (grid == Grid::Coarse);
-	ACTION (gridMedium)->setChecked (grid == Grid::Medium);
-	ACTION (gridFine)->setChecked (grid == Grid::Fine);
+	findAction ("gridCoarse")->setChecked (grid == Grid::Coarse);
+	findAction ("gridMedium")->setChecked (grid == Grid::Medium);
+	findAction ("gridFine")->setChecked (grid == Grid::Fine);
 }
 
 // =============================================================================
@@ -731,10 +682,10 @@ void ForgeWindow::slot_selectionChanged () {
 	
 	/*
 	// If the selection isn't 1 exact, disable setting contents
-	ACTION (setContents)->setEnabled (qObjList->selectedItems().size() == 1);
+	findAction ("setContents")->setEnabled (qObjList->selectedItems().size() == 1);
 	
 	// If we have no selection, disable splitting quads
-	ACTION (splitQuads)->setEnabled (qObjList->selectedItems().size() > 0);
+	findAction ("splitQuads")->setEnabled (qObjList->selectedItems().size() > 0);
 	*/
 	
 	// Update the shared selection array, though don't do this if this was
@@ -922,19 +873,19 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	QMenu* contextMenu = new QMenu;
 	
 	if (single) {
-		contextMenu->addAction (ACTION (editObject));
+		contextMenu->addAction (findAction ("editObject"));
 		contextMenu->addSeparator ();
 	}
 	
-	contextMenu->addAction (ACTION (cut));
-	contextMenu->addAction (ACTION (copy));
-	contextMenu->addAction (ACTION (paste));
-	contextMenu->addAction (ACTION (del));
+	contextMenu->addAction (findAction ("cut"));
+	contextMenu->addAction (findAction ("copy"));
+	contextMenu->addAction (findAction ("paste"));
+	contextMenu->addAction (findAction ("del"));
 	contextMenu->addSeparator ();
-	contextMenu->addAction (ACTION (setColor));
+	contextMenu->addAction (findAction ("setColor"));
 	if (single)
-		contextMenu->addAction (ACTION (setContents));
-	contextMenu->addAction (ACTION (makeBorders));
+		contextMenu->addAction (findAction ("setContents"));
+	contextMenu->addAction (findAction ("makeBorders"));
 	
 	contextMenu->exec (pos);
 }
@@ -1022,4 +973,13 @@ void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
 	}
 	
 	m_msglog->setHtml (log);
+}
+
+// =============================================================================
+QAction* const& findAction (str name) {
+	for (actionmeta& meta : g_ActionMeta)
+		if (name == meta.name)
+			return *meta.qAct;
+	
+	return null;
 }

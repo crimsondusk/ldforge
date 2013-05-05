@@ -27,6 +27,7 @@
 #include "colors.h"
 #include "gui.h"
 #include "misc.h"
+#include "history.h"
 
 static double g_objOffset[3];
 static double g_storedBBoxSize;
@@ -77,6 +78,15 @@ const GLRenderer::Camera g_Cameras[7] = {
 	GLRenderer::Back,
 	GLRenderer::Right,
 	GLRenderer::Free
+};
+
+const struct GLAxis {
+	const QColor col;
+	const vertex vert;
+} g_GLAxes[3] = {
+	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
+	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
+	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
 };
 	
 // =============================================================================
@@ -342,15 +352,6 @@ void GLRenderer::resizeGL (int w, int h) {
 	glMatrixMode (GL_MODELVIEW);
 }
 
-const struct GLAxis {
-	const QColor col;
-	const vertex vert;
-} g_GLAxes[3] = {
-	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
-	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
-	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
-};
-
 void GLRenderer::drawGLScene () const {
 	if (g_curfile == null)
 		return;
@@ -396,6 +397,7 @@ void GLRenderer::drawGLScene () const {
 	glMatrixMode (GL_MODELVIEW);
 }
 
+// =============================================================================
 vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 	vertex pos3d;
 	const staticCameraMeta* cam = &g_staticCameras[m_camera];
@@ -405,8 +407,10 @@ vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 		negYFac = cam->negY ? -1 : 1;
 	
 	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
-	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) * g_storedBBoxSize - (negYFac * g_objOffset[axisY]);
+	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) *
+		g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
+	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) *
+		g_storedBBoxSize - (negYFac * g_objOffset[axisY]);
 	
 	if (snap) {
 		cx = Grid::snap (cx, (Grid::Config) axisX);
@@ -422,16 +426,37 @@ vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 	return pos3d;
 }
 
+// =============================================================================
 QPoint GLRenderer::coord_3to2 (const vertex& pos3d) const {
-	QPoint pos2d (0, 0);
-	GLdouble glmatr[16];
-	glGetDoublev (GL_MODELVIEW, glmatr);
+	/*
+	cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
 	
-	matrix<4> matr (glmatr);
+	                                                 cx = (-vw + ((2 * x * vw) / w) - panx) * size - (neg * ofs)
+	                                  cx + (neg * ofs) = (-vw + ((2 * x * vw) / w) - panx) * size
+	                         (cx + (neg * ofs)) / size = ((2 * x * vw) / w) - vw - panx
+	           ((cx + (neg * ofs)) / size) + vw + panx = (2 * x * vw) / w
+	     (((cx + (neg * ofs)) / size) + vw + panx) * w = 2 * vw * x
 	
-	vertex copy = pos3d;
-	copy.transform (matrix<3> (matr), g_origin);
-	return QPoint (copy[X], copy[Y]);
+	x = ((((cx + (neg * ofs)) / size) + vw + panx) * w) / (2 * vw)
+	*/
+	
+	QPoint pos2d;
+	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	const Axis axisX = cam->axisX;
+	const Axis axisY = cam->axisY;
+	const short negXFac = cam->negX ? -1 : 1,
+		negYFac = cam->negY ? -1 : 1;
+	
+	short x1 = ((((pos3d[axisX] + (negXFac * g_objOffset[axisX])) / g_storedBBoxSize) +
+		m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
+	short y1 = -((((pos3d[axisY] + (negYFac * g_objOffset[axisY])) / g_storedBBoxSize) -
+		m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	
+	x1 *= negXFac;
+	y1 *= negYFac;
+	
+	pos2d = QPoint (x1, y1);
+	return pos2d;
 }
 
 // =============================================================================
@@ -465,7 +490,42 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			textSize.height (), Qt::AlignCenter, text);
 		
 		// If we're plane drawing, draw the vertices onto the screen.
-		
+		if (m_planeDraw) {
+			ushort numverts = m_planeDrawVerts.size () + 1;
+			const short blipsize = 8;
+			
+			if (numverts > 0) {
+				QPoint* poly = new QPoint[numverts];
+				
+				uchar i = 0;
+				for (vertex& vert : m_planeDrawVerts) {
+					poly[i] = coord_3to2 (vert);
+					++i;
+				}
+				
+				// Draw the cursor vertex as the last one in the list.
+				if (numverts < 5)
+					poly[i] = coord_3to2 (m_hoverpos);
+				else
+					numverts = 4;
+				
+				paint.setPen (m_thinBorderPen);
+				paint.setBrush (QColor (128, 192, 0));
+				
+				// Draw vertex blips
+				for (ushort i = 0; i < numverts; ++i) {
+					QPoint& blip = poly[i];
+					paint.drawEllipse (blip.x () - blipsize / 2, blip.y () - blipsize / 2,
+						blipsize, blipsize);
+				}
+				
+				paint.setPen (m_thickBorderPen);
+				paint.setBrush (QColor (128, 192, 0, 128));
+				paint.drawPolygon (poly, numverts);
+				
+				delete[] poly;
+			}
+		}
 	}
 	
 	// Camera icons
@@ -719,9 +779,29 @@ void GLRenderer::clampAngle (double& angle) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
-	if ((m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton)) {
+	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
+	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
+	
+	if (wasLeft) {
 		if (m_planeDraw) {
-			m_planeDrawVerts.push_back ({m_hoverpos, m_pos});
+			printf ("vert: %s\n", m_hoverpos.stringRep (true).chars ());
+			
+			// If we picked an already-existing vertex, stop drawing
+			for (vertex& vert : m_planeDrawVerts) {
+				if (vert == m_hoverpos) {
+					endPlaneDraw (true);
+					return;
+				}
+			}
+			
+			// Also, if have 4 verts, also stop drawing.
+			if (m_planeDrawVerts.size () >= 4)
+				endPlaneDraw (true);
+			
+			m_planeDrawVerts.push_back (m_hoverpos);
+			
+			update ();
+			return;
 		} else {
 			if (!m_rangepick)
 				m_addpick = (m_keymods & Qt::ControlModifier);
@@ -732,6 +812,19 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		
 		m_rangepick = false;
 		m_totalmove = 0;
+		return;
+	}
+	
+	if (wasRight && m_planeDraw) {
+		if (m_planeDrawVerts.size () > 0) {
+			// Remove the last vertex
+			m_planeDrawVerts.erase (m_planeDrawVerts.end () - 1);
+		} else {
+			endPlaneDraw (false);
+			return;
+		}
+		
+		update ();
 	}
 }
 
@@ -854,11 +947,11 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
-		std::vector<LDObject*> paOldSelection = g_win->sel ();
+		std::vector<LDObject*> oldsel = g_win->sel ();
 		g_win->sel ().clear ();
 		
 		// Recompile the prior selection to remove the highlight color
-		for (LDObject* obj : paOldSelection)
+		for (LDObject* obj : oldsel)
 			recompileObject (obj);
 	}
 	
@@ -974,17 +1067,94 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	update ();
 }
 
+// =============================================================================
 void GLRenderer::beginPlaneDraw () {
 	if (m_camera == Free)
-		return;
+		return; // Cannot draw with the free camera
 	
 	m_planeDraw = true;
+	
+	// Disable the context menu - we need the right mouse button
+	// for removing vertices.
+	setContextMenuPolicy (Qt::NoContextMenu);
+	
+	// Use the crosshair cursor when plane drawing.
+	setCursor (Qt::CrossCursor);
+	
+	// Clear the selection when beginning to draw onto a plane.
+	// FIXME: make the selection clearing stuff in ::pick a method and use it
+	// here! This code doesn't update the GL lists.
+	g_win->sel ().clear ();
+	g_win->updateSelection ();
 	update ();
 }
 
-// ========================================================================= //
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * //
-// ========================================================================= //
+// =============================================================================
+void GLRenderer::endPlaneDraw (bool accept) {
+	// If we accepted, clean the selection and create the object
+	if (accept) {
+		vector<vertex>& verts = m_planeDrawVerts;
+		printf ("accepted (%lu verts)\n", verts.size ());
+		
+		LDObject* obj = null;
+		
+		switch (verts.size ()) {
+		case 1:
+			{
+				// 1 vertex - add a vertex object
+				obj = new LDVertex;
+				static_cast<LDVertex*> (obj)->vPosition = verts[0];
+				obj->dColor = maincolor;
+			}
+			break;
+		
+		case 2:
+			{
+				// 2 verts - make a line
+				obj = new LDLine;
+				obj->dColor = edgecolor;
+				for (ushort i = 0; i < 2; ++i)
+					obj->vaCoords[i] = verts[i];
+			}
+			break;
+			
+		case 3:
+		case 4:
+			{
+				obj = (verts.size () == 3) ?
+					static_cast<LDObject*> (new LDTriangle) :
+					static_cast<LDObject*> (new LDQuad);
+				
+				obj->dColor = maincolor;
+				for (ushort i = 0; i < obj->vertices (); ++i)
+					obj->vaCoords[i] = verts[i];
+			}
+			break;
+		}
+		
+		if (obj) {
+			g_curfile->addObject (obj);
+			recompileObject (obj);
+			g_win->refresh ();
+			
+			History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
+		}
+	}
+	
+	m_planeDraw = false;
+	m_planeDrawVerts.clear ();
+	
+	unsetCursor ();
+	
+	// Restore the context menu
+	setContextMenuPolicy (Qt::DefaultContextMenu);
+	
+	update ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void GLRenderer::recompileObject (LDObject* obj) {
 	// Replace the old list with the new one.
 	GLuint uList = glGenLists (1);

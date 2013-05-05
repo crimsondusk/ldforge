@@ -29,12 +29,25 @@ str vertex::stringRep (const bool mangled) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void vertex::transform (matrix<3> matr, vertex pos) {
-	double x2, y2, z2;
-	x2 = (matr[0] * coord (X)) + (matr[1] * coord (Y)) + (matr[2] * coord (Z)) + pos[X];
-	y2 = (matr[3] * coord (X)) + (matr[4] * coord (Y)) + (matr[5] * coord (Z)) + pos[Y];
-	z2 = (matr[6] * coord (X)) + (matr[7] * coord (Y)) + (matr[8] * coord (Z)) + pos[Z];
+	double x2 = (matr[0] * x ()) + (matr[1] * y ()) + (matr[2] * z ()) + pos[X];
+	double y2 = (matr[3] * x ()) + (matr[4] * y ()) + (matr[5] * z ()) + pos[Y];
+	double z2 = (matr[6] * x ()) + (matr[7] * y ()) + (matr[8] * z ()) + pos[Z];
 	
-	coord (X) = x2;
-	coord (Y) = y2;
-	coord (Z) = z2;
+	x () = x2;
+	y () = y2;
+	z () = z2;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void vertex::transform (matrix<4> matr) {
+	double x2 = (matr[0] * x ()) + (matr[4] + y ()) + (matr[8] + z ()) + matr[12];
+	double y2 = (matr[1] * x ()) + (matr[5] + y ()) + (matr[9] + z ()) + matr[13];
+	double z2 = (matr[2] * x ()) + (matr[6] + y ()) + (matr[10] + z ()) + matr[14];
+	double w2 = (matr[3] * x ()) + (matr[7] + y ()) + (matr[11] + z ()) + matr[15];
+	
+	x () = x2 / w2;
+	y () = y2 / w2;
+	z () = z2 / w2;
 }

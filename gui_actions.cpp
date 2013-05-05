@@ -390,8 +390,16 @@ MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
 }
 
 // =============================================================================
-MAKE_ACTION (beginPlaneDraw, "Begin drawing", "draw", "Begin drawing geometry", KEY (Space)) {
+MAKE_ACTION (beginDraw, "Begin Drawing", "draw", "Begin drawing geometry", KEY (Insert)) {
 	g_win->R ()->beginPlaneDraw ();
+}
+
+MAKE_ACTION (cancelDraw, "Cancel Drawing", "draw-cancel", "Cancel drawing geometry", KEY (Escape)) {
+	g_win->R ()->endPlaneDraw (false);
+}
+
+MAKE_ACTION (doneDraw, "Done Drawing", "draw-done", "Done drawing geometry", KEY (Enter)) {
+	g_win->R ()->endPlaneDraw (true);
 }
 
 // =============================================================================

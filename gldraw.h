@@ -24,11 +24,6 @@
 #include "common.h"
 #include "ldtypes.h"
 
-typedef struct {
-	vertex pos3d;
-	QPoint pos2d;
-} GLPlaneDrawVertex;
-
 // =============================================================================
 // GLRenderer
 // 
@@ -63,9 +58,11 @@ public:
 	void updateSelFlash ();
 	void resetAngles ();
 	uchar* screencap (ushort& w, ushort& h);
-	void beginPlaneDraw ();
-	GLRenderer::Camera camera () { return m_camera; }
 	void setCamera (const GLRenderer::Camera cam);
+	void beginPlaneDraw ();
+	void endPlaneDraw (bool accept);
+	
+	GLRenderer::Camera camera () { return m_camera; }
 	bool picking () { return m_picking; }
 
 protected:
@@ -95,7 +92,7 @@ private:
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
 	ushort m_width, m_height;
-	std::vector<GLPlaneDrawVertex> m_planeDrawVerts;
+	std::vector<vertex> m_planeDrawVerts;
 	
 	void compileOneObject (LDObject* obj);
 	void compileSubObject (LDObject* obj, const GLenum gltype);
