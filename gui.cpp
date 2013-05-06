@@ -231,6 +231,9 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("rotateZPos");			// Rotate +Z
 	addMenuAction ("rotateZNeg");			// Rotate -Z
 	
+	initMenu ("E&xternal Programs");
+	addMenuAction ("ytruder");
+	
 #ifndef RELEASE
 	// Debug menu
 	initMenu ("&Debug");
@@ -375,7 +378,9 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("roundCoords");
 	addToolBarAction ("screencap");
 	addToolBarAction ("uncolorize");
-	addToolBarAction ("extrude");
+	
+	initSingleToolBar ("External Programs");
+	addToolBarAction ("ytruder");
 	
 	updateToolBars ();
 }

@@ -16,15 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <qprocess.h>
+#include <qtemporaryfile.h>
+#include <qeventloop.h>
+#include <qdialog.h>
+#include <qdialogbuttonbox.h>
+#include <qspinbox.h>
 #include "common.h"
 #include "config.h"
 #include "misc.h"
 #include "extprogs.h"
 #include "gui.h"
 #include "file.h"
-#include <qprocess.h>
-#include <qtemporaryfile.h>
-#include <qeventloop.h>
+#include "radiobox.h"
+#include "history.h"
 
 // =============================================================================
 cfg (str, prog_isecalc, "");
@@ -109,6 +114,40 @@ void runYtruder () {
 		return;
 	}
 	
+	QDialog* dlg = new QDialog (g_win);
+	
+	RadioBox* rb_mode = new RadioBox ("Extrusion mode", {"Distance", "Symmetry", "Projection", "Radial"}, 0, Qt::Horizontal, dlg);
+	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal, dlg);
+	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth", dlg),
+		*dsb_condAngle = new LabeledWidget<QDoubleSpinBox> ("Conditional line threshold", dlg);
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	
+	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	
+	rb_axis->setValue (Y);
+	dsb_depth->w ()->setMinimum (-10000.0);
+	dsb_depth->w ()->setMaximum (10000.0);
+	dsb_depth->w ()->setDecimals (3);
+	dsb_condAngle->w ()->setValue (30.0f);
+	
+	QVBoxLayout* layout = new QVBoxLayout (dlg);
+	layout->addWidget (rb_mode);
+	layout->addWidget (rb_axis);
+	layout->addWidget (dsb_depth);
+	layout->addWidget (dsb_condAngle);
+	layout->addWidget (bbx_buttons);
+	
+	dlg->setWindowIcon (getIcon ("extrude"));
+	
+	if (!dlg->exec ())
+		return;
+	
+	const enum modetype { Distance, Symmetry, Projection, Radial } mode = (modetype) rb_mode->value ();
+	const Axis axis = (Axis) rb_axis->value ();
+	const double depth = dsb_depth->w ()->value (),
+		condAngle = dsb_condAngle->w ()->value ();
+	
 	QTemporaryFile in, out, input;
 	str inname, outname, inputname;
 	FILE* fp;
@@ -117,7 +156,14 @@ void runYtruder () {
 		return;
 	
 	QProcess proc;
-	QStringList argv ({"-p", "0", "-y", inname, outname});
+	QStringList argv ({(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
+		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
+		fmt ("%f", depth), "-a", fmt ("%f", condAngle), inname, outname});
+	
+	printf ("cmdline: %s ", prog_ytruder.value.chars ());
+	for (QString& arg : argv)
+		printf ("%s ", qchars (arg));
+	printf ("\n");
 	
 	// Write the input file
 	fp = fopen (inname, "w");
@@ -157,13 +203,20 @@ void runYtruder () {
 	if (!fp)
 		fprintf (stderr, "couldn't read %s\n", outname.chars ());
 	
-	char line[1024];
-	while (fgets (line, sizeof line, fp)) {
-		printf ("%s", line);
-		LDObject* obj = parseLine (str (line).strip ({'\n', '\r'}));
-		g_curfile->addObject (obj);
-	}
-	fclose (fp);
+	std::vector<LDObject*> objs = loadFileContents (fp, null),
+		copies;
+	std::vector<ulong> indices;
 	
+	g_win->sel ().clear ();
+	for (LDObject* obj : objs) {
+		ulong idx = g_curfile->addObject (obj);
+		indices.push_back (idx);
+		copies.push_back (obj->clone ());
+	}
+	
+	History::addEntry (new AddHistory ({indices, copies}));
+	
+	fclose (fp);
+	g_win->sel () = objs;
 	g_win->refresh ();
 }
