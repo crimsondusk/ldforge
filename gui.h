@@ -174,7 +174,7 @@ private:
 	void initSingleToolBar (const char* name);
 	void addToolBarAction (const char* name);
 	
-	void initMenu (const char* name);
+	QMenu* initMenu (const char* name);
 	void addMenuAction (const char* name);
 
 private slots:

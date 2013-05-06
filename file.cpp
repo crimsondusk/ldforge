@@ -176,7 +176,7 @@ OpenFile* openDATFile (str path, bool search) {
 	fclose (fp);
 	g_loadedFiles.push_back (load);
 	
-	logf (LOG_Success, "File %s parsed successfully (%lu warning%s).\n",
+	logf ("File %s parsed successfully (%lu warning%s).\n",
 		path.chars(), numWarnings, PLURAL (numWarnings));
 	
 	return load;

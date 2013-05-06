@@ -60,6 +60,7 @@ char const* g_saObjTypeIcons[] = {
 LDObject::LDObject () {
 	qObjListEntry = null;
 	parent = null;
+	m_group = NoGroup;
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {
@@ -655,7 +656,7 @@ str LDRadial::makeFileName () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define CHECK_FOR_OBJ(N) \
-	if (type == LDObject::##N) \
+	if (type == LDObject::N) \
 		return new LD##N;
 LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (Comment)

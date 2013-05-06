@@ -129,11 +129,14 @@ static inline const char* qchars (QString qstr) {
 
 static const double pi = 3.14159265358979323846f;
 
+#ifdef IN_IDE_PARSER // KDevelop workaround
+// Current function name
+static const char* __func__ = "";
+#endif // IN_IDE_PARSER
+
 // -----------------------------------------------------------------------------
 enum LogType {
 	LOG_Normal,
-	LOG_Success,
-	LOG_Info,
 	LOG_Warning,
 	LOG_Error,
 	LOG_Dev,
@@ -145,8 +148,6 @@ enum LogType {
 void logf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
 void logf (LogType type, const char* fmtstr, ...) FORMAT_PRINTF (2, 3);
 void warnf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
-void infof (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
-void succf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
 void errf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
 
 #ifndef RELEASE

@@ -72,7 +72,13 @@ public:
 		Unidentified,	// Object is an uninitialized (SHOULD NEVER HAPPEN)
 		NumTypes		// Amount of object types
 	};
-
+	
+	enum Group {
+		NoGroup = -1,
+		A = 0, B, C, D,
+		NumGroups 
+	};
+	
 	LDObject ();
 	virtual ~LDObject ();
 	
@@ -138,11 +144,14 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	uint32 groups () const { return m_groups; }
-	void setGroups (const uint32 groups) { m_groups = groups; }
-	
+	Group group () const { return m_group; }
+	void setGroup (const Group group) { m_group = group; }
+	bool hidden () const { return m_hidden; }
+	void setHidden (const bool hidden) { m_hidden = hidden; }
+
 private:
-	uint32 m_groups;
+	Group m_group;
+	bool m_hidden;
 };
 
 // =============================================================================

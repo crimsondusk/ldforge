@@ -85,24 +85,10 @@ void warnf (const char* fmtstr, ...) {
 	va_end (va);
 }
 
-void succf (const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (LOG_Success, fmtstr, va);
-	va_end (va);
-}
-
 void errf (const char* fmtstr, ...) {
 	va_list va;
 	va_start (va, fmtstr);
 	g_win->logVA (LOG_Error, fmtstr, va);
-	va_end (va);
-}
-
-void infof (const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (LOG_Info, fmtstr, va);
 	va_end (va);
 }
 

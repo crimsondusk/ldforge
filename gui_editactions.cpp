@@ -685,3 +685,27 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		g_win->refresh ();
 	}
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void setGroup (const LDObject::Group group) {
+	for (LDObject* obj : g_win->sel ())
+		obj->setGroup (group);
+	
+	g_win->refresh ();
+}
+
+#define GROUP_ACTION(N, KEY) \
+	MAKE_ACTION (group##N, "Group " #N, "group", "Set group of selected objects to " #N, CTRL_SHIFT (KEY)) { \
+		setGroup (LDObject::N); \
+	}
+
+GROUP_ACTION (A, 1)
+GROUP_ACTION (B, 2)
+GROUP_ACTION (C, 3)
+GROUP_ACTION (D, 4)
+
+MAKE_ACTION (groupNone, "No Group", "group-no", "Unset objects' group", CTRL_SHIFT (0)) {
+	setGroup (LDObject::NoGroup);
+}

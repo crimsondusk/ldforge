@@ -23,6 +23,7 @@
 #include <qstatusbar.h>
 #include <qsplitter.h>
 #include <qlistwidget.h>
+#include <qtoolbutton.h>
 #include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
@@ -43,6 +44,15 @@ cfg (int, gui_toolbar_iconsize, 24);
 cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
+
+const QColor g_GroupBackgrounds[] = {
+	QColor (0, 192, 255), // blue
+	QColor (144, 255, 0), // green
+	QColor (160, 64, 255), // purple
+	QColor (255, 128, 0), // orange
+};
+
+const ushort g_numGroups = 2;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -126,8 +136,8 @@ void ForgeWindow::createMenuActions () {
 // =============================================================================
 QMenu* g_CurrentMenu;
 
-void ForgeWindow::initMenu (const char* name) {
-	g_CurrentMenu = menuBar ()->addMenu (tr (name));
+QMenu* ForgeWindow::initMenu (const char* name) {
+	return g_CurrentMenu = menuBar ()->addMenu (tr (name));
 }
 
 void ForgeWindow::addMenuAction (const char* name) {
@@ -195,6 +205,11 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("selectAll");			// Select All
 	addMenuAction ("selectByColor");		// Select by Color
 	addMenuAction ("selectByType");		// Select by Type
+	menu->addSeparator ();					// -----
+	
+	for (uchar i = 0; i < LDObject::NumGroups; ++i)
+		addMenuAction (fmt ("group%c", 'A' + i)); // Group *
+	addMenuAction ("groupNone");			// No Group
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
@@ -248,6 +263,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("about");				// About
 	addMenuAction ("aboutQt");				// About Qt
 }
+
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -382,6 +398,21 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
 	
+	initSingleToolBar ("Groups");
+	
+	// We need to create the group toolbar buttons manually so that we can
+	// set a custom background for them.
+	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
+		QToolButton* btn = new QToolButton (this);
+		QColor col = g_GroupBackgrounds[i];
+		
+		btn->setDefaultAction (findAction (fmt ("group%c", 'A' + i)));
+		btn->setStyleSheet (fmt ("QToolButton { background-color: \"#%.2X%.2X%.2X\"; }",
+			col.red (), col.green (), col.blue ()));
+		g_CurrentToolBar->addWidget (btn);
+	}
+	
+	addToolBarAction ("groupNone");
 	updateToolBars ();
 }
 
@@ -391,11 +422,11 @@ void ForgeWindow::createToolbars () {
 std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 	std::vector<quickColorMetaEntry> meta;
 	
-	for (str zColor : gui_colortoolbar.value / ":") {
-		if (zColor == "|") {
+	for (str colorname : gui_colortoolbar.value / ":") {
+		if (colorname == "|") {
 			meta.push_back ({null, null, true});
 		} else {
-			color* col = getColor (atoi (zColor));
+			color* col = getColor (atoi (colorname));
 			meta.push_back ({col, null, false});
 		}
 	}
@@ -657,6 +688,8 @@ void ForgeWindow::buildObjList () {
 			color* col = getColor (obj->dColor);
 			if (col)
 				item->setForeground (col->qColor);
+		} else if (obj->group () != LDObject::NoGroup) {
+			item->setBackground (g_GroupBackgrounds[obj->group ()]);
 		}
 		
 		obj->qObjListEntry = item;
@@ -954,16 +987,6 @@ void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
 			zText.chars());
 		break;
 	
-	case LOG_Info:
-		log.appendformat ("<span style=\"color: #0AC\"><b>[INFO]</b> %s</span>",
-			zText.chars());
-		break;
-	
-	case LOG_Success:
-		log.appendformat ("<span style=\"color: #6A0\"><b>[SUCCESS]</b> %s</span>",
-			zText.chars());
-		break;
-	
 	case LOG_Warning:
 		log.appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
 			zText.chars());
@@ -986,5 +1009,7 @@ QAction* findAction (str name) {
 		if (name == meta.name)
 			return *meta.qAct;
 	
+	fprintf (stderr, "%s: couldn't find action named `%s'!\n", __func__, name.chars ());
+	assert (false);
 	return null;
 }

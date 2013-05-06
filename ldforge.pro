@@ -34,11 +34,11 @@ HEADERS += bbox.h \
 	zz_setContentsDialog.h
 
 SOURCES += \
-	gldraw.cpp \
+	config.cpp \
 	gui.cpp \
+	gldraw.cpp \
 	bbox.cpp \
 	colors.cpp \
-	config.cpp \
 	extprogs.cpp \
 	file.cpp \
 	gui_actions.cpp \
