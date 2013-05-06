@@ -15,6 +15,7 @@ HEADERS += bbox.h \
 	colors.h \
 	common.h \
 	config.h \
+	extprogs.h \
 	file.h \
 	gldraw.h \
 	gui.h \
@@ -33,14 +34,15 @@ HEADERS += bbox.h \
 	zz_setContentsDialog.h
 
 SOURCES += bbox.cpp \
-	config.cpp \
 	colors.cpp \
+	config.cpp \
+	extprogs.cpp \
+	file.cpp \
 	gldraw.cpp \
 	gui.cpp \
 	gui_actions.cpp \
 	gui_editactions.cpp \
 	history.cpp \
-	file.cpp \
 	ldtypes.cpp \
 	main.cpp \
 	misc.cpp \

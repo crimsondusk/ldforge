@@ -27,6 +27,8 @@
 #include <QTextEdit>
 #include <qpushbutton.h>
 #include <qlistwidget.h>
+#include <qlabel.h>
+#include <qboxlayout.h>
 #include "gldraw.h"
 #include "config.h"
 
@@ -181,6 +183,37 @@ private slots:
 	void slot_recentFile ();
 	void slot_quickColor ();
 	void slot_lastSecondCleanup ();
+};
+
+// =============================================================================
+// LabeledWidget
+//
+// Convenience class for a widget with a label beside it.
+// =============================================================================
+template<class R> class LabeledWidget : public QWidget {
+public:
+	LabeledWidget (const char* labelstr, QWidget* parent) : QWidget (parent) {
+		m_widget = new R (this);
+		m_label = new QLabel (labelstr, this);
+		
+		m_layout = new QHBoxLayout;
+		m_layout->addWidget (m_label);
+		m_layout->addWidget (m_widget);
+		setLayout (m_layout);
+	}
+	
+	R* widget () const { return m_widget; }
+	R* w () const { return m_widget; }
+	QLabel* label () const { return m_label; }
+	QLabel* l () const { return m_label; }
+	void setWidget (R* widget) { m_widget = widget; }
+	void setLabel (QLabel* label) { m_label = label; }
+	operator R* () { return m_widget; }
+	
+private:
+	R* m_widget;
+	QLabel* m_label;
+	QHBoxLayout* m_layout;
 };
 
 // -----------------------------------------------------------------------------

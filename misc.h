@@ -21,6 +21,7 @@
 
 #include "common.h"
 #include "str.h"
+#include "config.h"
 
 #define NUM_PRIMES 500
 
@@ -71,6 +72,7 @@ namespace Grid {
 	double snap (double value, const Grid::Config axis);
 };
 
+// =============================================================================
 template<class T> void dataswap (T& a, T& b) {
 	T c = a;
 	a = b;

@@ -34,7 +34,7 @@ class ConfigDialog : public QDialog {
 	
 public:
 	QTabWidget* tabs;
-	QWidget* mainTab, *shortcutsTab, *quickColorTab;
+	QWidget* mainTab, *shortcutsTab, *quickColorTab, *extProgTab;
 	
 	// =========================================================================
 	// Main tab widgets
@@ -80,6 +80,7 @@ private:
 	void initShortcutsTab ();
 	void initQuickColorTab ();
 	void initGridTab ();
+	void initExtProgTab ();
 	
 	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
 	void setButtonBackground (QPushButton* qButton, str zValue);

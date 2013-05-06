@@ -375,7 +375,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("roundCoords");
 	addToolBarAction ("screencap");
 	addToolBarAction ("uncolorize");
-	
+	addToolBarAction ("extrude");
 	
 	updateToolBars ();
 }

@@ -314,6 +314,15 @@ void ConfigDialog::initGridTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+void ConfigDialog::initExtProgTab () {
+	QWidget* tab = new QWidget;
+	
+	QGridLayout* layout = new QGridLayout;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
 	for (QListWidgetItem* qItem : quickColorItems)
 		delete qItem;

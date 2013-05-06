@@ -25,6 +25,10 @@
 #include "zz_setContentsDialog.h"
 #include "misc.h"
 #include "bbox.h"
+#include "radiobox.h"
+#include "extprogs.h"
+#include <qspinbox.h>
+#include <qcheckbox.h>
 
 vector<LDObject*> g_Clipboard;
 
@@ -680,4 +684,43 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
 		g_win->refresh ();
 	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (extrude, "Extrude", "extrude", "Extrude selected lines to a given plane", KEY (F8)) {
+	QDialog* dlg = new QDialog (g_win);
+	
+	RadioBox* rb_mode = new RadioBox ("Extrusion mode", {"Project", "Mirror"}, 0, Qt::Horizontal, dlg);
+	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal, dlg);
+	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth", dlg);
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QCheckBox* cb_edges = new QCheckBox ("Add edgelines to extrusion point");
+	
+	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	
+	dsb_depth->w ()->setMinimum (-10000.0);
+	dsb_depth->w ()->setMaximum (10000.0);
+	dsb_depth->w ()->setDecimals (3);
+	
+	QVBoxLayout* layout = new QVBoxLayout (dlg);
+	layout->addWidget (rb_mode);
+	layout->addWidget (rb_axis);
+	layout->addWidget (dsb_depth);
+	layout->addWidget (cb_edges);
+	layout->addWidget (bbx_buttons);
+	
+	dlg->setWindowIcon (getIcon ("extrude"));
+	
+	if (!dlg->exec ())
+		return;
+	
+	const double depth = dsb_depth->w ()->value ();
+	const Axis axis = (Axis) rb_axis->value ();
+	const enum modetype { Projection, Mirror } mode = (modetype) rb_mode->value ();
+	const bool addEdges = cb_edges->isChecked ();
+	
+	runYtruder ();
 }
