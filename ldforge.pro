@@ -33,13 +33,14 @@ HEADERS += bbox.h \
 	zz_newPartDialog.h \
 	zz_setContentsDialog.h
 
-SOURCES += bbox.cpp \
+SOURCES += \
+	gldraw.cpp \
+	gui.cpp \
+	bbox.cpp \
 	colors.cpp \
 	config.cpp \
 	extprogs.cpp \
 	file.cpp \
-	gldraw.cpp \
-	gui.cpp \
 	gui_actions.cpp \
 	gui_editactions.cpp \
 	history.cpp \

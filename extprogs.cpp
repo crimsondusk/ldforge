@@ -105,10 +105,116 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 	return true;
 }
 
-bool g_processDone = false;
+// =============================================================================
+void writeSelection (str fname) {
+	// Write the input file
+	FILE* fp = fopen (fname, "w");
+	if (!fp) {
+		critical (fmt ("Couldn't open temporary file %s for writing.\n", fname.chars ()));
+		return;
+	}
+	
+	for (LDObject* obj : g_win->sel ()) {
+		str line = fmt ("%s\r\n", obj->getContents ().chars ());
+		fwrite (line.chars(), 1, ~line, fp);
+	}
+	
+	fclose (fp);
+}
 
 // =============================================================================
-void runYtruder () {
+void runUtilityProcess (extprog prog, QStringList argv) {
+	QTemporaryFile input, output;
+	str inputname, outputname;
+	
+	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
+		return;
+	
+	QProcess proc;
+	
+	// Init stdin
+	FILE* stdinfp = fopen (inputname, "w");
+	
+	// Begin!
+	proc.setStandardInputFile (inputname);
+	proc.start (prog_ytruder.value, argv);
+	
+	// Write an enter - one is expected
+	char enter[2] = "\n";
+	enter[1] = '\0';
+	fwrite (enter, 1, sizeof enter, stdinfp);
+	fflush (stdinfp);
+	
+	// Wait while it runs
+	proc.waitForFinished ();
+	
+	if (proc.exitStatus () == QProcess::CrashExit) {
+		processError (prog, proc);
+		return;
+	}
+}
+
+// =============================================================================
+void insertOutput (str fname, bool replace) {
+	// Read the output file
+	FILE* fp = fopen (fname, "r");
+	if (!fp) {
+		critical (fmt ("Couldn't open temporary file %s for reading.\n", fname.chars ()));
+		return;
+	}
+	
+	ComboHistory* cmb = new ComboHistory ({});
+	std::vector<LDObject*> objs = loadFileContents (fp, null),
+		copies;
+	std::vector<ulong> indices;
+	
+	ulong idx = g_win->getInsertionPoint ();
+	
+	// If we replace the objects, delete the selection now.
+	if (replace) {
+		vector<ulong> indices;
+		vector<LDObject*> cache,
+			sel = g_win->sel ();
+		
+		for (LDObject* obj : sel) {
+			indices.push_back (obj->getIndex (g_curfile));
+			cache.push_back (obj->clone ());
+			
+			g_curfile->forgetObject (obj);
+			delete obj;
+		}
+	}
+	
+	// Insert the new objects
+	g_win->sel ().clear ();
+	for (LDObject* obj : objs) {
+		if (!obj->isSchemantic ()) {
+			delete obj;
+			continue;
+		}
+		
+		g_curfile->insertObj (idx, obj);
+		indices.push_back (idx);
+		copies.push_back (obj->clone ());
+		g_win->sel ().push_back (obj);
+		
+		++idx;
+	}
+	
+	if (indices.size() > 0)
+		cmb->paEntries.push_back (new AddHistory ({indices, copies}));
+	
+	if (cmb->paEntries.size () > 0)
+		History::addEntry (cmb);
+	else
+		delete cmb;
+	
+	fclose (fp);
+	g_win->refresh ();
+}
+
+// =============================================================================
+MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F8)) {
 	if (prog_ytruder.value.len () == 0) {
 		noPathConfigured (Ytruder);
 		return;
@@ -148,75 +254,18 @@ void runYtruder () {
 	const double depth = dsb_depth->w ()->value (),
 		condAngle = dsb_condAngle->w ()->value ();
 	
-	QTemporaryFile in, out, input;
-	str inname, outname, inputname;
-	FILE* fp;
+	QTemporaryFile indat, outdat;
+	str inDATName, outDATName;
 	
-	if (!mkTempFile (in, inname) || !mkTempFile (out, outname) || !mkTempFile (input, inputname))
+	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	QProcess proc;
 	QStringList argv ({(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
-		fmt ("%f", depth), "-a", fmt ("%f", condAngle), inname, outname});
+		fmt ("%f", depth), "-a", fmt ("%f", condAngle), inDATName, outDATName
+	});
 	
-	printf ("cmdline: %s ", prog_ytruder.value.chars ());
-	for (QString& arg : argv)
-		printf ("%s ", qchars (arg));
-	printf ("\n");
-	
-	// Write the input file
-	fp = fopen (inname, "w");
-	if (!fp)
-		return;
-	
-	for (LDObject* obj : g_win->sel ()) {
-		str line = fmt ("%s\r\n", obj->getContents ().chars ());
-		fwrite (line.chars(), 1, ~line, fp);
-	}
-	fclose (fp);
-	
-	// Init stdin
-	FILE* stdinfp = fopen (inputname, "w");
-	
-	// Begin!
-	proc.setStandardInputFile (inputname);
-	proc.setStandardOutputFile ("blarg");
-	proc.start (prog_ytruder.value, argv);
-	
-	// Write an enter - one is expected
-	char enter[2] = "\n";
-	enter[1] = '\0';
-	fwrite (enter, 1, sizeof enter, stdinfp);
-	fflush (stdinfp);
-	
-	// Wait while it runs
-	proc.waitForFinished ();
-	
-	if (proc.exitStatus () == QProcess::CrashExit) {
-		processError (Ytruder, proc);
-		return;
-	}
-	
-	// Read the output file
-	fp = fopen (outname, "r");
-	if (!fp)
-		fprintf (stderr, "couldn't read %s\n", outname.chars ());
-	
-	std::vector<LDObject*> objs = loadFileContents (fp, null),
-		copies;
-	std::vector<ulong> indices;
-	
-	g_win->sel ().clear ();
-	for (LDObject* obj : objs) {
-		ulong idx = g_curfile->addObject (obj);
-		indices.push_back (idx);
-		copies.push_back (obj->clone ());
-	}
-	
-	History::addEntry (new AddHistory ({indices, copies}));
-	
-	fclose (fp);
-	g_win->sel () = objs;
-	g_win->refresh ();
+	writeSelection (inDATName);
+	runUtilityProcess (Ytruder, argv);
+	insertOutput (outDATName, false);
 }

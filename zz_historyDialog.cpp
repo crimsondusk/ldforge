@@ -101,18 +101,18 @@ void HistoryDialog::populateList () {
 						// Determine a common type for these objects. If all objects are of the same
 						// type, we display its addition icon. Otherwise, we draw a subfile addition
 						// one as a default.
-						LDObjectType_e eCommonType = OBJ_Unidentified;
+						LDObject::Type eCommonType = LDObject::Unidentified;
 						for (LDObject* obj : subentry->paObjs) {
-							if (eCommonType == OBJ_Unidentified or obj->getType() == eCommonType)
+							if (eCommonType == LDObject::Unidentified or obj->getType() == eCommonType)
 								eCommonType = obj->getType ();
 							else {
-								eCommonType = OBJ_Unidentified;
+								eCommonType = LDObject::Unidentified;
 								break;
 							}
 						}
 						
 						// Set the icon based on the common type decided above.
-						if (eCommonType == OBJ_Unidentified)
+						if (eCommonType == LDObject::Unidentified)
 							entryIcon = getIcon ("add-subfile");
 						else
 							entryIcon = getIcon (fmt ("add-%s", g_saObjTypeIcons[eCommonType]));

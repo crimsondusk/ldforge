@@ -29,6 +29,4 @@ enum extprog {
 	DATHeader
 };
 
-void runYtruder ();
-
 #endif // EXTPROGS_H

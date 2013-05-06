@@ -25,8 +25,8 @@
 #define IMPLEMENT_LDTYPE(T, NUMVERTS) \
 	LD##T () {} \
 	virtual ~LD##T () {} \
-	virtual LDObjectType_e getType () const { \
-		return OBJ_##T; \
+	virtual LDObject::Type getType () const { \
+		return LDObject::T; \
 	} \
 	virtual str getContents (); \
 	virtual LD##T* clone () { \
@@ -39,29 +39,12 @@
 #define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
 #define LDOBJ_UNCOLORED LDOBJ_SETCOLORED (false)
 
+#define LDOBJ_CUSTOM_SCHEMANTIC virtual bool isSchemantic () const
+#define LDOBJ_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return true; }
+#define LDOBJ_NON_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return false; }
+
 class QListWidgetItem;
 class LDSubfile;
-
-// =============================================================================
-// LDObjectType_e
-// 
-// Object type codes. Codes are sorted in order of significance.
-// =============================================================================
-enum LDObjectType_e {
-	OBJ_Subfile,		// Object represents a sub-file reference
-	OBJ_Radial,			// Object represents a generic radial
-	OBJ_Quad,			// Object represents a quadrilateral
-	OBJ_Triangle,		// Object represents a triangle
-	OBJ_Line,			// Object represents a line
-	OBJ_CondLine,		// Object represents a conditional line
-	OBJ_Vertex,			// Object is a vertex, LDForge extension object
-	OBJ_BFC,			// Object represents a BFC statement
-	OBJ_Comment,		// Object represents a comment
-	OBJ_Gibberish,		// Object is the result of failed parsing
-	OBJ_Empty,			// Object represents an empty line
-	OBJ_Unidentified,	// Object is an uninitialized (SHOULD NEVER HAPPEN)
-	NUM_ObjectTypes		// Amount of object types
-};
 
 // =============================================================================
 // LDObject
@@ -73,6 +56,23 @@ enum LDObjectType_e {
 // =============================================================================
 class LDObject {
 public:
+	// Object type codes. Codes are sorted in order of significance.
+	enum Type {
+		Subfile,		// Object represents a sub-file reference
+		Radial,			// Object represents a generic radial
+		Quad,			// Object represents a quadrilateral
+		Triangle,		// Object represents a triangle
+		Line,			// Object represents a line
+		CondLine,		// Object represents a conditional line
+		Vertex,			// Object is a vertex, LDForge extension object
+		BFC,			// Object represents a BFC statement
+		Comment,		// Object represents a comment
+		Gibberish,		// Object is the result of failed parsing
+		Empty,			// Object represents an empty line
+		Unidentified,	// Object is an uninitialized (SHOULD NEVER HAPPEN)
+		NumTypes		// Amount of object types
+	};
+
 	LDObject ();
 	virtual ~LDObject ();
 	
@@ -93,8 +93,8 @@ public:
 	LDObject* parent;
 	
 	// Type enumerator of this object
-	virtual LDObjectType_e getType () const {
-		return OBJ_Unidentified;
+	virtual LDObject::Type getType () const {
+		return LDObject::Unidentified;
 	};
 	
 	// A string that represents this line
@@ -121,23 +121,28 @@ public:
 	LDObject* topLevelParent ();
 	
 	// Number of vertices this object has
-	virtual short vertices () const {
-		return 0;
-	}
+	virtual short vertices () const { return 0; }
 	
 	// Is this object colored?
-	virtual bool isColored () const {
-		return false;
-	}
+	virtual bool isColored () const { return false; }
+	
+	// Does this object have meaning in the part model?
+	virtual bool isSchemantic () const { return false; }
 	
 	// Returns a sample object by the given value
-	static LDObject* getDefault (const LDObjectType_e type);
+	static LDObject* getDefault (const LDObject::Type type);
 	
 	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (const std::vector<LDObject*>& objs);
 	
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
+	
+	uint32 groups () const { return m_groups; }
+	void setGroups (const uint32 groups) { m_groups = groups; }
+	
+private:
+	uint32 m_groups;
 };
 
 // =============================================================================
@@ -152,6 +157,7 @@ class LDGibberish : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Gibberish, 0)
 	LDOBJ_UNCOLORED
+	LDOBJ_SCHEMANTIC
 	
 	LDGibberish (str _zContent, str _zReason);
 	
@@ -171,6 +177,7 @@ class LDEmpty : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Empty, 0)
 	LDOBJ_UNCOLORED
+	LDOBJ_NON_SCHEMANTIC
 };
 
 // =============================================================================
@@ -183,6 +190,7 @@ class LDComment : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Comment, 0)
 	LDOBJ_UNCOLORED
+	LDOBJ_NON_SCHEMANTIC
 	
 	LDComment (str zText) : text (zText) {}
 	
@@ -209,6 +217,7 @@ public:
 	
 	IMPLEMENT_LDTYPE (BFC, 0)
 	LDOBJ_UNCOLORED
+	LDOBJ_CUSTOM_SCHEMANTIC { return (type == InvertNext); }
 	
 	LDBFC (const LDBFC::Type eType) : type (eType) {}
 	
@@ -227,6 +236,7 @@ class LDSubfile : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Subfile, 0)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 	
 	vertex vPosition; // Position of the subpart (FIXME: should get rid of this)
 	matrix<3> mMatrix; // Transformation matrix for the subpart
@@ -249,6 +259,7 @@ class LDLine : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Line, 2)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 	
 	LDLine (vertex v1, vertex v2);
 };
@@ -263,6 +274,7 @@ class LDCondLine : public LDLine {
 public:
 	IMPLEMENT_LDTYPE (CondLine, 4)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 };
 
 // =============================================================================
@@ -276,6 +288,7 @@ class LDTriangle : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Triangle, 3)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
 		vaCoords[0] = _v0;
@@ -294,6 +307,7 @@ class LDQuad : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Quad, 4)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 	
 	// Split this quad into two triangles (note: heap-allocated)
 	vector<LDTriangle*> splitToTriangles ();
@@ -311,6 +325,7 @@ class LDVertex : public LDObject {
 public:
 	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move vPosition to vaCoords[0]
 	LDOBJ_COLORED
+	LDOBJ_NON_SCHEMANTIC
 	
 	vertex vPosition;
 };
@@ -338,6 +353,7 @@ public:
 	
 	IMPLEMENT_LDTYPE (Radial, 0)
 	LDOBJ_COLORED
+	LDOBJ_SCHEMANTIC
 	
 	LDRadial::Type eRadialType;
 	vertex vPosition;

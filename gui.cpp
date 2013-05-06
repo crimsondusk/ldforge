@@ -461,7 +461,7 @@ void ForgeWindow::setTitle () {
 		title += fmt (": %s", basename (g_curfile->m_filename.chars()));
 		
 		if (g_curfile->m_objs.size() > 0 &&
-			g_curfile->m_objs[0]->getType() == OBJ_Comment)
+			g_curfile->m_objs[0]->getType() == LDObject::Comment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_curfile->m_objs[0]);
@@ -541,7 +541,7 @@ void ForgeWindow::buildObjList () {
 	for (LDObject* obj : g_curfile->m_objs) {
 		str zText;
 		switch (obj->getType ()) {
-		case OBJ_Comment:
+		case LDObject::Comment:
 			zText = static_cast<LDComment*> (obj)->text.chars();
 			
 			// Remove leading whitespace
@@ -549,10 +549,10 @@ void ForgeWindow::buildObjList () {
 				zText -= -1;
 			break;
 		
-		case OBJ_Empty:
+		case LDObject::Empty:
 			break; // leave it empty
 		
-		case OBJ_Line:
+		case LDObject::Line:
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
 				zText.format ("%s, %s",
@@ -561,7 +561,7 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case OBJ_Triangle:
+		case LDObject::Triangle:
 			{
 				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
 				zText.format ("%s, %s, %s",
@@ -571,7 +571,7 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case OBJ_Quad:
+		case LDObject::Quad:
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
 				zText.format ("%s, %s, %s, %s",
@@ -582,7 +582,7 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case OBJ_CondLine:
+		case LDObject::CondLine:
 			{
 				LDCondLine* line = static_cast<LDCondLine*> (obj);
 				zText.format ("%s, %s, %s, %s",
@@ -593,16 +593,16 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case OBJ_Gibberish:
+		case LDObject::Gibberish:
 			zText.format ("ERROR: %s",
 				static_cast<LDGibberish*> (obj)->zContents.chars());
 			break;
 		
-		case OBJ_Vertex:
+		case LDObject::Vertex:
 			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.stringRep (true).chars());
 			break;
 		
-		case OBJ_Subfile:
+		case LDObject::Subfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
@@ -618,14 +618,14 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case OBJ_BFC:
+		case LDObject::BFC:
 			{
 				LDBFC* bfc = static_cast<LDBFC*> (obj);
 				zText = LDBFC::statements[bfc->type];
 			}
 			break;
 		
-		case OBJ_Radial:
+		case LDObject::Radial:
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
 				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
@@ -646,7 +646,7 @@ void ForgeWindow::buildObjList () {
 		item->setIcon (getIcon (g_saObjTypeIcons[obj->getType ()]));
 		
 		// Color gibberish orange on red so it stands out.
-		if (obj->getType() == OBJ_Gibberish) {
+		if (obj->getType() == LDObject::Gibberish) {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		} else if (lv_colorize && obj->isColored () &&
@@ -836,14 +836,14 @@ short ForgeWindow::getSelectedColor() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDObjectType_e ForgeWindow::uniformSelectedType () {
-	LDObjectType_e eResult = OBJ_Unidentified;
+LDObject::Type ForgeWindow::uniformSelectedType () {
+	LDObject::Type eResult = LDObject::Unidentified;
 	
 	for (LDObject* obj : m_sel) {
-		if (eResult != OBJ_Unidentified && obj->dColor != eResult)
-			return OBJ_Unidentified;
+		if (eResult != LDObject::Unidentified && obj->dColor != eResult)
+			return LDObject::Unidentified;
 		
-		if (eResult == OBJ_Unidentified)
+		if (eResult == LDObject::Unidentified)
 			eResult = obj->getType ();
 	}
 	

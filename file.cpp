@@ -128,7 +128,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 		assert (obj != null);
 		
 		// Check for parse errors and warn about tthem
-		if (obj->getType() == OBJ_Gibberish) {
+		if (obj->getType() == LDObject::Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
 				lnum, static_cast<LDGibberish*> (obj)->zReason.chars());
 			
@@ -586,7 +586,7 @@ void reloadAllSubfiles () {
 	
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : g_curfile->m_objs) {
-		if (obj->getType() == OBJ_Subfile) {
+		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->pFile is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			OpenFile* pFile = loadSubfile (ref->zFileName);
@@ -601,7 +601,7 @@ void reloadAllSubfiles () {
 		
 		// Reparse gibberish files. It could be that they are invalid because
 		// the file could not be opened. Circumstances may be different now.
-		if (obj->getType() == OBJ_Gibberish)
+		if (obj->getType() == LDObject::Gibberish)
 			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->zContents));
 	}
 }

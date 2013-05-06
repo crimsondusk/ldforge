@@ -246,8 +246,8 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 	
 #if 0
 	if (gl_colorbfc &&
-		obj->getType () != OBJ_Line &&
-		obj->getType () != OBJ_CondLine)
+		obj->getType () != LDObject::Line &&
+		obj->getType () != LDObject::CondLine)
 	{
 		if (bBackSide)
 			glColor4f (0.9f, 0.0f, 0.0f, 1.0f);
@@ -663,7 +663,7 @@ void GLRenderer::compileObjects () {
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	glBegin (gltype);
 	
-	const short numverts = (obj->getType () != OBJ_CondLine) ? obj->vertices () : 2;
+	const short numverts = (obj->getType () != LDObject::CondLine) ? obj->vertices () : 2;
 	
 	for (short i = 0; i < numverts; ++i)
 		compileVertex (obj->vaCoords[i]);
@@ -678,11 +678,11 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 	setObjectColor (obj);
 	
 	switch (obj->getType ()) {
-	case OBJ_Line:
+	case LDObject::Line:
 		compileSubObject (obj, GL_LINES);
 		break;
 	
-	case OBJ_CondLine:
+	case LDObject::CondLine:
 		glLineStipple (1, 0x6666);
 		glEnable (GL_LINE_STIPPLE);
 		
@@ -691,15 +691,15 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 		glDisable (GL_LINE_STIPPLE);
 		break;
 	
-	case OBJ_Triangle:
+	case LDObject::Triangle:
 		compileSubObject (obj, GL_TRIANGLES);
 		break;
 	
-	case OBJ_Quad:
+	case LDObject::Quad:
 		compileSubObject (obj, GL_QUADS);
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			vector<LDObject*> objs = ref->inlineContents (true, true);
@@ -711,7 +711,7 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Radial:
+	case LDObject::Radial:
 		{
 			LDRadial* pRadial = static_cast<LDRadial*> (obj);
 			std::vector<LDObject*> objs = pRadial->decompose (true);
@@ -725,7 +725,7 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 	
 #if 0
 	TODO: find a proper way to draw vertices without having them be affected by zoom.
-	case OBJ_Vertex:
+	case LDObject::Vertex:
 		{
 			LDVertex* pVert = static_cast<LDVertex*> (obj);
 			LDTriangle* pPoly;

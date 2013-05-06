@@ -128,7 +128,7 @@ static void doInline (bool bDeep) {
 	vector<ulong> ulaRefIndices, ulaBitIndices;
 	
 	for (LDObject* obj : sel) {
-		if (obj->getType() != OBJ_Subfile)
+		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
 		ulaRefIndices.push_back (obj->getIndex (g_curfile));
@@ -144,9 +144,9 @@ static void doInline (bool bDeep) {
 		
 		vector<LDObject*> objs;
 		
-		if (obj->getType() == OBJ_Subfile)
+		if (obj->getType() == LDObject::Subfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (bDeep, true);
-		else if (obj->getType() == OBJ_Radial)
+		else if (obj->getType() == LDObject::Radial)
 			objs = static_cast<LDRadial*> (obj)->decompose (true);
 		else
 			continue;
@@ -191,7 +191,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 	
 	// Store stuff first for history archival
 	for (LDObject* obj : objs) {
-		if (obj->getType() != OBJ_Quad)
+		if (obj->getType() != LDObject::Quad)
 			continue;
 		
 		ulaIndices.push_back (obj->getIndex (g_curfile));
@@ -199,7 +199,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 	}
 	
 	for (LDObject* obj : objs) {
-		if (obj->getType() != OBJ_Quad)
+		if (obj->getType() != LDObject::Quad)
 			continue;
 		
 		// Find the index of this quad
@@ -281,13 +281,13 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 	vector<LDObject*> paObjs;
 	
 	for (LDObject* obj : objs) {
-		if (obj->getType() != OBJ_Quad && obj->getType() != OBJ_Triangle)
+		if (obj->getType() != LDObject::Quad && obj->getType() != LDObject::Triangle)
 			continue;
 		
 		short dNumLines;
 		LDLine* lines[4];
 		
-		if (obj->getType() == OBJ_Quad) {
+		if (obj->getType() == LDObject::Quad) {
 			dNumLines = 4;
 			
 			LDQuad* quad = static_cast<LDQuad*> (obj);
@@ -460,8 +460,8 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 		bool bEdited = false;
 		
 		switch (obj->getType ()) {
-		case OBJ_Line:
-		case OBJ_CondLine:
+		case LDObject::Line:
+		case LDObject::CondLine:
 			{
 				// For lines, we swap the vertices. I don't think that a
 				// cond-line's control points need to be swapped, do they?
@@ -476,7 +476,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 			}
 			break;
 		
-		case OBJ_Triangle:
+		case LDObject::Triangle:
 			{
 				// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
 				// Thus, we swap 1 and 2.
@@ -491,7 +491,7 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 			}
 			break;
 		
-		case OBJ_Quad:
+		case LDObject::Quad:
 			{
 				// Quad: 0 -> 1 -> 2 -> 3
 				// rev:  0 -> 3 -> 2 -> 1
@@ -507,8 +507,8 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 			}
 			break;
 		
-		case OBJ_Subfile:
-		case OBJ_Radial:
+		case LDObject::Subfile:
+		case LDObject::Radial:
 			{
 				// Subfiles and radials are inverted when they're prefixed with
 				// a BFC INVERTNEXT statement. Thus we need to toggle this status.
@@ -586,9 +586,9 @@ static void doRotate (const short l, const short m, const short n) {
 	
 	// Calculate center vertex
 	for (LDObject* obj : sel) {
-		if (obj->getType () == OBJ_Subfile)
+		if (obj->getType () == LDObject::Subfile)
 			box << static_cast<LDSubfile*> (obj)->vPosition;
-		else if (obj->getType () == OBJ_Radial)
+		else if (obj->getType () == LDObject::Radial)
 			box << static_cast<LDRadial*> (obj)->vPosition;
 		else
 			box << obj;
@@ -601,17 +601,17 @@ static void doRotate (const short l, const short m, const short n) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
 				queue.push_back (&obj->vaCoords[i]);
-		else if (obj->getType () == OBJ_Subfile) {
+		else if (obj->getType () == LDObject::Subfile) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
 			queue.push_back (&ref->vPosition);
 			ref->mMatrix = ref->mMatrix * transform;
-		} else if (obj->getType () == OBJ_Radial) {
+		} else if (obj->getType () == LDObject::Radial) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
 			queue.push_back (&rad->vPosition);
 			rad->mMatrix = rad->mMatrix * transform;
-		} else if (obj->getType () == OBJ_Vertex)
+		} else if (obj->getType () == LDObject::Vertex)
 			queue.push_back (&static_cast<LDVertex*> (obj)->vPosition);
 	}
 	
@@ -676,7 +676,7 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		indices.push_back (obj->getIndex (g_curfile));
 		oldCopies.push_back (obj->clone ());
 		
-		obj->dColor = (obj->getType () == OBJ_Line || obj->getType () == OBJ_CondLine) ? edgecolor : maincolor;
+		obj->dColor = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
 		newCopies.push_back (obj->clone ());
 	}
 	
@@ -684,11 +684,4 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
 		g_win->refresh ();
 	}
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F8)) {
-	runYtruder ();
 }

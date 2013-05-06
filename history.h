@@ -189,9 +189,9 @@ class ComboHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Combo)
 	
-	const std::vector<HistoryEntry*> paEntries;
+	std::vector<HistoryEntry*> paEntries;
 	
-	ComboHistory (const std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
+	ComboHistory (std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
 };
 
 // =============================================================================

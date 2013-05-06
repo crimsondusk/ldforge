@@ -133,7 +133,7 @@ public:
 	void updateGridToolBar ();
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
-	LDObjectType_e uniformSelectedType ();
+	LDObject::Type uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
 	GLRenderer* R () { return m_renderer; }

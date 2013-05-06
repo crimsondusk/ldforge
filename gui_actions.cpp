@@ -119,39 +119,39 @@ MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME ".", CTRL (Q)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (newSubfile, "New Subfile", "add-subfile", "Creates a new subfile reference.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Subfile, null);
+	AddObjectDialog::staticDialog (LDObject::Subfile, null);
 }
 
 MAKE_ACTION (newLine, "New Line",  "add-line", "Creates a new line.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Line, null);
+	AddObjectDialog::staticDialog (LDObject::Line, null);
 }
 
 MAKE_ACTION (newTriangle, "New Triangle", "add-triangle", "Creates a new triangle.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Triangle, null);
+	AddObjectDialog::staticDialog (LDObject::Triangle, null);
 }
 
 MAKE_ACTION (newQuad, "New Quadrilateral", "add-quad", "Creates a new quadrilateral.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Quad, null);
+	AddObjectDialog::staticDialog (LDObject::Quad, null);
 }
 
 MAKE_ACTION (newCondLine, "New Conditional Line", "add-condline", "Creates a new conditional line.", 0) {
-	AddObjectDialog::staticDialog (OBJ_CondLine, null);
+	AddObjectDialog::staticDialog (LDObject::CondLine, null);
 }
 
 MAKE_ACTION (newComment, "New Comment", "add-comment", "Creates a new comment.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Comment, null);
+	AddObjectDialog::staticDialog (LDObject::Comment, null);
 }
 
 MAKE_ACTION (newBFC, "New BFC Statement", "add-bfc", "Creates a new BFC statement.", 0) {
-	AddObjectDialog::staticDialog (OBJ_BFC, null);
+	AddObjectDialog::staticDialog (LDObject::BFC, null);
 }
 
 MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Vertex, null);
+	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
 MAKE_ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) {
-	AddObjectDialog::staticDialog (OBJ_Radial, null);
+	AddObjectDialog::staticDialog (LDObject::Radial, null);
 }
 
 MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {
@@ -216,16 +216,16 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	if (g_win->sel ().size () == 0)
 		return;
 	
-	LDObjectType_e eType = g_win->uniformSelectedType ();
+	LDObject::Type eType = g_win->uniformSelectedType ();
 	
-	if (eType == OBJ_Unidentified)
+	if (eType == LDObject::Unidentified)
 		return;
 	
 	// If we're selecting subfile references, the reference filename must also
 	// be uniform.
 	str zRefName;
 	
-	if (eType == OBJ_Subfile) {
+	if (eType == LDObject::Subfile) {
 		zRefName = static_cast<LDSubfile*> (g_win->sel ()[0])->zFileName;
 		
 		for (LDObject* pObj : g_win->sel ())
@@ -238,7 +238,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 		if (obj->getType() != eType)
 			continue;
 		
-		if (eType == OBJ_Subfile && static_cast<LDSubfile*> (obj)->zFileName != zRefName)
+		if (eType == LDObject::Subfile && static_cast<LDSubfile*> (obj)->zFileName != zRefName)
 			continue;
 		
 		g_win->sel ().push_back (obj);

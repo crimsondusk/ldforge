@@ -46,7 +46,7 @@ void bbox::calculate () {
 // =============================================================================
 void bbox::calcObject (LDObject* obj) {
 	switch (obj->getType ()) {
-	case OBJ_Line:
+	case LDObject::Line:
 		{
 			LDLine* line = static_cast<LDLine*> (obj);
 			for (short i = 0; i < 2; ++i)
@@ -54,7 +54,7 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Triangle:
+	case LDObject::Triangle:
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
 			for (short i = 0; i < 3; ++i)
@@ -62,7 +62,7 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Quad:
+	case LDObject::Quad:
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
 			for (short i = 0; i < 4; ++i)
@@ -70,7 +70,7 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_CondLine:
+	case LDObject::CondLine:
 		{
 			LDCondLine* line = static_cast<LDCondLine*> (obj);
 			for (short i = 0; i < 4; ++i)
@@ -78,7 +78,7 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			vector<LDObject*> objs = ref->inlineContents (true, true);
@@ -90,7 +90,7 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Radial:
+	case LDObject::Radial:
 		{
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			vector<LDObject*> objs = rad->decompose (true);

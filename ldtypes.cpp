@@ -216,15 +216,15 @@ LDObject::~LDObject () {
 // =============================================================================
 static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, short parentcolor) {
 	switch (obj->getType()) {
-	case OBJ_Line:
-	case OBJ_CondLine:
-	case OBJ_Triangle:
-	case OBJ_Quad:
+	case LDObject::Line:
+	case LDObject::CondLine:
+	case LDObject::Triangle:
+	case LDObject::Quad:
 		for (short i = 0; i < obj->vertices (); ++i)
 			obj->vaCoords[i].transform (transform, pos);
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
@@ -259,14 +259,14 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 		for (LDObject* obj : pFile->m_objs) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
-			case OBJ_Comment:
-			case OBJ_Empty:
-			case OBJ_Gibberish:
-			case OBJ_Unidentified:
-			case OBJ_Vertex:
+			case LDObject::Comment:
+			case LDObject::Empty:
+			case LDObject::Gibberish:
+			case LDObject::Unidentified:
+			case LDObject::Vertex:
 				continue;
 			
-			case OBJ_BFC:
+			case LDObject::BFC:
 				// Filter non-INVERTNEXT statements
 				if (static_cast<LDBFC*> (obj)->type != LDBFC::InvertNext)
 					continue;
@@ -279,7 +279,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 			// Got another sub-file reference, inline it if we're deep-inlining. If not,
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
-			if (bDeepInline && obj->getType() == OBJ_Subfile) {
+			if (bDeepInline && obj->getType() == LDObject::Subfile) {
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
@@ -364,8 +364,8 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 	if (objs.size() == 0)
 		return "nothing"; // :)
 	
-	for (long i = 0; i < NUM_ObjectTypes; ++i) {
-		LDObjectType_e objType = (LDObjectType_e) i;
+	for (long i = 0; i < LDObject::NumTypes; ++i) {
+		LDObject::Type objType = (LDObject::Type) i;
 		ulong objCount = 0;
 		
 		for (LDObject* obj : objs)
@@ -381,7 +381,7 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 		str noun = fmt ("%s%s", g_saObjTypeNames[objType], PLURAL (objCount));
 		
 		// Plural of "vertex" is "vertices". Stupid English.
-		if (objType == OBJ_Vertex && objCount != 1)
+		if (objType == LDObject::Vertex && objCount != 1)
 			noun = "vertices";
 		
 		text.appendformat ("%lu %s", objCount, noun.chars ());
@@ -623,41 +623,41 @@ char const* g_saRadialNameRoots[] = {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::makeFileName () {
-	short dNumerator = dSegments,
-		dDenominator = dDivisions;
+	short numer = dSegments,
+		denom = dDivisions;
 	
 	// Simplify the fractional part, but the denominator must be at least 4.
-	simplify (dNumerator, dDenominator);
+	simplify (numer, denom);
 	
-	if (dDenominator < 4) {
-		const short dFactor = (4 / dDenominator);
+	if (denom < 4) {
+		const short factor = (4 / denom);
 		
-		dNumerator *= dFactor;
-		dDenominator *= dFactor;
+		numer *= factor;
+		denom *= factor;
 	}
 	
 	// Compose some general information: prefix, fraction, root, ring number
-	str zPrefix = (dDivisions == 16) ? "" : fmt ("%d/", dDivisions);
-	str zFrac = fmt ("%d-%d", dNumerator, dDenominator);
-	str zRoot = g_saRadialNameRoots[eRadialType];
-	str zRingNum = (eRadialType == Ring || eRadialType == Cone) ? fmt ("%d", dRingNum) : "";
+	str prefix = (dDivisions == 16) ? "" : fmt ("%d/", dDivisions);
+	str frac = fmt ("%d-%d", numer, denom);
+	str root = g_saRadialNameRoots[eRadialType];
+	str ringNum = (eRadialType == Ring || eRadialType == Cone) ? fmt ("%d", dRingNum) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
-	short dExtra = (~zFrac + ~zRingNum + ~zRoot) - 8;
-	zRoot -= min<short> (max<short> (dExtra, 0), 2);
+	short extra = (~frac + ~ringNum + ~root) - 8;
+	root -= min<short> (max<short> (extra, 0), 2);
 	
 	// Stick them all together and return the result.
-	return fmt ("%s%s%s%s", zPrefix.chars(), zFrac.chars (), zRoot.chars (), zRingNum.chars ());
+	return fmt ("%s%s%s%s", prefix.chars(), frac.chars (), root.chars (), ringNum.chars ());
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define CHECK_FOR_OBJ(N) \
-	if (type == OBJ_##N) \
+	if (type == LDObject::##N) \
 		return new LD##N;
-LDObject* LDObject::getDefault (const LDObjectType_e type) {
+LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (Comment)
 	CHECK_FOR_OBJ (BFC)
 	CHECK_FOR_OBJ (Line)

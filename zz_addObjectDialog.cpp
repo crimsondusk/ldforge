@@ -45,7 +45,7 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWidget* parent) :
+AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
 	QDialog (parent)
 {
 	short coordCount = 0;
@@ -56,30 +56,30 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	lb_typeIcon->setPixmap (icon);
 	
 	switch (type) {
-	case OBJ_Comment:
+	case LDObject::Comment:
 		le_comment = new QLineEdit;
 		if (obj)
 			le_comment->setText (static_cast<LDComment*> (obj)->text);
 		break;
 	
-	case OBJ_Line:
+	case LDObject::Line:
 		coordCount = 6;
 		break;
 	
-	case OBJ_Triangle:
+	case LDObject::Triangle:
 		coordCount = 9;
 		break;
 	
-	case OBJ_Quad:
-	case OBJ_CondLine:
+	case LDObject::Quad:
+	case LDObject::CondLine:
 		coordCount = 12;
 		break;
 	
-	case OBJ_Vertex:
+	case LDObject::Vertex:
 		coordCount = 3;
 		break;
 	
-	case OBJ_BFC:
+	case LDObject::BFC:
 		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
 		for (int i = 0; i < LDBFC::NumStatements; ++i)
@@ -89,7 +89,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->type);
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		coordCount = 3;
 		
 		enum {
@@ -141,7 +141,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		}
 		break;
 	
-	case OBJ_Radial:
+	case LDObject::Radial:
 		coordCount = 3;
 		
 		lb_radType = new QLabel ("Type:");
@@ -187,7 +187,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		if (obj != null)
 			dColor = obj->dColor;
 		else
-			dColor = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
+			dColor = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
 		
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, dColor);
@@ -207,10 +207,10 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 	layout->addWidget (lb_typeIcon, 0, 0);
 	
 	switch (type) {
-	case OBJ_Line:
-	case OBJ_CondLine:
-	case OBJ_Triangle:
-	case OBJ_Quad:
+	case LDObject::Line:
+	case LDObject::CondLine:
+	case LDObject::Triangle:
+	case LDObject::Quad:
 		// Apply coordinates
 		if (obj) {
 			for (short i = 0; i < coordCount / 3; ++i)
@@ -219,15 +219,15 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 		}
 		break;
 	
-	case OBJ_Comment:
+	case LDObject::Comment:
 		layout->addWidget (le_comment, 0, 1);
 		break;
 	
-	case OBJ_BFC:
+	case LDObject::BFC:
 		layout->addWidget (rb_bfcType, 0, 1);
 		break;
 	
-	case OBJ_Radial:
+	case LDObject::Radial:
 		layout->addWidget (rb_radType, 1, 1, 3, 1);
 		layout->addWidget (cb_radHiRes, 1, 2);
 		layout->addWidget (lb_radSegments, 2, 2);
@@ -240,7 +240,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType_e type, LDObject* obj, QWid
 				dsb_coords[i]->setValue (static_cast<LDRadial*> (obj)->vPosition.coord (i));
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		layout->addWidget (tw_subfileList, 1, 1);
 		layout->addWidget (le_subfileName, 2, 1);
 		
@@ -336,7 +336,7 @@ template<class T> T* initObj (LDObject*& obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
+void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	const bool newObject = (obj == null);
 	AddObjectDialog dlg (type, obj);
 	
@@ -351,14 +351,14 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		backup = obj->clone ();
 	
 	switch (type) {
-	case OBJ_Comment:
+	case LDObject::Comment:
 		{
 			LDComment* comm = initObj<LDComment> (obj);
 			comm->text = dlg.le_comment->text ();
 		}
 		break;
 	
-	case OBJ_Line:
+	case LDObject::Line:
 		{
 			LDLine* line = initObj<LDLine> (obj);
 			line->dColor = dlg.dColor;
@@ -366,7 +366,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Triangle:
+	case LDObject::Triangle:
 		{
 			LDTriangle* tri = initObj<LDTriangle> (obj);
 			tri->dColor = dlg.dColor;
@@ -374,7 +374,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Quad:
+	case LDObject::Quad:
 		{
 			LDQuad* quad = initObj<LDQuad> (obj);
 			quad->dColor = dlg.dColor;
@@ -382,7 +382,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_CondLine:
+	case LDObject::CondLine:
 		{
 			LDCondLine* line = initObj<LDCondLine> (obj);
 			line->dColor = dlg.dColor;
@@ -390,14 +390,14 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_BFC:
+	case LDObject::BFC:
 		{
 			LDBFC* bfc = initObj<LDBFC> (obj);
 			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value ();
 		}
 		break;
 	
-	case OBJ_Vertex:
+	case LDObject::Vertex:
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
 			vert->dColor = dlg.dColor;
@@ -407,7 +407,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Radial:
+	case LDObject::Radial:
 		{
 			LDRadial* pRad = initObj<LDRadial> (obj);
 			pRad->dColor = dlg.dColor;
@@ -423,7 +423,7 @@ void AddObjectDialog::staticDialog (const LDObjectType_e type, LDObject* obj) {
 		}
 		break;
 	
-	case OBJ_Subfile:
+	case LDObject::Subfile:
 		{
 			str name = dlg.le_subfileName->text ();
 			if (~name == 0)

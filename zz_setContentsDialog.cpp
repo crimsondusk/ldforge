@@ -40,7 +40,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		"standard</a> for further information.");
 	le_contents->setMinimumWidth (384);
 	
-	if (obj->getType() == OBJ_Gibberish) {
+	if (obj->getType() == LDObject::Gibberish) {
 		lb_error = new QLabel;
 		lb_error->setText (fmt ("<span style=\"color: #900\">%s</span>",
 			static_cast<LDGibberish*> (obj)->zReason.chars()));
@@ -59,7 +59,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 	
 	QHBoxLayout* layout2 = new QHBoxLayout;
 	
-	if (obj->getType() == OBJ_Gibberish) {
+	if (obj->getType() == LDObject::Gibberish) {
 		layout2->addWidget (lb_errorIcon);
 		layout2->addWidget (lb_error);
 	}

@@ -292,7 +292,7 @@ void InlineHistory::redo () {
 	for (long i = ulaRefIndices.size() - 1; i >= 0; --i) {
 		ulong idx = ulaRefIndices[i];
 		
-		assert (g_curfile->object (idx)->getType () == OBJ_Subfile);
+		assert (g_curfile->object (idx)->getType () == LDObject::Subfile);
 		LDSubfile* ref = static_cast<LDSubfile*> (g_curfile->object (idx));
 		vector<LDObject*> objs = ref->inlineContents (bDeep, false);
 		
