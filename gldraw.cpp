@@ -387,8 +387,12 @@ void GLRenderer::drawGLScene () const {
 		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->m_objs) {
+		if (obj->hidden ())
+			continue; // Don't draw hidden objects
+		
 		glCallList (m_picking == false ? obj->uGLList : obj->uGLPickList);
+	}
 	
 	if (gl_axes && !m_picking)
 		glCallList (m_axeslist);

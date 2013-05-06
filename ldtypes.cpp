@@ -61,6 +61,7 @@ LDObject::LDObject () {
 	qObjListEntry = null;
 	parent = null;
 	m_group = NoGroup;
+	m_hidden = false;
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {

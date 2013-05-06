@@ -202,14 +202,18 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("paste");				// Paste
 	addMenuAction ("del");					// Delete
 	menu->addSeparator ();					// -----
-	addMenuAction ("selectAll");			// Select All
-	addMenuAction ("selectByColor");		// Select by Color
-	addMenuAction ("selectByType");		// Select by Type
-	menu->addSeparator ();					// -----
 	
 	for (uchar i = 0; i < LDObject::NumGroups; ++i)
 		addMenuAction (fmt ("group%c", 'A' + i)); // Group *
-	addMenuAction ("groupNone");			// No Group
+	
+	addMenuAction ("ungroup");			// Ungroup
+	menu->addSeparator ();					// -----
+	addMenuAction ("selectAll");			// Select All
+	addMenuAction ("selectByColor");		// Select by Color
+	addMenuAction ("selectByType");		// Select by Type
+	
+	for (uchar i = 0; i < LDObject::NumGroups; ++i)
+		addMenuAction (fmt ("selGroup%c", 'A' + i)); // Select Group *
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
@@ -222,6 +226,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("makeCornerVerts");	// Make Corner Vertices
 	addMenuAction ("roundCoords");		// Round Coordinates
 	addMenuAction ("uncolorize");			// Uncolorize
+	addMenuAction ("visibility");			// Toggle Visibility
 	
 	// Move menu
 	initMenu ("&Move");
@@ -394,6 +399,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("roundCoords");
 	addToolBarAction ("screencap");
 	addToolBarAction ("uncolorize");
+	addToolBarAction ("visibility");
 	
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
@@ -412,7 +418,7 @@ void ForgeWindow::createToolbars () {
 		g_CurrentToolBar->addWidget (btn);
 	}
 	
-	addToolBarAction ("groupNone");
+	addToolBarAction ("ungroup");
 	updateToolBars ();
 }
 
@@ -570,14 +576,14 @@ void ForgeWindow::buildObjList () {
 	m_objList->clear ();
 	
 	for (LDObject* obj : g_curfile->m_objs) {
-		str zText;
+		str descr;
 		switch (obj->getType ()) {
 		case LDObject::Comment:
-			zText = static_cast<LDComment*> (obj)->text.chars();
+			descr = static_cast<LDComment*> (obj)->text.chars();
 			
 			// Remove leading whitespace
-			while (~zText && zText[0] == ' ')
-				zText -= -1;
+			while (~descr && descr[0] == ' ')
+				descr -= -1;
 			break;
 		
 		case LDObject::Empty:
@@ -586,7 +592,7 @@ void ForgeWindow::buildObjList () {
 		case LDObject::Line:
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
-				zText.format ("%s, %s",
+				descr.format ("%s, %s",
 					line->vaCoords[0].stringRep (true).chars(),
 					line->vaCoords[1].stringRep (true).chars());
 			}
@@ -595,7 +601,7 @@ void ForgeWindow::buildObjList () {
 		case LDObject::Triangle:
 			{
 				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
-				zText.format ("%s, %s, %s",
+				descr.format ("%s, %s, %s",
 					triangle->vaCoords[0].stringRep (true).chars(),
 					triangle->vaCoords[1].stringRep (true).chars(),
 					triangle->vaCoords[2].stringRep (true).chars());
@@ -605,7 +611,7 @@ void ForgeWindow::buildObjList () {
 		case LDObject::Quad:
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
-				zText.format ("%s, %s, %s, %s",
+				descr.format ("%s, %s, %s, %s",
 					quad->vaCoords[0].stringRep (true).chars(),
 					quad->vaCoords[1].stringRep (true).chars(),
 					quad->vaCoords[2].stringRep (true).chars(),
@@ -616,7 +622,7 @@ void ForgeWindow::buildObjList () {
 		case LDObject::CondLine:
 			{
 				LDCondLine* line = static_cast<LDCondLine*> (obj);
-				zText.format ("%s, %s, %s, %s",
+				descr.format ("%s, %s, %s, %s",
 					line->vaCoords[0].stringRep (true).chars(),
 					line->vaCoords[1].stringRep (true).chars(),
 					line->vaCoords[2].stringRep (true).chars(),
@@ -625,55 +631,61 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case LDObject::Gibberish:
-			zText.format ("ERROR: %s",
+			descr.format ("ERROR: %s",
 				static_cast<LDGibberish*> (obj)->zContents.chars());
 			break;
 		
 		case LDObject::Vertex:
-			zText.format ("%s", static_cast<LDVertex*> (obj)->vPosition.stringRep (true).chars());
+			descr.format ("%s", static_cast<LDVertex*> (obj)->vPosition.stringRep (true).chars());
 			break;
 		
 		case LDObject::Subfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
-				zText.format ("%s %s, (",
+				descr.format ("%s %s, (",
 					ref->zFileName.chars(), ref->vPosition.stringRep (true).chars());
 				
 				for (short i = 0; i < 9; ++i)
-					zText.appendformat ("%s%s",
+					descr.appendformat ("%s%s",
 						ftoa (ref->mMatrix[i]).chars(),
 						(i != 8) ? " " : "");
 				
-				zText += ')';
+				descr += ')';
 			}
 			break;
 		
 		case LDObject::BFC:
 			{
 				LDBFC* bfc = static_cast<LDBFC*> (obj);
-				zText = LDBFC::statements[bfc->type];
+				descr = LDBFC::statements[bfc->type];
 			}
 			break;
 		
 		case LDObject::Radial:
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
-				zText.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
+				descr.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
 				
 				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
-					zText.appendformat (" %d", pRad->dRingNum);
+					descr.appendformat (" %d", pRad->dRingNum);
 				
-				zText.appendformat (" %s", pRad->vPosition.stringRep (true).chars ());
+				descr.appendformat (" %s", pRad->vPosition.stringRep (true).chars ());
 			}
 			break;
 		
 		default:
-			zText = g_saObjTypeNames[obj->getType ()];
+			descr = g_saObjTypeNames[obj->getType ()];
 			break;
 		}
 		
-		QListWidgetItem* item = new QListWidgetItem (zText.chars());
+		// Put it into brackets if it's hidden
+		if (obj->hidden ()) {
+			str copy = descr.chars ();
+			descr.format ("[[ %s ]]", copy.chars ());
+		}
+		
+		QListWidgetItem* item = new QListWidgetItem (descr.chars());
 		item->setIcon (getIcon (g_saObjTypeIcons[obj->getType ()]));
 		
 		// Color gibberish orange on red so it stands out.
