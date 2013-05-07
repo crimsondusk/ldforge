@@ -29,6 +29,20 @@
 #include <qlistwidget.h>
 #include <qspinbox.h>
 
+// =============================================================================
+class ShortcutListItem : public QListWidgetItem {
+public:
+	explicit ShortcutListItem (QListWidget* view = null, int type = Type) :
+		QListWidgetItem (view, type) {}
+	
+	actionmeta* getActionInfo () const { return m_info; }
+	void setActionInfo (actionmeta* info) { m_info = info; }
+	
+private:
+	actionmeta* m_info;
+};
+
+// =============================================================================
 class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
@@ -52,7 +66,6 @@ public:
 	// Shortcuts tab
 	QListWidget* lw_shortcutList;
 	QPushButton* pb_setShortcut, *pb_resetShortcut, *pb_clearShortcut;
-	std::vector<QListWidgetItem*> shortcutItems;
 	
 	// =========================================================================
 	// Quick color toolbar tab
@@ -82,7 +95,7 @@ private:
 	void initGridTab ();
 	void initExtProgTab ();
 	
-	void makeSlider (QSlider*& qSlider, short int dMin, short int dMax, short int dDefault);
+	void makeSlider (QSlider*& slider, short min, short max, short defval);
 	void setButtonBackground (QPushButton* qButton, str zValue);
 	void pickColor (strconfig& cfg, QPushButton* qButton);
 	void updateQuickColorList (quickColorMetaEntry* pSel = null);
@@ -90,6 +103,7 @@ private:
 	long getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack);
 	str makeColorToolBarString ();
 	QListWidgetItem* getSelectedQuickColor ();
+	QList<ShortcutListItem*> getShortcutSelection ();
 	
 private slots:
 	void slot_findLDrawPath ();

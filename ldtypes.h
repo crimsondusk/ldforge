@@ -75,7 +75,7 @@ public:
 	
 	enum Group {
 		NoGroup = -1,
-		A = 0, B, C, D,
+		A = 0, B, C, D, E, F,
 		NumGroups 
 	};
 	

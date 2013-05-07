@@ -414,20 +414,11 @@ void setGroup (const LDObject::Group group) {
 
 // =============================================================================
 void selGroup (const LDObject::Group group) {
+	g_win->sel ().clear ();
+	
 	for (LDObject* obj : g_curfile->m_objs) {
 		if (obj->group () != group)
 			continue; // wrong group
-		
-		bool selected = false;
-		for (LDObject* selobj : g_win->sel ()) {
-			if (selobj == obj) {
-				selected = true;
-				break;
-			}
-		}
-		
-		if (selected)
-			continue; // already selected
 		
 		g_win->sel ().push_back (obj);
 	}
@@ -448,6 +439,8 @@ GROUP_ACTION (A, 1)
 GROUP_ACTION (B, 2)
 GROUP_ACTION (C, 3)
 GROUP_ACTION (D, 4)
+GROUP_ACTION (E, 5)
+GROUP_ACTION (F, 6)
 
 MAKE_ACTION (ungroup, "Ungroup", "ungroup", "Unset the group of selected objects", CTRL_SHIFT (0)) {
 	setGroup (LDObject::NoGroup);

@@ -25,6 +25,7 @@
 #include "colors.h"
 #include "zz_colorSelectDialog.h"
 #include "history.h"
+#include "zz_setContentsDialog.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) \
@@ -49,11 +50,6 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	QDialog (parent)
 {
 	short coordCount = 0;
-	QPixmap icon = getIcon (fmt ("add-%s", g_saObjTypeIcons[type]));
-	LDObject* defaults = LDObject::getDefault (type);
-	
-	lb_typeIcon = new QLabel;
-	lb_typeIcon->setPixmap (icon);
 	
 	switch (type) {
 	case LDObject::Comment:
@@ -179,8 +175,14 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	default:
-		break;
+		return;
 	}
+	
+	QPixmap icon = getIcon (fmt ("add-%s", g_saObjTypeIcons[type]));
+	LDObject* defaults = LDObject::getDefault (type);
+	
+	lb_typeIcon = new QLabel;
+	lb_typeIcon->setPixmap (icon);
 	
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored ()) {
@@ -337,6 +339,15 @@ template<class T> T* initObj (LDObject*& obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
+	// Redirect editing of gibberish to the set contents dialog
+	if (obj && obj->getType () == LDObject::Gibberish) {
+		SetContentsDialog::staticDialog (obj);
+		return;
+	}
+	
+	if (type == LDObject::Empty)
+		return; // Nothing to edit with empties
+	
 	const bool newObject = (obj == null);
 	AddObjectDialog dlg (type, obj);
 	

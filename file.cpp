@@ -287,23 +287,20 @@ void addRecentFile (str zPath) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void openMainFile (str zPath) {
+void openMainFile (str path) {
 	closeAll ();
 	
-	OpenFile* pFile = openDATFile (zPath, false);
+	OpenFile* file = openDATFile (path, false);
 	
-	if (!pFile) {
+	if (!file) {
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
-		QMessageBox::critical (g_win, "Load Failure",
-			fmt ("Failed to open %s\nReason: %s", zPath.chars(), strerror (errno)),
-			(QMessageBox::Close), QMessageBox::Close);
-		
+		critical (fmt ("Failed to open %s: %s", path.chars(), strerror (errno)));
 		return;
 	}
 	
-	pFile->m_implicit = false;
-	g_curfile = pFile;
+	file->m_implicit = false;
+	g_curfile = file;
 	
 	// Recalculate the bounding box
 	g_BBox.calculate();
@@ -311,9 +308,12 @@ void openMainFile (str zPath) {
 	// Rebuild the object tree view now.
 	g_win->refresh ();
 	g_win->setTitle ();
+	g_win->R ()->resetAngles ();
+	
+	History::clear ();
 	
 	// Add it to the recent files list.
-	addRecentFile (zPath);
+	addRecentFile (path);
 }
 
 // =============================================================================

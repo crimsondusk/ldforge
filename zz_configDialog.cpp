@@ -102,20 +102,24 @@ void ConfigDialog::initMainTab () {
 	setButtonBackground (pb_viewBg, gl_bgcolor.value);
 	connect (pb_viewBg, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLBackground ()));
+	pb_viewBg->setWhatsThis ("This is the background color for the viewport.");
 	
 	lb_viewFg = new QLabel ("Foreground color:");
 	pb_viewFg = new QPushButton;
 	setButtonBackground (pb_viewFg, gl_maincolor.value);
 	connect (pb_viewFg, SIGNAL (clicked ()),
 		this, SLOT (slot_setGLForeground ()));
+	pb_viewFg->setWhatsThis ("This color is used for the main color.");
 	
 	// =========================================================================
 	// Alpha and line thickness sliders
 	lb_viewFgAlpha = new QLabel ("Alpha:");
 	makeSlider (sl_viewFgAlpha, 1, 10, (gl_maincolor_alpha * 10.0f));
+	sl_viewFgAlpha->setWhatsThis ("Opacity of main color in the viewport.");
 	
 	lb_lineThickness = new QLabel ("Line thickness:");
 	makeSlider (sl_lineThickness, 1, 8, gl_linethickness);
+	sl_lineThickness->setWhatsThis ("How thick lines should be drawn in the viewport.");
 	
 	// =========================================================================
 	// Tool bar icon size slider
@@ -124,22 +128,34 @@ void ConfigDialog::initMainTab () {
 	
 	// =========================================================================
 	// List view colorizer and BFC red/green view checkboxes
-	cb_colorize = new QCheckBox ("Colorize polygons in list view");
-	INIT_CHECKBOX (cb_colorize, lv_colorize)
+	cb_colorize = new QCheckBox ("Colorize polygons in object list");
+	cb_colorize->setChecked (lv_colorize);
+	cb_colorize->setWhatsThis ("Makes colored objects (non-16 and 24) appear "
+		"colored in the object list. A red polygon will have its description "
+		"written in red text.");
 	
 	cb_colorBFC = new QCheckBox ("Red/green BFC view");
-	INIT_CHECKBOX (cb_colorBFC, gl_colorbfc)
+	cb_colorBFC->setChecked (gl_colorbfc);
+	cb_colorBFC->setWhatsThis ("Polygons' front sides become green and back "
+		"sides red. Not implemented yet.");
 	
 	cb_selFlash = new QCheckBox ("Selection flash");
-	INIT_CHECKBOX (cb_selFlash, gl_selflash)
+	cb_selFlash->setChecked (gl_selflash);
+	cb_colorBFC->setWhatsThis ("A pulse effect for clearer selection view.");
 	
 	cb_blackEdges = new QCheckBox ("Black edges");
-	cb_blackEdges->setWhatsThis ("If this is set, all edgelines appear black. If this is "
+	cb_blackEdges->setWhatsThis ("Makes all edgelines appear black. If this is "
 		"not set, edge lines take their color as defined in LDConfig.ldr");
-	INIT_CHECKBOX (cb_blackEdges, gl_blackedges)
+	cb_blackEdges->setChecked (gl_blackedges);
 	
-	cb_schemanticInline = new QCheckBox ("Only insert schemantic objects from a file");
-	INIT_CHECKBOX (cb_schemanticInline, edit_schemanticinline)
+	cb_schemanticInline = new QCheckBox ("Schemantic insertion only");
+	cb_schemanticInline->setChecked (edit_schemanticinline);
+	cb_colorBFC->setWhatsThis ("When inserting objects through inlining, file "
+		"inserting or through external programs, all non-schemantics (those without "
+		"actual meaning in the part file like comments and such) are filtered out.");
+	
+	cb_schemanticInline->setEnabled (false);
+	cb_colorBFC->setEnabled (false);
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (lb_LDrawPath, 0, 0);
@@ -187,17 +203,24 @@ void ConfigDialog::initShortcutsTab () {
 	
 	// Init table items
 	ulong i = 0;
-	for (actionmeta meta : g_ActionMeta) {
-		QAction* const qAct = *meta.qAct;
+	for (actionmeta& info : g_ActionMeta) {
+		QAction* const act = *info.qAct;
 		
-		QListWidgetItem* qItem = new QListWidgetItem;
-		setShortcutText (qItem, meta);
-		qItem->setIcon (qAct->icon ());
+		ShortcutListItem* item = new ShortcutListItem;
+		setShortcutText (item, info);
+		item->setIcon (act->icon ());
+		item->setActionInfo (&info);
 		
-		shortcutItems.push_back (qItem);
-		lw_shortcutList->insertItem (i, qItem);
-		++i;
+		// If the action doesn't have a valid icon, use an empty one
+		// so that the list is kept aligned.
+		if (act->icon ().isNull ())
+			item->setIcon (getIcon ("empty"));
+		
+		lw_shortcutList->insertItem (i++, item);
 	}
+	
+	lw_shortcutList->setSortingEnabled (true);
+	lw_shortcutList->sortItems ();
 	
 	pb_setShortcut = new QPushButton ("Set");
 	pb_resetShortcut = new QPushButton ("Reset");
@@ -454,14 +477,12 @@ void ConfigDialog::slot_clearColors () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::makeSlider (QSlider*& qSlider, short int dMin, short int dMax,
-	short dDefault)
-{
-	qSlider = new QSlider (Qt::Horizontal);
-	qSlider->setRange (dMin, dMax);
-	qSlider->setSliderPosition (dDefault);
-	qSlider->setTickPosition (QSlider::TicksAbove);
-	qSlider->setTickInterval (1);
+void ConfigDialog::makeSlider (QSlider*& slider, short min, short max, short defval) {
+	slider = new QSlider (Qt::Horizontal);
+	slider->setRange (min, max);
+	slider->setSliderPosition (defval);
+	slider->setTickPosition (QSlider::TicksAbove);
+	slider->setTickInterval (1);
 }
 
 // =============================================================================
@@ -475,11 +496,11 @@ ConfigDialog::~ConfigDialog () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::slot_findLDrawPath () {
-	str zDir = QFileDialog::getExistingDirectory (this, "Choose LDraw directory",
+	str dir = QFileDialog::getExistingDirectory (this, "Choose LDraw directory",
 		le_LDrawPath->text());
 	
-	if (~zDir)
-		le_LDrawPath->setText (zDir.chars());
+	if (~dir)
+		le_LDrawPath->setText (dir.chars());
 }
 
 // =============================================================================
@@ -539,52 +560,54 @@ QListWidgetItem* ConfigDialog::getSelectedQuickColor () {
 }
 
 // =============================================================================
-void ConfigDialog::slot_setShortcut () {
-	QList<QListWidgetItem*> qaSel = lw_shortcutList->selectedItems ();
+QList<ShortcutListItem*> ConfigDialog::getShortcutSelection () {
+	QList<ShortcutListItem*> out;
 	
-	if (qaSel.size() < 1)
+	for (QListWidgetItem* entry : lw_shortcutList->selectedItems ())
+		out << static_cast<ShortcutListItem*> (entry);
+	
+	return out;
+}
+
+// =============================================================================
+void ConfigDialog::slot_setShortcut () {
+	QList<ShortcutListItem*> sel = getShortcutSelection ();
+	
+	if (sel.size() < 1)
 		return;
 	
-	QListWidgetItem* qItem = qaSel[0];
-	
-	// Find the row this object is on.
-	long idx = getItemRow (qItem, shortcutItems);
-	
-	if (KeySequenceDialog::staticDialog (g_ActionMeta[idx], this))
-		setShortcutText (qItem, g_ActionMeta[idx]);
+	ShortcutListItem* item = sel[0];
+	if (KeySequenceDialog::staticDialog (*(item->getActionInfo ()), this))
+		setShortcutText (item, *(item->getActionInfo ()));
 }
 
 // =============================================================================
 void ConfigDialog::slot_resetShortcut () {
-	QList<QListWidgetItem*> qaSel = lw_shortcutList->selectedItems ();
+	QList<ShortcutListItem*> sel = getShortcutSelection ();
 	
-	for (QListWidgetItem* qItem : qaSel) {
-		long idx = getItemRow (qItem, shortcutItems);
-		
-		actionmeta meta = g_ActionMeta[idx];
-		keyseqconfig* conf = g_ActionMeta[idx].conf;
+	for (ShortcutListItem* item : sel) {
+		actionmeta* info = item->getActionInfo ();
+		keyseqconfig* conf = info->conf;
 		
 		conf->reset ();
-		(*meta.qAct)->setShortcut (*conf);
+		(*info->qAct)->setShortcut (*conf);
 		
-		setShortcutText (qItem, meta);
+		setShortcutText (item, *info);
 	}
 }
 
 // =============================================================================
 void ConfigDialog::slot_clearShortcut () {
-	QList<QListWidgetItem*> qaSel = lw_shortcutList->selectedItems ();
-	QKeySequence qDummySeq;
+	QList<ShortcutListItem*> sel = getShortcutSelection ();
+	QKeySequence dummy;
 	
-	for (QListWidgetItem* qItem : qaSel) {
-		long idx = getItemRow (qItem, shortcutItems);
+	for (ShortcutListItem* item : sel) {
+		actionmeta* info = item->getActionInfo ();
+		keyseqconfig* conf = info->conf;
+		conf->value = dummy;
 		
-		actionmeta meta = g_ActionMeta[idx];
-		keyseqconfig* conf = g_ActionMeta[idx].conf;
-		conf->value = qDummySeq;
-		
-		(*meta.qAct)->setShortcut (*conf);
-		setShortcutText (qItem, meta);
+		(*info->qAct)->setShortcut (*conf);
+		setShortcutText (item, *info);
 	}
 }
 
@@ -592,9 +615,9 @@ void ConfigDialog::slot_clearShortcut () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
-	QAction* const qAct = *meta.qAct;
-	str zLabel = qAct->iconText ();
-	str zKeybind = qAct->shortcut ().toString ();
+	QAction* const act = *meta.qAct;
+	str zLabel = act->iconText ();
+	str zKeybind = act->shortcut ().toString ();
 	
 	qItem->setText (fmt ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
 }
@@ -603,19 +626,19 @@ void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str ConfigDialog::makeColorToolBarString () {
-	str zVal;
+	str val;
 	
 	for (quickColorMetaEntry entry : quickColorMeta) {
-		if (~zVal > 0)
-			zVal += ':';
+		if (~val > 0)
+			val += ':';
 		
 		if (entry.bSeparator)
-			zVal += '|';
+			val += '|';
 		else
-			zVal.appendformat ("%d", entry.col->index ());
+			val.appendformat ("%d", entry.col->index ());
 	}
 	
-	return zVal;
+	return val;
 }
 
 // =============================================================================
@@ -627,11 +650,11 @@ void ConfigDialog::staticDialog () {
 	if (dlg.exec ()) {
 		io_ldpath = dlg.le_LDrawPath->text();
 		
-		APPLY_CHECKBOX (dlg.cb_colorize, lv_colorize)
-		APPLY_CHECKBOX (dlg.cb_colorBFC, gl_colorbfc)
-		APPLY_CHECKBOX (dlg.cb_selFlash, gl_selflash)
-		APPLY_CHECKBOX (dlg.cb_schemanticInline, edit_schemanticinline)
-		APPLY_CHECKBOX (dlg.cb_blackEdges, gl_blackedges)
+		lv_colorize = dlg.cb_colorize->isChecked ();
+		gl_colorbfc = dlg.cb_colorBFC->isChecked ();
+		gl_selflash = dlg.cb_selFlash->isChecked ();
+		edit_schemanticinline = dlg.cb_schemanticInline->isChecked ();
+		gl_blackedges = dlg.cb_blackEdges->isChecked ();
 		
 		gl_maincolor_alpha = ((double)dlg.sl_viewFgAlpha->value ()) / 10.0f;
 		gl_linethickness = dlg.sl_lineThickness->value ();
@@ -649,7 +672,7 @@ void ConfigDialog::staticDialog () {
 		// Save the config
 		config::save ();
 		
-		// Reload all subfiles
+		// Reload all subfiles as the ldraw path potentially changed.
 		reloadAllSubfiles ();
 		
 		g_win->R ()->setBackground ();

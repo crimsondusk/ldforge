@@ -48,8 +48,10 @@ extern_cfg (bool, gl_axes);
 const QColor g_GroupBackgrounds[] = {
 	QColor (0, 192, 255), // blue
 	QColor (144, 255, 0), // green
-	QColor (160, 64, 255), // purple
 	QColor (255, 128, 0), // orange
+	QColor (255, 255, 0), // yellow
+	QColor (160, 64, 255), // purple
+	QColor (0, 255, 160), // emerald
 };
 
 const ushort g_numGroups = 2;
@@ -203,17 +205,19 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("del");					// Delete
 	menu->addSeparator ();					// -----
 	
-	for (uchar i = 0; i < LDObject::NumGroups; ++i)
-		addMenuAction (fmt ("group%c", 'A' + i)); // Group *
-	
-	addMenuAction ("ungroup");			// Ungroup
-	menu->addSeparator ();					// -----
 	addMenuAction ("selectAll");			// Select All
 	addMenuAction ("selectByColor");		// Select by Color
 	addMenuAction ("selectByType");		// Select by Type
 	
+	initMenu ("&Groups");
 	for (uchar i = 0; i < LDObject::NumGroups; ++i)
-		addMenuAction (fmt ("selGroup%c", 'A' + i)); // Select Group *
+		addMenuAction (fmt ("group%c", 'A' + i)); 	// Group *
+	
+	menu->addSeparator ();								// -----
+	addMenuAction ("ungroup");						// Ungroup
+	menu->addSeparator ();								// -----
+	for (uchar i = 0; i < LDObject::NumGroups; ++i)
+		addMenuAction (fmt ("selGroup%c", 'A' + i));	// Select Group *
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
@@ -919,10 +923,11 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 // =============================================================================
 void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	const bool single = (g_win->sel ().size () == 1);
+	LDObject* singleObj = (single) ? g_win->sel ()[0] : null;
 	
 	QMenu* contextMenu = new QMenu;
 	
-	if (single) {
+	if (single && singleObj->getType () != LDObject::Empty) {
 		contextMenu->addAction (findAction ("editObject"));
 		contextMenu->addSeparator ();
 	}
@@ -964,7 +969,7 @@ bool confirm (str title, str msg) {
 
 // =============================================================================
 void critical (str msg) {
-	QMessageBox::critical (g_win, APPNAME ": Critical Error", msg,
+	QMessageBox::critical (g_win, "Critical Error", msg,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 
@@ -972,47 +977,13 @@ void critical (str msg) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Print to message log
+// TODO: I don't think that the message log being a widget in the window
+// is a very good idea... maybe this should log into the renderer? Or into
+// another dialog that can be popped up?
 void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
-	return; // FIXME: crashes for some reason o_O
-	
-	char* buf = vdynformat (fmtstr, va, 128);
-	str zText (buf);
-	delete[] buf;
-	
-	// Log it to standard output
-	printf ("%s", zText.chars ());
-	
-	// Replace some things out with HTML entities
-	zText.replace ("<", "&lt;");
-	zText.replace (">", "&gt;");
-	zText.replace ("\n", "<br />");
-	
-	str& log = m_msglogHTML;
-	
-	switch (type) {
-	case LOG_Normal:
-		log.append (zText);
-		break;
-	
-	case LOG_Error:
-		log.appendformat ("<span style=\"color: #F8F8F8; background-color: #800\"><b>[ERROR]</b> %s</span>",
-			zText.chars());
-		break;
-	
-	case LOG_Warning:
-		log.appendformat ("<span style=\"color: #C50\"><b>[WARNING]</b> %s</span>",
-			zText.chars());
-		break;
-		
-	case LOG_Dev:
-#ifndef RELEASE
-		log.appendformat ("<span style=\"color: #0AC\"><b>[DEV]</b> %s</span>",
-			zText.chars());
-#endif // RELEASE
-		break;
-	}
-	
-	m_msglog->setHtml (log);
+	(void) type;
+	(void) fmtstr;
+	(void) va;
 }
 
 // =============================================================================
