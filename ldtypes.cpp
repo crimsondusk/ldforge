@@ -60,7 +60,6 @@ char const* g_saObjTypeIcons[] = {
 LDObject::LDObject () {
 	qObjListEntry = null;
 	parent = null;
-	m_group = NoGroup;
 	m_hidden = false;
 }
 

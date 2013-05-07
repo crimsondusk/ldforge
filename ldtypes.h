@@ -73,12 +73,6 @@ public:
 		NumTypes		// Amount of object types
 	};
 	
-	enum Group {
-		NoGroup = -1,
-		A = 0, B, C, D, E, F,
-		NumGroups 
-	};
-	
 	LDObject ();
 	virtual ~LDObject ();
 	
@@ -144,13 +138,10 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	Group group () const { return m_group; }
-	void setGroup (const Group group) { m_group = group; }
 	bool hidden () const { return m_hidden; }
 	void setHidden (const bool hidden) { m_hidden = hidden; }
 
 private:
-	Group m_group;
 	bool m_hidden;
 };
 

@@ -119,6 +119,12 @@ void writeObjects (std::vector<LDObject*>& objects, str fname) {
 		fwrite (line.chars(), 1, ~line, fp);
 	}
 	
+#ifndef RELEASE
+	ushort idx = rand ();
+	printf ("%s -> debug_%u\n", fname.chars (), idx);
+	QFile::copy (fname.chars (), fmt ("debug_%u", idx));
+#endif // RELEASE
+	
 	fclose (fp);
 }
 
@@ -128,10 +134,10 @@ void writeSelection (str fname) {
 }
 
 // =============================================================================
-void writeGroup (const LDObject::Group group, str fname) {
+void writeColorGroup (const short colnum, str fname) {
 	std::vector<LDObject*> objects;
 	for (LDObject*& obj : g_curfile->m_objs) {
-		if (obj->group() != group)
+		if (obj->isColored () == false || obj->dColor != colnum)
 			continue;
 		
 		objects.push_back (obj);
@@ -171,7 +177,7 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	
 #ifndef RELASE
 	printf ("%s", qchars (QString (proc.readAllStandardOutput ())));
-#endif
+#endif // RELEASE
 	
 	if (proc.exitStatus () == QProcess::CrashExit) {
 		processError (prog, proc);
@@ -180,10 +186,10 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 }
 
 // ========================================================================================================================================
-static void insertOutput (str fname, bool replace, vector<LDObject::Group> groupsToReplace) {
+static void insertOutput (str fname, bool replace, vector<short> colorsToReplace) {
 #ifndef RELEASE
-	QFile::copy (fname, "./output.dat");
-#endif
+	QFile::copy (fname, "./debug_lastOutput");
+#endif // RELEASE
 	
 	// Read the output file
 	FILE* fp = fopen (fname, "r");
@@ -201,8 +207,8 @@ static void insertOutput (str fname, bool replace, vector<LDObject::Group> group
 	if (replace)
 		*cmb << g_win->deleteSelection ();
 	
-	for (const LDObject::Group group : groupsToReplace)
-		*cmb << g_win->deleteGroup (group);
+	for (const short colnum : colorsToReplace)
+		*cmb << g_win->deleteByColor (colnum);
 	
 	// Insert the new objects
 	g_win->sel ().clear ();
@@ -365,8 +371,8 @@ MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping betwee
 	
 	QDialog dlg;
 	
-	LabeledWidget<QComboBox>* cmb_ingroup = new LabeledWidget<QComboBox> ("Input group", new QComboBox),
-		*cmb_cutgroup = new LabeledWidget<QComboBox> ("Cutter group", new QComboBox);
+	LabeledWidget<QComboBox>* cmb_incol = new LabeledWidget<QComboBox> ("Input", new QComboBox),
+		*cmb_cutcol = new LabeledWidget<QComboBox> ("Cutter", new QComboBox);
 	QCheckBox* cb_colorize = new QCheckBox ("Colorize output"),
 		*cb_nocondense = new QCheckBox ("No condensing"),
 		*cb_repeatInverse = new QCheckBox ("Repeat inverse"),
@@ -377,16 +383,16 @@ MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping betwee
 		" cutter group with the input group. Both groups are cut by the intersection.");
 	cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 	
-	makeGroupSelector (cmb_ingroup->w ());
-	makeGroupSelector (cmb_cutgroup->w ());
+	makeColorSelector (cmb_incol->w ());
+	makeColorSelector (cmb_cutcol->w ());
 	dsb_prescale->w ()->setMinimum (0.0f);
 	dsb_prescale->w ()->setMaximum (10000.0f);
 	dsb_prescale->w ()->setSingleStep (0.01f);
 	dsb_prescale->w ()->setValue (1.0f);
 	
 	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (cmb_ingroup);
-	layout->addWidget (cmb_cutgroup);
+	layout->addWidget (cmb_incol);
+	layout->addWidget (cmb_cutcol);
 	
 	QHBoxLayout* cblayout = new QHBoxLayout;
 	cblayout->addWidget (cb_colorize);
@@ -405,12 +411,12 @@ exec:
 	if (!dlg.exec ())
 		return;
 	
-	const LDObject::Group inGroup = (LDObject::Group) cmb_ingroup->w ()->currentIndex (),
-		cutGroup = (LDObject::Group) cmb_cutgroup->w ()->currentIndex ();
+	const short inCol = cmb_incol->w ()->itemData (cmb_incol->w ()->currentIndex ()).toInt (),
+		cutCol =  cmb_cutcol->w ()->itemData (cmb_cutcol->w ()->currentIndex ()).toInt ();
 	const bool repeatInverse = cb_repeatInverse->isChecked ();
 	
-	if (inGroup == cutGroup) {
-		critical ("Cannot use the same group for both input and cutter!");
+	if (inCol == cutCol) {
+		critical ("Cannot use the same color group for both input and cutter!");
 		goto exec;
 	}
 	
@@ -438,14 +444,14 @@ exec:
 	str argv_normal = fmt ("%s %s %s %s", parms.chars (), inDATName.chars (), cutDATName.chars (), outDATName.chars ());
 	str argv_inverse = fmt ("%s %s %s %s", parms.chars (), cutDATName.chars (), inDATName.chars (), outDAT2Name.chars ());
 	
-	writeGroup (inGroup, inDATName);
-	writeGroup (cutGroup, cutDATName);
+	writeColorGroup (inCol, inDATName);
+	writeColorGroup (cutCol, cutDATName);
 	runUtilityProcess (Intersector, prog_intersector, argv_normal);
-	insertOutput (outDATName, false, {inGroup});
+	insertOutput (outDATName, false, {inCol});
 	
 	if (repeatInverse) {
 		runUtilityProcess (Intersector, prog_intersector, argv_inverse);
-		insertOutput (outDAT2Name, false, {cutGroup});
+		insertOutput (outDAT2Name, false, {cutCol});
 	}
 	
 	if (cb_edges->isChecked ()) {

@@ -140,7 +140,7 @@ public:
 	void spawnContextMenu (const QPoint pos);
 	DelHistory* deleteObjVector (const std::vector<LDObject*> objs);
 	DelHistory* deleteSelection ();
-	DelHistory* deleteGroup (const LDObject::Group group);
+	DelHistory* deleteByColor (const short colnum);
 	GLRenderer* R () { return m_renderer; }
 	std::vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {
@@ -244,7 +244,7 @@ bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
 QAction* findAction (str name);
-void makeGroupSelector (QComboBox* box);
+void makeColorSelector (QComboBox* box);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

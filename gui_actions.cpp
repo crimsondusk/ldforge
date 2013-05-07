@@ -405,50 +405,6 @@ MAKE_ACTION (doneDraw, "Done Drawing", "draw-done", "Done drawing geometry", KEY
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void setGroup (const LDObject::Group group) {
-	for (LDObject* obj : g_win->sel ())
-		obj->setGroup (group);
-	
-	g_win->refresh ();
-}
-
-// =============================================================================
-void selGroup (const LDObject::Group group) {
-	g_win->sel ().clear ();
-	
-	for (LDObject* obj : g_curfile->m_objs) {
-		if (obj->group () != group)
-			continue; // wrong group
-		
-		g_win->sel ().push_back (obj);
-	}
-	
-	g_win->refresh ();
-}
-
-#define GROUP_ACTION(N, KEY) \
-	MAKE_ACTION (group##N, "Group " #N, "group", "Set group of selected objects to " #N, CTRL_SHIFT (KEY)) { \
-		setGroup (LDObject::N); \
-	} \
-	\
-	MAKE_ACTION (selGroup##N, "Select Group " #N, "group", "Select the contents of group " #N, SHIFT (F##KEY)) { \
-		selGroup (LDObject::N); \
-	}
-
-GROUP_ACTION (A, 1)
-GROUP_ACTION (B, 2)
-GROUP_ACTION (C, 3)
-GROUP_ACTION (D, 4)
-GROUP_ACTION (E, 5)
-GROUP_ACTION (F, 6)
-
-MAKE_ACTION (ungroup, "Ungroup", "ungroup", "Unset the group of selected objects", CTRL_SHIFT (0)) {
-	setGroup (LDObject::NoGroup);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/hiding on objects.", (0)) {
 	for (LDObject* obj : g_win->sel ())
 		obj->setHidden (!obj->hidden ());

@@ -6,9 +6,11 @@ TEMPLATE = app
 TARGET = 
 DEPENDPATH += .
 INCLUDEPATH += .
-OBJECTS_DIR = build/
+OBJECTS_DIR = ./build/
 RC_FILE = ldforge.rc
 RESOURCES = ldforge.qrc
+MOC_DIR = ./autogen/
+RCC_DIR = ./autogen/
 
 # Input
 HEADERS += bbox.h \

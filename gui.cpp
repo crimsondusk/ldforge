@@ -46,19 +46,6 @@ cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
 
-const QColor g_GroupBackgrounds[] = {
-	QColor (0, 192, 255), // blue
-	QColor (144, 255, 0), // green
-	QColor (255, 128, 0), // orange
-	QColor (255, 255, 0), // yellow
-	QColor (160, 64, 255), // purple
-	QColor (0, 255, 160), // emerald
-};
-
-QIcon g_groupSelectorIcons[6];
-
-const ushort g_numGroups = 2;
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -89,16 +76,6 @@ ForgeWindow::ForgeWindow () {
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
-	
-	// Init group bg icons
-	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
-		QImage img (16, 16, QImage::Format_ARGB32);
-		QPainter paint (&img);
-		paint.fillRect (0, 0, 16, 16, Qt::black);
-		paint.fillRect (1, 1, 14, 14, g_GroupBackgrounds[i]);
-		
-		g_groupSelectorIcons[i] = QIcon (QPixmap::fromImage (img));
-	}
 	
 	connect (QCoreApplication::instance (), SIGNAL (aboutToQuit ()), this, SLOT (slot_lastSecondCleanup ()));
 }
@@ -212,16 +189,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("selectAll");			// Select All
 	addMenuAction ("selectByColor");		// Select by Color
 	addMenuAction ("selectByType");		// Select by Type
-	
-	initMenu ("&Groups");
-	for (uchar i = 0; i < LDObject::NumGroups; ++i)
-		addMenuAction (fmt ("group%c", 'A' + i)); 	// Group *
-	
-	menu->addSeparator ();								// -----
-	addMenuAction ("ungroup");						// Ungroup
-	menu->addSeparator ();								// -----
-	for (uchar i = 0; i < LDObject::NumGroups; ++i)
-		addMenuAction (fmt ("selGroup%c", 'A' + i));	// Select Group *
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
@@ -408,22 +375,6 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("ytruder");
 	addToolBarAction ("rectifier");
 	addToolBarAction ("intersector");
-	
-	initSingleToolBar ("Groups");
-	
-	// We need to create the group toolbar buttons manually so that we can
-	// set a custom background for them.
-	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
-		QToolButton* btn = new QToolButton (this);
-		QColor col = g_GroupBackgrounds[i];
-		
-		btn->setDefaultAction (findAction (fmt ("group%c", 'A' + i)));
-		btn->setStyleSheet (fmt ("QToolButton { background-color: \"#%.2X%.2X%.2X\"; }",
-			col.red (), col.green (), col.blue ()));
-		g_CurrentToolBar->addWidget (btn);
-	}
-	
-	addToolBarAction ("ungroup");
 	updateToolBars ();
 }
 
@@ -705,8 +656,6 @@ void ForgeWindow::buildObjList () {
 			color* col = getColor (obj->dColor);
 			if (col)
 				item->setForeground (col->qColor);
-		} else if (obj->group () != LDObject::NoGroup) {
-			item->setBackground (g_GroupBackgrounds[obj->group ()]);
 		}
 		
 		obj->qObjListEntry = item;
@@ -971,10 +920,10 @@ DelHistory* ForgeWindow::deleteSelection () {
 }
 
 // ========================================================================================================================================
-DelHistory* ForgeWindow::deleteGroup (const LDObject::Group group) {
+DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
 	for (LDObject* obj : g_curfile->m_objs) {
-		if (obj->group () != group)
+		if (!obj->isColored () || obj->dColor != colnum)
 			continue;
 		
 		objs.push_back (obj);
@@ -1036,22 +985,39 @@ QAction* findAction (str name) {
 }
 
 // =============================================================================
-void makeGroupSelector (QComboBox* box) {
-	ulong counts[6];
-	uchar selGroup = 0;
-	memset (&counts[0], 0, sizeof counts);
+void makeColorSelector (QComboBox* box) {
+	std::map<short, ulong> counts;
 	
-	for (LDObject* obj : g_curfile->m_objs)
-		if (obj->group () != LDObject::NoGroup)
-			counts[obj->group ()]++;
-	
-	box->clear ();
-	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
-		box->addItem (g_groupSelectorIcons[i], fmt ("%c (%lu objects)", QChar ('A' + i), counts[i]));
+	for (LDObject* obj : g_curfile->m_objs) {
+		if (!obj->isColored ())
+			continue;
 		
-		if (counts[i] > 0 && selGroup == 0)
-			selGroup = i;
+		if (counts.find (obj->dColor) == counts.end ())
+			counts[obj->dColor] = 1;
+		else
+			counts[obj->dColor]++;
 	}
 	
-	box->setCurrentIndex (selGroup);
+	box->clear ();
+	ulong row = 0;
+	for (const auto& pair : counts) {
+		const ushort size = 16;
+		color* col = getColor (pair.first);
+		assert (col != null);
+		
+		// Paint an icon for this color
+		QIcon ico;
+		QImage img (size, size, QImage::Format_ARGB32);
+		QPainter paint (&img);
+		paint.fillRect (QRect (0, 0, size, size), Qt::black);
+		paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
+		paint.fillRect (QRect (1, 1, size - 2, size - 2), QColor (col->qColor));
+		ico = QIcon (QPixmap::fromImage (img));
+		
+		box->addItem (ico, fmt ("[%d] %s (%lu object%s)",
+			pair.first, col->zName.chars (), pair.second, PLURAL (pair.second)));
+		box->setItemData (row, pair.first);
+		
+		++row;
+	}
 }

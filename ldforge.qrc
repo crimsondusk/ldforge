@@ -47,7 +47,6 @@
 	<file>./icons/grid-coarse.png</file>
 	<file>./icons/grid-fine.png</file>
 	<file>./icons/grid-medium.png</file>
-	<file>./icons/group.png</file>
 	<file>./icons/help.png</file>
 	<file>./icons/history.png</file>
 	<file>./icons/inline-deep.png</file>
@@ -83,7 +82,6 @@
 	<file>./icons/triangle.png</file>
 	<file>./icons/uncolorize.png</file>
 	<file>./icons/undo.png</file>
-	<file>./icons/ungroup.png</file>
 	<file>./icons/vertex.png</file>
 	<file>./icons/visibility.png</file>
 	<file>./icons/ytruder.png</file>
