@@ -71,19 +71,10 @@ ForgeWindow::ForgeWindow () {
 	m_objList->setAlternatingRowColors (true);
 	connect (m_objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	
-	m_msglog = new QTextEdit;
-	m_msglog->setReadOnly (true);
-	m_msglog->setMaximumHeight (96);
-	
-	m_hsplit = new QSplitter;
-	m_hsplit->addWidget (m_renderer);
-	m_hsplit->addWidget (m_objList);
-	
-	m_vsplit = new QSplitter (Qt::Vertical);
-	m_vsplit->addWidget (m_hsplit);
-	m_vsplit->addWidget (m_msglog);
-	
-	setCentralWidget (m_vsplit);
+	m_splitter = new QSplitter;
+	m_splitter->addWidget (m_renderer);
+	m_splitter->addWidget (m_objList);
+	setCentralWidget (m_splitter);
 	
 	m_colorMeta = parseQuickColorMeta ();
 	
@@ -1016,7 +1007,7 @@ bool confirm (str title, str msg) {
 
 // =============================================================================
 void critical (str msg) {
-	QMessageBox::critical (g_win, "Critical Error", msg,
+	QMessageBox::critical (g_win, "Error", msg,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 

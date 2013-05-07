@@ -162,9 +162,8 @@ protected:
 private:
 	GLRenderer* m_renderer;
 	ObjectList* m_objList;
-	QTextEdit* m_msglog;
 	QMenu* m_recentFilesMenu;
-	QSplitter* m_hsplit, *m_vsplit;
+	QSplitter* m_splitter;
 	str m_msglogHTML;
 	QToolBar* m_colorToolBar;
 	std::vector<QToolBar*> m_toolBars;
