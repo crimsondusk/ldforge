@@ -119,6 +119,8 @@ private slots:
 	void slot_addColorSeparator ();
 	void slot_moveColor ();
 	void slot_clearColors ();
+	
+	void slot_setExtProgPath ();
 };
 
 // =============================================================================

@@ -28,6 +28,7 @@
 #include <qcolordialog.h>
 #include <qboxlayout.h>
 #include <qevent.h>
+#include <qgroupbox.h>
 
 extern_cfg (str, io_ldpath);
 extern_cfg (str, gl_bgcolor);
@@ -61,6 +62,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	initShortcutsTab ();
 	initQuickColorTab ();
 	initGridTab ();
+	initExtProgTab ();
 	
 	IMPLEMENT_DIALOG_BUTTONS
 	
@@ -69,7 +71,7 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	layout->addWidget (bbx_buttons);
 	setLayout (layout);
 	
-	setWindowTitle (APPNAME " - Settings");
+	setWindowTitle ("Settings");
 	setWindowIcon (getIcon ("settings"));
 }
 
@@ -189,11 +191,9 @@ void ConfigDialog::initMainTab () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::initShortcutsTab () {
-	QGridLayout* qLayout;
-	
 	shortcutsTab = new QWidget;
 	lw_shortcutList = new QListWidget;
-	qLayout = new QGridLayout;
+	lw_shortcutList->setAlternatingRowColors (true);
 	
 	shortcutsTab->setWhatsThis ("Here you can alter keyboard shortcuts for "
 		"almost all LDForge actions. Only exceptions are the controls for the "
@@ -230,15 +230,16 @@ void ConfigDialog::initShortcutsTab () {
 	connect (pb_resetShortcut, SIGNAL (clicked ()), this, SLOT (slot_resetShortcut ()));
 	connect (pb_clearShortcut, SIGNAL (clicked ()), this, SLOT (slot_clearShortcut ()));
 	
-	QVBoxLayout* qButtonLayout = new QVBoxLayout;
-	qButtonLayout->addWidget (pb_setShortcut);
-	qButtonLayout->addWidget (pb_resetShortcut);
-	qButtonLayout->addWidget (pb_clearShortcut);
-	qButtonLayout->addStretch (10);
+	QVBoxLayout* buttonLayout = new QVBoxLayout;
+	buttonLayout->addWidget (pb_setShortcut);
+	buttonLayout->addWidget (pb_resetShortcut);
+	buttonLayout->addWidget (pb_clearShortcut);
+	buttonLayout->addStretch (10);
 	
-	qLayout->addWidget (lw_shortcutList, 0, 0);
-	qLayout->addLayout (qButtonLayout, 0, 1);
-	shortcutsTab->setLayout (qLayout);
+	QGridLayout* layout = new QGridLayout;
+	layout->addWidget (lw_shortcutList, 0, 0);
+	layout->addLayout (buttonLayout, 0, 1);
+	shortcutsTab->setLayout (layout);
 	tabs->addTab (shortcutsTab, "Shortcuts");
 }
 
@@ -255,21 +256,20 @@ void ConfigDialog::initQuickColorTab () {
 	pb_moveColorUp = new QPushButton (getIcon ("arrow-up"), "Move Up");
 	pb_moveColorDown = new QPushButton (getIcon ("arrow-down"), "Move Down");
 	pb_clearColors = new QPushButton (getIcon ("delete-all"), "Clear");
-	
 	lw_quickColors = new QListWidget;
 	
 	quickColorMeta = parseQuickColorMeta ();
 	updateQuickColorList ();
 	
-	QVBoxLayout* qButtonLayout = new QVBoxLayout;
-	qButtonLayout->addWidget (pb_addColor);
-	qButtonLayout->addWidget (pb_delColor);
-	qButtonLayout->addWidget (pb_changeColor);
-	qButtonLayout->addWidget (pb_addColorSeparator);
-	qButtonLayout->addWidget (pb_moveColorUp);
-	qButtonLayout->addWidget (pb_moveColorDown);
-	qButtonLayout->addWidget (pb_clearColors);
-	qButtonLayout->addStretch (1);
+	QVBoxLayout* buttonLayout = new QVBoxLayout;
+	buttonLayout->addWidget (pb_addColor);
+	buttonLayout->addWidget (pb_delColor);
+	buttonLayout->addWidget (pb_changeColor);
+	buttonLayout->addWidget (pb_addColorSeparator);
+	buttonLayout->addWidget (pb_moveColorUp);
+	buttonLayout->addWidget (pb_moveColorDown);
+	buttonLayout->addWidget (pb_clearColors);
+	buttonLayout->addStretch (1);
 	
 	connect (pb_addColor, SIGNAL (clicked ()), this, SLOT (slot_setColor ()));
 	connect (pb_delColor, SIGNAL (clicked ()), this, SLOT (slot_delColor ()));
@@ -279,11 +279,11 @@ void ConfigDialog::initQuickColorTab () {
 	connect (pb_moveColorDown, SIGNAL (clicked ()), this, SLOT (slot_moveColor ()));
 	connect (pb_clearColors, SIGNAL (clicked ()), this, SLOT (slot_clearColors ()));
 	
-	QGridLayout* qLayout = new QGridLayout;
-	qLayout->addWidget (lw_quickColors, 0, 0);
-	qLayout->addLayout (qButtonLayout, 0, 1);
+	QGridLayout* layout = new QGridLayout;
+	layout->addWidget (lw_quickColors, 0, 0);
+	layout->addLayout (buttonLayout, 0, 1);
 	
-	quickColorTab->setLayout (qLayout);
+	quickColorTab->setLayout (layout);
 	tabs->addTab (quickColorTab, "Quick Colors");
 }
 
@@ -337,10 +337,49 @@ void ConfigDialog::initGridTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+extern_cfg (str, prog_ytruder);
+static const struct extProgInfo {
+	const char* const name, *iconname;
+	strconfig* const path;
+	mutable QLineEdit* input;
+	mutable QPushButton* setPathButton;
+} g_extProgInfo[] = {
+	{ "Ytruder", "ytruder", &prog_ytruder, null, null },
+};
+
 void ConfigDialog::initExtProgTab () {
 	QWidget* tab = new QWidget;
+	QGridLayout* pathsLayout = new QGridLayout;
+	QGroupBox* pathsBox = new QGroupBox ("Paths", this);
+	QVBoxLayout* layout = new QVBoxLayout;
 	
-	QGridLayout* layout = new QGridLayout;
+	ulong row = 0;
+	for (const extProgInfo& info : g_extProgInfo) {
+		QLabel* icon = new QLabel,
+			*progLabel = new QLabel (info.name);
+		QLineEdit* input = new QLineEdit;
+		QPushButton* setPathButton = new QPushButton ();
+		
+		icon->setPixmap (getIcon (info.iconname));
+		input->setText (info.path->value);
+		setPathButton->setIcon (getIcon ("folder"));
+		info.input = input;
+		info.setPathButton = setPathButton;
+		
+		connect (setPathButton, SIGNAL (clicked ()), this, SLOT (slot_setExtProgPath ()));
+		
+		pathsLayout->addWidget (icon, row, 0);
+		pathsLayout->addWidget (progLabel, row, 1);
+		pathsLayout->addWidget (input, row, 2);
+		pathsLayout->addWidget (setPathButton, row, 3);
+	}
+	
+	pathsBox->setLayout (pathsLayout);
+	layout->addWidget (pathsBox);
+	layout->addSpacing (10);
+	
+	tab->setLayout (layout);
+	tabs->addTab (tab, "Ext. Programs");
 }
 
 // =============================================================================
@@ -385,46 +424,46 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::slot_setColor () {
-	quickColorMetaEntry* pEntry = null;
-	QListWidgetItem* qItem = null;
-	const bool bNew = static_cast<QPushButton*> (sender ()) == pb_addColor;
+	quickColorMetaEntry* entry = null;
+	QListWidgetItem* item = null;
+	const bool isNew = static_cast<QPushButton*> (sender ()) == pb_addColor;
 	
-	if (bNew == false) {
-		qItem = getSelectedQuickColor ();
-		if (!qItem)
+	if (isNew == false) {
+		item = getSelectedQuickColor ();
+		if (!item)
 			return;
 		
-		ulong ulIdx = getItemRow (qItem, quickColorItems);
-		pEntry = &quickColorMeta[ulIdx];
+		ulong ulIdx = getItemRow (item, quickColorItems);
+		entry = &quickColorMeta[ulIdx];
 		
-		if (pEntry->bSeparator == true)
+		if (entry->bSeparator == true)
 			return; // don't color separators
 	}
 	
-	short dDefault = pEntry ? pEntry->col->index () : -1;
+	short dDefault = entry ? entry->col->index () : -1;
 	short dValue;
 	
 	if (ColorSelectDialog::staticDialog (dValue, dDefault, this) == false)
 		return;
 	
-	if (pEntry)
-		pEntry->col = getColor (dValue);
+	if (entry)
+		entry->col = getColor (dValue);
 	else {
 		quickColorMetaEntry entry = {getColor (dValue), null, false};
 		
-		qItem = getSelectedQuickColor ();
+		item = getSelectedQuickColor ();
 		ulong idx;
 		
-		if (qItem)
-			idx = getItemRow (qItem, quickColorItems) + 1;
+		if (item)
+			idx = getItemRow (item, quickColorItems) + 1;
 		else
 			idx = quickColorItems.size();
 		
 		quickColorMeta.insert (quickColorMeta.begin() + idx, entry);
-		pEntry = &quickColorMeta[idx];
+		entry = &quickColorMeta[idx];
 	}
 	
-	updateQuickColorList (pEntry);
+	updateQuickColorList (entry);
 }
 
 // =============================================================================
@@ -609,6 +648,30 @@ void ConfigDialog::slot_clearShortcut () {
 		(*info->qAct)->setShortcut (*conf);
 		setShortcutText (item, *info);
 	}
+}
+
+// =============================================================================
+void ConfigDialog::slot_setExtProgPath () {
+	const extProgInfo* info = null;
+	for (const extProgInfo& it : g_extProgInfo) {
+		if (it.setPathButton == sender ()) {
+			info = &it;
+			break;
+		}
+	}
+	
+	assert (info != null);
+	
+	str filter;
+#ifdef _WIN32
+	filter = "Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
+#endif // WIN32
+	
+	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %s", info->name), "", filter);
+	if (!~fpath)
+		return;
+	
+	info->input->setText (fpath);
 }
 
 // =============================================================================
