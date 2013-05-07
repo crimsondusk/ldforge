@@ -22,6 +22,7 @@
 #include <qdialog.h>
 #include <qdialogbuttonbox.h>
 #include <qspinbox.h>
+#include <qcheckbox.h>
 #include "common.h"
 #include "config.h"
 #include "misc.h"
@@ -37,30 +38,28 @@ cfg (str, prog_intersector, "");
 cfg (str, prog_coverer, "");
 cfg (str, prog_ytruder, "");
 cfg (str, prog_datheader, "");
-
-strconfig* g_extProgPaths[] = {
-	&prog_isecalc,
-	&prog_intersector,
-	&prog_coverer,
-	&prog_ytruder,
-	&prog_datheader,
-};
+cfg (str, prog_rectifier, "");
 
 const char* g_extProgNames[] = {
 	"Isecalc",
 	"Intersector",
 	"Coverer",
 	"Ytruder",
+	"Rectifier",
 	"DATHeader",
 };
 
 // =============================================================================
-static void noPathConfigured (const extprog prog) {
+static bool checkProgPath (str path, const extprog prog) {
+	if (~path)
+		return true;
+	
 	const char* name = g_extProgNames[prog];
 	
 	critical (fmt ("Couldn't run %s as no path has "
 		"been defined for it. Use the configuration dialog's External Programs "
 		"tab to define a path for %s.", name, name));
+	return false;
 }
 
 // =============================================================================
@@ -123,9 +122,12 @@ void writeSelection (str fname) {
 }
 
 // =============================================================================
-void runUtilityProcess (extprog prog, QStringList argv) {
+void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	QTemporaryFile input, output;
 	str inputname, outputname;
+	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
+	
+	printf ("cmdline: %s %s\n", path.chars (), qchars (argvstr));
 	
 	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
 		return;
@@ -137,7 +139,7 @@ void runUtilityProcess (extprog prog, QStringList argv) {
 	
 	// Begin!
 	proc.setStandardInputFile (inputname);
-	proc.start (prog_ytruder.value, argv);
+	proc.start (path, argv);
 	
 	// Write an enter - one is expected
 	char enter[2] = "\n";
@@ -148,6 +150,10 @@ void runUtilityProcess (extprog prog, QStringList argv) {
 	// Wait while it runs
 	proc.waitForFinished ();
 	
+#ifndef RELASE
+	printf ("%s", qchars (QString (proc.readAllStandardOutput ())));
+#endif
+	
 	if (proc.exitStatus () == QProcess::CrashExit) {
 		processError (prog, proc);
 		return;
@@ -155,7 +161,11 @@ void runUtilityProcess (extprog prog, QStringList argv) {
 }
 
 // =============================================================================
-void insertOutput (str fname, bool replace) {
+static void insertOutput (str fname, bool replace) {
+#ifndef RELEASE
+	QFile::copy (fname, "./output.dat");
+#endif
+	
 	// Read the output file
 	FILE* fp = fopen (fname, "r");
 	if (!fp) {
@@ -168,22 +178,9 @@ void insertOutput (str fname, bool replace) {
 		copies;
 	std::vector<ulong> indices;
 	
-	ulong idx = g_win->getInsertionPoint ();
-	
 	// If we replace the objects, delete the selection now.
-	if (replace) {
-		vector<ulong> indices;
-		vector<LDObject*> cache,
-			sel = g_win->sel ();
-		
-		for (LDObject* obj : sel) {
-			indices.push_back (obj->getIndex (g_curfile));
-			cache.push_back (obj->clone ());
-			
-			g_curfile->forgetObject (obj);
-			delete obj;
-		}
-	}
+	if (replace)
+		*cmb << g_win->deleteSelection ();
 	
 	// Insert the new objects
 	g_win->sel ().clear ();
@@ -193,16 +190,14 @@ void insertOutput (str fname, bool replace) {
 			continue;
 		}
 		
-		g_curfile->insertObj (idx, obj);
+		ulong idx = g_curfile->addObject (obj);
 		indices.push_back (idx);
 		copies.push_back (obj->clone ());
 		g_win->sel ().push_back (obj);
-		
-		++idx;
 	}
 	
 	if (indices.size() > 0)
-		cmb->paEntries.push_back (new AddHistory ({indices, copies}));
+		*cmb << new AddHistory ({indices, copies});
 	
 	if (cmb->paEntries.size () > 0)
 		History::addEntry (cmb);
@@ -213,12 +208,20 @@ void insertOutput (str fname, bool replace) {
 	g_win->refresh ();
 }
 
+QDialogButtonBox* makeButtonBox (QDialog* dlg) {
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	return bbx_buttons;
+}
+
 // =============================================================================
+// Interface for Ytruder
 MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F8)) {
-	if (prog_ytruder.value.len () == 0) {
-		noPathConfigured (Ytruder);
+	setlocale (LC_ALL, "C");
+	
+	if (!checkProgPath (prog_ytruder, Ytruder))
 		return;
-	}
 	
 	QDialog* dlg = new QDialog (g_win);
 	
@@ -226,10 +229,6 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal, dlg);
 	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth", dlg),
 		*dsb_condAngle = new LabeledWidget<QDoubleSpinBox> ("Conditional line threshold", dlg);
-	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	
-	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
-	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
 	
 	rb_axis->setValue (Y);
 	dsb_depth->w ()->setMinimum (-10000.0);
@@ -242,13 +241,14 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	layout->addWidget (rb_axis);
 	layout->addWidget (dsb_depth);
 	layout->addWidget (dsb_condAngle);
-	layout->addWidget (bbx_buttons);
+	layout->addWidget (makeButtonBox (dlg));
 	
 	dlg->setWindowIcon (getIcon ("extrude"));
 	
 	if (!dlg->exec ())
 		return;
 	
+	// Read the user's choices
 	const enum modetype { Distance, Symmetry, Projection, Radial } mode = (modetype) rb_mode->value ();
 	const Axis axis = (Axis) rb_axis->value ();
 	const double depth = dsb_depth->w ()->value (),
@@ -257,15 +257,76 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	QTemporaryFile indat, outdat;
 	str inDATName, outDATName;
 	
+	// Make temp files for the input and output files
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	QStringList argv ({(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
+	// Compose the command-line arguments
+	str argv = fmt ("%s %s %f -a %f %s %s",
+		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
-		fmt ("%f", depth), "-a", fmt ("%f", condAngle), inDATName, outDATName
-	});
+		depth, condAngle, inDATName.chars (), outDATName.chars ());
 	
 	writeSelection (inDATName);
-	runUtilityProcess (Ytruder, argv);
+	runUtilityProcess (Ytruder, prog_ytruder, argv);
 	insertOutput (outDATName, false);
+}
+
+// =============================================================================
+// Rectifier interface
+MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", (0)) {
+	setlocale (LC_ALL, "C");
+	
+	if (!checkProgPath (prog_rectifier, Rectifier))
+		return;
+	
+	QDialog* dlg = new QDialog (g_win);
+	QCheckBox* cb_condense = new QCheckBox ("Condense triangles to quads"),
+		*cb_subst = new QCheckBox ("Substitute rect primitives"),
+		*cb_condlineCheck = new QCheckBox ("Don't replace quads with adj. condlines"),
+		*cb_colorize = new QCheckBox ("Colorize resulting objects");
+	LabeledWidget<QDoubleSpinBox>* dsb_coplthres = new LabeledWidget<QDoubleSpinBox> ("Coplanarity threshold", dlg);
+	
+	dsb_coplthres->w ()->setMinimum (0.0f);
+	dsb_coplthres->w ()->setMaximum (360.0f);
+	dsb_coplthres->w ()->setDecimals (3);
+	dsb_coplthres->w ()->setValue (0.95f);
+	cb_condense->setChecked (true);
+	cb_subst->setChecked (true);
+	
+	QVBoxLayout* layout = new QVBoxLayout (dlg);
+	layout->addWidget (cb_condense);
+	layout->addWidget (cb_subst);
+	layout->addWidget (cb_condlineCheck);
+	layout->addWidget (cb_colorize);
+	layout->addWidget (dsb_coplthres);
+	layout->addWidget (makeButtonBox (dlg));
+	
+	if (!dlg->exec ())
+		return;
+	
+	const bool condense = cb_condense->isChecked (),
+		subst = cb_subst->isChecked (),
+		condlineCheck = cb_condlineCheck->isChecked (),
+		colorize = cb_colorize->isChecked ();
+	const double coplthres = dsb_coplthres->w ()->value ();
+	
+	QTemporaryFile indat, outdat;
+	str inDATName, outDATName;
+	
+	// Make temp files for the input and output files
+	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
+		return;
+	
+	// Compose arguments
+	str argv = fmt ("%s %s %s %s -t %f %s %s",
+		(condense == false) ? "-q" : "",
+		(subst == false) ? "-r" : "",
+		(condlineCheck) ? "-a" : "",
+		(colorize) ? "-c" : "",
+		coplthres, inDATName.chars (), outDATName.chars ());
+	
+	writeSelection (inDATName);
+	runUtilityProcess (Rectifier, prog_rectifier, argv);
+	insertOutput (outDATName, true);
 }

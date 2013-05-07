@@ -257,6 +257,7 @@ void ForgeWindow::createMenus () {
 	
 	initMenu ("E&xternal Programs");
 	addMenuAction ("ytruder");
+	addMenuAction ("rectifier");
 	
 #ifndef RELEASE
 	// Debug menu
@@ -407,6 +408,7 @@ void ForgeWindow::createToolbars () {
 	
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
+	addToolBarAction ("rectifier");
 	
 	initSingleToolBar ("Groups");
 	
@@ -943,6 +945,25 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	contextMenu->addAction (findAction ("makeBorders"));
 	
 	contextMenu->exec (pos);
+}
+
+// =============================================================================
+DelHistory* ForgeWindow::deleteSelection () {
+	vector<ulong> indices;
+	vector<LDObject*> cache, sel = g_win->sel ();
+	
+	for (LDObject* obj : sel) {
+		indices.push_back (obj->getIndex (g_curfile));
+		cache.push_back (obj->clone ());
+		
+		g_curfile->forgetObject (obj);
+		delete obj;
+	}
+	
+	if (indices.size () > 0)
+		return new DelHistory (indices, cache);
+	
+	return null;
 }
 
 // =============================================================================

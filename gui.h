@@ -35,6 +35,7 @@
 class ForgeWindow;
 class color;
 class QSplitter;
+class DelHistory;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -136,6 +137,7 @@ public:
 	LDObject::Type uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
+	DelHistory* deleteSelection ();
 	GLRenderer* R () { return m_renderer; }
 	std::vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {

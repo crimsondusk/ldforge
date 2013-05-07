@@ -192,6 +192,11 @@ public:
 	std::vector<HistoryEntry*> paEntries;
 	
 	ComboHistory (std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
+	
+	ComboHistory& operator<< (HistoryEntry* entry) {
+		paEntries.push_back (entry);
+		return *this;
+	}
 };
 
 // =============================================================================

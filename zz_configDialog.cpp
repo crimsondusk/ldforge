@@ -338,6 +338,7 @@ void ConfigDialog::initGridTab () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 extern_cfg (str, prog_ytruder);
+extern_cfg (str, prog_rectifier);
 static const struct extProgInfo {
 	const char* const name, *iconname;
 	strconfig* const path;
@@ -345,13 +346,14 @@ static const struct extProgInfo {
 	mutable QPushButton* setPathButton;
 } g_extProgInfo[] = {
 	{ "Ytruder", "ytruder", &prog_ytruder, null, null },
+	{ "Rectifier", "rectifier", &prog_rectifier, null, null },
 };
 
 void ConfigDialog::initExtProgTab () {
 	QWidget* tab = new QWidget;
 	QGridLayout* pathsLayout = new QGridLayout;
 	QGroupBox* pathsBox = new QGroupBox ("Paths", this);
-	QVBoxLayout* layout = new QVBoxLayout;
+	QVBoxLayout* layout = new QVBoxLayout (this);
 	
 	ulong row = 0;
 	for (const extProgInfo& info : g_extProgInfo) {
@@ -372,6 +374,7 @@ void ConfigDialog::initExtProgTab () {
 		pathsLayout->addWidget (progLabel, row, 1);
 		pathsLayout->addWidget (input, row, 2);
 		pathsLayout->addWidget (setPathButton, row, 3);
+		++row;
 	}
 	
 	pathsBox->setLayout (pathsLayout);
@@ -460,7 +463,7 @@ void ConfigDialog::slot_setColor () {
 			idx = quickColorItems.size();
 		
 		quickColorMeta.insert (quickColorMeta.begin() + idx, entry);
-		entry = &quickColorMeta[idx];
+		entry = quickColorMeta[idx];
 	}
 	
 	updateQuickColorList (entry);
@@ -731,6 +734,10 @@ void ConfigDialog::staticDialog () {
 		for (int i = 0; i < g_NumGrids; ++i)
 			for (int j = 0; j < 4; ++j)
 				g_GridInfo[i].confs[j]->value = dlg.dsb_gridData[i][j]->value ();
+		
+		// Ext program settings
+		for (const extProgInfo& info : g_extProgInfo)
+			*info.path = info.input->text ();
 		
 		// Save the config
 		config::save ();

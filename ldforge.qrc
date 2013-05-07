@@ -70,6 +70,7 @@
 	<file>./icons/quad.png</file>
 	<file>./icons/quad-split.png</file>
 	<file>./icons/radial.png</file>
+	<file>./icons/rectifier.png</file>
 	<file>./icons/redo.png</file>
 	<file>./icons/round-coords.png</file>
 	<file>./icons/screencap.png</file>
@@ -86,8 +87,6 @@
 	<file>./icons/vertex.png</file>
 	<file>./icons/visibility.png</file>
 	<file>./icons/ytruder.png</file>
-	<file>./docs/test2.html</file>
-	<file>./docs/test.html</file>
 	<file>LICENSE</file>
 </qresource>
 </RCC>

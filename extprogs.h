@@ -26,6 +26,7 @@ enum extprog {
 	Intersector,
 	Coverer,
 	Ytruder,
+	Rectifier,
 	DATHeader
 };
 
