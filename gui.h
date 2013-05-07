@@ -32,6 +32,7 @@
 #include "gldraw.h"
 #include "config.h"
 
+class QComboBox;
 class ForgeWindow;
 class color;
 class QSplitter;
@@ -137,7 +138,9 @@ public:
 	LDObject::Type uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
+	DelHistory* deleteObjVector (const std::vector<LDObject*> objs);
 	DelHistory* deleteSelection ();
+	DelHistory* deleteGroup (const LDObject::Group group);
 	GLRenderer* R () { return m_renderer; }
 	std::vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {
@@ -194,14 +197,20 @@ private slots:
 // =============================================================================
 template<class R> class LabeledWidget : public QWidget {
 public:
-	LabeledWidget (const char* labelstr, QWidget* parent) : QWidget (parent) {
+	explicit LabeledWidget (const char* labelstr, QWidget* parent = null) : QWidget (parent) {
 		m_widget = new R (this);
-		m_label = new QLabel (labelstr, this);
-		
-		m_layout = new QHBoxLayout;
-		m_layout->addWidget (m_label);
-		m_layout->addWidget (m_widget);
-		setLayout (m_layout);
+		commonInit (labelstr);
+	}
+	
+	explicit LabeledWidget (const char* labelstr, R* widget, QWidget* parent = null) :
+		QWidget (parent), m_widget (widget)
+	{
+		commonInit (labelstr);
+	}
+	
+	explicit LabeledWidget (QWidget* parent = 0, Qt::WindowFlags f = 0) {
+		m_widget = new R (this);
+		commonInit ("");
 	}
 	
 	R* widget () const { return m_widget; }
@@ -213,6 +222,16 @@ public:
 	operator R* () { return m_widget; }
 	
 private:
+	Q_DISABLE_COPY (LabeledWidget<R>)
+	
+	void commonInit (const char* labelstr) {
+		m_label = new QLabel (labelstr, this);
+		m_layout = new QHBoxLayout;
+		m_layout->addWidget (m_label);
+		m_layout->addWidget (m_widget);
+		setLayout (m_layout);
+	}
+	
 	R* m_widget;
 	QLabel* m_label;
 	QHBoxLayout* m_layout;
@@ -226,6 +245,7 @@ bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
 QAction* findAction (str name);
+void makeGroupSelector (QComboBox* box);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

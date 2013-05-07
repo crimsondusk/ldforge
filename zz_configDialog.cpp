@@ -339,6 +339,8 @@ void ConfigDialog::initGridTab () {
 // =============================================================================
 extern_cfg (str, prog_ytruder);
 extern_cfg (str, prog_rectifier);
+extern_cfg (str, prog_intersector);
+extern_cfg (str, prog_isecalc);
 static const struct extProgInfo {
 	const char* const name, *iconname;
 	strconfig* const path;
@@ -347,6 +349,8 @@ static const struct extProgInfo {
 } g_extProgInfo[] = {
 	{ "Ytruder", "ytruder", &prog_ytruder, null, null },
 	{ "Rectifier", "rectifier", &prog_rectifier, null, null },
+	{ "Intersector", "intersector", &prog_intersector, null, null },
+	{ "Isecalc", "isecalc", &prog_isecalc, null, null },
 };
 
 void ConfigDialog::initExtProgTab () {

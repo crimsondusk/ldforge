@@ -455,38 +455,3 @@ MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/
 	
 	g_win->refresh ();
 }
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// Debug things
-#ifndef RELEASE
-MAKE_ACTION (addTestQuad, "Add Test Quad", "add-quad", "Adds a test quad.", (0)) {
-	LDQuad* pQuad = new LDQuad;
-	pQuad->dColor = rand () % 24;
-	pQuad->vaCoords[0] = { 1.0f, 0.0f,  1.0f};
-	pQuad->vaCoords[1] = {-1.0f, 0.0f,  1.0f};
-	pQuad->vaCoords[2] = {-1.0f, 0.0f, -1.0f};
-	pQuad->vaCoords[3] = { 1.0f, 0.0f, -1.0f};
-	
-	g_curfile->insertObj (g_win->getInsertionPoint (), pQuad);
-	History::addEntry (new AddHistory ({(ulong)pQuad->getIndex (g_curfile)}, {pQuad->clone ()}));
-	g_win->refresh ();
-}
-
-MAKE_ACTION (addTestRadial, "Add Test Radial", "add-radial", "Adds a test radial.", (0)) {
-	LDRadial* pRad = new LDRadial;
-	pRad->eRadialType = LDRadial::Cone;
-	pRad->mMatrix = g_identity;
-	pRad->vPosition = vertex (0, 0, 0);
-	pRad->dColor = rand () % 24;
-	pRad->dDivisions = 16;
-	pRad->dRingNum = 2;
-	pRad->dSegments = 16;
-	
-	g_curfile->insertObj (g_win->getInsertionPoint (), pRad);
-	History::addEntry (new AddHistory ({(ulong)pRad->getIndex (g_curfile)}, {pRad->clone ()}));
-	g_win->refresh ();
-}
-
-#endif // RELEASE

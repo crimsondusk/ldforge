@@ -24,6 +24,7 @@
 #include <qsplitter.h>
 #include <qlistwidget.h>
 #include <qtoolbutton.h>
+#include <qcombobox.h>
 #include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
@@ -53,6 +54,8 @@ const QColor g_GroupBackgrounds[] = {
 	QColor (160, 64, 255), // purple
 	QColor (0, 255, 160), // emerald
 };
+
+QIcon g_groupSelectorIcons[6];
 
 const ushort g_numGroups = 2;
 
@@ -95,6 +98,16 @@ ForgeWindow::ForgeWindow () {
 	setTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
+	
+	// Init group bg icons
+	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
+		QImage img (16, 16, QImage::Format_ARGB32);
+		QPainter paint (&img);
+		paint.fillRect (0, 0, 16, 16, Qt::black);
+		paint.fillRect (1, 1, 14, 14, g_GroupBackgrounds[i]);
+		
+		g_groupSelectorIcons[i] = QIcon (QPixmap::fromImage (img));
+	}
 	
 	connect (QCoreApplication::instance (), SIGNAL (aboutToQuit ()), this, SLOT (slot_lastSecondCleanup ()));
 }
@@ -258,13 +271,7 @@ void ForgeWindow::createMenus () {
 	initMenu ("E&xternal Programs");
 	addMenuAction ("ytruder");
 	addMenuAction ("rectifier");
-	
-#ifndef RELEASE
-	// Debug menu
-	initMenu ("&Debug");
-	addMenuAction ("addTestQuad");		// Add Test Quad
-	addMenuAction ("addTestRadial");		// Add Test Radial
-#endif // RELEASE
+	addMenuAction ("intersector");
 	
 	// Help menu
 	initMenu ("&Help");
@@ -409,6 +416,7 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
 	addToolBarAction ("rectifier");
+	addToolBarAction ("intersector");
 	
 	initSingleToolBar ("Groups");
 	
@@ -947,12 +955,12 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	contextMenu->exec (pos);
 }
 
-// =============================================================================
-DelHistory* ForgeWindow::deleteSelection () {
+// ========================================================================================================================================
+DelHistory* ForgeWindow::deleteObjVector (const std::vector<LDObject*> objs) {
 	vector<ulong> indices;
-	vector<LDObject*> cache, sel = g_win->sel ();
+	vector<LDObject*> cache;
 	
-	for (LDObject* obj : sel) {
+	for (LDObject* obj : objs) {
 		indices.push_back (obj->getIndex (g_curfile));
 		cache.push_back (obj->clone ());
 		
@@ -966,7 +974,25 @@ DelHistory* ForgeWindow::deleteSelection () {
 	return null;
 }
 
-// =============================================================================
+// ========================================================================================================================================
+DelHistory* ForgeWindow::deleteSelection () {
+	return deleteObjVector (sel ());
+}
+
+// ========================================================================================================================================
+DelHistory* ForgeWindow::deleteGroup (const LDObject::Group group) {
+	vector<LDObject*> objs;
+	for (LDObject* obj : g_curfile->m_objs) {
+		if (obj->group () != group)
+			continue;
+		
+		objs.push_back (obj);
+	}
+	
+	return deleteObjVector (objs);
+}
+
+// ========================================================================================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 	g_win->spawnContextMenu (ev->globalPos ());
 }
@@ -1016,4 +1042,25 @@ QAction* findAction (str name) {
 	fprintf (stderr, "%s: couldn't find action named `%s'!\n", __func__, name.chars ());
 	assert (false);
 	return null;
+}
+
+// =============================================================================
+void makeGroupSelector (QComboBox* box) {
+	ulong counts[6];
+	uchar selGroup = 0;
+	memset (&counts[0], 0, sizeof counts);
+	
+	for (LDObject* obj : g_curfile->m_objs)
+		if (obj->group () != LDObject::NoGroup)
+			counts[obj->group ()]++;
+	
+	box->clear ();
+	for (uchar i = 0; i < LDObject::NumGroups; ++i) {
+		box->addItem (g_groupSelectorIcons[i], fmt ("%c (%lu objects)", QChar ('A' + i), counts[i]));
+		
+		if (counts[i] > 0 && selGroup == 0)
+			selGroup = i;
+	}
+	
+	box->setCurrentIndex (selGroup);
 }

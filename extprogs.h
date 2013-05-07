@@ -22,7 +22,7 @@
 #include <qobject.h>
 
 enum extprog {
-	IseCalc,
+	Isecalc,
 	Intersector,
 	Coverer,
 	Ytruder,

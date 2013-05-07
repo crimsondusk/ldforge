@@ -23,6 +23,7 @@
 #include <qdialogbuttonbox.h>
 #include <qspinbox.h>
 #include <qcheckbox.h>
+#include <qcombobox.h>
 #include "common.h"
 #include "config.h"
 #include "misc.h"
@@ -105,7 +106,7 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
-void writeSelection (str fname) {
+void writeObjects (std::vector<LDObject*>& objects, str fname) {
 	// Write the input file
 	FILE* fp = fopen (fname, "w");
 	if (!fp) {
@@ -113,12 +114,30 @@ void writeSelection (str fname) {
 		return;
 	}
 	
-	for (LDObject* obj : g_win->sel ()) {
+	for (LDObject* obj : objects) {
 		str line = fmt ("%s\r\n", obj->getContents ().chars ());
 		fwrite (line.chars(), 1, ~line, fp);
 	}
 	
 	fclose (fp);
+}
+
+// =============================================================================
+void writeSelection (str fname) {
+	writeObjects (g_win->sel (), fname);
+}
+
+// =============================================================================
+void writeGroup (const LDObject::Group group, str fname) {
+	std::vector<LDObject*> objects;
+	for (LDObject*& obj : g_curfile->m_objs) {
+		if (obj->group() != group)
+			continue;
+		
+		objects.push_back (obj);
+	}
+	
+	writeObjects (objects, fname);
 }
 
 // =============================================================================
@@ -160,8 +179,8 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	}
 }
 
-// =============================================================================
-static void insertOutput (str fname, bool replace) {
+// ========================================================================================================================================
+static void insertOutput (str fname, bool replace, vector<LDObject::Group> groupsToReplace) {
 #ifndef RELEASE
 	QFile::copy (fname, "./output.dat");
 #endif
@@ -181,6 +200,9 @@ static void insertOutput (str fname, bool replace) {
 	// If we replace the objects, delete the selection now.
 	if (replace)
 		*cmb << g_win->deleteSelection ();
+	
+	for (const LDObject::Group group : groupsToReplace)
+		*cmb << g_win->deleteGroup (group);
 	
 	// Insert the new objects
 	g_win->sel ().clear ();
@@ -208,10 +230,10 @@ static void insertOutput (str fname, bool replace) {
 	g_win->refresh ();
 }
 
-QDialogButtonBox* makeButtonBox (QDialog* dlg) {
+QDialogButtonBox* makeButtonBox (QDialog& dlg) {
 	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
-	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), &dlg, SLOT (accept ()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), &dlg, SLOT (reject ()));
 	return bbx_buttons;
 }
 
@@ -223,12 +245,12 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	if (!checkProgPath (prog_ytruder, Ytruder))
 		return;
 	
-	QDialog* dlg = new QDialog (g_win);
+	QDialog dlg;
 	
-	RadioBox* rb_mode = new RadioBox ("Extrusion mode", {"Distance", "Symmetry", "Projection", "Radial"}, 0, Qt::Horizontal, dlg);
-	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal, dlg);
-	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth", dlg),
-		*dsb_condAngle = new LabeledWidget<QDoubleSpinBox> ("Conditional line threshold", dlg);
+	RadioBox* rb_mode = new RadioBox ("Extrusion mode", {"Distance", "Symmetry", "Projection", "Radial"}, 0, Qt::Horizontal);
+	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal);
+	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth"),
+		*dsb_condAngle = new LabeledWidget<QDoubleSpinBox> ("Conditional line threshold");
 	
 	rb_axis->setValue (Y);
 	dsb_depth->w ()->setMinimum (-10000.0);
@@ -236,16 +258,16 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	dsb_depth->w ()->setDecimals (3);
 	dsb_condAngle->w ()->setValue (30.0f);
 	
-	QVBoxLayout* layout = new QVBoxLayout (dlg);
+	QVBoxLayout* layout = new QVBoxLayout (&dlg);
 	layout->addWidget (rb_mode);
 	layout->addWidget (rb_axis);
 	layout->addWidget (dsb_depth);
 	layout->addWidget (dsb_condAngle);
 	layout->addWidget (makeButtonBox (dlg));
 	
-	dlg->setWindowIcon (getIcon ("extrude"));
+	dlg.setWindowIcon (getIcon ("extrude"));
 	
-	if (!dlg->exec ())
+	if (!dlg.exec ())
 		return;
 	
 	// Read the user's choices
@@ -269,10 +291,10 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 	
 	writeSelection (inDATName);
 	runUtilityProcess (Ytruder, prog_ytruder, argv);
-	insertOutput (outDATName, false);
+	insertOutput (outDATName, false, {});
 }
 
-// =============================================================================
+// ========================================================================================================================================
 // Rectifier interface
 MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", (0)) {
 	setlocale (LC_ALL, "C");
@@ -280,12 +302,12 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 	if (!checkProgPath (prog_rectifier, Rectifier))
 		return;
 	
-	QDialog* dlg = new QDialog (g_win);
+	QDialog dlg;
 	QCheckBox* cb_condense = new QCheckBox ("Condense triangles to quads"),
 		*cb_subst = new QCheckBox ("Substitute rect primitives"),
 		*cb_condlineCheck = new QCheckBox ("Don't replace quads with adj. condlines"),
 		*cb_colorize = new QCheckBox ("Colorize resulting objects");
-	LabeledWidget<QDoubleSpinBox>* dsb_coplthres = new LabeledWidget<QDoubleSpinBox> ("Coplanarity threshold", dlg);
+	LabeledWidget<QDoubleSpinBox>* dsb_coplthres = new LabeledWidget<QDoubleSpinBox> ("Coplanarity threshold");
 	
 	dsb_coplthres->w ()->setMinimum (0.0f);
 	dsb_coplthres->w ()->setMaximum (360.0f);
@@ -294,7 +316,7 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 	cb_condense->setChecked (true);
 	cb_subst->setChecked (true);
 	
-	QVBoxLayout* layout = new QVBoxLayout (dlg);
+	QVBoxLayout* layout = new QVBoxLayout (&dlg);
 	layout->addWidget (cb_condense);
 	layout->addWidget (cb_subst);
 	layout->addWidget (cb_condlineCheck);
@@ -302,7 +324,7 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 	layout->addWidget (dsb_coplthres);
 	layout->addWidget (makeButtonBox (dlg));
 	
-	if (!dlg->exec ())
+	if (!dlg.exec ())
 		return;
 	
 	const bool condense = cb_condense->isChecked (),
@@ -328,5 +350,106 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 	
 	writeSelection (inDATName);
 	runUtilityProcess (Rectifier, prog_rectifier, argv);
-	insertOutput (outDATName, true);
+	insertOutput (outDATName, true, {});
+}
+
+// =======================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =======================================================================================================================================
+// Intersector interface
+MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", (0)) {
+	setlocale (LC_ALL, "C");
+	
+	if (!checkProgPath (prog_intersector, Intersector))
+		return;
+	
+	QDialog dlg;
+	
+	LabeledWidget<QComboBox>* cmb_ingroup = new LabeledWidget<QComboBox> ("Input group", new QComboBox),
+		*cmb_cutgroup = new LabeledWidget<QComboBox> ("Cutter group", new QComboBox);
+	QCheckBox* cb_colorize = new QCheckBox ("Colorize output"),
+		*cb_nocondense = new QCheckBox ("No condensing"),
+		*cb_repeatInverse = new QCheckBox ("Repeat inverse"),
+		*cb_edges = new QCheckBox ("Add edges");
+	LabeledWidget<QDoubleSpinBox>* dsb_prescale = new LabeledWidget<QDoubleSpinBox> ("Prescaling factor");
+	
+	cb_repeatInverse->setWhatsThis ("If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
+		" cutter group with the input group. Both groups are cut by the intersection.");
+	cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
+	
+	makeGroupSelector (cmb_ingroup->w ());
+	makeGroupSelector (cmb_cutgroup->w ());
+	dsb_prescale->w ()->setMinimum (0.0f);
+	dsb_prescale->w ()->setMaximum (10000.0f);
+	dsb_prescale->w ()->setSingleStep (0.01f);
+	dsb_prescale->w ()->setValue (1.0f);
+	
+	QVBoxLayout* layout = new QVBoxLayout (&dlg);
+	layout->addWidget (cmb_ingroup);
+	layout->addWidget (cmb_cutgroup);
+	
+	QHBoxLayout* cblayout = new QHBoxLayout;
+	cblayout->addWidget (cb_colorize);
+	cblayout->addWidget (cb_nocondense);
+	
+	QHBoxLayout* cb2layout = new QHBoxLayout;
+	cb2layout->addWidget (cb_repeatInverse);
+	cb2layout->addWidget (cb_edges);
+	
+	layout->addLayout (cblayout);
+	layout->addLayout (cb2layout);
+	layout->addWidget (dsb_prescale);
+	layout->addWidget (makeButtonBox (dlg));
+	
+exec:
+	if (!dlg.exec ())
+		return;
+	
+	const LDObject::Group inGroup = (LDObject::Group) cmb_ingroup->w ()->currentIndex (),
+		cutGroup = (LDObject::Group) cmb_cutgroup->w ()->currentIndex ();
+	const bool repeatInverse = cb_repeatInverse->isChecked ();
+	
+	if (inGroup == cutGroup) {
+		critical ("Cannot use the same group for both input and cutter!");
+		goto exec;
+	}
+	
+	// Five temporary files!
+	// indat = input group file
+	// cutdat = cutter group file
+	// outdat = primary output
+	// outdat2 = inverse output
+	// edgesdat = edges output (isecalc)
+	QTemporaryFile indat, cutdat, outdat, outdat2, edgesdat;
+	str inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
+	
+	if (!mkTempFile (indat, inDATName) || !mkTempFile (cutdat, cutDATName) ||
+		!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
+		!mkTempFile (edgesdat, edgesDATName))
+	{
+		return;
+	}
+	
+	str parms = fmt ("%s %s -s %f",
+		(cb_colorize->isChecked ()) ? "-c" : "",
+		(cb_nocondense->isChecked ()) ? "-t" : "",
+		dsb_prescale->w ()->value ());
+	
+	str argv_normal = fmt ("%s %s %s %s", parms.chars (), inDATName.chars (), cutDATName.chars (), outDATName.chars ());
+	str argv_inverse = fmt ("%s %s %s %s", parms.chars (), cutDATName.chars (), inDATName.chars (), outDAT2Name.chars ());
+	
+	writeGroup (inGroup, inDATName);
+	writeGroup (cutGroup, cutDATName);
+	runUtilityProcess (Intersector, prog_intersector, argv_normal);
+	insertOutput (outDATName, false, {inGroup});
+	
+	if (repeatInverse) {
+		runUtilityProcess (Intersector, prog_intersector, argv_inverse);
+		insertOutput (outDAT2Name, false, {cutGroup});
+	}
+	
+	if (cb_edges->isChecked ()) {
+		runUtilityProcess (Isecalc, prog_isecalc, fmt ("%s %s %s", inDATName.chars (), cutDATName.chars (), edgesDATName.chars ()));
+		insertOutput (edgesDATName, false, {});
+	}
 }
