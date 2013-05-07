@@ -245,7 +245,7 @@ QDialogButtonBox* makeButtonBox (QDialog& dlg) {
 
 // =============================================================================
 // Interface for Ytruder
-MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F8)) {
+MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F4)) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_ytruder, Ytruder))
@@ -302,7 +302,7 @@ MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given p
 
 // ========================================================================================================================================
 // Rectifier interface
-MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", (0)) {
+MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", KEY (F8)) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_rectifier, Rectifier))
@@ -363,7 +363,7 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =======================================================================================================================================
 // Intersector interface
-MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", (0)) {
+MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", KEY (F5)) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_intersector, Intersector))
