@@ -19,6 +19,7 @@
 #include <vector>
 #include <stdio.h>
 #include <qmessagebox.h>
+#include <QDir>
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -26,9 +27,60 @@
 #include "bbox.h"
 #include "gui.h"
 #include "history.h"
+#include "zz_ldrawPathDialog.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
+
+// =============================================================================
+namespace LDPaths {
+	static str pathError;
+	
+	struct {
+		str LDConfigPath;
+		str partsPath, primsPath;
+	} pathInfo;
+	
+	void initPaths () {
+		if (!tryConfigure (io_ldpath)) {
+			LDrawPathDialog dlg;
+			
+			if (!dlg.exec ())
+				exit (0);
+			
+			io_ldpath = dlg.path ();
+		}
+	}
+	
+	bool tryConfigure (str path) {
+		QDir dir;
+		
+		if (!dir.cd (path)) {
+			pathError = "Directory does not exist.";
+			return false;
+		}
+		
+		QStringList mustHave = {"LDConfig.ldr", "parts", "p"};
+		QStringList contents = dir.entryList (mustHave);
+		
+		if (contents.size () != mustHave.size ()) {
+			pathError = "Not an LDraw directory! Must<br />have LDConfig.ldr, parts/ and p/.";
+			return false;
+		}
+		
+		pathInfo.partsPath = fmt ("%s" DIRSLASH "parts", path.chars ());
+		pathInfo.LDConfigPath = fmt ("%s" DIRSLASH "LDConfig.ldr", path.chars ());
+		pathInfo.primsPath = fmt ("%s" DIRSLASH "p", path.chars ());
+		
+		return true;
+	}
+	
+	// Accessors
+	str getError () { return pathError; }
+	str ldconfig () { return pathInfo.LDConfigPath; }
+	str prims () { return pathInfo.primsPath; }
+	str parts () { return pathInfo.partsPath; }
+}
 
 // =============================================================================
 OpenFile::OpenFile () {

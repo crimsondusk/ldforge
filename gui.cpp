@@ -389,6 +389,7 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 			meta.push_back ({null, null, true});
 		} else {
 			color* col = getColor (atoi (colorname));
+			assert (col != null);
 			meta.push_back ({col, null, false});
 		}
 	}
@@ -400,12 +401,12 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateToolBars () {
-	for (QToolBar* qBar : m_toolBars)
-		qBar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
+	for (QToolBar* bar : m_toolBars)
+		bar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
 	
 	// Update the quick color toolbar.
-	for (QPushButton* qButton : m_colorButtons)
-		delete qButton;
+	for (QPushButton* btn : m_colorButtons)
+		delete btn;
 	
 	m_colorButtons.clear ();
 	
@@ -416,16 +417,16 @@ void ForgeWindow::updateToolBars () {
 		if (entry.bSeparator)
 			m_colorToolBar->addSeparator ();
 		else {
-			QPushButton* qColorButton = new QPushButton;
-			qColorButton->setAutoFillBackground (true);
-			qColorButton->setStyleSheet (fmt ("background-color: %s", entry.col->zColorString.chars()));
-			qColorButton->setToolTip (entry.col->zName);
+			QPushButton* colorButton = new QPushButton;
+			colorButton->setAutoFillBackground (true);
+			colorButton->setStyleSheet (fmt ("background-color: %s", entry.col->zColorString.chars()));
+			colorButton->setToolTip (entry.col->zName);
 			
-			connect (qColorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
-			m_colorToolBar->addWidget (qColorButton);
-			m_colorButtons.push_back (qColorButton);
+			connect (colorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
+			m_colorToolBar->addWidget (colorButton);
+			m_colorButtons.push_back (colorButton);
 			
-			entry.btn = qColorButton;
+			entry.btn = colorButton;
 		}
 	}
 	

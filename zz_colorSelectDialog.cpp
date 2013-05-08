@@ -167,11 +167,11 @@ void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool ColorSelectDialog::staticDialog (short int& dValue, short int defval, QWidget* parent) {
+bool ColorSelectDialog::staticDialog (short& val, short int defval, QWidget* parent) {
 	ColorSelectDialog dlg (defval, parent);
 	
 	if (dlg.exec () && dlg.selColor != -1) {
-		dValue = dlg.selColor;
+		val = dlg.selColor;
 		return true;
 	}
 	

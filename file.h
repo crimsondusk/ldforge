@@ -23,6 +23,16 @@
 #include "ldtypes.h"
 #include "str.h"
 
+namespace LDPaths {
+	void initPaths ();
+	bool tryConfigure (str path);
+	
+	str ldconfig ();
+	str prims ();
+	str parts ();
+	str getError ();
+}
+
 // =============================================================================
 // OpenFile
 //

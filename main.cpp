@@ -37,7 +37,7 @@ const matrix<3> g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-int main (int dArgc, char* saArgv[]) {
+int main (int argc, char* argv[]) {
 	// Load or create the configuration
 	if (!config::load()) {
 		printf ("Creating configuration file...\n");
@@ -47,10 +47,12 @@ int main (int dArgc, char* saArgv[]) {
 			printf ("failed to create configuration file!\n");
 	}
 	
+	const QApplication app (argc, argv);
+	LDPaths::initPaths ();
+	
 	initColors ();
 	initPartList ();
 	
-	const QApplication app (dArgc, saArgv);
 	ForgeWindow* win = new ForgeWindow;
 	
 	g_app = &app;
