@@ -30,4 +30,8 @@ enum extprog {
 	DATHeader
 };
 
+void runYtruder ();
+void runRectifier ();
+void runIntersector ();
+
 #endif // EXTPROGS_H

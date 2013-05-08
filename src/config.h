@@ -27,7 +27,7 @@
 #include <qkeysequence.h>
 
 #define MAX_INI_LINE 512
-#define NUM_CONFIG (g_pConfigPointers.size ())
+#define NUM_CONFIG (g_configPointers.size ())
 
 #define cfg(T, NAME, DEFAULT) \
 	T##config NAME (DEFAULT, #NAME, #T, #DEFAULT)
@@ -119,7 +119,7 @@ class T##config : public config
 		name = _name; \
 		typestring = _typestring; \
 		defaultstring = _defaultstring; \
-		g_pConfigPointers.push_back (this); \
+		g_configPointers.push_back (this); \
 	} \
 	operator T () { \
 		return value; \

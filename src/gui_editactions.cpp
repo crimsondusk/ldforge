@@ -685,3 +685,18 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		g_win->refresh ();
 	}
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F4)) {
+	runYtruder ();
+}
+
+MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", KEY (F8)) {
+	runRectifier ();
+}
+
+MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", KEY (F5)) {
+	runIntersector ();
+}
