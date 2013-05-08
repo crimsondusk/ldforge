@@ -52,11 +52,8 @@ public:
 	
 	// =========================================================================
 	// Main tab widgets
-	QLabel* lb_LDrawPath;
 	QLabel* lb_viewBg, *lb_viewFg, *lb_viewFgAlpha;
 	QLabel* lb_lineThickness, *lb_iconSize;
-	QLineEdit* le_LDrawPath;
-	QPushButton* pb_findLDrawPath;
 	QPushButton* pb_viewBg, *pb_viewFg;
 	QCheckBox* cb_colorize, *cb_colorBFC, *cb_selFlash, *cb_schemanticInline,
 		*cb_blackEdges;
@@ -106,7 +103,6 @@ private:
 	QList<ShortcutListItem*> getShortcutSelection ();
 	
 private slots:
-	void slot_findLDrawPath ();
 	void slot_setGLBackground ();
 	void slot_setGLForeground ();
 	

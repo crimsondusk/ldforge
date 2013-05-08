@@ -30,7 +30,6 @@
 #include <qevent.h>
 #include <qgroupbox.h>
 
-extern_cfg (str, io_ldpath);
 extern_cfg (str, gl_bgcolor);
 extern_cfg (str, gl_maincolor);
 extern_cfg (bool, lv_colorize);
@@ -80,22 +79,6 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 // =============================================================================
 void ConfigDialog::initMainTab () {
 	mainTab = new QWidget;
-	
-	// =========================================================================
-	// LDraw path
-	lb_LDrawPath = new QLabel ("LDraw path:");
-	
-	le_LDrawPath = new QLineEdit;
-	le_LDrawPath->setText (io_ldpath.value.chars());
-	
-	pb_findLDrawPath = new QPushButton;
-	pb_findLDrawPath->setIcon (getIcon ("folder"));
-	connect (pb_findLDrawPath, SIGNAL (clicked ()),
-		this, SLOT (slot_findLDrawPath ()));
-	
-	QHBoxLayout* qLDrawPathLayout = new QHBoxLayout;
-	qLDrawPathLayout->addWidget (le_LDrawPath);
-	qLDrawPathLayout->addWidget (pb_findLDrawPath);
 	
 	// =========================================================================
 	// Background and foreground colors
@@ -160,27 +143,24 @@ void ConfigDialog::initMainTab () {
 	cb_colorBFC->setEnabled (false);
 	
 	QGridLayout* layout = new QGridLayout;
-	layout->addWidget (lb_LDrawPath, 0, 0);
-	layout->addLayout (qLDrawPathLayout, 0, 1, 1, 3);
+	layout->addWidget (lb_viewBg, 0, 0);
+	layout->addWidget (pb_viewBg, 0, 1);
+	layout->addWidget (lb_viewFg, 0, 2);
+	layout->addWidget (pb_viewFg, 0, 3);
 	
-	layout->addWidget (lb_viewBg, 1, 0);
-	layout->addWidget (pb_viewBg, 1, 1);
-	layout->addWidget (lb_viewFg, 1, 2);
-	layout->addWidget (pb_viewFg, 1, 3);
+	layout->addWidget (lb_lineThickness, 1, 0);
+	layout->addWidget (sl_lineThickness, 1, 1);
+	layout->addWidget (lb_viewFgAlpha, 1, 2);
+	layout->addWidget (sl_viewFgAlpha, 1, 3);
 	
-	layout->addWidget (lb_lineThickness, 2, 0);
-	layout->addWidget (sl_lineThickness, 2, 1);
-	layout->addWidget (lb_viewFgAlpha, 2, 2);
-	layout->addWidget (sl_viewFgAlpha, 2, 3);
+	layout->addWidget (lb_iconSize, 2, 0);
+	layout->addWidget (sl_iconSize, 2, 1);
 	
-	layout->addWidget (lb_iconSize, 3, 0);
-	layout->addWidget (sl_iconSize, 3, 1);
-	
-	layout->addWidget (cb_colorize, 4, 0, 1, 4);
-	layout->addWidget (cb_colorBFC, 5, 0, 1, 4);
-	layout->addWidget (cb_selFlash, 6, 0, 1, 4);
-	layout->addWidget (cb_blackEdges, 7, 0, 1, 4);
-	layout->addWidget (cb_schemanticInline, 8, 0, 1, 4);
+	layout->addWidget (cb_colorize, 3, 0, 1, 4);
+	layout->addWidget (cb_colorBFC, 4, 0, 1, 4);
+	layout->addWidget (cb_selFlash, 5, 0, 1, 4);
+	layout->addWidget (cb_blackEdges, 6, 0, 1, 4);
+	layout->addWidget (cb_schemanticInline, 7, 0, 1, 4);
 	mainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -541,17 +521,6 @@ ConfigDialog::~ConfigDialog () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::slot_findLDrawPath () {
-	str dir = QFileDialog::getExistingDirectory (this, "Choose LDraw directory",
-		le_LDrawPath->text());
-	
-	if (~dir)
-		le_LDrawPath->setText (dir.chars());
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void ConfigDialog::pickColor (strconfig& cfg, QPushButton* qButton) {
 	QColorDialog dlg (QColor (cfg.value.chars()));
 	dlg.setWindowIcon (getIcon ("colorselect"));
@@ -718,8 +687,6 @@ void ConfigDialog::staticDialog () {
 	ConfigDialog dlg (g_win);
 	
 	if (dlg.exec ()) {
-		io_ldpath = dlg.le_LDrawPath->text();
-		
 		lv_colorize = dlg.cb_colorize->isChecked ();
 		gl_colorbfc = dlg.cb_colorBFC->isChecked ();
 		gl_selflash = dlg.cb_selFlash->isChecked ();

@@ -30,7 +30,7 @@ class LDrawPathDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	explicit LDrawPathDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
 	str path () const;
 	void setPath (str path);
 	void (*callback ()) () const { return m_callback; }
@@ -41,9 +41,10 @@ private:
 	
 	QLabel* lb_resolution;
 	QLineEdit* le_path;
-	QPushButton* btn_findPath, *btn_tryConfigure, *btn_exit;
+	QPushButton* btn_findPath, *btn_tryConfigure, *btn_cancel;
 	QDialogButtonBox* dbb_buttons;
 	void (*m_callback) ();
+	const bool m_validDefault;
 	
 	QPushButton* okButton ();
 	

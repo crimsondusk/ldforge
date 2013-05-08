@@ -26,6 +26,7 @@
 #include "zz_addObjectDialog.h"
 #include "zz_aboutDialog.h"
 #include "misc.h"
+#include "zz_ldrawPathDialog.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -106,6 +107,11 @@ MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a speci
 // =============================================================================
 MAKE_ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME ".", (0)) {
 	ConfigDialog::staticDialog ();
+}
+
+MAKE_ACTION (setLDrawPath, "Set LDraw Path", "settings", "Change the LDraw directory path.", (0)) {
+	LDrawPathDialog dlg (true);
+	dlg.exec ();
 }
 
 // =============================================================================

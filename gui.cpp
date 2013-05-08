@@ -145,6 +145,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("saveAs");				// Save As
 	menu->addSeparator ();					// -------
 	addMenuAction ("settings");			// Settings
+	addMenuAction ("setLDrawPath");		// Set LDraw Path
 	menu->addSeparator ();					// -------
 	addMenuAction ("exit");				// Exit
 	

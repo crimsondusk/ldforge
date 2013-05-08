@@ -24,11 +24,18 @@
 #include "gui.h"
 #include "file.h"
 
+extern_cfg (str, io_ldpath);
 
 // ========================================================================================================================================
-LDrawPathDialog::LDrawPathDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
+	: QDialog (parent, f), m_validDefault (validDefault)
+{
+	QLabel* lb_description;
 	lb_resolution = new QLabel ("---");
-	QLabel* lb_description = new QLabel ("Please input your LDraw directory");
+	
+	if (validDefault == false)
+		lb_description = new QLabel ("Please input your LDraw directory");
+	
 	QLabel* lb_path = new QLabel ("LDraw path:");
 	le_path = new QLineEdit;
 	btn_findPath = new QPushButton;
@@ -37,12 +44,19 @@ LDrawPathDialog::LDrawPathDialog (QWidget* parent, Qt::WindowFlags f) : QDialog 
 	btn_tryConfigure = new QPushButton ("Configure");
 	btn_tryConfigure->setIcon (getIcon ("settings"));
 	
-	btn_exit = new QPushButton ("Exit");
-	btn_exit->setIcon (getIcon ("exit"));
+	btn_cancel = new QPushButton;
+	
+	if (validDefault == false) {
+		btn_cancel->setText ("Exit");
+		btn_cancel->setIcon (getIcon ("exit"));
+	} else {
+		btn_cancel->setText ("Cancel");
+		btn_cancel->setIcon (getIcon ("cancel"));
+	}
 	
 	dbb_buttons = new QDialogButtonBox (QDialogButtonBox::Ok);
-	dbb_buttons->addButton (btn_tryConfigure, QDialogButtonBox::ApplyRole);
-	dbb_buttons->addButton (btn_exit, QDialogButtonBox::RejectRole);
+	dbb_buttons->addButton (btn_tryConfigure, QDialogButtonBox::ActionRole);
+	dbb_buttons->addButton (btn_cancel, QDialogButtonBox::RejectRole);
 	okButton ()->setEnabled (false);
 	
 	QHBoxLayout* inputLayout = new QHBoxLayout;
@@ -51,24 +65,30 @@ LDrawPathDialog::LDrawPathDialog (QWidget* parent, Qt::WindowFlags f) : QDialog 
 	inputLayout->addWidget (btn_findPath);
 	
 	QVBoxLayout* mainLayout = new QVBoxLayout;
-	mainLayout->addWidget (lb_description);
+	
+	if (validDefault == false)
+		mainLayout->addWidget (lb_description);
+	
 	mainLayout->addLayout (inputLayout);
 	mainLayout->addWidget (lb_resolution);
 	mainLayout->addWidget (dbb_buttons);
 	setLayout (mainLayout);
 	
+	connect (le_path, SIGNAL (textEdited ()), this, SLOT (slot_tryConfigure ()));
 	connect (btn_findPath, SIGNAL (clicked ()), this, SLOT (slot_findPath ()));
 	connect (btn_tryConfigure, SIGNAL (clicked ()), this, SLOT (slot_tryConfigure ()));
 	connect (dbb_buttons, SIGNAL (accepted ()), this, SLOT (accept ()));
-	connect (dbb_buttons, SIGNAL (rejected ()), this, SLOT (slot_exit ()));
+	connect (dbb_buttons, SIGNAL (rejected ()), this, (validDefault) ? SLOT (reject ()) : SLOT (slot_exit ()));
+	
+	setPath (io_ldpath);
+	if (validDefault)
+		slot_tryConfigure ();
 }
-
 
 // ========================================================================================================================================
 QPushButton* LDrawPathDialog::okButton () {
 	return dbb_buttons->button (QDialogButtonBox::Ok);
 }
-
 
 // ========================================================================================================================================
 void LDrawPathDialog::setPath (str path) {

@@ -43,7 +43,7 @@ namespace LDPaths {
 	
 	void initPaths () {
 		if (!tryConfigure (io_ldpath)) {
-			LDrawPathDialog dlg;
+			LDrawPathDialog dlg (false);
 			
 			if (!dlg.exec ())
 				exit (0);
