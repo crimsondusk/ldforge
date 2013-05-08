@@ -1,0 +1,43 @@
+================================================================================
+== LDFORGE ROADMAP
+================================================================================
+
+-----------------------------
+-- Alpha 1
+
+REQUIRED:
+	- Do some testing to ensure that there's nothing horribly broken or misssing
+	- [Ext progs] Isecalc support. It's already half-done...
+	- [Ext progs] failure recovery
+
+RECOMMENDED:
+	- [Ext progs] Coverer, Edger2, SlicerPro interfaces
+	- [Viewport] Compile selected entries beforehand, this way picking doesn't need
+		any recompiling and will probably be a lot faster.
+
+DONE:
+
+-----------------------------
+-- Alpha 2
+
+REQUIRED:
+	- Undo/redo stability
+
+RECOMMENDED:
+	- [Plane draw] Option support: rectangle, line loop, circle, ellipse?, disc
+	- [Plane draw] Get the thing working for non-top cameras.
+	- [Viewport] Vertex drawing and selection, if possible..
+	- [Color selector] Rewrite the viewport, don't use QPen for color edges!
+
+SUGGESTED:
+	- [Radials] Ring covering?
+
+-----------------------------
+-- Stable 1.0
+
+REQUIRED:
+	- [Plane draw] Get the thing working for non-top cameras.
+	- Anything that crashes the thing has to be obviously fixed.
+
+SUGGESTED:
+	- Texture mapping? Probably best to leave this off until future versions.

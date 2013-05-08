@@ -64,6 +64,8 @@ public:
 	
 	GLRenderer::Camera camera () { return m_camera; }
 	bool picking () { return m_picking; }
+	void setZoom (const double zoom) { m_zoom = zoom; }
+	double zoom () const { return m_zoom; }
 
 protected:
 	void initializeGL ();

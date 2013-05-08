@@ -30,7 +30,6 @@
 #include "history.h"
 
 static double g_objOffset[3];
-static double g_storedBBoxSize;
 
 static short g_pulseTick = 0;
 static const short g_numPulseTicks = 8;
@@ -152,7 +151,9 @@ void GLRenderer::resetAngles () {
 	m_rotX = 30.0f;
 	m_rotY = 325.f;
 	m_panX = m_panY = m_rotZ = 0.0f;
-	m_zoom = 5.0f;
+	
+	// Set the default zoom based on the bounding box
+	m_zoom = g_BBox.size () * 6;
 }
 
 // =============================================================================
@@ -348,7 +349,7 @@ void GLRenderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	gluPerspective (45.0f, (double)w / (double)h, 1.0f, 100.0f);
+	gluPerspective (45.0f, (double)w / (double)h, 1.0f, 10000.0f);
 	glMatrixMode (GL_MODELVIEW);
 }
 
@@ -411,10 +412,8 @@ vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 		negYFac = cam->negY ? -1 : 1;
 	
 	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) *
-		g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
-	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) *
-		g_storedBBoxSize - (negYFac * g_objOffset[axisY]);
+	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) - (negXFac * g_objOffset[axisX]);
+	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) - (negYFac * g_objOffset[axisY]);
 	
 	if (snap) {
 		cx = Grid::snap (cx, (Grid::Config) axisX);
@@ -433,15 +432,15 @@ vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 // =============================================================================
 QPoint GLRenderer::coord_3to2 (const vertex& pos3d) const {
 	/*
-	cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) * g_storedBBoxSize - (negXFac * g_objOffset[axisX]);
+	cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) - (negXFac * g_objOffset[axisX]);
 	
-	                                                 cx = (-vw + ((2 * x * vw) / w) - panx) * size - (neg * ofs)
-	                                  cx + (neg * ofs) = (-vw + ((2 * x * vw) / w) - panx) * size
-	                         (cx + (neg * ofs)) / size = ((2 * x * vw) / w) - vw - panx
-	           ((cx + (neg * ofs)) / size) + vw + panx = (2 * x * vw) / w
-	     (((cx + (neg * ofs)) / size) + vw + panx) * w = 2 * vw * x
+	                                                 cx = (-vw + ((2 * x * vw) / w) - panx) - (neg * ofs)
+	                                  cx + (neg * ofs) = (-vw + ((2 * x * vw) / w) - panx)
+	                                  cx + (neg * ofs) = ((2 * x * vw) / w) - vw - panx
+	                    (cx + (neg * ofs)) + vw + panx = (2 * x * vw) / w
+	              ((cx + (neg * ofs)) + vw + panx) * w = 2 * vw * x
 	
-	x = ((((cx + (neg * ofs)) / size) + vw + panx) * w) / (2 * vw)
+	x = (((cx + (neg * ofs)) + vw + panx) * w) / (2 * vw)
 	*/
 	
 	QPoint pos2d;
@@ -451,9 +450,9 @@ QPoint GLRenderer::coord_3to2 (const vertex& pos3d) const {
 	const short negXFac = cam->negX ? -1 : 1,
 		negYFac = cam->negY ? -1 : 1;
 	
-	short x1 = ((((pos3d[axisX] + (negXFac * g_objOffset[axisX])) / g_storedBBoxSize) +
+	short x1 = (((pos3d[axisX] + (negXFac * g_objOffset[axisX])) +
 		m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
-	short y1 = -((((pos3d[axisY] + (negYFac * g_objOffset[axisY])) / g_storedBBoxSize) -
+	short y1 = -(((pos3d[axisY] + (negYFac * g_objOffset[axisY])) -
 		m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
 	
 	x1 *= negXFac;
@@ -616,13 +615,10 @@ void GLRenderer::compileObjects () {
 		g_objOffset[X] = -(g_BBox.v0 ()[X] + g_BBox.v1 ()[X]) / 2;
 		g_objOffset[Y] = -(g_BBox.v0 ()[Y] + g_BBox.v1 ()[Y]) / 2;
 		g_objOffset[Z] = -(g_BBox.v0 ()[Z] + g_BBox.v1 ()[Z]) / 2;
-		g_storedBBoxSize = g_BBox.size ();
 	} else {
 		// use a default bbox if we need 
 		g_objOffset[X] = g_objOffset[Y] = g_objOffset[Z] = 0;
-		g_storedBBoxSize = 5.0f;
 	}
-	printf ("size: %.3f\n", g_storedBBoxSize);
 	
 	if (!g_curfile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
@@ -771,9 +767,9 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 // =============================================================================
 void GLRenderer::compileVertex (const vertex& vrt) {
 	glVertex3d (
-		(vrt[X] + g_objOffset[0]) / g_storedBBoxSize,
-		-(vrt[Y] + g_objOffset[1]) / g_storedBBoxSize,
-		-(vrt[Z] + g_objOffset[2]) / g_storedBBoxSize);
+		(vrt[X] + g_objOffset[0]),
+		-(vrt[Y] + g_objOffset[1]),
+		-(vrt[Z] + g_objOffset[2]));
 }
 
 // =============================================================================
@@ -898,7 +894,7 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
 	m_zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
-	m_zoom = clamp (m_zoom, 0.01, 100.0);
+	m_zoom = clamp (m_zoom, 0.01, 10000.0);
 	
 	update ();
 	ev->accept ();
