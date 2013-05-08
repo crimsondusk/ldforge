@@ -114,59 +114,59 @@ void parseLDConfig () {
 		zLine.replace ("\r", "");
 		
 		StringParser pars (zLine, ' ');
-		short dCode = 0, dAlpha = 255;
-		str zName, zColor, zEdge, zValue;
+		short code = 0, alpha = 255;
+		str name, colname, edge, value;
 		
 		// Check 0 !COLOUR, parse the name
-		if (!pars.tokenCompare (0, "0") || !pars.tokenCompare (1, "!COLOUR") || !pars.getToken (zName, 2))
+		if (!pars.tokenCompare (0, "0") || !pars.tokenCompare (1, "!COLOUR") || !pars.getToken (name, 2))
 			continue;
 		
 		// Replace underscores in the name with spaces for readability
-		zName.replace ("_", " ");
+		name.replace ("_", " ");
 		
 		// get the CODE tag
-		if (!parseLDConfigTag (pars, "CODE", zValue))
+		if (!parseLDConfigTag (pars, "CODE", value))
 			continue;
 		
 		// Ensure that the code is within range. must be within 0 - 512
-		dCode = atoi (zValue);
-		if (dCode < 0 || dCode >= 512)
+		code = atoi (value);
+		if (code < 0 || code >= 512)
 			continue;
 		
 		// Don't let LDConfig.ldr override the special colors 16 and 24. However,
 		// do take the name it gives for the color
-		if (dCode == maincolor || dCode == edgecolor) {
-			g_LDColors[dCode]->zName = zName;
+		if (code == maincolor || code == edgecolor) {
+			g_LDColors[code]->zName = name;
 			continue;
 		}
 		
 		// VALUE tag
-		if (!parseLDConfigTag (pars, "VALUE", zColor))
+		if (!parseLDConfigTag (pars, "VALUE", colname))
 			continue;
 		
 		// EDGE tag
-		if (!parseLDConfigTag (pars, "EDGE", zEdge))
+		if (!parseLDConfigTag (pars, "EDGE", edge))
 			continue;
 		
 		// Ensure that our colors are correct
-		QColor qColor (zColor.chars()),
-			qEdge (zEdge.chars());
+		QColor qColor (colname.chars()),
+			qEdge (edge.chars());
 		
 		if (!qColor.isValid () || !qEdge.isValid ())
 			continue;
 		
 		// Parse alpha if given.
-		if (parseLDConfigTag (pars, "ALPHA", zValue))
-			dAlpha = clamp<short> (atoi (zValue), 0, 255);
+		if (parseLDConfigTag (pars, "ALPHA", value))
+			alpha = clamp<short> (atoi (value), 0, 255);
 		
 		color* col = new color;
-		col->zName = zName;
+		col->zName = name;
 		col->qColor = qColor;
 		col->qEdge = qEdge;
-		col->zColorString = zColor;
-		col->qColor.setAlpha (dAlpha);
+		col->zColorString = colname;
+		col->qColor.setAlpha (alpha);
 		
-		g_LDColors[dCode] = col;
+		g_LDColors[code] = col;
 	}
 	
 	fclose (fp);

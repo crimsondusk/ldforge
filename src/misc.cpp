@@ -24,7 +24,7 @@
 #include "gui.h"
 
 // Prime number table.
-const ushort g_uaPrimes[NUM_PRIMES] = {
+const ushort g_primes[NUM_PRIMES] = {
 	   2,    3,    5,    7,   11,   13,   17,   19,   23,   29, 
 	  31,   37,   41,   43,   47,   53,   59,   61,   67,   71, 
 	  73,   79,   83,   89,   97,  101,  103,  107,  109,  113, 
@@ -106,11 +106,11 @@ const gridinfo g_GridInfo[3] = {
 };
 
 // =============================================================================
+// Snap the given coordinate value on the current grid's given axis.
 double Grid::snap (double in, const Grid::Config axis) {
 	const double gridval = currentGrid ().confs[axis]->value;
 	const long mult = abs (in / gridval);
 	const bool neg = (in < 0);
-	
 	double out = mult * gridval;
 	
 	if (abs<double> (in) - (mult * gridval) > gridval / 2)
@@ -125,6 +125,7 @@ double Grid::snap (double in, const Grid::Config axis) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+// Float to string. Removes trailing zeroes and is locale-independant.
 str ftoa (double fCoord) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)
@@ -187,7 +188,7 @@ void simplify (short& dNum, short& dDenom) {
 		
 		for (ulong x = 0; x < NUM_PRIMES; x++) {
 			ulong i = NUM_PRIMES - x - 1;
-			ushort uPrime = g_uaPrimes[i];
+			ushort uPrime = g_primes[i];
 			
 			if (dNum <= uPrime || dDenom <= uPrime)
 				continue;
@@ -205,45 +206,45 @@ void simplify (short& dNum, short& dDenom) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-StringParser::StringParser (str zInText, char cSeparator) {
-	zaTokens = zInText.split (cSeparator, true);
-	dPos = -1;
+StringParser::StringParser (str inText, char sep) {
+	m_tokens = inText.split (sep, true);
+	m_pos = -1;
 }
 
 // -----------------------------------------------------------------------------
 bool StringParser::atBeginning () {
-	return (dPos == -1);
+	return (m_pos == -1);
 }
 
 // -----------------------------------------------------------------------------
 bool StringParser::atEnd () {
-	return (dPos == (signed) zaTokens.size () - 1);
+	return (m_pos == (signed) m_tokens.size () - 1);
 }
 
 // -----------------------------------------------------------------------------
-bool StringParser::getToken (str& zVal, const ushort uInPos) {
-	if (uInPos >= zaTokens.size())
+bool StringParser::getToken (str& val, const ushort pos) {
+	if (pos >= m_tokens.size())
 		return false;
 	
-	zVal = zaTokens[uInPos];
+	val = m_tokens[pos];
 	return true;
 }
 
 // -----------------------------------------------------------------------------
-bool StringParser::next (str& zVal) {
-	return getToken (zVal, ++dPos);
+bool StringParser::next (str& val) {
+	return getToken (val, ++m_pos);
 }
 
 // -----------------------------------------------------------------------------
-bool StringParser::peekNext (str& zVal) {
-	return getToken (zVal, dPos + 1);
+bool StringParser::peekNext (str& val) {
+	return getToken (val, m_pos + 1);
 }
 
 // -----------------------------------------------------------------------------
-bool StringParser::findToken (short& dResult, char const* sNeedle, short dArgs) {
-	for (ushort i = 0; i < (zaTokens.size () - dArgs); ++i) {
-		if (zaTokens[i] == sNeedle) {
-			dResult = i;
+bool StringParser::findToken (short& result, char const* needle, short args) {
+	for (ushort i = 0; i < (m_tokens.size () - args); ++i) {
+		if (m_tokens[i] == needle) {
+			result = i;
 			return true;
 		}
 	}
@@ -253,24 +254,23 @@ bool StringParser::findToken (short& dResult, char const* sNeedle, short dArgs) 
 
 // -----------------------------------------------------------------------------
 void StringParser::rewind () {
-	dPos = -1;
+	m_pos = -1;
 }
 
 // -----------------------------------------------------------------------------
-void StringParser::seek (short int dAmount, bool bRelative) {
-	dPos = (bRelative ? dPos : 0) + dAmount;
+void StringParser::seek (short amount, bool rel) {
+	m_pos = (rel ? m_pos : 0) + amount;
 }
 
 // -----------------------------------------------------------------------------
 size_t StringParser::size () {
-	return zaTokens.size();
+	return m_tokens.size();
 }
 
 // -----------------------------------------------------------------------------
-bool StringParser
-::tokenCompare (short int dInPos, const char* sOther) {
+bool StringParser::tokenCompare (short inPos, const char* sOther) {
 	str tok;
-	if (!getToken (tok, dInPos))
+	if (!getToken (tok, inPos))
 		return false;
 	
 	return (tok == sOther);

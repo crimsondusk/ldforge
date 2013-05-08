@@ -16,11 +16,11 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <qboxlayout.h>
+#include <qmessagebox.h>
 #include "historyDialog.h"
 #include "history.h"
 #include "colors.h"
-#include <qboxlayout.h>
-#include <qmessagebox.h>
 
 EXTERN_ACTION (undo);
 EXTERN_ACTION (redo);
@@ -61,7 +61,7 @@ HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	
 	setLayout (qLayout);
 	setWindowIcon (getIcon ("history"));
-	setWindowTitle (APPNAME " - Edit history");
+	setWindowTitle ("Edit History");
 	
 	populateList ();
 	updateButtons ();

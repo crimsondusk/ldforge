@@ -61,6 +61,7 @@ LDObject::LDObject () {
 	qObjListEntry = null;
 	parent = null;
 	m_hidden = false;
+	m_selected = false;
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {
@@ -616,7 +617,7 @@ char const* g_saRadialNameRoots[] = {
 	"disc",
 	"ndis",
 	"ring",
-	"cone",
+	"con",
 	null
 };
 
@@ -649,7 +650,7 @@ str LDRadial::makeFileName () {
 	root -= min<short> (max<short> (extra, 0), 2);
 	
 	// Stick them all together and return the result.
-	return fmt ("%s%s%s%s", prefix.chars(), frac.chars (), root.chars (), ringNum.chars ());
+	return fmt ("%s%s%s%s.dat", prefix.chars(), frac.chars (), root.chars (), ringNum.chars ());
 }
 
 // =============================================================================

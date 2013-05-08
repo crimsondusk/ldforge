@@ -196,6 +196,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("invert");				// Invert
 	addMenuAction ("inlineContents");		// Inline
 	addMenuAction ("deepInline");			// Deep Inline
+	addMenuAction ("radialResolution");	// Radial Resolution
 	addMenuAction ("splitQuads");			// Split Quads
 	addMenuAction ("setContents");		// Set Contents
 	addMenuAction ("makeBorders");		// Make Borders
@@ -363,6 +364,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("invert");
 	addToolBarAction ("inlineContents");
 	addToolBarAction ("deepInline");
+	addToolBarAction ("radialResolution");
 	addToolBarAction ("splitQuads");
 	addToolBarAction ("setContents");
 	addToolBarAction ("makeBorders");
@@ -716,10 +718,10 @@ void ForgeWindow::slot_selectionChanged () {
 	
 	// Update the GL renderer
 	for (LDObject* obj : m_sel)
-		m_renderer->recompileObject (obj);
+		m_renderer->compileObject (obj);
 	
 	for (LDObject* obj : priorSelection)
-		m_renderer->recompileObject (obj);
+		m_renderer->compileObject (obj);
 	
 	m_renderer->updateSelFlash ();
 	m_renderer->refresh ();
@@ -793,9 +795,14 @@ void ForgeWindow::refresh () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
+	for (LDObject* obj : g_curfile->m_objs)
+		obj->setSelected (false);
+	
 	m_objList->clearSelection ();
-	for (LDObject* obj : m_sel)
+	for (LDObject* obj : m_sel) {
 		obj->qObjListEntry->setSelected (true);
+		obj->setSelected (true);
+	}
 	
 	g_bSelectionLocked = false;
 	slot_selectionChanged ();

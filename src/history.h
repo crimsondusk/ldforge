@@ -94,12 +94,15 @@ class EditHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Edit)
 	
-	const std::vector<ulong> ulaIndices;
-	const std::vector<LDObject*> paOldObjs, paNewObjs;
+	std::vector<ulong> ulaIndices;
+	std::vector<LDObject*> paOldObjs, paNewObjs;
 	
+	EditHistory () {}
 	EditHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paOldObjs,
 		std::vector<LDObject*> paNewObjs) :
 		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
+	
+	void addEntry (LDObject* const oldObj, LDObject* const newObj);
 };
 
 // =============================================================================

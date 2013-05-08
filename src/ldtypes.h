@@ -84,7 +84,7 @@ public:
 	short dColor;
 	
 	// OpenGL list for this object
-	uint uGLList, uGLPickList;
+	uint glLists[3];
 	
 	// Vertices of this object
 	vertex vaCoords[4];
@@ -140,9 +140,12 @@ public:
 	
 	bool hidden () const { return m_hidden; }
 	void setHidden (const bool hidden) { m_hidden = hidden; }
+	bool selected () const { return m_selected; }
+	void setSelected (bool selected) { m_selected = selected; }
 
 private:
 	bool m_hidden;
+	bool m_selected;
 };
 
 // =============================================================================

@@ -162,19 +162,6 @@ void GLRenderer::resetAngles () {
 void GLRenderer::initializeGL () {
 	setBackground ();
 	
-	glEnable (GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset (1.0f, 1.0f);
-	
-	glEnable (GL_DEPTH_TEST);
-	glShadeModel (GL_SMOOTH);
-	glEnable (GL_MULTISAMPLE);
-	
-	glEnable (GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
-	glEnable (GL_LINE_SMOOTH);
-	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
-	
 	glLineWidth (gl_linethickness);
 	
 	setAutoFillBackground (false);
@@ -213,13 +200,13 @@ void GLRenderer::setBackground () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static vector<short> g_daWarnedColors;
-void GLRenderer::setObjectColor (LDObject* obj) {
+void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	QColor qcol;
 	
-	if (!obj->isColored())
+	if (!obj->isColored ())
 		return;
 	
-	if (m_picking) {
+	if (list == GL::PickList) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results.
 		long i = obj->getIndex (g_curfile);
@@ -294,24 +281,12 @@ void GLRenderer::setObjectColor (LDObject* obj) {
 		b = qcol.blue (),
 		a = qcol.alpha ();
 	
-	// If it's selected, brighten it up, also pulse flash it if desired.
-	if (g_win->isSelected (obj)) {
-		short tick, numTicks;
-		
-		if (gl_selflash) {
-			tick = (g_pulseTick < (g_numPulseTicks / 2)) ? g_pulseTick : (g_numPulseTicks - g_pulseTick);
-			numTicks = g_numPulseTicks;
-		} else {
-			tick = 2;
-			numTicks = 5;
-		}
-		
-		const long add = ((tick * 128) / numTicks);
+	// Brighten it up for the select list.
+	if (list == GL::SelectList) {
+		const uchar add = 51;
 		r = min (r + add, 255l);
 		g = min (g + add, 255l);
 		b = min (b + add, 255l);
-		
-		// a = 255;
 	}
 	
 	glColor4f (
@@ -392,7 +367,7 @@ void GLRenderer::drawGLScene () const {
 		if (obj->hidden ())
 			continue; // Don't draw hidden objects
 		
-		glCallList (m_picking == false ? obj->uGLList : obj->uGLPickList);
+		glCallList (obj->glLists[(m_picking) ? PickList : (obj->selected ()) ? SelectList : NormalList]);
 	}
 	
 	if (gl_axes && !m_picking)
@@ -469,6 +444,19 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
 	m_virtWidth = m_zoom;
 	m_virtHeight = (m_height * m_virtWidth) / m_width;
+	
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable (GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset (1.0f, 1.0f);
+	
+	glEnable (GL_DEPTH_TEST);
+	glShadeModel (GL_SMOOTH);
+	glEnable (GL_MULTISAMPLE);
+	
+	glEnable (GL_LINE_SMOOTH);
+	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+	
 	drawGLScene ();
 	
 	QPainter paint (this);
@@ -625,24 +613,8 @@ void GLRenderer::compileObjects () {
 		return;
 	}
 	
-	for (LDObject* obj : g_curfile->m_objs) {
-		GLuint* upaLists[2] = {
-			&obj->uGLList,
-			&obj->uGLPickList
-		};
-		
-		for (GLuint* upMemberList : upaLists) {
-			GLuint uList = glGenLists (1);
-			glNewList (uList, GL_COMPILE);
-			
-			m_picking = (upMemberList == &obj->uGLPickList);
-			compileOneObject (obj);
-			m_picking = false;
-			
-			glEndList ();
-			*upMemberList = uList;
-		}
-	}
+	for (LDObject* obj : g_curfile->m_objs)
+		compileObject (obj);
 	
 	// Compile axes
 	m_axeslist = glGenLists (1);
@@ -674,8 +646,8 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::compileOneObject (LDObject* obj) {
-	setObjectColor (obj);
+void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
+	setObjectColor (obj, list);
 	
 	switch (obj->getType ()) {
 	case LDObject::Line:
@@ -683,8 +655,10 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 		break;
 	
 	case LDObject::CondLine:
-		glLineStipple (1, 0x6666);
-		glEnable (GL_LINE_STIPPLE);
+		if (list != GL::PickList) {
+			glLineStipple (1, 0x6666);
+			glEnable (GL_LINE_STIPPLE);
+		}
 		
 		compileSubObject (obj, GL_LINES);
 		
@@ -705,7 +679,7 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 			vector<LDObject*> objs = ref->inlineContents (true, true);
 			
 			for (LDObject* obj : objs) {
-				compileOneObject (obj);
+				compileList (obj, list);
 				delete obj;
 			}
 		}
@@ -717,7 +691,7 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 			std::vector<LDObject*> objs = pRadial->decompose (true);
 			
 			for (LDObject* obj : objs) {
-				compileOneObject (obj);
+				compileList (obj, list);
 				delete obj;
 			}
 		}
@@ -750,7 +724,7 @@ void GLRenderer::compileOneObject (LDObject* obj) {
 				};
 				
 				pPoly->dColor = pVert->dColor;
-				compileOneObject (pPoly);
+				compileOneObject (pPoly, list);
 				delete pPoly;
 			}
 		}
@@ -791,6 +765,12 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	
 	if (wasLeft) {
 		if (m_planeDraw) {
+			// If we have 4 verts, stop drawing.
+			if (m_planeDrawVerts.size () >= 4) {
+				endPlaneDraw (true);
+				return;
+			}
+			
 			// If we picked an already-existing vertex, stop drawing
 			for (vertex& vert : m_planeDrawVerts) {
 				if (vert == m_hoverpos) {
@@ -798,10 +778,6 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 					return;
 				}
 			}
-			
-			// Also, if have 4 verts, also stop drawing.
-			if (m_planeDrawVerts.size () >= 4)
-				endPlaneDraw (true);
 			
 			m_planeDrawVerts.push_back (m_hoverpos);
 			
@@ -948,16 +924,14 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	}
 	
 	GLint viewport[4];
-	LDObject* removedObject = null;
 	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
 		std::vector<LDObject*> oldsel = g_win->sel ();
 		g_win->sel ().clear ();
 		
-		// Recompile the prior selection to remove the highlight color
 		for (LDObject* obj : oldsel)
-			recompileObject (obj);
+			compileObject (obj);
 	}
 	
 	m_picking = true;
@@ -1009,6 +983,8 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Read pixels from the color buffer.
 	glReadPixels (x0, viewport[3] - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
 	
+	LDObject* removedObj = null;
+	
 	// Go through each pixel read and add them to the selection.
 	for (long i = 0; i < numpixels; ++i) {
 		uint32 idx =
@@ -1030,8 +1006,8 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 			for (ulong i = 0; i < g_win->sel ().size(); ++i) {
 				if (g_win->sel ()[i] == obj) {
 					g_win->sel ().erase (g_win->sel ().begin () + i);
-					removedObject = obj;
 					removed = true;
+					removedObj = obj;
 				}
 			}
 			
@@ -1052,7 +1028,11 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	sel.resize (std::distance (sel.begin (), pos));
 	
 	// Update everything now.
-	g_win->buildObjList ();
+	g_win->updateSelection ();
+	
+	// Recompile the objects now to update their color
+	for (LDObject* obj : sel)
+		compileObject (obj);
 	
 	m_picking = false;
 	m_rangepick = false;
@@ -1060,12 +1040,6 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	setBackground ();
 	updateSelFlash ();
-	
-	for (LDObject* obj : g_win->sel ())
-		recompileObject (obj);
-	
-	if (removedObject != null)
-		recompileObject (removedObject);
 	
 	drawGLScene ();
 	swapBuffers ();
@@ -1137,7 +1111,7 @@ void GLRenderer::endPlaneDraw (bool accept) {
 		
 		if (obj) {
 			g_curfile->addObject (obj);
-			recompileObject (obj);
+			compileObject (obj);
 			g_win->refresh ();
 			
 			History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
@@ -1158,15 +1132,16 @@ void GLRenderer::endPlaneDraw (bool accept) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::recompileObject (LDObject* obj) {
-	// Replace the old list with the new one.
-	GLuint uList = glGenLists (1);
-	glNewList (uList, GL_COMPILE);
-	
-	compileOneObject (obj);
-	
-	glEndList ();
-	obj->uGLList = uList;
+void GLRenderer::compileObject (LDObject* obj) {
+	for (const GL::ListType listType : g_glListTypes) {
+		GLuint list = glGenLists (1);
+		glNewList (list, GL_COMPILE);
+		
+		obj->glLists[listType] = list;
+		compileList (obj, listType);
+		
+		glEndList ();
+	}
 }
 
 // =============================================================================
@@ -1193,7 +1168,7 @@ void GLRenderer::slot_timerUpdate () {
 	++g_pulseTick %= g_numPulseTicks;
 	
 	for (LDObject* obj : g_win->sel ())
-		recompileObject (obj);
+		compileObject (obj);
 	
 	update ();
 }

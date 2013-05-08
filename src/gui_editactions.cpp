@@ -124,15 +124,15 @@ static void doInline (bool bDeep) {
 	vector<LDObject*> sel = g_win->sel ();
 	
 	// History stuff
-	vector<LDSubfile*> paRefs;
-	vector<ulong> ulaRefIndices, ulaBitIndices;
+	vector<LDSubfile*> refs;
+	vector<ulong> refIndices, bitIndices;
 	
 	for (LDObject* obj : sel) {
 		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
-		ulaRefIndices.push_back (obj->getIndex (g_curfile));
-		paRefs.push_back (static_cast<LDSubfile*> (obj)->clone ());
+		refIndices.push_back (obj->getIndex (g_curfile));
+		refs.push_back (static_cast<LDSubfile*> (obj)->clone ());
 	}
 	
 	for (LDObject* obj : sel) {
@@ -153,7 +153,7 @@ static void doInline (bool bDeep) {
 		
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
-			ulaBitIndices.push_back (idx);
+			bitIndices.push_back (idx);
 			
 			// This object is now inlined so it has no parent anymore.
 			inlineobj->parent = null;
@@ -166,7 +166,7 @@ static void doInline (bool bDeep) {
 		delete obj;
 	}
 	
-	History::addEntry (new InlineHistory (ulaBitIndices, ulaRefIndices, paRefs, bDeep));
+	History::addEntry (new InlineHistory (bitIndices, refIndices, refs, bDeep));
 	g_win->refresh ();
 }
 
@@ -180,9 +180,59 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 	doInline (true);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// =======================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =======================================================================================================================================
+MAKE_ACTION (radialResolution, "Radial resolution", "radial-resolve", "Resolve radials into primitives.", (0)) {
+	vector<str> fails;
+	vector<LDObject*> sel = g_win->sel ();
+	EditHistory* history = new EditHistory;
+	
+	for (LDObject* obj : sel) {
+		if (obj->getType() != LDObject::Radial)
+			continue;
+		
+		LDRadial* rad = static_cast<LDRadial*> (obj);
+		str name = rad->makeFileName ();
+		
+		OpenFile* file = loadSubfile (name);
+		if (file == null) {
+			fails.push_back (name);
+			continue;
+		}
+		
+		// Create the replacement primitive.
+		LDSubfile* prim = new LDSubfile;
+		memcpy (&prim->vPosition, &rad->vPosition, sizeof rad->vPosition); // inherit position
+		memcpy (&prim->mMatrix, &rad->mMatrix, sizeof rad->mMatrix); // inherit matrix
+		prim->dColor = rad->dColor; // inherit color
+		prim->zFileName = name;
+		prim->pFile = file;
+		
+		// Add the history entry - this must be done while both objects are still valid.
+		history->addEntry (rad, prim);
+		
+		// Replace the radial with the primitive.
+		rad->replace (prim);
+	}
+	
+	// If it was not possible to replace everything, inform the user.
+	if (fails.size() > 0) {
+		str errmsg = fmt ("Couldn't replace %lu radials as replacement subfiles could not be loaded:<br />", (ulong)fails.size ());
+		
+		for (str& fail : fails) 
+			errmsg += fmt ("* %s<br />", fail.chars ());
+		
+		critical (errmsg);
+	}
+	
+	History::addEntry (history);
+	g_win->refresh ();
+}
+
+// =======================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =======================================================================================================================================
 MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
 	vector<LDObject*> objs = g_win->sel ();
 	

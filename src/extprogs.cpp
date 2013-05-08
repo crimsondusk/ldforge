@@ -175,7 +175,7 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	// Wait while it runs
 	proc.waitForFinished ();
 	
-#ifndef RELASE
+#ifndef RELEASE
 	printf ("%s", qchars (QString (proc.readAllStandardOutput ())));
 #endif // RELEASE
 	

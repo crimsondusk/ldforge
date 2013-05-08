@@ -30,7 +30,7 @@ extern_cfg (str, io_ldpath);
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
 	: QDialog (parent, f), m_validDefault (validDefault)
 {
-	QLabel* lb_description;
+	QLabel* lb_description = null;
 	lb_resolution = new QLabel ("---");
 	
 	if (validDefault == false)

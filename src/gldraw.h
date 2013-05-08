@@ -45,6 +45,8 @@ public:
 		Free
 	};
 	
+	enum ListType { NormalList, PickList, SelectList };
+	
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer ();
 	
@@ -53,7 +55,7 @@ public:
 	void setBackground ();
 	void pick (uint mouseX, uint mouseY);
 	QColor getMainColor ();
-	void recompileObject (LDObject* obj);
+	void compileObject (LDObject* obj);
 	void refresh ();
 	void updateSelFlash ();
 	void resetAngles ();
@@ -96,11 +98,11 @@ private:
 	ushort m_width, m_height;
 	std::vector<vertex> m_planeDrawVerts;
 	
-	void compileOneObject (LDObject* obj);
+	void compileList (LDObject* obj, const ListType list);
 	void compileSubObject (LDObject* obj, const GLenum gltype);
 	void compileVertex (const vertex& vrt);
 	void clampAngle (double& angle);
-	void setObjectColor (LDObject* obj);
+	void setObjectColor (LDObject* obj, const ListType list);
 	void drawGLScene () const;
 	void calcCameraIconRects ();
 	
@@ -110,6 +112,15 @@ private:
 private slots:
 	void slot_timerUpdate ();
 	void slot_toolTipTimer ();
+};
+
+// Alias for short namespaces
+typedef GLRenderer GL;
+
+static const GLRenderer::ListType g_glListTypes[] = {
+	GL::NormalList,
+	GL::PickList,
+	GL::SelectList
 };
 
 #endif // GLDRAW_H

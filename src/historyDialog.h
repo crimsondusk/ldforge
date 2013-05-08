@@ -31,12 +31,12 @@ class HistoryDialog : public QDialog {
 public:
 	explicit HistoryDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	void populateList ();
-	
+
+private:
 	QListWidget* historyList;
 	QPushButton* undoButton, *redoButton, *clearButton;
 	QDialogButtonBox* buttons;
 	
-private:
 	void updateButtons ();
 	void updateSelection ();
 	
