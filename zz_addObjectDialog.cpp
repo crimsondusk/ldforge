@@ -49,6 +49,8 @@ public:
 AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
 	QDialog (parent)
 {
+	setlocale (LC_ALL, "C");
+	
 	short coordCount = 0;
 	
 	switch (type) {
@@ -129,7 +131,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		}
 		
 		connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
-		le_subfileName = new QLineEdit ();
+		lb_subfileName = new QLabel ("File:");
+		le_subfileName = new QLineEdit;
+		le_subfileName->setFocus ();
 		
 		if (obj) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
@@ -175,6 +179,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	default:
+		assert (false);
 		return;
 	}
 	
@@ -230,12 +235,12 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::Radial:
-		layout->addWidget (rb_radType, 1, 1, 3, 1);
-		layout->addWidget (cb_radHiRes, 1, 2);
-		layout->addWidget (lb_radSegments, 2, 2);
-		layout->addWidget (sb_radSegments, 2, 3);
-		layout->addWidget (lb_radRingNum, 3, 2);
-		layout->addWidget (sb_radRingNum, 3, 3);
+		layout->addWidget (rb_radType, 1, 1, 3, 2);
+		layout->addWidget (cb_radHiRes, 1, 3);
+		layout->addWidget (lb_radSegments, 2, 3);
+		layout->addWidget (sb_radSegments, 2, 4);
+		layout->addWidget (lb_radRingNum, 3, 3);
+		layout->addWidget (sb_radRingNum, 3, 4);
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
@@ -243,8 +248,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::Subfile:
-		layout->addWidget (tw_subfileList, 1, 1);
-		layout->addWidget (le_subfileName, 2, 1);
+		layout->addWidget (tw_subfileList, 1, 1, 1, 2);
+		layout->addWidget (lb_subfileName, 2, 1);
+		layout->addWidget (le_subfileName, 2, 2);
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
@@ -253,6 +259,24 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	
 	default:
 		break;
+	}
+	
+	if (type == LDObject::Subfile || type == LDObject::Radial) {
+		QLabel* lb_matrix = new QLabel ("Matrix:");
+		le_matrix = new QLineEdit;
+		// le_matrix->setValidator (new QDoubleValidator);
+		matrix<3> defval = g_identity;
+		
+		if (obj) {
+			if (obj->getType () == LDObject::Subfile)
+				defval = static_cast<LDSubfile*> (obj)->mMatrix;
+			else
+				defval = static_cast<LDRadial*> (obj)->mMatrix;
+		}
+		
+		le_matrix->setText (defval.stringRep ());
+		layout->addWidget (lb_matrix, 4, 1);
+		layout->addWidget (le_matrix, 4, 2, 1, 3);
 	}
 	
 	if (defaults->isColored ())
@@ -326,8 +350,6 @@ void AddObjectDialog::slot_subfileTypeChanged () {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 template<class T> T* initObj (LDObject*& obj) {
 	if (obj == null)
 		obj = new T;
@@ -339,6 +361,8 @@ template<class T> T* initObj (LDObject*& obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
+	setlocale (LC_ALL, "C");
+	
 	// Redirect editing of gibberish to the set contents dialog
 	if (obj && obj->getType () == LDObject::Gibberish) {
 		SetContentsDialog::staticDialog (obj);
@@ -360,6 +384,21 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	LDObject* backup = null;
 	if (!newObject)
 		backup = obj->clone ();
+	
+	matrix<3> transform = g_identity;
+	if (type == LDObject::Subfile || type == LDObject::Radial) {
+		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ", true);
+		
+		if (matrixstrvals.size () == 9) {
+			double matrixvals[9];
+			int i = 0;
+			
+			for (str val : matrixstrvals)
+				matrixvals[i++] = atof (val);
+			
+			transform = matrix<3> (matrixvals);
+		}
+	}
 	
 	switch (type) {
 	case LDObject::Comment:
@@ -430,7 +469,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
 			pRad->eRadialType = (LDRadial::Type) dlg.rb_radType->value ();
 			pRad->dRingNum = dlg.sb_radRingNum->value ();
-			pRad->mMatrix = g_identity;
+			pRad->mMatrix = transform;
 		}
 		break;
 	
@@ -440,6 +479,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			if (~name == 0)
 				return; // no subfile filename
 			
+			OpenFile* file = loadSubfile (name);
+			if (!file)
+				return;
+			
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 			ref->dColor = dlg.dColor;
 			
@@ -447,8 +490,8 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 				ref->vPosition[ax] = dlg.dsb_coords[ax]->value ();
 			
 			ref->zFileName = name;
-			ref->mMatrix = g_identity;
-			ref->pFile = loadSubfile (name);
+			ref->mMatrix = transform;
+			ref->pFile = file;
 		}
 		break;
 	

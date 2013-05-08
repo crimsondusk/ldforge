@@ -55,6 +55,7 @@ public:
 	// Subfile stuff
 	QTreeWidget* tw_subfileList;
 	QLineEdit* le_subfileName;
+	QLabel* lb_subfileName;
 	
 	// Radial stuff
 	QCheckBox* cb_radHiRes;
@@ -62,6 +63,8 @@ public:
 	QSpinBox* sb_radSegments, *sb_radRingNum;
 	QLabel* lb_radType, *lb_radResolution, *lb_radSegments,
 		*lb_radRingNum;
+	
+	QLineEdit* le_matrix;
 	
 	QDialogButtonBox* bbx_buttons;
 	
