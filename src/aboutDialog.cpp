@@ -23,7 +23,7 @@
 #include <qdesktopservices.h>
 #include <qurl.h>
 #include "common.h"
-#include "zz_aboutDialog.h"
+#include "aboutDialog.h"
 
 AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	QWidget* mainTab, *licenseTab;

@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "zz_historyDialog.h"
+#include "historyDialog.h"
 #include "history.h"
 #include "colors.h"
 #include <qboxlayout.h>

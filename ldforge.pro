@@ -11,56 +11,8 @@ RC_FILE = ldforge.rc
 RESOURCES = ldforge.qrc
 MOC_DIR = ./autogen/
 RCC_DIR = ./autogen/
-
-# Input
-HEADERS += bbox.h \
-	colors.h \
-	common.h \
-	config.h \
-	extprogs.h \
-	file.h \
-	gldraw.h \
-	gui.h \
-	history.h \
-	ldtypes.h \
-	misc.h \
-	radiobox.h \
-	str.h \
-	types.h \
-	zz_aboutDialog.h \
-	zz_addObjectDialog.h \
-	zz_colorSelectDialog.h \
-	zz_configDialog.h \
-	zz_ldrawPathDialog.h \
-	zz_historyDialog.h \
-	zz_newPartDialog.h \
-	zz_setContentsDialog.h
-
-SOURCES += \
-	config.cpp \
-	gui.cpp \
-	gldraw.cpp \
-	bbox.cpp \
-	colors.cpp \
-	extprogs.cpp \
-	file.cpp \
-	gui_actions.cpp \
-	gui_editactions.cpp \
-	history.cpp \
-	ldtypes.cpp \
-	main.cpp \
-	misc.cpp \
-	radiobox.cpp \
-	str.cpp \ 
-	types.cpp \
-	zz_aboutDialog.cpp \
-	zz_addObjectDialog.cpp \
-	zz_colorSelectDialog.cpp \
-	zz_configDialog.cpp \
-	zz_ldrawPathDialog.cpp \
-	zz_historyDialog.cpp \
-	zz_newPartDialog.cpp \
-	zz_setContentsDialog.cpp
+SOURCES = ./src/*.cpp
+HEADERS = ./src/*.h
 
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl

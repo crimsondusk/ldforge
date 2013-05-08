@@ -17,12 +17,12 @@
  */
 
 #include "common.h"
-#include "zz_configDialog.h"
+#include "configDialog.h"
 #include "file.h"
 #include "config.h"
 #include "misc.h"
 #include "colors.h"
-#include "zz_colorSelectDialog.h"
+#include "colorSelectDialog.h"
 #include <qgridlayout.h>
 #include <qfiledialog.h>
 #include <qcolordialog.h>

@@ -21,12 +21,12 @@
 #include "gui.h"
 #include "file.h"
 #include "history.h"
-#include "zz_newPartDialog.h"
-#include "zz_configDialog.h"
-#include "zz_addObjectDialog.h"
-#include "zz_aboutDialog.h"
+#include "newPartDialog.h"
+#include "configDialog.h"
+#include "addObjectDialog.h"
+#include "aboutDialog.h"
 #include "misc.h"
-#include "zz_ldrawPathDialog.h"
+#include "ldrawPathDialog.h"
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

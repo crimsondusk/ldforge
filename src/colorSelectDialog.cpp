@@ -25,7 +25,7 @@
 #include <qgraphicsitem.h>
 #include <qevent.h>
 #include <qscrollbar.h>
-#include "zz_colorSelectDialog.h"
+#include "colorSelectDialog.h"
 #include "colors.h"
 #include "config.h"
 #include "misc.h"

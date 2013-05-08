@@ -64,7 +64,7 @@ public:
 	static str filepath ();
 };
 
-extern std::vector<config*> g_pConfigPointers;
+extern std::vector<config*> g_configPointers;
 
 // =============================================================================
 #define DEFINE_UNARY_OPERATOR(T, OP) \

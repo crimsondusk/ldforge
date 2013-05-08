@@ -25,7 +25,7 @@
 #include "str.h"
 #include "config.h"
 
-std::vector<config*> g_pConfigPointers;
+std::vector<config*> g_configPointers;
 
 // =============================================================================
 const char* g_WeekdayNames[7] = {
@@ -101,7 +101,7 @@ bool config::load () {
 		
 		// Find the config entry for this.
 		config* cfg = null;
-		for (config* i : g_pConfigPointers)
+		for (config* i : g_configPointers)
 			if (entry == i->name)
 				cfg = i;
 		
@@ -210,7 +210,7 @@ bool config::save () {
 		timeinfo->tm_mday, daysuffix, timeinfo->tm_year + 1900,
 		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	
-	for (config* cfg : g_pConfigPointers) {
+	for (config* cfg : g_configPointers) {
 		str valstring;
 		switch (cfg->getType()) {
 		case CONFIG_int:
@@ -258,7 +258,7 @@ bool config::save () {
 // =============================================================================
 void config::reset () {
 	for (size_t i = 0; i < NUM_CONFIG; i++)
-		g_pConfigPointers[i]->resetValue ();
+		g_configPointers[i]->resetValue ();
 }
 
 // =============================================================================

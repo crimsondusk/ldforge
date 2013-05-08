@@ -18,7 +18,7 @@
 
 #include <QAbstractButton>
 #include <qboxlayout.h>
-#include "zz_setContentsDialog.h"
+#include "setContentsDialog.h"
 #include "file.h"
 #include "gui.h"
 #include "history.h"

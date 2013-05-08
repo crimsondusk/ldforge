@@ -17,7 +17,7 @@
  */
 
 #include <qgridlayout.h>
-#include "zz_newPartDialog.h"
+#include "newPartDialog.h"
 #include "file.h"
 
 // -------------------------------------

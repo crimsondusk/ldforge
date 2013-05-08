@@ -20,12 +20,12 @@
 #include <qradiobutton.h>
 #include <qcheckbox.h>
 #include "gui.h"
-#include "zz_addObjectDialog.h"
+#include "addObjectDialog.h"
 #include "file.h"
 #include "colors.h"
-#include "zz_colorSelectDialog.h"
+#include "colorSelectDialog.h"
 #include "history.h"
-#include "zz_setContentsDialog.h"
+#include "setContentsDialog.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) \

@@ -27,7 +27,7 @@
 #include "bbox.h"
 #include "gui.h"
 #include "history.h"
-#include "zz_ldrawPathDialog.h"
+#include "ldrawPathDialog.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
