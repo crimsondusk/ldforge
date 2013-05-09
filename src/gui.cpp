@@ -42,7 +42,7 @@ static bool g_bSelectionLocked = false;
 
 cfg (bool, lv_colorize, true);
 cfg (int, gui_toolbar_iconsize, 24);
-cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
+cfg (str, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
 extern_cfg (str, gl_maincolor);
