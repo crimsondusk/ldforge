@@ -132,7 +132,7 @@ DelHistory::~DelHistory () {
 void SetColorHistory::undo () {
 	// Restore colors
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_curfile->m_objs[ulaIndices[i]]->dColor = daColors[i];
+		g_curfile->m_objs[ulaIndices[i]]->color = daColors[i];
 	
 	g_win->refresh ();
 }
@@ -140,7 +140,7 @@ void SetColorHistory::undo () {
 void SetColorHistory::redo () {
 	// Re-set post color
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_curfile->m_objs[ulaIndices[i]]->dColor = dNewColor;
+		g_curfile->m_objs[ulaIndices[i]]->color = dNewColor;
 	
 	g_win->refresh ();
 }

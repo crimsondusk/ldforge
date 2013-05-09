@@ -30,7 +30,7 @@
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) \
 		for (const Axis ax : g_Axes) \
-			OBJ->vaCoords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
+			OBJ->coords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
 
 // =============================================================================
 class SubfileListItem : public QTreeWidgetItem {
@@ -137,7 +137,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		
 		if (obj) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			le_subfileName->setText (ref->zFileName);
+			le_subfileName->setText (ref->fileName);
 		}
 		break;
 	
@@ -171,10 +171,10 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
-			rb_radType->setValue (rad->eRadialType);
-			sb_radSegments->setValue (rad->dSegments);
-			cb_radHiRes->setChecked ((rad->dDivisions == 48) ? Qt::Checked : Qt::Unchecked);
-			sb_radRingNum->setValue (rad->dRingNum);
+			rb_radType->setValue (rad->radType);
+			sb_radSegments->setValue (rad->segs);
+			cb_radHiRes->setChecked ((rad->divs == 48) ? Qt::Checked : Qt::Unchecked);
+			sb_radRingNum->setValue (rad->ringNum);
 		}
 		break;
 	
@@ -192,7 +192,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored ()) {
 		if (obj != null)
-			dColor = obj->dColor;
+			dColor = obj->color;
 		else
 			dColor = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
 		
@@ -222,7 +222,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj) {
 			for (short i = 0; i < coordCount / 3; ++i)
 			for (short j = 0; j < 3; ++j)
-				dsb_coords[(i * 3) + j]->setValue (obj->vaCoords[i].coord (j));
+				dsb_coords[(i * 3) + j]->setValue (obj->coords[i].coord (j));
 		}
 		break;
 	
@@ -244,7 +244,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
-				dsb_coords[i]->setValue (static_cast<LDRadial*> (obj)->vPosition.coord (i));
+				dsb_coords[i]->setValue (static_cast<LDRadial*> (obj)->pos.coord (i));
 		break;
 	
 	case LDObject::Subfile:
@@ -254,7 +254,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		
 		if (obj)
 			for (short i = 0; i < 3; ++i)
-				dsb_coords[i]->setValue (static_cast<LDSubfile*> (obj)->vPosition.coord (i));
+				dsb_coords[i]->setValue (static_cast<LDSubfile*> (obj)->pos.coord (i));
 		break;
 	
 	default:
@@ -269,9 +269,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		
 		if (obj) {
 			if (obj->getType () == LDObject::Subfile)
-				defval = static_cast<LDSubfile*> (obj)->mMatrix;
+				defval = static_cast<LDSubfile*> (obj)->transform;
 			else
-				defval = static_cast<LDRadial*> (obj)->mMatrix;
+				defval = static_cast<LDRadial*> (obj)->transform;
 		}
 		
 		le_matrix->setText (defval.stringRep ());
@@ -411,7 +411,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Line:
 		{
 			LDLine* line = initObj<LDLine> (obj);
-			line->dColor = dlg.dColor;
+			line->color = dlg.dColor;
 			APPLY_COORDS (line, 2)
 		}
 		break;
@@ -419,7 +419,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Triangle:
 		{
 			LDTriangle* tri = initObj<LDTriangle> (obj);
-			tri->dColor = dlg.dColor;
+			tri->color = dlg.dColor;
 			APPLY_COORDS (tri, 3)
 		}
 		break;
@@ -427,7 +427,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Quad:
 		{
 			LDQuad* quad = initObj<LDQuad> (obj);
-			quad->dColor = dlg.dColor;
+			quad->color = dlg.dColor;
 			APPLY_COORDS (quad, 4)
 		}
 		break;
@@ -435,7 +435,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::CondLine:
 		{
 			LDCondLine* line = initObj<LDCondLine> (obj);
-			line->dColor = dlg.dColor;
+			line->color = dlg.dColor;
 			APPLY_COORDS (line, 4)
 		}
 		break;
@@ -450,26 +450,26 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Vertex:
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
-			vert->dColor = dlg.dColor;
+			vert->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
-				vert->vPosition[ax] = dlg.dsb_coords[ax]->value ();
+				vert->pos[ax] = dlg.dsb_coords[ax]->value ();
 		}
 		break;
 	
 	case LDObject::Radial:
 		{
 			LDRadial* pRad = initObj<LDRadial> (obj);
-			pRad->dColor = dlg.dColor;
+			pRad->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
-				pRad->vPosition[ax] = dlg.dsb_coords[ax]->value ();
+				pRad->pos[ax] = dlg.dsb_coords[ax]->value ();
 			
-			pRad->dDivisions = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
-			pRad->dSegments = min<short> (dlg.sb_radSegments->value (), pRad->dDivisions);
-			pRad->eRadialType = (LDRadial::Type) dlg.rb_radType->value ();
-			pRad->dRingNum = dlg.sb_radRingNum->value ();
-			pRad->mMatrix = transform;
+			pRad->divs = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
+			pRad->segs = min<short> (dlg.sb_radSegments->value (), pRad->divs);
+			pRad->radType = (LDRadial::Type) dlg.rb_radType->value ();
+			pRad->ringNum = dlg.sb_radRingNum->value ();
+			pRad->transform = transform;
 		}
 		break;
 	
@@ -484,14 +484,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 				return;
 			
 			LDSubfile* ref = initObj<LDSubfile> (obj);
-			ref->dColor = dlg.dColor;
+			ref->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
-				ref->vPosition[ax] = dlg.dsb_coords[ax]->value ();
+				ref->pos[ax] = dlg.dsb_coords[ax]->value ();
 			
-			ref->zFileName = name;
-			ref->mMatrix = transform;
-			ref->pFile = file;
+			ref->fileName = name;
+			ref->transform = transform;
+			ref->fileInfo = file;
 		}
 		break;
 	

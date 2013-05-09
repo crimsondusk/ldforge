@@ -81,13 +81,13 @@ public:
 	
 	// Color used by this object. Comments, gibberish and empty entries
 	// do not use this field.
-	short dColor;
+	short color;
 	
 	// OpenGL list for this object
 	uint glLists[3];
 	
 	// Vertices of this object
-	vertex vaCoords[4];
+	vertex coords[4];
 	
 	// Object this object was referenced from, if any
 	LDObject* parent;
@@ -115,7 +115,7 @@ public:
 	void swap (LDObject* other);
 	
 	// Moves this object using the given vertex as a movement vector
-	virtual void move (vertex vVector);
+	virtual void move (vertex vect);
 	
 	// What object in the current file ultimately references this?
 	LDObject* topLevelParent ();
@@ -165,10 +165,10 @@ public:
 	LDGibberish (str _zContent, str _zReason);
 	
 	// Content of this unknown line
-	str zContents;
+	str contents;
 	
 	// Why is this gibberish?
-	str zReason;
+	str reason;
 };
 
 // =============================================================================
@@ -195,7 +195,7 @@ public:
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCHEMANTIC
 	
-	LDComment (str zText) : text (zText) {}
+	LDComment (str text) : text (text) {}
 	
 	str text; // The text of this comment
 };
@@ -222,7 +222,7 @@ public:
 	LDOBJ_UNCOLORED
 	LDOBJ_CUSTOM_SCHEMANTIC { return (type == InvertNext); }
 	
-	LDBFC (const LDBFC::Type eType) : type (eType) {}
+	LDBFC (const LDBFC::Type type) : type (type) {}
 	
 	// Statement strings
 	static const char* statements[];
@@ -241,14 +241,14 @@ public:
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
 	
-	vertex vPosition; // Position of the subpart (FIXME: should get rid of this)
-	matrix<3> mMatrix; // Transformation matrix for the subpart
-	str zFileName; // Filename of the subpart
-	OpenFile* pFile; // Pointer to opened file for this subfile. null if unopened.
+	vertex pos; // Position of the subpart (TODO: should get rid of this)
+	matrix<3> transform; // Transformation matrix for the subpart
+	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
+	OpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
 	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	std::vector<LDObject*> inlineContents (bool bDeepInline, bool bCache);
+	std::vector<LDObject*> inlineContents (bool deep, bool cache);
 };
 
 // =============================================================================
@@ -294,9 +294,9 @@ public:
 	LDOBJ_SCHEMANTIC
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
-		vaCoords[0] = _v0;
-		vaCoords[1] = _v1;
-		vaCoords[2] = _v2;
+		coords[0] = _v0;
+		coords[1] = _v1;
+		coords[2] = _v2;
 	}
 };
 
@@ -326,11 +326,11 @@ public:
 // =============================================================================
 class LDVertex : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move vPosition to vaCoords[0]
+	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
 	LDOBJ_NON_SCHEMANTIC
 	
-	vertex vPosition;
+	vertex pos;
 };
 
 // =============================================================================
@@ -358,25 +358,23 @@ public:
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
 	
-	LDRadial::Type eRadialType;
-	vertex vPosition;
-	matrix<3> mMatrix;
-	short dDivisions, dSegments, dRingNum;
+	LDRadial::Type radType;
+	vertex pos;
+	matrix<3> transform;
+	short divs, segs, ringNum;
 	
-	LDRadial (LDRadial::Type eRadialType, vertex vPosition, matrix<3> mMatrix,
-		short dDivisions, short dSegments, short dRingNum) :
-		eRadialType (eRadialType), vPosition (vPosition), mMatrix (mMatrix),
-		dDivisions (dDivisions), dSegments (dSegments), dRingNum (dRingNum) {}
+	LDRadial (LDRadial::Type radType, vertex pos, matrix<3> transform, short divs, short segs, short ringNum) :
+		radType (radType), pos (pos), transform (transform), divs (divs), segs (segs), ringNum (ringNum) {}
 	
 	// Returns a set of objects that provide the equivalent of this radial.
 	// Note: objects are heap-allocated.
-	std::vector<LDObject*> decompose (bool bTransform);
+	std::vector<LDObject*> decompose (bool applyTransform);
 	
 	// Compose a file name for this radial.
 	str makeFileName ();
 	
 	char const* radialTypeName ();
-	static char const* radialTypeName (const LDRadial::Type eType);
+	static char const* radialTypeName (const LDRadial::Type type);
 };
 
 // =============================================================================

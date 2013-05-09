@@ -60,35 +60,35 @@ public:
 	RadioBox& operator<< (const char* entry);
 	
 	int value () const {
-		return buttonGroup->checkedId ();
+		return m_buttonGroup->checkedId ();
 	}
 	
 	void setValue (int val) {
-		buttonGroup->button (val)->setChecked (true);
+		m_buttonGroup->button (val)->setChecked (true);
 	}
 	
 	std::vector<QRadioButton*>::iterator begin () {
-		return objects.begin ();
+		return m_objects.begin ();
 	}
 	
 	std::vector<QRadioButton*>::iterator end () {
-		return objects.end ();
+		return m_objects.end ();
 	}
 	
 	QRadioButton* operator[] (uint n) const {
-		return objects[n];
+		return m_objects[n];
 	}
 	
 	bool exclusive () const {
-		return buttonGroup->exclusive ();
+		return m_buttonGroup->exclusive ();
 	}
 	
 	void setExclusive (bool val) {
-		buttonGroup->setExclusive (val);
+		m_buttonGroup->setExclusive (val);
 	}
 	
 	bool isChecked (int n) const {
-		return buttonGroup->checkedId () == n;
+		return m_buttonGroup->checkedId () == n;
 	}
 
 signals:
@@ -96,14 +96,13 @@ signals:
 	void sig_buttonPressed (QAbstractButton* btn);
 
 private:
-	std::vector<QRadioButton*> objects;
-	std::vector<QBoxLayout*> layouts;
-	QBoxLayout* coreLayout;
-	QBoxLayout* currentLayout;
-	QBoxLayout::Direction dir;
-	int currentId;
-	int defaultId;
-	QButtonGroup* buttonGroup;
+	std::vector<QRadioButton*> m_objects;
+	std::vector<QBoxLayout*> m_layouts;
+	QBoxLayout* m_coreLayout;
+	QBoxLayout* m_currentLayout;
+	QBoxLayout::Direction m_dir;
+	int m_curId, m_defId;
+	QButtonGroup* m_buttonGroup;
 	
 	Q_DISABLE_COPY (RadioBox)
 

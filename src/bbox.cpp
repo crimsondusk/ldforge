@@ -50,7 +50,7 @@ void bbox::calcObject (LDObject* obj) {
 		{
 			LDLine* line = static_cast<LDLine*> (obj);
 			for (short i = 0; i < 2; ++i)
-				calcVertex (line->vaCoords[i]);
+				calcVertex (line->coords[i]);
 		}
 		break;
 	
@@ -58,7 +58,7 @@ void bbox::calcObject (LDObject* obj) {
 		{
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
 			for (short i = 0; i < 3; ++i)
-				calcVertex (tri->vaCoords[i]);
+				calcVertex (tri->coords[i]);
 		}
 		break;
 	
@@ -66,7 +66,7 @@ void bbox::calcObject (LDObject* obj) {
 		{
 			LDQuad* quad = static_cast<LDQuad*> (obj);
 			for (short i = 0; i < 4; ++i)
-				calcVertex (quad->vaCoords[i]);
+				calcVertex (quad->coords[i]);
 		}
 		break;
 	
@@ -74,7 +74,7 @@ void bbox::calcObject (LDObject* obj) {
 		{
 			LDCondLine* line = static_cast<LDCondLine*> (obj);
 			for (short i = 0; i < 4; ++i)
-				calcVertex (line->vaCoords[i]);
+				calcVertex (line->coords[i]);
 		}
 		break;
 	

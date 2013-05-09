@@ -148,8 +148,8 @@ str ftoa (double fCoord) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool isNumber (str& zToken) {
-	char* cpPointer = &zToken[0];
+bool isNumber (str& tok) {
+	char* cpPointer = &tok[0];
 	bool bGotDot = false;
 	
 	// Allow leading hyphen for negatives

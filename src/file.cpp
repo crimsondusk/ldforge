@@ -182,7 +182,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 		// Check for parse errors and warn about tthem
 		if (obj->getType() == LDObject::Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				lnum, static_cast<LDGibberish*> (obj)->zReason.chars());
+				lnum, static_cast<LDGibberish*> (obj)->reason.chars());
 			
 			logf (LOG_Warning, "- Line was: %s\n", data.chars());
 			
@@ -475,10 +475,10 @@ LDObject* parseLine (str zLine) {
 					CHECK_TOKEN_NUMBERS (3, 6)
 					
 					LDVertex* obj = new LDVertex;
-					obj->dColor = atol (tokens[3]);
+					obj->color = atol (tokens[3]);
 					
 					for (const Axis ax : g_Axes)
-						obj->vPosition[ax] = atof (tokens[4 + ax]); // 4 - 6
+						obj->pos[ax] = atof (tokens[4 + ax]); // 4 - 6
 					
 					return obj;
 				}
@@ -501,16 +501,16 @@ LDObject* parseLine (str zLine) {
 					
 					LDRadial* obj = new LDRadial;
 					
-					obj->eRadialType = eType;			// 3
-					obj->dColor = atol (tokens[4]);		// 4
-					obj->dSegments = atol (tokens[5]);	// 5
-					obj->dDivisions = atol (tokens[6]);	// 6
-					obj->dRingNum = atol (tokens[7]);	// 7
+					obj->radType = eType;			// 3
+					obj->color = atol (tokens[4]);		// 4
+					obj->segs = atol (tokens[5]);	// 5
+					obj->divs = atol (tokens[6]);	// 6
+					obj->ringNum = atol (tokens[7]);	// 7
 					
-					obj->vPosition = parseVertex (tokens, 8); // 8 - 10
+					obj->pos = parseVertex (tokens, 8); // 8 - 10
 					
 					for (short i = 0; i < 9; ++i)
-						obj->mMatrix[i] = atof (tokens[i + 11]); // 11 - 19
+						obj->transform[i] = atof (tokens[i + 11]); // 11 - 19
 					
 					return obj;
 				}
@@ -535,14 +535,14 @@ LDObject* parseLine (str zLine) {
 				return new LDGibberish (zLine, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
-			obj->dColor = atol (tokens[1]);
-			obj->vPosition = parseVertex (tokens, 2); // 2 - 4
+			obj->color = atol (tokens[1]);
+			obj->pos = parseVertex (tokens, 2); // 2 - 4
 			
 			for (short i = 0; i < 9; ++i)
-				obj->mMatrix[i] = atof (tokens[i + 5]); // 5 - 13
+				obj->transform[i] = atof (tokens[i + 5]); // 5 - 13
 			
-			obj->zFileName = tokens[14];
-			obj->pFile = pFile;
+			obj->fileName = tokens[14];
+			obj->fileInfo = pFile;
 			return obj;
 		}
 	
@@ -553,9 +553,9 @@ LDObject* parseLine (str zLine) {
 			
 			// Line
 			LDLine* obj = new LDLine;
-			obj->dColor = atol (tokens[1]);
+			obj->color = atol (tokens[1]);
 			for (short i = 0; i < 2; ++i)
-				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 7
+				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 7
 			return obj;
 		}
 	
@@ -566,10 +566,10 @@ LDObject* parseLine (str zLine) {
 			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
-			obj->dColor = atol (tokens[1]);
+			obj->color = atol (tokens[1]);
 			
 			for (short i = 0; i < 3; ++i)
-				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 10
+				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 10
 			
 			return obj;
 		}
@@ -581,10 +581,10 @@ LDObject* parseLine (str zLine) {
 			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
-			obj->dColor = atol (tokens[1]);
+			obj->color = atol (tokens[1]);
 			
 			for (short i = 0; i < 4; ++i)
-				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
+				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
 			
 			return obj;
 		}
@@ -596,10 +596,10 @@ LDObject* parseLine (str zLine) {
 			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
-			obj->dColor = atol (tokens[1]);
+			obj->color = atol (tokens[1]);
 			
 			for (short i = 0; i < 4; ++i)
-				obj->vaCoords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
+				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
 			
 			return obj;
 		}
@@ -641,10 +641,10 @@ void reloadAllSubfiles () {
 		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->pFile is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			OpenFile* pFile = loadSubfile (ref->zFileName);
+			OpenFile* pFile = loadSubfile (ref->fileName);
 			
 			if (pFile)
-				ref->pFile = pFile;
+				ref->fileInfo = pFile;
 			else {
 				// Couldn't load the file, mark it an error
 				ref->replace (new LDGibberish (ref->getContents (), "Could not open referred file"));
@@ -654,7 +654,7 @@ void reloadAllSubfiles () {
 		// Reparse gibberish files. It could be that they are invalid because
 		// the file could not be opened. Circumstances may be different now.
 		if (obj->getType() == LDObject::Gibberish)
-			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->zContents));
+			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->contents));
 	}
 }
 

@@ -25,7 +25,7 @@
 #include <vector>
 #include <QString>
 
-char* vdynformat (const char* csFormat, va_list vArgs, long int lSize);
+char* vdynformat (const char* fmtstr, va_list va, long size);
 
 class vertex;
 
@@ -33,17 +33,10 @@ class vertex;
 // features a good bunch of manipulation methods
 class str {
 private:
-	// The actual message
-	char* text;
-	
-	// Where will append() place new characters?
-	unsigned short curs;
-	
-	// Allocated length
-	unsigned short alloclen;
-	
-	// Resize the text buffer to len characters
-	void resize (unsigned int len);
+	char* m_text;
+	ushort m_writepos;
+	ushort m_allocated;
+	void resize (uint len);
 	
 public:
 	// ======================================================================
@@ -53,133 +46,65 @@ public:
 	str (QString c);
 	~str ();
 	
-	// ======================================================================
-	// METHODS
-	
-	// Empty the string
 	void clear ();
-	
-	// Length of the string
-	size_t len () {
-		return strlen (text);
-	}
-	
-	// The char* form of the string
+	size_t len () { return strlen (m_text); }
 	char* chars ();
-	
-	// Dumps the character table of the string
 	void dump ();
-	
-	// Appends text to the string
 	void append (const char c);
 	void append (const char* c);
 	void append (str c);
 	void append (QString c);
-	
-	// Formats text to the string.
 	void format (const char* fmt, ...);
-	
-	// Appends formatted text to the string.
 	void appendformat (const char* c, ...);
-	
-	// Returns the first occurrence of c in the string, optionally starting
-	// from a certain position rather than the start.
-	int first (const char* c, unsigned int a = 0);
-	
-	// Returns the last occurrence of c in the string, optionally starting
-	// from a certain position rather than the end.
+	int first (const char* c, uint a = 0);
 	int last (const char* c, int a = -1);
-	
-	// Returns a substring of the string, from a to b.
-	str substr (unsigned int a, unsigned int b);
-	
-	// Replace a substring with another substring.
-	void replace (const char* o, const char* n, unsigned int a = 0);
-	
-	// Removes a given index from the string, optionally more characters than just 1.
-	void remove (unsigned int idx, unsigned int dellen=1);
-	
-	// Trims the given amount of characters. If negative, the characters
-	// are removed from the beginning of the string, if positive, from the
-	// end of the string.
+	str substr (uint a, uint b);
+	void replace (const char* o, const char* n, uint a = 0);
+	void remove (uint idx, uint dellen = 1);
 	str trim (int dellen);
-	
-	// Inserts a substring into a certain position.
-	void insert (char* c, unsigned int pos);
-	
-	// Reverses the string.
+	void insert (char* c, uint pos);
 	str reverse ();
-	
-	// Repeats the string a given amount of times.
 	str repeat (int n);
-	
-	// Is the string a number?
 	bool isnumber ();
-	
-	// Is the string a word, i.e consists only of alphabetic letters?
 	bool isword ();
-	
-	// Convert string to lower case
 	str tolower ();
-	
-	// Convert string to upper case
 	str toupper ();
-	
-	// Compare this string with another
 	int compare (const char* c);
 	int compare (str c);
 	int icompare (str c);
 	int icompare (const char* c);
-	
-	// Counts the amount of substrings in the string
-	unsigned int count (char* s);
-	unsigned int count (char s);
-	
-	// Counts where the given substring is seen for the nth time
-	int instanceof (const char* s, unsigned n);
-	
-	char subscript (uint pos) {
-		return operator[] (pos);
-	}
-	
+	uint count (char* c);
+	uint count (char s);
+	int instanceof (const char* s, uint n);
+	char subscript (uint pos) { return operator[] (pos); }
 	std::vector<str> split (str del, bool bNoBlanks = false);
-	
 	str strip (char c);
 	str strip (std::initializer_list<char> unwanted);
+	char* begin () { return &m_text[0]; }
+	char* end () { return &m_text[len () - 1]; }
 	
-	// ======================================================================
-	// OPERATORS
-	str operator+ (str& c) {
-		append (c);
-		return *this;
-	}
-	
-	str& operator+= (char c) {
-		append (c);
-		return *this;
-	}
-	
-	str& operator+= (const char* c) {
-		append (c);
-		return *this;
-	}
-	
-	str& operator+= (const str c) {
-		append (c);
-		return *this;
-	}
-	
-	str& operator+= (const QString c) {
-		append (c);
-		return *this;
-	}
-	
+	str operator+ (str& c) { append (c); return *this; }
+	str& operator+= (char c) { append (c); return *this; }
+	str& operator+= (const char* c) { append (c); return *this; }
+	str& operator+= (const str c) { append (c); return *this; }
+	str& operator+= (const QString c) { append (c); return *this; }
 	str& operator+= (vertex vrt);
-	
-	str operator* (const int repcount) {
-		repeat (repcount);
-		return *this;
-	}
+	str operator* (const int repcount) { repeat (repcount); return *this; }
+	str operator- (const int trimcount) { return trim (trimcount); }std::vector<str> operator/ (str splitstring);
+	std::vector<str> operator/ (char* splitstring);
+	std::vector<str> operator/ (const char* splitstring);
+	int operator% (str splitstring) { return count (splitstring.chars()); }
+	int operator% (char* splitstring) { return count (splitstring); }
+	int operator% (const char* splitstring) { return count (str (splitstring).chars()); }
+	str operator+ () { return toupper (); }
+	str operator- () { return tolower (); }
+	str operator! () { return reverse (); }
+	size_t operator~ () { return len (); }
+	char& operator[] (int pos) { return m_text[pos]; }
+	operator char* () const { return m_text; }
+	operator QString () const { return m_text; }
+	operator int () const { return atoi (m_text); }
+	operator uint () const { return operator int(); }
 	
 	str& operator*= (const int repcount) {
 		str other = repeat (repcount);
@@ -188,47 +113,11 @@ public:
 		return *this;
 	}
 	
-	str operator- (const int trimcount) {
-		return trim (trimcount);
-	}
-	
 	str& operator-= (const int trimcount) {
 		str other = trim (trimcount);
 		clear ();
 		append (other);
 		return *this;
-	}
-	
-	std::vector<str> operator/ (str splitstring);
-	std::vector<str> operator/ (char* splitstring);
-	std::vector<str> operator/ (const char* splitstring);
-	
-	int operator% (str splitstring) {
-		return count (splitstring.chars());
-	}
-	
-	int operator% (char* splitstring) {
-		return count (splitstring);
-	}
-	
-	int operator% (const char* splitstring) {
-		return count (str (splitstring).chars());
-	}
-	
-	str operator+ () {
-		return toupper ();
-	}
-	
-	str operator- () {
-		return tolower ();
-	}
-	
-	str operator! () {
-		return reverse ();
-	}
-	
-	size_t operator~ () {
-		return len ();
 	}
 	
 #define DEFINE_OPERATOR_TYPE(OPER, TYPE) \
@@ -244,26 +133,6 @@ public:
 	DEFINE_OPERATOR (<)
 	DEFINE_OPERATOR (>=)
 	DEFINE_OPERATOR (<=)
-	
-	char& operator[] (int pos) {
-		return text[pos];
-	}
-	
-	operator char* () const {
-		return text;
-	}
-	
-	operator QString () const {
-		return text;
-	}
-	
-	operator int () const {
-		return atoi (text);
-	}
-	
-	operator uint () const {
-		return operator int();
-	}
 };
 
 str fmt (const char* fmt, ...);

@@ -209,7 +209,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	
 	g_win->sel ().clear ();
 	for (LDObject* obj : g_curfile->m_objs)
-		if (obj->dColor == dColor)
+		if (obj->color == dColor)
 			g_win->sel ().push_back (obj);
 	
 	g_win->updateSelection ();
@@ -232,10 +232,10 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	str zRefName;
 	
 	if (eType == LDObject::Subfile) {
-		zRefName = static_cast<LDSubfile*> (g_win->sel ()[0])->zFileName;
+		zRefName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileName;
 		
 		for (LDObject* pObj : g_win->sel ())
-			if (static_cast<LDSubfile*> (pObj)->zFileName != zRefName)
+			if (static_cast<LDSubfile*> (pObj)->fileName != zRefName)
 				return;
 	}
 	
@@ -244,7 +244,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 		if (obj->getType() != eType)
 			continue;
 		
-		if (eType == LDObject::Subfile && static_cast<LDSubfile*> (obj)->zFileName != zRefName)
+		if (eType == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileName != zRefName)
 			continue;
 		
 		g_win->sel ().push_back (obj);

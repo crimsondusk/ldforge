@@ -557,8 +557,8 @@ void ForgeWindow::buildObjList () {
 			{
 				LDLine* line = static_cast<LDLine*> (obj);
 				descr.format ("%s, %s",
-					line->vaCoords[0].stringRep (true).chars(),
-					line->vaCoords[1].stringRep (true).chars());
+					line->coords[0].stringRep (true).chars(),
+					line->coords[1].stringRep (true).chars());
 			}
 			break;
 		
@@ -566,9 +566,9 @@ void ForgeWindow::buildObjList () {
 			{
 				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
 				descr.format ("%s, %s, %s",
-					triangle->vaCoords[0].stringRep (true).chars(),
-					triangle->vaCoords[1].stringRep (true).chars(),
-					triangle->vaCoords[2].stringRep (true).chars());
+					triangle->coords[0].stringRep (true).chars(),
+					triangle->coords[1].stringRep (true).chars(),
+					triangle->coords[2].stringRep (true).chars());
 			}
 			break;
 		
@@ -576,10 +576,10 @@ void ForgeWindow::buildObjList () {
 			{
 				LDQuad* quad = static_cast<LDQuad*> (obj);
 				descr.format ("%s, %s, %s, %s",
-					quad->vaCoords[0].stringRep (true).chars(),
-					quad->vaCoords[1].stringRep (true).chars(),
-					quad->vaCoords[2].stringRep (true).chars(),
-					quad->vaCoords[3].stringRep (true).chars());
+					quad->coords[0].stringRep (true).chars(),
+					quad->coords[1].stringRep (true).chars(),
+					quad->coords[2].stringRep (true).chars(),
+					quad->coords[3].stringRep (true).chars());
 			}
 			break;
 		
@@ -587,20 +587,20 @@ void ForgeWindow::buildObjList () {
 			{
 				LDCondLine* line = static_cast<LDCondLine*> (obj);
 				descr.format ("%s, %s, %s, %s",
-					line->vaCoords[0].stringRep (true).chars(),
-					line->vaCoords[1].stringRep (true).chars(),
-					line->vaCoords[2].stringRep (true).chars(),
-					line->vaCoords[3].stringRep (true).chars());
+					line->coords[0].stringRep (true).chars(),
+					line->coords[1].stringRep (true).chars(),
+					line->coords[2].stringRep (true).chars(),
+					line->coords[3].stringRep (true).chars());
 			}
 			break;
 		
 		case LDObject::Gibberish:
 			descr.format ("ERROR: %s",
-				static_cast<LDGibberish*> (obj)->zContents.chars());
+				static_cast<LDGibberish*> (obj)->contents.chars());
 			break;
 		
 		case LDObject::Vertex:
-			descr.format ("%s", static_cast<LDVertex*> (obj)->vPosition.stringRep (true).chars());
+			descr.format ("%s", static_cast<LDVertex*> (obj)->pos.stringRep (true).chars());
 			break;
 		
 		case LDObject::Subfile:
@@ -608,11 +608,11 @@ void ForgeWindow::buildObjList () {
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				descr.format ("%s %s, (",
-					ref->zFileName.chars(), ref->vPosition.stringRep (true).chars());
+					ref->fileName.chars(), ref->pos.stringRep (true).chars());
 				
 				for (short i = 0; i < 9; ++i)
 					descr.appendformat ("%s%s",
-						ftoa (ref->mMatrix[i]).chars(),
+						ftoa (ref->transform[i]).chars(),
 						(i != 8) ? " " : "");
 				
 				descr += ')';
@@ -629,12 +629,12 @@ void ForgeWindow::buildObjList () {
 		case LDObject::Radial:
 			{
 				LDRadial* pRad = static_cast<LDRadial*> (obj);
-				descr.format ("%d / %d %s", pRad->dSegments, pRad->dDivisions, pRad->radialTypeName());
+				descr.format ("%d / %d %s", pRad->segs, pRad->divs, pRad->radialTypeName());
 				
-				if (pRad->eRadialType == LDRadial::Ring || pRad->eRadialType == LDRadial::Cone)
-					descr.appendformat (" %d", pRad->dRingNum);
+				if (pRad->radType == LDRadial::Ring || pRad->radType == LDRadial::Cone)
+					descr.appendformat (" %d", pRad->ringNum);
 				
-				descr.appendformat (" %s", pRad->vPosition.stringRep (true).chars ());
+				descr.appendformat (" %s", pRad->pos.stringRep (true).chars ());
 			}
 			break;
 		
@@ -657,11 +657,11 @@ void ForgeWindow::buildObjList () {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		} else if (lv_colorize && obj->isColored () &&
-			obj->dColor != maincolor && obj->dColor != edgecolor)
+			obj->color != maincolor && obj->color != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			color* col = getColor (obj->dColor);
+			color* col = getColor (obj->color);
 			if (col)
 				item->setForeground (col->qColor);
 		}
@@ -759,13 +759,13 @@ void ForgeWindow::slot_quickColor () {
 	short newColor = col->index ();
 	
 	for (LDObject* obj : m_sel) {
-		if (obj->dColor == -1)
+		if (obj->color == -1)
 			continue; // uncolored object
 		
 		indices.push_back (obj->getIndex (g_curfile));
-		colors.push_back (obj->dColor);
+		colors.push_back (obj->color);
 		
-		obj->dColor = newColor;
+		obj->color = newColor;
 	}
 	
 	History::addEntry (new SetColorHistory (indices, colors, newColor));
@@ -832,14 +832,14 @@ short ForgeWindow::getSelectedColor() {
 	short result = -1;
 	
 	for (LDObject* obj : m_sel) {
-		if (obj->dColor == -1)
+		if (obj->color == -1)
 			continue; // doesn't use color
 		
-		if (result != -1 && obj->dColor != result)
+		if (result != -1 && obj->color != result)
 			return -1; // No consensus in object color
 		
 		if (result == -1)
-			result = obj->dColor;
+			result = obj->color;
 	}
 	
 	return result;
@@ -852,7 +852,7 @@ LDObject::Type ForgeWindow::uniformSelectedType () {
 	LDObject::Type eResult = LDObject::Unidentified;
 	
 	for (LDObject* obj : m_sel) {
-		if (eResult != LDObject::Unidentified && obj->dColor != eResult)
+		if (eResult != LDObject::Unidentified && obj->color != eResult)
 			return LDObject::Unidentified;
 		
 		if (eResult == LDObject::Unidentified)
@@ -936,7 +936,7 @@ DelHistory* ForgeWindow::deleteSelection () {
 DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
 	for (LDObject* obj : g_curfile->m_objs) {
-		if (!obj->isColored () || obj->dColor != colnum)
+		if (!obj->isColored () || obj->color != colnum)
 			continue;
 		
 		objs.push_back (obj);
@@ -1025,10 +1025,10 @@ void makeColorSelector (QComboBox* box) {
 		if (!obj->isColored ())
 			continue;
 		
-		if (counts.find (obj->dColor) == counts.end ())
-			counts[obj->dColor] = 1;
+		if (counts.find (obj->color) == counts.end ())
+			counts[obj->color] = 1;
 		else
-			counts[obj->dColor]++;
+			counts[obj->color]++;
 	}
 	
 	box->clear ();

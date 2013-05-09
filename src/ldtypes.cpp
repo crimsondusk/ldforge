@@ -65,8 +65,8 @@ LDObject::LDObject () {
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {
-	zContents = _zContent;
-	zReason = _zReason;
+	contents = _zContent;
+	reason = _zReason;
 }
 
 // =============================================================================
@@ -75,56 +75,56 @@ str LDComment::getContents () {
 }
 
 str LDSubfile::getContents () {
-	str val = fmt ("1 %d %s ", dColor, vPosition.stringRep (false).chars ());
-	val += mMatrix.stringRep ();
+	str val = fmt ("1 %d %s ", color, pos.stringRep (false).chars ());
+	val += transform.stringRep ();
 	val += ' ';
-	val += zFileName;
+	val += fileName;
 	return val;
 }
 
 str LDLine::getContents () {
-	str val = fmt ("2 %d", dColor);
+	str val = fmt ("2 %d", color);
 	
 	for (ushort i = 0; i < 2; ++i)
-		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
+		val.appendformat (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
 
 str LDTriangle::getContents () {
-	str val = fmt ("3 %d", dColor);
+	str val = fmt ("3 %d", color);
 	
 	for (ushort i = 0; i < 3; ++i)
-		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
+		val.appendformat (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
 
 str LDQuad::getContents () {
-	str val = fmt ("4 %d", dColor);
+	str val = fmt ("4 %d", color);
 	
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
+		val.appendformat (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
 
 str LDCondLine::getContents () {
-	str val = fmt ("5 %d", dColor);
+	str val = fmt ("5 %d", color);
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", vaCoords[i].stringRep (false).chars ());
+		val.appendformat (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
 
 str LDGibberish::getContents () {
-	return zContents;
+	return contents;
 }
 
 str LDVertex::getContents () {
-	return fmt ("0 !LDFORGE VERTEX %d %s", dColor, vPosition.stringRep (false).chars());
+	return fmt ("0 !LDFORGE VERTEX %d %s", color, pos.stringRep (false).chars());
 }
 
 str LDEmpty::getContents () {
@@ -158,17 +158,17 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 	// |   |     |/    /  |
 	// 1---2     1    1---2
 	LDTriangle* tri1 = new LDTriangle;
-	tri1->vaCoords[0] = vaCoords[0];
-	tri1->vaCoords[1] = vaCoords[1];
-	tri1->vaCoords[2] = vaCoords[3];
+	tri1->coords[0] = coords[0];
+	tri1->coords[1] = coords[1];
+	tri1->coords[2] = coords[3];
 	
 	LDTriangle* tri2 = new LDTriangle;
-	tri2->vaCoords[0] = vaCoords[1];
-	tri2->vaCoords[1] = vaCoords[2];
-	tri2->vaCoords[2] = vaCoords[3];
+	tri2->coords[0] = coords[1];
+	tri2->coords[1] = coords[2];
+	tri2->coords[2] = coords[3];
 	
 	// The triangles also inherit the quad's color
-	tri1->dColor = tri2->dColor = dColor;
+	tri1->color = tri2->color = color;
 	
 	vector<LDTriangle*> triangles;
 	triangles.push_back (tri1);
@@ -202,8 +202,8 @@ void LDObject::swap (LDObject* other) {
 }
 
 LDLine::LDLine (vertex v1, vertex v2) {
-	vaCoords[0] = v1;
-	vaCoords[1] = v2;
+	coords[0] = v1;
+	coords[1] = v2;
 }
 
 LDObject::~LDObject () {
@@ -223,16 +223,16 @@ static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, sho
 	case LDObject::Triangle:
 	case LDObject::Quad:
 		for (short i = 0; i < obj->vertices (); ++i)
-			obj->vaCoords[i].transform (transform, pos);
+			obj->coords[i].transform (transform, pos);
 		break;
 	
 	case LDObject::Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			matrix<3> newMatrix = transform * ref->mMatrix;
-			ref->vPosition.transform (transform, pos);
-			ref->mMatrix = newMatrix;
+			matrix<3> newMatrix = transform * ref->transform;
+			ref->pos.transform (transform, pos);
+			ref->transform = newMatrix;
 		}
 		break;
 	
@@ -240,8 +240,8 @@ static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, sho
 		break;
 	}
 	
-	if (obj->dColor == maincolor)
-		obj->dColor = parentcolor;
+	if (obj->color == maincolor)
+		obj->color = parentcolor;
 }
 
 // =============================================================================
@@ -251,14 +251,14 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 	vector<LDObject*> objs, cache;
 	
 	// If we have this cached, just clone that
-	if (bDeepInline && pFile->m_objCache.size ()) {
-		for (LDObject* obj : pFile->m_objCache)
+	if (bDeepInline && fileInfo->m_objCache.size ()) {
+		for (LDObject* obj : fileInfo->m_objCache)
 			objs.push_back (obj->clone ());
 	} else {
 		if (!bDeepInline)
 			bCache = false;
 		
-		for (LDObject* obj : pFile->m_objs) {
+		for (LDObject* obj : fileInfo->m_objs) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
 			case LDObject::Comment:
@@ -302,7 +302,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 		}
 		
 		if (bCache)
-			pFile->m_objCache = cache;
+			fileInfo->m_objCache = cache;
 	}
 	
 	// Transform the objects
@@ -310,7 +310,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 		// Set the parent now so we know what inlined this.
 		obj->parent = this;
 		
-		transformObject (obj, mMatrix, vPosition, dColor);
+		transformObject (obj, transform, pos, color);
 	}
 	
 	return objs;
@@ -417,35 +417,35 @@ void LDComment::move (vertex vVector) { vVector = vVector; }
 void LDGibberish::move (vertex vVector) { vVector = vVector; }
 
 void LDVertex::move (vertex vVector) {
-	vPosition += vVector;
+	pos += vVector;
 }
 
 void LDSubfile::move (vertex vVector) {
-	vPosition += vVector;
+	pos += vVector;
 }
 
 void LDRadial::move (vertex vVector) {
-	vPosition += vVector;
+	pos += vVector;
 }
 
 void LDLine::move (vertex vVector) {
 	for (short i = 0; i < 2; ++i)
-		vaCoords[i] += vVector;
+		coords[i] += vVector;
 }
 
 void LDTriangle::move (vertex vVector) {
 	for (short i = 0; i < 3; ++i)
-		vaCoords[i] += vVector;
+		coords[i] += vVector;
 }
 
 void LDQuad::move (vertex vVector) {
 	for (short i = 0; i < 4; ++i)
-		vaCoords[i] += vVector;
+		coords[i] += vVector;
 }
 
 void LDCondLine::move (vertex vVector) {
 	for (short i = 0; i < 4; ++i)
-		vaCoords[i] += vVector;
+		coords[i] += vVector;
 }
 
 // =============================================================================
@@ -462,7 +462,7 @@ static char const* g_saRadialTypeNames[] = {
 };
 
 char const* LDRadial::radialTypeName () {
-	return g_saRadialTypeNames[eRadialType];
+	return g_saRadialTypeNames[radType];
 }
 
 char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
@@ -472,30 +472,30 @@ char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
+std::vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 	std::vector<LDObject*> paObjects;
 	
-	for (short i = 0; i < dSegments; ++i) {
-		double x0 = cos ((i * 2 * pi) / dDivisions),
-			x1 = cos (((i + 1) * 2 * pi) / dDivisions),
-			z0 = sin ((i * 2 * pi) / dDivisions),
-			z1 = sin (((i + 1) * 2 * pi) / dDivisions);
+	for (short i = 0; i < segs; ++i) {
+		double x0 = cos ((i * 2 * pi) / divs),
+			x1 = cos (((i + 1) * 2 * pi) / divs),
+			z0 = sin ((i * 2 * pi) / divs),
+			z1 = sin (((i + 1) * 2 * pi) / divs);
 		
-		switch (eRadialType) {
+		switch (radType) {
 		case LDRadial::Circle:
 			{
 				vertex v0 (x0, 0.0f, z0),
 					v1 (x1, 0.0f, z1);
 				
-				if (bTransform) {
-					v0.transform (mMatrix, vPosition);
-					v1.transform (mMatrix, vPosition);
+				if (applyTransform) {
+					v0.transform (transform, pos);
+					v1.transform (transform, pos);
 				}
 				
 				LDLine* pLine = new LDLine;
-				pLine->vaCoords[0] = v0;
-				pLine->vaCoords[1] = v1;
-				pLine->dColor = edgecolor;
+				pLine->coords[0] = v0;
+				pLine->coords[1] = v1;
+				pLine->color = edgecolor;
 				pLine->parent = this;
 				
 				paObjects.push_back (pLine);
@@ -509,7 +509,7 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 				double x2, x3, z2, z3;
 				double y0, y1, y2, y3;
 				
-				if (eRadialType == LDRadial::Cylinder) {
+				if (radType == LDRadial::Cylinder) {
 					x2 = x1;
 					x3 = x0;
 					z2 = z1;
@@ -518,17 +518,17 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 					y0 = y1 = 0.0f;
 					y2 = y3 = 1.0f;
 				} else {
-					x2 = x1 * (dRingNum + 1);
-					x3 = x0 * (dRingNum + 1);
-					z2 = z1 * (dRingNum + 1);
-					z3 = z0 * (dRingNum + 1);
+					x2 = x1 * (ringNum + 1);
+					x3 = x0 * (ringNum + 1);
+					z2 = z1 * (ringNum + 1);
+					z3 = z0 * (ringNum + 1);
 					
-					x0 *= dRingNum;
-					x1 *= dRingNum;
-					z0 *= dRingNum;
-					z1 *= dRingNum;
+					x0 *= ringNum;
+					x1 *= ringNum;
+					z0 *= ringNum;
+					z1 *= ringNum;
 					
-					if (eRadialType == LDRadial::Ring) {
+					if (radType == LDRadial::Ring) {
 						y0 = y1 = y2 = y3 = 0.0f;
 					} else {
 						y0 = y1 = 1.0f;
@@ -541,19 +541,19 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 					v2 (x2, y2, z2),
 					v3 (x3, y3, z3);
 				
-				if (bTransform) {
-					v0.transform (mMatrix, vPosition);
-					v1.transform (mMatrix, vPosition);
-					v2.transform (mMatrix, vPosition);
-					v3.transform (mMatrix, vPosition);
+				if (applyTransform) {
+					v0.transform (transform, pos);
+					v1.transform (transform, pos);
+					v2.transform (transform, pos);
+					v3.transform (transform, pos);
 				}
 				
 				LDQuad* pQuad = new LDQuad;
-				pQuad->vaCoords[0] = v0;
-				pQuad->vaCoords[1] = v1;
-				pQuad->vaCoords[2] = v2;
-				pQuad->vaCoords[3] = v3;
-				pQuad->dColor = dColor;
+				pQuad->coords[0] = v0;
+				pQuad->coords[1] = v1;
+				pQuad->coords[2] = v2;
+				pQuad->coords[3] = v3;
+				pQuad->color = color;
 				pQuad->parent = this;
 				
 				paObjects.push_back (pQuad);
@@ -565,7 +565,7 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 			{
 				double x2, z2;
 				
-				if (eRadialType == LDRadial::Disc) {
+				if (radType == LDRadial::Disc) {
 					x2 = z2 = 0.0f;
 				} else {
 					x2 = (x0 >= 0.0f) ? 1.0f : -1.0f;
@@ -576,17 +576,17 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 					v1 (x1, 0.0f, z1),
 					v2 (x2, 0.0f, z2);
 				
-				if (bTransform) {
-					v0.transform (mMatrix, vPosition);
-					v1.transform (mMatrix, vPosition);
-					v2.transform (mMatrix, vPosition);
+				if (applyTransform) {
+					v0.transform (transform, pos);
+					v1.transform (transform, pos);
+					v2.transform (transform, pos);
 				}
 				
 				LDTriangle* pSeg = new LDTriangle;
-				pSeg->vaCoords[0] = v0;
-				pSeg->vaCoords[1] = v1;
-				pSeg->vaCoords[2] = v2;
-				pSeg->dColor = dColor;
+				pSeg->coords[0] = v0;
+				pSeg->coords[1] = v1;
+				pSeg->coords[2] = v2;
+				pSeg->color = color;
 				pSeg->parent = this;
 				
 				paObjects.push_back (pSeg);
@@ -607,8 +607,8 @@ std::vector<LDObject*> LDRadial::decompose (bool bTransform) {
 str LDRadial::getContents () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName()).toupper ().strip (' ').chars (),
-		dColor, dSegments, dDivisions, dRingNum,
-		vPosition.stringRep (false).chars(), mMatrix.stringRep().chars());
+		color, segs, divs, ringNum,
+		pos.stringRep (false).chars(), transform.stringRep().chars());
 }
 
 char const* g_saRadialNameRoots[] = {
@@ -625,8 +625,8 @@ char const* g_saRadialNameRoots[] = {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::makeFileName () {
-	short numer = dSegments,
-		denom = dDivisions;
+	short numer = segs,
+		denom = divs;
 	
 	// Simplify the fractional part, but the denominator must be at least 4.
 	simplify (numer, denom);
@@ -639,18 +639,18 @@ str LDRadial::makeFileName () {
 	}
 	
 	// Compose some general information: prefix, fraction, root, ring number
-	str prefix = (dDivisions == 16) ? "" : fmt ("%d/", dDivisions);
+	str prefix = (divs == 16) ? "" : fmt ("%d/", divs);
 	str frac = fmt ("%d-%d", numer, denom);
-	str root = g_saRadialNameRoots[eRadialType];
-	str ringNum = (eRadialType == Ring || eRadialType == Cone) ? fmt ("%d", dRingNum) : "";
+	str root = g_saRadialNameRoots[radType];
+	str num = (radType == Ring || radType == Cone) ? fmt ("%d", ringNum) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
-	short extra = (~frac + ~ringNum + ~root) - 8;
+	short extra = (~frac + ~num + ~root) - 8;
 	root -= min<short> (max<short> (extra, 0), 2);
 	
 	// Stick them all together and return the result.
-	return fmt ("%s%s%s%s.dat", prefix.chars(), frac.chars (), root.chars (), ringNum.chars ());
+	return fmt ("%s%s%s%s.dat", prefix.chars(), frac.chars (), root.chars (), num.chars ());
 }
 
 // =============================================================================

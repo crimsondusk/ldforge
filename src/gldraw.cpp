@@ -245,34 +245,34 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	}
 #endif
 	
-	if (obj->dColor == maincolor)
+	if (obj->color == maincolor)
 		qcol = getMainColor ();
 	else {
-		color* col = getColor (obj->dColor);
+		color* col = getColor (obj->color);
 		qcol = col->qColor;
 	}
 	
-	if (obj->dColor == edgecolor) {
+	if (obj->color == edgecolor) {
 		qcol = Qt::black;
 		color* col;
 		
-		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->dColor)) != null)
+		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
 			qcol = col->qEdge;
 	}
 	
 	if (qcol.isValid () == false) {
 		// The color was unknown. Use main color to make the object at least
 		// not appear pitch-black.
-		if (obj->dColor != edgecolor)
+		if (obj->color != edgecolor)
 			qcol = getMainColor ();
 		
 		// Warn about the unknown colors, but only once.
 		for (short i : g_daWarnedColors)
-			if (obj->dColor == i)
+			if (obj->color == i)
 				return;
 		
-		printf ("%s: Unknown color %d!\n", __func__, obj->dColor);
-		g_daWarnedColors.push_back (obj->dColor);
+		printf ("%s: Unknown color %d!\n", __func__, obj->color);
+		g_daWarnedColors.push_back (obj->color);
 		return;
 	}
 	
@@ -638,7 +638,7 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	const short numverts = (obj->getType () != LDObject::CondLine) ? obj->vertices () : 2;
 	
 	for (short i = 0; i < numverts; ++i)
-		compileVertex (obj->vaCoords[i]);
+		compileVertex (obj->coords[i]);
 	
 	glEnd ();
 }
@@ -703,21 +703,21 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		{
 			LDVertex* pVert = static_cast<LDVertex*> (obj);
 			LDTriangle* pPoly;
-			vertex* vPos = &(pVert->vPosition);
+			vertex* vPos = &(pVert->pos);
 			const double fPolyScale = max (fZoom, 1.0);
 			
 #define BIPYRAMID_COORD(N) ((((i + N) % 4) >= 2 ? 1 : -1) * 0.3f * fPolyScale)
 			
 			for (int i = 0; i < 8; ++i) {
 				pPoly = new LDTriangle;
-				pPoly->vaCoords[0] = {vPos->x, vPos->y + ((i >= 4 ? 1 : -1) * 0.4f * fPolyScale), vPos->z};
-				pPoly->vaCoords[1] = {
+				pPoly->coords[0] = {vPos->x, vPos->y + ((i >= 4 ? 1 : -1) * 0.4f * fPolyScale), vPos->z};
+				pPoly->coords[1] = {
 					vPos->x + BIPYRAMID_COORD (0),
 					vPos->y,
 					vPos->z + BIPYRAMID_COORD (1)
 				};
 				
-				pPoly->vaCoords[2] = {
+				pPoly->coords[2] = {
 					vPos->x + BIPYRAMID_COORD (1),
 					vPos->y,
 					vPos->z + BIPYRAMID_COORD (2)
@@ -1078,8 +1078,8 @@ void GLRenderer::endPlaneDraw (bool accept) {
 			{
 				// 1 vertex - add a vertex object
 				obj = new LDVertex;
-				static_cast<LDVertex*> (obj)->vPosition = verts[0];
-				obj->dColor = maincolor;
+				static_cast<LDVertex*> (obj)->pos = verts[0];
+				obj->color = maincolor;
 			}
 			break;
 		
@@ -1087,9 +1087,9 @@ void GLRenderer::endPlaneDraw (bool accept) {
 			{
 				// 2 verts - make a line
 				obj = new LDLine;
-				obj->dColor = edgecolor;
+				obj->color = edgecolor;
 				for (ushort i = 0; i < 2; ++i)
-					obj->vaCoords[i] = verts[i];
+					obj->coords[i] = verts[i];
 			}
 			break;
 			
@@ -1100,9 +1100,9 @@ void GLRenderer::endPlaneDraw (bool accept) {
 					static_cast<LDObject*> (new LDTriangle) :
 					static_cast<LDObject*> (new LDQuad);
 				
-				obj->dColor = maincolor;
+				obj->color = maincolor;
 				for (ushort i = 0; i < obj->vertices (); ++i)
-					obj->vaCoords[i] = verts[i];
+					obj->coords[i] = verts[i];
 			}
 			break;
 		}

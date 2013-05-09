@@ -32,13 +32,13 @@ class QAction;
 extern const ushort g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
-bool isNumber (str& zToken);
+bool isNumber (str& tok);
 
 // Converts a float value to a string value.
 str ftoa (double fCoord);
 
 // Simplifies the given fraction.
-void simplify (short& dNum, short& dDenom);
+void simplify (short& numer, short& denom);
 
 // Grid stuff
 typedef struct {
@@ -99,8 +99,8 @@ public:
 	void seek (short amount, bool rel);
 	bool tokenCompare (short inPos, const char* sOther);
 	
-	str operator[] (const size_t uIndex) {
-		return m_tokens[uIndex];
+	str operator[] (const size_t idx) {
+		return m_tokens[idx];
 	}
 	
 private:

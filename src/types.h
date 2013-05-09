@@ -23,8 +23,8 @@
 #include "misc.h"
 
 typedef unsigned int uint;
-typedef short unsigned int ushort;
-typedef long unsigned int ulong;
+typedef unsigned short ushort;
+typedef unsigned long ulong;
 
 // Typedef out the _t suffices :)
 typedef int8_t int8;

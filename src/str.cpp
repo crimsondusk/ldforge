@@ -21,52 +21,51 @@
 #include <string.h>
 #include <stdarg.h>
 #include <assert.h>
-// #include <initializer_list>
 #include "str.h"
 #include "common.h"
 #include "misc.h"
 
 #define ITERATE_STRING(u) \
-	for (unsigned int u = 0; u < strlen (text); u++)
+	for (uint u = 0; u < strlen (m_text); u++)
 
 // ============================================================================
 // vdynformat: Try to write to a formatted string with size bytes first, if
 // that fails, double the size and keep recursing until it works.
-char* vdynformat (const char* csFormat, va_list vArgs, long lSize) {
-	char* buffer = new char[lSize];
-	int r = vsnprintf (buffer, lSize - 1, csFormat, vArgs);
-	if (r > (signed)(lSize - 1) || r < 0) {
+char* vdynformat (const char* fmtstr, va_list va, long size) {
+	char* buffer = new char[size];
+	int r = vsnprintf (buffer, size - 1, fmtstr, va);
+	if (r > (signed)(size - 1) || r < 0) {
 		delete[] buffer;
-		buffer = vdynformat (csFormat, vArgs, lSize * 2);
+		buffer = vdynformat (fmtstr, va, size * 2);
 	}
 	return buffer;
 }
 
 // ============================================================================
 str::str () {
-	text = new char[1];
+	m_text = new char[1];
 	clear();
-	alloclen = strlen (text);
+	m_allocated = strlen (m_text);
 }
 
 str::str (const char* c) {
-	text = new char[1];
-	text[0] = '\0';
-	curs = alloclen = 0;
+	m_text = new char[1];
+	m_text[0] = '\0';
+	m_writepos = m_allocated = 0;
 	append (c);
 }
 
 str::str (char c) {
-	text = new char[1];
-	text[0] = '\0';
-	curs = alloclen = 0;
+	m_text = new char[1];
+	m_text[0] = '\0';
+	m_writepos = m_allocated = 0;
 	append (c);
 }
 
 str::str (QString c) {
-	text = new char[1];
-	text[0] = '\0';
-	curs = alloclen = 0;
+	m_text = new char[1];
+	m_text[0] = '\0';
+	m_writepos = m_allocated = 0;
 	append (c);
 }
 
@@ -76,49 +75,49 @@ str::~str () {
 
 // ============================================================================
 void str::clear () {
-	delete[] text;
-	text = new char[1];
-	text[0] = '\0';
-	curs = 0;
-	alloclen = 0;
+	delete[] m_text;
+	m_text = new char[1];
+	m_text[0] = '\0';
+	m_writepos = 0;
+	m_allocated = 0;
 }
 
 // ============================================================================
-void str::resize (unsigned int len) {
-	unsigned int oldlen = strlen (text);
+void str::resize (uint len) {
+	uint oldlen = strlen (m_text);
 	char* oldtext = new char[oldlen];
-	strncpy (oldtext, text, oldlen);
+	strncpy (oldtext, m_text, oldlen);
 	
-	delete[] text;
-	text = new char[len+1];
-	for (unsigned int u = 0; u < len+1; u++)
-		text[u] = 0;
-	strncpy (text, oldtext, len);
+	delete[] m_text;
+	m_text = new char[len+1];
+	for (uint u = 0; u < len+1; u++)
+		m_text[u] = 0;
+	strncpy (m_text, oldtext, len);
 	delete[] oldtext;
 	
-	alloclen = len;
+	m_allocated = len;
 }
 
 // ============================================================================
 void str::dump () {
-	for (unsigned int u = 0; u <= alloclen; u++)
-		printf ("\t%u. %u (%c)\n", u, text[u], text[u]);
+	for (uint u = 0; u <= m_allocated; u++)
+		printf ("\t%u. %u (%c)\n", u, m_text[u], m_text[u]);
 }
 
 // ============================================================================
 // Adds a new character at the end of the string.
 void str::append (const char c) {
 	// Out of space, thus resize
-	if (curs == alloclen)
-		resize (alloclen + 1);
-	text[curs] = c;
-	curs++;
+	if (m_writepos == m_allocated)
+		resize (m_allocated + 1);
+	m_text[m_writepos] = c;
+	m_writepos++;
 }
 
 void str::append (const char* c) {
-	resize (alloclen + strlen (c));
+	resize (m_allocated + strlen (c));
 	
-	for (unsigned int u = 0; u < strlen (c); u++) {
+	for (uint u = 0; u < strlen (c); u++) {
 		if (c[u] != 0)
 			append (c[u]);
 	}
@@ -159,15 +158,15 @@ void str::format (const char* fmt, ...) {
 
 // ============================================================================
 char* str::chars () {
-	return text;
+	return m_text;
 }
 
 // ============================================================================
-int str::first (const char* c, unsigned int a) {
-	unsigned int r = 0;
-	unsigned int index = 0;
-	for (; a < alloclen; a++) {
-		if (text[a] == c[r]) {
+int str::first (const char* c, uint a) {
+	uint r = 0;
+	uint index = 0;
+	for (; a < m_allocated; a++) {
+		if (m_text[a] == c[r]) {
 			if (r == 0)
 				index = a;
 			
@@ -198,7 +197,7 @@ int str::last (const char* c, int a) {
 	
 	int r = max;
 	for (; a >= 0; a--) {
-		if (text[a] == c[r]) {
+		if (m_text[a] == c[r]) {
 			r--;
 			if (r == -1)
 				return a;
@@ -214,7 +213,7 @@ int str::last (const char* c, int a) {
 }
 
 // ============================================================================
-str str::substr (unsigned int a, unsigned int b) {
+str str::substr (uint a, uint b) {
 	if (a > len()) a = len();
 	if (b > len()) b = len();
 	
@@ -225,13 +224,13 @@ str str::substr (unsigned int a, unsigned int b) {
 		printf ("str::substring:: indices %u and %u given, should be the other way around, swapping..\n", a, b);
 		
 		// Swap the variables
-		unsigned int c = a;
+		uint c = a;
 		a = b;
 		b = c;
 	}
 	
 	char* s = new char[b - a + 1];
-	strncpy (s, text + a, b - a);
+	strncpy (s, m_text + a, b - a);
 	s[b - a] = '\0';
 	
 	str other = s;
@@ -240,7 +239,7 @@ str str::substr (unsigned int a, unsigned int b) {
 }
 
 // ============================================================================
-void str::remove (unsigned int idx, unsigned int dellen) {
+void str::remove (uint idx, uint dellen) {
 	str s1 = substr (0, idx);
 	str s2 = substr (idx + dellen, -1);
 	
@@ -258,7 +257,7 @@ str str::trim (int dellen) {
 }
 
 // ============================================================================
-void str::replace (const char* o, const char* n, unsigned int a) {
+void str::replace (const char* o, const char* n, uint a) {
 	for (int idx; (idx = first (o, a)) != -1;) {
 		str s1 = substr (0, idx);
 		str s2 = substr (idx + strlen (o), len());
@@ -277,7 +276,7 @@ str str::strip (char c) {
 }
 
 str str::strip (std::initializer_list<char> unwanted) {
-	str cache = text;
+	str cache = m_text;
 	uint oldlen = len();
 	
 	char* buf = new char[oldlen];
@@ -285,11 +284,11 @@ str str::strip (std::initializer_list<char> unwanted) {
 	for (uint i = 0; i < oldlen; i++) {
 		bool valid = true;
 		for (const char* j = unwanted.begin(); j < unwanted.end() && valid; j++)
-			if (text[i] == *j)
+			if (m_text[i] == *j)
 				valid = false;
 		
 		if (valid)
-			*bufptr++ = text[i];
+			*bufptr++ = m_text[i];
 	}
 	
 	*bufptr = '\0';
@@ -301,7 +300,7 @@ str str::strip (std::initializer_list<char> unwanted) {
 	return zResult;
 }
 
-void str::insert (char* c, unsigned int pos) {
+void str::insert (char* c, uint pos) {
 	str s1 = substr (0, pos);
 	str s2 = substr (pos, len());
 	
@@ -315,7 +314,7 @@ str str::reverse () {
 	char* buf = new char[len() + 1];
 	
 	for (uint i = 0; i < len(); i++)
-		buf[i] = text[len() - i - 1];
+		buf[i] = m_text[len() - i - 1];
 	buf[len()] = '\0';
 	
 	str other = buf;
@@ -328,7 +327,7 @@ str str::repeat (int n) {
 	
 	str other;
 	for (int i = 0; i < n; i++)
-		other += text;
+		other += m_text;
 	return other;
 }
 
@@ -336,10 +335,10 @@ str str::repeat (int n) {
 bool str::isnumber () {
 	ITERATE_STRING (u) {
 		// Minus sign as the first character is allowed for negatives
-		if (!u && text[u] == '-')
+		if (!u && m_text[u] == '-')
 			continue;
 		
-		if (text[u] < '0' || text[u] > '9')
+		if (m_text[u] < '0' || m_text[u] > '9')
 			return false;
 	}
 	return true;
@@ -349,11 +348,11 @@ bool str::isnumber () {
 bool str::isword () {
 	ITERATE_STRING (u) {
 		// lowercase letters
-		if (text[u] >= 'a' || text[u] <= 'z')
+		if (m_text[u] >= 'a' || m_text[u] <= 'z')
 			continue;
 		
 		// uppercase letters
-		if (text[u] >= 'A' || text[u] <= 'Z')
+		if (m_text[u] >= 'A' || m_text[u] <= 'Z')
 			continue;
 		
 		return false;
@@ -362,11 +361,11 @@ bool str::isword () {
 }
 
 int str::instanceof (const char* c, uint n) {
-	unsigned int r = 0;
-	unsigned int index = 0;
-	unsigned int x = 0;
-	for (uint a = 0; a < alloclen; a++) {
-		if (text[a] == c[r]) {
+	uint r = 0;
+	uint index = 0;
+	uint x = 0;
+	for (uint a = 0; a < m_allocated; a++) {
+		if (m_text[a] == c[r]) {
 			if (r == 0)
 				index = a;
 			
@@ -388,7 +387,7 @@ int str::instanceof (const char* c, uint n) {
 
 // ============================================================================
 int str::compare (const char* c) {
-	return strcmp (text, c);
+	return strcmp (m_text, c);
 }
 
 int str::compare (str c) {
@@ -405,11 +404,11 @@ int str::icompare (str b) {
 
 // ============================================================================
 str str::tolower () {
-	str n = text;
+	str n = m_text;
 	
 	for (uint u = 0; u < len(); u++) {
 		if (n[u] >= 'A' && n[u] < 'Z')
-			n.text[u] += ('a' - 'A');
+			n.m_text[u] += ('a' - 'A');
 	}
 	
 	return n;
@@ -417,30 +416,30 @@ str str::tolower () {
 
 // ============================================================================
 str str::toupper () {
-	str n = text;
+	str n = m_text;
 	
 	for (uint u = 0; u < len(); u++) {
 		if (n[u] >= 'a' && n[u] < 'z')
-			n.text[u] -= ('a' - 'A');
+			n.m_text[u] -= ('a' - 'A');
 	}
 	
 	return n;
 }
 
 // ============================================================================
-unsigned str::count (char c) {
-	unsigned n = 0;
+uint str::count (char c) {
+	uint n = 0;
 	ITERATE_STRING (u)
-		if (text[u] == c)
+		if (m_text[u] == c)
 			n++;
 	return n;
 }
 
-unsigned str::count (char* c) {
-	unsigned int r = 0;
-	unsigned int tmp = 0;
+uint str::count (char* c) {
+	uint r = 0;
+	uint tmp = 0;
 	ITERATE_STRING (u) {
-		if (text[u] == c[r]) {
+		if (m_text[u] == c[r]) {
 			r++;
 			if (r == strlen (c)) {
 				r = 0;
@@ -459,7 +458,7 @@ unsigned str::count (char* c) {
 // ============================================================================
 std::vector<str> str::split (str del, bool bNoBlanks) {
 	std::vector<str> res;
-	unsigned int a = 0;
+	uint a = 0;
 	
 	// Find all separators and store the text left to them.
 	while (1) {

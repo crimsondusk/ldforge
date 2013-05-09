@@ -203,11 +203,11 @@ MAKE_ACTION (radialResolution, "Radial resolution", "radial-resolve", "Resolve r
 		
 		// Create the replacement primitive.
 		LDSubfile* prim = new LDSubfile;
-		memcpy (&prim->vPosition, &rad->vPosition, sizeof rad->vPosition); // inherit position
-		memcpy (&prim->mMatrix, &rad->mMatrix, sizeof rad->mMatrix); // inherit matrix
-		prim->dColor = rad->dColor; // inherit color
-		prim->zFileName = name;
-		prim->pFile = file;
+		memcpy (&prim->pos, &rad->pos, sizeof rad->pos); // inherit position
+		memcpy (&prim->transform, &rad->transform, sizeof rad->transform); // inherit matrix
+		prim->color = rad->color; // inherit color
+		prim->fileName = name;
+		prim->fileInfo = file;
 		
 		// Add the history entry - this must be done while both objects are still valid.
 		history->addEntry (rad, prim);
@@ -306,11 +306,11 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 		std::vector<short> daColors;
 		
 		for (LDObject* obj : objs) {
-			if (obj->dColor != -1) {
+			if (obj->color != -1) {
 				ulaIndices.push_back (obj->getIndex (g_curfile));
-				daColors.push_back (obj->dColor);
+				daColors.push_back (obj->color);
 				
-				obj->dColor = dColor;
+				obj->color = dColor;
 			}
 		}
 		
@@ -341,23 +341,23 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			dNumLines = 4;
 			
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->vaCoords[0], quad->vaCoords[1]);
-			lines[1] = new LDLine (quad->vaCoords[1], quad->vaCoords[2]);
-			lines[2] = new LDLine (quad->vaCoords[2], quad->vaCoords[3]);
-			lines[3] = new LDLine (quad->vaCoords[3], quad->vaCoords[0]);
+			lines[0] = new LDLine (quad->coords[0], quad->coords[1]);
+			lines[1] = new LDLine (quad->coords[1], quad->coords[2]);
+			lines[2] = new LDLine (quad->coords[2], quad->coords[3]);
+			lines[3] = new LDLine (quad->coords[3], quad->coords[0]);
 		} else {
 			dNumLines = 3;
 			
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->vaCoords[0], tri->vaCoords[1]);
-			lines[1] = new LDLine (tri->vaCoords[1], tri->vaCoords[2]);
-			lines[2] = new LDLine (tri->vaCoords[2], tri->vaCoords[0]); 
+			lines[0] = new LDLine (tri->coords[0], tri->coords[1]);
+			lines[1] = new LDLine (tri->coords[1], tri->coords[2]);
+			lines[2] = new LDLine (tri->coords[2], tri->coords[0]); 
 		}
 		
 		for (short i = 0; i < dNumLines; ++i) {
 			ulong idx = obj->getIndex (g_curfile) + i + 1;
 			
-			lines[i]->dColor = edgecolor;
+			lines[i]->color = edgecolor;
 			g_curfile->insertObj (idx, lines[i]);
 			
 			ulaIndices.push_back (idx);
@@ -385,8 +385,8 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 		ulong idx = obj->getIndex (g_curfile);
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertex* vert = new LDVertex;
-			vert->vPosition = obj->vaCoords[i];
-			vert->dColor = obj->dColor;
+			vert->pos = obj->coords[i];
+			vert->color = obj->color;
 			
 			g_curfile->insertObj (++idx, vert);
 			ulaIndices.push_back (idx);
@@ -516,11 +516,11 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				// For lines, we swap the vertices. I don't think that a
 				// cond-line's control points need to be swapped, do they?
 				LDLine* pLine = static_cast<LDLine*> (obj);
-				vertex vTemp = pLine->vaCoords[0];
+				vertex vTemp = pLine->coords[0];
 				
 				pOldCopy = pLine->clone ();
-				pLine->vaCoords[0] = pLine->vaCoords[1];
-				pLine->vaCoords[1] = vTemp;
+				pLine->coords[0] = pLine->coords[1];
+				pLine->coords[1] = vTemp;
 				pNewCopy = pLine->clone ();
 				bEdited = true;
 			}
@@ -531,11 +531,11 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
 				// Thus, we swap 1 and 2.
 				LDTriangle* pTri = static_cast<LDTriangle*> (obj);
-				vertex vTemp = pTri->vaCoords[1];
+				vertex vTemp = pTri->coords[1];
 				
 				pOldCopy = pTri->clone ();
-				pTri->vaCoords[1] = pTri->vaCoords[2];
-				pTri->vaCoords[2] = vTemp;
+				pTri->coords[1] = pTri->coords[2];
+				pTri->coords[2] = vTemp;
 				pNewCopy = pTri->clone ();
 				bEdited = true;
 			}
@@ -547,11 +547,11 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 				// rev:  0 -> 3 -> 2 -> 1
 				// Thus, we swap 1 and 3.
 				LDQuad* pQuad = static_cast<LDQuad*> (obj);
-				vertex vTemp = pQuad->vaCoords[1];
+				vertex vTemp = pQuad->coords[1];
 				
 				pOldCopy = pQuad->clone ();
-				pQuad->vaCoords[1] = pQuad->vaCoords[3];
-				pQuad->vaCoords[3] = vTemp;
+				pQuad->coords[1] = pQuad->coords[3];
+				pQuad->coords[3] = vTemp;
 				pNewCopy = pQuad->clone ();
 				bEdited = true;
 			}
@@ -637,9 +637,9 @@ static void doRotate (const short l, const short m, const short n) {
 	// Calculate center vertex
 	for (LDObject* obj : sel) {
 		if (obj->getType () == LDObject::Subfile)
-			box << static_cast<LDSubfile*> (obj)->vPosition;
+			box << static_cast<LDSubfile*> (obj)->pos;
 		else if (obj->getType () == LDObject::Radial)
-			box << static_cast<LDRadial*> (obj)->vPosition;
+			box << static_cast<LDRadial*> (obj)->pos;
 		else
 			box << obj;
 	}
@@ -650,19 +650,19 @@ static void doRotate (const short l, const short m, const short n) {
 	for (LDObject* obj : sel) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
-				queue.push_back (&obj->vaCoords[i]);
+				queue.push_back (&obj->coords[i]);
 		else if (obj->getType () == LDObject::Subfile) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			queue.push_back (&ref->vPosition);
-			ref->mMatrix = ref->mMatrix * transform;
+			queue.push_back (&ref->pos);
+			ref->transform = ref->transform * transform;
 		} else if (obj->getType () == LDObject::Radial) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
-			queue.push_back (&rad->vPosition);
-			rad->mMatrix = rad->mMatrix * transform;
+			queue.push_back (&rad->pos);
+			rad->transform = rad->transform * transform;
 		} else if (obj->getType () == LDObject::Vertex)
-			queue.push_back (&static_cast<LDVertex*> (obj)->vPosition);
+			queue.push_back (&static_cast<LDVertex*> (obj)->pos);
 	}
 	
 	for (vertex* v : queue) {
@@ -707,7 +707,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	for (LDObject* obj : g_win->sel ())
 	for (short i = 0; i < obj->vertices (); ++i)
 	for (const Axis ax : g_Axes)
-		obj->vaCoords[i][ax] = atof (fmt ("%.3f", obj->vaCoords[i][ax]));
+		obj->coords[i][ax] = atof (fmt ("%.3f", obj->coords[i][ax]));
 	
 	g_win->refresh ();
 }
@@ -726,7 +726,7 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		indices.push_back (obj->getIndex (g_curfile));
 		oldCopies.push_back (obj->clone ());
 		
-		obj->dColor = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
+		obj->color = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
 		newCopies.push_back (obj->clone ());
 	}
 	

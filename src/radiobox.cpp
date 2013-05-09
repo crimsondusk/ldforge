@@ -25,24 +25,24 @@ static QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert 
 }
 
 void RadioBox::init (Qt::Orientation orient) {
-	dir = makeDirection (orient);
+	m_dir = makeDirection (orient);
 	
-	buttonGroup = new QButtonGroup;
-	currentId = 0;
-	coreLayout = null;
+	m_buttonGroup = new QButtonGroup;
+	m_curId = 0;
+	m_coreLayout = null;
 	
-	coreLayout = new QBoxLayout (makeDirection (orient, true));
-	setLayout (coreLayout);
+	m_coreLayout = new QBoxLayout (makeDirection (orient, true));
+	setLayout (m_coreLayout);
 	
 	// Init the first row with a break
 	rowBreak ();
 	
-	connect (buttonGroup, SIGNAL (buttonPressed (QAbstractButton*)), this, SLOT (slot_buttonPressed (QAbstractButton*)));
-	connect (buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_buttonPressed (int)));
+	connect (m_buttonGroup, SIGNAL (buttonPressed (QAbstractButton*)), this, SLOT (slot_buttonPressed (QAbstractButton*)));
+	connect (m_buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_buttonPressed (int)));
 }
 
 RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int const defaultId,
-	const Qt::Orientation orient, QWidget* parent) : QGroupBox (title, parent), defaultId (defaultId)
+	const Qt::Orientation orient, QWidget* parent) : QGroupBox (title, parent), m_defId (defaultId)
 {
 	init (orient);
 	
@@ -51,11 +51,11 @@ RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int con
 }
 
 void RadioBox::rowBreak () {
-	QBoxLayout* newLayout = new QBoxLayout (dir);
-	currentLayout = newLayout;
-	layouts.push_back (newLayout);
+	QBoxLayout* newLayout = new QBoxLayout (m_dir);
+	m_currentLayout = newLayout;
+	m_layouts.push_back (newLayout);
 	
-	coreLayout->addLayout (newLayout);
+	m_coreLayout->addLayout (newLayout);
 }
 
 void RadioBox::addButton (const char* entry) {
@@ -64,11 +64,11 @@ void RadioBox::addButton (const char* entry) {
 }
 
 void RadioBox::addButton (QRadioButton* button) {
-	bool const selectThis = (currentId == defaultId);
+	bool const selectThis = (m_curId == m_defId);
 	
-	objects.push_back (button);
-	buttonGroup->addButton (button, currentId++);
-	currentLayout->addWidget (button);
+	m_objects.push_back (button);
+	m_buttonGroup->addButton (button, m_curId++);
+	m_currentLayout->addWidget (button);
 	
 	if (selectThis)
 		button->setChecked (true);
@@ -85,7 +85,7 @@ RadioBox& RadioBox::operator<< (const char* entry) {
 }
 
 void RadioBox::setCurrentRow (uint row) {
-	currentLayout = layouts[row];
+	m_currentLayout = m_layouts[row];
 }
 
 void RadioBox::slot_buttonPressed (int btn) {
