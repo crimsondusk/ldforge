@@ -45,6 +45,8 @@ cfg (int, gui_toolbar_iconsize, 24);
 cfg (str, gui_colortoolbar, "16:24:|:0:1:2:3:4:5:6:7");
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
+extern_cfg (str, gl_maincolor);
+extern_cfg (float, gl_maincolor_alpha);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -404,11 +406,13 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateToolBars () {
+	const QSize iconsize (gui_toolbar_iconsize, gui_toolbar_iconsize);
+	
 	for (QToolBar* bar : m_toolBars)
-		bar->setIconSize (QSize (gui_toolbar_iconsize, gui_toolbar_iconsize));
+		bar->setIconSize (iconsize);
 	
 	// Update the quick color toolbar.
-	for (QPushButton* btn : m_colorButtons)
+	for (QToolButton* btn : m_colorButtons)
 		delete btn;
 	
 	m_colorButtons.clear ();
@@ -420,9 +424,9 @@ void ForgeWindow::updateToolBars () {
 		if (entry.bSeparator)
 			m_colorToolBar->addSeparator ();
 		else {
-			QPushButton* colorButton = new QPushButton;
-			colorButton->setAutoFillBackground (true);
-			colorButton->setStyleSheet (fmt ("background-color: %s", entry.col->zColorString.chars()));
+			QToolButton* colorButton = new QToolButton;
+			colorButton->setIcon (makeColorIcon (entry.col, gui_toolbar_iconsize));
+			colorButton->setIconSize (iconsize);
 			colorButton->setToolTip (entry.col->zName);
 			
 			connect (colorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
@@ -737,7 +741,7 @@ void ForgeWindow::slot_recentFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_quickColor () {
-	QPushButton* button = static_cast<QPushButton*> (sender ());
+	QToolButton* button = static_cast<QToolButton*> (sender ());
 	color* col = null;
 	
 	for (quickColorMetaEntry entry : m_colorMeta) {
@@ -994,6 +998,26 @@ QAction* findAction (str name) {
 }
 
 // =============================================================================
+QIcon makeColorIcon (color* colinfo, const ushort size) {
+	// Create an image object and link a painter to it.
+	QImage img (size, size, QImage::Format_ARGB32);
+	QPainter paint (&img);
+	
+	QColor col = colinfo->qColor;
+	if (colinfo->index () == maincolor) {
+		// Use the user preferences for main color here
+		col = gl_maincolor.value.chars ();
+		col.setAlpha (gl_maincolor_alpha * 255.0f);
+	}
+	
+	// Paint the icon
+	paint.fillRect (QRect (0, 0, size, size), Qt::black);
+	paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
+	paint.fillRect (QRect (1, 1, size - 2, size - 2), col);
+	return QIcon (QPixmap::fromImage (img));
+}
+
+// =============================================================================
 void makeColorSelector (QComboBox* box) {
 	std::map<short, ulong> counts;
 	
@@ -1010,19 +1034,10 @@ void makeColorSelector (QComboBox* box) {
 	box->clear ();
 	ulong row = 0;
 	for (const auto& pair : counts) {
-		const ushort size = 16;
 		color* col = getColor (pair.first);
 		assert (col != null);
 		
-		// Paint an icon for this color
-		QIcon ico;
-		QImage img (size, size, QImage::Format_ARGB32);
-		QPainter paint (&img);
-		paint.fillRect (QRect (0, 0, size, size), Qt::black);
-		paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
-		paint.fillRect (QRect (1, 1, size - 2, size - 2), QColor (col->qColor));
-		ico = QIcon (QPixmap::fromImage (img));
-		
+		QIcon ico = makeColorIcon (col, 16);
 		box->addItem (ico, fmt ("[%d] %s (%lu object%s)",
 			pair.first, col->zName.chars (), pair.second, PLURAL (pair.second)));
 		box->setItemData (row, pair.first);

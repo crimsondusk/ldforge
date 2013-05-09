@@ -37,6 +37,7 @@ class ForgeWindow;
 class color;
 class QSplitter;
 class DelHistory;
+class QToolButton;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -78,7 +79,7 @@ extern vector<actionmeta> g_ActionMeta;
 // =============================================================================
 typedef struct {
 	color* col;
-	QPushButton* btn;
+	QToolButton* btn;
 	bool bSeparator;
 } quickColorMetaEntry;
 
@@ -169,7 +170,7 @@ private:
 	std::vector<QToolBar*> m_toolBars;
 	std::vector<LDObject*> m_sel;
 	std::vector<quickColorMetaEntry> m_colorMeta;
-	std::vector<QPushButton*> m_colorButtons;
+	std::vector<QToolButton*> m_colorButtons;
 	std::vector<QAction*> m_recentFiles;
 	
 	void createMenuActions ();
@@ -244,6 +245,7 @@ bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
 QAction* findAction (str name);
+QIcon makeColorIcon (color* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 
 // -----------------------------------------------------------------------------

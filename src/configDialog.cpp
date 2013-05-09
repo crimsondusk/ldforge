@@ -372,37 +372,37 @@ void ConfigDialog::initExtProgTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::updateQuickColorList (quickColorMetaEntry* pSel) {
-	for (QListWidgetItem* qItem : quickColorItems)
-		delete qItem;
+void ConfigDialog::updateQuickColorList (quickColorMetaEntry* sel) {
+	for (QListWidgetItem* item : quickColorItems)
+		delete item;
 	
 	quickColorItems.clear ();
 	
 	// Init table items
 	for (quickColorMetaEntry& entry : quickColorMeta) {
-		QListWidgetItem* qItem = new QListWidgetItem;
+		QListWidgetItem* item = new QListWidgetItem;
 		
 		if (entry.bSeparator) {
-			qItem->setText ("--------");
-			qItem->setIcon (getIcon ("empty"));
+			item->setText ("--------");
+			item->setIcon (getIcon ("empty"));
 		} else {
 			color* col = entry.col;
 			
 			if (col == null) {
-				qItem->setText ("[[unknown color]]");
-				qItem->setIcon (getIcon ("error"));
+				item->setText ("[[unknown color]]");
+				item->setIcon (getIcon ("error"));
 			} else {
-				qItem->setText (col->zName);
-				qItem->setIcon (getIcon ("palette"));
+				item->setText (col->zName);
+				item->setIcon (makeColorIcon (col, 16));
 			}
 		}
 		
-		lw_quickColors->addItem (qItem);
-		quickColorItems.push_back (qItem);
+		lw_quickColors->addItem (item);
+		quickColorItems.push_back (item);
 		
-		if (pSel && &entry == pSel) {
-			lw_quickColors->setCurrentItem (qItem);
-			lw_quickColors->scrollToItem (qItem);
+		if (sel && &entry == sel) {
+			lw_quickColors->setCurrentItem (item);
+			lw_quickColors->scrollToItem (item);
 		}
 	}
 }

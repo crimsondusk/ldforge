@@ -1041,8 +1041,6 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	setBackground ();
 	updateSelFlash ();
 	
-	drawGLScene ();
-	swapBuffers ();
 	update ();
 }
 
