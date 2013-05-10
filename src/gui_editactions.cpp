@@ -27,6 +27,7 @@
 #include "bbox.h"
 #include "radiobox.h"
 #include "extprogs.h"
+#include "checkboxgroup.h"
 #include <qspinbox.h>
 #include <qcheckbox.h>
 
@@ -754,6 +755,81 @@ MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping betwee
 // =========================================================================================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =========================================================================================================================================
+class ReplaceCoordsDialog : public QDialog {
+public:
+	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f) {
+		cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
+		cbg_axes->addCheckBox ("X", X);
+		cbg_axes->addCheckBox ("Y", Y);
+		cbg_axes->addCheckBox ("Z", Z);
+		
+		lb_search = new QLabel ("Search:");
+		lb_replacement = new QLabel ("Replacement:");
+		
+		dsb_search = new QDoubleSpinBox;
+		dsb_search->setRange (-10000.0f, 10000.0f);
+		
+		dsb_replacement = new QDoubleSpinBox;
+		dsb_replacement->setRange (-10000.0f, 10000.0f);
+		
+		QGridLayout* valueLayout = new QGridLayout;
+		valueLayout->setColumnStretch (1, 1);
+		valueLayout->addWidget (lb_search, 0, 0);
+		valueLayout->addWidget (dsb_search, 0, 1);
+		valueLayout->addWidget (lb_replacement, 1, 0);
+		valueLayout->addWidget (dsb_replacement, 1, 1);
+		
+		QVBoxLayout* layout = new QVBoxLayout;
+		layout->addWidget (cbg_axes);
+		layout->addLayout (valueLayout);
+		layout->addWidget (makeButtonBox (*this));
+		setLayout (layout);
+	}
+	
+	std::vector<Axis> axes () const {
+		return cbg_axes->checkedValues ();
+	}
+	
+	double searchValue () { return dsb_search->value (); }
+	double replacementValue () { return dsb_replacement->value (); }
+	
+private:
+	CheckBoxGroup<Axis>* cbg_axes;
+	QLabel* lb_search, *lb_replacement;
+	QDoubleSpinBox* dsb_search, *dsb_replacement;
+};
+
+// =========================================================================================================================================
 MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
-	QDialog dlg;
+	ReplaceCoordsDialog dlg;
+	
+	if (!dlg.exec ())
+		return;
+	
+	const double search = dlg.searchValue (),
+		replacement = dlg.replacementValue ();
+	vector<Axis> sel = dlg.axes ();
+	
+	EditHistory* history = new EditHistory;
+	
+	for (LDObject* obj : g_win->sel ()) {
+		bool altered = false;
+		LDObject* copy = obj->clone ();
+		
+		for (short i = 0; i < obj->vertices (); ++i)
+		for (Axis ax : sel) {
+			if (obj->coords[i][ax] == search) {
+				obj->coords[i][ax] = replacement;
+				altered = true;
+			}
+		}
+		
+		if (altered)
+			history->addEntry (copy, obj, obj->getIndex (g_curfile));
+		
+		delete copy;
+	}
+	
+	History::addEntry (history);
+	g_win->refresh ();
 }

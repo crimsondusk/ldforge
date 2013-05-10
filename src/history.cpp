@@ -165,12 +165,11 @@ void EditHistory::redo () {
 }
 
 void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj) {
-	printf ("%s at %lu, replaced by a %s\n",
-		g_saObjTypeNames[oldObj->getType()],
-		oldObj->getIndex (g_curfile),
-		g_saObjTypeNames[newObj->getType()]);
-	
-	ulaIndices.push_back (oldObj->getIndex (g_curfile));
+	addEntry (oldObj, newObj, oldObj->getIndex (g_curfile));
+}
+
+void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj, const ulong idx) {
+	ulaIndices.push_back (idx);
 	paOldObjs.push_back (oldObj->clone ());
 	paNewObjs.push_back (newObj->clone ());
 }

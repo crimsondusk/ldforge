@@ -38,6 +38,7 @@ class color;
 class QSplitter;
 class DelHistory;
 class QToolButton;
+class QDialogButtonBox;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -242,6 +243,7 @@ void critical (str msg);
 QAction* findAction (str name);
 QIcon makeColorIcon (color* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
+QDialogButtonBox* makeButtonBox (QDialog& dlg);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

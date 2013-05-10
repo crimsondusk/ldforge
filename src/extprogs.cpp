@@ -236,13 +236,6 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 	g_win->refresh ();
 }
 
-QDialogButtonBox* makeButtonBox (QDialog& dlg) {
-	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), &dlg, SLOT (accept ()));
-	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), &dlg, SLOT (reject ()));
-	return bbx_buttons;
-}
-
 // =============================================================================
 // Interface for Ytruder
 void runYtruder () {

@@ -20,7 +20,7 @@
 #include <qradiobutton.h>
 #include "radiobox.h"
 
-static QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false) {
+QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false) {
 	return (orient == (invert ? Qt::Vertical : Qt::Horizontal)) ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
 }
 

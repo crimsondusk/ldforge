@@ -103,6 +103,7 @@ public:
 		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
 	
 	void addEntry (LDObject* const oldObj, LDObject* const newObj);
+	void addEntry (LDObject* const oldObj, LDObject* const newObj, const ulong idx);
 };
 
 // =============================================================================

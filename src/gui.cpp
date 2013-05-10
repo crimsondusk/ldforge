@@ -25,6 +25,7 @@
 #include <qlistwidget.h>
 #include <qtoolbutton.h>
 #include <qcombobox.h>
+#include <qdialogbuttonbox.h>
 #include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
@@ -375,6 +376,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("screencap");
 	addToolBarAction ("uncolorize");
 	addToolBarAction ("visibility");
+	addToolBarAction ("replaceCoords");
 	
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
@@ -1045,4 +1047,12 @@ void makeColorSelector (QComboBox* box) {
 		
 		++row;
 	}
+}
+
+// ========================================================================================================================================
+QDialogButtonBox* makeButtonBox (QDialog& dlg) {
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), &dlg, SLOT (accept ()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), &dlg, SLOT (reject ()));
+	return bbx_buttons;
 }
