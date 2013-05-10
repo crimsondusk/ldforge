@@ -21,7 +21,6 @@
 
 #include "common.h"
 #include "ldtypes.h"
-#include "str.h"
 
 namespace LDPaths {
 	void initPaths ();
@@ -96,7 +95,7 @@ FILE* openLDrawFile (str path, bool bSubDirectories);
 void closeAll ();
 
 // Parses a string line containing an LDraw object and returns the object parsed.
-LDObject* parseLine (str zLine);
+LDObject* parseLine (str line);
 
 // Retrieves the pointer to - or loads - the given subfile.
 OpenFile* loadSubfile (str zFile);

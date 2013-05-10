@@ -23,31 +23,25 @@
 #include <qcolor.h>
 
 static color* g_LDColors[MAX_COLORS];
-static bool g_bColorsInit = false;
 
 void initColors () {
-	if (g_bColorsInit)
-		return;
-	
-	logf ("%s: initializing color information.\n", __func__);
+	printf ("%s: initializing color information.\n", __func__);
 	
 	color* col;
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new color;
-	col->zColorString = "#AAAAAA";
-	col->qColor = col->zColorString.chars ();
-	col->qEdge = Qt::black;
+	col->hexcode = "#AAAAAA";
+	col->faceColor = col->hexcode.chars ();
+	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
 	
 	col = new color;
-	col->zColorString = "#000000";
-	col->qEdge = col->qColor = Qt::black;
+	col->hexcode = "#000000";
+	col->edgeColor = col->faceColor = Qt::black;
 	g_LDColors[edgecolor] = col;
 	
 	parseLDConfig ();
-	
-	g_bColorsInit = true;
 }
 
 // =============================================================================
@@ -64,26 +58,12 @@ color* getColor (short dColorNum) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static bool parseLDConfigTag (StringParser& pars, char const* sTag, str& zVal) {
-	short dPos;
-	if (!pars.findToken (dPos, sTag, 1))
+static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
+	short pos;
+	if (!pars.findToken (pos, tag, 1))
 		return false;
 	
-	return pars.getToken (zVal, dPos + 1);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-short color::index () {
-	short idx = 0;
-	for (color* it : g_LDColors) {
-		if (it == this)
-			return idx;
-		idx++;
-	}
-	
-	return -1;
+	return pars.getToken (val, pos + 1);
 }
 
 // =============================================================================
@@ -104,18 +84,16 @@ void parseLDConfig () {
 	
 	// Even though LDConfig.ldr is technically an LDraw file, parsing it as one
 	// would be overkill by any standard.
-	char line[1024];
-	while (fgets (line, sizeof line, fp)) {
-		if (strlen (line) == 0 || line[0] != '0')
+	char buf[1024];
+	while (fgets (buf, sizeof buf, fp)) {
+		if (strlen (buf) == 0 || buf[0] != '0')
 			continue; // empty or illogical
 		
-		str zLine = line;
-		zLine.replace ("\n", "");
-		zLine.replace ("\r", "");
+		str line = str (buf).strip ({'\n', '\r'});
+		StringParser pars (line, ' ');
 		
-		StringParser pars (zLine, ' ');
 		short code = 0, alpha = 255;
-		str name, colname, edge, value;
+		str name, facename, edgename, valuestr;
 		
 		// Check 0 !COLOUR, parse the name
 		if (!pars.tokenCompare (0, "0") || !pars.tokenCompare (1, "!COLOUR") || !pars.getToken (name, 2))
@@ -125,46 +103,40 @@ void parseLDConfig () {
 		name.replace ("_", " ");
 		
 		// get the CODE tag
-		if (!parseLDConfigTag (pars, "CODE", value))
+		if (!parseLDConfigTag (pars, "CODE", valuestr))
 			continue;
 		
 		// Ensure that the code is within range. must be within 0 - 512
-		code = atoi (value);
+		code = atoi (valuestr);
 		if (code < 0 || code >= 512)
 			continue;
 		
-		// Don't let LDConfig.ldr override the special colors 16 and 24. However,
-		// do take the name it gives for the color
-		if (code == maincolor || code == edgecolor) {
-			g_LDColors[code]->zName = name;
-			continue;
-		}
-		
 		// VALUE tag
-		if (!parseLDConfigTag (pars, "VALUE", colname))
+		if (!parseLDConfigTag (pars, "VALUE", facename))
 			continue;
 		
 		// EDGE tag
-		if (!parseLDConfigTag (pars, "EDGE", edge))
+		if (!parseLDConfigTag (pars, "EDGE", edgename))
 			continue;
 		
 		// Ensure that our colors are correct
-		QColor qColor (colname.chars()),
-			qEdge (edge.chars());
+		QColor faceColor (facename.chars()),
+			edgeColor (edgename.chars());
 		
-		if (!qColor.isValid () || !qEdge.isValid ())
+		if (!faceColor.isValid () || !edgeColor.isValid ())
 			continue;
 		
 		// Parse alpha if given.
-		if (parseLDConfigTag (pars, "ALPHA", value))
-			alpha = clamp<short> (atoi (value), 0, 255);
+		if (parseLDConfigTag (pars, "ALPHA", valuestr))
+			alpha = clamp<short> (atoi (valuestr), 0, 255);
 		
 		color* col = new color;
-		col->zName = name;
-		col->qColor = qColor;
-		col->qEdge = qEdge;
-		col->zColorString = colname;
-		col->qColor.setAlpha (alpha);
+		col->name = name;
+		col->faceColor = faceColor;
+		col->edgeColor = edgeColor;
+		col->hexcode = facename;
+		col->faceColor.setAlpha (alpha);
+		col->index = code;
 		
 		g_LDColors[code] = col;
 	}

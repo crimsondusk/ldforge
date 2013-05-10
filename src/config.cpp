@@ -22,10 +22,11 @@
 #include <time.h>
 #include <QDir>
 #include "common.h"
-#include "str.h"
 #include "config.h"
 
 std::vector<config*> g_configPointers;
+
+
 
 // =============================================================================
 const char* g_WeekdayNames[7] = {
@@ -115,9 +116,9 @@ bool config::load () {
 		// Trim the crap off the end
 		while (~valstring) {
 			char c = valstring[~valstring - 1];
-			if (c <= 32 || c >= 127)
+			if (c <= 32 || c >= 127) {
 				valstring -= 1;
-			else
+			} else
 				break;
 		}
 		
@@ -164,7 +165,7 @@ static size_t writef (FILE* fp, const char* fmt, ...) {
 	va_list va;
 	
 	va_start (va, fmt);
-	char* buf = vdynformat (fmt, va, 256);
+	char* buf = dynafmt (fmt, va, 256);
 	va_end (va);
 	
 	size_t len = fwrite (buf, 1, strlen (buf), fp);
@@ -216,29 +217,23 @@ bool config::save () {
 		case CONFIG_int:
 			valstring.format ("%d", static_cast<intconfig*> (cfg)->value);
 			break;
+		
 		case CONFIG_str:
 			valstring = static_cast<strconfig*> (cfg)->value;
 			break;
+		
 		case CONFIG_float:
-			valstring.format ("%f", static_cast<floatconfig*> (cfg)->value);
-			
-			// Trim any trailing zeros
-			if (valstring.first (".") != -1) {
-				while (valstring[~valstring - 1] == '0')
-					valstring -= 1;
-				
-				// But don't trim the only one out...
-				if (valstring[~valstring - 1] == '.')
-					valstring += '0';
-			}
-			
+			valstring.format ("%s", ftoa (static_cast<floatconfig*> (cfg)->value).c ());
 			break;
+		
 		case CONFIG_bool:
 			valstring = (static_cast<boolconfig*> (cfg)->value) ? "true" : "false";
 			break;
+		
 		case CONFIG_keyseq:
 			valstring = static_cast<keyseqconfig*> (cfg)->value.toString ();
 			break;
+		
 		default:
 			break;
 		}
@@ -265,12 +260,12 @@ void config::reset () {
 str config::filepath () {
 	str path;
 	path.format ("%s%s.cfg", dirpath ().chars (),
-		str (APPNAME).tolower ().chars ());
+		str (APPNAME).lower ().chars ());
 	return path;
 }
 
 // =============================================================================
 str config::dirpath () {
 	return fmt ("%s/.%s/", qchars (QDir::homePath ()),
-		str (APPNAME).tolower ().chars ());
+		str (APPNAME).lower ().chars ());
 }

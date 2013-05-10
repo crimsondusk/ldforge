@@ -20,7 +20,6 @@
 #define CONFIG_H
 
 #include "common.h"
-#include "str.h"
 
 // =============================================================================
 #include <QString>
@@ -168,25 +167,19 @@ CONFIGTYPE (str) {
 public:
 	IMPLEMENT_CONFIG (str)
 	
-	DEFINE_ALL_COMPARE_OPERATORS (str)
-	DEFINE_BINARY_OPERATOR (str, -)
-	DEFINE_BINARY_OPERATOR (str, *)
-	DEFINE_UNARY_OPERATOR (str, !)
+	DEFINE_COMPARE_OPERATOR (str, ==)
+	DEFINE_COMPARE_OPERATOR (str, !=)
 	DEFINE_ASSIGN_OPERATOR (str, =)
 	DEFINE_ASSIGN_OPERATOR (str, +=)
-	DEFINE_ASSIGN_OPERATOR (str, -=)
-	DEFINE_ASSIGN_OPERATOR (str, *=)
-	DEFINE_CAST_OPERATOR (char*)
+	DEFINE_CAST_OPERATOR (const char*)
 	
 	char operator[] (size_t n) {
 		return value[n];
 	}
 	
-#ifdef CONFIG_WITH_QT
 	operator QString () {
 		return QString (value.chars());
 	}
-#endif // CONFIG_WITH_QT
 };
 
 // =============================================================================

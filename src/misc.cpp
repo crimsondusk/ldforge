@@ -207,7 +207,7 @@ void simplify (short& dNum, short& dDenom) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 StringParser::StringParser (str inText, char sep) {
-	m_tokens = inText.split (sep, true);
+	m_tokens = inText.split (sep);
 	m_pos = -1;
 }
 

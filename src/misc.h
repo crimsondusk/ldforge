@@ -20,7 +20,6 @@
 #define MISC_H
 
 #include "common.h"
-#include "str.h"
 #include "config.h"
 
 #define NUM_PRIMES 500

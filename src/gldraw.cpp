@@ -112,7 +112,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	// Init camera icons
 	for (const GLRenderer::Camera cam : g_Cameras) {
 		str iconname;
-		iconname.format ("camera-%s", str (g_CameraNames[cam]).tolower ().chars ());
+		iconname.format ("camera-%s", str (g_CameraNames[cam]).lower ().c ());
 		
 		CameraIcon* info = &g_CameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
@@ -249,7 +249,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		qcol = getMainColor ();
 	else {
 		color* col = getColor (obj->color);
-		qcol = col->qColor;
+		qcol = col->faceColor;
 	}
 	
 	if (obj->color == edgecolor) {
@@ -257,7 +257,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		color* col;
 		
 		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
-			qcol = col->qEdge;
+			qcol = col->edgeColor;
 	}
 	
 	if (qcol.isValid () == false) {

@@ -26,17 +26,10 @@
 
 class color {
 public:
-	str zName, zColorString;
-	QColor qColor, qEdge;
-	
-	short index ();
+	str name, hexcode;
+	QColor faceColor, edgeColor;
+	short index;
 };
-
-typedef struct {
-	const short dIndex;
-	const char* sName, *sColor;
-	const float fAlpha;
-} TemporaryColorMeta;
 
 void initColors ();
 void parseLDConfig ();

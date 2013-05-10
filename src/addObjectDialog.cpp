@@ -307,7 +307,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
 	button->setStyleSheet (
-		fmt ("background-color: %s", getColor (color)->zColorString.chars()).chars()
+		fmt ("background-color: %s", getColor (color)->hexcode.chars()).chars()
 	);
 }
 
@@ -387,7 +387,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	matrix<3> transform = g_identity;
 	if (type == LDObject::Subfile || type == LDObject::Radial) {
-		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ", true);
+		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ");
 		
 		if (matrixstrvals.size () == 9) {
 			double matrixvals[9];

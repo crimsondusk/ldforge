@@ -750,3 +750,10 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", KEY (F5)) {
 	runIntersector ();
 }
+
+// =========================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =========================================================================================================================================
+MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
+	QDialog dlg;
+}

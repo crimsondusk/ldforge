@@ -289,7 +289,7 @@ void ConfigDialog::initGridTab () {
 	for (int i = 0; i < g_NumGrids; ++i) {
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%s", str (g_GridInfo[i].name).tolower ().chars ())));
+		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%s", str (g_GridInfo[i].name).lower ().chars ())));
 		
 		// Text label
 		lb_gridLabels[i] = new QLabel (fmt ("%s:", g_GridInfo[i].name));
@@ -392,7 +392,7 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* sel) {
 				item->setText ("[[unknown color]]");
 				item->setIcon (getIcon ("error"));
 			} else {
-				item->setText (col->zName);
+				item->setText (col->name);
 				item->setIcon (makeColorIcon (col, 16));
 			}
 		}
@@ -427,7 +427,7 @@ void ConfigDialog::slot_setColor () {
 			return; // don't color separators
 	}
 	
-	short dDefault = entry ? entry->col->index () : -1;
+	short dDefault = entry ? entry->col->index : -1;
 	short dValue;
 	
 	if (ColorSelectDialog::staticDialog (dValue, dDefault, this) == false)
@@ -674,7 +674,7 @@ str ConfigDialog::makeColorToolBarString () {
 		if (entry.bSeparator)
 			val += '|';
 		else
-			val.appendformat ("%d", entry.col->index ());
+			val += fmt ("%d", entry.col->index);
 	}
 	
 	return val;

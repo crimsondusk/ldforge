@@ -126,7 +126,7 @@ public:
 			if (i > 0)
 				val += ' ';
 			
-			val.appendformat ("%s", ftoa (m_vals[i]).chars());
+			val += fmt ("%s", ftoa (m_vals[i]).chars());
 		}
 		
 		return val;	

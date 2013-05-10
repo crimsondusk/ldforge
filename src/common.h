@@ -29,7 +29,7 @@
 #include <vector>
 #include <stdint.h>
 #include <stdarg.h>
-#include "str.h"
+#include "string.h"
 #include "config.h"
 #include "types.h"
 
@@ -42,6 +42,14 @@
 
 // ============---
 // #define RELEASE
+
+#ifndef RELEASE
+# define devf(...) doDevf (__func__, __VA_ARGS__);
+#else
+# define devf(...)
+#endif // RELEASE
+
+void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
 static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
@@ -147,15 +155,6 @@ enum LogType {
 // logf is defined in main.cpp
 void logf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
 void logf (LogType type, const char* fmtstr, ...) FORMAT_PRINTF (2, 3);
-void warnf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
-void errf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
-
-#ifndef RELEASE
-void devf (const char* fmtstr, ...);
-#else
-# define devf(...)
-#endif // RELEASE
-
 // -----------------------------------------------------------------------------
 // Vertex at (0, 0, 0)
 extern const vertex g_origin;

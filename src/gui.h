@@ -152,13 +152,8 @@ protected:
 	void closeEvent (QCloseEvent* ev);
 	void logVA (LogType eType, const char* fmtstr, va_list va);
 	
-	friend void logf (const char* fmt, ...);
-	friend void logf (LogType eType, const char* fmt, ...);
-	friend void warnf (const char* fmt, ...);
-	friend void infof (const char* fmt, ...);
-	friend void succf (const char* fmt, ...);
-	friend void errf (const char* fmt, ...);
-	friend void devf (const char* fmt, ...);
+	friend void logf (const char* fmtstr, ...);
+	friend void logf (LogType type, const char* fmtstr, ...);
 	
 private:
 	GLRenderer* m_renderer;

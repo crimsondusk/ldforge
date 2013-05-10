@@ -39,7 +39,7 @@ const matrix<3> g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0
 // =============================================================================
 int main (int argc, char* argv[]) {
 	// Load or create the configuration
-	if (!config::load()) {
+	if (!config::load ()) {
 		printf ("Creating configuration file...\n");
 		if (config::save ())
 			printf ("Configuration file successfully created.\n");
@@ -80,25 +80,12 @@ void logf (LogType type, const char* fmtstr, ...) {
 	va_end (va);
 }
 
-void warnf (const char* fmtstr, ...) {
+void doDevf (const char* func, const char* fmtstr, ...) {
 	va_list va;
+	
+	printf ("%s: ", func);
+	
 	va_start (va, fmtstr);
-	g_win->logVA (LOG_Warning, fmtstr, va);
+	vprintf (fmtstr, va);
 	va_end (va);
 }
-
-void errf (const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (LOG_Error, fmtstr, va);
-	va_end (va);
-}
-
-#ifndef RELEASE
-void devf (const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (LOG_Dev, fmtstr, va);
-	va_end (va);
-}
-#endif // RELEASE

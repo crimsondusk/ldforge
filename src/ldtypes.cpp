@@ -86,7 +86,7 @@ str LDLine::getContents () {
 	str val = fmt ("2 %d", color);
 	
 	for (ushort i = 0; i < 2; ++i)
-		val.appendformat (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -95,7 +95,7 @@ str LDTriangle::getContents () {
 	str val = fmt ("3 %d", color);
 	
 	for (ushort i = 0; i < 3; ++i)
-		val.appendformat (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -104,7 +104,7 @@ str LDQuad::getContents () {
 	str val = fmt ("4 %d", color);
 	
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -114,7 +114,7 @@ str LDCondLine::getContents () {
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
-		val.appendformat (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", coords[i].stringRep (false).chars ());
 	
 	return val;
 }
@@ -386,7 +386,7 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 		if (objType == LDObject::Vertex && objCount != 1)
 			noun = "vertices";
 		
-		text.appendformat ("%lu %s", objCount, noun.chars ());
+		text += fmt  ("%lu %s", objCount, noun.chars ());
 		firstDetails = false;
 	}
 	
@@ -606,12 +606,12 @@ std::vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 // =============================================================================
 str LDRadial::getContents () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
-		str (radialTypeName()).toupper ().strip (' ').chars (),
+		str (radialTypeName()).upper ().strip (' ').c (),
 		color, segs, divs, ringNum,
 		pos.stringRep (false).chars(), transform.stringRep().chars());
 }
 
-char const* g_saRadialNameRoots[] = {
+char const* g_radialNameRoots[] = {
 	"edge",
 	"cyli",
 	"disc",
@@ -641,7 +641,7 @@ str LDRadial::makeFileName () {
 	// Compose some general information: prefix, fraction, root, ring number
 	str prefix = (divs == 16) ? "" : fmt ("%d/", divs);
 	str frac = fmt ("%d-%d", numer, denom);
-	str root = g_saRadialNameRoots[radType];
+	str root = g_radialNameRoots[radType];
 	str num = (radType == Ring || radType == Cone) ? fmt ("%d", ringNum) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).

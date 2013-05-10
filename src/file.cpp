@@ -113,41 +113,39 @@ OpenFile* findLoadedFile (str zName) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-FILE* openLDrawFile (str path, bool bSubDirectories) {
-	str zTruePath = path;
-	
+FILE* openLDrawFile (str relpath, bool subdirs) {
 #ifndef WIN32
-	zTruePath.replace ("\\", "/");
+	relpath.replace ("\\", "/");
 #endif // WIN32
 	
-	FILE* fp = fopen (path.chars (), "r");
-	str zFilePath;
+	printf ("Trying %s\n", relpath.chars ());
+	FILE* fp = fopen (relpath.chars (), "r");
+	str fullPath;
 	
 	if (fp != null)
 		return fp;
 	
 	if (~io_ldpath.value) {
 		// Try with just the LDraw path first
-		zFilePath = fmt ("%s" DIRSLASH "%s",
-			io_ldpath.value.chars(), zTruePath.chars());
-		logf ("Trying %s\n", zFilePath.chars());
+		fullPath = fmt ("%s" DIRSLASH "%s", io_ldpath.value.chars(), relpath.chars());
+		printf ("Trying %s\n", fullPath.chars());
 		
-		fp = fopen (zFilePath, "r");
+		fp = fopen (fullPath, "r");
 		if (fp != null)
 			return fp;
 		
-		if (bSubDirectories) {
+		if (subdirs) {
 			char const* saSubdirectories[] = {
 				"parts",
 				"p",
 			};
 			
 			for (char const* sSubdir : saSubdirectories) {
-				zFilePath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-					io_ldpath.value.chars(), sSubdir, zTruePath.chars());
-				printf ("try %s\n", zFilePath.chars());
+				fullPath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
+					io_ldpath.value.chars(), sSubdir, relpath.chars());
+				printf ("Trying %s\n", fullPath.chars());
 				
-				fp = fopen (zFilePath.chars (), "r");
+				fp = fopen (fullPath.chars (), "r");
 				
 				if (fp)
 					return fp;
@@ -308,18 +306,24 @@ void newFile () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void addRecentFile (str zPath) {
-	long lPos = io_recentfiles.value.first (zPath);
+void addRecentFile (str path) {
+	size_t pos = io_recentfiles.value.first (path);
 	
 	// If this file already is in the list, pop it out.
-	if (lPos != -1) {
-		if (~io_recentfiles.value == ~zPath)
+	if (pos != npos) {
+		if (~io_recentfiles.value == ~path)
 			return; // only recent file - do nothing
 		
 		// Pop it out.
-		str zFront = io_recentfiles.value.substr (0, lPos);
-		str zBack = io_recentfiles.value.substr (lPos + ~zPath + 1, -1);
-		io_recentfiles.value = zFront + zBack;
+		str front = io_recentfiles.value.substr (0, pos);
+		str back;
+		
+		if (pos + ~path + 1 < io_recentfiles.value.len ())
+			back = io_recentfiles.value.substr (pos + ~path + 1, -1);
+		else
+			back = "";
+		
+		io_recentfiles.value = front + back;
 	}
 	
 	// If there's too many recent files, drop one out.
@@ -330,7 +334,7 @@ void addRecentFile (str zPath) {
 	if (~io_recentfiles.value > 0)
 		io_recentfiles.value += "@";
 	
-	io_recentfiles += zPath;
+	io_recentfiles += path;
 	
 	config::save ();
 	g_win->updateRecentFilesMenu ();
@@ -402,12 +406,12 @@ bool OpenFile::save (str path) {
 
 #define CHECK_TOKEN_COUNT(N) \
 	if (tokens.size() != N) \
-		return new LDGibberish (zLine, "Bad amount of tokens");
+		return new LDGibberish (line, "Bad amount of tokens");
 
 #define CHECK_TOKEN_NUMBERS(MIN,MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDGibberish (zLine, fmt ("Token #%u was `%s`, expected a number", \
+			return new LDGibberish (line, fmt ("Token #%u was `%s`, expected a number", \
 				(i + 1), tokens[i].chars()));
 
 // =============================================================================
@@ -429,8 +433,8 @@ static vertex parseVertex (vector<str>& s, const ushort n) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDObject* parseLine (str zLine) {
-	vector<str> tokens = zLine.split (" ", true);
+LDObject* parseLine (str line) {
+	vector<str> tokens = line.split (" ");
 	
 	if (!tokens.size ()) {
 		// Line was empty, or only consisted of whitespace
@@ -438,7 +442,7 @@ LDObject* parseLine (str zLine) {
 	}
 	
 	if (~tokens[0] != 1)
-		return new LDGibberish (zLine, "Illogical line code");
+		return new LDGibberish (line, "Illogical line code");
 	
 	const char c = tokens[0][0];
 	switch (c - '0') {
@@ -490,14 +494,14 @@ LDObject* parseLine (str zLine) {
 					LDRadial::Type eType = LDRadial::NumTypes;
 					
 					for (int i = 0; i < LDRadial::NumTypes; ++i) {
-						if (str (LDRadial::radialTypeName ((LDRadial::Type) i)).toupper ().strip (' ') == tokens[3]) {
+						if (str (LDRadial::radialTypeName ((LDRadial::Type) i)).upper ().strip (' ') == tokens[3]) {
 							eType = (LDRadial::Type) i;
 							break;
 						}
 					}
 					
 					if (eType == LDRadial::NumTypes)
-						return new LDGibberish (zLine, fmt ("Unknown radial type %s", tokens[3].chars ()));
+						return new LDGibberish (line, fmt ("Unknown radial type %s", tokens[3].chars ()));
 					
 					LDRadial* obj = new LDRadial;
 					
@@ -532,7 +536,7 @@ LDObject* parseLine (str zLine) {
 			
 			// If we cannot open the file, mark it an error
 			if (!pFile)
-				return new LDGibberish (zLine, "Could not open referred file");
+				return new LDGibberish (line, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
 			obj->color = atol (tokens[1]);
@@ -605,7 +609,7 @@ LDObject* parseLine (str zLine) {
 		}
 	
 	default: // Strange line we couldn't parse
-		return new LDGibberish (zLine, "Unknown line code number");
+		return new LDGibberish (line, "Unknown line code number");
 	}
 }
 

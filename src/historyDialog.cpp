@@ -162,7 +162,7 @@ void HistoryDialog::populateList () {
 				SetColorHistory* subentry = static_cast<SetColorHistory*> (entry);
 				ulong count = subentry->ulaIndices.size ();
 				text.format ("Set color of %lu objects to %d (%s)", count,
-					subentry->dNewColor, getColor (subentry->dNewColor)->zName.chars());
+					subentry->dNewColor, getColor (subentry->dNewColor)->name.chars());
 				
 				entryIcon = getIcon ("palette");
 			}

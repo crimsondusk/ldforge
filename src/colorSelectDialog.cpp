@@ -108,7 +108,7 @@ void ColorSelectDialog::drawScene () {
 		const double y = (i / g_dNumColumns) * g_dSquareSize;
 		const double w = (g_dSquareSize) - (fPenWidth / 2);
 		
-		QColor col = meta->qColor;
+		QColor col = meta->faceColor;
 		
 		if (i == maincolor) {
 			// Use the user preferences for main color here
@@ -142,7 +142,7 @@ void ColorSelectDialog::drawColorInfo () {
 	}
 	
 	lb_colorInfo->setText (fmt ("%d - %s",
-		selColor, col->zName.chars()));
+		selColor, col->name.chars()));
 }
 
 // =============================================================================

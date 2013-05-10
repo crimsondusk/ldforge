@@ -394,6 +394,7 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 			meta.push_back ({null, null, true});
 		} else {
 			color* col = getColor (atoi (colorname));
+			printf ("color: %d\n", atoi (colorname));
 			assert (col != null);
 			meta.push_back ({col, null, false});
 		}
@@ -427,7 +428,7 @@ void ForgeWindow::updateToolBars () {
 			QToolButton* colorButton = new QToolButton;
 			colorButton->setIcon (makeColorIcon (entry.col, gui_toolbar_iconsize));
 			colorButton->setIconSize (iconsize);
-			colorButton->setToolTip (entry.col->zName);
+			colorButton->setToolTip (entry.col->name);
 			
 			connect (colorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
 			m_colorToolBar->addWidget (colorButton);
@@ -611,7 +612,7 @@ void ForgeWindow::buildObjList () {
 					ref->fileName.chars(), ref->pos.stringRep (true).chars());
 				
 				for (short i = 0; i < 9; ++i)
-					descr.appendformat ("%s%s",
+					descr += fmt ("%s%s",
 						ftoa (ref->transform[i]).chars(),
 						(i != 8) ? " " : "");
 				
@@ -632,9 +633,9 @@ void ForgeWindow::buildObjList () {
 				descr.format ("%d / %d %s", pRad->segs, pRad->divs, pRad->radialTypeName());
 				
 				if (pRad->radType == LDRadial::Ring || pRad->radType == LDRadial::Cone)
-					descr.appendformat (" %d", pRad->ringNum);
+					descr += fmt (" %d", pRad->ringNum);
 				
-				descr.appendformat (" %s", pRad->pos.stringRep (true).chars ());
+				descr += fmt (" %s", pRad->pos.stringRep (true).chars ());
 			}
 			break;
 		
@@ -663,7 +664,7 @@ void ForgeWindow::buildObjList () {
 			// list entry in said color.
 			color* col = getColor (obj->color);
 			if (col)
-				item->setForeground (col->qColor);
+				item->setForeground (col->faceColor);
 		}
 		
 		obj->qObjListEntry = item;
@@ -756,7 +757,7 @@ void ForgeWindow::slot_quickColor () {
 	
 	std::vector<ulong> indices;
 	std::vector<short> colors;
-	short newColor = col->index ();
+	short newColor = col->index;
 	
 	for (LDObject* obj : m_sel) {
 		if (obj->color == -1)
@@ -1003,8 +1004,8 @@ QIcon makeColorIcon (color* colinfo, const ushort size) {
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
 	
-	QColor col = colinfo->qColor;
-	if (colinfo->index () == maincolor) {
+	QColor col = colinfo->faceColor;
+	if (colinfo->index == maincolor) {
 		// Use the user preferences for main color here
 		col = gl_maincolor.value.chars ();
 		col.setAlpha (gl_maincolor_alpha * 255.0f);
@@ -1039,7 +1040,7 @@ void makeColorSelector (QComboBox* box) {
 		
 		QIcon ico = makeColorIcon (col, 16);
 		box->addItem (ico, fmt ("[%d] %s (%lu object%s)",
-			pair.first, col->zName.chars (), pair.second, PLURAL (pair.second)));
+			pair.first, col->name.chars (), pair.second, PLURAL (pair.second)));
 		box->setItemData (row, pair.first);
 		
 		++row;
