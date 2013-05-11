@@ -55,8 +55,7 @@ public:
 	QLabel* lb_viewBg, *lb_viewFg, *lb_viewFgAlpha;
 	QLabel* lb_lineThickness, *lb_iconSize;
 	QPushButton* pb_viewBg, *pb_viewFg;
-	QCheckBox* cb_colorize, *cb_colorBFC, *cb_selFlash, *cb_schemanticInline,
-		*cb_blackEdges;
+	QCheckBox* cb_colorize, *cb_colorBFC, *cb_schemanticInline, *cb_blackEdges;
 	QSlider* sl_viewFgAlpha, *sl_lineThickness, *sl_iconSize;
 	
 	// =========================================================================

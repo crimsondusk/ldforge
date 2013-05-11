@@ -265,7 +265,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
 		// le_matrix->setValidator (new QDoubleValidator);
-		matrix<3> defval = g_identity;
+		matrix defval = g_identity;
 		
 		if (obj) {
 			if (obj->getType () == LDObject::Subfile)
@@ -385,7 +385,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	if (!newObject)
 		backup = obj->clone ();
 	
-	matrix<3> transform = g_identity;
+	matrix transform = g_identity;
 	if (type == LDObject::Subfile || type == LDObject::Radial) {
 		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ");
 		
@@ -396,7 +396,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			for (str val : matrixstrvals)
 				matrixvals[i++] = atof (val);
 			
-			transform = matrix<3> (matrixvals);
+			transform = matrix (matrixvals);
 		}
 	}
 	

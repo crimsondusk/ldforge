@@ -31,10 +31,6 @@
 
 static double g_objOffset[3];
 
-static short g_pulseTick = 0;
-static const short g_numPulseTicks = 8;
-static const short g_pulseInterval = 65;
-
 static const struct staticCameraMeta {
 	const char glrotate[3];
 	const Axis axisX, axisY;
@@ -53,7 +49,6 @@ cfg (str, gl_maincolor, "#707078");
 cfg (float, gl_maincolor_alpha, 1.0);
 cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
-cfg (bool, gl_selflash, false);
 cfg (int, gl_camera, GLRenderer::Free);
 cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
@@ -98,9 +93,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_drawToolTip = false;
 	m_planeDraw = false;
 	
-	m_pulseTimer = new QTimer (this);
-	connect (m_pulseTimer, SIGNAL (timeout ()), this, SLOT (slot_timerUpdate ()));
-	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
 	connect (m_toolTipTimer, SIGNAL (timeout ()), this, SLOT (slot_toolTipTimer ()));
@@ -119,7 +111,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 		info->cam = cam;
 	}
 	
-	calcCameraIconRects ();
+	calcCameraIcons ();
 }
 
 // =============================================================================
@@ -131,7 +123,7 @@ GLRenderer::~GLRenderer() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::calcCameraIconRects () {
+void GLRenderer::calcCameraIcons () {
 	ushort i = 0;
 	
 	for (CameraIcon& info : g_CameraIcons) {
@@ -167,7 +159,7 @@ void GLRenderer::initializeGL () {
 	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
-	compileObjects ();
+	compileAllObjects ();
 }
 
 // =============================================================================
@@ -199,7 +191,7 @@ void GLRenderer::setBackground () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static vector<short> g_daWarnedColors;
+static vector<short> g_warnedColors;
 void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	QColor qcol;
 	
@@ -208,15 +200,9 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	
 	if (list == GL::PickList) {
 		// Make the color by the object's index color if we're picking, so we can
-		// make the index from the color we get from the picking results.
-		long i = obj->getIndex (g_curfile);
-		
-		// If we couldn't find the index, this object must not be from this file,
-		// therefore it must be an object inlined from a subfile reference or
-		// decomposed from a radial. Find the top level parent object and use
-		// its index.
-		if (i == -1)
-			i = obj->topLevelParent ()->getIndex (g_curfile);
+		// make the index from the color we get from the picking results. Be sure
+		// to use the top level parent's index since inlinees don't have an index.
+		long i = obj->topLevelParent ()->getIndex (g_curfile);
 		
 		// We should have the index now.
 		assert (i != -1);
@@ -232,48 +218,45 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		return;
 	}
 	
-#if 0
-	if (gl_colorbfc &&
+	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType () != LDObject::Line &&
 		obj->getType () != LDObject::CondLine)
 	{
-		if (bBackSide)
-			glColor4f (0.9f, 0.0f, 0.0f, 1.0f);
+		if (list == GL::BFCFrontList)
+			qcol = QColor (80, 192, 0);
 		else
-			glColor4f (0.0f, 0.8f, 0.0f, 1.0f);
-		return;
-	}
-#endif
-	
-	if (obj->color == maincolor)
-		qcol = getMainColor ();
-	else {
-		color* col = getColor (obj->color);
-		qcol = col->faceColor;
-	}
-	
-	if (obj->color == edgecolor) {
-		qcol = Qt::black;
-		color* col;
-		
-		if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
-			qcol = col->edgeColor;
-	}
-	
-	if (qcol.isValid () == false) {
-		// The color was unknown. Use main color to make the object at least
-		// not appear pitch-black.
-		if (obj->color != edgecolor)
+			qcol = QColor (224, 0, 0);
+	} else {
+		if (obj->color == maincolor)
 			qcol = getMainColor ();
+		else {
+			color* col = getColor (obj->color);
+			qcol = col->faceColor;
+		}
 		
-		// Warn about the unknown colors, but only once.
-		for (short i : g_daWarnedColors)
-			if (obj->color == i)
-				return;
+		if (obj->color == edgecolor) {
+			qcol = Qt::black;
+			color* col;
+			
+			if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
+				qcol = col->edgeColor;
+		}
 		
-		printf ("%s: Unknown color %d!\n", __func__, obj->color);
-		g_daWarnedColors.push_back (obj->color);
-		return;
+		if (qcol.isValid () == false) {
+			// The color was unknown. Use main color to make the object at least
+			// not appear pitch-black.
+			if (obj->color != edgecolor)
+				qcol = getMainColor ();
+			
+			// Warn about the unknown colors, but only once.
+			for (short i : g_warnedColors)
+				if (obj->color == i)
+					return;
+			
+			printf ("%s: Unknown color %d!\n", __func__, obj->color);
+			g_warnedColors.push_back (obj->color);
+			return;
+		}
 	}
 	
 	long r = qcol.red (),
@@ -281,9 +264,10 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		b = qcol.blue (),
 		a = qcol.alpha ();
 	
-	// Brighten it up for the select list.
-	if (list == GL::SelectList) {
+	if (obj->topLevelParent ()->selected ()) {
+		// Brighten it up for the select list.
 		const uchar add = 51;
+		
 		r = min (r + add, 255l);
 		g = min (g + add, 255l);
 		b = min (b + add, 255l);
@@ -306,7 +290,7 @@ void GLRenderer::refresh () {
 
 // =============================================================================
 void GLRenderer::hardRefresh () {
-	compileObjects ();
+	compileAllObjects ();
 	refresh ();
 	
 	glLineWidth (gl_linethickness);
@@ -319,7 +303,7 @@ void GLRenderer::resizeGL (int w, int h) {
 	m_width = w;
 	m_height = h;
 	
-	calcCameraIconRects ();
+	calcCameraIcons ();
 	
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
@@ -363,11 +347,28 @@ void GLRenderer::drawGLScene () const {
 		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	for (LDObject* obj : g_curfile->m_objs) {
-		if (obj->hidden ())
-			continue; // Don't draw hidden objects
+	if (gl_colorbfc && !m_picking) {
+		glEnable (GL_CULL_FACE);
 		
-		glCallList (obj->glLists[(m_picking) ? PickList : (obj->selected ()) ? SelectList : NormalList]);
+		for (LDObject* obj : g_curfile->m_objs) {
+			if (obj->hidden ())
+				continue;
+			
+			glCullFace (GL_BACK);
+			glCallList (obj->glLists[BFCFrontList]);
+			
+			glCullFace (GL_FRONT);
+			glCallList (obj->glLists[BFCBackList]);
+		}
+		
+		glDisable (GL_CULL_FACE);
+	} else {
+		for (LDObject* obj : g_curfile->m_objs) {
+			if (obj->hidden ())
+				continue;
+			
+			glCallList (obj->glLists[(m_picking) ? PickList : NormalList]);
+		}
 	}
 	
 	if (gl_axes && !m_picking)
@@ -598,7 +599,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::compileObjects () {
+void GLRenderer::compileAllObjects () {
 	if (g_BBox.empty () == false) {
 		g_objOffset[X] = -(g_BBox.v0 ()[X] + g_BBox.v1 ()[X]) / 2;
 		g_objOffset[Y] = -(g_BBox.v0 ()[Y] + g_BBox.v1 ()[Y]) / 2;
@@ -632,13 +633,19 @@ void GLRenderer::compileObjects () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+static bool g_glInvert = false;
+
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	glBegin (gltype);
 	
 	const short numverts = (obj->getType () != LDObject::CondLine) ? obj->vertices () : 2;
 	
-	for (short i = 0; i < numverts; ++i)
-		compileVertex (obj->coords[i]);
+	if (g_glInvert == false)
+		for (short i = 0; i < numverts; ++i)
+			compileVertex (obj->coords[i]);
+	else
+		for (short i = numverts - 1; i >= 0; --i)
+			compileVertex (obj->coords[i]);
 	
 	glEnd ();
 }
@@ -678,22 +685,43 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			vector<LDObject*> objs = ref->inlineContents (true, true);
 			
-			for (LDObject* obj : objs) {
-				compileList (obj, list);
-				delete obj;
-			}
-		}
-		break;
-	
-	case LDObject::Radial:
-		{
-			LDRadial* pRadial = static_cast<LDRadial*> (obj);
-			std::vector<LDObject*> objs = pRadial->decompose (true);
+			bool oldinvert = g_glInvert;
+			
+			if (ref->transform.determinant () < 0)
+				g_glInvert = !g_glInvert;
+			
+			LDObject* prev = ref->prev ();
+			if (prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+				g_glInvert = !g_glInvert;
 			
 			for (LDObject* obj : objs) {
 				compileList (obj, list);
 				delete obj;
 			}
+			
+			g_glInvert = oldinvert;
+		}
+		break;
+	
+	case LDObject::Radial:
+		{
+			LDRadial* rad = static_cast<LDRadial*> (obj);
+			std::vector<LDObject*> objs = rad->decompose (true);
+			
+			bool oldinvert = g_glInvert;
+			if (rad->transform.determinant () < 0)
+				g_glInvert = !g_glInvert;
+			
+			LDObject* prev = rad->prev ();
+			if (prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+				g_glInvert = !g_glInvert;
+			
+			for (LDObject* obj : objs) {
+				compileList (obj, list);
+				delete obj;
+			}
+			
+			g_glInvert = oldinvert;
 		}
 		break;
 	
@@ -898,17 +926,6 @@ void GLRenderer::setCamera (const GLRenderer::Camera cam) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::updateSelFlash () {
-	if (gl_selflash && g_win->sel ().size() > 0) {
-		m_pulseTimer->start (g_pulseInterval);
-		g_pulseTick = 0;
-	} else
-		m_pulseTimer->stop ();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Check if we selected a camera icon
 	if (!m_rangepick) {
@@ -930,8 +947,10 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		std::vector<LDObject*> oldsel = g_win->sel ();
 		g_win->sel ().clear ();
 		
-		for (LDObject* obj : oldsel)
+		for (LDObject* obj : oldsel) {
+			obj->setSelected (false);
 			compileObject (obj);
+		}
 	}
 	
 	m_picking = true;
@@ -939,6 +958,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	// Paint the picking scene
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
+	
 	drawGLScene ();
 	
 	glGetIntegerv (GL_VIEWPORT, viewport);
@@ -1006,6 +1026,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 			for (ulong i = 0; i < g_win->sel ().size(); ++i) {
 				if (g_win->sel ()[i] == obj) {
 					g_win->sel ().erase (g_win->sel ().begin () + i);
+					obj->setSelected (false);
 					removed = true;
 					removedObj = obj;
 				}
@@ -1034,13 +1055,14 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	for (LDObject* obj : sel)
 		compileObject (obj);
 	
+	if (removedObj)
+		compileObject (removedObj);
+	
 	m_picking = false;
 	m_rangepick = false;
 	glEnable (GL_DITHER);
 	
 	setBackground ();
-	updateSelFlash ();
-	
 	update ();
 }
 
@@ -1159,16 +1181,6 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	setBackground ();
 	
 	return cap;
-}
-
-// =============================================================================
-void GLRenderer::slot_timerUpdate () {
-	++g_pulseTick %= g_numPulseTicks;
-	
-	for (LDObject* obj : g_win->sel ())
-		compileObject (obj);
-	
-	update ();
 }
 
 // =============================================================================

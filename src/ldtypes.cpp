@@ -216,7 +216,7 @@ LDObject::~LDObject () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, short parentcolor) {
+static void transformObject (LDObject* obj, matrix transform, vertex pos, short parentcolor) {
 	switch (obj->getType()) {
 	case LDObject::Line:
 	case LDObject::CondLine:
@@ -230,7 +230,7 @@ static void transformObject (LDObject* obj, matrix<3> transform, vertex pos, sho
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			
-			matrix<3> newMatrix = transform * ref->transform;
+			matrix newMatrix = transform * ref->transform;
 			ref->pos.transform (transform, pos);
 			ref->transform = newMatrix;
 		}
@@ -319,7 +319,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-long LDObject::getIndex (OpenFile* pFile) {
+long LDObject::getIndex (OpenFile* pFile) const {
 	for (ulong i = 0; i < pFile->m_objs.size(); ++i)
 		if (pFile->m_objs[i] == this)
 			return i;
@@ -396,7 +396,7 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 // =============================================================================
 LDObject* LDObject::topLevelParent () {
 	if (!parent)
-		return null;
+		return this;
 	
 	LDObject* it = this;
 	
@@ -406,46 +406,67 @@ LDObject* LDObject::topLevelParent () {
 	return it;
 }
 
+// =============================================================================
+LDObject* LDObject::next () const {
+	long idx = getIndex (g_curfile);
+	assert (idx != -1);
+	
+	if (idx == (long) g_curfile->m_objs.size () - 1)
+		return null;
+	
+	return g_curfile->m_objs[idx + 1];
+}
+
+// =============================================================================
+LDObject* LDObject::prev () const {
+	long idx = getIndex (g_curfile);
+	assert (idx != -1);
+	
+	if (idx == 0)
+		return null;
+	
+	return g_curfile->m_objs[idx - 1];
+}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDObject::move (vertex vVector) { vVector = vVector; /* to shut up GCC */ }
-void LDEmpty::move (vertex vVector) { vVector = vVector; }
-void LDBFC::move (vertex vVector) { vVector = vVector; }
-void LDComment::move (vertex vVector) { vVector = vVector; }
-void LDGibberish::move (vertex vVector) { vVector = vVector; }
+void LDObject::move (vertex vect) { (void) vect; }
+void LDEmpty::move (vertex vect) { (void) vect; }
+void LDBFC::move (vertex vect) { (void) vect; }
+void LDComment::move (vertex vect) { (void) vect; }
+void LDGibberish::move (vertex vect) { (void) vect; }
 
-void LDVertex::move (vertex vVector) {
-	pos += vVector;
+void LDVertex::move (vertex vect) {
+	pos += vect;
 }
 
-void LDSubfile::move (vertex vVector) {
-	pos += vVector;
+void LDSubfile::move (vertex vect) {
+	pos += vect;
 }
 
-void LDRadial::move (vertex vVector) {
-	pos += vVector;
+void LDRadial::move (vertex vect) {
+	pos += vect;
 }
 
-void LDLine::move (vertex vVector) {
+void LDLine::move (vertex vect) {
 	for (short i = 0; i < 2; ++i)
-		coords[i] += vVector;
+		coords[i] += vect;
 }
 
-void LDTriangle::move (vertex vVector) {
+void LDTriangle::move (vertex vect) {
 	for (short i = 0; i < 3; ++i)
-		coords[i] += vVector;
+		coords[i] += vect;
 }
 
-void LDQuad::move (vertex vVector) {
+void LDQuad::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
-		coords[i] += vVector;
+		coords[i] += vect;
 }
 
-void LDCondLine::move (vertex vVector) {
+void LDCondLine::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
-		coords[i] += vVector;
+		coords[i] += vect;
 }
 
 // =============================================================================

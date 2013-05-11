@@ -49,91 +49,28 @@ static const Axis g_Axes[3] = {X, Y, Z};
 // 
 // A templated, mathematical N x N matrix
 // =============================================================================
-template<int N> class matrix {
+class matrix {
 public:
-	// Constructors
 	matrix () {}
-	matrix (initlist<double> vals) {
-		assert (vals.size() == N * N);
-		memcpy (&m_vals[0], &(*vals.begin ()), sizeof m_vals);
-	}
+	matrix (initlist<double> vals);
+	matrix (double fillval);
+	matrix (double vals[]);
 	
-	matrix (double fillval) {
-		for (short i = 0; i < (N * N); ++i)
-			m_vals[i] = fillval;
-	}
+	double			determinant	() const;
+	matrix			mult			(matrix other);
+	void			puts			() const;
+	str				stringRep		() const;
+	void			zero			();
+	double&			val				(const uint idx) { return m_vals[idx]; }
+	const double&	val				(const uint idx) const { return m_vals[idx]; }
 	
-	matrix (double vals[]) {
-		for (short i = 0; i < (N * N); ++i)
-			m_vals[i] = vals[i];
-	}
-	
-	template<int M> matrix (matrix<M> other) {
-		assert (M >= N);
-		
-		for (short i = 0; i < M; ++i)
-		for (short j = 0; j < M; ++j) {
-			const short idx = (i * M) + j;
-			m_vals[idx] = other[idx];
-		}
-	}
-	
-	matrix<N> mult (matrix<N> other) {
-		matrix val;
-		val.zero ();
-
-		for (short i = 0; i < N; ++i)
-		for (short j = 0; j < N; ++j)
-		for (short k = 0; k < N; ++k)
-			val[(i * N) + j] += m_vals[(i * N) + k] * other[(k * N) + j];
-
-		return val;
-	}
-	
-	matrix<N>& operator= (matrix<N> other) {
-		memcpy (&m_vals[0], &other.m_vals[0], sizeof (double) * N * N);
-		return *this;
-	}
-	
-	matrix<N> operator* (matrix<N> other) {
-		return mult (other);
-	}
-	
-	double& operator[] (const uint idx) {
-		return m_vals[idx];
-	}
-	
-	const double& operator[] (const uint idx) const {
-		return m_vals[idx];
-	}
-	
-	void zero () {
-		memset (&m_vals[0], 0, sizeof (double) * N * N);
-	}
-	
-	void puts () const {
-		for (short i = 0; i < N; ++i) {
-			for (short j = 0; j < N; ++j)
-				printf ("%*f\t", 10, m_vals[(i * N) + j]);
-			
-			printf ("\n");
-		}
-	}
-	
-	str stringRep () const {
-		str val;
-		for (short i = 0; i < N * N; ++i) {
-			if (i > 0)
-				val += ' ';
-			
-			val += fmt ("%s", ftoa (m_vals[i]).chars());
-		}
-		
-		return val;	
-	}
+	matrix&			operator=		(matrix other);
+	matrix			operator*		(matrix other) { return mult (other); }
+	double&			operator[]		(const uint idx) { return m_vals[idx]; }
+	const double&	operator[]		(const uint idx) const { return m_vals[idx]; }
 
 private:
-	double m_vals[N * N];
+	double m_vals[9];
 };
 
 // =============================================================================
@@ -146,77 +83,33 @@ private:
 // =============================================================================
 class vertex {
 public:
-	double m_coords[3];
-	
 	vertex () {}
-	vertex (double x, double y, double z) {
-		m_coords[X] = x;
-		m_coords[Y] = y;
-		m_coords[Z] = z;
-	}
+	vertex (double x, double y, double z);
 	
-	void move (vertex other) {
-		for (const Axis ax : g_Axes)
-			m_coords[ax] += other[ax];
-	}
+	double&			coord			(const ushort n) { return m_coords[n]; }
+	const double&	coord			(const ushort n) const { return m_coords[n]; }
+	vertex			midpoint		(vertex& other);
+	void			move			(vertex other);
+	str				stringRep		(const bool mangled);
+	void			transform		(matrix matr, vertex pos);
+	double&			x				() { return m_coords[X]; }
+	const double&	x				() const { return m_coords[X]; }
+	double&			y				() { return m_coords[Y]; }
+	const double&	y				() const { return m_coords[Y]; }
+	double&			z				() { return m_coords[Z]; }
+	const double&	z				() const { return m_coords[Z]; }
 	
-	vertex& operator+= (vertex other) {
-		move (other);
-		return *this;
-	}
-	
-	vertex operator/ (const double d) const {
-		vertex other (*this);
-		return other /= d;
-	}
-	
-	vertex& operator/= (const double d) {
-		for (const Axis ax : g_Axes)
-			m_coords[ax] /= d;
-		return *this;
-	}
-	
-	bool operator== (const vertex& other) const {
-		return coord (X) == other[X] &&
-			coord (Y) == other[Y] &&
-			coord (Z) == other[Z];
-	}
-	
-	bool operator!= (const vertex& other) const {
-		return !operator== (other);
-	}
-	
-	vertex operator- () const {
-		return vertex (-m_coords[X], -m_coords[Y], -m_coords[Z]);
-	}
-	
-	double& coord (const ushort n) {
-		return m_coords[n];
-	}
-	
-	const double& coord (const ushort n) const {
-		return m_coords[n];
-	}
-	
-	double& operator[] (const Axis ax) {
-		return coord ((ushort) ax);
-	}
-	
-	const double& operator[] (const Axis ax) const {
-		return coord ((ushort) ax);
-	}
-	
-	double& x () { return m_coords[X]; }
-	double& y () { return m_coords[Y]; }
-	double& z () { return m_coords[Z]; }
-	const double& x () const { return m_coords[X]; }
-	const double& y () const { return m_coords[Y]; }
-	const double& z () const { return m_coords[Z]; }
-	
-	vertex midpoint (vertex& other);
-	str stringRep (const bool mangled);
-	void transform (matrix<3> matr, vertex pos);
-	void transform (matrix<4> matr);
+	vertex&			operator+=		(vertex other);
+	vertex			operator/		(const double d) const;
+	vertex&			operator/=		(const double d);
+	bool			operator==		(const vertex& other) const;
+	bool			operator!=		(const vertex& other) const;
+	vertex			operator-		() const;
+	double&			operator[]		(const Axis ax);
+	const double&	operator[]		(const Axis ax) const;
+
+private:
+	double m_coords[3];
 };
 
 #endif // TYPES_H

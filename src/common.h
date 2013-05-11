@@ -177,6 +177,6 @@ extern const QApplication* g_app;
 
 // -----------------------------------------------------------------------------
 // Identity matrix
-extern const matrix<3> g_identity;
+extern const matrix g_identity;
 
 #endif // COMMON_H

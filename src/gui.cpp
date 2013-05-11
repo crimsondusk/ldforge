@@ -396,7 +396,6 @@ std::vector<quickColorMetaEntry> parseQuickColorMeta () {
 			meta.push_back ({null, null, true});
 		} else {
 			color* col = getColor (atoi (colorname));
-			printf ("color: %d\n", atoi (colorname));
 			assert (col != null);
 			meta.push_back ({col, null, false});
 		}
@@ -730,7 +729,6 @@ void ForgeWindow::slot_selectionChanged () {
 	for (LDObject* obj : priorSelection)
 		m_renderer->compileObject (obj);
 	
-	m_renderer->updateSelFlash ();
 	m_renderer->refresh ();
 }
 
@@ -820,9 +818,6 @@ void ForgeWindow::updateSelection () {
 // =============================================================================
 bool ForgeWindow::isSelected (LDObject* obj) {
 	LDObject* needle = obj->topLevelParent ();
-	
-	if (needle == null)
-		needle = obj;
 	
 	for (LDObject* hay : m_sel)
 		if (hay == needle)

@@ -38,8 +38,8 @@ public:
 	typedef vector<String> stringlist;
 	
 	String () {}
-	String	(const char* data) { m_string = data; }
-	String	(const QString data) { m_string = data.toStdString (); }
+	String (const char* data) { m_string = data; }
+	String (const QString data) { m_string = data.toStdString (); }
 	String (std::string data) { m_string = data; }
 	
 	void		append			(const char* data) { m_string.append (data); }

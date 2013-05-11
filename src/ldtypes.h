@@ -77,14 +77,14 @@ public:
 	virtual ~LDObject ();
 	
 	// Index (i.e. line number) of this object
-	long getIndex (OpenFile* pFile);
+	long getIndex (OpenFile* pFile) const;
 	
 	// Color used by this object. Comments, gibberish and empty entries
 	// do not use this field.
 	short color;
 	
 	// OpenGL list for this object
-	uint glLists[3];
+	uint glLists[4];
 	
 	// Vertices of this object
 	vertex coords[4];
@@ -138,10 +138,12 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	bool hidden () const { return m_hidden; }
-	void setHidden (const bool hidden) { m_hidden = hidden; }
-	bool selected () const { return m_selected; }
-	void setSelected (bool selected) { m_selected = selected; }
+	bool		hidden			() const { return m_hidden; }
+	LDObject*	next			() const;
+	LDObject*	prev			() const;
+	void		setHidden		(const bool hidden) { m_hidden = hidden; }
+	bool		selected		() const { return m_selected; }
+	void		setSelected	(bool selected) { m_selected = selected; }
 
 private:
 	bool m_hidden;
@@ -242,7 +244,7 @@ public:
 	LDOBJ_SCHEMANTIC
 	
 	vertex pos; // Position of the subpart (TODO: should get rid of this)
-	matrix<3> transform; // Transformation matrix for the subpart
+	matrix transform; // Transformation matrix for the subpart
 	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
 	OpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
 	
@@ -360,10 +362,10 @@ public:
 	
 	LDRadial::Type radType;
 	vertex pos;
-	matrix<3> transform;
+	matrix transform;
 	short divs, segs, ringNum;
 	
-	LDRadial (LDRadial::Type radType, vertex pos, matrix<3> transform, short divs, short segs, short ringNum) :
+	LDRadial (LDRadial::Type radType, vertex pos, matrix transform, short divs, short segs, short ringNum) :
 		radType (radType), pos (pos), transform (transform), divs (divs), segs (segs), ringNum (ringNum) {}
 	
 	// Returns a set of objects that provide the equivalent of this radial.

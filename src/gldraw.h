@@ -45,46 +45,42 @@ public:
 		Free
 	};
 	
-	enum ListType { NormalList, PickList, SelectList };
+	enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 	
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer ();
 	
-	void hardRefresh ();
-	void compileObjects ();
-	void setBackground ();
-	void pick (uint mouseX, uint mouseY);
-	QColor getMainColor ();
-	void compileObject (LDObject* obj);
-	void refresh ();
-	void updateSelFlash ();
-	void resetAngles ();
-	uchar* screencap (ushort& w, ushort& h);
-	void setCamera (const GLRenderer::Camera cam);
-	void beginPlaneDraw ();
-	void endPlaneDraw (bool accept);
-	
-	GLRenderer::Camera camera () { return m_camera; }
-	bool picking () { return m_picking; }
-	void setZoom (const double zoom) { m_zoom = zoom; }
-	double zoom () const { return m_zoom; }
+	void	beginPlaneDraw		();
+	Camera	camera				() const { return m_camera; }
+	void	compileObject		(LDObject* obj);
+	void	compileAllObjects	();
+	void	endPlaneDraw		(bool accept);
+	QColor	getMainColor		();
+	void	hardRefresh		();
+	bool	picking				() { return m_picking; }
+	void	refresh			();
+	void	resetAngles		();
+	uchar*	screencap			(ushort& w, ushort& h);
+	void	setBackground		();
+	void	setCamera			(const GLRenderer::Camera cam);
+	void	setZoom				(const double zoom) { m_zoom = zoom; }
+	double	zoom				() const { return m_zoom; }
 
 protected:
-	void initializeGL ();
-	void resizeGL (int w, int h);
-	
-	void mousePressEvent (QMouseEvent* ev);
-	void mouseMoveEvent (QMouseEvent* ev);
-	void mouseReleaseEvent (QMouseEvent* ev);
-	void keyPressEvent (QKeyEvent* ev);
-	void keyReleaseEvent (QKeyEvent* ev);
-	void wheelEvent (QWheelEvent* ev);
-	void paintEvent (QPaintEvent* ev);
-	void leaveEvent (QEvent* ev);
-	void contextMenuEvent (QContextMenuEvent* ev);
+	void	contextMenuEvent	(QContextMenuEvent* ev);
+	void	initializeGL		();
+	void	keyPressEvent		(QKeyEvent* ev);
+	void	keyReleaseEvent	(QKeyEvent* ev);
+	void	leaveEvent			(QEvent* ev);
+	void	mousePressEvent	(QMouseEvent* ev);
+	void	mouseMoveEvent		(QMouseEvent* ev);
+	void	mouseReleaseEvent	(QMouseEvent* ev);
+	void	paintEvent			(QPaintEvent* ev);
+	void	resizeGL			(int w, int h);
+	void	wheelEvent			(QWheelEvent* ev);
 
 private:
-	QTimer* m_pulseTimer, *m_toolTipTimer;
+	QTimer* m_toolTipTimer;
 	Qt::MouseButtons m_lastButtons;
 	Qt::KeyboardModifiers m_keymods;
 	ulong m_totalmove;
@@ -98,20 +94,19 @@ private:
 	ushort m_width, m_height;
 	std::vector<vertex> m_planeDrawVerts;
 	
-	void compileList (LDObject* obj, const ListType list);
-	void compileSubObject (LDObject* obj, const GLenum gltype);
-	void compileVertex (const vertex& vrt);
-	void clampAngle (double& angle);
-	void setObjectColor (LDObject* obj, const ListType list);
-	void drawGLScene () const;
-	void calcCameraIconRects ();
-	
-	vertex coord_2to3 (const QPoint& pos2d, const bool snap) const;
-	QPoint coord_3to2 (const vertex& pos3d) const;
+	void	calcCameraIcons	();
+	void	clampAngle			(double& angle);
+	void	compileList			(LDObject* obj, const ListType list);
+	void	compileSubObject	(LDObject* obj, const GLenum gltype);
+	void	compileVertex		(const vertex& vrt);
+	vertex	coord_2to3			(const QPoint& pos2d, const bool snap) const;
+	QPoint	coord_3to2			(const vertex& pos3d) const;
+	void	drawGLScene		() const;
+	void	pick				(uint mouseX, uint mouseY);
+	void	setObjectColor		(LDObject* obj, const ListType list);
 	
 private slots:
-	void slot_timerUpdate ();
-	void slot_toolTipTimer ();
+	void	slot_toolTipTimer	();
 };
 
 // Alias for short namespaces
@@ -120,7 +115,8 @@ typedef GLRenderer GL;
 static const GLRenderer::ListType g_glListTypes[] = {
 	GL::NormalList,
 	GL::PickList,
-	GL::SelectList
+	GL::BFCFrontList,
+	GL::BFCBackList,
 };
 
 #endif // GLDRAW_H

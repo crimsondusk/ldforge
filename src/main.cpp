@@ -32,7 +32,7 @@ bbox g_BBox;
 const QApplication* g_app = null;
 
 const vertex g_origin (0.0f, 0.0f, 0.0f);
-const matrix<3> g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
+const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

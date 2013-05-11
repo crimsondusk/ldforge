@@ -38,7 +38,6 @@ extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (int, gl_linethickness);
 extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
-extern_cfg (bool, gl_selflash);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
 
@@ -124,10 +123,6 @@ void ConfigDialog::initMainTab () {
 	cb_colorBFC->setWhatsThis ("Polygons' front sides become green and back "
 		"sides red. Not implemented yet.");
 	
-	cb_selFlash = new QCheckBox ("Selection flash");
-	cb_selFlash->setChecked (gl_selflash);
-	cb_colorBFC->setWhatsThis ("A pulse effect for clearer selection view.");
-	
 	cb_blackEdges = new QCheckBox ("Black edges");
 	cb_blackEdges->setWhatsThis ("Makes all edgelines appear black. If this is "
 		"not set, edge lines take their color as defined in LDConfig.ldr");
@@ -140,7 +135,6 @@ void ConfigDialog::initMainTab () {
 		"actual meaning in the part file like comments and such) are filtered out.");
 	
 	cb_schemanticInline->setEnabled (false);
-	cb_colorBFC->setEnabled (false);
 	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (lb_viewBg, 0, 0);
@@ -158,9 +152,8 @@ void ConfigDialog::initMainTab () {
 	
 	layout->addWidget (cb_colorize, 3, 0, 1, 4);
 	layout->addWidget (cb_colorBFC, 4, 0, 1, 4);
-	layout->addWidget (cb_selFlash, 5, 0, 1, 4);
-	layout->addWidget (cb_blackEdges, 6, 0, 1, 4);
-	layout->addWidget (cb_schemanticInline, 7, 0, 1, 4);
+	layout->addWidget (cb_blackEdges, 5, 0, 1, 4);
+	layout->addWidget (cb_schemanticInline, 6, 0, 1, 4);
 	mainTab->setLayout (layout);
 	
 	// Add the tab to the manager
@@ -689,7 +682,6 @@ void ConfigDialog::staticDialog () {
 	if (dlg.exec ()) {
 		lv_colorize = dlg.cb_colorize->isChecked ();
 		gl_colorbfc = dlg.cb_colorBFC->isChecked ();
-		gl_selflash = dlg.cb_selFlash->isChecked ();
 		edit_schemanticinline = dlg.cb_schemanticInline->isChecked ();
 		gl_blackedges = dlg.cb_blackEdges->isChecked ();
 		

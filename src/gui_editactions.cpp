@@ -621,7 +621,7 @@ static void doRotate (const short l, const short m, const short n) {
 	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 360;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
-	matrix<3> transform ({
+	matrix transform ({
 		(l * l * (1 - cos (angle))) + cos (angle),
 		(m * l * (1 - cos (angle))) - (n * sin (angle)),
 		(n * l * (1 - cos (angle))) + (m * sin (angle)),
