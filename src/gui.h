@@ -128,7 +128,8 @@ public:
 	ForgeWindow ();
 	void buildObjList ();
 	void setTitle ();
-	void refresh ();
+	void fullRefresh ();
+	void update ();
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();

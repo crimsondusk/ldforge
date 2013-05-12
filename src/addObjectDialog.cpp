@@ -507,5 +507,5 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 		History::addEntry (new EditHistory ({(ulong) obj->getIndex (g_curfile)}, {backup}, {obj->clone ()}));
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }

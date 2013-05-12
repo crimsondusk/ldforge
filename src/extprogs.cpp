@@ -198,7 +198,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		return;
 	}
 	
-	ComboHistory* cmb = new ComboHistory ({});
+	ComboHistory* cmb = new ComboHistory ();
 	std::vector<LDObject*> objs = loadFileContents (fp, null),
 		copies;
 	std::vector<ulong> indices;
@@ -233,7 +233,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		delete cmb;
 	
 	fclose (fp);
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================

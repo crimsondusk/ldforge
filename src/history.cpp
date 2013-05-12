@@ -105,7 +105,7 @@ void DelHistory::undo () {
 		g_curfile->insertObj (indices[idx], obj);
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -117,7 +117,7 @@ void DelHistory::redo () {
 		delete obj;
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -134,7 +134,7 @@ void SetColorHistory::undo () {
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
 		g_curfile->m_objs[ulaIndices[i]]->color = daColors[i];
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void SetColorHistory::redo () {
@@ -142,7 +142,7 @@ void SetColorHistory::redo () {
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
 		g_curfile->m_objs[ulaIndices[i]]->color = dNewColor;
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 SetColorHistory::~SetColorHistory () {}
@@ -154,14 +154,14 @@ void EditHistory::undo () {
 	for (ulong idx : ulaIndices)
 		g_curfile->object (idx)->replace (paOldObjs[idx]->clone ());
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void EditHistory::redo () {
 	for (ulong idx : ulaIndices)
 		g_curfile->object (idx)->replace (paNewObjs[idx]->clone ());
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj) {
@@ -175,10 +175,11 @@ void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj, cons
 }
 
 EditHistory::~EditHistory () {
-	for (ulong idx : ulaIndices) {
-		delete paOldObjs[idx];
-		delete paNewObjs[idx];
-	}
+	for (LDObject* obj : paOldObjs)
+		delete obj;
+	
+	for (LDObject* obj : paNewObjs)
+		delete obj;
 }
 
 // =============================================================================
@@ -224,7 +225,7 @@ void AddHistory::undo () {
 		delete obj;
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void AddHistory::redo () {
@@ -235,7 +236,7 @@ void AddHistory::redo () {
 		g_curfile->insertObj (idx, obj);
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -262,7 +263,7 @@ void QuadSplitHistory::undo () {
 		delete tri2;
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void QuadSplitHistory::redo () {
@@ -277,7 +278,7 @@ void QuadSplitHistory::redo () {
 		delete pQuad;
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -295,7 +296,7 @@ void InlineHistory::undo () {
 		g_curfile->insertObj (ulaRefIndices[i], obj);
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void InlineHistory::redo () {
@@ -313,7 +314,7 @@ void InlineHistory::redo () {
 		delete ref;
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 InlineHistory::~InlineHistory () {
@@ -331,13 +332,13 @@ void MoveHistory::undo () {
 	
 	for (ulong i : ulaIndices)
 		g_curfile->object (i)->move (vInverse);
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 void MoveHistory::redo () {
 	for (ulong i : ulaIndices)
 		g_curfile->object (i)->move (vVector);
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================

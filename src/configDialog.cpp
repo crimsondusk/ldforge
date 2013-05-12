@@ -709,7 +709,7 @@ void ConfigDialog::staticDialog () {
 		reloadAllSubfiles ();
 		
 		g_win->R ()->setBackground ();
-		g_win->refresh ();
+		g_win->fullRefresh ();
 		g_win->updateToolBars ();
 	}
 }

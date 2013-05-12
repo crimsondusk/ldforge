@@ -312,7 +312,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	
 	if (historyCopies.size() > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_win->refresh ();
+		g_win->fullRefresh ();
 		g_win->scrollToSelection ();
 	}
 }
@@ -354,7 +354,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	
 	if (historyCopies.size () > 0) {
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_win->refresh ();
+		g_win->fullRefresh ();
 		g_win->scrollToSelection ();
 	}
 }
@@ -415,5 +415,5 @@ MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/
 	for (LDObject* obj : g_win->sel ())
 		obj->setHidden (!obj->hidden ());
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }

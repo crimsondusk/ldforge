@@ -22,6 +22,8 @@
 #include "common.h"
 #include "types.h"
 
+class HistoryEntry;
+
 #define IMPLEMENT_LDTYPE(T, NUMVERTS) \
 	LD##T () {} \
 	virtual ~LD##T () {} \
@@ -34,6 +36,7 @@
 	} \
 	virtual void move (vertex vVector); \
 	virtual short vertices () const { return NUMVERTS; } \
+	virtual HistoryEntry* invert ();
 
 #define LDOBJ_SETCOLORED(V) virtual bool isColored () const { return V; }
 #define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
@@ -138,12 +141,13 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	bool		hidden			() const { return m_hidden; }
-	LDObject*	next			() const;
-	LDObject*	prev			() const;
-	void		setHidden		(const bool hidden) { m_hidden = hidden; }
-	bool		selected		() const { return m_selected; }
-	void		setSelected	(bool selected) { m_selected = selected; }
+	bool					hidden			() const { return m_hidden; }
+	virtual HistoryEntry*	invert			();
+	LDObject*				next			() const;
+	LDObject*				prev			() const;
+	void					setHidden		(const bool hidden) { m_hidden = hidden; }
+	bool					selected		() const { return m_selected; }
+	void					setSelected	(bool selected) { m_selected = selected; }
 
 private:
 	bool m_hidden;

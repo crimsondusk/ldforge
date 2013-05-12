@@ -1132,7 +1132,7 @@ void GLRenderer::endPlaneDraw (bool accept) {
 		if (obj) {
 			g_curfile->addObject (obj);
 			compileObject (obj);
-			g_win->refresh ();
+			g_win->fullRefresh ();
 			
 			History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
 		}
@@ -1154,6 +1154,8 @@ void GLRenderer::endPlaneDraw (bool accept) {
 // =============================================================================
 void GLRenderer::compileObject (LDObject* obj) {
 	for (const GL::ListType listType : g_glListTypes) {
+		glDeleteLists (obj->glLists[listType], 1);
+		
 		GLuint list = glGenLists (1);
 		glNewList (list, GL_COMPILE);
 		

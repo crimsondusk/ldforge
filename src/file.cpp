@@ -284,7 +284,7 @@ void closeAll () {
 	g_loadedFiles.clear();
 	g_curfile = NULL;
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -300,7 +300,7 @@ void newFile () {
 	g_curfile = f;
 	
 	g_BBox.calculate();
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -362,7 +362,7 @@ void openMainFile (str path) {
 	g_BBox.calculate();
 	
 	// Rebuild the object tree view now.
-	g_win->refresh ();
+	g_win->fullRefresh ();
 	g_win->setTitle ();
 	g_win->R ()->resetAngles ();
 	

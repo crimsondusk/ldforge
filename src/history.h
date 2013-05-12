@@ -102,8 +102,9 @@ public:
 		std::vector<LDObject*> paNewObjs) :
 		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
 	
-	void addEntry (LDObject* const oldObj, LDObject* const newObj);
-	void addEntry (LDObject* const oldObj, LDObject* const newObj, const ulong idx);
+	void	addEntry		(LDObject* const oldObj, LDObject* const newObj);
+	void	addEntry		(LDObject* const oldObj, LDObject* const newObj, const ulong idx);
+	ulong	numEntries		() const { return ulaIndices.size (); }
 };
 
 // =============================================================================
@@ -195,12 +196,12 @@ public:
 	
 	std::vector<HistoryEntry*> paEntries;
 	
+	ComboHistory () {}
 	ComboHistory (std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
 	
-	ComboHistory& operator<< (HistoryEntry* entry) {
-		paEntries.push_back (entry);
-		return *this;
-	}
+	void			addEntry		(HistoryEntry* entry) { if (entry) paEntries.push_back (entry); }
+	ulong			numEntries		() const { return paEntries.size (); }
+	ComboHistory&	operator<<		(HistoryEntry* entry) { addEntry (entry); return *this;}
 };
 
 // =============================================================================

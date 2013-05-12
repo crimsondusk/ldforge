@@ -101,7 +101,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	}
 	
 	History::addEntry (new AddHistory (historyIndices, historyCopies, AddHistory::Paste));
-	g_win->refresh ();
+	g_win->fullRefresh ();
 	g_win->scrollToSelection ();
 }
 
@@ -168,7 +168,7 @@ static void doInline (bool bDeep) {
 	}
 	
 	History::addEntry (new InlineHistory (bitIndices, refIndices, refs, bDeep));
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 MAKE_ACTION (inlineContents, "Inline", "inline", "Inline selected subfiles.", CTRL (I)) {
@@ -228,7 +228,7 @@ MAKE_ACTION (radialResolution, "Radial resolution", "radial-resolve", "Resolve r
 	}
 	
 	History::addEntry (history);
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =======================================================================================================================================
@@ -271,7 +271,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 	}
 	
 	History::addEntry (new QuadSplitHistory (ulaIndices, paCopies));
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -316,7 +316,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 		}
 		
 		History::addEntry (new SetColorHistory (ulaIndices, daColors, dColor));
-		g_win->refresh ();
+		g_win->fullRefresh ();
 	}
 }
 
@@ -367,7 +367,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 	}
 	
 	History::addEntry (new AddHistory (ulaIndices, paObjs));
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -397,7 +397,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	
 	if (ulaIndices.size() > 0) {
 		History::addEntry (new AddHistory (ulaIndices, paObjs));
-		g_win->refresh ();
+		g_win->fullRefresh ();
 	}
 }
 
@@ -458,7 +458,7 @@ void doMoveObjects (vertex vVector) {
 	}
 	
 	History::addEntry (new MoveHistory (ulaIndices, vVector));
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
@@ -498,116 +498,20 @@ MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive 
 // History.
 // =============================================================================
 MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
-	std::vector<LDObject*> paSelection = g_win->sel ();
-	std::vector<HistoryEntry*> paHistory;
+	std::vector<LDObject*> sel = g_win->sel ();
+	ComboHistory* history = new ComboHistory;
 	
-	for (LDObject* obj : paSelection) {
-		// For the objects we end up editing, we store information into these
-		// variables and we store them into an EditHistory after the switch
-		// block. Subfile and radial management is stored into the history
-		// list immediately.
-		ulong ulHistoryIndex = obj->getIndex (g_curfile);
-		LDObject* pOldCopy, *pNewCopy;
-		bool bEdited = false;
-		
-		switch (obj->getType ()) {
-		case LDObject::Line:
-		case LDObject::CondLine:
-			{
-				// For lines, we swap the vertices. I don't think that a
-				// cond-line's control points need to be swapped, do they?
-				LDLine* pLine = static_cast<LDLine*> (obj);
-				vertex vTemp = pLine->coords[0];
-				
-				pOldCopy = pLine->clone ();
-				pLine->coords[0] = pLine->coords[1];
-				pLine->coords[1] = vTemp;
-				pNewCopy = pLine->clone ();
-				bEdited = true;
-			}
-			break;
-		
-		case LDObject::Triangle:
-			{
-				// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
-				// Thus, we swap 1 and 2.
-				LDTriangle* pTri = static_cast<LDTriangle*> (obj);
-				vertex vTemp = pTri->coords[1];
-				
-				pOldCopy = pTri->clone ();
-				pTri->coords[1] = pTri->coords[2];
-				pTri->coords[2] = vTemp;
-				pNewCopy = pTri->clone ();
-				bEdited = true;
-			}
-			break;
-		
-		case LDObject::Quad:
-			{
-				// Quad: 0 -> 1 -> 2 -> 3
-				// rev:  0 -> 3 -> 2 -> 1
-				// Thus, we swap 1 and 3.
-				LDQuad* pQuad = static_cast<LDQuad*> (obj);
-				vertex vTemp = pQuad->coords[1];
-				
-				pOldCopy = pQuad->clone ();
-				pQuad->coords[1] = pQuad->coords[3];
-				pQuad->coords[3] = vTemp;
-				pNewCopy = pQuad->clone ();
-				bEdited = true;
-			}
-			break;
-		
-		case LDObject::Subfile:
-		case LDObject::Radial:
-			{
-				// Subfiles and radials are inverted when they're prefixed with
-				// a BFC INVERTNEXT statement. Thus we need to toggle this status.
-				// For flat primitives it's sufficient that the determinant is
-				// flipped but I don't have a method for checking flatness yet.
-				// Food for thought...
-				
-				bool inverted = false;
-				ulong idx = obj->getIndex (g_curfile);
-				
-				if (idx > 0) {
-					LDObject* prev = g_curfile->object (idx - 1);
-					LDBFC* bfc = dynamic_cast<LDBFC*> (prev);
-					
-					if (bfc && bfc->type == LDBFC::InvertNext) {
-						// Object is prefixed with an invertnext, thus remove it.
-						paHistory.push_back (new DelHistory ({idx - 1}, {bfc->clone ()}));
-						
-						inverted = true;
-						g_curfile->forgetObject (bfc);
-						delete bfc;
-					}
-				}
-				
-				if (!inverted) {
-					// Not inverted, thus prefix it with a new invertnext.
-					LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-					g_curfile->insertObj (idx, bfc);
-					
-					paHistory.push_back (new AddHistory ({idx}, {bfc->clone ()}));
-				}
-			}
-			break;
-		
-		default:
-			break;
-		}
-		
-		// If we edited this object, store the EditHistory based on collected
-		// information now.
-		if (bEdited == true)
-			paHistory.push_back (new EditHistory ({ulHistoryIndex}, {pOldCopy}, {pNewCopy}));
+	for (LDObject* obj : sel) {
+		*history << obj->invert ();
+		g_win->R ()->compileObject (obj);
 	}
 	
-	if (paHistory.size () > 0) {
-		History::addEntry (new ComboHistory (paHistory));
-		g_win->refresh ();
-	}
+	printf ("%lu entries\n", history->numEntries ());
+	if (history->numEntries () > 0) {
+		History::addEntry (history);
+		g_win->buildObjList ();
+	} else
+		delete history;
 }
 
 // =============================================================================
@@ -672,7 +576,7 @@ static void doRotate (const short l, const short m, const short n) {
 		v->move (origin);
 	}
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
@@ -710,7 +614,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	for (const Axis ax : g_Axes)
 		obj->coords[i][ax] = atof (fmt ("%.3f", obj->coords[i][ax]));
 	
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -733,7 +637,7 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 	
 	if (indices.size () > 0) {
 		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
-		g_win->refresh ();
+		g_win->fullRefresh ();
 	}
 }
 
@@ -755,13 +659,18 @@ MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping betwee
 // =========================================================================================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =========================================================================================================================================
+static CheckBoxGroup<Axis>* makeAxesBox () {
+	CheckBoxGroup<Axis>* cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
+	cbg_axes->addCheckBox ("X", X);
+	cbg_axes->addCheckBox ("Y", Y);
+	cbg_axes->addCheckBox ("Z", Z);
+	return cbg_axes;
+}
+
 class ReplaceCoordsDialog : public QDialog {
 public:
 	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f) {
-		cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
-		cbg_axes->addCheckBox ("X", X);
-		cbg_axes->addCheckBox ("Y", Y);
-		cbg_axes->addCheckBox ("Z", Z);
+		cbg_axes = makeAxesBox ();
 		
 		lb_search = new QLabel ("Search:");
 		lb_replacement = new QLabel ("Replacement:");
@@ -813,15 +722,61 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	EditHistory* history = new EditHistory;
 	
 	for (LDObject* obj : g_win->sel ()) {
-		bool altered = false;
 		LDObject* copy = obj->clone ();
 		
 		for (short i = 0; i < obj->vertices (); ++i)
 		for (Axis ax : sel) {
 			if (obj->coords[i][ax] == search) {
 				obj->coords[i][ax] = replacement;
-				altered = true;
 			}
+		}
+		
+		history->addEntry (copy, obj, obj->getIndex (g_curfile));
+		
+		delete copy;
+	}
+	
+	History::addEntry (history);
+	g_win->fullRefresh ();
+}
+
+// =========================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =========================================================================================================================================
+class FlipDialog : public QDialog {
+public:
+	explicit FlipDialog (QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog (parent, f) {
+		cbg_axes = makeAxesBox ();
+		
+		QVBoxLayout* layout = new QVBoxLayout;
+		layout->addWidget (cbg_axes);
+		layout->addWidget (makeButtonBox (*this));
+		setLayout (layout);
+	}
+	
+	vector<Axis> axes () { return cbg_axes->checkedValues (); }
+	
+private:
+	CheckBoxGroup<Axis>* cbg_axes;
+};
+
+MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
+	FlipDialog dlg;
+	
+	if (!dlg.exec ())
+		return;
+	
+	EditHistory* history = new EditHistory;
+	vector<Axis> sel = dlg.axes ();
+	
+	for (LDObject* obj : g_win->sel ()) {
+		bool altered = false;
+		LDObject* copy = obj->clone ();
+		
+		for (short i = 0; i < obj->vertices (); ++i)
+		for (Axis ax : sel) {
+			obj->coords[i][ax] *= -1;
+			altered = true;
 		}
 		
 		if (altered)
@@ -831,5 +786,5 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	}
 	
 	History::addEntry (history);
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }

@@ -116,6 +116,6 @@ void NewPartDialog::StaticDialog () {
 		objs.push_back (new LDBFC (eBFCType));
 		objs.push_back (new LDEmpty);
 		
-		g_win->refresh ();
+		g_win->fullRefresh ();
 	}
 }

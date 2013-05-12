@@ -103,5 +103,5 @@ void SetContentsDialog::staticDialog (LDObject* obj) {
 	oldobj->replace (obj);
 	
 	// Rebuild stuff after this
-	g_win->refresh ();
+	g_win->fullRefresh ();
 }

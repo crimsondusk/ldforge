@@ -189,7 +189,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("paste");				// Paste
 	addMenuAction ("del");					// Delete
 	menu->addSeparator ();					// -----
-	
 	addMenuAction ("selectAll");			// Select All
 	addMenuAction ("selectByColor");		// Select by Color
 	addMenuAction ("selectByType");		// Select by Type
@@ -207,6 +206,8 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("roundCoords");		// Round Coordinates
 	addMenuAction ("uncolorize");			// Uncolorize
 	addMenuAction ("visibility");			// Toggle Visibility
+	addMenuAction ("replaceCoords");		// Replace Coordinates
+	addMenuAction ("flip");				// Flip
 	
 	// Move menu
 	initMenu ("&Move");
@@ -377,6 +378,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("uncolorize");
 	addToolBarAction ("visibility");
 	addToolBarAction ("replaceCoords");
+	addToolBarAction ("flip");
 	
 	initSingleToolBar ("External Programs");
 	addToolBarAction ("ytruder");
@@ -524,7 +526,7 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObj
 		delete obj;
 	}
 	
-	refresh ();
+	fullRefresh ();
 }
 
 // =============================================================================
@@ -538,6 +540,9 @@ void ForgeWindow::buildObjList () {
 	// doesn't trigger selection updating so that the selection doesn't get lost
 	// while this is done.
 	g_bSelectionLocked = true;
+	
+	for (int i = 0; i < m_objList->count (); ++i)
+		delete m_objList->item (i);
 	
 	m_objList->clear ();
 	
@@ -770,7 +775,7 @@ void ForgeWindow::slot_quickColor () {
 	}
 	
 	History::addEntry (new SetColorHistory (indices, colors, newColor));
-	refresh ();
+	fullRefresh ();
 }
 
 // =============================================================================
@@ -789,9 +794,14 @@ ulong ForgeWindow::getInsertionPoint () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::refresh () {
+void ForgeWindow::fullRefresh () {
 	buildObjList ();
 	m_renderer->hardRefresh ();
+}
+
+void ForgeWindow::update() {
+	buildObjList ();
+	m_renderer->update ();
 }
 
 // =============================================================================

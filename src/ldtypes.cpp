@@ -21,6 +21,7 @@
 #include "file.h"
 #include "misc.h"
 #include "gui.h"
+#include "history.h"
 
 char const* g_saObjTypeNames[] = {
 	"subfile",
@@ -695,3 +696,97 @@ LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (Vertex)
 	return null;
 }
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+HistoryEntry* LDObject::invert () { return null; }
+HistoryEntry* LDBFC::invert () { return null; }
+HistoryEntry* LDEmpty::invert () { return null; }
+HistoryEntry* LDComment::invert () { return null; }
+HistoryEntry* LDGibberish::invert () { return null; }
+
+HistoryEntry* LDTriangle::invert () {
+	// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
+	// Thus, we swap 1 and 2.
+	vertex tmp = coords[1];
+	
+	LDObject* oldCopy = clone ();
+	coords[1] = coords[2];
+	coords[2] = tmp;
+	
+	return new EditHistory ({(ulong) getIndex (g_curfile)}, {oldCopy}, {clone ()});
+}
+
+HistoryEntry* LDQuad::invert () {
+	// Quad: 0 -> 1 -> 2 -> 3
+	// rev:  0 -> 3 -> 2 -> 1
+	// Thus, we swap 1 and 3.
+	vertex tmp = coords[1];
+	LDObject* oldCopy = clone ();
+	
+	coords[1] = coords[3];
+	coords[3] = tmp;
+	
+	return new EditHistory ({(ulong) getIndex (g_curfile)}, {oldCopy}, {clone ()});
+}
+
+static HistoryEntry* invertSubfile (LDObject* obj) {
+	// Subfiles and radials are inverted when they're prefixed with
+	// a BFC INVERTNEXT statement. Thus we need to toggle this status.
+	// For flat primitives it's sufficient that the determinant is
+	// flipped but I don't have a method for checking flatness yet.
+	// Food for thought...
+	
+	ulong idx = obj->getIndex (g_curfile);
+	
+	if (idx > 0) {
+		LDBFC* bfc = dynamic_cast<LDBFC*> (obj->prev ());
+		
+		if (bfc && bfc->type == LDBFC::InvertNext) {
+			// Object is prefixed with an invertnext, thus remove it.
+			HistoryEntry* history = new DelHistory ({idx - 1}, {bfc->clone ()});
+			
+			g_curfile->forgetObject (bfc);
+			delete bfc;
+			return history;
+		}
+	}
+	
+	// Not inverted, thus prefix it with a new invertnext.
+	LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
+	g_curfile->insertObj (idx, bfc);
+	
+	return new AddHistory ({idx}, {bfc->clone ()});
+}
+
+HistoryEntry* LDSubfile::invert () {
+	return invertSubfile (this);
+}
+
+HistoryEntry* LDRadial::invert () {
+	return invertSubfile (this);
+}
+
+static HistoryEntry* invertLine (LDObject* line) {
+	// For lines, we swap the vertices. I don't think that a
+	// cond-line's control points need to be swapped, do they?
+	LDObject* oldCopy = line->clone ();
+	vertex tmp = line->coords[0];
+	
+	oldCopy = line->clone ();
+	line->coords[0] = line->coords[1];
+	line->coords[1] = tmp;
+	
+	return new EditHistory ({(ulong) line->getIndex (g_curfile)}, {oldCopy}, {line->clone ()});
+}
+
+HistoryEntry* LDLine::invert () {
+	return invertLine (this);
+}
+
+HistoryEntry* LDCondLine::invert () {
+	return invertLine (this);
+}
+
+HistoryEntry* LDVertex::invert () { return null; }
