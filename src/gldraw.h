@@ -57,13 +57,15 @@ public:
 	void	endPlaneDraw		(bool accept);
 	QColor	getMainColor		();
 	void	hardRefresh		();
-	bool	picking				() { return m_picking; }
+	bool	picking				() const { return m_picking; }
 	void	refresh			();
 	void	resetAngles		();
 	uchar*	screencap			(ushort& w, ushort& h);
 	void	setBackground		();
 	void	setCamera			(const GLRenderer::Camera cam);
 	void	setZoom				(const double zoom) { m_zoom = zoom; }
+	void	setWireframe		(const bool set);
+	bool	wireframe			() const;
 	double	zoom				() const { return m_zoom; }
 
 protected:

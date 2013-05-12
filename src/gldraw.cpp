@@ -52,6 +52,7 @@ cfg (bool, gl_colorbfc, true);
 cfg (int, gl_camera, GLRenderer::Free);
 cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
+cfg (bool, gl_wireframe, false);
 
 // CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
 // initialized before program gets to main() and constructs a QApplication
@@ -316,6 +317,9 @@ void GLRenderer::drawGLScene () const {
 	if (g_curfile == null)
 		return;
 	
+	if (gl_wireframe && !picking ())
+		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
+	
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 	
@@ -376,6 +380,7 @@ void GLRenderer::drawGLScene () const {
 	
 	glPopMatrix ();
 	glMatrixMode (GL_MODELVIEW);
+	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 }
 
 // =============================================================================

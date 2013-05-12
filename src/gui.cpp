@@ -48,6 +48,7 @@ extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
 extern_cfg (str, gl_maincolor);
 extern_cfg (float, gl_maincolor_alpha);
+extern_cfg (bool, gl_wireframe);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -103,13 +104,16 @@ void ForgeWindow::createMenuActions () {
 		connect (qAct, SIGNAL (triggered ()), this, SLOT (slot_action ()));
 	}
 	
-	// Grid actions and axes are checkable
+	// Make certain actions checkable
 	findAction ("gridCoarse")->setCheckable (true);
 	findAction ("gridMedium")->setCheckable (true);
 	findAction ("gridFine")->setCheckable (true);
 	
 	findAction ("axes")->setCheckable (true);
 	findAction ("axes")->setChecked (gl_axes);
+	
+	findAction ("wireframe")->setCheckable (true);
+	findAction ("wireframe")->setChecked (gl_wireframe);
 	
 	// things not implemented yet
 	findAction ("help")->setEnabled (false);
@@ -156,6 +160,7 @@ void ForgeWindow::createMenus () {
 	initMenu ("&View");
 	addMenuAction ("resetView");			// Reset View
 	addMenuAction ("axes");				// Draw Axes
+	addMenuAction ("wireframe");			// Wireframe
 	menu->addSeparator ();					// -----
 	addMenuAction ("screencap");			// Screencap Part
 	addMenuAction ("showHistory");		// Edit History
@@ -344,7 +349,6 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("rotateZNeg");
 	
 	// ==========================================
-	// Grid toolbar
 	initSingleToolBar ("Grids");
 	addToolBarAction ("gridCoarse");
 	addToolBarAction ("gridMedium");
@@ -354,6 +358,7 @@ void ForgeWindow::createToolbars () {
 	// ==========================================
 	initSingleToolBar ("View");
 	addToolBarAction ("axes");
+	addToolBarAction ("wireframe");
 	
 	// ==========================================
 	// Color toolbar
@@ -548,6 +553,7 @@ void ForgeWindow::buildObjList () {
 	
 	for (LDObject* obj : g_curfile->m_objs) {
 		str descr;
+		
 		switch (obj->getType ()) {
 		case LDObject::Comment:
 			descr = static_cast<LDComment*> (obj)->text.chars();
@@ -561,43 +567,14 @@ void ForgeWindow::buildObjList () {
 			break; // leave it empty
 		
 		case LDObject::Line:
-			{
-				LDLine* line = static_cast<LDLine*> (obj);
-				descr.format ("%s, %s",
-					line->coords[0].stringRep (true).chars(),
-					line->coords[1].stringRep (true).chars());
-			}
-			break;
-		
 		case LDObject::Triangle:
-			{
-				LDTriangle* triangle = static_cast<LDTriangle*> (obj);
-				descr.format ("%s, %s, %s",
-					triangle->coords[0].stringRep (true).chars(),
-					triangle->coords[1].stringRep (true).chars(),
-					triangle->coords[2].stringRep (true).chars());
-			}
-			break;
-		
 		case LDObject::Quad:
-			{
-				LDQuad* quad = static_cast<LDQuad*> (obj);
-				descr.format ("%s, %s, %s, %s",
-					quad->coords[0].stringRep (true).chars(),
-					quad->coords[1].stringRep (true).chars(),
-					quad->coords[2].stringRep (true).chars(),
-					quad->coords[3].stringRep (true).chars());
-			}
-			break;
-		
 		case LDObject::CondLine:
-			{
-				LDCondLine* line = static_cast<LDCondLine*> (obj);
-				descr.format ("%s, %s, %s, %s",
-					line->coords[0].stringRep (true).chars(),
-					line->coords[1].stringRep (true).chars(),
-					line->coords[2].stringRep (true).chars(),
-					line->coords[3].stringRep (true).chars());
+			for (short i = 0; i < obj->vertices (); ++i) {
+				if (i != 0)
+					descr += ", ";
+				
+				descr += obj->coords[i].stringRep (true).chars();
 			}
 			break;
 		
@@ -627,11 +604,8 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case LDObject::BFC:
-			{
-				LDBFC* bfc = static_cast<LDBFC*> (obj);
-				descr = LDBFC::statements[bfc->type];
-			}
-			break;
+			descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
+		break;
 		
 		case LDObject::Radial:
 			{
