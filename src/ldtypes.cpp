@@ -212,6 +212,9 @@ LDObject::~LDObject () {
 	for (ulong i = 0; i < g_win->sel ().size(); ++i)
 		if (g_win->sel ()[i] == this)
 			g_win->sel ().erase (g_win->sel ().begin() + i);
+	
+	// Delete the GL lists
+	GL::deleteLists (this);
 }
 
 // =============================================================================

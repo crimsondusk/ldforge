@@ -312,34 +312,32 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 				daColors.push_back (obj->color);
 				
 				obj->color = dColor;
+				g_win->R ()->compileObject (obj);
 			}
 		}
 		
 		History::addEntry (new SetColorHistory (ulaIndices, daColors, dColor));
-		g_win->fullRefresh ();
+		g_win->refresh ();
 	}
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.",
-	CTRL_SHIFT (B))
-{
+MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.", CTRL_SHIFT (B)) {
 	vector<LDObject*> objs = g_win->sel ();
-	
-	vector<ulong> ulaIndices;
-	vector<LDObject*> paObjs;
+	vector<ulong> historyIndices;
+	vector<LDObject*> historyObjs;
 	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != LDObject::Quad && obj->getType() != LDObject::Triangle)
 			continue;
 		
-		short dNumLines;
+		short numLines;
 		LDLine* lines[4];
 		
 		if (obj->getType() == LDObject::Quad) {
-			dNumLines = 4;
+			numLines = 4;
 			
 			LDQuad* quad = static_cast<LDQuad*> (obj);
 			lines[0] = new LDLine (quad->coords[0], quad->coords[1]);
@@ -347,7 +345,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			lines[2] = new LDLine (quad->coords[2], quad->coords[3]);
 			lines[3] = new LDLine (quad->coords[3], quad->coords[0]);
 		} else {
-			dNumLines = 3;
+			numLines = 3;
 			
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
 			lines[0] = new LDLine (tri->coords[0], tri->coords[1]);
@@ -355,19 +353,20 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			lines[2] = new LDLine (tri->coords[2], tri->coords[0]); 
 		}
 		
-		for (short i = 0; i < dNumLines; ++i) {
+		for (short i = 0; i < numLines; ++i) {
 			ulong idx = obj->getIndex (g_curfile) + i + 1;
 			
 			lines[i]->color = edgecolor;
 			g_curfile->insertObj (idx, lines[i]);
 			
-			ulaIndices.push_back (idx);
-			paObjs.push_back (lines[i]->clone ());
+			historyIndices.push_back (idx);
+			historyObjs.push_back (lines[i]->clone ());
+			g_win->R ()->compileObject (lines[i]);
 		}
 	}
 	
-	History::addEntry (new AddHistory (ulaIndices, paObjs));
-	g_win->fullRefresh ();
+	History::addEntry (new AddHistory (historyIndices, historyObjs));
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -392,12 +391,13 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 			g_curfile->insertObj (++idx, vert);
 			ulaIndices.push_back (idx);
 			paObjs.push_back (vert->clone ());
+			g_win->R ()->compileObject (vert);
 		}
 	}
 	
 	if (ulaIndices.size() > 0) {
 		History::addEntry (new AddHistory (ulaIndices, paObjs));
-		g_win->fullRefresh ();
+		g_win->refresh ();
 	}
 }
 
@@ -455,10 +455,11 @@ void doMoveObjects (vertex vVector) {
 	for (LDObject* obj : g_win->sel ()) {
 		ulaIndices.push_back (obj->getIndex (g_curfile));
 		obj->move (vVector);
+		g_win->R ()->compileObject (obj);
 	}
 	
 	History::addEntry (new MoveHistory (ulaIndices, vVector));
-	g_win->fullRefresh ();
+	g_win->refresh ();
 }
 
 MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
@@ -506,10 +507,9 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 		g_win->R ()->compileObject (obj);
 	}
 	
-	printf ("%lu entries\n", history->numEntries ());
 	if (history->numEntries () > 0) {
 		History::addEntry (history);
-		g_win->buildObjList ();
+		g_win->refresh ();
 	} else
 		delete history;
 }
@@ -568,6 +568,8 @@ static void doRotate (const short l, const short m, const short n) {
 			rad->transform = rad->transform * transform;
 		} else if (obj->getType () == LDObject::Vertex)
 			queue.push_back (&static_cast<LDVertex*> (obj)->pos);
+		
+		g_win->R ()->compileObject (obj);
 	}
 	
 	for (vertex* v : queue) {
@@ -576,7 +578,7 @@ static void doRotate (const short l, const short m, const short n) {
 		v->move (origin);
 	}
 	
-	g_win->fullRefresh ();
+	g_win->refresh ();
 }
 
 MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {

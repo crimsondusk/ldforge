@@ -773,7 +773,7 @@ void ForgeWindow::fullRefresh () {
 	m_renderer->hardRefresh ();
 }
 
-void ForgeWindow::update() {
+void ForgeWindow::refresh () {
 	buildObjList ();
 	m_renderer->update ();
 }

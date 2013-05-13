@@ -384,7 +384,7 @@ void GLRenderer::drawGLScene () const {
 }
 
 // =============================================================================
-vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
+vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	vertex pos3d;
 	const staticCameraMeta* cam = &g_staticCameras[m_camera];
 	const Axis axisX = cam->axisX;
@@ -411,36 +411,31 @@ vertex GLRenderer::coord_2to3 (const QPoint& pos2d, const bool snap) const {
 }
 
 // =============================================================================
-QPoint GLRenderer::coord_3to2 (const vertex& pos3d) const {
-	/*
-	cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) - (negXFac * g_objOffset[axisX]);
-	
-	                                                 cx = (-vw + ((2 * x * vw) / w) - panx) - (neg * ofs)
-	                                  cx + (neg * ofs) = (-vw + ((2 * x * vw) / w) - panx)
-	                                  cx + (neg * ofs) = ((2 * x * vw) / w) - vw - panx
-	                    (cx + (neg * ofs)) + vw + panx = (2 * x * vw) / w
-	              ((cx + (neg * ofs)) + vw + panx) * w = 2 * vw * x
-	
-	x = (((cx + (neg * ofs)) + vw + panx) * w) / (2 * vw)
-	*/
-	
-	QPoint pos2d;
+QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
+	GLfloat m[16];
 	const staticCameraMeta* cam = &g_staticCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
 	const short negXFac = cam->negX ? -1 : 1,
 		negYFac = cam->negY ? -1 : 1;
 	
-	short x1 = (((pos3d[axisX] + (negXFac * g_objOffset[axisX])) +
-		m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
-	short y1 = -(((pos3d[axisY] + (negYFac * g_objOffset[axisY])) -
-		m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	glGetFloatv (GL_MODELVIEW_MATRIX, m);
 	
-	x1 *= negXFac;
-	y1 *= negYFac;
+	const double x = pos3d.x ();
+	const double y = pos3d.y ();
+	const double z = pos3d.z ();
 	
-	pos2d = QPoint (x1, y1);
-	return pos2d;
+	vertex transformed;
+	transformed[X] = (m[0] * x) + (m[1] * y) + (m[2] * z) + m[3];
+	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
+	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
+	
+	double rx = (((transformed[axisX] * negXFac) + (negXFac * g_objOffset[axisX])
+		+ m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
+	double ry = (((transformed[axisY] * negYFac) + (negYFac * g_objOffset[axisY])
+		- m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	
+	return QPoint (rx, -ry);
 }
 
 // =============================================================================
@@ -473,7 +468,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	
 	if (m_camera != Free) {
 		// Calculate 3d position of the cursor
-		m_hoverpos = coord_2to3 (m_pos, true);
+		m_hoverpos = coordconv2_3 (m_pos, true);
 		
 		// Paint the coordinates onto the screen.
 		str text;
@@ -496,13 +491,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				
 				uchar i = 0;
 				for (vertex& vert : m_planeDrawVerts) {
-					poly[i] = coord_3to2 (vert);
+					poly[i] = coordconv3_2 (vert);
 					++i;
 				}
 				
 				// Draw the cursor vertex as the last one in the list.
 				if (numverts < 5)
-					poly[i] = coord_3to2 (m_hoverpos);
+					poly[i] = coordconv3_2 (m_hoverpos);
 				else
 					numverts = 4;
 				
@@ -623,6 +618,7 @@ void GLRenderer::compileAllObjects () {
 		compileObject (obj);
 	
 	// Compile axes
+	glDeleteLists (m_axeslist, 1);
 	m_axeslist = glGenLists (1);
 	glNewList (m_axeslist, GL_COMPILE);
 	glBegin (GL_LINES);
@@ -782,7 +778,7 @@ void GLRenderer::compileVertex (const vertex& vrt) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::clampAngle (double& angle) {
+void GLRenderer::clampAngle (double& angle) const {
 	while (angle < 0)
 		angle += 360.0;
 	while (angle > 360.0)
@@ -1158,9 +1154,9 @@ void GLRenderer::endPlaneDraw (bool accept) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObject (LDObject* obj) {
+	deleteLists (obj);
+	
 	for (const GL::ListType listType : g_glListTypes) {
-		glDeleteLists (obj->glLists[listType], 1);
-		
 		GLuint list = glGenLists (1);
 		glNewList (list, GL_COMPILE);
 		
@@ -1203,4 +1199,10 @@ void GLRenderer::slot_toolTipTimer () {
 			break;
 		}
 	}
+}
+
+// =============================================================================
+void GLRenderer::deleteLists (LDObject* obj) {
+	for (const GL::ListType listType : g_glListTypes)
+		glDeleteLists (obj->glLists[listType], 1);
 }

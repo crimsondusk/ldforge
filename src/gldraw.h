@@ -50,23 +50,25 @@ public:
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer ();
 	
-	void	beginPlaneDraw		();
-	Camera	camera				() const { return m_camera; }
-	void	compileObject		(LDObject* obj);
-	void	compileAllObjects	();
-	void	endPlaneDraw		(bool accept);
-	QColor	getMainColor		();
-	void	hardRefresh		();
-	bool	picking				() const { return m_picking; }
-	void	refresh			();
-	void	resetAngles		();
-	uchar*	screencap			(ushort& w, ushort& h);
-	void	setBackground		();
-	void	setCamera			(const GLRenderer::Camera cam);
-	void	setZoom				(const double zoom) { m_zoom = zoom; }
-	void	setWireframe		(const bool set);
-	bool	wireframe			() const;
-	double	zoom				() const { return m_zoom; }
+	void		beginPlaneDraw		();
+	Camera		camera				() const { return m_camera; }
+	void		compileObject		(LDObject* obj);
+	void		compileAllObjects	();
+	void		endPlaneDraw		(bool accept);
+	QColor		getMainColor		();
+	void		hardRefresh		();
+	bool		picking				() const { return m_picking; }
+	void		refresh			();
+	void		resetAngles		();
+	uchar*		screencap			(ushort& w, ushort& h);
+	void		setBackground		();
+	void		setCamera			(const GLRenderer::Camera cam);
+	void		setZoom				(const double zoom) { m_zoom = zoom; }
+	void		setWireframe		(const bool set);
+	bool		wireframe			() const;
+	double		zoom				() const { return m_zoom; }
+	
+	static void	deleteLists			(LDObject* obj);
 
 protected:
 	void	contextMenuEvent	(QContextMenuEvent* ev);
@@ -96,16 +98,16 @@ private:
 	ushort m_width, m_height;
 	std::vector<vertex> m_planeDrawVerts;
 	
-	void	calcCameraIcons	();
-	void	clampAngle			(double& angle);
-	void	compileList			(LDObject* obj, const ListType list);
-	void	compileSubObject	(LDObject* obj, const GLenum gltype);
-	void	compileVertex		(const vertex& vrt);
-	vertex	coord_2to3			(const QPoint& pos2d, const bool snap) const;
-	QPoint	coord_3to2			(const vertex& pos3d) const;
-	void	drawGLScene		() const;
-	void	pick				(uint mouseX, uint mouseY);
-	void	setObjectColor		(LDObject* obj, const ListType list);
+	void	calcCameraIcons	();												// Compute geometry for camera icons
+	void	clampAngle			(double& angle) const;							// Clamps an angle to [0, 360]
+	void	compileList			(LDObject* obj, const ListType list);			// Compile one of the lists of an object
+	void	compileSubObject	(LDObject* obj, const GLenum gltype);			// Sub-routine for object compiling
+	void	compileVertex		(const vertex& vrt);							// Compile a single vertex to a list
+	vertex	coordconv2_3		(const QPoint& pos2d, bool snap) const;		// Convert a 2D point to a 3D point
+	QPoint	coordconv3_2		(const vertex& pos3d) const;					// Convert a 3D point to a 2D point
+	void	drawGLScene		() const;										// Paint the GL scene
+	void	pick				(uint mouseX, uint mouseY);					// Perform object selection
+	void	setObjectColor		(LDObject* obj, const ListType list);			// Set the color to an object list
 	
 private slots:
 	void	slot_toolTipTimer	();

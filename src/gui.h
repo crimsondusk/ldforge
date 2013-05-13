@@ -129,7 +129,7 @@ public:
 	void buildObjList ();
 	void setTitle ();
 	void fullRefresh ();
-	void update ();
+	void refresh ();
 	ulong getInsertionPoint ();
 	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
 	void updateToolBars ();
