@@ -1313,7 +1313,28 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	
 	connect (dsb_lwidth, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
 	connect (dsb_lheight, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
+	connect (rb_camera, SIGNAL (valueChanged (int)), this, SLOT (fillDefaults (int)));
+	
 	slot_dimensionsChanged ();
+	fillDefaults (cam);
+}
+
+void OverlayDialog::fillDefaults (int newcam) {
+	overlayMeta& info = g_overlays[newcam];
+	
+	if (info.img != null) {
+		le_fpath->setText (info.fname);
+		sb_ofsx->setValue (info.ox);
+		sb_ofsy->setValue (info.oy);
+		dsb_lwidth->setValue (info.lw);
+		dsb_lheight->setValue (info.lh);
+	} else {
+		le_fpath->setText ("");
+		sb_ofsx->setValue (0);
+		sb_ofsy->setValue (0);
+		dsb_lwidth->setValue (0.0f);
+		dsb_lheight->setValue (0.0f);
+	} 
 }
 	
 str			OverlayDialog::fpath		() const { return le_fpath->text (); }
@@ -1379,6 +1400,7 @@ void GLRenderer::setupOverlay () {
 	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height ();
 	info.v1[x2d] = info.v0[x2d] + info.lw;
 	info.v1[y2d] = info.v0[y2d] + info.lh;
+	info.fname = dlg.fpath ();
 	
 	// Set alpha of all pixels to 0.5
 	for (long i = 0; i < img->width (); ++i)

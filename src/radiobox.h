@@ -93,7 +93,8 @@ public:
 
 signals:
 	void sig_buttonPressed (int btn);
-	void sig_buttonPressed (QAbstractButton* btn);
+	void buttonReleased (int btn);
+	void valueChanged (int val);
 
 private:
 	std::vector<QRadioButton*> m_objects;
@@ -101,14 +102,14 @@ private:
 	QBoxLayout* m_coreLayout;
 	QBoxLayout* m_currentLayout;
 	QBoxLayout::Direction m_dir;
-	int m_curId, m_defId;
+	int m_curId, m_defId, m_oldId;
 	QButtonGroup* m_buttonGroup;
 	
 	Q_DISABLE_COPY (RadioBox)
 
 private slots:
 	void slot_buttonPressed (int btn);
-	void slot_buttonPressed (QAbstractButton* btn);
+	void slot_buttonReleased (int btn);
 };
 
 #endif // RADIOBOX_H

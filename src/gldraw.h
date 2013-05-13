@@ -156,6 +156,7 @@ private slots:
 	void slot_fpath ();
 	void slot_help ();
 	void slot_dimensionsChanged ();
+	void fillDefaults (int newcam);
 };
 
 #endif // GLDRAW_H

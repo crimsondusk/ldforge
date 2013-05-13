@@ -28,7 +28,7 @@ void RadioBox::init (Qt::Orientation orient) {
 	m_dir = makeDirection (orient);
 	
 	m_buttonGroup = new QButtonGroup;
-	m_curId = 0;
+	m_oldId = m_curId = 0;
 	m_coreLayout = null;
 	
 	m_coreLayout = new QBoxLayout (makeDirection (orient, true));
@@ -37,14 +37,15 @@ void RadioBox::init (Qt::Orientation orient) {
 	// Init the first row with a break
 	rowBreak ();
 	
-	connect (m_buttonGroup, SIGNAL (buttonPressed (QAbstractButton*)), this, SLOT (slot_buttonPressed (QAbstractButton*)));
 	connect (m_buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_buttonPressed (int)));
+	connect (m_buttonGroup, SIGNAL (buttonReleased (int)), this, SLOT (slot_buttonReleased (int)));
 }
 
 RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int const defaultId,
 	const Qt::Orientation orient, QWidget* parent) : QGroupBox (title, parent), m_defId (defaultId)
 {
 	init (orient);
+	m_oldId = m_defId;
 	
 	for (char const* entry : entries)
 		addButton (entry);
@@ -90,8 +91,14 @@ void RadioBox::setCurrentRow (uint row) {
 
 void RadioBox::slot_buttonPressed (int btn) {
 	emit sig_buttonPressed (btn);
+	
+	m_oldId = m_buttonGroup->checkedId ();
 }
 
-void RadioBox::slot_buttonPressed (QAbstractButton* btn) {
-	emit sig_buttonPressed (btn);
+void RadioBox::slot_buttonReleased (int btn) {
+	emit buttonReleased (btn);
+	int newid = m_buttonGroup->checkedId ();
+	
+	if (m_oldId != newid)
+		emit valueChanged (newid);
 }
