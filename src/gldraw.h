@@ -21,8 +21,14 @@
 
 #include <QGLWidget>
 #include <qtimer.h>
+#include <qdialog.h>
 #include "common.h"
 #include "ldtypes.h"
+
+class RadioBox;
+class QDoubleSpinBox;
+class QSpinBox;
+class QLineEdit;
 
 // =============================================================================
 // GLRenderer
@@ -52,6 +58,8 @@ public:
 	
 	void		beginPlaneDraw		();
 	Camera		camera				() const { return m_camera; }
+	Axis		cameraAxis			(bool y);
+	void		clearOverlay		();
 	void		compileObject		(LDObject* obj);
 	void		compileAllObjects	();
 	void		endPlaneDraw		(bool accept);
@@ -63,9 +71,8 @@ public:
 	uchar*		screencap			(ushort& w, ushort& h);
 	void		setBackground		();
 	void		setCamera			(const GLRenderer::Camera cam);
+	void		setupOverlay		();
 	void		setZoom				(const double zoom) { m_zoom = zoom; }
-	void		setWireframe		(const bool set);
-	bool		wireframe			() const;
 	double		zoom				() const { return m_zoom; }
 	
 	static void	deleteLists			(LDObject* obj);
@@ -121,6 +128,31 @@ static const GLRenderer::ListType g_glListTypes[] = {
 	GL::PickList,
 	GL::BFCFrontList,
 	GL::BFCBackList,
+};
+
+class OverlayDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	
+	str			fpath		() const;
+	ushort		ofsx		() const;
+	ushort		ofsy		() const;
+	double		lwidth		() const;
+	double		lheight		() const;
+	GL::Camera	camera		() const;
+	
+public slots:
+	void slot_fpath () const;
+	void slot_help () const;
+	
+private:
+	RadioBox* rb_camera;
+	QPushButton* btn_fpath;
+	QLineEdit* le_fpath;
+	QSpinBox* sb_ofsx, *sb_ofsy;
+	QDoubleSpinBox* dsb_lwidth, *dsb_lheight;
 };
 
 #endif // GLDRAW_H

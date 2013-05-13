@@ -16,8 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QtGui>
 #include <QGLWidget>
+#include <qdialog.h>
+#include <qlineedit.h>
+#include <qspinbox.h>
+#include <qdialogbuttonbox.h>
+#include <QFileDialog>
+#include <qevent.h>
 #include <GL/glu.h>
 #include "common.h"
 #include "config.h"
@@ -28,6 +33,8 @@
 #include "gui.h"
 #include "misc.h"
 #include "history.h"
+#include "radiobox.h"
+#include "docs.h"
 
 static double g_objOffset[3];
 
@@ -43,6 +50,14 @@ static const struct staticCameraMeta {
 	{ { 0, 0, 0 }, X, Y, true, true },
 	{ { 0, -1, 0 }, Z, Y, false, true },
 };
+
+struct overlayMeta {
+	vertex v0, v1;
+	ushort ox, oy;
+	double lw, lh;
+	str fname;
+	QImage* img;
+} g_overlays[6];
 
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
@@ -111,6 +126,9 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
 	}
+	
+	for (int i = 0; i < 6; ++i)
+		g_overlays[i].img = null;
 	
 	calcCameraIcons ();
 }
@@ -467,6 +485,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	m_hoverpos = g_origin;
 	
 	if (m_camera != Free) {
+		// Paint the overlay image if we have one
+		const overlayMeta& overlay = g_overlays[m_camera];
+		if (overlay.img != null) {
+			QPoint v0 = coordconv3_2 (g_overlays[m_camera].v0),
+				v1 = coordconv3_2 (g_overlays[m_camera].v1);
+			
+			QRect targRect (v0.x (), v0.y (), abs (v1.x () - v0.x ()), abs (v1.y () - v0.y ())),
+				srcRect (0, 0, overlay.img->width (), overlay.img->height ());
+			paint.drawImage (targRect, *overlay.img, srcRect);
+		}
+		
 		// Calculate 3d position of the cursor
 		m_hoverpos = coordconv2_3 (m_pos, true);
 		
@@ -1205,4 +1234,144 @@ void GLRenderer::slot_toolTipTimer () {
 void GLRenderer::deleteLists (LDObject* obj) {
 	for (const GL::ListType listType : g_glListTypes)
 		glDeleteLists (obj->glLists[listType], 1);
+}
+
+// =============================================================================
+Axis GLRenderer::cameraAxis (bool y) {
+	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	return (y) ? cam->axisY : cam->axisX;
+}
+
+// =============================================================================
+OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	rb_camera = new RadioBox ("Camera", {}, 0, Qt::Horizontal, this);
+	
+	for (int i = 0; i < 6; ++i) {
+		if (i == 3)
+			rb_camera->rowBreak ();
+		
+		rb_camera->addButton (g_CameraNames[i]);
+	}
+	
+	GL::Camera cam = g_win->R ()->camera ();
+	if (cam != GL::Free)
+		rb_camera->setValue ((int) cam);
+	
+	QGroupBox* gb_image = new QGroupBox ("Image", this);
+	
+	QLabel* lb_fpath = new QLabel ("File:");
+	le_fpath = new QLineEdit;
+	le_fpath->setFocus ();
+	
+	QLabel* lb_ofs = new QLabel ("Origin:");
+	btn_fpath = new QPushButton;
+	btn_fpath->setIcon (getIcon ("folder"));
+	connect (btn_fpath, SIGNAL (clicked ()), this, SLOT (slot_fpath ()));
+	
+	sb_ofsx = new QSpinBox;
+	sb_ofsy = new QSpinBox;
+	sb_ofsx->setRange (0, 10000);
+	sb_ofsy->setRange (0, 10000);
+	
+	QLabel* lb_dimens = new QLabel ("Dimensions (LDU):");
+	dsb_lwidth = new QDoubleSpinBox;
+	dsb_lheight = new QDoubleSpinBox;
+	dsb_lwidth->setRange (0.0f, 10000.0f);
+	dsb_lheight->setRange (0.0f, 10000.0f);
+	
+	QDialogButtonBox* bbx_buttons = makeButtonBox (*this);
+	bbx_buttons->addButton (QDialogButtonBox::Help);
+	connect (bbx_buttons, SIGNAL (helpRequested ()), this, SLOT (slot_help()));
+	
+	QHBoxLayout* fpathlayout = new QHBoxLayout;
+	fpathlayout->addWidget (lb_fpath);
+	fpathlayout->addWidget (le_fpath);
+	fpathlayout->addWidget (btn_fpath);
+	
+	QGridLayout* metalayout = new QGridLayout;
+	metalayout->addWidget (lb_ofs,			0, 0);
+	metalayout->addWidget (sb_ofsx,		0, 1);
+	metalayout->addWidget (sb_ofsy,		0, 2);
+	metalayout->addWidget (lb_dimens,		1, 0);
+	metalayout->addWidget (dsb_lwidth,	1, 1);
+	metalayout->addWidget (dsb_lheight,	1, 2);
+	
+	QVBoxLayout* imagelayout = new QVBoxLayout (gb_image);
+	imagelayout->addLayout (fpathlayout);
+	imagelayout->addLayout (metalayout);
+	
+	QVBoxLayout* layout = new QVBoxLayout (this);
+	layout->addWidget (rb_camera);
+	layout->addWidget (gb_image);
+	layout->addWidget (bbx_buttons);
+}
+	
+str			OverlayDialog::fpath		() const { return le_fpath->text (); }
+ushort		OverlayDialog::ofsx		() const { return sb_ofsx->value (); }
+ushort		OverlayDialog::ofsy		() const { return sb_ofsy->value (); }
+double		OverlayDialog::lwidth		() const { return dsb_lwidth->value (); }
+double		OverlayDialog::lheight		() const { return dsb_lheight->value (); }
+GL::Camera	OverlayDialog::camera		() const { return (GL::Camera) rb_camera->value (); }
+
+void OverlayDialog::slot_fpath () const {
+	le_fpath->setText (QFileDialog::getOpenFileName (null, "Overlay image"));
+}
+
+void OverlayDialog::slot_help () const {
+	showDocumentation (g_docs_overlays);
+}
+
+void GLRenderer::setupOverlay () {
+	if (camera () == Free)
+		return;
+	
+	OverlayDialog dlg;
+	
+	if (!dlg.exec ())
+		return;
+	
+	QImage* img = new QImage (dlg.fpath ().chars ());
+	overlayMeta& info = g_overlays[camera ()];
+	
+	if (img->isNull ()) {
+		critical ("Failed to load overlay image!");
+		delete img;
+		return;
+	}
+	
+	delete info.img; // delete the old image
+		
+	info.fname = dlg.fpath ();
+	info.lw = dlg.lwidth ();
+	info.lh = dlg.lheight ();
+	info.ox = dlg.ofsx ();
+	info.oy = dlg.ofsy ();
+	info.img = img;
+	
+	const Axis x2d = cameraAxis (false),
+		y2d = cameraAxis (true);
+	
+	double negXFac = g_staticCameras[m_camera].negX ? -1 : 1,
+		negYFac = g_staticCameras[m_camera].negY ? -1 : 1;
+	
+	info.v0 = info.v1 = g_origin;
+	info.v0[x2d] = -(info.ox * info.lw * negXFac) / img->width ();
+	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height ();
+	info.v1[x2d] = info.v0[x2d] + info.lw;
+	info.v1[y2d] = info.v0[y2d] + info.lh;
+	
+	// Set alpha of all pixels to 0.5
+	for (long i = 0; i < img->width (); ++i)
+	for (long j = 0; j < img->height (); ++j) {
+		uint32 pixel = img->pixel (i, j);
+		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
+	}
+}
+
+void GLRenderer::clearOverlay () {
+	if (camera () == Free)
+		return;
+	
+	overlayMeta& info = g_overlays[camera ()];
+	delete info.img;
 }

@@ -415,7 +415,15 @@ MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/
 }
 
 // =========================================================================================================================================
-MAKE_ACTION (wireframe, "Toggle Wireframe", "wireframe", "Toggle wireframe view", (0)) {
+MAKE_ACTION (wireframe, "Wireframe", "wireframe", "Toggle wireframe view", (0)) {
 	gl_wireframe = !gl_wireframe;
 	g_win->R ()->refresh ();
+}
+
+MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", (0)) {
+	g_win->R ()->setupOverlay ();
+}
+
+MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
+	g_win->R ()->clearOverlay ();
 }

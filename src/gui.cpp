@@ -162,6 +162,9 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("axes");				// Draw Axes
 	addMenuAction ("wireframe");			// Wireframe
 	menu->addSeparator ();					// -----
+	addMenuAction ("setOverlay");			// Set Overlay Image
+	addMenuAction ("clearOverlay");		// Clear Overlay Image
+	menu->addSeparator ();					// -----
 	addMenuAction ("screencap");			// Screencap Part
 	addMenuAction ("showHistory");		// Edit History
 	
@@ -886,6 +889,8 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	if (single)
 		contextMenu->addAction (findAction ("setContents"));
 	contextMenu->addAction (findAction ("makeBorders"));
+	contextMenu->addAction (findAction ("setOverlay"));
+	contextMenu->addAction (findAction ("clearOverlay"));
 	
 	contextMenu->exec (pos);
 }
@@ -975,7 +980,7 @@ QAction* findAction (str name) {
 			return *meta.qAct;
 	
 	fprintf (stderr, "%s: couldn't find action named `%s'!\n", __func__, name.chars ());
-	assert (false);
+	abort ();
 	return null;
 }
 
