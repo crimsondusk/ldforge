@@ -25,6 +25,7 @@
 #include "common.h"
 #include "ldtypes.h"
 
+class QDialogButtonBox;
 class RadioBox;
 class QDoubleSpinBox;
 class QSpinBox;
@@ -143,16 +144,18 @@ public:
 	double		lheight		() const;
 	GL::Camera	camera		() const;
 	
-public slots:
-	void slot_fpath () const;
-	void slot_help () const;
-	
 private:
 	RadioBox* rb_camera;
 	QPushButton* btn_fpath;
 	QLineEdit* le_fpath;
 	QSpinBox* sb_ofsx, *sb_ofsy;
 	QDoubleSpinBox* dsb_lwidth, *dsb_lheight;
+	QDialogButtonBox* dbb_buttons;
+	
+private slots:
+	void slot_fpath ();
+	void slot_help ();
+	void slot_dimensionsChanged ();
 };
 
 #endif // GLDRAW_H

@@ -1272,16 +1272,22 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	sb_ofsy = new QSpinBox;
 	sb_ofsx->setRange (0, 10000);
 	sb_ofsy->setRange (0, 10000);
+	sb_ofsx->setSuffix (" px");
+	sb_ofsy->setSuffix (" px");
 	
-	QLabel* lb_dimens = new QLabel ("Dimensions (LDU):");
+	QLabel* lb_dimens = new QLabel ("Dimensions:");
 	dsb_lwidth = new QDoubleSpinBox;
 	dsb_lheight = new QDoubleSpinBox;
 	dsb_lwidth->setRange (0.0f, 10000.0f);
 	dsb_lheight->setRange (0.0f, 10000.0f);
+	dsb_lwidth->setSuffix (" LDU");
+	dsb_lheight->setSuffix (" LDU");
+	dsb_lwidth->setSpecialValueText ("Automatic");
+	dsb_lheight->setSpecialValueText ("Automatic");
 	
-	QDialogButtonBox* bbx_buttons = makeButtonBox (*this);
-	bbx_buttons->addButton (QDialogButtonBox::Help);
-	connect (bbx_buttons, SIGNAL (helpRequested ()), this, SLOT (slot_help()));
+	dbb_buttons = makeButtonBox (*this);
+	dbb_buttons->addButton (QDialogButtonBox::Help);
+	connect (dbb_buttons, SIGNAL (helpRequested ()), this, SLOT (slot_help()));
 	
 	QHBoxLayout* fpathlayout = new QHBoxLayout;
 	fpathlayout->addWidget (lb_fpath);
@@ -1303,7 +1309,11 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	QVBoxLayout* layout = new QVBoxLayout (this);
 	layout->addWidget (rb_camera);
 	layout->addWidget (gb_image);
-	layout->addWidget (bbx_buttons);
+	layout->addWidget (dbb_buttons);
+	
+	connect (dsb_lwidth, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
+	connect (dsb_lheight, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
+	slot_dimensionsChanged ();
 }
 	
 str			OverlayDialog::fpath		() const { return le_fpath->text (); }
@@ -1313,12 +1323,17 @@ double		OverlayDialog::lwidth		() const { return dsb_lwidth->value (); }
 double		OverlayDialog::lheight		() const { return dsb_lheight->value (); }
 GL::Camera	OverlayDialog::camera		() const { return (GL::Camera) rb_camera->value (); }
 
-void OverlayDialog::slot_fpath () const {
+void OverlayDialog::slot_fpath () {
 	le_fpath->setText (QFileDialog::getOpenFileName (null, "Overlay image"));
 }
 
-void OverlayDialog::slot_help () const {
+void OverlayDialog::slot_help () {
 	showDocumentation (g_docs_overlays);
+}
+
+void OverlayDialog::slot_dimensionsChanged () {
+	bool enable = (dsb_lwidth->value () != 0) || (dsb_lheight->value () != 0);
+	dbb_buttons->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
 void GLRenderer::setupOverlay () {
@@ -1348,6 +1363,11 @@ void GLRenderer::setupOverlay () {
 	info.oy = dlg.ofsy ();
 	info.img = img;
 	
+	if (info.lw == 0)
+		info.lw = (info.lh * img->width ()) / img->height ();
+	else if (info.lh == 0)
+		info.lh = (info.lw * img->height ()) / img->width ();
+	
 	const Axis x2d = cameraAxis (false),
 		y2d = cameraAxis (true);
 	
@@ -1374,4 +1394,5 @@ void GLRenderer::clearOverlay () {
 	
 	overlayMeta& info = g_overlays[camera ()];
 	delete info.img;
+	info.img = null;
 }
