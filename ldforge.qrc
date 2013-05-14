@@ -55,6 +55,7 @@
 	<file>./icons/inline.png</file>
 	<file>./icons/intersector.png</file>
 	<file>./icons/invert.png</file>
+	<file>./icons/isecalc.png</file>
 	<file>./icons/ldforge.ico</file>
 	<file>./icons/ldforge.png</file>
 	<file>./icons/line.png</file>
@@ -77,6 +78,7 @@
 	<file>./icons/radial.png</file>
 	<file>./icons/rectifier.png</file>
 	<file>./icons/redo.png</file>
+	<file>./icons/replace-coords.png</file>
 	<file>./icons/round-coords.png</file>
 	<file>./icons/screencap.png</file>
 	<file>./icons/select-all.png</file>

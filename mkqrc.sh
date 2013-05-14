@@ -13,6 +13,9 @@ for line in $(hg status $FILES |grep "?"); do
 	if [ "$line" != "?" ]; then
 		echo "hg add $line"
 		hg add $line;
+		
+		echo "pngout $line"
+		pngout $line
 	fi
 done
 
