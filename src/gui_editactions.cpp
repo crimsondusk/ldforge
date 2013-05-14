@@ -16,21 +16,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QSpinBox>
+#include <QCheckBox>
+
 #include "gui.h"
 #include "common.h"
 #include "file.h"
 #include "history.h"
 #include "colorSelectDialog.h"
 #include "historyDialog.h"
-#include "setContentsDialog.h"
 #include "misc.h"
 #include "bbox.h"
 #include "radiobox.h"
 #include "extprogs.h"
 #include "checkboxgroup.h"
-#include <qspinbox.h>
-#include <qcheckbox.h>
 #include "gldraw.h"
+#include "dialogs.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -283,7 +284,27 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 		return;
 	
 	LDObject* obj = g_win->sel ()[0];
-	SetContentsDialog::staticDialog (obj);
+	
+	SetContentsDialog dlg;
+	dlg.setObject (obj);
+	if (!dlg.exec ())
+		return;
+	
+	LDObject* oldobj = obj;
+	
+	// Reinterpret it from the text of the input field
+	obj = parseLine (dlg.text ());
+	
+	// Mark down the history now before we perform the replacement (which
+	// destroys the old object)
+	History::addEntry (new EditHistory ({(ulong) oldobj->getIndex (g_curfile)},
+		{oldobj->clone ()}, {obj->clone ()}));
+	
+	oldobj->replace (obj);
+	
+	// Rebuild stuff after this
+	g_win->R ()->compileObject (obj);
+	g_win->refresh ();
 }
 
 // =============================================================================
@@ -658,58 +679,6 @@ MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect pri
 MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", KEY (F5)) {
 	runIntersector ();
 }
-
-// =========================================================================================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =========================================================================================================================================
-static CheckBoxGroup<Axis>* makeAxesBox () {
-	CheckBoxGroup<Axis>* cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
-	cbg_axes->addCheckBox ("X", X);
-	cbg_axes->addCheckBox ("Y", Y);
-	cbg_axes->addCheckBox ("Z", Z);
-	return cbg_axes;
-}
-
-class ReplaceCoordsDialog : public QDialog {
-public:
-	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f) {
-		cbg_axes = makeAxesBox ();
-		
-		lb_search = new QLabel ("Search:");
-		lb_replacement = new QLabel ("Replacement:");
-		
-		dsb_search = new QDoubleSpinBox;
-		dsb_search->setRange (-10000.0f, 10000.0f);
-		
-		dsb_replacement = new QDoubleSpinBox;
-		dsb_replacement->setRange (-10000.0f, 10000.0f);
-		
-		QGridLayout* valueLayout = new QGridLayout;
-		valueLayout->setColumnStretch (1, 1);
-		valueLayout->addWidget (lb_search, 0, 0);
-		valueLayout->addWidget (dsb_search, 0, 1);
-		valueLayout->addWidget (lb_replacement, 1, 0);
-		valueLayout->addWidget (dsb_replacement, 1, 1);
-		
-		QVBoxLayout* layout = new QVBoxLayout;
-		layout->addWidget (cbg_axes);
-		layout->addLayout (valueLayout);
-		layout->addWidget (makeButtonBox (*this));
-		setLayout (layout);
-	}
-	
-	std::vector<Axis> axes () const {
-		return cbg_axes->checkedValues ();
-	}
-	
-	double searchValue () { return dsb_search->value (); }
-	double replacementValue () { return dsb_replacement->value (); }
-	
-private:
-	CheckBoxGroup<Axis>* cbg_axes;
-	QLabel* lb_search, *lb_replacement;
-	QDoubleSpinBox* dsb_search, *dsb_replacement;
-};
 
 // =========================================================================================================================================
 MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {

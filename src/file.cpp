@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <vector>
-#include <stdio.h>
-#include <qmessagebox.h>
+#include <QMessageBox>
 #include <QDir>
 #include "common.h"
 #include "config.h"

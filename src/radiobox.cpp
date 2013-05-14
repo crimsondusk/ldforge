@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qboxlayout.h>
-#include <qradiobutton.h>
+#include <QBoxLayout>
+#include <QRadioButton>
 #include "radiobox.h"
 
 QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false) {

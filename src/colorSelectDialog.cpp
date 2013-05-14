@@ -16,15 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QGraphicsScene>
+#include <QGraphicsView>
+#include <QBoxLayout>
+#include <QGraphicsItem>
+#include <QMouseEvent>
+#include <QScrollBar>
+#include <QEvent>
 #include "common.h"
 #include "gui.h"
-#include <qgraphicsscene.h>
-#include <qgraphicsview.h>
-#include <qicon.h>
-#include <qboxlayout.h>
-#include <qgraphicsitem.h>
-#include <qevent.h>
-#include <qscrollbar.h>
 #include "colorSelectDialog.h"
 #include "colors.h"
 #include "config.h"

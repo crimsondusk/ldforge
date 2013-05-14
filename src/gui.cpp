@@ -16,18 +16,20 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qgridlayout.h>
-#include <qmessagebox.h>
-#include <qevent.h>
-#include <qmenubar.h>
-#include <qstatusbar.h>
-#include <qsplitter.h>
-#include <qlistwidget.h>
-#include <qtoolbutton.h>
-#include <qcombobox.h>
-#include <qdialogbuttonbox.h>
+#include <QGridLayout>
+#include <QMessageBox>
+#include <QEvent>
+#include <QContextMenuEvent>
+#include <QMenuBar>
+#include <QStatusBar>
+#include <QSplitter>
+#include <QListWidget>
+#include <QToolButton>
+#include <QComboBox>
+#include <QDialogButtonBox>
 #include <QToolBar>
-#include <qcoreapplication.h>
+#include <QCoreApplication>
+
 #include "common.h"
 #include "gldraw.h"
 #include "gui.h"
@@ -36,6 +38,7 @@
 #include "misc.h"
 #include "colors.h"
 #include "history.h"
+#include "checkboxgroup.h"
 #include "config.h"
 
 vector<actionmeta> g_ActionMeta;
@@ -82,7 +85,7 @@ ForgeWindow::ForgeWindow () {
 	setMinimumSize (320, 200);
 	resize (800, 600);
 	
-	connect (QCoreApplication::instance (), SIGNAL (aboutToQuit ()), this, SLOT (slot_lastSecondCleanup ()));
+	connect (qApp, SIGNAL (aboutToQuit ()), this, SLOT (slot_lastSecondCleanup ()));
 }
 
 // =============================================================================
@@ -1038,4 +1041,12 @@ QDialogButtonBox* makeButtonBox (QDialog& dlg) {
 	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), &dlg, SLOT (accept ()));
 	QWidget::connect (bbx_buttons, SIGNAL (rejected ()), &dlg, SLOT (reject ()));
 	return bbx_buttons;
+}
+
+CheckBoxGroup<Axis>* makeAxesBox () {
+	CheckBoxGroup<Axis>* cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
+	cbg_axes->addCheckBox ("X", X);
+	cbg_axes->addCheckBox ("Y", Y);
+	cbg_axes->addCheckBox ("Z", Z);
+	return cbg_axes;
 }

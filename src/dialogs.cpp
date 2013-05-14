@@ -29,6 +29,7 @@
 #include "gui.h"
 #include "gldraw.h"
 #include "docs.h"
+#include "checkboxgroup.h"
 #include "dialogs.h"
 
 // =============================================================================
@@ -144,4 +145,90 @@ void OverlayDialog::slot_help () {
 void OverlayDialog::slot_dimensionsChanged () {
 	bool enable = (dsb_lwidth->value () != 0) || (dsb_lheight->value () != 0);
 	dbb_buttons->button (QDialogButtonBox::Ok)->setEnabled (enable);
+}
+
+ReplaceCoordsDialog::ReplaceCoordsDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	cbg_axes = makeAxesBox ();
+	
+	lb_search = new QLabel ("Search:");
+	lb_replacement = new QLabel ("Replacement:");
+	
+	dsb_search = new QDoubleSpinBox;
+	dsb_search->setRange (-10000.0f, 10000.0f);
+	
+	dsb_replacement = new QDoubleSpinBox;
+	dsb_replacement->setRange (-10000.0f, 10000.0f);
+	
+	QGridLayout* valueLayout = new QGridLayout;
+	valueLayout->setColumnStretch (1, 1);
+	valueLayout->addWidget (lb_search, 0, 0);
+	valueLayout->addWidget (dsb_search, 0, 1);
+	valueLayout->addWidget (lb_replacement, 1, 0);
+	valueLayout->addWidget (dsb_replacement, 1, 1);
+	
+	QVBoxLayout* layout = new QVBoxLayout;
+	layout->addWidget (cbg_axes);
+	layout->addLayout (valueLayout);
+	layout->addWidget (makeButtonBox (*this));
+	setLayout (layout);
+}
+
+double ReplaceCoordsDialog::searchValue() const {
+	return dsb_search->value ();
+}
+
+double ReplaceCoordsDialog::replacementValue() const {
+	return dsb_replacement->value ();
+}
+
+vector<Axis> ReplaceCoordsDialog::axes() const {
+	return cbg_axes->checkedValues ();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	setWindowTitle (APPNAME ": Set Contents");
+	
+	lb_error = new QLabel;
+	lb_errorIcon = new QLabel;
+	lb_contents = new QLabel ("Set contents:", parent);
+	
+	le_contents = new QLineEdit (parent);
+	le_contents->setWhatsThis ("The LDraw code of this object. The code written "
+		"here is expected to be valid LDraw code, invalid code here results "
+		"the object being turned into an error object. Please do refer to the "
+		"<a href=\"http://www.ldraw.org/article/218.html\">official file format "
+		"standard</a> for further information.");
+	le_contents->setMinimumWidth (384);
+	
+	QHBoxLayout* bottomRow = new QHBoxLayout;
+	bottomRow->addWidget (lb_errorIcon);
+	bottomRow->addWidget (lb_error);
+	bottomRow->addWidget (makeButtonBox (*this));
+	
+	QVBoxLayout* layout = new QVBoxLayout (this);
+	layout->addWidget (lb_contents);
+	layout->addWidget (le_contents);
+	layout->addLayout (bottomRow);
+	
+	setWindowTitle ("Set Contents");
+	setWindowIcon (getIcon ("set-contents"));
+}
+
+void SetContentsDialog::setObject (LDObject* obj) {
+	le_contents->setText (obj->getContents ().chars());
+	
+	if (obj->getType() == LDObject::Gibberish) {
+		lb_error->setText (fmt ("<span style=\"color: #900\">%s</span>",
+			static_cast<LDGibberish*> (obj)->reason.chars()));
+		
+		QPixmap errorPixmap = getIcon ("error").scaledToHeight (16);
+		lb_errorIcon->setPixmap (errorPixmap);
+	}
+}
+
+str SetContentsDialog::text () const {
+	return le_contents->text ();
 }

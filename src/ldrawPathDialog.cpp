@@ -16,9 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qlineedit.h>
-#include <qpushbutton.h>
-#include <qdialogbuttonbox.h>
+#include <QLineEdit>
+#include <QPushButton>
+#include <QDialogButtonBox>
 #include <QFileDialog>
 #include <QBoxLayout>
 #include <QLabel>

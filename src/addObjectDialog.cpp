@@ -31,7 +31,6 @@
 #include "colors.h"
 #include "colorSelectDialog.h"
 #include "history.h"
-#include "setContentsDialog.h"
 #include "radiobox.h"
 
 #define APPLY_COORDS(OBJ, N) \
@@ -368,11 +367,8 @@ template<class T> T* initObj (LDObject*& obj) {
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	setlocale (LC_ALL, "C");
 	
-	// Redirect editing of gibberish to the set contents dialog
-	if (obj && obj->getType () == LDObject::Gibberish) {
-		SetContentsDialog::staticDialog (obj);
+	if (obj && obj->getType () == LDObject::Gibberish)
 		return;
-	}
 	
 	if (type == LDObject::Empty)
 		return; // Nothing to edit with empties
