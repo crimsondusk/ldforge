@@ -16,6 +16,7 @@ RECOMMENDED:
 		any recompiling and will probably be a lot faster.
 
 DONE:
+	- [Plane draw] Get the thing working for non-top cameras.
 
 -----------------------------
 -- Alpha 2
@@ -25,7 +26,6 @@ REQUIRED:
 
 RECOMMENDED:
 	- [Plane draw] Option support: rectangle, line loop, circle, ellipse?, disc
-	- [Plane draw] Get the thing working for non-top cameras.
 	- [Viewport] Vertex drawing and selection, if possible..
 	- [Color selector] Rewrite the viewport, don't use QPen for color edges!
 
@@ -36,7 +36,6 @@ SUGGESTED:
 -- Stable 1.0
 
 REQUIRED:
-	- [Plane draw] Get the thing working for non-top cameras.
 	- Anything that crashes the thing has to be obviously fixed.
 
 SUGGESTED:

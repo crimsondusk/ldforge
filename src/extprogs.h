@@ -27,12 +27,12 @@ enum extprog {
 	Coverer,
 	Ytruder,
 	Rectifier,
-	DATHeader
 };
 
 void runYtruder ();
 void runRectifier ();
 void runIntersector ();
 void runCoverer ();
+void runIsecalc ();
 
 #endif // EXTPROGS_H

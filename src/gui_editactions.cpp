@@ -684,6 +684,10 @@ MAKE_ACTION (coverer, "Coverer", "coverer", "Fill the space between two line sha
 	runCoverer ();
 }
 
+MAKE_ACTION (isecalc, "Isecalc", "isecalc", "Compute intersection between objects", (0)) {
+	runIsecalc ();
+}
+
 // =========================================================================================================================================
 MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
 	ReplaceCoordsDialog dlg;

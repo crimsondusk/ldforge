@@ -40,7 +40,6 @@ cfg (str, prog_isecalc, "");
 cfg (str, prog_intersector, "");
 cfg (str, prog_coverer, "");
 cfg (str, prog_ytruder, "");
-cfg (str, prog_datheader, "");
 cfg (str, prog_rectifier, "");
 
 const char* g_extProgNames[] = {
@@ -49,7 +48,6 @@ const char* g_extProgNames[] = {
 	"Coverer",
 	"Ytruder",
 	"Rectifier",
-	"DATHeader",
 };
 
 // =============================================================================
@@ -527,5 +525,47 @@ exec:
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);
 	runUtilityProcess (Coverer, prog_coverer, argv);
+	insertOutput (outDATName, false, {});
+}
+
+void runIsecalc () {
+	setlocale (LC_ALL, "C");
+	
+	if (!checkProgPath (prog_isecalc, Isecalc))
+		return;
+	
+	QDialog dlg;
+	
+	LabeledWidget<QComboBox>* cmb_col1 = buildColorSelector ("Shape 1"),
+		*cmb_col2 = buildColorSelector ("Shape 2");
+	
+	QVBoxLayout* layout = new QVBoxLayout (&dlg);
+	layout->addWidget (cmb_col1);
+	layout->addWidget (cmb_col2);
+	layout->addWidget (makeButtonBox (dlg));
+	
+exec:
+	if (!dlg.exec ())
+		return;
+	
+	const short in1Col = cmb_col1->w ()->itemData (cmb_col1->w ()->currentIndex ()).toInt (),
+		in2Col = cmb_col1->w ()->itemData (cmb_col2->w ()->currentIndex ()).toInt ();
+	
+	if (in1Col == in2Col) {
+		critical ("Cannot use the same color group for both input and cutter!");
+		goto exec;
+	}
+	
+	QTemporaryFile in1dat, in2dat, outdat;
+	str in1DATName, in2DATName, outDATName;
+	
+	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
+		return;
+	
+	str argv = fmt ("%s %s %s", in1DATName.c (), in2DATName.c (), outDATName.c ());
+	
+	writeColorGroup (in1Col, in1DATName);
+	writeColorGroup (in2Col, in2DATName);
+	runUtilityProcess (Isecalc, prog_isecalc, argv);
 	insertOutput (outDATName, false, {});
 }

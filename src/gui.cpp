@@ -246,6 +246,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("ytruder");
 	addMenuAction ("rectifier");
 	addMenuAction ("intersector");
+	addMenuAction ("isecalc");
 	addMenuAction ("coverer");
 	
 	// Help menu
@@ -395,6 +396,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("ytruder");
 	addToolBarAction ("rectifier");
 	addToolBarAction ("intersector");
+	addToolBarAction ("isecalc");
 	addToolBarAction ("coverer");
 	updateToolBars ();
 }
