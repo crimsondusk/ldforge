@@ -54,6 +54,11 @@ extern_cfg (str, gl_maincolor);
 extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (bool, gl_wireframe);
 
+const char* g_modeActionNames[] = {
+	"modeSelect",
+	"modeDraw"
+};
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -115,9 +120,11 @@ void ForgeWindow::createMenuActions () {
 	
 	findAction ("axes")->setCheckable (true);
 	findAction ("axes")->setChecked (gl_axes);
-	
+
 	findAction ("wireframe")->setCheckable (true);
 	findAction ("wireframe")->setChecked (gl_wireframe);
+	
+	updateEditModeActions ();
 	
 	// things not implemented yet
 	findAction ("help")->setEnabled (false);
@@ -187,7 +194,8 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("newVertex");			// New Vertex
 	addMenuAction ("newRadial");			// New Radial
 	menu->addSeparator ();					// -----
-	addMenuAction ("draw");				// Draw Mode
+	addMenuAction ("modeSelect");			// Select Mode
+	addMenuAction ("modeDraw");			// Draw Mode
 	
 	// Edit menu
 	initMenu ("&Edit");
@@ -256,7 +264,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("about");				// About
 	addMenuAction ("aboutQt");				// About Qt
 }
-
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -373,8 +380,6 @@ void ForgeWindow::createToolbars () {
 	addToolBar (Qt::RightToolBarArea, m_colorToolBar);
 	
 	// ==========================================
-	// Left area toolbars
-	//g_ToolBarArea = Qt::LeftToolBarArea;
 	initSingleToolBar ("Tools");
 	addToolBarAction ("setColor");
 	addToolBarAction ("invert");
@@ -398,6 +403,13 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("intersector");
 	addToolBarAction ("isecalc");
 	addToolBarAction ("coverer");
+	
+	// ==========================================
+	g_ToolBarArea = Qt::LeftToolBarArea;
+	initSingleToolBar ("Modes");
+	addToolBarAction ("modeSelect");
+	addToolBarAction ("modeDraw");
+	
 	updateToolBars ();
 }
 
@@ -703,21 +715,25 @@ void ForgeWindow::slot_selectionChanged () {
 	const QList<QListWidgetItem*> items = m_objList->selectedItems ();
 	
 	for (LDObject* obj : g_curfile->m_objs)
-	for (QListWidgetItem* qItem : items) {
-		if (qItem == obj->qObjListEntry) {
+	for (QListWidgetItem* item : items) {
+		if (item == obj->qObjListEntry) {
 			m_sel.push_back (obj);
 			break;
 		}
 	}
 	
 	// Update the GL renderer
-	for (LDObject* obj : m_sel)
+	for (LDObject* obj : m_sel) {
+		printf ("recompile %lu\n", obj->getIndex (g_curfile));
 		m_renderer->compileObject (obj);
+	}
 	
-	for (LDObject* obj : priorSelection)
+	for (LDObject* obj : priorSelection) {
+		printf ("recompile %lu\n", obj->getIndex (g_curfile));
 		m_renderer->compileObject (obj);
+	}
 	
-	m_renderer->refresh ();
+	m_renderer->update ();
 }
 
 // =============================================================================
@@ -936,6 +952,22 @@ DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 	}
 	
 	return deleteObjVector (objs);
+}
+
+// ========================================================================================================================================
+void ForgeWindow::updateEditModeActions () {
+	const GL::EditMode mode = R ()->editMode ();
+	const size_t numModeActions = (sizeof g_modeActionNames / sizeof *g_modeActionNames);
+	assert ((size_t) mode < numModeActions);
+	
+	for (size_t i = 0; i < numModeActions; ++i) {
+		QAction* act = findAction (g_modeActionNames[i]);
+		
+		act->setCheckable (true);
+		act->setChecked (i == (size_t) mode);
+	}
+	
+	findAction ("modeDraw")->setEnabled (R ()->camera () != GL::Free);
 }
 
 // ========================================================================================================================================

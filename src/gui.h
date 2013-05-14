@@ -131,6 +131,7 @@ public:
 	void updateRecentFilesMenu ();
 	void updateSelection ();
 	void updateGridToolBar ();
+	void updateEditModeActions ();
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
 	LDObject::Type uniformSelectedType ();

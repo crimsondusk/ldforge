@@ -36,7 +36,6 @@
 	<file>./icons/cut.png</file>
 	<file>./icons/delete.png</file>
 	<file>./icons/del-line.png</file>
-	<file>./icons/draw.png</file>
 	<file>./icons/empty.png</file>
 	<file>./icons/error.png</file>
 	<file>./icons/exit.png</file>
@@ -61,6 +60,8 @@
 	<file>./icons/line.png</file>
 	<file>./icons/mail.png</file>
 	<file>./icons/make-borders.png</file>
+	<file>./icons/mode-draw.png</file>
+	<file>./icons/mode-select.png</file>
 	<file>./icons/move-x-neg.png</file>
 	<file>./icons/move-x-pos.png</file>
 	<file>./icons/move-y-neg.png</file>

@@ -42,16 +42,8 @@ class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
 public:
-	enum Camera {
-		Top,
-		Front,
-		Left,
-		Bottom,
-		Back,
-		Right,
-		Free
-	};
-	
+	enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
+	enum EditMode { Select, Draw };
 	enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 	
 	GLRenderer (QWidget* parent = null);
@@ -63,7 +55,8 @@ public:
 	void		clearOverlay		();
 	void		compileObject		(LDObject* obj);
 	void		compileAllObjects	();
-	void		endPlaneDraw		(bool accept);
+	EditMode	editMode			() const { return m_editmode; }
+	void		endDraw		(bool accept);
 	QColor		getMainColor		();
 	void		hardRefresh		();
 	bool		picking				() const { return m_picking; }
@@ -71,7 +64,8 @@ public:
 	void		resetAngles		();
 	uchar*		screencap			(ushort& w, ushort& h);
 	void		setBackground		();
-	void		setCamera			(const GLRenderer::Camera cam);
+	void		setCamera			(const Camera cam);
+	void		setEditMode		(const EditMode mode);
 	void		setupOverlay		();
 	void		setZoom				(const double zoom) { m_zoom = zoom; }
 	double		zoom				() const { return m_zoom; }
@@ -98,13 +92,14 @@ private:
 	ulong m_totalmove;
 	vertex m_hoverpos;
 	double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY, m_zoom;
-	bool m_darkbg, m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap, m_planeDraw;
+	bool m_darkbg, m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
 	QPoint m_pos, m_rangeStart;
 	QPen m_thinBorderPen, m_thickBorderPen;
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
 	ushort m_width, m_height;
-	std::vector<vertex> m_planeDrawVerts;
+	std::vector<vertex> m_drawedVerts;
+	EditMode m_editmode;
 	
 	void	calcCameraIcons	();												// Compute geometry for camera icons
 	void	clampAngle			(double& angle) const;							// Clamps an angle to [0, 360]

@@ -106,6 +106,27 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
+void writeObjects (std::vector<LDObject*>& objects, FILE* fp) {
+	for (LDObject* obj : objects) {
+		if (obj->getType () == LDObject::Subfile) {
+			vector<LDObject*> objs = static_cast<LDSubfile*> (obj)->inlineContents (true, false);
+			
+			writeObjects (objs, fp);
+			for (LDObject* obj : objs)
+				delete obj;
+		} else if (obj->getType () == LDObject::Radial) {
+			vector<LDObject*> objs = static_cast<LDRadial*> (obj)->decompose (true);
+			
+			writeObjects (objs, fp);
+			for (LDObject* obj : objs)
+				delete obj;
+		} else {
+			str line = fmt ("%s\r\n", obj->getContents ().chars ());
+			fwrite (line.chars(), 1, ~line, fp);
+		}
+	}
+}
+
 void writeObjects (std::vector<LDObject*>& objects, str fname) {
 	// Write the input file
 	FILE* fp = fopen (fname, "w");
@@ -114,10 +135,7 @@ void writeObjects (std::vector<LDObject*>& objects, str fname) {
 		return;
 	}
 	
-	for (LDObject* obj : objects) {
-		str line = fmt ("%s\r\n", obj->getContents ().chars ());
-		fwrite (line.chars(), 1, ~line, fp);
-	}
+	writeObjects (objects, fp);
 	
 #ifndef RELEASE
 	ushort idx = rand ();

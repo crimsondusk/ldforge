@@ -98,7 +98,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_picking = m_rangepick = false;
 	m_camera = (GL::Camera) gl_camera.value;
 	m_drawToolTip = false;
-	m_planeDraw = false;
+	m_editmode = Select;
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -501,16 +501,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		paint.drawText (m_width - textSize.width (), m_height - 16, textSize.width (),
 			textSize.height (), Qt::AlignCenter, text);
 		
-		// If we're plane drawing, draw the vertices onto the screen.
-		if (m_planeDraw) {
-			ushort numverts = m_planeDrawVerts.size () + 1;
+		// If we're drawing, draw the vertices onto the screen.
+		if (m_editmode == Draw) {
+			ushort numverts = m_drawedVerts.size () + 1;
 			const short blipsize = 8;
 			
 			if (numverts > 0) {
 				QPoint* poly = new QPoint[numverts];
 				
 				uchar i = 0;
-				for (vertex& vert : m_planeDrawVerts) {
+				for (vertex& vert : m_drawedVerts) {
 					poly[i] = coordconv3_2 (vert);
 					++i;
 				}
@@ -541,7 +541,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	}
 	
 	// Camera icons
-	if (!m_picking && m_planeDraw == false) {
+	if (!m_picking && m_editmode == Select) {
 		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
@@ -712,7 +712,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 				g_glInvert = !g_glInvert;
 			
 			LDObject* prev = ref->prev ();
-			if (prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+			if (prev && prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 			
 			for (LDObject* obj : objs) {
@@ -734,7 +734,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 				g_glInvert = !g_glInvert;
 			
 			LDObject* prev = rad->prev ();
-			if (prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+			if (prev && prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 			
 			for (LDObject* obj : objs) {
@@ -813,22 +813,22 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
 	
 	if (wasLeft) {
-		if (m_planeDraw) {
+		if (m_editmode == Draw) {
 			// If we have 4 verts, stop drawing.
-			if (m_planeDrawVerts.size () >= 4) {
-				endPlaneDraw (true);
+			if (m_drawedVerts.size () >= 4) {
+				endDraw (true);
 				return;
 			}
 			
 			// If we picked an already-existing vertex, stop drawing
-			for (vertex& vert : m_planeDrawVerts) {
+			for (vertex& vert : m_drawedVerts) {
 				if (vert == m_hoverpos) {
-					endPlaneDraw (true);
+					endDraw (true);
 					return;
 				}
 			}
 			
-			m_planeDrawVerts.push_back (m_hoverpos);
+			m_drawedVerts.push_back (m_hoverpos);
 			
 			update ();
 			return;
@@ -845,13 +845,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		return;
 	}
 	
-	if (wasRight && m_planeDraw) {
-		if (m_planeDrawVerts.size () > 0) {
+	if (wasRight && m_editmode == Draw) {
+		if (m_drawedVerts.size () > 0) {
 			// Remove the last vertex
-			m_planeDrawVerts.erase (m_planeDrawVerts.end () - 1);
-		} else {
-			endPlaneDraw (false);
-			return;
+			m_drawedVerts.erase (m_drawedVerts.end () - 1);
 		}
 		
 		update ();
@@ -942,6 +939,7 @@ void GLRenderer::contextMenuEvent (QContextMenuEvent* ev) {
 void GLRenderer::setCamera (const GL::Camera cam) {
 	m_camera = cam;
 	gl_camera = (int) cam;
+	g_win->updateEditModeActions ();
 }
 
 // =============================================================================
@@ -1088,32 +1086,44 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 }
 
 // =============================================================================
-void GLRenderer::beginPlaneDraw () {
-	if (m_camera == Free)
-		return; // Cannot draw with the free camera
+void GLRenderer::setEditMode (EditMode mode) {
+	switch (mode) {
+	case Select:
+		unsetCursor ();
+		setContextMenuPolicy (Qt::DefaultContextMenu);
+		break;
 	
-	m_planeDraw = true;
+	case Draw:
+		if (m_camera == Free)
+			return; // Cannot draw with the free camera
+		
+		// Disable the context menu - we need the right mouse button
+		// for removing vertices.
+		setContextMenuPolicy (Qt::NoContextMenu);
+		
+		// Use the crosshair cursor when drawing.
+		setCursor (Qt::CrossCursor);
+		
+		// Clear the selection when beginning to draw.
+		// FIXME: make the selection clearing stuff in ::pick a method and use it
+		// here! This code doesn't update the GL lists.
+		g_win->sel ().clear ();
+		g_win->updateSelection ();
+		m_drawedVerts.clear ();
+		break;
+	}
 	
-	// Disable the context menu - we need the right mouse button
-	// for removing vertices.
-	setContextMenuPolicy (Qt::NoContextMenu);
+	m_editmode = mode;
 	
-	// Use the crosshair cursor when plane drawing.
-	setCursor (Qt::CrossCursor);
-	
-	// Clear the selection when beginning to draw onto a plane.
-	// FIXME: make the selection clearing stuff in ::pick a method and use it
-	// here! This code doesn't update the GL lists.
-	g_win->sel ().clear ();
-	g_win->updateSelection ();
+	g_win->updateEditModeActions ();
 	update ();
 }
 
 // =============================================================================
-void GLRenderer::endPlaneDraw (bool accept) {
+void GLRenderer::endDraw (bool accept) {
 	// If we accepted, clean the selection and create the object
 	if (accept) {
-		vector<vertex>& verts = m_planeDrawVerts;
+		vector<vertex>& verts = m_drawedVerts;
 		LDObject* obj = null;
 		
 		switch (verts.size ()) {
@@ -1159,15 +1169,7 @@ void GLRenderer::endPlaneDraw (bool accept) {
 		}
 	}
 	
-	m_planeDraw = false;
-	m_planeDrawVerts.clear ();
-	
-	unsetCursor ();
-	
-	// Restore the context menu
-	setContextMenuPolicy (Qt::DefaultContextMenu);
-	
-	update ();
+	m_drawedVerts.clear ();
 }
 
 // =============================================================================

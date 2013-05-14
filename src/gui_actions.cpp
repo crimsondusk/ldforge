@@ -261,17 +261,17 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", CTRL (1)) {
+MAKE_ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", (0)) {
 	grid = Grid::Coarse;
 	g_win->updateGridToolBar ();
 }
 
-MAKE_ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", CTRL (2)) {
+MAKE_ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", (0)) {
 	grid = Grid::Medium;
 	g_win->updateGridToolBar ();
 }
 
-MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", CTRL (3)) {
+MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", (0)) {
 	grid = Grid::Fine;
 	g_win->updateGridToolBar ();
 }
@@ -397,11 +397,6 @@ MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
 }
 
 // =========================================================================================================================================
-MAKE_ACTION (draw, "Draw Mode", "draw", "Begin drawing geometry", KEY (Insert)) {
-	g_win->R ()->beginPlaneDraw ();
-}
-
-// =========================================================================================================================================
 MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/hiding on objects.", (0)) {
 	for (LDObject* obj : g_win->sel ())
 		obj->setHidden (!obj->hidden ());
@@ -421,4 +416,13 @@ MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image",
 
 MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
 	g_win->R ()->clearOverlay ();
+}
+
+// =========================================================================================================================================
+MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the camera view.", CTRL (1)) {
+	g_win->R ()->setEditMode (GL::Select);
+}
+
+MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera view.", CTRL (2)) {
+	g_win->R ()->setEditMode (GL::Draw);
 }
