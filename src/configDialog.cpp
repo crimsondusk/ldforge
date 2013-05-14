@@ -16,12 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qgridlayout.h>
-#include <qfiledialog.h>
-#include <qcolordialog.h>
-#include <qboxlayout.h>
-#include <qevent.h>
-#include <qgroupbox.h>
+#include <QGridLayout>
+#include <QFileDialog>
+#include <QColorDialog>
+#include <QBoxLayout>
+#include <QKeyEvent>
+#include <QGroupBox>
+
 #include "common.h"
 #include "configDialog.h"
 #include "file.h"
@@ -758,11 +759,14 @@ bool KeySequenceDialog::staticDialog (actionmeta& meta, QWidget* parent) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void KeySequenceDialog::updateOutput () {
-	str zShortcut = seq.toString ();
+	str shortcut = seq.toString ();
 	
-	str zText = fmt ("<center><b>%s</b></center>", zShortcut.chars ());
+	if (seq == QKeySequence ())
+		shortcut = "&lt;empty&gt;";
 	
-	lb_output->setText (zText);
+	str text = fmt ("<center><b>%s</b></center>", shortcut.chars ());
+	
+	lb_output->setText (text);
 }
 
 // =============================================================================

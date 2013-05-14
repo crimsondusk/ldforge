@@ -19,12 +19,12 @@
 #ifndef COLORSELECTOR_H
 #define COLORSELECTOR_H
 
-#include <qdialog.h>
-#include <qdialogbuttonbox.h>
-#include <qgraphicsscene.h>
-#include <qlabel.h>
+#include <QDialog>
 #include "common.h"
 
+class QLabel;
+class QGraphicsView;
+class QGraphicsScene;
 class ColorSelectDialog : public QDialog {
 	Q_OBJECT
 	
@@ -35,7 +35,6 @@ public:
 	QGraphicsScene* gs_scene;
 	QGraphicsView* gv_view;
 	QLabel* lb_colorInfo;
-	QDialogButtonBox* bbx_buttons;
 	short selColor;
 	
 private:

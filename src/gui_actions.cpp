@@ -20,6 +20,8 @@
 #include <QMessageBox>
 #include <QTextEdit>
 #include <QBoxLayout>
+#include <QDialogButtonBox>
+#include <QPushButton>
 
 #include "gui.h"
 #include "file.h"

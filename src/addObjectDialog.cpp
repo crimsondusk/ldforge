@@ -31,7 +31,7 @@
 #include "colors.h"
 #include "colorSelectDialog.h"
 #include "history.h"
-#include "radiobox.h"
+#include "widgets.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) \
@@ -87,7 +87,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
 		for (int i = 0; i < LDBFC::NumStatements; ++i)
-			rb_bfcType->addButton (new QRadioButton (LDBFC::statements[i]));
+			rb_bfcType->addButton (LDBFC::statements[i]);
 		
 		if (obj)
 			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->type);
@@ -161,10 +161,10 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			if (i % (LDRadial::NumTypes / 2) == 0)
 				rb_radType->rowBreak ();
 			
-			rb_radType->addButton (new QRadioButton (LDRadial::radialTypeName ((LDRadial::Type) i)));
+			rb_radType->addButton (LDRadial::radialTypeName ((LDRadial::Type) i));
 		}
 		
-		connect (rb_radType, SIGNAL (sig_buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
+		connect (rb_radType, SIGNAL (buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
 		
 		cb_radHiRes = new QCheckBox ("Hi-Res");
 		

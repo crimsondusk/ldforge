@@ -16,21 +16,21 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qprocess.h>
-#include <qtemporaryfile.h>
-#include <qeventloop.h>
-#include <qdialog.h>
-#include <qdialogbuttonbox.h>
-#include <qspinbox.h>
-#include <qcheckbox.h>
-#include <qcombobox.h>
+#include <QProcess>
+#include <QTemporaryFile>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QSpinBox>
+#include <QCheckBox>
+#include <QComboBox>
+
 #include "common.h"
 #include "config.h"
 #include "misc.h"
 #include "extprogs.h"
 #include "gui.h"
 #include "file.h"
-#include "radiobox.h"
+#include "widgets.h"
 #include "history.h"
 #include "labeledwidget.h"
 

@@ -22,7 +22,9 @@
 #include <QGraphicsItem>
 #include <QMouseEvent>
 #include <QScrollBar>
-#include <QEvent>
+#include <QLabel>
+#include <QDialogButtonBox>
+
 #include "common.h"
 #include "gui.h"
 #include "colorSelectDialog.h"
@@ -30,12 +32,12 @@
 #include "config.h"
 #include "misc.h"
 
-static const short g_dNumColumns = 8;
-static const short g_dNumRows = 10;
-static const short g_dSquareSize = 32;
-static const long g_lWidth = (g_dNumColumns * g_dSquareSize);
-static const long g_lHeight = (g_dNumRows * g_dSquareSize);
-static const long g_lMaxHeight = ((MAX_COLORS / g_dNumColumns) * g_dSquareSize);
+static const short g_numCols = 8;
+static const short g_numRows = 10;
+static const short g_squareSize = 32;
+static const long g_width = (g_numCols * g_squareSize);
+static const long g_height = (g_numRows * g_squareSize);
+static const long g_maxHeight = ((MAX_COLORS / g_numCols) * g_squareSize);
 
 extern_cfg (str, gl_maincolor);
 extern_cfg (float, gl_maincolor_alpha);
@@ -55,36 +57,34 @@ ColorSelectDialog::ColorSelectDialog (short int defval, QWidget* parent) : QDial
 	// not really an icon but eh
 	gs_scene->setBackgroundBrush (getIcon ("checkerboard"));
 	
-	gs_scene->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
-	gv_view->setSceneRect (0, 0, g_lWidth, g_lMaxHeight);
+	gs_scene->setSceneRect (0, 0, g_width, g_maxHeight);
+	gv_view->setSceneRect (0, 0, g_width, g_maxHeight);
 	
 	drawScene ();
 	
-	IMPLEMENT_DIALOG_BUTTONS
-	
 	// Set the size of the view
-	const long lWidth = g_lWidth + 21; // HACK
-	gv_view->setMaximumWidth (lWidth);
-	gv_view->setMinimumWidth (lWidth);
-	gv_view->setMaximumHeight (g_lHeight);
-	gv_view->setMinimumHeight (g_lHeight);
+	const long viewWidth = g_width + 21; // HACK: 21 for scrollbar
+	gv_view->setMaximumWidth (viewWidth);
+	gv_view->setMinimumWidth (viewWidth);
+	gv_view->setMaximumHeight (g_height);
+	gv_view->setMinimumHeight (g_height);
 	gv_view->setHorizontalScrollBarPolicy (Qt::ScrollBarAlwaysOff);
 	
 	// If we have a default color selected, scroll down so that it is visible.
-	// TODO: find a better way to do this
-	if (defval >= ((g_dNumColumns * g_dNumRows) - 2)) {
-		ulong ulNewY = ((defval / g_dNumColumns) - 3) * g_dSquareSize;
+	// HACK: find a better way to do this
+	if (defval >= ((g_numCols * g_numRows) - 2)) {
+		ulong ulNewY = ((defval / g_numCols) - 3) * g_squareSize;
 		gv_view->verticalScrollBar ()->setSliderPosition (ulNewY);
 	}
 	
 	lb_colorInfo = new QLabel;
 	drawColorInfo ();
 	
-	QVBoxLayout* qLayout = new QVBoxLayout;
-	qLayout->addWidget (gv_view);
-	qLayout->addWidget (lb_colorInfo);
-	qLayout->addWidget (bbx_buttons);
-	setLayout (qLayout);
+	QVBoxLayout* layout = new QVBoxLayout;
+	layout->addWidget (gv_view);
+	layout->addWidget (lb_colorInfo);
+	layout->addWidget (makeButtonBox (*this));
+	setLayout (layout);
 	
 	setWindowIcon (getIcon ("palette"));
 	setWindowTitle (APPNAME);
@@ -94,8 +94,8 @@ ColorSelectDialog::ColorSelectDialog (short int defval, QWidget* parent) : QDial
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ColorSelectDialog::drawScene () {
-	const double fPenWidth = 1.0f;
-	QPen qPen (Qt::black, fPenWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	const double penWidth = 1.0f;
+	QPen pen (Qt::black, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	
 	// Draw the color rectangles.
 	gs_scene->clear ();
@@ -104,9 +104,9 @@ void ColorSelectDialog::drawScene () {
 		if (!meta)
 			continue;
 		
-		const double x = (i % g_dNumColumns) * g_dSquareSize;
-		const double y = (i / g_dNumColumns) * g_dSquareSize;
-		const double w = (g_dSquareSize) - (fPenWidth / 2);
+		const double x = (i % g_numCols) * g_squareSize;
+		const double y = (i / g_numCols) * g_squareSize;
+		const double w = (g_squareSize) - (penWidth / 2);
 		
 		QColor col = meta->faceColor;
 		
@@ -116,12 +116,10 @@ void ColorSelectDialog::drawScene () {
 			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
-		bool dark = (luma (col) < 80);
-		
-		gs_scene->addRect (x, y, w, w, qPen, col);
-		QGraphicsTextItem* qText = gs_scene->addText (fmt ("%lu", i).chars());
-		qText->setDefaultTextColor ((dark) ? Qt::white : Qt::black);
-		qText->setPos (x, y);
+		gs_scene->addRect (x, y, w, w, pen, col);
+		QGraphicsTextItem* numtext = gs_scene->addText (fmt ("%d", i).chars());
+		numtext->setDefaultTextColor ((luma (col) < 80) ? Qt::white : Qt::black);
+		numtext->setPos (x, y);
 		
 		if (i == selColor) {
 			auto curspic = gs_scene->addPixmap (getIcon ("colorcursor"));
@@ -149,11 +147,11 @@ void ColorSelectDialog::drawColorInfo () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ColorSelectDialog::mousePressEvent (QMouseEvent* event) {
-	QPointF qPoint = gv_view->mapToScene (event->pos ());
+	QPointF scenepos = gv_view->mapToScene (event->pos ());
 	
-	ulong x = ((ulong)qPoint.x () - (g_dSquareSize / 2)) / g_dSquareSize;
-	ulong y = ((ulong)qPoint.y () - (g_dSquareSize / 2)) / g_dSquareSize;
-	ulong idx = (y * g_dNumColumns) + x;
+	ulong x = ((ulong) scenepos.x () - (g_squareSize / 2)) / g_squareSize;
+	ulong y = ((ulong) scenepos.y () - (g_squareSize / 2)) / g_squareSize;
+	ulong idx = (y * g_numCols) + x;
 	
 	color* col = getColor (idx);
 	if (!col)

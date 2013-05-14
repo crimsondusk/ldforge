@@ -10,7 +10,7 @@ class QPushButton;
 class QLineEdit;
 class QSpinBox;
 class RadioBox;
-template<class T> class CheckBoxGroup;
+class CheckBoxGroup;
 class QLabel;
 class QAbstractButton;
 
@@ -46,12 +46,12 @@ class ReplaceCoordsDialog : public QDialog {
 public:
 	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	
-	vector<Axis> axes () const;
+	std::vector< int > axes () const;
 	double searchValue () const;
 	double replacementValue () const;
 	
 private:
-	CheckBoxGroup<Axis>* cbg_axes;
+	CheckBoxGroup* cbg_axes;
 	QLabel* lb_search, *lb_replacement;
 	QDoubleSpinBox* dsb_search, *dsb_replacement;
 };

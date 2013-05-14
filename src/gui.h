@@ -33,7 +33,7 @@ class DelHistory;
 class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
-template<class T> class CheckBoxGroup;
+class CheckBoxGroup;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -193,7 +193,7 @@ QAction* findAction (str name);
 QIcon makeColorIcon (color* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 QDialogButtonBox* makeButtonBox (QDialog& dlg);
-CheckBoxGroup<Axis>* makeAxesBox ();
+CheckBoxGroup* makeAxesBox ();
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

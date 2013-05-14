@@ -23,13 +23,13 @@
 #include <QFileDialog>
 #include <QLabel>
 #include <QPushButton>
+#include <QBoxLayout>
 
 #include "dialogs.h"
-#include "radiobox.h"
+#include "widgets.h"
 #include "gui.h"
 #include "gldraw.h"
 #include "docs.h"
-#include "checkboxgroup.h"
 #include "file.h"
 #include "dialogs.h"
 
@@ -176,15 +176,15 @@ ReplaceCoordsDialog::ReplaceCoordsDialog (QWidget* parent, Qt::WindowFlags f) : 
 	setLayout (layout);
 }
 
-double ReplaceCoordsDialog::searchValue() const {
+double ReplaceCoordsDialog::searchValue () const {
 	return dsb_search->value ();
 }
 
-double ReplaceCoordsDialog::replacementValue() const {
+double ReplaceCoordsDialog::replacementValue () const {
 	return dsb_replacement->value ();
 }
 
-vector<Axis> ReplaceCoordsDialog::axes() const {
+vector<int> ReplaceCoordsDialog::axes () const {
 	return cbg_axes->checkedValues ();
 }
 

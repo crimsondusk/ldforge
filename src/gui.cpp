@@ -38,7 +38,7 @@
 #include "misc.h"
 #include "colors.h"
 #include "history.h"
-#include "checkboxgroup.h"
+#include "widgets.h"
 #include "config.h"
 
 vector<actionmeta> g_ActionMeta;
@@ -1043,8 +1043,8 @@ QDialogButtonBox* makeButtonBox (QDialog& dlg) {
 	return bbx_buttons;
 }
 
-CheckBoxGroup<Axis>* makeAxesBox () {
-	CheckBoxGroup<Axis>* cbg_axes = new CheckBoxGroup<Axis> ("Axes", Qt::Horizontal);
+CheckBoxGroup* makeAxesBox () {
+	CheckBoxGroup* cbg_axes = new CheckBoxGroup ("Axes", Qt::Horizontal);
 	cbg_axes->addCheckBox ("X", X);
 	cbg_axes->addCheckBox ("Y", Y);
 	cbg_axes->addCheckBox ("Z", Z);

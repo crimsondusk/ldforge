@@ -3,7 +3,7 @@
 ######################################################################
 
 TEMPLATE = app
-TARGET = 
+TARGET = ldforge
 DEPENDPATH += .
 INCLUDEPATH += .
 OBJECTS_DIR = ./build/

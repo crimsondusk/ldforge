@@ -18,6 +18,7 @@
 
 #include <QSpinBox>
 #include <QCheckBox>
+#include <QBoxLayout>
 
 #include "gui.h"
 #include "common.h"
@@ -27,9 +28,8 @@
 #include "historyDialog.h"
 #include "misc.h"
 #include "bbox.h"
-#include "radiobox.h"
+#include "widgets.h"
 #include "extprogs.h"
-#include "checkboxgroup.h"
 #include "gldraw.h"
 #include "dialogs.h"
 
@@ -123,7 +123,7 @@ MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void doInline (bool bDeep) {
+static void doInline (bool deep) {
 	vector<LDObject*> sel = g_win->sel ();
 	
 	// History stuff
@@ -148,7 +148,7 @@ static void doInline (bool bDeep) {
 		vector<LDObject*> objs;
 		
 		if (obj->getType() == LDObject::Subfile)
-			objs = static_cast<LDSubfile*> (obj)->inlineContents (bDeep, true);
+			objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, true);
 		else if (obj->getType() == LDObject::Radial)
 			objs = static_cast<LDRadial*> (obj)->decompose (true);
 		else
@@ -169,7 +169,7 @@ static void doInline (bool bDeep) {
 		delete obj;
 	}
 	
-	History::addEntry (new InlineHistory (bitIndices, refIndices, refs, bDeep));
+	History::addEntry (new InlineHistory (bitIndices, refIndices, refs, deep));
 	g_win->fullRefresh ();
 }
 
@@ -689,7 +689,7 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	
 	const double search = dlg.searchValue (),
 		replacement = dlg.replacementValue ();
-	vector<Axis> sel = dlg.axes ();
+	vector<int> sel = dlg.axes ();
 	
 	EditHistory* history = new EditHistory;
 	
@@ -697,10 +697,11 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 		LDObject* copy = obj->clone ();
 		
 		for (short i = 0; i < obj->vertices (); ++i)
-		for (Axis ax : sel) {
-			if (obj->coords[i][ax] == search) {
-				obj->coords[i][ax] = replacement;
-			}
+		for (int ax : sel) {
+			double& coord = obj->coords[i][(Axis) ax];
+			
+			if (coord == search)
+				coord = replacement;
 		}
 		
 		history->addEntry (copy, obj, obj->getIndex (g_curfile));
@@ -726,10 +727,10 @@ public:
 		setLayout (layout);
 	}
 	
-	vector<Axis> axes () { return cbg_axes->checkedValues (); }
+	vector<int> axes () { return cbg_axes->checkedValues (); }
 	
 private:
-	CheckBoxGroup<Axis>* cbg_axes;
+	CheckBoxGroup* cbg_axes;
 };
 
 MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
@@ -739,15 +740,15 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 		return;
 	
 	EditHistory* history = new EditHistory;
-	vector<Axis> sel = dlg.axes ();
+	vector<int> sel = dlg.axes ();
 	
 	for (LDObject* obj : g_win->sel ()) {
 		bool altered = false;
 		LDObject* copy = obj->clone ();
 		
 		for (short i = 0; i < obj->vertices (); ++i)
-		for (Axis ax : sel) {
-			obj->coords[i][ax] *= -1;
+		for (int ax : sel) {
+			obj->coords[i][(Axis) ax] *= -1;
 			altered = true;
 		}
 		

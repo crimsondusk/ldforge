@@ -16,15 +16,18 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef RADIOBOX_H
-#define RADIOBOX_H
+#ifndef WIDGETS_H
+#define WIDGETS_H
 
-#include "common.h"
-#include <qwidget.h>
 #include <QGroupBox>
-#include <qradiobutton.h>
-#include <qboxlayout.h>
-#include <qbuttongroup.h>
+#include <map>
+#include "common.h"
+#include "types.h"
+
+class QCheckBox;
+class QButtonGroup;
+class QBoxLayout;
+class QRadioButton;
 
 // =============================================================================
 // RadioBox
@@ -35,64 +38,31 @@ class RadioBox : public QGroupBox {
 	Q_OBJECT
 	
 public:
-	void init (Qt::Orientation orient);
+	typedef std::vector<QRadioButton*>::iterator iter;
 	
-	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) {
-		init (Qt::Vertical);
-	}
-	
-	explicit RadioBox (const QString& title, QWidget* parent = null) : QGroupBox (title, parent) {
-		init (Qt::Vertical);
-	}
-	
-	explicit RadioBox () {
-		init (Qt::Vertical);
-	}
-	
+	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
+	explicit RadioBox () { init (Qt::Vertical); }
+	explicit RadioBox (const QString& title, QWidget* parent = null);
 	explicit RadioBox (const QString& title, initlist<char const*> entries, int const defaultId,
 		const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
 	
-	void rowBreak ();
-	void setCurrentRow (uint row);
-	void addButton (const char* entry);
-	void addButton (QRadioButton* button);
-	RadioBox& operator<< (QRadioButton* button);
-	RadioBox& operator<< (const char* entry);
+	void			addButton		(const char* entry);
+	void			addButton		(QRadioButton* button);
+	iter			begin			();
+	iter			end				();
+	void			init			(Qt::Orientation orient);
+	bool			isChecked		(int n) const;
+	void			rowBreak		();
+	void			setCurrentRow	(uint row);
+	void			setValue		(int val);
+	int				value			() const;
 	
-	int value () const {
-		return m_buttonGroup->checkedId ();
-	}
-	
-	void setValue (int val) {
-		m_buttonGroup->button (val)->setChecked (true);
-	}
-	
-	std::vector<QRadioButton*>::iterator begin () {
-		return m_objects.begin ();
-	}
-	
-	std::vector<QRadioButton*>::iterator end () {
-		return m_objects.end ();
-	}
-	
-	QRadioButton* operator[] (uint n) const {
-		return m_objects[n];
-	}
-	
-	bool exclusive () const {
-		return m_buttonGroup->exclusive ();
-	}
-	
-	void setExclusive (bool val) {
-		m_buttonGroup->setExclusive (val);
-	}
-	
-	bool isChecked (int n) const {
-		return m_buttonGroup->checkedId () == n;
-	}
+	QRadioButton*	operator[]		(uint n) const;
+	RadioBox&		operator<<		(QRadioButton* button);
+	RadioBox&		operator<<		(const char* entry);
 
 signals:
-	void sig_buttonPressed (int btn);
+	void buttonPressed (int btn);
 	void buttonReleased (int btn);
 	void valueChanged (int val);
 
@@ -101,7 +71,7 @@ private:
 	std::vector<QBoxLayout*> m_layouts;
 	QBoxLayout* m_coreLayout;
 	QBoxLayout* m_currentLayout;
-	QBoxLayout::Direction m_dir;
+	bool m_vert;
 	int m_curId, m_defId, m_oldId;
 	QButtonGroup* m_buttonGroup;
 	
@@ -112,4 +82,29 @@ private slots:
 	void slot_buttonReleased (int btn);
 };
 
-#endif // RADIOBOX_H
+// =============================================================================
+// CheckBoxGroup
+// =============================================================================
+class CheckBoxGroup : public QGroupBox {
+	Q_OBJECT
+	
+public:
+	CheckBoxGroup (const char* label, Qt::Orientation orient = Qt::Horizontal, QWidget* parent = null);
+	
+	void			addCheckBox		(const char* label, int key, bool checked = false);
+	vector<int>	checkedValues		() const;
+	QCheckBox*		getCheckBox		(int key);
+	bool			buttonChecked		(int key);
+	
+signals:
+	void selectionChanged	();
+	
+private:
+	QBoxLayout* m_layout;
+	std::map<int, QCheckBox*> m_vals;
+	
+private slots:
+	void buttonChanged		();
+};
+
+#endif // WIDGETS_H

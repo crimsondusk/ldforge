@@ -18,20 +18,32 @@
 
 #include <QBoxLayout>
 #include <QRadioButton>
-#include "radiobox.h"
+#include <QButtonGroup>
+#include <QCheckBox>
+#include <map>
+
+#include "widgets.h"
+
+RadioBox::RadioBox (const QString& title, QWidget* parent) : QGroupBox (title, parent) {
+	init (Qt::Vertical);
+}
 
 QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false) {
 	return (orient == (invert ? Qt::Vertical : Qt::Horizontal)) ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
 }
 
+bool RadioBox::isChecked (int n) const {
+	return m_buttonGroup->checkedId () == n;
+}
+
 void RadioBox::init (Qt::Orientation orient) {
-	m_dir = makeDirection (orient);
+	m_vert = orient == Qt::Vertical;
 	
 	m_buttonGroup = new QButtonGroup;
 	m_oldId = m_curId = 0;
 	m_coreLayout = null;
 	
-	m_coreLayout = new QBoxLayout (makeDirection (orient, true));
+	m_coreLayout = new QBoxLayout ((orient == Qt::Vertical) ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom);
 	setLayout (m_coreLayout);
 	
 	// Init the first row with a break
@@ -52,7 +64,7 @@ RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int con
 }
 
 void RadioBox::rowBreak () {
-	QBoxLayout* newLayout = new QBoxLayout (m_dir);
+	QBoxLayout* newLayout = new QBoxLayout (m_vert ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
 	m_currentLayout = newLayout;
 	m_layouts.push_back (newLayout);
 	
@@ -89,8 +101,20 @@ void RadioBox::setCurrentRow (uint row) {
 	m_currentLayout = m_layouts[row];
 }
 
+int RadioBox::value () const {
+	return m_buttonGroup->checkedId ();
+}
+
+void RadioBox::setValue (int val) {
+	m_buttonGroup->button (val)->setChecked (true);
+}
+
+QRadioButton* RadioBox::operator[] (uint n) const {
+	return m_objects[n];
+}
+
 void RadioBox::slot_buttonPressed (int btn) {
-	emit sig_buttonPressed (btn);
+	emit buttonPressed (btn);
 	
 	m_oldId = m_buttonGroup->checkedId ();
 }
@@ -101,4 +125,53 @@ void RadioBox::slot_buttonReleased (int btn) {
 	
 	if (m_oldId != newid)
 		emit valueChanged (newid);
+}
+
+RadioBox::iter RadioBox::begin() {
+	 return m_objects.begin ();
+}
+
+RadioBox::iter RadioBox::end() {
+	return m_objects.end ();
+}
+
+CheckBoxGroup::CheckBoxGroup (const char* label, Qt::Orientation orient, QWidget* parent) : QGroupBox (parent) {
+	m_layout = new QBoxLayout (makeDirection (orient));
+	setTitle (label);
+	setLayout (m_layout);
+}
+
+void CheckBoxGroup::addCheckBox (const char* label, int key, bool checked) {
+	if (m_vals.find (key) != m_vals.end ())
+		return;
+	
+	QCheckBox* box = new QCheckBox (label);
+	box->setChecked (checked);
+	
+	m_vals[key] = box;
+	m_layout->addWidget (box);
+	
+	connect (box, SIGNAL (stateChanged (int)), this, SLOT (buttonChanged ()));
+}
+
+std::vector<int> CheckBoxGroup::checkedValues () const {
+	std::vector<int> vals;
+	
+	for (const auto& kv : m_vals)
+		if (kv.second->isChecked ())
+			vals.push_back (kv.first);
+	
+	return vals;
+}
+
+QCheckBox* CheckBoxGroup::getCheckBox (int key) {
+	return m_vals[key];
+}
+
+void CheckBoxGroup::buttonChanged () {
+	emit selectionChanged ();
+}
+
+bool CheckBoxGroup::buttonChecked (int key) {
+	return m_vals[key]->isChecked ();
 }
