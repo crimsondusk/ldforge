@@ -33,5 +33,6 @@ enum extprog {
 void runYtruder ();
 void runRectifier ();
 void runIntersector ();
+void runCoverer ();
 
 #endif // EXTPROGS_H

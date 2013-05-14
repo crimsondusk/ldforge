@@ -668,16 +668,20 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", KEY (F4)) {
+MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", (0)) {
 	runYtruder ();
 }
 
-MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", KEY (F8)) {
+MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", (0)) {
 	runRectifier ();
 }
 
-MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", KEY (F5)) {
+MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", (0)) {
 	runIntersector ();
+}
+
+MAKE_ACTION (coverer, "Coverer", "coverer", "Fill the space between two line shapes", (0)) {
+	runCoverer ();
 }
 
 // =========================================================================================================================================

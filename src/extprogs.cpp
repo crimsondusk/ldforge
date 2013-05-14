@@ -23,6 +23,7 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QComboBox>
+#include <QGridLayout>
 
 #include "common.h"
 #include "config.h"
@@ -353,6 +354,12 @@ void runRectifier () {
 	insertOutput (outDATName, true, {});
 }
 
+LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
+	LabeledWidget<QComboBox>* widget = new LabeledWidget<QComboBox> (label, new QComboBox);
+	makeColorSelector (widget->w ());
+	return widget;
+}
+
 // =======================================================================================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =======================================================================================================================================
@@ -365,8 +372,8 @@ void runIntersector () {
 	
 	QDialog dlg;
 	
-	LabeledWidget<QComboBox>* cmb_incol = new LabeledWidget<QComboBox> ("Input", new QComboBox),
-		*cmb_cutcol = new LabeledWidget<QComboBox> ("Cutter", new QComboBox);
+	LabeledWidget<QComboBox>* cmb_incol = buildColorSelector ("Input"),
+		*cmb_cutcol = buildColorSelector ("Cutter");
 	QCheckBox* cb_colorize = new QCheckBox ("Colorize output"),
 		*cb_nocondense = new QCheckBox ("No condensing"),
 		*cb_repeatInverse = new QCheckBox ("Repeat inverse"),
@@ -377,8 +384,6 @@ void runIntersector () {
 		" cutter group with the input group. Both groups are cut by the intersection.");
 	cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 	
-	makeColorSelector (cmb_incol->w ());
-	makeColorSelector (cmb_cutcol->w ());
 	dsb_prescale->w ()->setMinimum (0.0f);
 	dsb_prescale->w ()->setMaximum (10000.0f);
 	dsb_prescale->w ()->setSingleStep (0.01f);
@@ -452,4 +457,75 @@ exec:
 		runUtilityProcess (Isecalc, prog_isecalc, fmt ("%s %s %s", inDATName.chars (), cutDATName.chars (), edgesDATName.chars ()));
 		insertOutput (edgesDATName, false, {});
 	}
+}
+
+// =======================================================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =======================================================================================================================================
+void runCoverer () {
+	setlocale (LC_ALL, "C");
+	
+	if (!checkProgPath (prog_coverer, Coverer))
+		return;
+	
+	QDialog dlg;
+	
+	LabeledWidget<QComboBox>* cmb_col1 = buildColorSelector ("Shape 1"),
+		*cmb_col2 = buildColorSelector ("Shape 2");
+	
+	QDoubleSpinBox* dsb_segsplit = new QDoubleSpinBox;
+	QLabel* lb_segsplit = new QLabel ("Segment split length:");
+	QSpinBox* sb_bias = new QSpinBox;
+	QLabel* lb_bias = new QLabel ("Bias:");
+	QCheckBox* cb_reverse = new QCheckBox ("Reverse shape 2"),
+		*cb_oldsweep = new QCheckBox ("Old sweep method");
+	
+	dsb_segsplit->setSpecialValueText ("No splitting");
+	dsb_segsplit->setRange (0.0f, 10000.0f);
+	sb_bias->setSpecialValueText ("No bias");
+	sb_bias->setRange (-100, 100);
+	
+	QGridLayout* spinboxlayout = new QGridLayout;
+	spinboxlayout->addWidget (lb_segsplit, 0, 0);
+	spinboxlayout->addWidget (dsb_segsplit, 0, 1);
+	spinboxlayout->addWidget (lb_bias, 1, 0);
+	spinboxlayout->addWidget (sb_bias, 1, 1);
+	
+	QVBoxLayout* layout = new QVBoxLayout (&dlg);
+	layout->addWidget (cmb_col1);
+	layout->addWidget (cmb_col2);
+	layout->addLayout (spinboxlayout);
+	layout->addWidget (cb_reverse);
+	layout->addWidget (cb_oldsweep);
+	layout->addWidget (makeButtonBox (dlg));
+	
+exec:
+	if (!dlg.exec ())
+		return;
+	
+	const short in1Col = cmb_col1->w ()->itemData (cmb_col1->w ()->currentIndex ()).toInt (),
+		in2Col = cmb_col1->w ()->itemData (cmb_col2->w ()->currentIndex ()).toInt ();
+	
+	if (in1Col == in2Col) {
+		critical ("Cannot use the same color group for both input and cutter!");
+		goto exec;
+	}
+	
+	QTemporaryFile in1dat, in2dat, outdat;
+	str in1DATName, in2DATName, outDATName;
+	
+	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
+		return;
+	
+	str argv = fmt ("%s %s %s %s %s %s %s",
+		(cb_oldsweep->isChecked () ? "-s" : ""),
+		(cb_reverse->isChecked () ? "-r" : ""),
+		(dsb_segsplit->value () != 0 ? fmt ("-l %f", dsb_segsplit->value ()).c () : ""),
+		(sb_bias->value () != 0 ? fmt ("-s %d", sb_bias->value ()).c () : ""),
+		in1DATName.c (), in2DATName.c (), outDATName.c ());
+	
+	writeColorGroup (in1Col, in1DATName);
+	writeColorGroup (in2Col, in2DATName);
+	runUtilityProcess (Coverer, prog_coverer, argv);
+	insertOutput (outDATName, false, {});
 }
