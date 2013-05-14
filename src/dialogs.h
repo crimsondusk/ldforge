@@ -74,4 +74,42 @@ private:
 	QLineEdit* le_contents;
 };
 
+class LDrawPathDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
+	str path () const;
+	void setPath (str path);
+	
+private:
+	Q_DISABLE_COPY (LDrawPathDialog)
+	
+	QLabel* lb_resolution;
+	QLineEdit* le_path;
+	QPushButton* btn_findPath, *btn_tryConfigure, *btn_cancel;
+	QDialogButtonBox* dbb_buttons;
+	const bool m_validDefault;
+	
+	QPushButton* okButton ();
+	
+private slots:
+	void slot_findPath ();
+	void slot_tryConfigure ();
+	void slot_exit ();
+};
+
+class NewPartDialog : public QDialog {
+public:
+	enum { CCAL, NonCA, NoLicense };
+	enum { CCW, CW, NoWinding };
+	
+	explicit NewPartDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	static void StaticDialog ();
+	
+	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
+	QLineEdit* le_name, *le_author;
+	RadioBox* rb_license, *rb_BFC;
+};
+
 #endif // DIALOGS_H

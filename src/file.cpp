@@ -25,7 +25,7 @@
 #include "bbox.h"
 #include "gui.h"
 #include "history.h"
-#include "ldrawPathDialog.h"
+#include "dialogs.h"
 #include "gldraw.h"
 
 cfg (str, io_ldpath, "");

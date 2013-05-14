@@ -30,7 +30,10 @@
 #include "gldraw.h"
 #include "docs.h"
 #include "checkboxgroup.h"
+#include "file.h"
 #include "dialogs.h"
+
+extern_cfg (str, io_ldpath);
 
 // =============================================================================
 OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
@@ -231,4 +234,189 @@ void SetContentsDialog::setObject (LDObject* obj) {
 
 str SetContentsDialog::text () const {
 	return le_contents->text ();
+}
+
+// ========================================================================================================================================
+LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
+	: QDialog (parent, f), m_validDefault (validDefault)
+{
+	QLabel* lb_description = null;
+	lb_resolution = new QLabel ("---");
+	
+	if (validDefault == false)
+		lb_description = new QLabel ("Please input your LDraw directory");
+	
+	QLabel* lb_path = new QLabel ("LDraw path:");
+	le_path = new QLineEdit;
+	btn_findPath = new QPushButton;
+	btn_findPath->setIcon (getIcon ("folder"));
+	
+	btn_tryConfigure = new QPushButton ("Configure");
+	btn_tryConfigure->setIcon (getIcon ("settings"));
+	
+	btn_cancel = new QPushButton;
+	
+	if (validDefault == false) {
+		btn_cancel->setText ("Exit");
+		btn_cancel->setIcon (getIcon ("exit"));
+	} else {
+		btn_cancel->setText ("Cancel");
+		btn_cancel->setIcon (getIcon ("cancel"));
+	}
+	
+	dbb_buttons = new QDialogButtonBox (QDialogButtonBox::Ok);
+	dbb_buttons->addButton (btn_tryConfigure, QDialogButtonBox::ActionRole);
+	dbb_buttons->addButton (btn_cancel, QDialogButtonBox::RejectRole);
+	okButton ()->setEnabled (false);
+	
+	QHBoxLayout* inputLayout = new QHBoxLayout;
+	inputLayout->addWidget (lb_path);
+	inputLayout->addWidget (le_path);
+	inputLayout->addWidget (btn_findPath);
+	
+	QVBoxLayout* mainLayout = new QVBoxLayout;
+	
+	if (validDefault == false)
+		mainLayout->addWidget (lb_description);
+	
+	mainLayout->addLayout (inputLayout);
+	mainLayout->addWidget (lb_resolution);
+	mainLayout->addWidget (dbb_buttons);
+	setLayout (mainLayout);
+	
+	connect (le_path, SIGNAL (textEdited ()), this, SLOT (slot_tryConfigure ()));
+	connect (btn_findPath, SIGNAL (clicked ()), this, SLOT (slot_findPath ()));
+	connect (btn_tryConfigure, SIGNAL (clicked ()), this, SLOT (slot_tryConfigure ()));
+	connect (dbb_buttons, SIGNAL (accepted ()), this, SLOT (accept ()));
+	connect (dbb_buttons, SIGNAL (rejected ()), this, (validDefault) ? SLOT (reject ()) : SLOT (slot_exit ()));
+	
+	setPath (io_ldpath);
+	if (validDefault)
+		slot_tryConfigure ();
+}
+
+// ========================================================================================================================================
+QPushButton* LDrawPathDialog::okButton () {
+	return dbb_buttons->button (QDialogButtonBox::Ok);
+}
+
+// ========================================================================================================================================
+void LDrawPathDialog::setPath (str path) {
+	le_path->setText (path);
+}
+
+// ========================================================================================================================================
+str LDrawPathDialog::path () const {
+	return le_path->text ();
+}
+
+// ========================================================================================================================================
+void LDrawPathDialog::slot_findPath () {
+	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
+	
+	if (~newpath > 0 && newpath != path ()) {
+		setPath (newpath);
+		slot_tryConfigure ();
+	}
+}
+
+
+// ========================================================================================================================================
+void LDrawPathDialog::slot_exit () {
+	exit (1);
+}
+
+// ========================================================================================================================================
+void LDrawPathDialog::slot_tryConfigure () {
+	if (LDPaths::tryConfigure (path ()) == false) {
+		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%s</span>", LDPaths::getError().chars ()));
+		okButton ()->setEnabled (false);
+		return;
+	}
+	
+	lb_resolution->setText ("<span style=\"color: #7A0; font-weight: bold;\">OK!</span>");
+	okButton ()->setEnabled (true);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	lb_brickIcon = new QLabel;
+	lb_brickIcon->setPixmap (getIcon ("brick"));
+	
+	lb_name = new QLabel ("Name:");
+	le_name = new QLineEdit;
+	le_name->setMinimumWidth (320);
+	
+	lb_author = new QLabel ("Author:");
+	le_author = new QLineEdit;
+	
+	rb_license = new RadioBox ("License", {
+		"CCAL Redistributable",
+		"Non-redistributable",
+		"None",
+	}, CCAL);
+	
+	rb_BFC = new RadioBox ("BFC Winding", {
+		"CCW",
+		"CW",
+		"None"
+	}, CCW);
+	
+	QHBoxLayout* boxes = new QHBoxLayout;
+	boxes->addWidget (rb_license);
+	boxes->addWidget (rb_BFC);
+	
+	QGridLayout* layout = new QGridLayout;
+	layout->addWidget (lb_brickIcon, 0, 0);
+	layout->addWidget (lb_name, 0, 1);
+	layout->addWidget (le_name, 0, 2);
+	layout->addWidget (lb_author, 1, 1);
+	layout->addWidget (le_author, 1, 2);
+	layout->addLayout (boxes, 2, 1, 1, 2);
+	layout->addWidget (makeButtonBox (*this), 3, 2);
+	
+	setLayout (layout);
+	setWindowTitle ("New Part");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void NewPartDialog::StaticDialog () {
+	NewPartDialog dlg (g_win);
+	if (dlg.exec ()) {
+		newFile ();
+		
+		short idx;
+		str author = dlg.le_author->text ();
+		vector<LDObject*>& objs = g_curfile->m_objs;
+		
+		idx = dlg.rb_BFC->value ();
+		const LDBFC::Type BFCType =
+			(idx == CCW) ? LDBFC::CertifyCCW :
+			(idx == CW) ? LDBFC::CertifyCW :
+			LDBFC::NoCertify;
+		
+		idx = dlg.rb_license->value ();
+		const char* license =
+			(idx == CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
+			(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
+			null;
+		
+		objs.push_back (new LDComment (dlg.le_name->text ()));
+		objs.push_back (new LDComment ("Name: <untitled>.dat"));
+		objs.push_back (new LDComment (fmt ("Author: %s", author.chars())));
+		objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
+		
+		if (license != null)
+			objs.push_back (new LDComment (fmt ("!LICENSE %s", license)));
+		
+		objs.push_back (new LDEmpty);
+		objs.push_back (new LDBFC (BFCType));
+		objs.push_back (new LDEmpty);
+		
+		g_win->fullRefresh ();
+	}
 }

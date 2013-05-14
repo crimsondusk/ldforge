@@ -17,7 +17,9 @@
  */
 
 #include <QGLWidget>
-#include <qevent.h>
+#include <QWheelEvent>
+#include <QMouseEvent>
+#include <QContextMenuEvent>
 #include <GL/glu.h>
 
 #include "common.h"

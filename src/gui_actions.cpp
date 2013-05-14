@@ -24,13 +24,12 @@
 #include "gui.h"
 #include "file.h"
 #include "history.h"
-#include "newPartDialog.h"
 #include "configDialog.h"
 #include "addObjectDialog.h"
 #include "aboutDialog.h"
 #include "misc.h"
-#include "ldrawPathDialog.h"
 #include "gldraw.h"
+#include "dialogs.h"
 
 extern_cfg (bool, gl_wireframe);
 
@@ -45,12 +44,10 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) {
-	str zName;
-	zName += QFileDialog::getOpenFileName (g_win, "Open File",
-		"", "LDraw files (*.dat *.ldr)");
+	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
-	if (~zName)
-		openMainFile (zName);
+	if (~name)
+		openMainFile (name);
 }
 
 // =============================================================================

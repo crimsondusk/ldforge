@@ -19,14 +19,14 @@
 #ifndef ZZ_ABOUTDIALOG_H
 #define ZZ_ABOUTDIALOG_H
 
-#include <qdialog.h>
+#include <QDialog>
 #include "gui.h"
 
 class AboutDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	AboutDialog (QWidget* parent = nullptr, Qt::WindowFlags f = 0);
+	AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	QPushButton* pb_mailAuthor;
 	
 private slots:
