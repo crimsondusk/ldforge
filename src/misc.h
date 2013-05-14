@@ -19,8 +19,8 @@
 #ifndef MISC_H
 #define MISC_H
 
-#include "common.h"
 #include "config.h"
+#include "common.h"
 
 #define NUM_PRIMES 500
 

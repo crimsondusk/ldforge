@@ -20,7 +20,6 @@
 #define TYPES_H
 
 #include "common.h"
-#include "misc.h"
 
 typedef unsigned int uint;
 typedef unsigned short ushort;

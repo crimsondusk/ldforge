@@ -16,8 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <QAbstractButton>
 #include <qboxlayout.h>
+#include <QLineEdit>
+#include <QLabel>
+#include <QDialogButtonBox>
 #include "setContentsDialog.h"
 #include "file.h"
 #include "gui.h"
@@ -51,8 +53,6 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		lb_errorIcon->setPixmap (qErrorPixmap);
 	}
 	
-	IMPLEMENT_DIALOG_BUTTONS
-	
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget (lb_contents);
 	layout->addWidget (le_contents);
@@ -64,7 +64,7 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 		layout2->addWidget (lb_error);
 	}
 	
-	layout2->addWidget (bbx_buttons);
+	layout2->addWidget (makeButtonBox (*this));
 	layout->addLayout (layout2);
 	setLayout (layout);
 	
@@ -75,8 +75,8 @@ SetContentsDialog::SetContentsDialog (LDObject* obj, QWidget* parent) : QDialog(
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void SetContentsDialog::slot_handleButtons (QAbstractButton* qButton) {
-	qButton = qButton;
+void SetContentsDialog::slot_handleButtons (QAbstractButton* btn) {
+	btn = btn;
 }
 
 // =============================================================================

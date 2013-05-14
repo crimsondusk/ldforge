@@ -28,6 +28,7 @@
 #include "gui.h"
 #include "history.h"
 #include "ldrawPathDialog.h"
+#include "gldraw.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");

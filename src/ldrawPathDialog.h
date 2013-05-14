@@ -19,7 +19,7 @@
 #ifndef LDRAWPATHDIALOG_H
 #define LDRAWPATHDIALOG_H
 
-#include <qdialog.h>
+#include <QDialog>
 #include "common.h"
 
 class QLabel;

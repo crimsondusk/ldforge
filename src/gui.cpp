@@ -26,6 +26,7 @@
 #include <qtoolbutton.h>
 #include <qcombobox.h>
 #include <qdialogbuttonbox.h>
+#include <QToolBar>
 #include <qcoreapplication.h>
 #include "common.h"
 #include "gldraw.h"
@@ -183,9 +184,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("newVertex");			// New Vertex
 	addMenuAction ("newRadial");			// New Radial
 	menu->addSeparator ();					// -----
-	addMenuAction ("beginDraw");			// Begin Drawing
-	addMenuAction ("doneDraw");			// Cancel Drawing
-	addMenuAction ("cancelDraw");			// Done Drawing
+	addMenuAction ("draw");				// Draw Mode
 	
 	// Edit menu
 	initMenu ("&Edit");

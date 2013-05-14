@@ -17,8 +17,14 @@
  */
 
 #include <qgridlayout.h>
-#include <qradiobutton.h>
 #include <qcheckbox.h>
+#include <qdialogbuttonbox.h>
+#include <qspinbox.h>
+#include <qlabel.h>
+#include <qlistwidget.h>
+#include <qtreewidget.h>
+#include <qlineedit.h>
+#include <qpushbutton.h>
 #include "gui.h"
 #include "addObjectDialog.h"
 #include "file.h"
@@ -26,6 +32,7 @@
 #include "colorSelectDialog.h"
 #include "history.h"
 #include "setContentsDialog.h"
+#include "radiobox.h"
 
 #define APPLY_COORDS(OBJ, N) \
 	for (short i = 0; i < N; ++i) \
@@ -208,8 +215,6 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		dsb_coords[i]->setMaximum (10000.0);
 	}
 	
-	IMPLEMENT_DIALOG_BUTTONS
-	
 	QGridLayout* const layout = new QGridLayout;
 	layout->addWidget (lb_typeIcon, 0, 0);
 	
@@ -291,7 +296,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
 	}
 	
-	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
+	layout->addWidget (makeButtonBox (*this), 5, 0, 1, 4);
 	setLayout (layout);
 	setWindowTitle (fmt (APPNAME ": New %s",
 		g_saObjTypeNames[type]).chars());

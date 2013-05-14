@@ -16,9 +16,15 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qgridlayout.h>
+#include <QGridLayout>
+#include <QLabel>
+#include <QLineEdit>
+#include <QDialogButtonBox>
+
 #include "newPartDialog.h"
 #include "file.h"
+#include "gui.h"
+#include "radiobox.h"
 
 // -------------------------------------
 enum {
@@ -64,8 +70,6 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	boxes->addWidget (rb_license);
 	boxes->addWidget (rb_BFC);
 	
-	IMPLEMENT_DIALOG_BUTTONS
-	
 	QGridLayout* layout = new QGridLayout;
 	layout->addWidget (lb_brickIcon, 0, 0);
 	layout->addWidget (lb_name, 0, 1);
@@ -73,7 +77,7 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	layout->addWidget (lb_author, 1, 1);
 	layout->addWidget (le_author, 1, 2);
 	layout->addLayout (boxes, 2, 1, 1, 2);
-	layout->addWidget (bbx_buttons, 3, 2);
+	layout->addWidget (makeButtonBox (*this), 3, 2);
 	
 	setLayout (layout);
 	setWindowIcon (getIcon ("brick"));
@@ -89,7 +93,7 @@ void NewPartDialog::StaticDialog () {
 		newFile ();
 		
 		short idx;
-		str zAuthor = dlg.le_author->text ();
+		str author = dlg.le_author->text ();
 		vector<LDObject*>& objs = g_curfile->m_objs;
 		
 		idx = dlg.rb_BFC->value ();
@@ -106,7 +110,7 @@ void NewPartDialog::StaticDialog () {
 		
 		objs.push_back (new LDComment (dlg.le_name->text ()));
 		objs.push_back (new LDComment ("Name: <untitled>.dat"));
-		objs.push_back (new LDComment (fmt ("Author: %s", zAuthor.chars())));
+		objs.push_back (new LDComment (fmt ("Author: %s", author.chars())));
 		objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
 		
 		if (sLicense != null)

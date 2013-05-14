@@ -16,6 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <qgridlayout.h>
+#include <qfiledialog.h>
+#include <qcolordialog.h>
+#include <qboxlayout.h>
+#include <qevent.h>
+#include <qgroupbox.h>
 #include "common.h"
 #include "configDialog.h"
 #include "file.h"
@@ -23,12 +29,7 @@
 #include "misc.h"
 #include "colors.h"
 #include "colorSelectDialog.h"
-#include <qgridlayout.h>
-#include <qfiledialog.h>
-#include <qcolordialog.h>
-#include <qboxlayout.h>
-#include <qevent.h>
-#include <qgroupbox.h>
+#include "gldraw.h"
 
 extern_cfg (str, gl_bgcolor);
 extern_cfg (str, gl_maincolor);

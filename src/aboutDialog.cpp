@@ -16,11 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <stdlib.h>
 #include <qlabel.h>
 #include <qboxlayout.h>
 #include <qdialogbuttonbox.h>
 #include <qdesktopservices.h>
+#include <qpushbutton.h>
+#include <QTextEdit>
 #include <qurl.h>
 #include "common.h"
 #include "aboutDialog.h"

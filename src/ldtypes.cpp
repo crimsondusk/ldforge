@@ -22,6 +22,7 @@
 #include "misc.h"
 #include "gui.h"
 #include "history.h"
+#include "gldraw.h"
 
 char const* g_saObjTypeNames[] = {
 	"subfile",

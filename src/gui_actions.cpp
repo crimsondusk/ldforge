@@ -18,6 +18,8 @@
 
 #include <qfiledialog.h>
 #include <qmessagebox.h>
+#include <QTextEdit>
+#include <QBoxLayout>
 #include "gui.h"
 #include "file.h"
 #include "history.h"
@@ -27,6 +29,7 @@
 #include "aboutDialog.h"
 #include "misc.h"
 #include "ldrawPathDialog.h"
+#include "gldraw.h"
 
 extern_cfg (bool, gl_wireframe);
 
@@ -394,16 +397,8 @@ MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
 }
 
 // =========================================================================================================================================
-MAKE_ACTION (beginDraw, "Begin Drawing", "draw", "Begin drawing geometry", KEY (Insert)) {
+MAKE_ACTION (draw, "Draw Mode", "draw", "Begin drawing geometry", KEY (Insert)) {
 	g_win->R ()->beginPlaneDraw ();
-}
-
-MAKE_ACTION (cancelDraw, "Cancel Drawing", "draw-cancel", "Cancel drawing geometry", KEY (Escape)) {
-	g_win->R ()->endPlaneDraw (false);
-}
-
-MAKE_ACTION (doneDraw, "Done Drawing", "draw-done", "Done drawing geometry", KEY (Enter)) {
-	g_win->R ()->endPlaneDraw (true);
 }
 
 // =========================================================================================================================================

@@ -23,10 +23,9 @@
 #include <QDir>
 #include "common.h"
 #include "config.h"
+#include "misc.h"
 
 std::vector<config*> g_configPointers;
-
-
 
 // =============================================================================
 const char* g_WeekdayNames[7] = {

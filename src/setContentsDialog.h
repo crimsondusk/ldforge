@@ -18,11 +18,12 @@
 
 #ifndef SETCONTENTSDIALOG_H
 
-#include <qdialog.h>
-#include <qlineedit.h>
-#include <qlabel.h>
-#include <qdialogbuttonbox.h>
+#include <QDialog>
 #include "common.h"
+
+class QAbstractButton;
+class QLabel;
+class QLineEdit;
 
 // =============================================================================
 // SetContentsDialog
@@ -35,13 +36,12 @@ class SetContentsDialog : public QDialog {
 public:
 	QLabel* lb_contents, *lb_errorIcon, *lb_error;
 	QLineEdit* le_contents;
-	QDialogButtonBox* bbx_buttons;
 	
 	SetContentsDialog (LDObject* obj, QWidget* parent = null);
 	static void staticDialog (LDObject* obj);
 	
 private slots:
-	void slot_handleButtons (QAbstractButton* qButton);
+	void slot_handleButtons (QAbstractButton* btn);
 };
 
 #endif // SETCONTENTSDIALOG_H

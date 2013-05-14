@@ -20,17 +20,10 @@
 #define GUI_H
 
 #include <QMainWindow>
-#include <QMenu>
-#include <QToolBar>
 #include <QAction>
-#include <QToolBar>
-#include <QTextEdit>
-#include <qpushbutton.h>
-#include <qlistwidget.h>
-#include <qlabel.h>
-#include <qboxlayout.h>
-#include "gldraw.h"
+#include <QListWidget>
 #include "config.h"
+#include "ldtypes.h"
 
 class QComboBox;
 class ForgeWindow;
@@ -39,6 +32,7 @@ class QSplitter;
 class DelHistory;
 class QToolButton;
 class QDialogButtonBox;
+class GLRenderer;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -185,53 +179,6 @@ private slots:
 	void slot_recentFile ();
 	void slot_quickColor ();
 	void slot_lastSecondCleanup ();
-};
-
-// =============================================================================
-// LabeledWidget
-//
-// Convenience class for a widget with a label beside it.
-// =============================================================================
-template<class R> class LabeledWidget : public QWidget {
-public:
-	explicit LabeledWidget (const char* labelstr, QWidget* parent = null) : QWidget (parent) {
-		m_widget = new R (this);
-		commonInit (labelstr);
-	}
-	
-	explicit LabeledWidget (const char* labelstr, R* widget, QWidget* parent = null) :
-		QWidget (parent), m_widget (widget)
-	{
-		commonInit (labelstr);
-	}
-	
-	explicit LabeledWidget (QWidget* parent = 0, Qt::WindowFlags f = 0) {
-		m_widget = new R (this);
-		commonInit ("");
-	}
-	
-	R* widget () const { return m_widget; }
-	R* w () const { return m_widget; }
-	QLabel* label () const { return m_label; }
-	QLabel* l () const { return m_label; }
-	void setWidget (R* widget) { m_widget = widget; }
-	void setLabel (QLabel* label) { m_label = label; }
-	operator R* () { return m_widget; }
-	
-private:
-	Q_DISABLE_COPY (LabeledWidget<R>)
-	
-	void commonInit (const char* labelstr) {
-		m_label = new QLabel (labelstr, this);
-		m_layout = new QHBoxLayout;
-		m_layout->addWidget (m_label);
-		m_layout->addWidget (m_widget);
-		setLayout (m_layout);
-	}
-	
-	R* m_widget;
-	QLabel* m_label;
-	QHBoxLayout* m_layout;
 };
 
 // -----------------------------------------------------------------------------

@@ -19,17 +19,16 @@
 #ifndef ZZ_ADDOBJECTDIALOG_H
 #define ZZ_ADDOBJECTDIALOG_H
 
-#include "gui.h"
-#include "radiobox.h"
-#include <qdialog.h>
-#include <qlineedit.h>
-#include <qdialogbuttonbox.h>
-#include <qcheckbox.h>
-#include <qspinbox.h>
-#include <qlabel.h>
-#include <qradiobutton.h>
-#include <qlistwidget.h>
-#include <qtreewidget.h>
+#include <QDialog>
+#include "ldtypes.h"
+
+class QLineEdit;
+class RadioBox;
+class QCheckBox;
+class QSpinBox;
+class QLabel;
+class QTreeWidget;
+class QDoubleSpinBox;
 
 class AddObjectDialog : public QDialog {
 	Q_OBJECT
@@ -65,8 +64,6 @@ public:
 		*lb_radRingNum;
 	
 	QLineEdit* le_matrix;
-	
-	QDialogButtonBox* bbx_buttons;
 	
 private:
 	void setButtonBackground (QPushButton* button, short color);

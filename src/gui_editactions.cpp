@@ -30,6 +30,7 @@
 #include "checkboxgroup.h"
 #include <qspinbox.h>
 #include <qcheckbox.h>
+#include "gldraw.h"
 
 vector<LDObject*> g_Clipboard;
 

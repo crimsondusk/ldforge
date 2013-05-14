@@ -19,15 +19,12 @@
 #ifndef NEWPARTDIALOG_H
 #define NEWPARTDIALOG_H
 
-#include <qdialog.h>
-#include <qlabel.h>
-#include <qlineedit.h>
-#include <qcombobox.h>
-#include <qdialogbuttonbox.h>
-#include <qradiobutton.h>
-#include <qbuttongroup.h>
-#include "gui.h"
-#include "radiobox.h"
+#include <QDialog>
+#include "common.h"
+
+class QLabel;
+class QLineEdit;
+class RadioBox;
 
 class NewPartDialog : public QDialog {
 public:
@@ -36,9 +33,7 @@ public:
 	
 	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
 	QLineEdit* le_name, *le_author;
-	
 	RadioBox* rb_license, *rb_BFC;
-	QDialogButtonBox* bbx_buttons;
 };
 
 #endif // NEWPARTDIALOG_H

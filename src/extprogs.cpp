@@ -32,6 +32,7 @@
 #include "file.h"
 #include "radiobox.h"
 #include "history.h"
+#include "labeledwidget.h"
 
 // =============================================================================
 cfg (str, prog_isecalc, "");

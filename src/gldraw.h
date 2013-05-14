@@ -131,32 +131,17 @@ static const GLRenderer::ListType g_glListTypes[] = {
 	GL::BFCBackList,
 };
 
-class OverlayDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	
-	str			fpath		() const;
-	ushort		ofsx		() const;
-	ushort		ofsy		() const;
-	double		lwidth		() const;
-	double		lheight		() const;
-	GL::Camera	camera		() const;
-	
-private:
-	RadioBox* rb_camera;
-	QPushButton* btn_fpath;
-	QLineEdit* le_fpath;
-	QSpinBox* sb_ofsx, *sb_ofsy;
-	QDoubleSpinBox* dsb_lwidth, *dsb_lheight;
-	QDialogButtonBox* dbb_buttons;
-	
-private slots:
-	void slot_fpath ();
-	void slot_help ();
-	void slot_dimensionsChanged ();
-	void fillDefaults (int newcam);
+// Meta for overlays
+struct overlayMeta {
+	vertex v0, v1;
+	ushort ox, oy;
+	double lw, lh;
+	str fname;
+	QImage* img;
 };
+
+extern const GL::Camera g_Cameras[7];
+extern const char* g_CameraNames[7];
+extern overlayMeta g_overlays[6];
 
 #endif // GLDRAW_H

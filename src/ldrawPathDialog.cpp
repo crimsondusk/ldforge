@@ -20,6 +20,8 @@
 #include <qpushbutton.h>
 #include <qdialogbuttonbox.h>
 #include <QFileDialog>
+#include <QBoxLayout>
+#include <QLabel>
 #include "ldrawPathDialog.h"
 #include "gui.h"
 #include "file.h"
