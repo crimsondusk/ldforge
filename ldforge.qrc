@@ -53,6 +53,7 @@
 	<file>./icons/inline-deep.png</file>
 	<file>./icons/inline.png</file>
 	<file>./icons/intersector.png</file>
+	<file>./icons/invert.png</file>
 	<file>./icons/ldforge.ico</file>
 	<file>./icons/ldforge.png</file>
 	<file>./icons/line.png</file>
@@ -88,6 +89,7 @@
 	<file>./icons/undo.png</file>
 	<file>./icons/vertex.png</file>
 	<file>./icons/visibility.png</file>
+	<file>./icons/wireframe.png</file>
 	<file>./icons/ytruder.png</file>
 	<file>LICENSE</file>
 </qresource>
