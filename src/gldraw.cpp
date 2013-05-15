@@ -99,6 +99,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_camera = (GL::Camera) gl_camera.value;
 	m_drawToolTip = false;
 	m_editmode = Select;
+	m_rectdraw = false;
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -503,23 +504,43 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		// If we're drawing, draw the vertices onto the screen.
 		if (m_editmode == Draw) {
-			ushort numverts = m_drawedVerts.size () + 1;
+			ushort numverts;
+			
+			if (!m_rectdraw)
+				numverts = m_drawedVerts.size () + 1;
+			else
+				numverts = (m_drawedVerts.size () > 0) ? 4 : 1;
+			
 			const short blipsize = 8;
 			
 			if (numverts > 0) {
 				QPoint* poly = new QPoint[numverts];
 				
-				uchar i = 0;
-				for (vertex& vert : m_drawedVerts) {
-					poly[i] = coordconv3_2 (vert);
-					++i;
+				if (!m_rectdraw) {
+					uchar i = 0;
+					for (vertex& vert : m_drawedVerts) {
+						poly[i] = coordconv3_2 (vert);
+						++i;
+					}
+					
+					// Draw the cursor vertex as the last one in the list.
+					if (numverts < 5)
+						poly[i] = coordconv3_2 (m_hoverpos);
+					else
+						numverts = 4;
+				} else {
+					if (m_drawedVerts.size () > 0) {
+						QPoint v0 = coordconv3_2 (m_drawedVerts[0]),
+							v1 = coordconv3_2 ((m_drawedVerts.size () >= 2) ? m_drawedVerts[1] : m_hoverpos);
+						
+						poly[0] = QPoint (v0.x (), v0.y ());
+						poly[1] = QPoint (v0.x (), v1.y ());
+						poly[2] = QPoint (v1.x (), v1.y ());
+						poly[3] = QPoint (v1.x (), v0.y ());
+					} else {
+						poly[0] = coordconv3_2 (m_hoverpos);
+					}
 				}
-				
-				// Draw the cursor vertex as the last one in the list.
-				if (numverts < 5)
-					poly[i] = coordconv3_2 (m_hoverpos);
-				else
-					numverts = 4;
 				
 				paint.setPen (m_thinBorderPen);
 				paint.setBrush (QColor (128, 192, 0));
@@ -541,15 +562,20 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	}
 	
 	// Camera icons
-	if (!m_picking && m_editmode == Select) {
+	if (!m_picking) {
 		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
 		paint.drawRect (g_CameraIcons[camera ()].selRect);
 		
 		// Draw the actual icons
-		for (CameraIcon& info : g_CameraIcons)
+		for (CameraIcon& info : g_CameraIcons) {
+			// Don't draw the free camera icon when in draw mode
+			if (&info == &g_CameraIcons[GL::Free] && editMode () != Select)
+				continue;
+			
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
+		}
 		
 		// Draw a label for the current camera in the top left corner
 		{
@@ -813,31 +839,54 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
 	
 	if (wasLeft) {
-		if (m_editmode == Draw) {
-			// If we have 4 verts, stop drawing.
-			if (m_drawedVerts.size () >= 4) {
-				endDraw (true);
-				return;
+		// Check if we selected a camera icon
+		if (!m_rangepick) {
+			for (CameraIcon& info : g_CameraIcons) {
+				if (info.destRect.contains (ev->pos ())) {
+					setCamera (info.cam);
+					update ();
+					return;
+				}
 			}
-			
-			// If we picked an already-existing vertex, stop drawing
-			for (vertex& vert : m_drawedVerts) {
-				if (vert == m_hoverpos) {
+		}
+		
+		switch (editMode ()) {
+		case Draw:
+			if (m_rectdraw) {
+				if (m_drawedVerts.size () == 2) {
 					endDraw (true);
 					return;
+				}
+			} else {
+				// If we have 4 verts, stop drawing.
+				if (m_drawedVerts.size () >= 4) {
+					endDraw (true);
+					return;
+				}
+				
+				if (m_drawedVerts.size () == 0 && ev->modifiers () & Qt::ShiftModifier)
+					m_rectdraw = true;
+				
+				// If we picked an already-existing vertex, stop drawing
+				for (vertex& vert : m_drawedVerts) {
+					if (vert == m_hoverpos) {
+						endDraw (true);
+						return;
+					}
 				}
 			}
 			
 			m_drawedVerts.push_back (m_hoverpos);
-			
 			update ();
-			return;
-		} else {
+			break;
+		
+		case Select:
 			if (!m_rangepick)
 				m_addpick = (m_keymods & Qt::ControlModifier);
 			
 			if (m_totalmove < 10 || m_rangepick)
 				pick (ev->x (), ev->y ());
+			break;
 		}
 		
 		m_rangepick = false;
@@ -845,11 +894,12 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		return;
 	}
 	
-	if (wasRight && m_editmode == Draw) {
-		if (m_drawedVerts.size () > 0) {
-			// Remove the last vertex
-			m_drawedVerts.erase (m_drawedVerts.end () - 1);
-		}
+	if (wasRight && m_drawedVerts.size () > 0) {
+		// Remove the last vertex
+		m_drawedVerts.erase (m_drawedVerts.end () - 1);
+		
+		if (m_drawedVerts.size () == 0)
+			m_rectdraw = false;
 		
 		update ();
 	}
@@ -946,19 +996,6 @@ void GLRenderer::setCamera (const GL::Camera cam) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
-	// Check if we selected a camera icon
-	if (!m_rangepick) {
-		QPoint pos (mouseX, mouseY);
-		
-		for (CameraIcon& info : g_CameraIcons) {
-			if (info.destRect.contains (pos)) {
-				setCamera (info.cam);
-				update ();
-				return;
-			}
-		}
-	}
-	
 	GLint viewport[4];
 	
 	// Clear the selection if we do not wish to add to it.
@@ -1121,55 +1158,70 @@ void GLRenderer::setEditMode (EditMode mode) {
 
 // =============================================================================
 void GLRenderer::endDraw (bool accept) {
-	// If we accepted, clean the selection and create the object
-	if (accept) {
-		vector<vertex>& verts = m_drawedVerts;
-		LDObject* obj = null;
+	(void) accept;
+	
+	// Clean the selection and create the object
+	vector<vertex>& verts = m_drawedVerts;
+	LDObject* obj = null;
+	
+	if (m_rectdraw) {
+		LDQuad* quad = new LDQuad;
+		vertex v0 = m_drawedVerts[0],
+			v1 = m_drawedVerts[1];
+		const Axis axisX = cameraAxis (false),
+			axisY = cameraAxis (true);
 		
+		memset (quad->coords, 0, sizeof quad->coords);
+		quad->coords[0][axisX] = v0[axisX];
+		quad->coords[0][axisY] = v0[axisY];
+		quad->coords[1][axisX] = v1[axisX];
+		quad->coords[1][axisY] = v0[axisY];
+		quad->coords[2][axisX] = v1[axisX];
+		quad->coords[2][axisY] = v1[axisY];
+		quad->coords[3][axisX] = v0[axisX];
+		quad->coords[3][axisY] = v1[axisY];
+		quad->color = maincolor;
+		obj = quad;
+	} else {
 		switch (verts.size ()) {
 		case 1:
-			{
-				// 1 vertex - add a vertex object
-				obj = new LDVertex;
-				static_cast<LDVertex*> (obj)->pos = verts[0];
-				obj->color = maincolor;
-			}
+			// 1 vertex - add a vertex object
+			obj = new LDVertex;
+			static_cast<LDVertex*> (obj)->pos = verts[0];
+			obj->color = maincolor;
 			break;
 		
 		case 2:
-			{
-				// 2 verts - make a line
-				obj = new LDLine;
-				obj->color = edgecolor;
-				for (ushort i = 0; i < 2; ++i)
-					obj->coords[i] = verts[i];
-			}
+			// 2 verts - make a line
+			obj = new LDLine;
+			obj->color = edgecolor;
+			for (ushort i = 0; i < 2; ++i)
+				obj->coords[i] = verts[i];
 			break;
 			
 		case 3:
 		case 4:
-			{
-				obj = (verts.size () == 3) ?
-					static_cast<LDObject*> (new LDTriangle) :
-					static_cast<LDObject*> (new LDQuad);
-				
-				obj->color = maincolor;
-				for (ushort i = 0; i < obj->vertices (); ++i)
-					obj->coords[i] = verts[i];
-			}
-			break;
-		}
-		
-		if (obj) {
-			g_curfile->addObject (obj);
-			compileObject (obj);
-			g_win->fullRefresh ();
+			obj = (verts.size () == 3) ?
+				static_cast<LDObject*> (new LDTriangle) :
+				static_cast<LDObject*> (new LDQuad);
 			
-			History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
+			obj->color = maincolor;
+			for (ushort i = 0; i < obj->vertices (); ++i)
+				obj->coords[i] = verts[i];
+			break;
 		}
 	}
 	
+	if (obj) {
+		g_curfile->addObject (obj);
+		compileObject (obj);
+		g_win->fullRefresh ();
+		
+		History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
+	}
+	
 	m_drawedVerts.clear ();
+	m_rectdraw = false;
 }
 
 // =============================================================================

@@ -100,6 +100,7 @@ private:
 	ushort m_width, m_height;
 	std::vector<vertex> m_drawedVerts;
 	EditMode m_editmode;
+	bool m_rectdraw;
 	
 	void	calcCameraIcons	();												// Compute geometry for camera icons
 	void	clampAngle			(double& angle) const;							// Clamps an angle to [0, 360]

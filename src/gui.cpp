@@ -56,7 +56,7 @@ extern_cfg (bool, gl_wireframe);
 
 const char* g_modeActionNames[] = {
 	"modeSelect",
-	"modeDraw"
+	"modeDraw",
 };
 
 // =============================================================================
@@ -965,9 +965,10 @@ void ForgeWindow::updateEditModeActions () {
 		
 		act->setCheckable (true);
 		act->setChecked (i == (size_t) mode);
+		
+		if (i != GL::Select)
+			act->setEnabled (R ()->camera () != GL::Free);
 	}
-	
-	findAction ("modeDraw")->setEnabled (R ()->camera () != GL::Free);
 }
 
 // ========================================================================================================================================
