@@ -124,9 +124,12 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 }
 
 // =============================================================================
-GLRenderer::~GLRenderer() {
+GLRenderer::~GLRenderer () {
 	for (CameraIcon& info : g_CameraIcons)
 		delete info.img;
+	
+	for (int i = 0; i < 6; ++i)
+		delete g_overlays[i].img;
 }
 
 // =============================================================================
@@ -191,9 +194,10 @@ void GLRenderer::setBackground () {
 	if (!col.isValid ())
 		return;
 	
-	m_darkbg = luma (col) < 80;
-	
 	col.setAlpha (255);
+	
+	m_darkbg = luma (col) < 80;
+	m_bgcolor = col;
 	qglClearColor (col);
 }
 
@@ -223,7 +227,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 			g = (i / 256) % 256,
 			b = i % 256;
 		
-		qglColor (QColor (r, g, b, 255));
+		qglColor (QColor (r, g, b));
 		return;
 	}
 	
@@ -244,7 +248,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		}
 		
 		if (obj->color == edgecolor) {
-			qcol = Qt::black;
+			qcol = luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
 			color* col;
 			
 			if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
@@ -317,7 +321,7 @@ void GLRenderer::resizeGL (int w, int h) {
 	glViewport (0, 0, w, h);
 	glMatrixMode (GL_PROJECTION);
 	glLoadIdentity ();
-	gluPerspective (45.0f, (double)w / (double)h, 1.0f, 10000.0f);
+	gluPerspective (45.0f, (double) w / (double) h, 1.0f, 10000.0f);
 	glMatrixMode (GL_MODELVIEW);
 }
 
@@ -538,7 +542,9 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 					}
 				}
 				
-				paint.setPen (m_thinBorderPen);
+				QPen pen = m_thinBorderPen;
+				pen.setWidth (1);
+				paint.setPen (pen);
 				paint.setBrush (QColor (128, 192, 0));
 				
 				// Draw vertex blips
@@ -548,7 +554,9 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 						blipsize, blipsize);
 				}
 				
-				paint.setPen (m_thickBorderPen);
+				pen.setWidth (2);
+				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
+				paint.setPen (pen);
 				paint.setBrush (QColor (128, 192, 0, 128));
 				paint.drawPolygon (poly, numverts);
 				
@@ -579,7 +587,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			
 			str label;
 			label.format ("%s Camera", g_CameraNames[camera ()]);
-			paint.setBrush (Qt::black);
+			paint.setPen (m_darkbg ? Qt::white : Qt::black);
 			paint.drawText (QPoint (margin, margin + metrics.ascent ()), label);
 		}
 		
