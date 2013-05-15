@@ -33,8 +33,6 @@
 #include "history.h"
 #include "dialogs.h"
 
-static double g_objOffset[3];
-
 static const struct staticCameraMeta {
 	const char glrotate[3];
 	const Axis axisX, axisY;
@@ -403,8 +401,8 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 		negYFac = cam->negY ? -1 : 1;
 	
 	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX) - (negXFac * g_objOffset[axisX]);
-	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY) - (negYFac * g_objOffset[axisY]);
+	double cx = (-m_virtWidth + ((2 * pos2d.x () * m_virtWidth) / m_width) - m_panX);
+	double cy = (m_virtHeight - ((2 * pos2d.y () * m_virtHeight) / m_height) - m_panY);
 	
 	if (snap) {
 		cx = Grid::snap (cx, (Grid::Config) axisX);
@@ -440,10 +438,8 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
 	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
 	
-	double rx = (((transformed[axisX] * negXFac) + (negXFac * g_objOffset[axisX])
-		+ m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
-	double ry = (((transformed[axisY] * negYFac) + (negYFac * g_objOffset[axisY])
-		- m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	double rx = (((transformed[axisX] * negXFac) + m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
+	double ry = (((transformed[axisY] * negYFac) - m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
 	
 	return QPoint (rx, -ry);
 }
@@ -472,7 +468,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
-	paint.setRenderHint (QPainter::Antialiasing);
+	paint.setRenderHint (QPainter::HighQualityAntialiasing);
 	
 	m_hoverpos = g_origin;
 	
@@ -646,15 +642,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileAllObjects () {
-	if (g_BBox.empty () == false) {
-		g_objOffset[X] = -(g_BBox.v0 ()[X] + g_BBox.v1 ()[X]) / 2;
-		g_objOffset[Y] = -(g_BBox.v0 ()[Y] + g_BBox.v1 ()[Y]) / 2;
-		g_objOffset[Z] = -(g_BBox.v0 ()[Z] + g_BBox.v1 ()[Z]) / 2;
-	} else {
-		// use a default bbox if we need 
-		g_objOffset[X] = g_objOffset[Y] = g_objOffset[Z] = 0;
-	}
-	
 	if (!g_curfile) {
 		printf ("renderer: no files loaded, cannot compile anything\n");
 		return;
@@ -815,10 +802,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileVertex (const vertex& vrt) {
-	glVertex3d (
-		(vrt[X] + g_objOffset[0]),
-		-(vrt[Y] + g_objOffset[1]),
-		-(vrt[Z] + g_objOffset[2]));
+	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
 }
 
 // =============================================================================
