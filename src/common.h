@@ -92,22 +92,11 @@ class bbox;
 class OpenFile;
 class QApplication;
 
-// =============================================================================
+// -----------------------------------------------------------------------------
 // Plural expression
-#define PLURAL(n) ((n != 1) ? "s" : "")
-
-// -----------------------------------------------------------------------------
-// Shortcut for formatting
-#define PERFORM_FORMAT(in, out) \
-	va_list v; \
-	va_start (v, in); \
-	char* out = vdynformat (in, v, 256); \
-	va_end (v);
-
-// -----------------------------------------------------------------------------
-// Shortcuts for stuffing vertices into printf-formatting.
-#define FMT_VERTEX "(%.3f, %.3f, %.3f)"
-#define FVERTEX(V) V.x, V.y, V.z
+template<class T> static inline const char* plural (T n) {
+	return (n != 1) ? "s" : "";
+}
 
 // -----------------------------------------------------------------------------
 // Templated clamp
@@ -131,15 +120,23 @@ template<class T> static inline T abs (T a) {
 }
 
 // Quick QString to const char* conversion
-static inline const char* qchars (QString qstr) {
+static inline const char* qchars (const QString& qstr) {
 	return qstr.toStdString ().c_str ();
 }
 
 static const double pi = 3.14159265358979323846f;
 
-#ifdef IN_IDE_PARSER // KDevelop workaround
+#ifdef IN_IDE_PARSER // KDevelop workarounds:
 // Current function name
 static const char* __func__ = "";
+
+#ifndef va_start
+#define va_start(va, arg)
+#endif // va_start
+
+#ifndef va_end
+#define va_end(va)
+#endif // va_end
 #endif // IN_IDE_PARSER
 
 // -----------------------------------------------------------------------------

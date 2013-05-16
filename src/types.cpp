@@ -130,12 +130,12 @@ void matrix::zero () {
 matrix matrix::mult (matrix other) {
 	matrix val;
 	val.zero ();
-
+	
 	for (short i = 0; i < 3; ++i)
 	for (short j = 0; j < 3; ++j)
 	for (short k = 0; k < 3; ++k)
 		val[(i * 3) + j] += m_vals[(i * 3) + k] * other[(k * 3) + j];
-
+	
 	return val;
 }
 

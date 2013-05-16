@@ -120,11 +120,10 @@ void ConfigDialog::initMainTab () {
 		"colored in the object list. A red polygon will have its description "
 		"written in red text.");
 	
-	cb_colorBFC = new QCheckBox ("Red/green BFC view");
+	cb_colorBFC = new QCheckBox ("Red/green BFC view (incomplete)");
 	cb_colorBFC->setChecked (gl_colorbfc);
-	cb_colorBFC->setWhatsThis ("Polygons' front sides become green and back "
-		"sides red. Not implemented yet.");
-	
+	cb_colorBFC->setWhatsThis ("Polygons' front sides become green and back sides red.");
+
 	cb_blackEdges = new QCheckBox ("Black edges");
 	cb_blackEdges->setWhatsThis ("Makes all edgelines appear black. If this is "
 		"not set, edge lines take their color as defined in LDConfig.ldr");
@@ -267,8 +266,8 @@ void ConfigDialog::initQuickColorTab () {
 // =============================================================================
 void ConfigDialog::initGridTab () {
 	QWidget* tab = new QWidget;
-	QGridLayout* layout = new QGridLayout;
-	QVBoxLayout* l2 = new QVBoxLayout;
+	QGridLayout* gridlayout = new QGridLayout;
+	QVBoxLayout* mainlayout = new QVBoxLayout;
 	
 	QLabel* xlabel = new QLabel ("X"),
 		*ylabel = new QLabel ("Y"),
@@ -278,7 +277,7 @@ void ConfigDialog::initGridTab () {
 	short i = 1;
 	for (QLabel* label : std::initializer_list<QLabel*> ({xlabel, ylabel, zlabel, anglabel})) {
 		label->setAlignment (Qt::AlignCenter);
-		layout->addWidget (label, 0, i++);
+		gridlayout->addWidget (label, 0, i++);
 	}
 	
 	for (int i = 0; i < g_NumGrids; ++i) {
@@ -292,20 +291,20 @@ void ConfigDialog::initGridTab () {
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
 		labellayout->addWidget (lb_gridLabels[i]);
-		layout->addLayout (labellayout, i + 1, 0);
+		gridlayout->addLayout (labellayout, i + 1, 0);
 		
 		// Add the widgets
 		for (int j = 0; j < 4; ++j) {
 			dsb_gridData[i][j] = new QDoubleSpinBox;
 			dsb_gridData[i][j]->setValue (g_GridInfo[i].confs[j]->value);
-			layout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
+			gridlayout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
 		}
 	}
 	
-	l2->addLayout (layout);
-	l2->addStretch (1);
+	mainlayout->addLayout (gridlayout);
+	mainlayout->addStretch (1);
 	
-	tab->setLayout (l2);
+	tab->setLayout (mainlayout);
 	tabs->addTab (tab, "Grids");
 }
 
@@ -360,7 +359,7 @@ void ConfigDialog::initExtProgTab () {
 	
 	pathsBox->setLayout (pathsLayout);
 	layout->addWidget (pathsBox);
-	layout->addSpacing (10);
+	layout->addStretch (1);
 	
 	tab->setLayout (layout);
 	tabs->addTab (tab, "Ext. Programs");

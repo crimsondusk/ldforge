@@ -385,7 +385,7 @@ str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
 		if (!firstDetails)
 			text += ", ";
 		
-		str noun = fmt ("%s%s", g_saObjTypeNames[objType], PLURAL (objCount));
+		str noun = fmt ("%s%s", g_saObjTypeNames[objType], plural (objCount));
 		
 		// Plural of "vertex" is "vertices". Stupid English.
 		if (objType == LDObject::Vertex && objCount != 1)

@@ -54,6 +54,11 @@ inline const gridinfo& currentGrid () {
 	return g_GridInfo[grid];
 }
 
+// =============================================================================
+vertex rotPoint (const vector<LDObject*>& objs);
+void configRotationPoint ();
+
+// =============================================================================
 namespace Grid {
 	enum Type {
 		Coarse,

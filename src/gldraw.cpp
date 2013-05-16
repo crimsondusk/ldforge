@@ -157,7 +157,10 @@ void GLRenderer::resetAngles () {
 	m_panX = m_panY = m_rotZ = 0.0f;
 	
 	// Set the default zoom based on the bounding box
-	m_zoom = g_BBox.size () * 6;
+	if (g_BBox.empty () == false)
+		m_zoom = g_BBox.size () * 6;
+	else
+		m_zoom = 30.0f;
 }
 
 // =============================================================================

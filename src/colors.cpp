@@ -56,17 +56,6 @@ color* getColor (short dColorNum) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
-	short pos;
-	if (!pars.findToken (pos, tag, 1))
-		return false;
-	
-	return pars.getToken (val, pos + 1);
-}
-
-// =============================================================================
 uchar luma (QColor& col) {
 	return (0.2126f * col.red ()) +
 		(0.7152f * col.green ()) +
@@ -74,7 +63,18 @@ uchar luma (QColor& col) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// Helper function for parseLDConfig
+static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
+	short pos;
+	
+	// Try find the token and get its position
+	if (!pars.findToken (pos, tag, 1))
+		return false;
+	
+	// Get the token after it and store it into val
+	return pars.getToken (val, pos + 1);
+}
+
 // =============================================================================
 void parseLDConfig () {
 	FILE* fp = openLDrawFile ("LDConfig.ldr", false);
@@ -82,13 +82,13 @@ void parseLDConfig () {
 	if (!fp)
 		return;
 	
-	// Even though LDConfig.ldr is technically an LDraw file, parsing it as one
-	// would be overkill by any standard.
+	// Read in the lines
 	char buf[1024];
 	while (fgets (buf, sizeof buf, fp)) {
 		if (strlen (buf) == 0 || buf[0] != '0')
 			continue; // empty or illogical
 		
+		// Use StringParser to parse the LDConfig.ldr file.
 		str line = str (buf).strip ({'\n', '\r'});
 		StringParser pars (line, ' ');
 		
@@ -102,21 +102,20 @@ void parseLDConfig () {
 		// Replace underscores in the name with spaces for readability
 		name.replace ("_", " ");
 		
-		// get the CODE tag
+		// Get the CODE tag
 		if (!parseLDConfigTag (pars, "CODE", valuestr))
 			continue;
 		
-		// Ensure that the code is within range. must be within 0 - 512
+		if (!isNumber (valuestr))
+			continue; // not a number
+		
+		// Ensure that the code is within [0 - 511]
 		code = atoi (valuestr);
 		if (code < 0 || code >= 512)
 			continue;
 		
-		// VALUE tag
-		if (!parseLDConfigTag (pars, "VALUE", facename))
-			continue;
-		
-		// EDGE tag
-		if (!parseLDConfigTag (pars, "EDGE", edgename))
+		// VALUE and EDGE tags
+		if (!parseLDConfigTag (pars, "VALUE", facename) || !parseLDConfigTag (pars, "EDGE", edgename))
 			continue;
 		
 		// Ensure that our colors are correct

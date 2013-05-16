@@ -22,6 +22,8 @@
 #include "common.h"
 #include "misc.h"
 #include "gui.h"
+#include "bbox.h"
+#include "dialogs.h"
 
 // Prime number table.
 const ushort g_primes[NUM_PRIMES] = {
@@ -98,6 +100,10 @@ cfg (float, grid_fine_x,			0.1f);
 cfg (float, grid_fine_y,			0.1f);
 cfg (float, grid_fine_z,			0.1f);
 cfg (float, grid_fine_angle,		7.5f);
+cfg (int, edit_rotpoint, 0);
+cfg (float, edit_rotpoint_x, 0.0f); // TODO: make a vertexconfig object and use it here
+cfg (float, edit_rotpoint_y, 0.0f);
+cfg (float, edit_rotpoint_z, 0.0f);
 
 const gridinfo g_GridInfo[3] = {
 	{ "Coarse",	{ &grid_coarse_x,	&grid_coarse_y,	&grid_coarse_z,	&grid_coarse_angle	}, &ACTION (gridCoarse) },
@@ -201,6 +207,42 @@ void simplify (short& dNum, short& dDenom) {
 			}
 		}
 	} while (bRepeat);
+}
+
+// =============================================================================
+vertex rotPoint (const vector<LDObject*>& objs) {
+	if (edit_rotpoint == 1)
+		return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+	
+	bbox box;
+	
+	// Calculate center vertex
+	for (LDObject* obj : objs) {
+		if (obj->getType () == LDObject::Subfile)
+			box << static_cast<LDSubfile*> (obj)->pos;
+		else if (obj->getType () == LDObject::Radial)
+			box << static_cast<LDRadial*> (obj)->pos;
+		else
+			box << obj;
+	}
+	
+	return box.center ();
+}
+
+void configRotationPoint () {
+	RotationPointDialog dlg;
+	dlg.setCustom (edit_rotpoint);
+	dlg.setCustomPos (vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z));
+	
+	if (!dlg.exec ())
+		return;
+	
+	edit_rotpoint = dlg.custom ();
+	
+	vertex pos = dlg.customPos ();
+	edit_rotpoint_x = pos[X];
+	edit_rotpoint_y = pos[Y];
+	edit_rotpoint_z = pos[Z];
 }
 
 // =============================================================================

@@ -27,8 +27,6 @@
 #include "aboutDialog.h"
 
 AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	QWidget* mainTab, *licenseTab;
-	
 	// Application icon - in full 64 x 64 glory.
 	QLabel* icon = new QLabel;
 	icon->setPixmap (getIcon ("ldforge"));

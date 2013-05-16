@@ -249,6 +249,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("rotateYNeg");			// Rotate -Y
 	addMenuAction ("rotateZPos");			// Rotate +Z
 	addMenuAction ("rotateZNeg");			// Rotate -Z
+	addMenuAction ("rotpoint");			// Set Rotation Point
 	
 	initMenu ("E&xternal Programs");
 	addMenuAction ("ytruder");
@@ -361,6 +362,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("rotateYNeg");
 	addToolBarAction ("rotateZPos");
 	addToolBarAction ("rotateZNeg");
+	addToolBarAction ("rotpoint");
 	
 	// ==========================================
 	initSingleToolBar ("Grids");
@@ -723,15 +725,11 @@ void ForgeWindow::slot_selectionChanged () {
 	}
 	
 	// Update the GL renderer
-	for (LDObject* obj : m_sel) {
-		printf ("recompile %lu\n", obj->getIndex (g_curfile));
+	for (LDObject* obj : m_sel)
 		m_renderer->compileObject (obj);
-	}
 	
-	for (LDObject* obj : priorSelection) {
+	for (LDObject* obj : priorSelection)
 		printf ("recompile %lu\n", obj->getIndex (g_curfile));
-		m_renderer->compileObject (obj);
-	}
 	
 	m_renderer->update ();
 }
@@ -1065,7 +1063,7 @@ void makeColorSelector (QComboBox* box) {
 		
 		QIcon ico = makeColorIcon (col, 16);
 		box->addItem (ico, fmt ("[%d] %s (%lu object%s)",
-			pair.first, col->name.chars (), pair.second, PLURAL (pair.second)));
+			pair.first, col->name.chars (), pair.second, plural (pair.second)));
 		box->setItemData (row, pair.first);
 		
 		++row;

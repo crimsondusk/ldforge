@@ -137,11 +137,11 @@ void writeObjects (std::vector<LDObject*>& objects, str fname) {
 	
 	writeObjects (objects, fp);
 	
-#ifndef RELEASE
+#if 0
 	ushort idx = rand ();
 	printf ("%s -> debug_%u\n", fname.chars (), idx);
 	QFile::copy (fname.chars (), fmt ("debug_%u", idx));
-#endif // RELEASE
+#endif // 0
 	
 	fclose (fp);
 }

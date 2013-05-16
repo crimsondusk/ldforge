@@ -27,7 +27,6 @@
 #include "colorSelectDialog.h"
 #include "historyDialog.h"
 #include "misc.h"
-#include "bbox.h"
 #include "widgets.h"
 #include "extprogs.h"
 #include "gldraw.h"
@@ -541,53 +540,40 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
 	std::vector<LDObject*> sel = g_win->sel ();
-	bbox box;
 	vertex origin;
 	std::vector<vertex*> queue;
 	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 360;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
+	const double cosangle = cos (angle),
+		sinangle = sin (angle);
+	
 	matrix transform ({
-		(l * l * (1 - cos (angle))) + cos (angle),
-		(m * l * (1 - cos (angle))) - (n * sin (angle)),
-		(n * l * (1 - cos (angle))) + (m * sin (angle)),
+		(l * l * (1 - cosangle)) + cosangle,
+		(m * l * (1 - cosangle)) - (n * sinangle),
+		(n * l * (1 - cosangle)) + (m * sinangle),
 		
-		(l * m * (1 - cos (angle))) + (n * sin (angle)),
-		(m * m * (1 - cos (angle))) + cos (angle),
-		(n * m * (1 - cos (angle))) - (l * sin (angle)),
+		(l * m * (1 - cosangle)) + (n * sinangle),
+		(m * m * (1 - cosangle)) + cosangle,
+		(n * m * (1 - cosangle)) - (l * sinangle),
 		
-		(l * n * (1 - cos (angle))) - (m * sin (angle)),
-		(m * n * (1 - cos (angle))) + (l * sin (angle)),
-		(n * n * (1 - cos (angle))) + cos (angle)
+		(l * n * (1 - cosangle)) - (m * sinangle),
+		(m * n * (1 - cosangle)) + (l * sinangle),
+		(n * n * (1 - cosangle)) + cosangle
 	});
 	
-	// Calculate center vertex
-	for (LDObject* obj : sel) {
-		if (obj->getType () == LDObject::Subfile)
-			box << static_cast<LDSubfile*> (obj)->pos;
-		else if (obj->getType () == LDObject::Radial)
-			box << static_cast<LDRadial*> (obj)->pos;
-		else
-			box << obj;
-	}
-	
-	origin = box.center ();
+	origin = rotPoint (sel);
 	
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
 				queue.push_back (&obj->coords[i]);
-		else if (obj->getType () == LDObject::Subfile) {
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		else if (obj->hasMatrix ()) {
+			LDMatrixObject* mobj = static_cast<LDSubfile*> (obj);
 			
-			queue.push_back (&ref->pos);
-			ref->transform = ref->transform * transform;
-		} else if (obj->getType () == LDObject::Radial) {
-			LDRadial* rad = static_cast<LDRadial*> (obj);
-			
-			queue.push_back (&rad->pos);
-			rad->transform = rad->transform * transform;
+			queue.push_back (&mobj->pos);
+			mobj->transform = mobj->transform * transform;
 		} else if (obj->getType () == LDObject::Vertex)
 			queue.push_back (&static_cast<LDVertex*> (obj)->pos);
 		
@@ -625,6 +611,11 @@ MAKE_ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y a
 
 MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z axis", CTRL (Down)) {
 	doRotate (0, 0, -1);
+}
+
+// =========================================================================================================================================
+MAKE_ACTION (rotpoint, "Set Rotation Point", "rotpoint", "Configure the rotation point.", (0)) {
+	configRotationPoint ();
 }
 
 // =============================================================================

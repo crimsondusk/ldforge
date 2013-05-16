@@ -128,8 +128,8 @@ void HistoryDialog::populateList () {
 		case HISTORY_QuadSplit:
 			{
 				QuadSplitHistory* subentry = static_cast<QuadSplitHistory*> (entry);
-				ulong ulCount = subentry->paQuads.size ();
-				text.format ("Split %lu quad%s to triangles", ulCount, PLURAL (ulCount));
+				ulong count = subentry->paQuads.size ();
+				text.format ("Split %lu quad%s to triangles", count, plural (count));
 				
 				entryIcon = getIcon ("quad-split");
 			}

@@ -24,6 +24,7 @@
 #include <QLabel>
 #include <QPushButton>
 #include <QBoxLayout>
+#include <QGridLayout>
 
 #include "dialogs.h"
 #include "widgets.h"
@@ -419,4 +420,51 @@ void NewPartDialog::StaticDialog () {
 		
 		g_win->fullRefresh ();
 	}
+}
+
+RotationPointDialog::RotationPointDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	rb_rotpoint = new RadioBox ("Rotation Point", { "Object center", "Custom" }, 0, Qt::Vertical, this);
+	connect (rb_rotpoint, SIGNAL (valueChanged (int)), this, SLOT (radioBoxChanged ()));
+	
+	gb_customPos = new QGroupBox ("Custom point", this);
+	dsb_customX = new QDoubleSpinBox;
+	dsb_customY = new QDoubleSpinBox;
+	dsb_customZ = new QDoubleSpinBox;
+	
+	QGridLayout* customLayout = new QGridLayout (gb_customPos);
+	customLayout->setColumnStretch (1, 1);
+	customLayout->addWidget (new QLabel ("X"),	0, 0);
+	customLayout->addWidget (dsb_customX,			0, 1);
+	customLayout->addWidget (new QLabel ("Y"),	1, 0);
+	customLayout->addWidget (dsb_customY,			1, 1);
+	customLayout->addWidget (new QLabel ("Z"),	2, 0);
+	customLayout->addWidget (dsb_customZ,			2, 1);
+	
+	QVBoxLayout* layout = new QVBoxLayout (this);
+	layout->addWidget (rb_rotpoint);
+	layout->addWidget (gb_customPos);
+	layout->addWidget (makeButtonBox (*this));
+}
+
+bool RotationPointDialog::custom () const {
+	return rb_rotpoint->value () == 1;
+}
+
+vertex RotationPointDialog::customPos () const {
+	return vertex (dsb_customX->value (), dsb_customY->value (), dsb_customZ->value ());
+}
+
+void RotationPointDialog::setCustom (bool custom) {
+	rb_rotpoint->setValue (custom == true ? 1 : 0);
+	gb_customPos->setEnabled (custom);
+}
+
+void RotationPointDialog::setCustomPos (const vertex& pos) {
+	dsb_customX->setValue (pos[X]);
+	dsb_customY->setValue (pos[Y]);
+	dsb_customZ->setValue (pos[Z]);
+}
+
+void RotationPointDialog::radioBoxChanged () {
+	setCustom (rb_rotpoint->value ());
 }

@@ -24,7 +24,7 @@
 
 class HistoryEntry;
 
-#define IMPLEMENT_LDTYPE(T, NUMVERTS) \
+#define LDOBJ(T) \
 	LD##T () {} \
 	virtual ~LD##T () {} \
 	virtual LDObject::Type getType () const { \
@@ -35,9 +35,9 @@ class HistoryEntry;
 		return new LD##T (*this); \
 	} \
 	virtual void move (vertex vVector); \
-	virtual short vertices () const { return NUMVERTS; } \
 	virtual HistoryEntry* invert ();
 
+#define LDOBJ_VERTICES(V) virtual short vertices () const { return V; }
 #define LDOBJ_SETCOLORED(V) virtual bool isColored () const { return V; }
 #define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
 #define LDOBJ_UNCOLORED LDOBJ_SETCOLORED (false)
@@ -46,8 +46,27 @@ class HistoryEntry;
 #define LDOBJ_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return true; }
 #define LDOBJ_NON_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return false; }
 
+#define LDOBJ_SETMATRIX(V) virtual bool hasMatrix () const { return V; }
+#define LDOBJ_HAS_MATRIX LDOBJ_SETMATRIX (true)
+#define LDOBJ_NO_MATRIX LDOBJ_SETMATRIX (false)
+
 class QListWidgetItem;
 class LDSubfile;
+
+// =============================================================================
+// LDMatrixObject
+// 
+// Common code for objects with matrices
+// =============================================================================
+class LDMatrixObject {
+public:
+	LDMatrixObject () {}
+	LDMatrixObject (const matrix& transform, const vertex& pos) :
+		transform (transform), pos (pos) {}
+	
+	matrix transform;
+	vertex pos;
+};
 
 // =============================================================================
 // LDObject
@@ -142,6 +161,7 @@ public:
 	QListWidgetItem* qObjListEntry;
 	
 	bool					hidden			() const { return m_hidden; }
+	virtual bool			hasMatrix		() const { return false; }
 	virtual HistoryEntry*	invert			();
 	LDObject*				next			() const;
 	LDObject*				prev			() const;
@@ -164,9 +184,11 @@ private:
 // =============================================================================
 class LDGibberish : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Gibberish, 0)
+	LDOBJ (Gibberish)
+	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	LDGibberish (str _zContent, str _zReason);
 	
@@ -184,9 +206,11 @@ public:
 // =============================================================================
 class LDEmpty : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Empty, 0)
+	LDOBJ (Empty)
+	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 };
 
 // =============================================================================
@@ -197,9 +221,11 @@ public:
 // =============================================================================
 class LDComment : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Comment, 0)
+	LDOBJ (Comment)
+	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	LDComment (str text) : text (text) {}
 	
@@ -214,19 +240,13 @@ public:
 // =============================================================================
 class LDBFC : public LDComment {
 public:
-	enum Type {
-		CertifyCCW,
-		CCW,
-		CertifyCW,
-		CW,
-		NoCertify,	// Winding becomes disabled (0 BFC NOCERTIFY)
-		InvertNext,	// Winding is inverted for next object (0 BFC INVERTNEXT)
-		NumStatements
-	};
+	enum Type { CertifyCCW, CCW, CertifyCW, CW, NoCertify, InvertNext, NumStatements };
 	
-	IMPLEMENT_LDTYPE (BFC, 0)
+	LDOBJ (BFC)
+	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_CUSTOM_SCHEMANTIC { return (type == InvertNext); }
+	LDOBJ_NO_MATRIX
 	
 	LDBFC (const LDBFC::Type type) : type (type) {}
 	
@@ -241,14 +261,14 @@ public:
 //
 // Represents a single code-1 subfile reference.
 // =============================================================================
-class LDSubfile : public LDObject {
+class LDSubfile : public LDObject, public LDMatrixObject {
 public:
-	IMPLEMENT_LDTYPE (Subfile, 0)
+	LDOBJ (Subfile)
+	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_HAS_MATRIX
 	
-	vertex pos; // Position of the subpart (TODO: should get rid of this)
-	matrix transform; // Transformation matrix for the subpart
 	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
 	OpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
 	
@@ -266,9 +286,11 @@ public:
 // =============================================================================
 class LDLine : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Line, 2)
+	LDOBJ (Line)
+	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	LDLine (vertex v1, vertex v2);
 };
@@ -281,9 +303,11 @@ public:
 // =============================================================================
 class LDCondLine : public LDLine {
 public:
-	IMPLEMENT_LDTYPE (CondLine, 4)
+	LDOBJ (CondLine)
+	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 };
 
 // =============================================================================
@@ -295,9 +319,11 @@ public:
 // =============================================================================
 class LDTriangle : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Triangle, 3)
+	LDOBJ (Triangle)
+	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
 		coords[0] = _v0;
@@ -314,9 +340,11 @@ public:
 // =============================================================================
 class LDQuad : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Quad, 4)
+	LDOBJ (Quad)
+	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	// Split this quad into two triangles (note: heap-allocated)
 	vector<LDTriangle*> splitToTriangles ();
@@ -332,9 +360,11 @@ public:
 // =============================================================================
 class LDVertex : public LDObject {
 public:
-	IMPLEMENT_LDTYPE (Vertex, 0) // TODO: move pos to vaCoords[0]
+	LDOBJ (Vertex)
+	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
 	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NO_MATRIX
 	
 	vertex pos;
 };
@@ -348,7 +378,7 @@ public:
 // allow part authors to add radial primitives to parts without much hassle about
 // non-existant primitive parts.
 // =============================================================================
-class LDRadial : public LDObject {
+class LDRadial : public LDObject, public LDMatrixObject {
 public:
 	enum Type {
 		Circle,
@@ -360,17 +390,17 @@ public:
 		NumTypes
 	};
 	
-	IMPLEMENT_LDTYPE (Radial, 0)
+	LDOBJ (Radial)
+	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCHEMANTIC
+	LDOBJ_HAS_MATRIX
 	
 	LDRadial::Type radType;
-	vertex pos;
-	matrix transform;
 	short divs, segs, ringNum;
 	
 	LDRadial (LDRadial::Type radType, vertex pos, matrix transform, short divs, short segs, short ringNum) :
-		radType (radType), pos (pos), transform (transform), divs (divs), segs (segs), ringNum (ringNum) {}
+		LDMatrixObject (transform, pos), radType (radType), divs (divs), segs (segs), ringNum (ringNum) {}
 	
 	// Returns a set of objects that provide the equivalent of this radial.
 	// Note: objects are heap-allocated.

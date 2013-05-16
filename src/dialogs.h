@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "common.h"
 
+class QGroupBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
 class QPushButton;
@@ -74,6 +75,7 @@ private:
 	QLineEdit* le_contents;
 };
 
+// =============================================================================
 class LDrawPathDialog : public QDialog {
 	Q_OBJECT
 	
@@ -99,6 +101,7 @@ private slots:
 	void slot_exit ();
 };
 
+// =============================================================================
 class NewPartDialog : public QDialog {
 public:
 	enum { CCAL, NonCA, NoLicense };
@@ -110,6 +113,27 @@ public:
 	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
 	QLineEdit* le_name, *le_author;
 	RadioBox* rb_license, *rb_BFC;
+};
+
+// =============================================================================
+class RotationPointDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit RotationPointDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	
+	vertex customPos () const;
+	bool custom () const;
+	void setCustom (bool custom);
+	void setCustomPos (const vertex& pos);
+	
+private:
+	QDoubleSpinBox* dsb_customX, *dsb_customY, *dsb_customZ;
+	RadioBox* rb_rotpoint;
+	QGroupBox* gb_customPos;
+	
+private slots:
+	void radioBoxChanged ();
 };
 
 #endif // DIALOGS_H
