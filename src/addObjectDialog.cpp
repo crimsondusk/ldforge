@@ -481,8 +481,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 				return; // no subfile filename
 			
 			OpenFile* file = loadSubfile (name);
-			if (!file)
+			if (!file) {
+				critical (fmt ("Couldn't open `%s': %s", name.c (), strerror (errno)));
 				return;
+			}
 			
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 			ref->color = dlg.dColor;

@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QDir>
 
+#include <stdlib.h>
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -118,7 +119,22 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 	relpath.replace ("\\", "/");
 #endif // WIN32
 	
-	printf ("Trying %s\n", relpath.chars ());
+	if (g_curfile != null) {
+		long lastpos;
+		for (lastpos = g_curfile->m_filename.len () - 1; lastpos >= 0; --lastpos)
+			if (g_curfile->m_filename[(size_t) lastpos] == '/')
+				break;
+		
+		if (lastpos > 0) {
+			str dirname = g_curfile->m_filename.substr (0, lastpos);
+			str partpath = fmt ("%s" DIRSLASH "%s", dirname.c (), relpath.c ());
+			FILE* fp = fopen (partpath, "r");
+			
+			if (fp != null)
+				return fp;
+		}
+	}
+	
 	FILE* fp = fopen (relpath.chars (), "r");
 	str fullPath;
 	
@@ -128,7 +144,6 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 	if (~io_ldpath.value) {
 		// Try with just the LDraw path first
 		fullPath = fmt ("%s" DIRSLASH "%s", io_ldpath.value.chars(), relpath.chars());
-		printf ("Trying %s\n", fullPath.chars());
 		
 		fp = fopen (fullPath, "r");
 		if (fp != null)
@@ -143,7 +158,6 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 			for (char const* sSubdir : saSubdirectories) {
 				fullPath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
 					io_ldpath.value.chars(), sSubdir, relpath.chars());
-				printf ("Trying %s\n", fullPath.chars());
 				
 				fp = fopen (fullPath.chars (), "r");
 				
@@ -198,7 +212,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* openDATFile (str path, bool search) {
+OpenFile* openDATFile (str path, bool search, bool mainfile) {
 	logf ("Opening %s...\n", path.chars());
 	
 	// Convert the file name to lowercase since some parts contain uppercase
@@ -217,6 +231,10 @@ OpenFile* openDATFile (str path, bool search) {
 	
 	OpenFile* load = new OpenFile;
 	load->m_filename = path;
+	
+	if (mainfile)
+		g_curfile = load;
+	
 	ulong numWarnings;
 	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings);
 	
@@ -346,7 +364,7 @@ void addRecentFile (str path) {
 void openMainFile (str path) {
 	closeAll ();
 	
-	OpenFile* file = openDATFile (path, false);
+	OpenFile* file = openDATFile (path, false, true);
 	
 	if (!file) {
 		// Tell the user loading failed.
@@ -620,7 +638,7 @@ OpenFile* loadSubfile (str zFile) {
 	// Try open the file
 	OpenFile* pFile = findLoadedFile (zFile);
 	if (!pFile)
-		pFile = openDATFile (zFile, true);
+		pFile = openDATFile (zFile, true, false);
 	
 	return pFile;
 }
