@@ -993,6 +993,9 @@ void GLRenderer::setCamera (const GL::Camera cam) {
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	GLint viewport[4];
 	
+	// Use particularly thick lines while picking ease up selecting lines.
+	glLineWidth (max<double> (gl_linethickness, 6.5f));
+	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
 		std::vector<LDObject*> oldsel = g_win->sel ();
@@ -1108,6 +1111,9 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	if (removedObj)
 		compileObject (removedObj);
+	
+	// Restore line thickness
+	glLineWidth (gl_linethickness);
 	
 	m_picking = false;
 	m_rangepick = false;

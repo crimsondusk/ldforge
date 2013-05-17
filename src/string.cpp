@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <stdexcept>
 #include "common.h"
 #include "string.h"
 
@@ -159,5 +160,15 @@ String String::substr (long a, long b) const {
 	if (b == -1)
 		b = len ();
 	
-	return m_string.substr (a, b - a);
+	str sub;
+	
+	try {
+		sub = m_string.substr (a, b - a);
+	} catch (const std::out_of_range& e) {
+		printf ("%s: %s: caught std::out_of_range, coords were: (%ld, %ld), string: `%s', length: %lu\n",
+			__func__, e.what (), a, b, chars (), (ulong) len ());
+		abort ();
+	}
+	
+	return sub;
 }

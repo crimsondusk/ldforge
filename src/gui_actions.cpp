@@ -374,16 +374,16 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
 	
-	str root = basename (g_curfile->m_filename.chars ());
-	if (root.substr (~root - 4, -1) == ".dat")
+	str root = basename (g_curfile->m_filename);
+	if (~root >= 4 && root.substr (~root - 4, -1) == ".dat")
 		root -= 4;
 	
-	str defaultname = (~root > 0) ? fmt ("%s.png", root.chars ()) : "";
+	str defaultname = (~root > 0) ? fmt ("%s.png", root.c ()) : "";
 	str fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	
 	if (~fname > 0 && !img.save (fname))
-		critical (fmt ("Couldn't open %s for writing to save screencap: %s", fname.chars(), strerror (errno)));
+		critical (fmt ("Couldn't open %s for writing to save screencap: %s", fname.c (), strerror (errno)));
 	
 	delete[] imagedata;
 }

@@ -362,7 +362,6 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("rotateYNeg");
 	addToolBarAction ("rotateZPos");
 	addToolBarAction ("rotateZNeg");
-	addToolBarAction ("rotpoint");
 	
 	// ==========================================
 	initSingleToolBar ("Grids");

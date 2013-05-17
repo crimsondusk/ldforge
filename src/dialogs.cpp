@@ -431,6 +431,9 @@ RotationPointDialog::RotationPointDialog (QWidget* parent, Qt::WindowFlags f) : 
 	dsb_customY = new QDoubleSpinBox;
 	dsb_customZ = new QDoubleSpinBox;
 	
+	for (auto x : initlist<QDoubleSpinBox*> ({dsb_customX, dsb_customY, dsb_customZ}))
+		x->setRange (-10000.0f, 10000.0f);
+	
 	QGridLayout* customLayout = new QGridLayout (gb_customPos);
 	customLayout->setColumnStretch (1, 1);
 	customLayout->addWidget (new QLabel ("X"),	0, 0);

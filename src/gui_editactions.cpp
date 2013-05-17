@@ -542,7 +542,7 @@ static void doRotate (const short l, const short m, const short n) {
 	std::vector<LDObject*> sel = g_win->sel ();
 	vertex origin;
 	std::vector<vertex*> queue;
-	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 360;
+	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 180;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	const double cosangle = cos (angle),
