@@ -676,6 +676,7 @@ void ForgeWindow::buildObjList () {
 	
 	g_bSelectionLocked = false;
 	updateSelection ();
+	scrollToSelection ();
 }
 
 // =============================================================================
