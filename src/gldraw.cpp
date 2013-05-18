@@ -911,14 +911,13 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
-	if (ev->buttons () & Qt::LeftButton)
+	if (ev->buttons () & Qt::LeftButton && !(m_lastButtons && Qt::LeftButton))
 		m_totalmove = 0;
 	
 	if (ev->modifiers () & Qt::ShiftModifier) {
 		m_rangepick = true;
 		m_rangeStart.setX (ev->x ());
 		m_rangeStart.setY (ev->y ());
-		
 		m_addpick = (m_keymods & Qt::ControlModifier);
 	}
 	
@@ -967,8 +966,12 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	m_zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
-	m_zoom = clamp (m_zoom, 0.01, 10000.0);
+	if (m_zoom > 15)
+		m_zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
+	else
+		m_zoom += (double) ev->delta () / -100.0f;
+	
+	m_zoom = clamp<double> (m_zoom, 0.01f, 10000.0f);
 	
 	update ();
 	ev->accept ();
