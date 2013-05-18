@@ -97,7 +97,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 		historyCopies.push_back (obj->clone ());
 		
 		LDObject* copy = obj->clone ();
-		g_curfile->insertObj (idx, copy);
+		g_curfile->insertObj (idx++, copy);
 		g_win->sel ().push_back (copy);
 	}
 	
