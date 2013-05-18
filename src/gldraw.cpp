@@ -20,6 +20,7 @@
 #include <QWheelEvent>
 #include <QMouseEvent>
 #include <QContextMenuEvent>
+#include <QInputDialog>
 #include <GL/glu.h>
 
 #include "common.h"
@@ -47,6 +48,7 @@ static const struct staticCameraMeta {
 };
 
 overlayMeta g_overlays[6];
+double g_depthValues[6];
 
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
@@ -117,8 +119,10 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 		info->cam = cam;
 	}
 	
-	for (int i = 0; i < 6; ++i)
+	for (int i = 0; i < 6; ++i) {
 		g_overlays[i].img = null;
+		g_depthValues[i] = 0.0f;
+	}
 	
 	calcCameraIcons ();
 }
@@ -400,6 +404,8 @@ void GLRenderer::drawGLScene () const {
 
 // =============================================================================
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
+	assert (camera () != Free);
+	
 	vertex pos3d;
 	const staticCameraMeta* cam = &g_staticCameras[m_camera];
 	const Axis axisX = cam->axisX;
@@ -422,6 +428,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	pos3d = g_origin;
 	pos3d[axisX] = cx;
 	pos3d[axisY] = cy;
+	pos3d[3 - axisX - axisY] = depthValue ();
 	return pos3d;
 }
 
@@ -1357,4 +1364,18 @@ void GLRenderer::clearOverlay () {
 	overlayMeta& info = g_overlays[camera ()];
 	delete info.img;
 	info.img = null;
+}
+
+void GLRenderer::setDepthValue (double depth) {
+	assert (camera () < Free);
+	g_depthValues[camera ()] = depth;
+}
+
+double GLRenderer::depthValue () const {
+	assert (camera () < Free);
+	return g_depthValues[camera ()];
+}
+
+const char* GLRenderer::cameraName () const {
+	return g_CameraNames[camera ()];
 }

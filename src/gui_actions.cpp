@@ -22,6 +22,7 @@
 #include <QBoxLayout>
 #include <QDialogButtonBox>
 #include <QPushButton>
+#include <QInputDialog>
 
 #include "gui.h"
 #include "file.h"
@@ -425,4 +426,18 @@ MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the 
 
 MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera view.", CTRL (2)) {
 	g_win->R ()->setEditMode (GL::Draw);
+}
+
+// =========================================================================================================================================
+MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coordinate of the current camera.", (0)) {
+	if (g_win->R ()->camera () == GL::Free)
+		return;
+	
+	bool ok;
+	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
+		fmt ("Depth value for %s Camera:", g_win->R ()->cameraName ()),
+		g_win->R ()->depthValue (), -10000.0f, 10000.0f, 3, &ok);
+	
+	if (ok)
+		g_win->R ()->setDepthValue (depth);
 }

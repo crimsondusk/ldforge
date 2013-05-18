@@ -106,6 +106,8 @@ public:
 	vertex			operator-		() const;
 	double&			operator[]		(const Axis ax);
 	const double&	operator[]		(const Axis ax) const;
+	double&			operator[]		(const int ax);
+	const double&	operator[]		(const int ax) const;
 
 private:
 	double m_coords[3];

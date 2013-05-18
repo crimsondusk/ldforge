@@ -193,9 +193,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("newBFC");				// New BFC Statment
 	addMenuAction ("newVertex");			// New Vertex
 	addMenuAction ("newRadial");			// New Radial
-	menu->addSeparator ();					// -----
-	addMenuAction ("modeSelect");			// Select Mode
-	addMenuAction ("modeDraw");			// Draw Mode
 	
 	// Edit menu
 	initMenu ("&Edit");
@@ -210,6 +207,11 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("selectAll");			// Select All
 	addMenuAction ("selectByColor");		// Select by Color
 	addMenuAction ("selectByType");		// Select by Type
+	menu->addSeparator ();					// -----
+	addMenuAction ("modeSelect");			// Select Mode
+	addMenuAction ("modeDraw");			// Draw Mode
+	menu->addSeparator ();					// -----
+	addMenuAction ("setDrawDepth");		// Set Draw Depth
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
@@ -834,7 +836,7 @@ bool ForgeWindow::isSelected (LDObject* obj) {
 	return false;
 }
 
-short ForgeWindow::getSelectedColor() {
+short ForgeWindow::getSelectedColor () {
 	short result = -1;
 	
 	for (LDObject* obj : m_sel) {
@@ -855,17 +857,17 @@ short ForgeWindow::getSelectedColor() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 LDObject::Type ForgeWindow::uniformSelectedType () {
-	LDObject::Type eResult = LDObject::Unidentified;
+	LDObject::Type result = LDObject::Unidentified;
 	
 	for (LDObject* obj : m_sel) {
-		if (eResult != LDObject::Unidentified && obj->color != eResult)
+		if (result != LDObject::Unidentified && obj->color != result)
 			return LDObject::Unidentified;
 		
-		if (eResult == LDObject::Unidentified)
-			eResult = obj->getType ();
+		if (result == LDObject::Unidentified)
+			result = obj->getType ();
 	}
 	
-	return eResult;
+	return result;
 }
 
 // =============================================================================
@@ -907,11 +909,21 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	contextMenu->addAction (findAction ("del"));
 	contextMenu->addSeparator ();
 	contextMenu->addAction (findAction ("setColor"));
+	
 	if (single)
 		contextMenu->addAction (findAction ("setContents"));
+	
 	contextMenu->addAction (findAction ("makeBorders"));
 	contextMenu->addAction (findAction ("setOverlay"));
 	contextMenu->addAction (findAction ("clearOverlay"));
+	
+	for (const char* mode : g_modeActionNames)
+		contextMenu->addAction (findAction (mode));
+	
+	if (R ()->camera () != GL::Free) {
+		contextMenu->addSeparator ();
+		contextMenu->addAction (findAction ("setDrawDepth"));
+	}
 	
 	contextMenu->exec (pos);
 }

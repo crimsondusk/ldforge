@@ -60,6 +60,14 @@ const double& vertex::operator[] (const Axis ax) const {
 	return coord ((ushort) ax);
 }
 
+double& vertex::operator[] (const int ax) {
+	return coord (ax);
+}
+
+const double& vertex::operator[] (const int ax) const {
+	return coord (ax);
+}
+
 bool vertex::operator== (const vertex& other) const {
 	return coord (X) == other[X] &&
 		coord (Y) == other[Y] &&

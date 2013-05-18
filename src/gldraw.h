@@ -49,14 +49,15 @@ public:
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer ();
 	
-	void		beginPlaneDraw		();
 	Camera		camera				() const { return m_camera; }
 	Axis		cameraAxis			(bool y);
+	const char*	cameraName			() const;
 	void		clearOverlay		();
 	void		compileObject		(LDObject* obj);
 	void		compileAllObjects	();
+	double		depthValue			() const;
 	EditMode	editMode			() const { return m_editmode; }
-	void		endDraw		(bool accept);
+	void		endDraw				(bool accept);
 	QColor		getMainColor		();
 	void		hardRefresh		();
 	bool		picking				() const { return m_picking; }
@@ -65,6 +66,7 @@ public:
 	uchar*		screencap			(ushort& w, ushort& h);
 	void		setBackground		();
 	void		setCamera			(const Camera cam);
+	void		setDepthValue		(double depth);
 	void		setEditMode		(const EditMode mode);
 	void		setupOverlay		();
 	void		setZoom				(const double zoom) { m_zoom = zoom; }
