@@ -186,7 +186,7 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 // =======================================================================================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =======================================================================================================================================
-MAKE_ACTION (radialResolution, "Radial resolution", "radial-resolve", "Resolve radials into primitives.", (0)) {
+MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert radials into primitives.", (0)) {
 	vector<str> fails;
 	vector<LDObject*> sel = g_win->sel ();
 	EditHistory* history = new EditHistory;
@@ -314,31 +314,32 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 	if (g_win->sel ().size() <= 0)
 		return;
 	
-	short dColor;
-	short dDefault = -1;
+	short colnum;
+	short defcol = -1;
 	
 	std::vector<LDObject*> objs = g_win->sel ();
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	dDefault = g_win->getSelectedColor ();
+	defcol = g_win->getSelectedColor ();
 	
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelectDialog::staticDialog (dColor, dDefault, g_win)) {
-		std::vector<ulong> ulaIndices;
-		std::vector<short> daColors;
+	if (ColorSelectDialog::staticDialog (colnum, defcol, g_win)) {
+		std::vector<ulong> indices;
+		std::vector<short> colornums;
 		
 		for (LDObject* obj : objs) {
-			if (obj->color != -1) {
-				ulaIndices.push_back (obj->getIndex (g_curfile));
-				daColors.push_back (obj->color);
-				
-				obj->color = dColor;
-				g_win->R ()->compileObject (obj);
-			}
+			if (obj->isColored () == false)
+				continue;
+			
+			indices.push_back (obj->getIndex (g_curfile));
+			colornums.push_back (obj->color);
+			
+			obj->color = colnum;
+			g_win->R ()->compileObject (obj);
 		}
 		
-		History::addEntry (new SetColorHistory (ulaIndices, daColors, dColor));
+		History::addEntry (new SetColorHistory (indices, colornums, colnum));
 		g_win->refresh ();
 	}
 }
@@ -793,7 +794,7 @@ static bool isColorUsed (short colnum) {
 	return false;
 }
 
-MAKE_ACTION (autoColor, "Auto-color", "auto-color", "Set the color of the given object to the first found unused color.", (0)) {
+MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given object to the first found unused color.", (0)) {
 	short colnum = 0;
 	vector<ulong> indices;
 	vector<short> colors;

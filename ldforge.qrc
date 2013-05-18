@@ -14,6 +14,7 @@
 	<file>./icons/arrow-left.png</file>
 	<file>./icons/arrow-right.png</file>
 	<file>./icons/arrow-up.png</file>
+	<file>./icons/autocolor.png</file>
 	<file>./icons/axes.png</file>
 	<file>./icons/bfc.png</file>
 	<file>./icons/brick-new.png</file>
@@ -44,6 +45,7 @@
 	<file>./icons/file.png</file>
 	<file>./icons/file-save-as.png</file>
 	<file>./icons/file-save.png</file>
+	<file>./icons/flip.png</file>
 	<file>./icons/folder.png</file>
 	<file>./icons/grid-coarse.png</file>
 	<file>./icons/grid-fine.png</file>
@@ -76,6 +78,7 @@
 	<file>./icons/qt.png</file>
 	<file>./icons/quad.png</file>
 	<file>./icons/quad-split.png</file>
+	<file>./icons/radial-convert.png</file>
 	<file>./icons/radial.png</file>
 	<file>./icons/rectifier.png</file>
 	<file>./icons/redo.png</file>

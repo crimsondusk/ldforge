@@ -221,7 +221,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("invert");				// Invert
 	addMenuAction ("inlineContents");		// Inline
 	addMenuAction ("deepInline");			// Deep Inline
-	addMenuAction ("radialResolution");	// Radial Resolution
+	addMenuAction ("radialConvert");		// Radials to Subfiles
 	menu->addSeparator ();					// -----
 	addMenuAction ("splitQuads");			// Split Quads
 	addMenuAction ("setContents");		// Set Contents
@@ -394,7 +394,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("invert");
 	addToolBarAction ("inlineContents");
 	addToolBarAction ("deepInline");
-	addToolBarAction ("radialResolution");
+	addToolBarAction ("radialConvert");
 	addToolBarAction ("splitQuads");
 	addToolBarAction ("setContents");
 	addToolBarAction ("makeBorders");
