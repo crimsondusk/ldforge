@@ -1240,6 +1240,8 @@ void GLRenderer::compileObject (LDObject* obj) {
 		
 		glEndList ();
 	}
+	
+	obj->m_glinit = true;
 }
 
 // =============================================================================
@@ -1278,8 +1280,14 @@ void GLRenderer::slot_toolTipTimer () {
 
 // =============================================================================
 void GLRenderer::deleteLists (LDObject* obj) {
+	// Delete the lists but only if they have been initialized
+	if (!obj->m_glinit)
+		return;
+	
 	for (const GL::ListType listType : g_glListTypes)
 		glDeleteLists (obj->glLists[listType], 1);
+	
+	obj->m_glinit = false;
 }
 
 // =============================================================================

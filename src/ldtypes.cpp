@@ -64,6 +64,7 @@ LDObject::LDObject () {
 	parent = null;
 	m_hidden = false;
 	m_selected = false;
+	m_glinit = false;
 }
 
 LDGibberish::LDGibberish (str _zContent, str _zReason) {

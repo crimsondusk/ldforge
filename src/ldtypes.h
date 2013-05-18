@@ -169,9 +169,12 @@ public:
 	bool					selected		() const { return m_selected; }
 	void					setSelected	(bool selected) { m_selected = selected; }
 
+protected:
+	bool m_glinit;
+	friend class GLRenderer;
+
 private:
-	bool m_hidden;
-	bool m_selected;
+	bool m_hidden, m_selected;
 };
 
 // =============================================================================
