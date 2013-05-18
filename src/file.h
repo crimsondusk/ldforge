@@ -40,6 +40,9 @@ namespace LDPaths {
 // =============================================================================
 class OpenFile {
 public:
+	typedef std::vector<LDObject*>::iterator it;
+	typedef std::vector<LDObject*>::const_iterator c_it;
+	
 	str m_filename, m_title;
 	vector<LDObject*> m_objs;
 	vector<LDObject*> m_objCache; // Cache of this file's contents, if desired
@@ -73,6 +76,11 @@ public:
 	}
 	
 	void insertObj (const ulong pos, LDObject* obj);
+	
+	it begin () { return m_objs.begin (); }
+	it end () { return m_objs.end (); }
+	c_it cbegin () const { return m_objs.cbegin (); }
+	c_it cend () const { return m_objs.cend (); }
 };
 
 // Close all current loaded files and start off blank.

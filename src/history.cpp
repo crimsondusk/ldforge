@@ -77,8 +77,14 @@ namespace History {
 	
 	// =========================================================================
 	void updateActions () {
+#ifndef RELEASE
 		ACTION (undo)->setEnabled (s_pos > -1);
 		ACTION (redo)->setEnabled (s_pos < (long) s_entries.size () - 1);
+#else
+		// These are kinda unstable so they're disabled for release builds
+		ACTION (undo)->setEnabled (false);
+		ACTION (redo)->setEnabled (false);
+#endif // RELEASE
 		
 		// Update the window title as well
 		g_win->setTitle ();

@@ -31,6 +31,7 @@
 #include "extprogs.h"
 #include "gldraw.h"
 #include "dialogs.h"
+#include "colors.h"
 
 vector<LDObject*> g_Clipboard;
 
@@ -761,6 +762,7 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 	g_win->fullRefresh ();
 }
 
+// =========================================================================================================================================
 MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional lines down to normal lines.", (0)) {
 	EditHistory* history = new EditHistory;
 	
@@ -779,5 +781,42 @@ MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional l
 	}
 	
 	History::addEntry (history);
+	g_win->refresh ();
+}
+
+// =========================================================================================================================================
+static bool isColorUsed (short colnum) {
+	for (LDObject* obj : g_curfile->m_objs)
+		if (obj->isColored () && obj->color == colnum)
+			return true;
+	
+	return false;
+}
+
+MAKE_ACTION (autoColor, "Auto-color", "auto-color", "Set the color of the given object to the first found unused color.", (0)) {
+	short colnum = 0;
+	vector<ulong> indices;
+	vector<short> colors;
+	
+	while (colnum < 512 && (getColor (colnum) == null || isColorUsed (colnum)))
+		colnum++;
+	
+	if (colnum >= 512) {
+		critical ("Out of unused colors! What are you doing?!");
+		return;
+	}
+	
+	for (LDObject* obj : g_win->sel ()) {
+		if (obj->isColored () == false)
+			continue;
+		
+		indices.push_back (obj->getIndex (g_curfile));
+		colors.push_back (obj->color);
+		
+		obj->color = colnum;
+		g_win->R ()->compileObject (obj);
+	}
+	
+	History::addEntry (new SetColorHistory (indices, colors, colnum));
 	g_win->refresh ();
 }

@@ -215,16 +215,19 @@ void ForgeWindow::createMenus () {
 	
 	initMenu ("&Tools");
 	addMenuAction ("setColor");			// Set Color
+	addMenuAction ("autoColor");			// Auto-color
+	addMenuAction ("uncolorize");			// Uncolorize
+	menu->addSeparator ();					// -----
 	addMenuAction ("invert");				// Invert
 	addMenuAction ("inlineContents");		// Inline
 	addMenuAction ("deepInline");			// Deep Inline
 	addMenuAction ("radialResolution");	// Radial Resolution
+	menu->addSeparator ();					// -----
 	addMenuAction ("splitQuads");			// Split Quads
 	addMenuAction ("setContents");		// Set Contents
 	addMenuAction ("makeBorders");		// Make Borders
 	addMenuAction ("makeCornerVerts");	// Make Corner Vertices
 	addMenuAction ("roundCoords");		// Round Coordinates
-	addMenuAction ("uncolorize");			// Uncolorize
 	addMenuAction ("visibility");			// Toggle Visibility
 	addMenuAction ("replaceCoords");		// Replace Coordinates
 	addMenuAction ("flip");				// Flip
@@ -386,6 +389,8 @@ void ForgeWindow::createToolbars () {
 	// ==========================================
 	initSingleToolBar ("Tools");
 	addToolBarAction ("setColor");
+	addToolBarAction ("autoColor");
+	addToolBarAction ("uncolorize");
 	addToolBarAction ("invert");
 	addToolBarAction ("inlineContents");
 	addToolBarAction ("deepInline");
@@ -396,7 +401,6 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("makeCornerVerts");
 	addToolBarAction ("roundCoords");
 	addToolBarAction ("screencap");
-	addToolBarAction ("uncolorize");
 	addToolBarAction ("visibility");
 	addToolBarAction ("replaceCoords");
 	addToolBarAction ("flip");
