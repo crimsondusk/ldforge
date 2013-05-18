@@ -129,7 +129,7 @@ void ConfigDialog::initMainTab () {
 		"not set, edge lines take their color as defined in LDConfig.ldr");
 	cb_blackEdges->setChecked (gl_blackedges);
 	
-	cb_schemanticInline = new QCheckBox ("Schemantic insertion only");
+	cb_schemanticInline = new QCheckBox ("Scemantic insertion only");
 	cb_schemanticInline->setChecked (edit_schemanticinline);
 	cb_colorBFC->setWhatsThis ("When inserting objects through inlining, file "
 		"inserting or through external programs, all non-schemantics (those without "

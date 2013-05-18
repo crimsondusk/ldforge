@@ -182,10 +182,13 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
-	// Replace all instances of the old object with the new object
-	for (LDObject*& obj : g_curfile->m_objs)
-		if (obj == this)
+	// Replace the instance of the old object with the new object
+	for (LDObject*& obj : g_curfile->m_objs) {
+		if (obj == this) {
 			obj = replacement;
+			break;
+		}
+	}
 	
 	// Remove the old object
 	delete this;
@@ -794,3 +797,13 @@ HistoryEntry* LDCondLine::invert () {
 }
 
 HistoryEntry* LDVertex::invert () { return null; }
+
+// =============================================================================
+LDLine* LDCondLine::demote () {
+	LDLine* repl = new LDLine;
+	memcpy (repl->coords, coords, sizeof coords);
+	repl->color = color;
+	
+	replace (repl);
+	return repl;
+}

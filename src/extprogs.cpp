@@ -231,7 +231,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 	// Insert the new objects
 	g_win->sel ().clear ();
 	for (LDObject* obj : objs) {
-		if (!obj->isSchemantic ()) {
+		if (!obj->isScemantic ()) {
 			delete obj;
 			continue;
 		}

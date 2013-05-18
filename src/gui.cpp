@@ -226,6 +226,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("visibility");			// Toggle Visibility
 	addMenuAction ("replaceCoords");		// Replace Coordinates
 	addMenuAction ("flip");				// Flip
+	addMenuAction ("demote");				// Demote Conditional Lines
 	
 	// Move menu
 	initMenu ("&Move");

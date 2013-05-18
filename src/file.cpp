@@ -128,6 +128,7 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 		if (lastpos > 0) {
 			str dirname = g_curfile->m_filename.substr (0, lastpos);
 			str partpath = fmt ("%s" DIRSLASH "%s", dirname.c (), relpath.c ());
+			printf ("try %s\n", partpath.c ());
 			FILE* fp = fopen (partpath, "r");
 			
 			if (fp != null)
@@ -135,7 +136,8 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 		}
 	}
 	
-	FILE* fp = fopen (relpath.chars (), "r");
+	printf ("try %s\n", relpath.chars ());
+	FILE* fp = fopen (relpath, "r");
 	str fullPath;
 	
 	if (fp != null)
@@ -144,21 +146,18 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 	if (~io_ldpath.value) {
 		// Try with just the LDraw path first
 		fullPath = fmt ("%s" DIRSLASH "%s", io_ldpath.value.chars(), relpath.chars());
+		printf ("try %s\n", fullPath.chars ());
 		
 		fp = fopen (fullPath, "r");
 		if (fp != null)
 			return fp;
 		
 		if (subdirs) {
-			char const* saSubdirectories[] = {
-				"parts",
-				"p",
-			};
-			
-			for (char const* sSubdir : saSubdirectories) {
+			for (auto subdir : initlist<const char*> ({"parts", "p"})) {
 				fullPath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-					io_ldpath.value.chars(), sSubdir, relpath.chars());
+					io_ldpath.value.chars(), subdir, relpath.chars());
 				
+				printf ("try %s\n", fullPath.chars ());
 				fp = fopen (fullPath.chars (), "r");
 				
 				if (fp)

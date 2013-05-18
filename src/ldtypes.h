@@ -42,9 +42,9 @@ class HistoryEntry;
 #define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
 #define LDOBJ_UNCOLORED LDOBJ_SETCOLORED (false)
 
-#define LDOBJ_CUSTOM_SCHEMANTIC virtual bool isSchemantic () const
-#define LDOBJ_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return true; }
-#define LDOBJ_NON_SCHEMANTIC LDOBJ_CUSTOM_SCHEMANTIC { return false; }
+#define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic () const
+#define LDOBJ_SCEMANTIC LDOBJ_CUSTOM_SCEMANTIC { return true; }
+#define LDOBJ_NON_SCEMANTIC LDOBJ_CUSTOM_SCEMANTIC { return false; }
 
 #define LDOBJ_SETMATRIX(V) virtual bool hasMatrix () const { return V; }
 #define LDOBJ_HAS_MATRIX LDOBJ_SETMATRIX (true)
@@ -149,7 +149,7 @@ public:
 	virtual bool isColored () const { return false; }
 	
 	// Does this object have meaning in the part model?
-	virtual bool isSchemantic () const { return false; }
+	virtual bool isScemantic () const { return false; }
 	
 	// Returns a sample object by the given value
 	static LDObject* getDefault (const LDObject::Type type);
@@ -187,7 +187,7 @@ public:
 	LDOBJ (Gibberish)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	LDGibberish (str _zContent, str _zReason);
@@ -209,7 +209,7 @@ public:
 	LDOBJ (Empty)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
-	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 };
 
@@ -224,7 +224,7 @@ public:
 	LDOBJ (Comment)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
-	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	LDComment (str text) : text (text) {}
@@ -245,7 +245,7 @@ public:
 	LDOBJ (BFC)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
-	LDOBJ_CUSTOM_SCHEMANTIC { return (type == InvertNext); }
+	LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
 	LDOBJ_NO_MATRIX
 	
 	LDBFC (const LDBFC::Type type) : type (type) {}
@@ -266,7 +266,7 @@ public:
 	LDOBJ (Subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	
 	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
@@ -289,7 +289,7 @@ public:
 	LDOBJ (Line)
 	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	LDLine (vertex v1, vertex v2);
@@ -306,8 +306,10 @@ public:
 	LDOBJ (CondLine)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
+	
+	LDLine* demote ();
 };
 
 // =============================================================================
@@ -322,7 +324,7 @@ public:
 	LDOBJ (Triangle)
 	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
@@ -343,7 +345,7 @@ public:
 	LDOBJ (Quad)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	// Split this quad into two triangles (note: heap-allocated)
@@ -363,7 +365,7 @@ public:
 	LDOBJ (Vertex)
 	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
-	LDOBJ_NON_SCHEMANTIC
+	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
 	vertex pos;
@@ -393,7 +395,7 @@ public:
 	LDOBJ (Radial)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
-	LDOBJ_SCHEMANTIC
+	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	
 	LDRadial::Type radType;

@@ -760,3 +760,24 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 	History::addEntry (history);
 	g_win->fullRefresh ();
 }
+
+MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional lines down to normal lines.", (0)) {
+	EditHistory* history = new EditHistory;
+	
+	vector<LDObject*> sel = g_win->sel ();
+	for (LDObject* obj : sel) {
+		if (obj->getType () != LDObject::CondLine)
+			continue;
+		
+		ulong idx = obj->getIndex (g_curfile);
+		LDObject* cache = obj->clone ();
+		LDLine* repl = static_cast<LDCondLine*> (obj)->demote ();
+		
+		history->addEntry (cache, repl, idx);
+		g_win->R ()->compileObject (repl);
+		delete cache;
+	}
+	
+	History::addEntry (history);
+	g_win->refresh ();
+}
