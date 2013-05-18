@@ -345,14 +345,16 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 	const long end = bUp ? objs.size() : -1;
 	const long incr = bUp ? 1 : -1;
 	
+	vector<LDObject*> objsToCompile;
+	
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
 		
-		const long lIndex = obj->getIndex (g_curfile),
-			lTarget = lIndex + (bUp ? -1 : 1);
+		const long idx = obj->getIndex (g_curfile),
+			target = idx + (bUp ? -1 : 1);
 		
-		if ((bUp == true and lIndex == 0) or
-			(bUp == false and lIndex == (long)(g_curfile->m_objs.size() - 1)))
+		if ((bUp == true and idx == 0) or
+			(bUp == false and idx == (long)(g_curfile->m_objs.size() - 1)))
 		{
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
@@ -361,8 +363,16 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 			return;
 		}
 		
-		obj->swap (g_curfile->m_objs[lTarget]);
+		objsToCompile.push_back (obj);
+		objsToCompile.push_back (g_curfile->m_objs[target]);
+		
+		obj->swap (g_curfile->m_objs[target]);
 	}
+	
+	// The objects need to be recompiled, otherwise their pick lists are left with
+	// the wrong index colors which messes up selection.
+	for (LDObject* obj : objsToCompile)
+		g_win->R ()->compileObject (obj);
 }
 
 // =============================================================================
