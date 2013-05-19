@@ -40,6 +40,9 @@ extern_cfg (bool, gl_wireframe);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
+	if (safeToCloseAll () == false)
+		return;
+	
 	NewPartDialog::StaticDialog ();
 }
 
@@ -47,10 +50,16 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) {
+	if (safeToCloseAll () == false)
+		return;
+	
 	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
-	if (~name)
-		openMainFile (name);
+	if (name.len () == 0)
+		return;
+	
+	closeAll ();
+	openMainFile (name);
 }
 
 // =============================================================================

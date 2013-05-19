@@ -111,6 +111,9 @@ OpenFile* loadSubfile (str zFile);
 // Re-caches all subfiles.
 void reloadAllSubfiles ();
 
+// Is it safe to close all files?
+bool safeToCloseAll ();
+
 typedef struct {
 	char sName[65], sTitle[81];
 } partListEntry;

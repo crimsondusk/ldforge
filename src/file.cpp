@@ -330,8 +330,11 @@ void newFile () {
 	g_loadedFiles.push_back (f);
 	g_curfile = f;
 	
-	g_BBox.calculate();
+	History::clear ();
+	
+	g_BBox.reset ();
 	g_win->fullRefresh ();
+	g_win->updateTitle ();
 }
 
 // =============================================================================
@@ -789,4 +792,13 @@ void initPartList () {
 		strcpy (entry.sTitle, sTitle);
 		g_PartList.push_back (entry);
 	}
+}
+
+// =============================================================================
+bool safeToCloseAll () {
+	for (OpenFile* f : g_loadedFiles)
+		if (!f->safeToClose ())
+			return false;
+	
+	return true;
 }

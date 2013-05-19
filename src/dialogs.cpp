@@ -387,39 +387,40 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 // =============================================================================
 void NewPartDialog::StaticDialog () {
 	NewPartDialog dlg (g_win);
-	if (dlg.exec ()) {
-		newFile ();
-		
-		short idx;
-		str author = dlg.le_author->text ();
-		vector<LDObject*>& objs = g_curfile->m_objs;
-		
-		idx = dlg.rb_BFC->value ();
-		const LDBFC::Type BFCType =
-			(idx == CCW) ? LDBFC::CertifyCCW :
-			(idx == CW) ? LDBFC::CertifyCW :
-			LDBFC::NoCertify;
-		
-		idx = dlg.rb_license->value ();
-		const char* license =
-			(idx == CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
-			(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
-			null;
-		
-		objs.push_back (new LDComment (dlg.le_name->text ()));
-		objs.push_back (new LDComment ("Name: <untitled>.dat"));
-		objs.push_back (new LDComment (fmt ("Author: %s", author.chars())));
-		objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
-		
-		if (license != null)
-			objs.push_back (new LDComment (fmt ("!LICENSE %s", license)));
-		
-		objs.push_back (new LDEmpty);
-		objs.push_back (new LDBFC (BFCType));
-		objs.push_back (new LDEmpty);
-		
-		g_win->fullRefresh ();
-	}
+	if (dlg.exec () == false)
+		return;
+	
+	newFile ();
+	
+	short idx;
+	str author = dlg.le_author->text ();
+	vector<LDObject*>& objs = g_curfile->m_objs;
+	
+	idx = dlg.rb_BFC->value ();
+	const LDBFC::Type BFCType =
+		(idx == CCW) ? LDBFC::CertifyCCW :
+		(idx == CW) ? LDBFC::CertifyCW :
+		LDBFC::NoCertify;
+	
+	idx = dlg.rb_license->value ();
+	const char* license =
+		(idx == CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
+		(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
+		null;
+	
+	objs.push_back (new LDComment (dlg.le_name->text ()));
+	objs.push_back (new LDComment ("Name: <untitled>.dat"));
+	objs.push_back (new LDComment (fmt ("Author: %s", author.chars())));
+	objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
+	
+	if (license != null)
+		objs.push_back (new LDComment (fmt ("!LICENSE %s", license)));
+	
+	objs.push_back (new LDEmpty);
+	objs.push_back (new LDBFC (BFCType));
+	objs.push_back (new LDEmpty);
+	
+	g_win->fullRefresh ();
 }
 
 RotationPointDialog::RotationPointDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {

@@ -889,11 +889,9 @@ LDObject::Type ForgeWindow::uniformSelectedType () {
 // =============================================================================
 void ForgeWindow::closeEvent (QCloseEvent* ev) {
 	// Check whether it's safe to close all files.
-	for (OpenFile* f : g_loadedFiles) {
-		if (!f->safeToClose ()) {
-			ev->ignore ();
-			return;
-		}
+	if (!safeToCloseAll ()) {
+		ev->ignore ();
+		return;
 	}
 	
 	// Save the configuration before leaving so that, for instance, grid choice
