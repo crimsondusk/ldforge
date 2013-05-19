@@ -70,8 +70,10 @@ static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 #ifdef WIN32
 #define DIRSLASH "\\"
+#define DIRSLASH_CHAR '\\'
 #else // WIN32
 #define DIRSLASH "/"
+#define DIRSLASH_CHAR '/'
 #endif // WIN32
 
 #ifdef RELEASE

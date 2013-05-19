@@ -507,7 +507,10 @@ void ForgeWindow::updateTitle () {
 	
 	// Append our current file if we have one
 	if (g_curfile) {
-		title += fmt (": %s", basename (g_curfile->m_filename.chars()));
+		if (g_curfile->m_filename.len () > 0)
+			title += fmt (": %s", basename (g_curfile->m_filename));
+		else
+			title += fmt (": <anonymous>");
 		
 		if (g_curfile->m_objs.size() > 0 &&
 			g_curfile->m_objs[0]->getType() == LDObject::Comment)

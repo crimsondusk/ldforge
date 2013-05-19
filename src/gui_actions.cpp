@@ -70,7 +70,7 @@ void doSave (bool saveAs) {
 	
 	if (~path == 0 || saveAs) {
 		path = QFileDialog::getSaveFileName (g_win, "Save As",
-		"", "LDraw files (*.dat *.ldr)");
+			g_curfile->m_filename, "LDraw files (*.dat *.ldr)");
 		
 		if (~path == 0) {
 			// User didn't give a file name. This happens if the user cancelled

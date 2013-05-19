@@ -102,8 +102,6 @@ OpenFile::~OpenFile () {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 OpenFile* findLoadedFile (str zName) {
 	for (OpenFile* file : g_loadedFiles)
 		if (file->m_filename == zName)
@@ -113,28 +111,32 @@ OpenFile* findLoadedFile (str zName) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+str dirname (str path) {
+	long lastpos; // FIXME: why doesn't str::last () work here?
+	for (lastpos = path.len () - 1; lastpos >= 0; --lastpos)
+		if (path[(size_t) lastpos] == DIRSLASH_CHAR)
+			break;
+	
+	if (lastpos > 0)
+		return path.substr (0, lastpos);
+	
+	return "";
+}
+
 // =============================================================================
 FILE* openLDrawFile (str relpath, bool subdirs) {
+	printf ("%s: Try to open %s\n", __func__, relpath.c ());
 #ifndef WIN32
 	relpath.replace ("\\", "/");
 #endif // WIN32
 	
 	if (g_curfile != null) {
-		long lastpos;
-		for (lastpos = g_curfile->m_filename.len () - 1; lastpos >= 0; --lastpos)
-			if (g_curfile->m_filename[(size_t) lastpos] == '/')
-				break;
+		str partpath = fmt ("%s" DIRSLASH "%s", dirname (g_curfile->m_filename).c (), relpath.c ());
+		printf ("try %s\n", partpath.c ());
+		FILE* fp = fopen (partpath, "r");
 		
-		if (lastpos > 0) {
-			str dirname = g_curfile->m_filename.substr (0, lastpos);
-			str partpath = fmt ("%s" DIRSLASH "%s", dirname.c (), relpath.c ());
-			printf ("try %s\n", partpath.c ());
-			FILE* fp = fopen (partpath, "r");
-			
-			if (fp != null)
-				return fp;
-		}
+		if (fp != null)
+			return fp;
 	}
 	
 	printf ("try %s\n", relpath.chars ());
@@ -267,7 +269,7 @@ bool OpenFile::safeToClose () {
 			// If we don't have a file path yet, we have to ask the user for one.
 			if (m_filename.len () == 0) {
 				str path = QFileDialog::getSaveFileName (g_win, "Save As",
-					"", "LDraw files (*.dat *.ldr)");
+					g_curfile->m_filename, "LDraw files (*.dat *.ldr)");
 				
 				if (path.len () == 0)
 					return false;
@@ -420,21 +422,40 @@ bool OpenFile::save (str path) {
 		return false;
 	}
 	
+	// If the second object in the list holds the file name, update that now.
+	// Only do this if the file is explicitly open. If it's saved into a directory
+	// called "s" or "48", prepend that into the name.
+	LDComment* fpathComment = null;
+	if (m_implicit == false && m_objs.size () >= 2 && object (1)->getType () == LDObject::Comment) {
+		fpathComment = static_cast<LDComment*> (object (1));
+		
+		if (fpathComment->text.substr (0, 6) == "Name: ") {
+			str newfname;
+			str dir = basename (dirname (path));
+			
+			if (dir == "s" || dir == "48")
+				newfname = fmt ("%s\\", dir.c ());
+			
+			newfname += basename (path);
+			fpathComment->text = fmt ("Name: %s", newfname.c ());
+			g_win->buildObjList ();
+		}
+	}
+	
 	// Write all entries now
 	for (LDObject* obj : m_objs) {
-		// LDraw requires lines to have DOS line endings
-		str zLine = fmt ("%s\r\n", obj->getContents ().chars ());
-		
-		fwrite (zLine.chars(), 1, ~zLine, fp);
+		// LDraw requires files to have DOS line endings
+		str line = fmt ("%s\r\n", obj->getContents ().chars ());
+		fwrite (line.chars(), 1, line.len (), fp);
 	}
 	
 	fclose (fp);
 	
 	// We have successfully saved, update the save position now.
 	savePos = History::pos ();
+	m_filename = path;
 	
 	g_win->updateTitle ();
-	
 	return true;
 }
 
