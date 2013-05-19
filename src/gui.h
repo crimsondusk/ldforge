@@ -122,7 +122,7 @@ class ForgeWindow : public QMainWindow {
 public:
 	ForgeWindow ();
 	void buildObjList ();
-	void setTitle ();
+	void updateTitle ();
 	void fullRefresh ();
 	void refresh ();
 	ulong getInsertionPoint ();

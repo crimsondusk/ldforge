@@ -380,7 +380,7 @@ void openMainFile (str path) {
 	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh ();
-	g_win->setTitle ();
+	g_win->updateTitle ();
 	g_win->R ()->resetAngles ();
 	
 	History::clear ();
@@ -416,7 +416,7 @@ bool OpenFile::save (str path) {
 	// We have successfully saved, update the save position now.
 	savePos = History::pos ();
 	
-	g_win->setTitle ();
+	g_win->updateTitle ();
 	
 	return true;
 }

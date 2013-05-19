@@ -87,7 +87,7 @@ namespace History {
 #endif // RELEASE
 		
 		// Update the window title as well
-		g_win->setTitle ();
+		g_win->updateTitle ();
 	}
 	
 	// =========================================================================

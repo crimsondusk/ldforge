@@ -72,7 +72,7 @@ void doSave (bool saveAs) {
 	
 	if (g_curfile->save (path)) {
 		g_curfile->m_filename = path;
-		g_win->setTitle ();
+		g_win->updateTitle ();
 		
 		logf ("Saved successfully to %s\n", path.chars ());
 	} else {

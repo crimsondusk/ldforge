@@ -86,7 +86,7 @@ ForgeWindow::ForgeWindow () {
 	
 	setStatusBar (new QStatusBar);
 	setWindowIcon (getIcon ("ldforge"));
-	setTitle ();
+	updateTitle ();
 	setMinimumSize (320, 200);
 	resize (800, 600);
 	
@@ -491,9 +491,19 @@ void ForgeWindow::updateGridToolBar () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::setTitle () {
+void ForgeWindow::updateTitle () {
 	str title = APPNAME " v";
 	title += versionString;
+	
+#if BUILD_ID == BUILD_INTERNAL
+	title += " Internal";
+#elif BUILD_ID == BUILD_ALPHA
+	title += " Alpha";
+#elif BUILD_ID == BUILD_BETA
+	title += " Beta";
+#elif BUILD_ID == BUILD_RC
+	title += " RC";
+#endif // BUILD_ID
 	
 	// Append our current file if we have one
 	if (g_curfile) {

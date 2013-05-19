@@ -34,14 +34,20 @@
 #include "types.h"
 
 #define APPNAME "LDForge"
-
 #define VERSION_MAJOR 0
 #define VERSION_MAJOR_STR "0"
 #define VERSION_MINOR 1
 #define VERSION_MINOR_STR "1"
+#define BUILD_ID BUILD_INTERNAL
 
 // ============---
-// #define RELEASE
+#define RELEASE (BUILD_ID != BUILD_INTERNAL)
+
+#define BUILD_INTERNAL	0
+#define BUILD_ALPHA		1
+#define BUILD_BETA		2
+#define BUILD_RC			3
+#define BUILD_RELEASE		4
 
 #ifndef RELEASE
 # define devf(...) doDevf (__func__, __VA_ARGS__);
