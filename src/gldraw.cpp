@@ -98,7 +98,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_picking = m_rangepick = false;
 	m_camera = (GL::Camera) gl_camera.value;
 	m_drawToolTip = false;
-	m_editmode = Select;
+	m_editMode = Select;
 	m_rectdraw = false;
 	
 	m_toolTipTimer = new QTimer (this);
@@ -513,7 +513,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			textSize.height (), Qt::AlignCenter, text);
 		
 		// If we're drawing, draw the vertices onto the screen.
-		if (m_editmode == Draw) {
+		if (m_editMode == Draw) {
 			ushort numverts;
 			
 			if (!m_rectdraw)
@@ -911,7 +911,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
-	if (ev->buttons () & Qt::LeftButton && !(m_lastButtons && Qt::LeftButton))
+	if (ev->buttons () & Qt::LeftButton)
 		m_totalmove = 0;
 	
 	if (ev->modifiers () & Qt::ShiftModifier) {
@@ -1161,7 +1161,7 @@ void GLRenderer::setEditMode (EditMode mode) {
 		break;
 	}
 	
-	m_editmode = mode;
+	m_editMode = mode;
 	
 	g_win->updateEditModeActions ();
 	update ();

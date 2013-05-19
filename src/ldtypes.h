@@ -77,6 +77,9 @@ public:
 // sub-classes based on this enumerator.
 // =============================================================================
 class LDObject {
+	PROPERTY (bool, hidden, setHidden)
+	PROPERTY (bool, selected, setSelected)
+	
 public:
 	// Object type codes. Codes are sorted in order of significance.
 	enum Type {
@@ -131,7 +134,7 @@ public:
 	
 	// Replace this LDObject with another LDObject. This method deletes the
 	// object and any pointers to it become invalid.
-    void replace (LDObject* replacement);
+	void replace (LDObject* replacement);
 	
 	// Swap this object with another.
 	void swap (LDObject* other);
@@ -160,21 +163,14 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	bool					hidden			() const { return m_hidden; }
 	virtual bool			hasMatrix		() const { return false; }
 	virtual HistoryEntry*	invert			();
 	LDObject*				next			() const;
 	LDObject*				prev			() const;
-	void					setHidden		(const bool hidden) { m_hidden = hidden; }
-	bool					selected		() const { return m_selected; }
-	void					setSelected	(bool selected) { m_selected = selected; }
 
 protected:
 	bool m_glinit;
 	friend class GLRenderer;
-
-private:
-	bool m_hidden, m_selected;
 };
 
 // =============================================================================

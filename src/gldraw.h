@@ -41,6 +41,9 @@ class QLineEdit;
 class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
+	PROPERTY (double, zoom, setZoom)
+	READ_PROPERTY (bool, picking)
+	
 public:
 	enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
 	enum EditMode { Select, Draw };
@@ -56,11 +59,10 @@ public:
 	void		compileObject		(LDObject* obj);
 	void		compileAllObjects	();
 	double		depthValue			() const;
-	EditMode	editMode			() const { return m_editmode; }
+	EditMode	editMode			() const { return m_editMode; }
 	void		endDraw				(bool accept);
 	QColor		getMainColor		();
 	void		hardRefresh		();
-	bool		picking				() const { return m_picking; }
 	void		refresh			();
 	void		resetAngles		();
 	uchar*		screencap			(ushort& w, ushort& h);
@@ -69,8 +71,6 @@ public:
 	void		setDepthValue		(double depth);
 	void		setEditMode		(const EditMode mode);
 	void		setupOverlay		();
-	void		setZoom				(const double zoom) { m_zoom = zoom; }
-	double		zoom				() const { return m_zoom; }
 	
 	static void	deleteLists			(LDObject* obj);
 
@@ -93,15 +93,15 @@ private:
 	Qt::KeyboardModifiers m_keymods;
 	ulong m_totalmove;
 	vertex m_hoverpos;
-	double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY, m_zoom;
-	bool m_darkbg, m_picking, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
+	double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY;
+	bool m_darkbg, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
 	QPoint m_pos, m_rangeStart;
 	QPen m_thinBorderPen, m_thickBorderPen;
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
 	ushort m_width, m_height;
 	std::vector<vertex> m_drawedVerts;
-	EditMode m_editmode;
+	EditMode m_editMode;
 	bool m_rectdraw;
 	QColor m_bgcolor;
 	

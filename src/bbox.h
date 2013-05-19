@@ -30,6 +30,10 @@
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
 class bbox {
+	READ_PROPERTY (bool, empty)
+	READ_PROPERTY (vertex, v0)
+	READ_PROPERTY (vertex, v1)
+	
 public:
 	bbox ();
 	void reset ();
@@ -38,7 +42,6 @@ public:
 	void calcObject (LDObject* obj);
 	void calcVertex (vertex v);
 	vertex center () const;
-	bool empty () const;
 	
 	bbox& operator<< (LDObject* obj) {
 		calcObject (obj);
@@ -49,13 +52,6 @@ public:
 		calcVertex (v);
 		return *this;
 	}
-	
-	const vertex& v0 () { return m_v0; }
-	const vertex& v1 () { return m_v1; }
-	
-private:
-	vertex m_v0, m_v1;
-	bool m_empty;
 };
 
 #endif // BBOX_H

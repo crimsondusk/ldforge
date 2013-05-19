@@ -19,6 +19,7 @@
 #ifndef LABELEDWIDGET_H
 #define LABELEDWIDGET_H
 
+#include "common.h"
 #include <QLabel>
 #include <QBoxLayout>
 
@@ -28,6 +29,9 @@
 // Convenience class for a widget with a label beside it.
 // =============================================================================
 template<class R> class LabeledWidget : public QWidget {
+	PROPERTY (QLabel*, label, setLabel)
+	PROPERTY (R*, widget, setWidget)
+	
 public:
 	explicit LabeledWidget (const char* labelstr, QWidget* parent = null) : QWidget (parent) {
 		m_widget = new R (this);
@@ -45,12 +49,7 @@ public:
 		commonInit ("");
 	}
 	
-	R* widget () const { return m_widget; }
 	R* w () const { return m_widget; }
-	QLabel* label () const { return m_label; }
-	QLabel* l () const { return m_label; }
-	void setWidget (R* widget) { m_widget = widget; }
-	void setLabel (QLabel* label) { m_label = label; }
 	operator R* () { return m_widget; }
 	
 private:
@@ -64,8 +63,6 @@ private:
 		setLayout (m_layout);
 	}
 	
-	R* m_widget;
-	QLabel* m_label;
 	QHBoxLayout* m_layout;
 };
 

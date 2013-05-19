@@ -34,7 +34,7 @@ extern const ushort g_primes[NUM_PRIMES];
 bool isNumber (str& tok);
 
 // Converts a float value to a string value.
-str ftoa (double fCoord);
+str ftoa (double num);
 
 // Simplifies the given fraction.
 void simplify (short& numer, short& denom);

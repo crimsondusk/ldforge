@@ -132,12 +132,12 @@ double Grid::snap (double in, const Grid::Config axis) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Float to string. Removes trailing zeroes and is locale-independant.
-str ftoa (double fCoord) {
+str ftoa (double num) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)
 	setlocale (LC_NUMERIC, "C");
 	
-	str zRep = fmt ("%f", fCoord);
+	str zRep = fmt ("%f", num);
 	
 	// Remove trailing zeroes
 	while (zRep[~zRep - 1] == '0')

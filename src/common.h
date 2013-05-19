@@ -72,6 +72,18 @@ static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
 #define NDEBUG // remove asserts
 #endif // RELEASE
 
+// Read-only, private property with a get accessor
+#define READ_PROPERTY(T, GET) \
+private: \
+	T m_##GET; \
+public: \
+	const T& GET () const { return m_##GET; } \
+
+// Read/write private property with get and set accessors
+#define PROPERTY(T, GET, SET) \
+	READ_PROPERTY(T, GET) \
+	void SET (T val) { m_##GET = val; }
+
 #ifdef null
 #undef null
 #endif // null

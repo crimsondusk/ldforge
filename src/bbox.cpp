@@ -160,8 +160,3 @@ vertex bbox::center () const {
 		(m_v0[Y] + m_v1[Y]) / 2,
 		(m_v0[Z] + m_v1[Z]) / 2);
 }
-
-// =============================================================================
-bool bbox::empty() const {
-	return m_empty;
-}
