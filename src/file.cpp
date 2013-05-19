@@ -17,6 +17,7 @@
  */
 
 #include <QMessageBox>
+#include <QFileDialog>
 #include <QDir>
 
 #include <stdlib.h>
@@ -258,10 +259,22 @@ bool OpenFile::safeToClose () {
 	// If we have unsaved changes, warn and give the option of saving.
 	if (!m_implicit && History::pos () != savePos) {
 		switch (QMessageBox::question (g_win, "Unsaved Changes",
-			fmt ("There are unsaved changes to %s. Should it be saved?", m_filename.chars ()),
+			fmt ("There are unsaved changes to %s. Should it be saved?",
+			(m_filename.len () > 0) ? m_filename.chars () : "<anonymous>"),
 			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
 		{
 		case QMessageBox::Yes:
+			// If we don't have a file path yet, we have to ask the user for one.
+			if (m_filename.len () == 0) {
+				str path = QFileDialog::getSaveFileName (g_win, "Save As",
+					"", "LDraw files (*.dat *.ldr)");
+				
+				if (path.len () == 0)
+					return false;
+				
+				m_filename = path;
+			}
+			
 			if (!save ()) {
 				str errormsg = fmt ("Failed to save %s: %s\nDo you still want to close?",
 					m_filename.chars (), strerror (lastError));
@@ -313,6 +326,7 @@ void newFile () {
 	
 	OpenFile* f = new OpenFile;
 	f->m_filename = "";
+	f->m_implicit = false;
 	g_loadedFiles.push_back (f);
 	g_curfile = f;
 	
