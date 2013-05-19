@@ -35,12 +35,11 @@
 
 #define APPNAME "LDForge"
 #define VERSION_MAJOR 0
-#define VERSION_MAJOR_STR "0"
-#define VERSION_MINOR 1
-#define VERSION_MINOR_STR "1"
+#define VERSION_MINOR 0
+#define VERSION_PATCH 999
 #define BUILD_ID BUILD_INTERNAL
 
-// ============---
+// =============================================
 #define RELEASE (BUILD_ID != BUILD_INTERNAL)
 
 #define BUILD_INTERNAL	0
@@ -58,7 +57,11 @@
 void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
+#if VERSION_PATCH > 0
+static const str versionString = fmt ("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+#else
 static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
+#endif // VERSION_PATCH
 
 #ifdef __GNUC__
 # define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
