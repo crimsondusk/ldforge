@@ -89,3 +89,29 @@ void doDevf (const char* func, const char* fmtstr, ...) {
 	vprintf (fmtstr, va);
 	va_end (va);
 }
+
+str versionString () {
+#if VERSION_PATCH == 0
+	return fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
+#else
+	return fmt ("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+#endif // VERSION_PATCH
+}
+
+const char* versionMoniker () {
+#if BUILD_ID == BUILD_INTERNAL
+	return " Internal";
+#elif BUILD_ID == BUILD_ALPHA
+	return " Alpha";
+#elif BUILD_ID == BUILD_BETA
+	return " Beta";
+#elif BUILD_ID == BUILD_RC
+	return " RC";
+#else
+	return "";
+#endif // BUILD_ID
+}
+
+str fullVersionString () {
+	return fmt ("v%s%s", versionString ().chars (), versionMoniker ());
+}

@@ -57,11 +57,9 @@
 void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
-#if VERSION_PATCH > 0
-static const str versionString = fmt ("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-#else
-static const str versionString = fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
-#endif // VERSION_PATCH
+str versionString ();
+const char* versionMoniker ();
+str fullVersionString ();
 
 #ifdef __GNUC__
 # define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))

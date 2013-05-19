@@ -492,18 +492,7 @@ void ForgeWindow::updateGridToolBar () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateTitle () {
-	str title = APPNAME " v";
-	title += versionString;
-	
-#if BUILD_ID == BUILD_INTERNAL
-	title += " Internal";
-#elif BUILD_ID == BUILD_ALPHA
-	title += " Alpha";
-#elif BUILD_ID == BUILD_BETA
-	title += " Beta";
-#elif BUILD_ID == BUILD_RC
-	title += " RC";
-#endif // BUILD_ID
+	str title = fmt (APPNAME " %s", fullVersionString().chars ());
 	
 	// Append our current file if we have one
 	if (g_curfile) {
