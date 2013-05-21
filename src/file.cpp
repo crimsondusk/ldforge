@@ -133,7 +133,7 @@ str basename (str path) {
 	if (lastpos < (log) path.len () - 1)
 		return path.substr (lastpos + 1, -1);
 	
-	return "";
+	return path;
 }
 
 // =============================================================================
