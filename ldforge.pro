@@ -17,3 +17,4 @@ HEADERS = ./src/*.h
 QMAKE_CXXFLAGS += -std=c++0x
 QT += opengl
 LIBS += -lGLU
+DEFINES += "NO_OVERPAINTING"

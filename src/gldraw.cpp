@@ -154,6 +154,20 @@ void GLRenderer::calcCameraIcons () {
 	}
 }
 
+void GLRenderer::initGLData () {
+	glEnable (GL_BLEND);
+	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glEnable (GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset (1.0f, 1.0f);
+	
+	glEnable (GL_DEPTH_TEST);
+	glShadeModel (GL_SMOOTH);
+	glEnable (GL_MULTISAMPLE);
+	
+	glEnable (GL_LINE_SMOOTH);
+	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+}
+
 // =============================================================================
 void GLRenderer::resetAngles () {
 	m_rotX = 30.0f;
@@ -174,6 +188,10 @@ void GLRenderer::initializeGL () {
 	setBackground ();
 	
 	glLineWidth (gl_linethickness);
+	
+#ifdef NO_OVERPAINTING
+	initGLData ();
+#endif // NO_OVERPAINTING
 	
 	setAutoFillBackground (false);
 	setMouseTracking (true);
@@ -461,30 +479,21 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+#ifndef NO_OVERPAINTING
+
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
 	m_virtWidth = m_zoom;
 	m_virtHeight = (m_height * m_virtWidth) / m_width;
 	
-	glEnable (GL_BLEND);
-	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glEnable (GL_POLYGON_OFFSET_FILL);
-	glPolygonOffset (1.0f, 1.0f);
-	
-	glEnable (GL_DEPTH_TEST);
-	glShadeModel (GL_SMOOTH);
-	glEnable (GL_MULTISAMPLE);
-	
-	glEnable (GL_LINE_SMOOTH);
-	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
-	
+	initGLData ();
 	drawGLScene ();
+	
+	m_hoverpos = g_origin;
 	
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
-	
-	m_hoverpos = g_origin;
 	
 	if (m_camera != Free) {
 		// Paint the overlay image if we have one
@@ -655,6 +664,23 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		paint.drawRect (rect);
 	}
 }
+
+#else
+
+void GLRenderer::paintGL () {
+	m_virtWidth = m_zoom;
+	m_virtHeight = (m_height * m_virtWidth) / m_width;
+	drawGLScene ();
+	
+	m_hoverpos = g_origin;
+	if (m_camera != Free)
+		m_hoverpos = coordconv2_3 (m_pos, true);
+	
+	g_win->setStatusBarText (fmt ("%s camera: X: %f, Y: %f, Z: %f",
+		g_CameraNames[camera ()], m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]));
+}
+
+#endif // NO_OVERPAINTING
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

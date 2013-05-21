@@ -145,6 +145,7 @@ public:
 	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {
 		m_colorMeta = quickColorMeta;
 	}
+	void setStatusBarText (str text);
 	
 protected:
 	void closeEvent (QCloseEvent* ev);

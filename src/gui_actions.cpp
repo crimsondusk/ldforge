@@ -450,3 +450,19 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 	if (ok)
 		g_win->R ()->setDepthValue (depth);
 }
+
+#ifdef NO_OVERPAINTING
+#define CAMERA_ACTION(NAME,LOWERNAME) \
+MAKE_ACTION (camera##NAME, #NAME " Camera", "camera-" #LOWERNAME, "Change to the " #LOWERNAME " camera", (0)) { \
+	g_win->R ()->setCamera (GL::NAME); \
+}
+
+CAMERA_ACTION (Top, top)
+CAMERA_ACTION (Bottom, bottom)
+CAMERA_ACTION (Left, left)
+CAMERA_ACTION (Right, right)
+CAMERA_ACTION (Front, front)
+CAMERA_ACTION (Back, back)
+CAMERA_ACTION (Free, free)
+
+#endif // NO_OVERPAINTING
