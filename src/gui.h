@@ -44,13 +44,14 @@ class CheckBoxGroup;
 // =============================================================================
 // Metadata for actions
 typedef struct {
-	QAction** const qAct;
-	keyseqconfig* const conf;
-	const char* const name, *sDisplayName, *sIconName, *sDescription;
-	void (*const handler) ();
+	QAction** qAct;
+	keyseqconfig* conf;
+	const char* name, *sDisplayName, *sIconName, *sDescription;
+	void (*handler) ();
 } actionmeta;
 
-extern vector<actionmeta> g_ActionMeta;
+#define MAX_ACTIONS 256
+extern actionmeta g_actionMeta[256];
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -78,24 +79,6 @@ typedef struct {
 	QToolButton* btn;
 	bool bSeparator;
 } quickColorMetaEntry;
-
-// =============================================================================
-// ActionAdder
-//
-// The ACTION macro expands into - among other stuff - into an instance of this.
-// This class' constructor creates meta for the newly defined action and stores
-// it in g_ActionMeta. It is not supposed to be used directly!
-// =============================================================================
-class ActionAdder {
-public:
-	ActionAdder (QAction** qAct, const char* sDisplayName, const char* sIconName,
-		const char* sDescription, keyseqconfig* conf, void (*const handler) (),
-		const char* name)
-	{
-		actionmeta meta = {qAct, conf, name, sDisplayName, sIconName, sDescription, handler};
-		g_ActionMeta.push_back (meta);
-	}
-};
 
 // =============================================================================
 // ObjectList
@@ -146,6 +129,7 @@ public:
 		m_colorMeta = quickColorMeta;
 	}
 	void setStatusBarText (str text);
+	void addActionMeta (actionmeta& meta);
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
@@ -200,5 +184,23 @@ CheckBoxGroup* makeAxesBox ();
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.
 extern ForgeWindow* g_win;
+
+// =============================================================================
+// ActionAdder
+//
+// The MAKE_ACTION macro expands into - among other stuff - into an instance
+// of this. This class' constructor creates meta for the newly defined action
+// and stores it in g_actionMeta. Don't use this directly!
+// =============================================================================
+class ActionAdder {
+public:
+	ActionAdder (QAction** act, const char* displayName, const char* iconName,
+		const char* description, keyseqconfig* conf, void (*const handler) (),
+		const char* name)
+	{
+		actionmeta meta = {act, conf, name, displayName, iconName, description, handler};
+		g_win->addActionMeta (meta);
+	}
+};
 
 #endif // GUI_H

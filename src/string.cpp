@@ -177,7 +177,7 @@ String String::substr (long a, long b) const {
 int String::first (const char* c, int a) const {
 	unsigned int r = 0;
 	unsigned int index = 0;
-	for (; a < len (); a++) {
+	for (; a < (int) len (); a++) {
 		if (m_string[a] == c[r]) {
 			if (r == 0)
 				index = a;

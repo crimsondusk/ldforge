@@ -97,6 +97,25 @@ public: \
 #undef null
 #endif // null
 
+#ifdef __GNUC__
+#define FUNCNAME __PRETTY_FUNCTION__
+#else
+#define FUNCNAME __func__
+#endif // __GNUC__
+
+// Replace assert with a version that shows a GUI dialog if possible
+#ifdef assert
+#undef assert
+#endif // assert
+
+void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
+void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
+#define assert(N) \
+	(N) ? ((void)(0)) : assertionFailure(__FILE__, __LINE__, FUNCNAME, #N)
+
+#define fatal(MSG) \
+	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
+
 // Null pointer
 static const std::nullptr_t null = nullptr;
 

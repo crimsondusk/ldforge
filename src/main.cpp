@@ -17,6 +17,8 @@
  */
 
 #include <QApplication>
+#include <QMessageBox>
+#include <QAbstractButton>
 #include "gui.h"
 #include "file.h"
 #include "bbox.h"
@@ -114,4 +116,53 @@ const char* versionMoniker () {
 
 str fullVersionString () {
 	return fmt ("v%s%s", versionString ().chars (), versionMoniker ());
+}
+
+static void bombBox (str msg) {
+	msg.replace ("\n", "<br />");
+	
+	QMessageBox box (null);
+	const QMessageBox::StandardButton btn = QMessageBox::Close;
+	box.setWindowTitle ("Fatal Error");
+	box.setIconPixmap (getIcon ("bomb"));
+	box.setWindowIcon (getIcon ("ldforge"));
+	box.setText (msg);
+	box.addButton (btn);
+	box.button (btn)->setText ("Damn it");
+	box.setDefaultButton (btn);
+	box.exec ();
+}
+
+void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr) {
+	str errmsg = fmt ("File %s:%lu:\nFunction %s:\n\nAssertion `%s' failed",
+		file, line, funcname, expr);
+	
+#if BUILD_ID == BUILD_INTERNAL
+	errmsg += ", aborting.";
+#else
+	errmsg += ".";
+#endif
+	
+	printf ("%s\n", errmsg.chars ());
+	
+#if BUILD_ID == BUILD_INTERNAL
+	if (g_win)
+		g_win->deleteLater ();
+	
+	bombBox (errmsg);
+	abort ();
+#endif
+}
+
+void fatalError (const char* file, const ulong line, const char* funcname, str msg) {
+	str errmsg = fmt ("fatal() called:\nFile: %s\nLine: %lu\nFunction: %s\n\n%s",
+		file, line, funcname, msg.chars ());
+	
+	printf ("%s\n", errmsg.chars ());
+	
+	if (g_win)
+		g_win->deleteLater ();
+	
+	bombBox (errmsg);
+	abort ();
 }

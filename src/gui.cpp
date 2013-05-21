@@ -41,7 +41,8 @@
 #include "widgets.h"
 #include "config.h"
 
-vector<actionmeta> g_ActionMeta;
+actionmeta g_actionMeta[MAX_ACTIONS];
+static ushort g_metacursor = 0;
 
 static bool g_bSelectionLocked = false;
 
@@ -104,13 +105,16 @@ void ForgeWindow::slot_lastSecondCleanup () {
 // =============================================================================
 void ForgeWindow::createMenuActions () {
 	// Create the actions based on stored meta.
-	for (actionmeta meta : g_ActionMeta) {
-		QAction*& qAct = *meta.qAct;
-		qAct = new QAction (getIcon (meta.sIconName), meta.sDisplayName, this);
-		qAct->setStatusTip (meta.sDescription);
-		qAct->setShortcut (*meta.conf);
+	for (actionmeta meta : g_actionMeta) {
+		if (meta.qAct == null)
+			break;
 		
-		connect (qAct, SIGNAL (triggered ()), this, SLOT (slot_action ()));
+		QAction*& act = *meta.qAct;
+		act = new QAction (getIcon (meta.sIconName), meta.sDisplayName, this);
+		act->setStatusTip (meta.sDescription);
+		act->setShortcut (*meta.conf);
+		
+		connect (act, SIGNAL (triggered ()), this, SLOT (slot_action ()));
 	}
 	
 	// Make certain actions checkable
@@ -538,7 +542,10 @@ void ForgeWindow::slot_action () {
 	// Find the meta for the action.
 	actionmeta* pMeta = null;
 	
-	for (actionmeta meta : g_ActionMeta) {
+	for (actionmeta meta : g_actionMeta) {
+		if (meta.qAct == null)
+			break;
+		
 		if (*meta.qAct == qAct) {
 			pMeta = &meta;
 			break;
@@ -1046,11 +1053,15 @@ void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
 
 // =============================================================================
 QAction* findAction (str name) {
-	for (actionmeta& meta : g_ActionMeta)
+	for (actionmeta& meta : g_actionMeta) {
+		if (meta.qAct == null)
+			break;
+		
 		if (name == meta.name)
 			return *meta.qAct;
+	}
 	
-	fprintf (stderr, "%s: couldn't find action named `%s'!\n", __func__, name.chars ());
+	fatal (fmt ("%s: couldn't find action named `%s'!\n", __func__, name.chars ()));
 	abort ();
 	return null;
 }
@@ -1122,4 +1133,12 @@ CheckBoxGroup* makeAxesBox () {
 
 void ForgeWindow::setStatusBarText (str text) {
 	statusBar ()->showMessage (text);
+}
+
+void ForgeWindow::addActionMeta (actionmeta& meta) {
+	if (g_metacursor == 0)
+		memset (g_actionMeta, 0, sizeof g_actionMeta);
+	
+	assert (g_metacursor < MAX_ACTIONS);
+	g_actionMeta[g_metacursor++] = meta;
 }

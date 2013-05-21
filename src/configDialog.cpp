@@ -177,7 +177,10 @@ void ConfigDialog::initShortcutsTab () {
 	
 	// Init table items
 	ulong i = 0;
-	for (actionmeta& info : g_ActionMeta) {
+	for (actionmeta& info : g_actionMeta) {
+		if (info.qAct == null)
+			break;
+		
 		QAction* const act = *info.qAct;
 		
 		ShortcutListItem* item = new ShortcutListItem;

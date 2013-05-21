@@ -97,6 +97,7 @@ public:
 	bool		operator!		() const { return empty (); }
 	operator const char*		() const { return chars (); }
 	operator QString			() { return chars (); }
+	operator const QString	() const { return chars (); }
 	
 private:
 	std::string m_string;
