@@ -774,21 +774,6 @@ void KeySequenceDialog::updateOutput () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void KeySequenceDialog::keyPressEvent (QKeyEvent* ev) {
-	seq = ev->key ();
-	
-	switch (seq) {
-	case Qt::Key_Shift:
-	case Qt::Key_Control:
-	case Qt::Key_Alt:
-	case Qt::Key_Meta:
-		seq = 0;
-		break;
-	
-	default:
-		break;
-	}
-	
-	seq = (seq | ev->modifiers ());
-	
+	seq = ev->key () + ev->modifiers ();
 	updateOutput ();
 }
