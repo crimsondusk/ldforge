@@ -22,6 +22,7 @@
 #include "common.h"
 #include "config.h"
 #include "misc.h"
+#include "gui.h"
 
 std::vector<config*> g_configPointers;
 
@@ -64,12 +65,13 @@ static const char* g_ConfigTypeNames[] = {
 // =============================================================================
 // Load the configuration from file
 bool config::load () {
-	printf ("config::load: loading configuration file.\n");
+	printf ("config::load: Loading configuration file...\n");
+	printf ("config::load: Path to configuration is %s\n", filepath ().chars ());
 	
 	// Locale must be disabled for atof
 	setlocale (LC_NUMERIC, "C");
 	
-	FILE* fp = fopen (filepath().chars(), "r");
+	FILE* fp = fopen (filepath ().chars(), "r");
 	char linedata[MAX_INI_LINE];
 	char* line;
 	size_t ln = 0;
@@ -179,19 +181,19 @@ bool config::save () {
 	setlocale (LC_NUMERIC, "C");
 	
 	// If the directory doesn't exist, create it now.
-	if (QDir (dirpath ()).exists () == nope) {
+	if (QDir (dirpath ()).exists () == false) {
 		fprintf (stderr, "Creating config path %s...\n", dirpath().chars());
-		if (!QDir ().mkpath (dirpath().chars())) {
-			logf (LOG_Warning, "Failed to create the directory. Configuration cannot be saved!\n");
+		if (!QDir ().mkpath (dirpath ().chars ())) {
+			critical ("Failed to create the directory. Configuration cannot be saved!\n");
 			return false; // Couldn't create directory
 		}
 	}
 	
-	FILE* fp = fopen (filepath().chars(), "w");
+	FILE* fp = fopen (filepath ().chars (), "w");
 	printf ("writing cfg to %s\n", filepath().chars());
 	
 	if (!fp) {
-		printf ("Couldn't open %s for writing\n", filepath().chars());
+		critical (fmt ("Cannot save configuration, cannot open %s for writing\n", filepath ().chars ()));
 		return false;
 	}
 	
@@ -235,11 +237,11 @@ bool config::save () {
 			break;
 		}
 		
-		const char* sDefault = (cfg->getType() != CONFIG_keyseq) ? cfg->defaultstring :
-			static_cast<keyseqconfig*> (cfg)->defval.toString ().toUtf8 ().constData ();
+		const char* defstr = (cfg->getType() != CONFIG_keyseq) ? cfg->defaultstring :
+			qchars (static_cast<keyseqconfig*> (cfg)->defval.toString ());
 		
 		// Write the entry now.
-		writef (fp, "\n# [%s] default: %s\n", g_ConfigTypeNames[cfg->getType()], sDefault);
+		writef (fp, "\n# [%s] default: %s\n", g_ConfigTypeNames[cfg->getType()], defstr);
 		writef (fp, "%s=%s\n", cfg->name, valstring.chars());
 	}
 	
@@ -263,6 +265,11 @@ str config::filepath () {
 
 // =============================================================================
 str config::dirpath () {
-	return fmt ("%s/.%s/", qchars (QDir::homePath ()),
+#ifndef _WIN32
+	return fmt ("%s" DIRSLASH ".%s" DIRSLASH,
+		qchars (QDir::homePath ()),
 		str (APPNAME).lower ().chars ());
+#else
+	return fmt ("%s" DIRSLASH APPNAME DIRSLASH, qchars (QDir::homePath ()));
+#endif // _WIN32
 }
