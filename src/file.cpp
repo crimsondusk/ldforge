@@ -124,6 +124,19 @@ str dirname (str path) {
 }
 
 // =============================================================================
+str basename (str path) {
+	long lastpos; // FIXME: why doesn't str::last () work here?
+	for (lastpos = path.len () - 1; lastpos >= 0; --lastpos)
+		if (path[(size_t) lastpos] == DIRSLASH_CHAR)
+			break;
+	
+	if (lastpos < (log) path.len () - 1)
+		return path.substr (lastpos + 1, -1);
+	
+	return "";
+}
+
+// =============================================================================
 FILE* openLDrawFile (str relpath, bool subdirs) {
 	printf ("%s: Try to open %s\n", __func__, relpath.c ());
 #ifndef WIN32

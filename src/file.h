@@ -126,4 +126,6 @@ std::vector< LDObject* > loadFileContents (FILE* fp, ulong* numWarnings);
 extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
 
+str basename (str path);
+
 #endif // FILE_H
