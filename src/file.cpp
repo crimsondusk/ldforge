@@ -112,25 +112,24 @@ LDOpenFile* findLoadedFile (str zName) {
 
 // =============================================================================
 str dirname (str path) {
-	long lastpos; // FIXME: why doesn't str::last () work here?
-	for (lastpos = path.len () - 1; lastpos >= 0; --lastpos)
-		if (path[(size_t) lastpos] == DIRSLASH_CHAR)
-			break;
+	long lastpos = path.last (DIRSLASH);
 	
 	if (lastpos > 0)
 		return path.substr (0, lastpos);
+	
+#ifndef _WIN32
+	if (path[0] == DIRSLASH_CHAR)
+		return DIRSLASH;
+#endif // _WIN32
 	
 	return "";
 }
 
 // =============================================================================
 str basename (str path) {
-	long lastpos; // FIXME: why doesn't str::last () work here?
-	for (lastpos = path.len () - 1; lastpos >= 0; --lastpos)
-		if (path[(size_t) lastpos] == DIRSLASH_CHAR)
-			break;
+	long lastpos = path.last (DIRSLASH);
 	
-	if (lastpos < (log) path.len () - 1)
+	if (lastpos < (long) path.len () - 1)
 		return path.substr (lastpos + 1, -1);
 	
 	return path;

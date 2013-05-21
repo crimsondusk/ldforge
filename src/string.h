@@ -58,14 +58,10 @@ public:
 	ushort		count			(const char needle) const;
 	bool		empty			() const { return m_string.empty (); }
 	void		erase			(size_t pos) { m_string.erase (m_string.begin () + pos); }
-	size_t		first			(const char* other, size_t pos = 0) const { return m_string.find_first_of (other, pos); }
-	size_t		first			(const char other, size_t pos = 0) const { return m_string.find_first_of (other, pos); }
-	size_t		first			(const String other, size_t pos = 0) const { return m_string.find_first_of (other, pos); }
+	int			first			(const char* c, int a = 0) const;
 	void		format			(const char* fmtstr, ...);
 	void		insert			(size_t pos, char c) { m_string.insert (m_string.begin () + pos, c); }
-	size_t		last			(const char* other, size_t pos = 0) const { return m_string.find_last_of (other, pos); }
-	size_t		last			(const char other, size_t pos = 0) const { return m_string.find_last_of (other, pos); }
-	size_t		last			(const String other, size_t pos = 0) const { return m_string.find_last_of (other, pos); }
+	int			last			(const char* c, int a = -1) const;
 	size_t		len				() const { return m_string.length (); }
 	String		lower			() const;
 	size_t		maxSize			() const { return m_string.max_size (); }

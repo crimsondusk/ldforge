@@ -172,3 +172,54 @@ String String::substr (long a, long b) const {
 	
 	return sub;
 }
+
+// ============================================================================
+int String::first (const char* c, int a) const {
+	unsigned int r = 0;
+	unsigned int index = 0;
+	for (; a < len (); a++) {
+		if (m_string[a] == c[r]) {
+			if (r == 0)
+				index = a;
+			
+			r++;
+			if (r == strlen (c))
+				return index;
+		} else {
+			if (r != 0) {
+				// If the string sequence broke at this point, we need to
+				// check this character again, for a new sequence just
+				// might start right here.
+				a--;
+			}
+			
+			r = 0;
+		}
+	}
+	
+	return -1;
+}
+
+// ============================================================================
+int String::last (const char* c, int a) const {
+	if (a == -1)
+		a = len();
+	
+	int max = strlen (c) - 1;
+	
+	int r = max;
+	for (; a >= 0; a--) {
+		if (m_string[a] == c[r]) {
+			r--;
+			if (r == -1)
+				return a;
+		} else {
+			if (r != max)
+				a++;
+			
+			r = max;
+		}
+	}
+	
+	return -1;
+}

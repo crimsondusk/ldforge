@@ -127,5 +127,6 @@ extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
 
 str basename (str path);
+str dirname (str path);
 
 #endif // FILE_H

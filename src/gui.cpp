@@ -509,7 +509,7 @@ void ForgeWindow::updateTitle () {
 	// Append our current file if we have one
 	if (g_curfile) {
 		if (g_curfile->m_filename.len () > 0)
-			title += fmt (": %s", basename (g_curfile->m_filename));
+			title += fmt (": %s", basename (g_curfile->m_filename).chars ());
 		else
 			title += fmt (": <anonymous>");
 		
