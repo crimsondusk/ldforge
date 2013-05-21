@@ -26,7 +26,7 @@
 #include <qkeysequence.h>
 
 #define MAX_INI_LINE 512
-#define NUM_CONFIG (g_configPointers.size ())
+#define MAX_CONFIG 512
 
 #define cfg(T, NAME, DEFAULT) \
 	T##config NAME (DEFAULT, #NAME, #T, #DEFAULT)
@@ -63,7 +63,7 @@ public:
 	static str filepath ();
 };
 
-extern std::vector<config*> g_configPointers;
+void addConfig (config* ptr);
 
 // =============================================================================
 #define DEFINE_UNARY_OPERATOR(T, OP) \
@@ -118,7 +118,7 @@ class T##config : public config
 		name = _name; \
 		typestring = _typestring; \
 		defaultstring = _defaultstring; \
-		g_configPointers.push_back (this); \
+		addConfig (this); \
 	} \
 	operator T () { \
 		return value; \

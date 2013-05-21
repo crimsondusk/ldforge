@@ -24,7 +24,8 @@
 #include "misc.h"
 #include "gui.h"
 
-std::vector<config*> g_configPointers;
+config* g_configPointers[MAX_CONFIG];
+static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
 const char* g_WeekdayNames[7] = {
@@ -101,9 +102,13 @@ bool config::load () {
 		
 		// Find the config entry for this.
 		config* cfg = null;
-		for (config* i : g_configPointers)
+		for (config* i : g_configPointers) {
+			if (!i)
+				break;
+			
 			if (entry == i->name)
 				cfg = i;
+		}
 		
 		if (!cfg) {
 			fprintf (stderr, "unknown config `%s`\n", entry.chars());
@@ -211,6 +216,9 @@ bool config::save () {
 		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 	
 	for (config* cfg : g_configPointers) {
+		if (!cfg)
+			break;
+		
 		str valstring;
 		switch (cfg->getType()) {
 		case CONFIG_int:
@@ -251,8 +259,12 @@ bool config::save () {
 
 // =============================================================================
 void config::reset () {
-	for (size_t i = 0; i < NUM_CONFIG; i++)
-		g_configPointers[i]->resetValue ();
+	for (config* cfg : g_configPointers) {
+		if (!cfg)
+			break;
+		
+		cfg->resetValue ();
+	}
 }
 
 // =============================================================================
@@ -272,4 +284,12 @@ str config::dirpath () {
 #else
 	return fmt ("%s" DIRSLASH APPNAME DIRSLASH, qchars (QDir::homePath ()));
 #endif // _WIN32
+}
+
+void addConfig (config* ptr) {
+	if (g_cfgPointerCursor == 0)
+		memset (g_configPointers, 0, sizeof g_configPointers);
+	
+	assert (g_cfgPointerCursor < MAX_CONFIG);
+	g_configPointers[g_cfgPointerCursor++] = ptr;
 }
