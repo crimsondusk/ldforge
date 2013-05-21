@@ -85,13 +85,13 @@ namespace LDPaths {
 }
 
 // =============================================================================
-OpenFile::OpenFile () {
+LDOpenFile::LDOpenFile () {
 	m_implicit = true;
 	savePos = -1;
 }
 
 // =============================================================================
-OpenFile::~OpenFile () {
+LDOpenFile::~LDOpenFile () {
 	// Clear everything from the model
 	for (LDObject* obj : m_objs)
 		delete obj;
@@ -102,8 +102,8 @@ OpenFile::~OpenFile () {
 }
 
 // =============================================================================
-OpenFile* findLoadedFile (str zName) {
-	for (OpenFile* file : g_loadedFiles)
+LDOpenFile* findLoadedFile (str zName) {
+	for (LDOpenFile* file : g_loadedFiles)
 		if (file->m_filename == zName)
 			return file;
 	
@@ -214,7 +214,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* openDATFile (str path, bool search, bool mainfile) {
+LDOpenFile* openDATFile (str path, bool search, bool mainfile) {
 	logf ("Opening %s...\n", path.chars());
 	
 	// Convert the file name to lowercase since some parts contain uppercase
@@ -231,7 +231,7 @@ OpenFile* openDATFile (str path, bool search, bool mainfile) {
 		return null;
 	}
 	
-	OpenFile* load = new OpenFile;
+	LDOpenFile* load = new LDOpenFile;
 	load->m_filename = path;
 	
 	if (mainfile)
@@ -255,7 +255,7 @@ OpenFile* openDATFile (str path, bool search, bool mainfile) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool OpenFile::safeToClose () {
+bool LDOpenFile::safeToClose () {
 	setlocale (LC_ALL, "C");
 	
 	// If we have unsaved changes, warn and give the option of saving.
@@ -309,7 +309,7 @@ void closeAll () {
 		return;
 	
 	// Remove all loaded files and the objects they contain
-	for (OpenFile* file : g_loadedFiles)
+	for (LDOpenFile* file : g_loadedFiles)
 		delete file;
 	
 	// Clear the array
@@ -326,7 +326,7 @@ void newFile () {
 	// Create a new anonymous file and set it to our current
 	closeAll ();
 	
-	OpenFile* f = new OpenFile;
+	LDOpenFile* f = new LDOpenFile;
 	f->m_filename = "";
 	f->m_implicit = false;
 	g_loadedFiles.push_back (f);
@@ -382,7 +382,7 @@ void addRecentFile (str path) {
 void openMainFile (str path) {
 	closeAll ();
 	
-	OpenFile* file = openDATFile (path, false, true);
+	LDOpenFile* file = openDATFile (path, false, true);
 	
 	if (!file) {
 		// Tell the user loading failed.
@@ -411,7 +411,7 @@ void openMainFile (str path) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool OpenFile::save (str path) {
+bool LDOpenFile::save (str path) {
 	if (!~path)
 		path = m_filename;
 	
@@ -587,7 +587,7 @@ LDObject* parseLine (str line) {
 			CHECK_TOKEN_NUMBERS (1, 13)
 			
 			// Try open the file
-			OpenFile* pFile = loadSubfile (tokens[14]);
+			LDOpenFile* pFile = loadSubfile (tokens[14]);
 			
 			// If we cannot open the file, mark it an error
 			if (!pFile)
@@ -671,9 +671,9 @@ LDObject* parseLine (str line) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFile* loadSubfile (str zFile) {
+LDOpenFile* loadSubfile (str zFile) {
 	// Try open the file
-	OpenFile* pFile = findLoadedFile (zFile);
+	LDOpenFile* pFile = findLoadedFile (zFile);
 	if (!pFile)
 		pFile = openDATFile (zFile, true, false);
 	
@@ -688,7 +688,7 @@ void reloadAllSubfiles () {
 		return;
 	
 	// First, close all but the current open file.
-	for (OpenFile* file : g_loadedFiles)
+	for (LDOpenFile* file : g_loadedFiles)
 		if (file != g_curfile)
 			delete file;
 	
@@ -700,7 +700,7 @@ void reloadAllSubfiles () {
 		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->pFile is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			OpenFile* pFile = loadSubfile (ref->fileName);
+			LDOpenFile* pFile = loadSubfile (ref->fileName);
 			
 			if (pFile)
 				ref->fileInfo = pFile;
@@ -720,7 +720,7 @@ void reloadAllSubfiles () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ulong OpenFile::addObject (LDObject* obj) {
+ulong LDOpenFile::addObject (LDObject* obj) {
 	m_objs.push_back (obj);
 	
 	if (this == g_curfile)
@@ -732,7 +732,7 @@ ulong OpenFile::addObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void OpenFile::insertObj (const ulong pos, LDObject* obj) {
+void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
 	m_objs.insert (m_objs.begin () + pos, obj);
 	
 	if (this == g_curfile)
@@ -742,7 +742,7 @@ void OpenFile::insertObj (const ulong pos, LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void OpenFile::forgetObject (LDObject* obj) {
+void LDOpenFile::forgetObject (LDObject* obj) {
 	// Find the index for the given object
 	ulong ulIndex;
 	for (ulIndex = 0; ulIndex < (ulong)m_objs.size(); ++ulIndex)
@@ -817,7 +817,7 @@ void initPartList () {
 
 // =============================================================================
 bool safeToCloseAll () {
-	for (OpenFile* f : g_loadedFiles)
+	for (LDOpenFile* f : g_loadedFiles)
 		if (!f->safeToClose ())
 			return false;
 	

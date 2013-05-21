@@ -328,7 +328,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-long LDObject::getIndex (OpenFile* pFile) const {
+long LDObject::getIndex (LDOpenFile* pFile) const {
 	for (ulong i = 0; i < pFile->m_objs.size(); ++i)
 		if (pFile->m_objs[i] == this)
 			return i;

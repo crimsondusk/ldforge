@@ -33,12 +33,12 @@ namespace LDPaths {
 }
 
 // =============================================================================
-// OpenFile
+// LDOpenFile
 //
-// The OpenFile class stores a file opened in LDForge either as a editable file
+// The LDOpenFile class stores a file opened in LDForge either as a editable file
 // for the user or for subfile caching. Its methods handle file input and output.
 // =============================================================================
-class OpenFile {
+class LDOpenFile {
 public:
 	typedef std::vector<LDObject*>::iterator it;
 	typedef std::vector<LDObject*>::const_iterator c_it;
@@ -53,8 +53,8 @@ public:
 	// caching purposes and are hidden from the user.
 	bool m_implicit;
 	
-	OpenFile ();
-	~OpenFile ();
+	LDOpenFile ();
+	~LDOpenFile ();
 	
 	// Saves this file to disk.
 	bool save (str zPath = "");
@@ -90,11 +90,11 @@ void newFile ();
 void openMainFile (str zPath);
 
 // Finds an OpenFile by name or null if not open
-OpenFile* findLoadedFile (str name);
+LDOpenFile* findLoadedFile (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-OpenFile* openDATFile (str path, bool search, bool mainfile);
+LDOpenFile* openDATFile (str path, bool search, bool mainfile);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 FILE* openLDrawFile (str path, bool bSubDirectories);
@@ -106,7 +106,7 @@ void closeAll ();
 LDObject* parseLine (str line);
 
 // Retrieves the pointer to - or loads - the given subfile.
-OpenFile* loadSubfile (str zFile);
+LDOpenFile* loadSubfile (str zFile);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles ();
@@ -123,7 +123,7 @@ void initPartList ();
 
 std::vector< LDObject* > loadFileContents (FILE* fp, ulong* numWarnings);
 
-extern vector<OpenFile*> g_loadedFiles;
+extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
 
 #endif // FILE_H

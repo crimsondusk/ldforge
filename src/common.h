@@ -110,7 +110,7 @@ static const bool nope = false;
 class ForgeWindow;
 class LDObject;
 class bbox;
-class OpenFile;
+class LDOpenFile;
 class QApplication;
 
 // -----------------------------------------------------------------------------
@@ -179,7 +179,7 @@ extern const vertex g_origin;
 
 // -----------------------------------------------------------------------------
 // Pointer to the OpenFile which is currently being edited by the user.
-extern OpenFile* g_curfile;
+extern LDOpenFile* g_curfile;
 
 // -----------------------------------------------------------------------------
 // Pointer to the bounding box.
@@ -187,7 +187,7 @@ extern bbox g_BBox;
 
 // -----------------------------------------------------------------------------
 // Vector of all currently opened files.
-extern vector<OpenFile*> g_loadedFiles;
+extern vector<LDOpenFile*> g_loadedFiles;
 
 // -----------------------------------------------------------------------------
 // Pointer to the main application.

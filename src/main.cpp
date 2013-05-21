@@ -25,8 +25,8 @@
 #include "colors.h"
 #include "types.h"
 
-vector<OpenFile*> g_loadedFiles;
-OpenFile* g_curfile = null;
+vector<LDOpenFile*> g_loadedFiles;
+LDOpenFile* g_curfile = null;
 ForgeWindow* g_win = null; 
 bbox g_BBox;
 const QApplication* g_app = null;

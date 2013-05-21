@@ -480,7 +480,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			if (~name == 0)
 				return; // no subfile filename
 			
-			OpenFile* file = loadSubfile (name);
+			LDOpenFile* file = loadSubfile (name);
 			if (!file) {
 				critical (fmt ("Couldn't open `%s': %s", name.c (), strerror (errno)));
 				return;

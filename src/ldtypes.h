@@ -102,7 +102,7 @@ public:
 	virtual ~LDObject ();
 	
 	// Index (i.e. line number) of this object
-	long getIndex (OpenFile* pFile) const;
+	long getIndex (LDOpenFile* pFile) const;
 	
 	// Color used by this object. Comments, gibberish and empty entries
 	// do not use this field.
@@ -269,7 +269,7 @@ public:
 	LDOBJ_HAS_MATRIX
 	
 	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
-	OpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
+	LDOpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
 	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
