@@ -1,7 +1,7 @@
 #!/bin/bash
 
 QRCFILE=ldforge.qrc
-FILES=$(echo ./icons/*.* LICENSE)
+FILES=$(echo ./icons/*.* LICENSE LICENSE.icons)
 
 printf "" > $QRCFILE
 

@@ -99,5 +99,6 @@
 	<file>./icons/wireframe.png</file>
 	<file>./icons/ytruder.png</file>
 	<file>LICENSE</file>
+	<file>LICENSE.icons</file>
 </qresource>
 </RCC>
