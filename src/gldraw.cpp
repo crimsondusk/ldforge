@@ -189,10 +189,6 @@ void GLRenderer::initializeGL () {
 	
 	glLineWidth (gl_linethickness);
 	
-#ifdef NO_OVERPAINTING
-	initGLData ();
-#endif // NO_OVERPAINTING
-	
 	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
@@ -479,8 +475,6 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#ifndef NO_OVERPAINTING
-
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
 	m_virtWidth = m_zoom;
@@ -664,23 +658,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		paint.drawRect (rect);
 	}
 }
-
-#else
-
-void GLRenderer::paintGL () {
-	m_virtWidth = m_zoom;
-	m_virtHeight = (m_height * m_virtWidth) / m_width;
-	drawGLScene ();
-	
-	m_hoverpos = g_origin;
-	if (m_camera != Free)
-		m_hoverpos = coordconv2_3 (m_pos, true);
-	
-	g_win->setStatusBarText (fmt ("%s camera: X: %f, Y: %f, Z: %f",
-		g_CameraNames[camera ()], m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]));
-}
-
-#endif // NO_OVERPAINTING
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

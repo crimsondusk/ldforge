@@ -83,14 +83,9 @@ protected:
 	void	mousePressEvent	(QMouseEvent* ev);
 	void	mouseMoveEvent		(QMouseEvent* ev);
 	void	mouseReleaseEvent	(QMouseEvent* ev);
+	void	paintEvent			(QPaintEvent* ev);
 	void	resizeGL			(int w, int h);
 	void	wheelEvent			(QWheelEvent* ev);
-	
-#ifndef NO_OVERPAINTING
-	void	paintEvent			(QPaintEvent* ev);
-#else
-	void	paintGL				();
-#endif // NO_OVERPAINTING
 
 private:
 	QTimer* m_toolTipTimer;

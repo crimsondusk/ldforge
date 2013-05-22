@@ -47,16 +47,16 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		"available for some reason, see<br />"
 		"<a href=\"http://www.gnu.org/licenses/\">http://www.gnu.org/licenses/</a> for the license terms.</p>"
 		
-		"<p>The application icon is derived from "
-		"<a href=\"http://en.wikipedia.org/wiki/File:Anvil,_labelled_en.svg\">this image</a>.</p>"
+		"<p>The graphical assets of " APPNAME " are licensed under the<br />"
+		"<a href=\"http://creativecommons.org/licenses/by-sa/3.0/\">CC Attribution-ShareAlike 3.0 Unported license</a>. The<br />"
+		"GNU GPL applies to the source code of the program.<br />"
+		"The application icon is derived from <a href=\"http://en.wikipedia.org/wiki/File:Anvil,_labelled_en.svg\">this image</a>. The<br />"
+		"linked image (retrieved 22 May 2013) was released<br />"
+		"into the public domain.</p>"
 	);
 	
 	// Rest in peace, James.
 	QLabel* memorial = new QLabel ("In living memory of James Jessiman.");
-	
-	// Align everything to the center.
-	for (QLabel* label : vector<QLabel*> ({icon, title, info, memorial}))
-		label->setAlignment (Qt::AlignCenter);
 	
 	QDialogButtonBox* buttons = new QDialogButtonBox (QDialogButtonBox::Close);
 	QPushButton* helpButton = new QPushButton;
@@ -68,10 +68,13 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	connect (buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
 	
 	QVBoxLayout* layout = new QVBoxLayout (this);
-	layout->addWidget (icon);
-	layout->addWidget (title);
-	layout->addWidget (info);
-	layout->addWidget (memorial);
+	
+	// Align everything to the center.
+	for (QLabel* label : vector<QLabel*> ({icon, title, info, memorial})) {
+		label->setAlignment (Qt::AlignCenter);
+		layout->addWidget (label);
+	}
+	
 	layout->addWidget (buttons);
 	
 	setWindowTitle ("About " APPNAME);

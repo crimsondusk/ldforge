@@ -128,11 +128,6 @@ void ForgeWindow::createMenuActions () {
 	findAction ("wireframe")->setCheckable (true);
 	findAction ("wireframe")->setChecked (gl_wireframe);
 	
-#ifdef NO_OVERPAINTING
-	for (int i = 0; i < 7; ++i)
-		findAction (fmt ("camera%s", g_CameraNames[i]))->setCheckable (true);
-#endif
-	
 	updateEditModeActions ();
 	
 	// things not implemented yet
@@ -426,13 +421,6 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("Modes");
 	addToolBarAction ("modeSelect");
 	addToolBarAction ("modeDraw");
-	
-#ifdef NO_OVERPAINTING
-	g_CurrentToolBar->addSeparator ();
-	
-	for (int i = 0; i < 7; ++i)
-		addToolBarAction (fmt ("camera%s", g_CameraNames[i]));
-#endif // NO_OVERPAINTING
 	
 	updateToolBars ();
 }
@@ -1003,11 +991,6 @@ void ForgeWindow::updateEditModeActions () {
 		if (i != GL::Select)
 			act->setEnabled (R ()->camera () != GL::Free);
 	}
-	
-#ifdef NO_OVERPAINTING
-	for (int i = 0; i < 7; ++i)
-		findAction (fmt ("camera%s", g_CameraNames[i]))->setChecked (i == (R ()->camera ()));
-#endif
 }
 
 // ========================================================================================================================================
