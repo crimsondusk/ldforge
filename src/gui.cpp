@@ -741,11 +741,15 @@ void ForgeWindow::slot_selectionChanged () {
 	}
 	
 	// Update the GL renderer
-	for (LDObject* obj : m_sel)
+	for (LDObject* obj : priorSelection) {
+		obj->setSelected (false);
 		m_renderer->compileObject (obj);
+	}
 	
-	for (LDObject* obj : priorSelection)
-		printf ("recompile %lu\n", obj->getIndex (g_curfile));
+	for (LDObject* obj : m_sel) {
+		obj->setSelected (true);
+		m_renderer->compileObject (obj);
+	}
 	
 	m_renderer->update ();
 }
