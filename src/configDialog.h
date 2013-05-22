@@ -81,7 +81,6 @@ public:
 	QDialogButtonBox* bbx_buttons;
 	
 	ConfigDialog (ForgeWindow* parent);
-	~ConfigDialog ();
 	static void staticDialog ();
 	
 private:

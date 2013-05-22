@@ -40,7 +40,9 @@
 #define BUILD_ID BUILD_INTERNAL
 
 // =============================================
-#define RELEASE (BUILD_ID != BUILD_INTERNAL)
+#if (BUILD_ID != BUILD_INTERNAL)
+#define RELEASE
+#endif // BUILD_ID
 
 #define BUILD_INTERNAL	0
 #define BUILD_ALPHA		1

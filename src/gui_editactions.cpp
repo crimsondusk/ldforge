@@ -310,8 +310,8 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (F10)) {
-	if (g_win->sel ().size() <= 0)
+MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (C)) {
+	if (g_win->sel ().size () <= 0)
 		return;
 	
 	short colnum;

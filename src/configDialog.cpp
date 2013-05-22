@@ -43,8 +43,6 @@ extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
 
-ConfigDialog* g_ConfigDialog = null;
-
 #define INIT_CHECKBOX(BOX, CFG) \
 	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
 
@@ -55,7 +53,6 @@ ConfigDialog* g_ConfigDialog = null;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
-	g_ConfigDialog = this;
 	tabs = new QTabWidget;
 	
 	initMainTab ();
@@ -508,13 +505,6 @@ void ConfigDialog::makeSlider (QSlider*& slider, short min, short max, short def
 	slider->setSliderPosition (defval);
 	slider->setTickPosition (QSlider::TicksAbove);
 	slider->setTickInterval (1);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-ConfigDialog::~ConfigDialog () {
-	g_ConfigDialog = null;
 }
 
 // =============================================================================
