@@ -35,9 +35,9 @@
 
 #define APPNAME "LDForge"
 #define VERSION_MAJOR 0
-#define VERSION_MINOR 0
-#define VERSION_PATCH 999
-#define BUILD_ID BUILD_INTERNAL
+#define VERSION_MINOR 1
+#define VERSION_PATCH 0
+#define BUILD_ID BUILD_ALPHA
 
 // =============================================
 #if (BUILD_ID != BUILD_INTERNAL)
