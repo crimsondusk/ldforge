@@ -134,7 +134,7 @@ static void bombBox (str msg) {
 }
 
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr) {
-	str errmsg = fmt ("File %s:%lu:\nFunction %s:\n\nAssertion `%s' failed",
+	str errmsg = fmt ("File %s\nLine: %lu:\nFunction %s:\n\nAssertion `%s' failed",
 		file, line, funcname, expr);
 	
 #if BUILD_ID == BUILD_INTERNAL
@@ -155,7 +155,7 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 }
 
 void fatalError (const char* file, const ulong line, const char* funcname, str msg) {
-	str errmsg = fmt ("fatal() called:\nFile: %s\nLine: %lu\nFunction: %s\n\n%s",
+	str errmsg = fmt ("Aborting over a call to fatal():\nFile: %s\nLine: %lu\nFunction: %s\n\n%s",
 		file, line, funcname, msg.chars ());
 	
 	printf ("%s\n", errmsg.chars ());

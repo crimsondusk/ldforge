@@ -40,8 +40,11 @@ char* dynafmt (const char* fmtstr, va_list va, ulong size) {
 		try {
 			buf = new char[size];
 		} catch (std::bad_alloc&) {
-			fprintf (stderr, "%s: allocation error on run #%u: tried to allocate %lu bytes\n", __func__, run + 1, size);
-			abort ();
+			// fmt uses dynafmt, so using fmt here is dangerous and could lead
+			// into infinite recursion. Thus, use a C string this one time.
+			char err[256];
+			sprintf (err, "caught std::bad_alloc on run #%u while trying to allocate %lu bytes", run + 1, size);
+			fatal (err);
 		}
 		
 		if (!vsnprintf (buf, size - 1, fmtstr, va)) {
@@ -165,9 +168,8 @@ String String::substr (long a, long b) const {
 	try {
 		sub = m_string.substr (a, b - a);
 	} catch (const std::out_of_range& e) {
-		printf ("%s: %s: caught std::out_of_range, coords were: (%ld, %ld), string: `%s', length: %lu\n",
-			__func__, e.what (), a, b, chars (), (ulong) len ());
-		abort ();
+		fatal (fmt ("caught std::out_of_range, coords were: (%ld, %ld), string: `%s', length: %lu",
+			a, b, chars (), (ulong) len ()));
 	}
 	
 	return sub;
