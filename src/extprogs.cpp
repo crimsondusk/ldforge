@@ -158,7 +158,7 @@ void writeColorGroup (const short colnum, str fname) {
 		if (obj->isColored () == false || obj->color != colnum)
 			continue;
 		
-		objects.push_back (obj);
+		objects << obj;
 	}
 	
 	writeObjects (objects, fname);
@@ -237,9 +237,9 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		}
 		
 		ulong idx = g_curfile->addObject (obj);
-		indices.push_back (idx);
-		copies.push_back (obj->clone ());
-		g_win->sel ().push_back (obj);
+		indices << idx;
+		copies << obj->clone ();
+		g_win->sel () << obj;
 	}
 	
 	if (indices.size() > 0)

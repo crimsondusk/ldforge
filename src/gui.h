@@ -78,7 +78,7 @@ typedef struct {
 	color* col;
 	QToolButton* btn;
 	bool bSeparator;
-} quickColorMetaEntry;
+} quickColor;
 
 // =============================================================================
 // ObjectList
@@ -125,7 +125,7 @@ public:
 	DelHistory* deleteByColor (const short colnum);
 	GLRenderer* R () { return m_renderer; }
 	vector<LDObject*>& sel () { return m_sel; }
-	void setQuickColorMeta (vector<quickColorMetaEntry>& quickColorMeta) {
+	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {
 		m_colorMeta = quickColorMeta;
 	}
 	void setStatusBarText (str text);
@@ -147,7 +147,7 @@ private:
 	QToolBar* m_colorToolBar;
 	vector<QToolBar*> m_toolBars;
 	vector<LDObject*> m_sel;
-	vector<quickColorMetaEntry> m_colorMeta;
+	vector<quickColor> m_colorMeta;
 	vector<QToolButton*> m_colorButtons;
 	vector<QAction*> m_recentFiles;
 	
@@ -171,7 +171,7 @@ private slots:
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (const char* sIconName);
-vector<quickColorMetaEntry> parseQuickColorMeta ();
+vector<quickColor> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);

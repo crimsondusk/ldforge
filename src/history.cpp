@@ -41,7 +41,7 @@ namespace History {
 			s_entries.erase (i);
 		}
 		
-		s_entries.push_back (entry);
+		s_entries << entry;
 		s_pos++;
 		
 		updateActions ();
@@ -175,9 +175,9 @@ void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj) {
 }
 
 void EditHistory::addEntry (LDObject* const oldObj, LDObject* const newObj, const ulong idx) {
-	ulaIndices.push_back (idx);
-	paOldObjs.push_back (oldObj->clone ());
-	paNewObjs.push_back (newObj->clone ());
+	ulaIndices << idx;
+	paOldObjs << oldObj->clone ();
+	paNewObjs << newObj->clone ();
 }
 
 EditHistory::~EditHistory () {
@@ -195,7 +195,7 @@ vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
 	vector<LDObject*> objs;
 	
 	for (ulong idx : ulaIndices)
-		objs.push_back (g_curfile->object (idx + ofs));
+		objs << g_curfile->object (idx + ofs);
 	
 	return objs;
 }

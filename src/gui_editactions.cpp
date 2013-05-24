@@ -57,7 +57,7 @@ static bool copyToClipboard () {
 	// the clipboard. Thus, we add clones of the objects to the clipboard, not
 	// the objects themselves.
 	for (ulong i = 0; i < objs.size(); ++i)
-		g_Clipboard.push_back (objs[i]->clone ());
+		g_Clipboard << objs[i]->clone ();
 	
 	return true;
 }
@@ -94,12 +94,12 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	g_win->sel ().clear ();
 	
 	for (LDObject* obj : g_Clipboard) {
-		historyIndices.push_back (idx);
-		historyCopies.push_back (obj->clone ());
+		historyIndices << idx;
+		historyCopies << obj->clone ();
 		
 		LDObject* copy = obj->clone ();
 		g_curfile->insertObj (idx++, copy);
-		g_win->sel ().push_back (copy);
+		g_win->sel () << copy;
 	}
 	
 	History::addEntry (new AddHistory (historyIndices, historyCopies, AddHistory::Paste));
@@ -134,8 +134,8 @@ static void doInline (bool deep) {
 		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
-		refIndices.push_back (obj->getIndex (g_curfile));
-		refs.push_back (static_cast<LDSubfile*> (obj)->clone ());
+		refIndices << obj->getIndex (g_curfile);
+		refs << static_cast<LDSubfile*> (obj)->clone ();
 	}
 	
 	for (LDObject* obj : sel) {
@@ -156,7 +156,7 @@ static void doInline (bool deep) {
 		
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
-			bitIndices.push_back (idx);
+			bitIndices << idx;
 			
 			// This object is now inlined so it has no parent anymore.
 			inlineobj->parent = null;
@@ -200,7 +200,7 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		
 		LDOpenFile* file = loadSubfile (name);
 		if (file == null) {
-			fails.push_back (name);
+			fails << name;
 			continue;
 		}
 		
@@ -247,8 +247,8 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		if (obj->getType() != LDObject::Quad)
 			continue;
 		
-		ulaIndices.push_back (obj->getIndex (g_curfile));
-		paCopies.push_back (static_cast<LDQuad*> (obj)->clone ());
+		ulaIndices << obj->getIndex (g_curfile);
+		paCopies << static_cast<LDQuad*> (obj)->clone ();
 	}
 	
 	for (LDObject* obj : objs) {
@@ -332,8 +332,8 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 			if (obj->isColored () == false)
 				continue;
 			
-			indices.push_back (obj->getIndex (g_curfile));
-			colornums.push_back (obj->color);
+			indices << obj->getIndex (g_curfile);
+			colornums << obj->color;
 			
 			obj->color = colnum;
 			g_win->R ()->compileObject (obj);
@@ -382,8 +382,8 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			lines[i]->color = edgecolor;
 			g_curfile->insertObj (idx, lines[i]);
 			
-			historyIndices.push_back (idx);
-			historyObjs.push_back (lines[i]->clone ());
+			historyIndices << idx;
+			historyObjs << lines[i]->clone ();
 			g_win->R ()->compileObject (lines[i]);
 		}
 	}
@@ -412,8 +412,8 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 			vert->color = obj->color;
 			
 			g_curfile->insertObj (++idx, vert);
-			ulaIndices.push_back (idx);
-			paObjs.push_back (vert->clone ());
+			ulaIndices << idx;
+			paObjs << vert->clone ();
 			g_win->R ()->compileObject (vert);
 		}
 	}
@@ -433,7 +433,7 @@ static void doMoveSelection (const bool bUp) {
 	// Get the indices of the objects for history archival
 	vector<ulong> ulaIndices;
 	for (LDObject* obj : objs)
-		ulaIndices.push_back (obj->getIndex (g_curfile));
+		ulaIndices << obj->getIndex (g_curfile);
 	
 	LDObject::moveObjects (objs, bUp);
 	History::addEntry (new ListMoveHistory (ulaIndices, bUp));
@@ -476,7 +476,7 @@ void doMoveObjects (vertex vVector) {
 	vVector[Z] *= currentGrid ().confs[Grid::Z]->value;
 	
 	for (LDObject* obj : g_win->sel ()) {
-		ulaIndices.push_back (obj->getIndex (g_curfile));
+		ulaIndices << obj->getIndex (g_curfile);
 		obj->move (vVector);
 		g_win->R ()->compileObject (obj);
 	}
@@ -570,14 +570,14 @@ static void doRotate (const short l, const short m, const short n) {
 	for (LDObject* obj : sel) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
-				queue.push_back (&obj->coords[i]);
+				queue << &obj->coords[i];
 		else if (obj->hasMatrix ()) {
 			LDMatrixObject* mobj = static_cast<LDSubfile*> (obj);
 			
-			queue.push_back (&mobj->pos);
+			queue << &mobj->pos;
 			mobj->transform = mobj->transform * transform;
 		} else if (obj->getType () == LDObject::Vertex)
-			queue.push_back (&static_cast<LDVertex*> (obj)->pos);
+			queue << &static_cast<LDVertex*> (obj)->pos;
 		
 		g_win->R ()->compileObject (obj);
 	}
@@ -645,11 +645,11 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		if (obj->isColored () == false)
 			continue;
 		
-		indices.push_back (obj->getIndex (g_curfile));
-		oldCopies.push_back (obj->clone ());
+		indices << obj->getIndex (g_curfile);
+		oldCopies << obj->clone ();
 		
 		obj->color = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
-		newCopies.push_back (obj->clone ());
+		newCopies << obj->clone ();
 	}
 	
 	if (indices.size () > 0) {
@@ -811,8 +811,8 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 		if (obj->isColored () == false)
 			continue;
 		
-		indices.push_back (obj->getIndex (g_curfile));
-		colors.push_back (obj->color);
+		indices << obj->getIndex (g_curfile);
+		colors << obj->color;
 		
 		obj->color = colnum;
 		g_win->R ()->compileObject (obj);

@@ -69,7 +69,7 @@ public:
 	QPushButton* pb_addColor, *pb_delColor, *pb_changeColor, *pb_addColorSeparator,
 		*pb_moveColorUp, *pb_moveColorDown, *pb_clearColors;
 	vector<QListWidgetItem*> quickColorItems;
-	vector<quickColorMetaEntry> quickColorMeta;
+	vector<quickColor> quickColorMeta;
 	
 	// =========================================================================
 	// Grid tab
@@ -93,7 +93,7 @@ private:
 	void makeSlider (QSlider*& slider, short min, short max, short defval);
 	void setButtonBackground (QPushButton* qButton, str zValue);
 	void pickColor (strconfig& cfg, QPushButton* qButton);
-	void updateQuickColorList (quickColorMetaEntry* pSel = null);
+	void updateQuickColorList (quickColor* pSel = null);
 	void setShortcutText (QListWidgetItem* qItem, actionmeta meta);
 	long getItemRow (QListWidgetItem* qItem, vector<QListWidgetItem*>& haystack);
 	str makeColorToolBarString ();

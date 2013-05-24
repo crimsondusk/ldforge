@@ -285,7 +285,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 					return;
 			
 			printf ("%s: Unknown color %d!\n", __func__, obj->color);
-			g_warnedColors.push_back (obj->color);
+			g_warnedColors << obj->color;
 			return;
 		}
 	}
@@ -878,7 +878,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				}
 			}
 			
-			m_drawedVerts.push_back (m_hoverpos);
+			m_drawedVerts << m_hoverpos;
 			update ();
 			break;
 		
@@ -1100,7 +1100,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 				break;
 		}
 		
-		g_win->sel ().push_back (obj);
+		g_win->sel () << obj;
 	}
 	
 	delete[] pixeldata;

@@ -66,7 +66,7 @@ RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int con
 void RadioBox::rowBreak () {
 	QBoxLayout* newLayout = new QBoxLayout (m_vert ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
 	m_currentLayout = newLayout;
-	m_layouts.push_back (newLayout);
+	m_layouts << newLayout;
 	
 	m_coreLayout->addLayout (newLayout);
 }
@@ -79,7 +79,7 @@ void RadioBox::addButton (const char* entry) {
 void RadioBox::addButton (QRadioButton* button) {
 	bool const selectThis = (m_curId == m_defId);
 	
-	m_objects.push_back (button);
+	m_objects << button;
 	m_buttonGroup->addButton (button, m_curId++);
 	m_currentLayout->addWidget (button);
 	
@@ -159,7 +159,7 @@ vector<int> CheckBoxGroup::checkedValues () const {
 	
 	for (const auto& kv : m_vals)
 		if (kv.second->isChecked ())
-			vals.push_back (kv.first);
+			vals << kv.first;
 	
 	return vals;
 }

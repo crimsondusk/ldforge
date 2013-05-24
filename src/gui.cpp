@@ -293,7 +293,7 @@ void ForgeWindow::updateRecentFilesMenu () {
 		
 		connect (recent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
 		m_recentFilesMenu->addAction (recent);
-		m_recentFiles.push_back (recent);
+		m_recentFiles << recent;
 	}
 }
 
@@ -306,7 +306,7 @@ static Qt::ToolBarArea g_ToolBarArea = Qt::TopToolBarArea;
 void ForgeWindow::initSingleToolBar (const char* name) {
 	QToolBar* toolbar = new QToolBar (name);
 	addToolBar (g_ToolBarArea, toolbar);
-	m_toolBars.push_back (toolbar);
+	m_toolBars << toolbar;
 	
 	g_CurrentToolBar = toolbar;
 }
@@ -428,16 +428,16 @@ void ForgeWindow::createToolbars () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<quickColorMetaEntry> parseQuickColorMeta () {
-	vector<quickColorMetaEntry> meta;
+vector<quickColor> parseQuickColorMeta () {
+	vector<quickColor> meta;
 	
 	for (str colorname : gui_colortoolbar.value / ":") {
 		if (colorname == "|") {
-			meta.push_back ({null, null, true});
+			meta << quickColor ({null, null, true});
 		} else {
 			color* col = getColor (atoi (colorname));
 			assert (col != null);
-			meta.push_back ({col, null, false});
+			meta << quickColor ({col, null, false});
 		}
 	}
 	
@@ -462,7 +462,7 @@ void ForgeWindow::updateToolBars () {
 	// Clear the toolbar to remove separators
 	m_colorToolBar->clear ();
 	
-	for (quickColorMetaEntry& entry : m_colorMeta) {
+	for (quickColor& entry : m_colorMeta) {
 		if (entry.bSeparator)
 			m_colorToolBar->addSeparator ();
 		else {
@@ -473,7 +473,7 @@ void ForgeWindow::updateToolBars () {
 			
 			connect (colorButton, SIGNAL (clicked ()), this, SLOT (slot_quickColor ()));
 			m_colorToolBar->addWidget (colorButton);
-			m_colorButtons.push_back (colorButton);
+			m_colorButtons << colorButton;
 			
 			entry.btn = colorButton;
 		}
@@ -552,7 +552,7 @@ void ForgeWindow::slot_action () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, vector<LDObject*>* papObjects) {
+void ForgeWindow::deleteSelection (vector<ulong>* indicesPtr, vector<LDObject*>* objsPtr) {
 	if (m_sel.size () == 0)
 		return;
 	
@@ -560,9 +560,9 @@ void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, vector<LDObject*>
 	
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy) {
-		if (papObjects && ulapIndices) {
-			papObjects->push_back (obj->clone ());
-			ulapIndices->push_back (obj->getIndex (g_curfile));
+		if (objsPtr && indicesPtr) {
+			*objsPtr << obj->clone ();
+			*indicesPtr << obj->getIndex (g_curfile);
 		}
 		
 		g_curfile->forgetObject (obj);
@@ -735,7 +735,7 @@ void ForgeWindow::slot_selectionChanged () {
 	for (LDObject* obj : g_curfile->objs ())
 	for (QListWidgetItem* item : items) {
 		if (item == obj->qObjListEntry) {
-			m_sel.push_back (obj);
+			m_sel << obj;
 			break;
 		}
 	}
@@ -767,7 +767,7 @@ void ForgeWindow::slot_quickColor () {
 	QToolButton* button = static_cast<QToolButton*> (sender ());
 	color* col = null;
 	
-	for (quickColorMetaEntry entry : m_colorMeta) {
+	for (quickColor entry : m_colorMeta) {
 		if (entry.btn == button) {
 			col = entry.col;
 			break;
@@ -785,8 +785,8 @@ void ForgeWindow::slot_quickColor () {
 		if (obj->color == -1)
 			continue; // uncolored object
 		
-		indices.push_back (obj->getIndex (g_curfile));
-		colors.push_back (obj->color);
+		indices << obj->getIndex (g_curfile);
+		colors << obj->color;
 		
 		obj->color = newColor;
 	}
@@ -949,8 +949,8 @@ DelHistory* ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	vector<LDObject*> cache;
 	
 	for (LDObject* obj : objs) {
-		indices.push_back (obj->getIndex (g_curfile));
-		cache.push_back (obj->clone ());
+		indices << obj->getIndex (g_curfile);
+		cache << obj->clone ();
 		
 		g_curfile->forgetObject (obj);
 		delete obj;
@@ -974,7 +974,7 @@ DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 		if (!obj->isColored () || obj->color != colnum)
 			continue;
 		
-		objs.push_back (obj);
+		objs << obj;
 	}
 	
 	return deleteObjVector (objs);

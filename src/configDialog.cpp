@@ -368,14 +368,14 @@ void ConfigDialog::initExtProgTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::updateQuickColorList (quickColorMetaEntry* sel) {
+void ConfigDialog::updateQuickColorList (quickColor* sel) {
 	for (QListWidgetItem* item : quickColorItems)
 		delete item;
 	
 	quickColorItems.clear ();
 	
 	// Init table items
-	for (quickColorMetaEntry& entry : quickColorMeta) {
+	for (quickColor& entry : quickColorMeta) {
 		QListWidgetItem* item = new QListWidgetItem;
 		
 		if (entry.bSeparator) {
@@ -394,7 +394,7 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* sel) {
 		}
 		
 		lw_quickColors->addItem (item);
-		quickColorItems.push_back (item);
+		quickColorItems << item;
 		
 		if (sel && &entry == sel) {
 			lw_quickColors->setCurrentItem (item);
@@ -407,7 +407,7 @@ void ConfigDialog::updateQuickColorList (quickColorMetaEntry* sel) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::slot_setColor () {
-	quickColorMetaEntry* entry = null;
+	quickColor* entry = null;
 	QListWidgetItem* item = null;
 	const bool isNew = static_cast<QPushButton*> (sender ()) == pb_addColor;
 	
@@ -432,7 +432,7 @@ void ConfigDialog::slot_setColor () {
 	if (entry)
 		entry->col = getColor (dValue);
 	else {
-		quickColorMetaEntry entry = {getColor (dValue), null, false};
+		quickColor entry = {getColor (dValue), null, false};
 		
 		item = getSelectedQuickColor ();
 		ulong idx;
@@ -463,29 +463,29 @@ void ConfigDialog::slot_delColor () {
 
 // =============================================================================
 void ConfigDialog::slot_moveColor () {
-	const bool bUp = (static_cast<QPushButton*> (sender()) == pb_moveColorUp);
+	const bool up = (static_cast<QPushButton*> (sender()) == pb_moveColorUp);
 	
 	if (lw_quickColors->selectedItems().size() == 0)
 		return;
 	
-	QListWidgetItem* qItem = lw_quickColors->selectedItems ()[0];
-	ulong ulIdx = getItemRow (qItem, quickColorItems);
+	QListWidgetItem* item = lw_quickColors->selectedItems ()[0];
+	ulong idx = getItemRow (item, quickColorItems);
 	
-	long lDest = bUp ? (ulIdx - 1) : (ulIdx + 1);
+	long dest = up ? (idx - 1) : (idx + 1);
 	
-	if (lDest < 0 || (ulong)lDest >= quickColorItems.size ())
+	if (dest < 0 || (ulong) dest >= quickColorItems.size ())
 		return; // destination out of bounds
 	
-	quickColorMetaEntry tmp = quickColorMeta[lDest];
-	quickColorMeta[lDest] = quickColorMeta[ulIdx];
-	quickColorMeta[ulIdx] = tmp;
+	quickColor tmp = quickColorMeta[dest];
+	quickColorMeta[dest] = quickColorMeta[idx];
+	quickColorMeta[idx] = tmp;
 	
-	updateQuickColorList (&quickColorMeta[lDest]);
+	updateQuickColorList (&quickColorMeta[dest]);
 }
 
 // =============================================================================
 void ConfigDialog::slot_addColorSeparator() {
-	quickColorMeta.push_back ({null, null, true});
+	quickColorMeta << quickColor ({null, null, true});
 	updateQuickColorList (&quickColorMeta[quickColorMeta.size () - 1]);
 }
 
@@ -655,7 +655,7 @@ void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
 str ConfigDialog::makeColorToolBarString () {
 	str val;
 	
-	for (quickColorMetaEntry entry : quickColorMeta) {
+	for (quickColor entry : quickColorMeta) {
 		if (~val > 0)
 			val += ':';
 		

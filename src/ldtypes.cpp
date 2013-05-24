@@ -174,8 +174,8 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 	tri1->color = tri2->color = color;
 	
 	vector<LDTriangle*> triangles;
-	triangles.push_back (tri1);
-	triangles.push_back (tri2);
+	triangles << tri1;
+	triangles << tri2;
 	return triangles;
 }
 
@@ -262,7 +262,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 	// If we have this cached, just clone that
 	if (deep && fileInfo->cache ().size ()) {
 		for (LDObject* obj : fileInfo->cache ())
-			objs.push_back (obj->clone ());
+			objs << obj->clone ();
 	} else {
 		if (!deep)
 			cache = false;
@@ -298,15 +298,15 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 				for (LDObject* otherobj : otherobjs) {
 					// Cache this object, if desired
 					if (cache)
-						objcache.push_back (otherobj->clone ());
+						objcache << otherobj->clone ();
 					
-					objs.push_back (otherobj);
+					objs << otherobj;
 				}
 			} else {
 				if (cache)
-					objcache.push_back (obj->clone ());
+					objcache << obj->clone ();
 				
-				objs.push_back (obj->clone ());
+				objs << obj->clone ();
 			}
 		}
 		
@@ -363,8 +363,8 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool bUp) {
 			return;
 		}
 		
-		objsToCompile.push_back (obj);
-		objsToCompile.push_back (g_curfile->obj (target));
+		objsToCompile << obj;
+		objsToCompile << g_curfile->obj (target);
 		
 		obj->swap (g_curfile->obj (target));
 	}
@@ -538,7 +538,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				pLine->color = edgecolor;
 				pLine->parent = this;
 				
-				paObjects.push_back (pLine);
+				paObjects << pLine;
 			}
 			break;
 		
@@ -596,7 +596,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				pQuad->color = color;
 				pQuad->parent = this;
 				
-				paObjects.push_back (pQuad);
+				paObjects << pQuad;
 			}
 			break;
 		
@@ -629,7 +629,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				pSeg->color = color;
 				pSeg->parent = this;
 				
-				paObjects.push_back (pSeg);
+				paObjects << pSeg;
 			}
 			break;
 		

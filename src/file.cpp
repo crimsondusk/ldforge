@@ -216,7 +216,7 @@ void FileLoader::work () {
 				(*m_warningsPointer)++;
 		}
 		
-		m_objs.push_back (obj);
+		m_objs << obj;
 		m_progress++;
 		emit progressUpdate (m_progress);
 		
@@ -334,7 +334,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 		load->addObject (obj);
 	
 	fclose (fp);
-	g_loadedFiles.push_back (load);
+	g_loadedFiles << load;
 	
 	logf ("File %s parsed successfully (%lu warning%s).\n",
 		path.chars(), numWarnings, plural (numWarnings));
@@ -419,7 +419,7 @@ void newFile () {
 	LDOpenFile* f = new LDOpenFile;
 	f->setName ("");
 	f->setImplicit (false);
-	g_loadedFiles.push_back (f);
+	g_loadedFiles << f;
 	g_curfile = f;
 	
 	History::clear ();
@@ -791,7 +791,7 @@ void reloadAllSubfiles () {
 			delete file;
 	
 	g_loadedFiles.clear ();
-	g_loadedFiles.push_back (g_curfile);
+	g_loadedFiles << g_curfile;
 	
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : g_curfile->objs ()) {
@@ -819,7 +819,7 @@ void reloadAllSubfiles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong LDOpenFile::addObject (LDObject* obj) {
-	m_objs.push_back (obj);
+	m_objs << obj;
 	
 	if (this == g_curfile)
 		g_BBox.calcObject (obj);
@@ -909,7 +909,7 @@ void initPartList () {
 		partListEntry entry;
 		strcpy (entry.sName, sName);
 		strcpy (entry.sTitle, sTitle);
-		g_PartList.push_back (entry);
+		g_PartList << entry;
 	}
 }
 

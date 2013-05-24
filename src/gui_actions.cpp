@@ -208,7 +208,7 @@ MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL
 	g_win->sel ().clear ();
 	
 	for (LDObject* obj : g_curfile->objs ())
-		g_win->sel ().push_back (obj);
+		g_win->sel () << obj;
 	
 	g_win->updateSelection ();
 }
@@ -225,7 +225,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	g_win->sel ().clear ();
 	for (LDObject* obj : g_curfile->objs ())
 		if (obj->color == dColor)
-			g_win->sel ().push_back (obj);
+			g_win->sel () << obj;
 	
 	g_win->updateSelection ();
 }
@@ -262,7 +262,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileName != refName)
 			continue;
 		
-		g_win->sel ().push_back (obj);
+		g_win->sel () << obj;
 	}
 	
 	g_win->updateSelection ();
@@ -317,10 +317,10 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 	g_win->sel ().clear ();
 	
 	for (LDObject* obj : objs) {
-		historyCopies.push_back (obj->clone ());
-		historyIndices.push_back (idx);
+		historyCopies << obj->clone ();
+		historyIndices << idx;
 		g_curfile->insertObj (idx, obj);
-		g_win->sel ().push_back (obj);
+		g_win->sel () << obj;
 		
 		idx++;
 	}
@@ -361,9 +361,9 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 		LDObject* obj = parseLine (line);
 		
 		g_curfile->insertObj (idx, obj);
-		historyIndices.push_back (idx);
-		historyCopies.push_back (obj->clone ());
-		g_win->sel ().push_back (obj);
+		historyIndices << idx;
+		historyCopies << obj->clone ();
+		g_win->sel () << obj;
 		idx++;
 	}
 	
