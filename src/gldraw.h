@@ -88,6 +88,8 @@ public:
 	void           setCamera           (const Camera cam);
 	void           setDepthValue       (double depth);
 	void           setupOverlay        ();
+	void           zoomNotch           (bool inward);
+	void           zoomToFit           ();
 	
 	static void    deleteLists         (LDObject* obj);
 

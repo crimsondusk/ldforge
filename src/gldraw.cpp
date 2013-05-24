@@ -92,7 +92,6 @@ const struct GLAxis {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
-	resetAngles ();
 	m_picking = m_rangepick = false;
 	m_camera = (GL::Camera) gl_camera.value;
 	m_drawToolTip = false;
@@ -100,6 +99,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_rectdraw = false;
 	setFile (null);
 	setDrawOnly (false);
+	resetAngles ();
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -170,12 +170,7 @@ void GLRenderer::resetAngles () {
 	m_rotX = 30.0f;
 	m_rotY = 325.f;
 	m_panX = m_panY = m_rotZ = 0.0f;
-	
-	// Set the default zoom based on the bounding box
-	if (g_BBox.empty () == false)
-		setZoom (g_BBox.size () * 6);
-	else
-		setZoom (30.0f);
+	zoomToFit ();
 }
 
 // =============================================================================
@@ -360,6 +355,7 @@ void GLRenderer::drawGLScene () {
 		glLoadIdentity ();
 		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
 		glTranslatef (m_panX, m_panY, 0.0f);
+		
 		glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
 			g_staticCameras[m_camera].glrotate[1],
 			g_staticCameras[m_camera].glrotate[2]);
@@ -976,11 +972,7 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
 	makeCurrent ();
 	
-	if (zoom () > 15)
-		setZoom (zoom () * (ev->delta () < 0 ? 1.2f : 0.833f));
-	else
-		setZoom (zoom () + ((double) ev->delta () / -100.0f));
-	
+	zoomNotch (ev->delta () > 0);
 	setZoom (clamp<double> (zoom (), 0.01f, 10000.0f));
 	
 	update ();
@@ -1401,4 +1393,88 @@ overlayMeta& GLRenderer::getOverlay (int newcam) {
 void deleteCameraIcons () {
 	for (CameraIcon& info : g_CameraIcons)
 		delete info.img;
+}
+
+void GLRenderer::zoomNotch (bool inward) {
+	if (zoom () > 15)
+		setZoom (zoom () * (inward ? 0.833f : 1.2f));
+	else
+		setZoom (zoom () + (inward ? -1.2f : 1.2f));
+}
+
+void GLRenderer::zoomToFit () {
+	if (file () == null) {
+		setZoom (30.0f);
+		return;
+	}
+	
+	bool lastfilled = false;
+	bool firstrun = true;
+	const uint32 white = 0xFFFFFFFF;
+	bool inward = true;
+	ulong run = 0;
+	const ushort w = m_width, h = m_height;
+	
+	glClearColor (1.0, 1.0, 1.0, 1.0);
+	glDisable (GL_DITHER);
+	
+	// Use the pick list while drawing the scene, this way we can tell whether borders
+	// are background or not.
+	m_picking = true;
+	
+	for (;;) {
+		if (zoom () > 10000.0f || zoom () < 0.0f) {
+			// Obviously, there's nothing to draw if we get here.
+			// Default to 30.0f and break out.
+			setZoom (30.0f);
+			break;
+		}
+		
+		zoomNotch (inward);
+		
+		uchar* cap = new uchar[4 * w * h];
+		drawGLScene ();
+		glReadPixels (0, 0, w, h, GL_RGBA, GL_UNSIGNED_BYTE, cap);
+		uint32* imgdata = reinterpret_cast<uint32*> (cap);
+		bool filled = false;
+		
+		// Check the top and bottom rows
+		for (ushort i = 0; i < w && !filled; ++i)
+			if (imgdata[i] != white || imgdata[((h - 1) * w) + i] != white)
+				filled = true;
+		
+		// Left and right edges
+		for (ushort i = 0; i < h && !filled; ++i)
+			if (imgdata[i * w] != white || imgdata[(i * w) + (w - 1)] != white)
+				filled = true;
+		
+		if (firstrun) {
+			// If this is the first run, we don't know enough to determine
+			// whether the zoom was to fit, so we mark in our knowledge so
+			// far and start over.
+			inward = !filled;
+			firstrun = false;
+		} else {
+			// If this run filled the screen and the last one did not, the
+			// last run had ideal zoom - zoom a bit back and we should reach it.
+			if (filled && !lastfilled) {
+				zoomNotch (false);
+				break;
+			}
+			
+			// If this run did not fill the screen and the last one did, we've
+			// now reached ideal zoom so we're done here.
+			if (!filled && lastfilled)
+				break;
+			
+			inward = !filled;
+		}
+		
+		delete[] cap;
+		lastfilled = filled;
+		++run;
+	}
+	
+	setBackground ();
+	m_picking = false;
 }

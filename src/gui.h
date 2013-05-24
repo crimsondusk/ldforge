@@ -180,6 +180,7 @@ QIcon makeColorIcon (color* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 QDialogButtonBox* makeButtonBox (QDialog& dlg);
 CheckBoxGroup* makeAxesBox ();
+QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

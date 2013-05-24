@@ -379,10 +379,8 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	setlocale (LC_ALL, "C");
 	
 	ushort w, h;
-	uchar* imagedata = g_win->R ()->screencap (w, h);
-	
-	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
-	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
+	uchar* imgdata = g_win->R ()->screencap (w, h);
+	QImage img = imageFromScreencap (imgdata, w, h);
 	
 	str root = basename (g_curfile->name ());
 	if (~root >= 4 && root.substr (~root - 4, -1) == ".dat")
@@ -395,7 +393,7 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	if (~fname > 0 && !img.save (fname))
 		critical (fmt ("Couldn't open %s for writing to save screencap: %s", fname.c (), strerror (errno)));
 	
-	delete[] imagedata;
+	delete[] imgdata;
 }
 
 // =========================================================================================================================================
@@ -470,9 +468,10 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	rend->compileAllObjects ();
 	rend->initGLData ();
 	rend->drawGLScene ();
-	uchar* imagedata = rend->screencap (w, h);
 	
-	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
+	uchar* imgdata = rend->screencap (w, h);
+	QImage img = imageFromScreencap (imgdata, w, h);
+	
 	if (img.isNull ()) {
 		critical ("Failed to create the image!\n");
 	} else {
@@ -484,6 +483,6 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 		dlg->exec ();
 	}
 	
-	delete[] imagedata;
+	delete[] imgdata;
 	rend->deleteLater ();
 }
