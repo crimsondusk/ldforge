@@ -23,7 +23,7 @@
 #include "ldtypes.h"
 #include <QObject>
 
-class OpenFileDialog;
+class OpenProgressDialog;
 namespace LDPaths {
 	void initPaths ();
 	bool tryConfigure (str path);

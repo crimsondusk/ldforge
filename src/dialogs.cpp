@@ -480,7 +480,7 @@ void RotationPointDialog::radioBoxChanged () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenFileDialog::OpenFileDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	progressBar = new QProgressBar;
 	progressText = new QLabel;
 	setNumLines (0);
@@ -496,17 +496,17 @@ OpenFileDialog::OpenFileDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (p
 	layout->addWidget (dbb_buttons);
 }
 
-void OpenFileDialog::callback_setNumLines () {
+void OpenProgressDialog::callback_setNumLines () {
 	progressBar->setRange (0, numLines ());
 	updateValues ();
 }
 
-void OpenFileDialog::updateValues () {
+void OpenProgressDialog::updateValues () {
 	progressBar->setValue (progress ());
-	progressText->setText (fmt ("%s: %lu/%lu lines parsed", fileName ().c (), progress (), numLines ()));
+	progressText->setText (fmt ("%lu/%lu lines parsed", progress (), numLines ()));
 }
 
-void OpenFileDialog::updateProgress (int progress) {
+void OpenProgressDialog::updateProgress (int progress) {
 	m_progress = progress;
 	updateValues ();
 }

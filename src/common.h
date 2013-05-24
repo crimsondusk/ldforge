@@ -29,6 +29,9 @@
 #include <vector>
 #include <stdint.h>
 #include <stdarg.h>
+#include <QString>
+#include <QMutex>
+
 #include "string.h"
 #include "config.h"
 #include "types.h"
@@ -106,22 +109,15 @@ public: \
 #define THREAD_PROPERTY(T, GET, SET) \
 private: \
 	T m_##GET; \
-	bool m_threadLock_##GET; \
+	QMutex m_threadLock_##GET; \
 public: \
-	const T& GET () const { \
-		while (m_threadLock_##GET) \
-			; \
-		return m_##GET; \
-	} \
+	const T& GET () const { return m_##GET; } \
 	void callback_##SET (); \
 	void SET (T val) { \
-		while (m_threadLock_##GET) \
-			; \
-		 \
-		m_threadLock_##GET = true; \
+		m_threadLock_##GET.lock (); \
 		m_##GET = val; \
 		callback_##SET (); \
-		m_threadLock_##GET = false; \
+		m_threadLock_##GET.unlock (); \
 	}
 
 #ifdef null

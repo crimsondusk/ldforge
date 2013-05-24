@@ -270,8 +270,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok)
 		loaderThread->start ();
 		
 		// Now create a progress dialog for the operation
-		OpenFileDialog* dlg = new OpenFileDialog (g_win);
-		dlg->setFileName ("???");
+		OpenProgressDialog* dlg = new OpenProgressDialog (g_win);
 		dlg->setNumLines (numLines);
 		
 		// Connect the loader in so we can actually show updates

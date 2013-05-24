@@ -156,14 +156,13 @@ private slots:
 };
 
 // =============================================================================
-class OpenFileDialog : public QDialog {
+class OpenProgressDialog : public QDialog {
 	Q_OBJECT
 	READ_PROPERTY (ulong, progress)
 	CALLBACK_PROPERTY (ulong, numLines, setNumLines)
-	PROPERTY (str, fileName, setFileName)
 	
 public:
-	explicit OpenFileDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	
 public slots:
 	void updateProgress (int progress);
