@@ -198,7 +198,7 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		LDRadial* rad = static_cast<LDRadial*> (obj);
 		str name = rad->makeFileName ();
 		
-		LDOpenFile* file = loadFile (name);
+		LDOpenFile* file = getFile (name);
 		if (file == null) {
 			fails << name;
 			continue;

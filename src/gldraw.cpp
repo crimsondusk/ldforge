@@ -129,9 +129,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 
 // =============================================================================
 GLRenderer::~GLRenderer () {
-	for (CameraIcon& info : g_CameraIcons)
-		delete info.img;
-	
 	for (int i = 0; i < 6; ++i)
 		delete m_overlays[i].img;
 }
@@ -1399,4 +1396,9 @@ const char* GLRenderer::cameraName () const {
 
 overlayMeta& GLRenderer::getOverlay (int newcam) {
 	 return m_overlays[newcam];
+}
+
+void deleteCameraIcons () {
+	for (CameraIcon& info : g_CameraIcons)
+		delete info.img;
 }

@@ -452,15 +452,38 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 }
 
 MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
-	LDOpenFile* file = loadFile ("axle.dat");
+	LDOpenFile* file = getFile ("axle.dat");
+	setlocale (LC_ALL, "C");
 	
 	if (!file) {
 		critical ("couldn't load axle.dat");
 		return;
 	}
 	
+	ushort w, h;
+	
 	GLRenderer* rend = new GLRenderer;
+	rend->setAttribute (Qt::WA_DontShowOnScreen);
+	rend->show ();
 	rend->setFile (file);
 	rend->setDrawOnly (true);
-	rend->show ();
+	rend->compileAllObjects ();
+	rend->initGLData ();
+	rend->drawGLScene ();
+	uchar* imagedata = rend->screencap (w, h);
+	
+	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
+	if (img.isNull ()) {
+		critical ("Failed to create the image!\n");
+	} else {
+		QLabel* label = new QLabel;
+		QDialog* dlg = new QDialog;
+		label->setPixmap (QPixmap::fromImage (img));
+		QVBoxLayout* layout = new QVBoxLayout (dlg);
+		layout->addWidget (label);
+		dlg->exec ();
+	}
+	
+	delete[] imagedata;
+	rend->deleteLater ();
 }

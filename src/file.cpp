@@ -687,7 +687,7 @@ LDObject* parseLine (str line) {
 			// not loading the main file now, but the subfile
 			bool oldLoadingMainFile = g_loadingMainFile;
 			g_loadingMainFile = false;
-			LDOpenFile* load = loadFile (tokens[14]);
+			LDOpenFile* load = getFile (tokens[14]);
 			g_loadingMainFile = oldLoadingMainFile;
 			
 			// If we cannot open the file, mark it an error
@@ -772,8 +772,8 @@ LDObject* parseLine (str line) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* loadFile (str fname) {
-	// Try find the subfile in the list of loaded files
+LDOpenFile* getFile (str fname) {
+	// Try find the file in the list of loaded files
 	LDOpenFile* load = findLoadedFile (fname);
 	
 	// If it's not loaded, try open it
@@ -803,7 +803,7 @@ void reloadAllSubfiles () {
 		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->fileInfo is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDOpenFile* fileInfo = loadFile (ref->fileName);
+			LDOpenFile* fileInfo = getFile (ref->fileName);
 			
 			if (fileInfo)
 				ref->fileInfo = fileInfo;

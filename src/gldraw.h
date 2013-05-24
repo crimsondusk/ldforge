@@ -75,10 +75,12 @@ public:
 	void           compileObject       (LDObject* obj);
 	void           compileAllObjects   ();
 	double         depthValue          () const;
+	void           drawGLScene         ();
 	void           endDraw             (bool accept);
 	QColor         getMainColor        ();
 	overlayMeta&   getOverlay          (int newcam);
 	void           hardRefresh         ();
+	void           initGLData          ();
 	void           refresh             ();
 	void           resetAngles         ();
 	uchar*         screencap           (ushort& w, ushort& h);
@@ -128,13 +130,11 @@ private:
 	void           compileVertex       (const vertex& vrt);                     // Compile a single vertex to a list
 	vertex         coordconv2_3        (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2        (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	void           drawGLScene         ();                                // Paint the GL scene
 	void           pick                (uint mouseX, uint mouseY);              // Perform object selection
 	void           setObjectColor      (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
 	void	slot_toolTipTimer	();
-	void initGLData();
 };
 
 // Alias for short namespaces
@@ -147,6 +147,7 @@ static const GLRenderer::ListType g_glListTypes[] = {
 	GL::BFCBackList,
 };
 
+void deleteCameraIcons ();
 extern const GL::Camera g_Cameras[7];
 extern const char* g_CameraNames[7];
 

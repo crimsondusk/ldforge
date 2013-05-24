@@ -96,7 +96,8 @@ ForgeWindow::ForgeWindow () {
 
 // =============================================================================
 void ForgeWindow::slot_lastSecondCleanup () {
-	m_renderer->setParent (null);
+	deleteCameraIcons ();
+	
 	delete m_renderer;
 }
 
