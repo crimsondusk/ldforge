@@ -253,9 +253,6 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 	btn_findPath = new QPushButton;
 	btn_findPath->setIcon (getIcon ("folder"));
 	
-	btn_tryConfigure = new QPushButton ("Configure");
-	btn_tryConfigure->setIcon (getIcon ("settings"));
-	
 	btn_cancel = new QPushButton;
 	
 	if (validDefault == false) {
@@ -267,7 +264,6 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 	}
 	
 	dbb_buttons = new QDialogButtonBox (QDialogButtonBox::Ok);
-	dbb_buttons->addButton (btn_tryConfigure, QDialogButtonBox::ActionRole);
 	dbb_buttons->addButton (btn_cancel, QDialogButtonBox::RejectRole);
 	okButton ()->setEnabled (false);
 	
@@ -288,7 +284,6 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 	
 	connect (le_path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure ()));
 	connect (btn_findPath, SIGNAL (clicked ()), this, SLOT (slot_findPath ()));
-	connect (btn_tryConfigure, SIGNAL (clicked ()), this, SLOT (slot_tryConfigure ()));
 	connect (dbb_buttons, SIGNAL (accepted ()), this, SLOT (accept ()));
 	connect (dbb_buttons, SIGNAL (rejected ()), this, (validDefault) ? SLOT (reject ()) : SLOT (slot_exit ()));
 	

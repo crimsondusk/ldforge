@@ -108,7 +108,7 @@ private:
 	
 	QLabel* lb_resolution;
 	QLineEdit* le_path;
-	QPushButton* btn_findPath, *btn_tryConfigure, *btn_cancel;
+	QPushButton* btn_findPath, *btn_cancel;
 	QDialogButtonBox* dbb_buttons;
 	const bool m_validDefault;
 	
