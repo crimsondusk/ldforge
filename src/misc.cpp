@@ -137,43 +137,40 @@ str ftoa (double num) {
 	// turn into anything weird (like commas)
 	setlocale (LC_NUMERIC, "C");
 	
-	str zRep = fmt ("%f", num);
+	str rep = fmt ("%f", num);
 	
 	// Remove trailing zeroes
-	while (zRep[~zRep - 1] == '0')
-		zRep -= 1;
+	while (rep[~rep - 1] == '0')
+		rep -= 1;
 	
 	// If there was only zeroes in the decimal place, remove
 	// the decimal point now.
-	if (zRep[~zRep - 1] == '.')
-		zRep -= 1;
+	if (rep[~rep - 1] == '.')
+		rep -= 1;
 	
-	return zRep;
+	return rep;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool isNumber (str& tok) {
-	char* cpPointer = &tok[0];
-	bool bGotDot = false;
+bool isNumber (const str& tok) {
+	char* ptr = &tok[0];
+	bool gotDot = false;
 	
-	// Allow leading hyphen for negatives
-	if (*cpPointer == '-')
-		cpPointer++;
-	
-	while (*cpPointer != '\0') {
-		if (*cpPointer == '.' && !bGotDot) {
-			// Decimal point
-			bGotDot = true;
-			cpPointer++;
+	for (const char& c : tok) {
+		// Allow leading hyphen for negatives
+		if (&c == &tok[0] && c == '-')
+			continue;
+		
+		// Check for decimal point
+		if (!gotDot && c == '.') {
+			gotDot = true;
 			continue;
 		}
 		
-		if (*cpPointer >= '0' && *cpPointer <= '9') {
-			cpPointer++;
+		if (c >= '0' && c <= '9')
 			continue; // Digit
-		}
 		
 		// If the above cases didn't catch this character, it was
 		// illegal and this is therefore not a number.

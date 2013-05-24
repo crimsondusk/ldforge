@@ -31,7 +31,7 @@ class QAction;
 extern const ushort g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
-bool isNumber (str& tok);
+bool isNumber (const str& tok);
 
 // Converts a float value to a string value.
 str ftoa (double num);
