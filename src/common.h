@@ -93,10 +93,24 @@ private: \
 public: \
 	T const& GET () const { return m_##GET; } \
 
+// Same as above except not const
+#define MUTABLE_READ_PROPERTY(T, GET) \
+private: \
+	T m_##GET; \
+public: \
+	T& GET () { return m_##GET; } \
+
 // Read/write private property with get and set accessors
+#define SET_ACCESSOR(T, GET, SET) \
+	void SET (T val) { m_##GET = val; }
+
 #define PROPERTY(T, GET, SET) \
 	READ_PROPERTY(T, GET) \
-	void SET (T val) { m_##GET = val; }
+	SET_ACCESSOR(T, GET, SET)
+
+#define MUTABLE_PROPERTY(T, GET, SET) \
+	MUTABLE_READ_PROPERTY(T, GET) \
+	SET_ACCESSOR(T, GET, SET)
 
 // Property that triggers a callback when it is changed
 #define CALLBACK_PROPERTY(T, GET, SET) \

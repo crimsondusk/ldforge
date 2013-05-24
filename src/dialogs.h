@@ -100,7 +100,7 @@ class LDrawPathDialog : public QDialog {
 	
 public:
 	explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
-	str path () const;
+	str filename () const;
 	void setPath (str path);
 	
 private:

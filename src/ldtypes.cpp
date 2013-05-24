@@ -184,7 +184,7 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace the instance of the old object with the new object
-	for (LDObject*& obj : g_curfile->m_objs) {
+	for (LDObject*& obj : g_curfile->objs ()) {
 		if (obj == this) {
 			obj = replacement;
 			break;
@@ -199,7 +199,7 @@ void LDObject::replace (LDObject* replacement) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : g_curfile->m_objs) {
+	for (LDObject*& obj : g_curfile->objs ()) {
 		if (obj == this)
 			obj = other;
 		else if (obj == other)
@@ -256,18 +256,18 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
-	vector<LDObject*> objs, cache;
+vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
+	vector<LDObject*> objs, objcache;
 	
 	// If we have this cached, just clone that
-	if (bDeepInline && fileInfo->m_objCache.size ()) {
-		for (LDObject* obj : fileInfo->m_objCache)
+	if (deep && fileInfo->cache ().size ()) {
+		for (LDObject* obj : fileInfo->cache ())
 			objs.push_back (obj->clone ());
 	} else {
-		if (!bDeepInline)
-			bCache = false;
+		if (!deep)
+			cache = false;
 		
-		for (LDObject* obj : fileInfo->m_objs) {
+		for (LDObject* obj : fileInfo->objs ()) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
 			case LDObject::Comment:
@@ -290,28 +290,28 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 			// Got another sub-file reference, inline it if we're deep-inlining. If not,
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
-			if (bDeepInline && obj->getType() == LDObject::Subfile) {
+			if (deep && obj->getType() == LDObject::Subfile) {
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
 				for (LDObject* otherobj : otherobjs) {
 					// Cache this object, if desired
-					if (bCache)
-						cache.push_back (otherobj->clone ());
+					if (cache)
+						objcache.push_back (otherobj->clone ());
 					
 					objs.push_back (otherobj);
 				}
 			} else {
-				if (bCache)
-					cache.push_back (obj->clone ());
+				if (cache)
+					objcache.push_back (obj->clone ());
 				
 				objs.push_back (obj->clone ());
 			}
 		}
 		
-		if (bCache)
-			fileInfo->m_objCache = cache;
+		if (cache)
+			fileInfo->setCache (objcache);
 	}
 	
 	// Transform the objects
@@ -328,9 +328,9 @@ vector<LDObject*> LDSubfile::inlineContents (bool bDeepInline, bool bCache) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-long LDObject::getIndex (LDOpenFile* pFile) const {
-	for (ulong i = 0; i < pFile->m_objs.size(); ++i)
-		if (pFile->m_objs[i] == this)
+long LDObject::getIndex (LDOpenFile* file) const {
+	for (ulong i = 0; i < file->numObjs (); ++i)
+		if (file->obj (i) == this)
 			return i;
 	
 	return -1;
@@ -354,7 +354,7 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 			target = idx + (bUp ? -1 : 1);
 		
 		if ((bUp == true and idx == 0) or
-			(bUp == false and idx == (long)(g_curfile->m_objs.size() - 1)))
+			(bUp == false and idx == (long)(g_curfile->objs ().size() - 1)))
 		{
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
@@ -364,9 +364,9 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 		}
 		
 		objsToCompile.push_back (obj);
-		objsToCompile.push_back (g_curfile->m_objs[target]);
+		objsToCompile.push_back (g_curfile->obj (target));
 		
-		obj->swap (g_curfile->m_objs[target]);
+		obj->swap (g_curfile->obj (target));
 	}
 	
 	// The objects need to be recompiled, otherwise their pick lists are left with
@@ -430,10 +430,10 @@ LDObject* LDObject::next () const {
 	long idx = getIndex (g_curfile);
 	assert (idx != -1);
 	
-	if (idx == (long) g_curfile->m_objs.size () - 1)
+	if (idx == (long) g_curfile->numObjs () - 1)
 		return null;
 	
-	return g_curfile->m_objs[idx + 1];
+	return g_curfile->obj (idx + 1);
 }
 
 // =============================================================================
@@ -444,7 +444,7 @@ LDObject* LDObject::prev () const {
 	if (idx == 0)
 		return null;
 	
-	return g_curfile->m_objs[idx - 1];
+	return g_curfile->obj (idx - 1);
 }
 
 // =============================================================================

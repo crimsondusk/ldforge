@@ -37,7 +37,7 @@ void bbox::calculate () {
 	if (!g_curfile)
 		return;
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		calcObject (obj);
 }
 

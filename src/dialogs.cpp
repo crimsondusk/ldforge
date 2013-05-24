@@ -308,7 +308,7 @@ void LDrawPathDialog::setPath (str path) {
 }
 
 // ========================================================================================================================================
-str LDrawPathDialog::path () const {
+str LDrawPathDialog::filename () const {
 	return le_path->text ();
 }
 
@@ -316,7 +316,7 @@ str LDrawPathDialog::path () const {
 void LDrawPathDialog::slot_findPath () {
 	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 	
-	if (~newpath > 0 && newpath != path ()) {
+	if (~newpath > 0 && newpath != filename ()) {
 		setPath (newpath);
 		slot_tryConfigure ();
 	}
@@ -330,7 +330,7 @@ void LDrawPathDialog::slot_exit () {
 
 // ========================================================================================================================================
 void LDrawPathDialog::slot_tryConfigure () {
-	if (LDPaths::tryConfigure (path ()) == false) {
+	if (LDPaths::tryConfigure (filename ()) == false) {
 		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%s</span>", LDPaths::getError().chars ()));
 		okButton ()->setEnabled (false);
 		return;
@@ -395,7 +395,7 @@ void NewPartDialog::StaticDialog () {
 	
 	short idx;
 	str author = dlg.le_author->text ();
-	vector<LDObject*>& objs = g_curfile->m_objs;
+	vector<LDObject*>& objs = g_curfile->objs ();
 	
 	idx = dlg.rb_BFC->value ();
 	const LDBFC::Type BFCType =
@@ -482,7 +482,7 @@ void RotationPointDialog::radioBoxChanged () {
 // =============================================================================
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	progressBar = new QProgressBar;
-	progressText = new QLabel;
+	progressText = new QLabel ("Parsing...");
 	setNumLines (0);
 	m_progress = 0;
 	
@@ -503,7 +503,6 @@ void OpenProgressDialog::callback_setNumLines () {
 
 void OpenProgressDialog::updateValues () {
 	progressBar->setValue (progress ());
-	progressText->setText (fmt ("%lu/%lu lines parsed", progress (), numLines ()));
 }
 
 void OpenProgressDialog::updateProgress (int progress) {

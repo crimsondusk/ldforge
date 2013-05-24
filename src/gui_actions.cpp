@@ -66,11 +66,11 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void doSave (bool saveAs) {
-	str path = g_curfile->m_filename;
+	str path = g_curfile->name ();
 	
 	if (~path == 0 || saveAs) {
 		path = QFileDialog::getSaveFileName (g_win, "Save As",
-			g_curfile->m_filename, "LDraw files (*.dat *.ldr)");
+			g_curfile->name (), "LDraw files (*.dat *.ldr)");
 		
 		if (~path == 0) {
 			// User didn't give a file name. This happens if the user cancelled
@@ -80,7 +80,7 @@ void doSave (bool saveAs) {
 	}
 	
 	if (g_curfile->save (path)) {
-		g_curfile->m_filename = path;
+		g_curfile->setName (path);
 		g_win->updateTitle ();
 		
 		logf ("Saved successfully to %s\n", path.chars ());
@@ -89,7 +89,7 @@ void doSave (bool saveAs) {
 		
 		// Tell the user the save failed, and give the option for saving as with it.
 		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
-			fmt ("Failed to save to %s\nReason: %s", path.chars(), strerror (g_curfile->lastError)),
+			fmt ("Failed to save to %s\nReason: %s", path.chars(), strerror (errno)),
 			QMessageBox::Close, g_win);
 		
 		QPushButton* saveAsBtn = new QPushButton ("Save As");
@@ -207,7 +207,7 @@ MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", (0)) {
 MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
 	g_win->sel ().clear ();
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		g_win->sel ().push_back (obj);
 	
 	g_win->updateSelection ();
@@ -223,7 +223,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 		return; // no consensus on color
 	
 	g_win->sel ().clear ();
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		if (obj->color == dColor)
 			g_win->sel ().push_back (obj);
 	
@@ -237,29 +237,29 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	if (g_win->sel ().size () == 0)
 		return;
 	
-	LDObject::Type eType = g_win->uniformSelectedType ();
+	LDObject::Type type = g_win->uniformSelectedType ();
 	
-	if (eType == LDObject::Unidentified)
+	if (type == LDObject::Unidentified)
 		return;
 	
 	// If we're selecting subfile references, the reference filename must also
 	// be uniform.
-	str zRefName;
+	str refName;
 	
-	if (eType == LDObject::Subfile) {
-		zRefName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileName;
+	if (type == LDObject::Subfile) {
+		refName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileName;
 		
 		for (LDObject* pObj : g_win->sel ())
-			if (static_cast<LDSubfile*> (pObj)->fileName != zRefName)
+			if (static_cast<LDSubfile*> (pObj)->fileName != refName)
 				return;
 	}
 	
 	g_win->sel ().clear ();
-	for (LDObject* obj : g_curfile->m_objs) {
-		if (obj->getType() != eType)
+	for (LDObject* obj : g_curfile->objs ()) {
+		if (obj->getType() != type)
 			continue;
 		
-		if (eType == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileName != zRefName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileName != refName)
 			continue;
 		
 		g_win->sel ().push_back (obj);
@@ -384,7 +384,7 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	QImage img = QImage (imagedata, w, h, QImage::Format_ARGB32).rgbSwapped ().mirrored ();
 	
-	str root = basename (g_curfile->m_filename);
+	str root = basename (g_curfile->name ());
 	if (~root >= 4 && root.substr (~root - 4, -1) == ".dat")
 		root -= 4;
 	

@@ -387,7 +387,7 @@ void GLRenderer::drawGLScene () const {
 	if (gl_colorbfc && !m_picking) {
 		glEnable (GL_CULL_FACE);
 		
-		for (LDObject* obj : g_curfile->m_objs) {
+		for (LDObject* obj : g_curfile->objs ()) {
 			if (obj->hidden ())
 				continue;
 			
@@ -400,7 +400,7 @@ void GLRenderer::drawGLScene () const {
 		
 		glDisable (GL_CULL_FACE);
 	} else {
-		for (LDObject* obj : g_curfile->m_objs) {
+		for (LDObject* obj : g_curfile->objs ()) {
 			if (obj->hidden ())
 				continue;
 			
@@ -668,7 +668,7 @@ void GLRenderer::compileAllObjects () {
 		return;
 	}
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		compileObject (obj);
 	
 	// Compile axes
@@ -1083,7 +1083,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = g_curfile->object (idx);
+		LDObject* obj = g_curfile->obj (idx);
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.

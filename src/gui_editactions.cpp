@@ -265,7 +265,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		g_curfile->m_objs[lIndex] = triangles[0];
+		g_curfile->setObject (lIndex, triangles[0]);
 		g_curfile->insertObj (lIndex + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
@@ -787,7 +787,7 @@ MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional l
 
 // =========================================================================================================================================
 static bool isColorUsed (short colnum) {
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		if (obj->isColored () && obj->color == colnum)
 			return true;
 	

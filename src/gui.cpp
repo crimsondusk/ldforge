@@ -500,20 +500,20 @@ void ForgeWindow::updateTitle () {
 	
 	// Append our current file if we have one
 	if (g_curfile) {
-		if (g_curfile->m_filename.len () > 0)
-			title += fmt (": %s", basename (g_curfile->m_filename).chars ());
+		if (g_curfile->name ().len () > 0)
+			title += fmt (": %s", basename (g_curfile->name ()).c ());
 		else
 			title += fmt (": <anonymous>");
 		
-		if (g_curfile->m_objs.size() > 0 &&
-			g_curfile->m_objs[0]->getType() == LDObject::Comment)
+		if (g_curfile->numObjs () > 0 &&
+			g_curfile->obj (0)->getType () == LDObject::Comment)
 		{
 			// Append title
-			LDComment* comm = static_cast<LDComment*> (g_curfile->m_objs[0]);
+			LDComment* comm = static_cast<LDComment*> (g_curfile->obj (0));
 			title += fmt (": %s", comm->text.chars());
 		}
 		
-		if (History::pos () != g_curfile->savePos)
+		if (History::pos () != g_curfile->savePos ())
 			title += '*';
 	}
 	
@@ -589,7 +589,7 @@ void ForgeWindow::buildObjList () {
 	
 	m_objList->clear ();
 	
-	for (LDObject* obj : g_curfile->m_objs) {
+	for (LDObject* obj : g_curfile->objs ()) {
 		str descr;
 		
 		switch (obj->getType ()) {
@@ -732,7 +732,7 @@ void ForgeWindow::slot_selectionChanged () {
 	m_sel.clear ();	
 	const QList<QListWidgetItem*> items = m_objList->selectedItems ();
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 	for (QListWidgetItem* item : items) {
 		if (item == obj->qObjListEntry) {
 			m_sel.push_back (obj);
@@ -805,7 +805,7 @@ ulong ForgeWindow::getInsertionPoint () {
 	}
 	
 	// Otherwise place the object at the end.
-	return g_curfile->m_objs.size();
+	return g_curfile->numObjs ();
 }
 
 // =============================================================================
@@ -827,7 +827,7 @@ void ForgeWindow::refresh () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
-	for (LDObject* obj : g_curfile->m_objs)
+	for (LDObject* obj : g_curfile->objs ())
 		obj->setSelected (false);
 	
 	m_objList->clearSelection ();
@@ -970,7 +970,7 @@ DelHistory* ForgeWindow::deleteSelection () {
 // ========================================================================================================================================
 DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
-	for (LDObject* obj : g_curfile->m_objs) {
+	for (LDObject* obj : g_curfile->objs ()) {
 		if (!obj->isColored () || obj->color != colnum)
 			continue;
 		
@@ -1077,7 +1077,7 @@ QIcon makeColorIcon (color* colinfo, const ushort size) {
 void makeColorSelector (QComboBox* box) {
 	std::map<short, ulong> counts;
 	
-	for (LDObject* obj : g_curfile->m_objs) {
+	for (LDObject* obj : g_curfile->objs ()) {
 		if (!obj->isColored ())
 			continue;
 		

@@ -117,7 +117,7 @@ void DelHistory::undo () {
 // =============================================================================
 void DelHistory::redo () {
 	for (ulong i = 0; i < cache.size(); ++i) {
-		LDObject* obj = g_curfile->m_objs[indices[i]];
+		LDObject* obj = g_curfile->object (indices[i]);
 		
 		g_curfile->forgetObject (obj);
 		delete obj;
@@ -138,7 +138,7 @@ DelHistory::~DelHistory () {
 void SetColorHistory::undo () {
 	// Restore colors
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_curfile->m_objs[ulaIndices[i]]->color = daColors[i];
+		g_curfile->object (ulaIndices[i])->color = daColors[i];
 	
 	g_win->fullRefresh ();
 }
@@ -146,7 +146,7 @@ void SetColorHistory::undo () {
 void SetColorHistory::redo () {
 	// Re-set post color
 	for (ulong i = 0; i < ulaIndices.size (); ++i)
-		g_curfile->m_objs[ulaIndices[i]]->color = dNewColor;
+		g_curfile->object (ulaIndices[i])->color = dNewColor;
 	
 	g_win->fullRefresh ();
 }
@@ -195,7 +195,7 @@ std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
 	std::vector<LDObject*> objs;
 	
 	for (ulong idx : ulaIndices)
-		objs.push_back (g_curfile->m_objs[idx + ofs]);
+		objs.push_back (g_curfile->object (idx + ofs));
 	
 	return objs;
 }
@@ -225,7 +225,7 @@ AddHistory::~AddHistory () {
 void AddHistory::undo () {
 	for (ulong i = 0; i < paObjs.size(); ++i) {
 		ulong idx = ulaIndices[ulaIndices.size() - i - 1];
-		LDObject* obj = g_curfile->m_objs[idx];
+		LDObject* obj = g_curfile->object (idx);
 		
 		g_curfile->forgetObject (obj);
 		delete obj;
@@ -260,8 +260,8 @@ void QuadSplitHistory::undo () {
 		// the first with a copy of the quad.
 		ulong idx = ulaIndices[i];
 		
-		LDTriangle* tri1 = static_cast<LDTriangle*> (g_curfile->m_objs[idx]),
-			*tri2 = static_cast<LDTriangle*> (g_curfile->m_objs[idx + 1]);
+		LDTriangle* tri1 = static_cast<LDTriangle*> (g_curfile->object (idx)),
+			*tri2 = static_cast<LDTriangle*> (g_curfile->object (idx + 1));
 		LDQuad* pCopy = paQuads[i]->clone ();
 		
 		tri1->replace (pCopy);
@@ -276,10 +276,10 @@ void QuadSplitHistory::redo () {
 	for (long i = paQuads.size() - 1; i >= 0; --i) {
 		ulong idx = ulaIndices[i];
 		
-		LDQuad* pQuad = static_cast<LDQuad*> (g_curfile->m_objs[idx]);
+		LDQuad* pQuad = static_cast<LDQuad*> (g_curfile->object (idx));
 		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
 		
-		g_curfile->m_objs[idx] = paTriangles[0];
+		g_curfile->setObject (idx, paTriangles[0]);
 		g_curfile->insertObj (idx + 1, paTriangles[1]);
 		delete pQuad;
 	}
@@ -292,7 +292,7 @@ void QuadSplitHistory::redo () {
 // =============================================================================
 void InlineHistory::undo () {
 	for (long i = ulaBitIndices.size() - 1; i >= 0; --i) {
-		LDObject* obj = g_curfile->m_objs [ulaBitIndices[i]];
+		LDObject* obj = g_curfile->object (ulaBitIndices[i]);
 		g_curfile->forgetObject (obj);
 		delete obj;
 	}

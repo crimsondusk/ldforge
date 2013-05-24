@@ -53,7 +53,7 @@ namespace LDPaths {
 			if (!dlg.exec ())
 				exit (0);
 			
-			io_ldpath = dlg.path ();
+			io_ldpath = dlg.filename ();
 		}
 	}
 	
@@ -89,8 +89,8 @@ namespace LDPaths {
 
 // =============================================================================
 LDOpenFile::LDOpenFile () {
-	m_implicit = true;
-	savePos = -1;
+	setImplicit (true);
+	setSavePos (-1);
 }
 
 // =============================================================================
@@ -100,14 +100,14 @@ LDOpenFile::~LDOpenFile () {
 		delete obj;
 	
 	// Clear the cache as well
-	for (LDObject* obj : m_objCache)
+	for (LDObject* obj : m_cache)
 		delete obj;
 }
 
 // =============================================================================
 LDOpenFile* findLoadedFile (str name) {
 	for (LDOpenFile* file : g_loadedFiles)
-		if (file->m_filename == name)
+		if (file->name () == name)
 			return file;
 	
 	return null;
@@ -147,7 +147,7 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 #endif // WIN32
 	
 	if (g_curfile != null) {
-		str partpath = fmt ("%s" DIRSLASH "%s", dirname (g_curfile->m_filename).c (), relpath.c ());
+		str partpath = fmt ("%s" DIRSLASH "%s", dirname (g_curfile->name ()).c (), relpath.c ());
 		printf ("try %s\n", partpath.c ());
 		FILE* fp = fopen (partpath, "r");
 		
@@ -316,7 +316,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	
 	LDOpenFile* oldLoad = g_curfile;
 	LDOpenFile* load = new LDOpenFile;
-	load->m_filename = path;
+	load->setName (path);
 	
 	if (g_loadingMainFile)
 		g_curfile = load;
@@ -331,7 +331,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	}
 	
 	for (LDObject* obj : objs)
-		load->m_objs.push_back (obj);
+		load->addObject (obj);
 	
 	fclose (fp);
 	g_loadedFiles.push_back (load);
@@ -349,27 +349,27 @@ bool LDOpenFile::safeToClose () {
 	setlocale (LC_ALL, "C");
 	
 	// If we have unsaved changes, warn and give the option of saving.
-	if (!m_implicit && History::pos () != savePos) {
+	if (!implicit () && History::pos () != savePos ()) {
 		switch (QMessageBox::question (g_win, "Unsaved Changes",
 			fmt ("There are unsaved changes to %s. Should it be saved?",
-			(m_filename.len () > 0) ? m_filename.chars () : "<anonymous>"),
+			(name ().len () > 0) ? name ().c () : "<anonymous>"),
 			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
 		{
 		case QMessageBox::Yes:
 			// If we don't have a file path yet, we have to ask the user for one.
-			if (m_filename.len () == 0) {
-				str path = QFileDialog::getSaveFileName (g_win, "Save As",
-					g_curfile->m_filename, "LDraw files (*.dat *.ldr)");
+			if (name ().len () == 0) {
+				str newpath = QFileDialog::getSaveFileName (g_win, "Save As",
+					g_curfile->name (), "LDraw files (*.dat *.ldr)");
 				
-				if (path.len () == 0)
+				if (newpath.len () == 0)
 					return false;
 				
-				m_filename = path;
+				setName (newpath);
 			}
 			
 			if (!save ()) {
 				str errormsg = fmt ("Failed to save %s: %s\nDo you still want to close?",
-					m_filename.chars (), strerror (lastError));
+					name ().c (), strerror (errno));
 				
 				if (QMessageBox::critical (g_win, "Save Failure", errormsg,
 					(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::No)
@@ -417,8 +417,8 @@ void newFile () {
 	closeAll ();
 	
 	LDOpenFile* f = new LDOpenFile;
-	f->m_filename = "";
-	f->m_implicit = false;
+	f->setName ("");
+	f->setImplicit (false);
 	g_loadedFiles.push_back (f);
 	g_curfile = f;
 	
@@ -484,7 +484,7 @@ void openMainFile (str path) {
 		return;
 	}
 	
-	file->m_implicit = false;
+	file->setImplicit (false);
 	g_curfile = file;
 	
 	// Recalculate the bounding box
@@ -505,39 +505,37 @@ void openMainFile (str path) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool LDOpenFile::save (str path) {
-	if (!~path)
-		path = m_filename;
+bool LDOpenFile::save (str savepath) {
+	if (!~savepath)
+		savepath = name ();
 	
-	FILE* fp = fopen (path, "w");
+	FILE* fp = fopen (savepath, "w");
 	
-	if (!fp) {
-		lastError = errno;
+	if (!fp)
 		return false;
-	}
 	
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open. If it's saved into a directory
 	// called "s" or "48", prepend that into the name.
 	LDComment* fpathComment = null;
-	if (m_implicit == false && m_objs.size () >= 2 && object (1)->getType () == LDObject::Comment) {
+	if (!implicit () && objs ().size () >= 2 && object (1)->getType () == LDObject::Comment) {
 		fpathComment = static_cast<LDComment*> (object (1));
 		
 		if (fpathComment->text.substr (0, 6) == "Name: ") {
 			str newfname;
-			str dir = basename (dirname (path));
+			str dir = basename (dirname (savepath));
 			
 			if (dir == "s" || dir == "48")
 				newfname = fmt ("%s\\", dir.c ());
 			
-			newfname += basename (path);
+			newfname += basename (savepath);
 			fpathComment->text = fmt ("Name: %s", newfname.c ());
 			g_win->buildObjList ();
 		}
 	}
 	
 	// Write all entries now
-	for (LDObject* obj : m_objs) {
+	for (LDObject* obj : objs ()) {
 		// LDraw requires files to have DOS line endings
 		str line = fmt ("%s\r\n", obj->getContents ().chars ());
 		fwrite (line.chars(), 1, line.len (), fp);
@@ -546,8 +544,8 @@ bool LDOpenFile::save (str path) {
 	fclose (fp);
 	
 	// We have successfully saved, update the save position now.
-	savePos = History::pos ();
-	m_filename = path;
+	setSavePos (History::pos ());
+	setName (savepath);
 	
 	g_win->updateTitle ();
 	return true;
@@ -796,7 +794,7 @@ void reloadAllSubfiles () {
 	g_loadedFiles.push_back (g_curfile);
 	
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : g_curfile->m_objs) {
+	for (LDObject* obj : g_curfile->objs ()) {
 		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->fileInfo is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
@@ -826,7 +824,7 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 	if (this == g_curfile)
 		g_BBox.calcObject (obj);
 	
-	return m_objs.size() - 1;
+	return numObjs () - 1;
 }
 
 // =============================================================================
@@ -922,4 +920,10 @@ bool safeToCloseAll () {
 			return false;
 	
 	return true;
+}
+
+// =============================================================================
+void LDOpenFile::setObject (ulong idx, LDObject* obj) {
+	assert (idx < numObjs ());
+	m_objs[idx] = obj;
 }

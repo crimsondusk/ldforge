@@ -39,21 +39,20 @@ namespace LDPaths {
 //
 // The LDOpenFile class stores a file opened in LDForge either as a editable file
 // for the user or for subfile caching. Its methods handle file input and output.
+// 
+// A file is implicit when they are opened automatically for caching purposes
+// and are hidden from the user. User-opened files are explicit (not implicit).
 // =============================================================================
 class LDOpenFile {
+	PROPERTY (str, name, setName)
+	PROPERTY (bool, implicit, setImplicit)
+	MUTABLE_READ_PROPERTY (vector<LDObject*>, objs)
+	PROPERTY (vector<LDObject*>, cache, setCache)
+	PROPERTY (long, savePos, setSavePos)
+	
 public:
 	typedef std::vector<LDObject*>::iterator it;
 	typedef std::vector<LDObject*>::const_iterator c_it;
-	
-	str m_filename, m_title;
-	vector<LDObject*> m_objs;
-	vector<LDObject*> m_objCache; // Cache of this file's contents, if desired
-	
-	int lastError;
-	
-	// Is this file implicit? Implicit files are opened automatically for
-	// caching purposes and are hidden from the user.
-	bool m_implicit;
 	
 	LDOpenFile ();
 	~LDOpenFile ();
@@ -70,14 +69,12 @@ public:
 	// Deletes the given object from the object chain.
 	void forgetObject (LDObject* obj);
 	
-	// At what point was this file last saved?
-	long savePos;
-	
-	LDObject* object (ulong pos) const {
-		return m_objs[pos];
-	}
+	LDObject* object (ulong pos) const { return m_objs[pos]; }
+	LDObject* obj (ulong pos) const { return object (pos); }
 	
 	void insertObj (const ulong pos, LDObject* obj);
+	ulong numObjs () const { return m_objs.size (); }
+	void setObject (ulong idx, LDObject* obj);
 	
 	it begin () { return m_objs.begin (); }
 	it end () { return m_objs.end (); }
