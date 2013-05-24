@@ -20,6 +20,7 @@
 #include "colors.h"
 #include "file.h"
 #include "misc.h"
+#include "gui.h"
 #include <qcolor.h>
 
 static color* g_LDColors[MAX_COLORS];
@@ -79,8 +80,10 @@ static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
 void parseLDConfig () {
 	FILE* fp = openLDrawFile ("LDConfig.ldr", false);
 	
-	if (!fp)
+	if (!fp) {
+		critical (fmt ("Unable to open LDConfig.ldr for parsing! (%s)", strerror (errno)));
 		return;
+	}
 	
 	// Read in the lines
 	char buf[1024];

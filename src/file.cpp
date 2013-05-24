@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
+#include <qthread.h>
 
 #include <stdlib.h>
 #include "common.h"
@@ -33,6 +34,8 @@
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
+
+static bool g_loadingMainFile = false;
 
 // =============================================================================
 namespace LDPaths {
@@ -102,9 +105,9 @@ LDOpenFile::~LDOpenFile () {
 }
 
 // =============================================================================
-LDOpenFile* findLoadedFile (str zName) {
+LDOpenFile* findLoadedFile (str name) {
 	for (LDOpenFile* file : g_loadedFiles)
-		if (file->m_filename == zName)
+		if (file->m_filename == name)
 			return file;
 	
 	return null;
@@ -138,6 +141,7 @@ str basename (str path) {
 // =============================================================================
 FILE* openLDrawFile (str relpath, bool subdirs) {
 	printf ("%s: Try to open %s\n", __func__, relpath.c ());
+	
 #ifndef WIN32
 	relpath.replace ("\\", "/");
 #endif // WIN32
@@ -187,16 +191,12 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
+void FileLoader::work () {
 	char line[1024];
-	vector<str> lines;
-	vector<LDObject*> objs;
-	ulong lnum = 0;
+	m_progress = 0;
+	abortflag = false;
 	
-	if (numWarnings)
-		*numWarnings = 0;
-	
-	while (fgets (line, sizeof line, fp)) {
+	while (fgets (line, sizeof line, filePointer ())) {
 		// Trim the trailing newline
 		str data = line;
 		while (data[~data - 1] == '\n' || data[~data - 1] == '\r')
@@ -206,19 +206,91 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 		assert (obj != null);
 		
 		// Check for parse errors and warn about tthem
-		if (obj->getType() == LDObject::Gibberish) {
+		if (obj->getType () == LDObject::Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				lnum, static_cast<LDGibberish*> (obj)->reason.chars());
+				m_progress + 1, static_cast<LDGibberish*> (obj)->reason.chars());
 			
 			logf (LOG_Warning, "- Line was: %s\n", data.chars());
 			
-			if (numWarnings)
-				(*numWarnings)++;
+			if (m_warningsPointer)
+				(*m_warningsPointer)++;
 		}
 		
-		objs.push_back (obj);
-		lnum++;
+		m_objs.push_back (obj);
+		m_progress++;
+		emit progressUpdate (m_progress);
+		
+		if (abortflag) {
+			// We were flagged for abortion, so abort.
+			for (LDObject* obj : m_objs)
+				delete obj;
+			
+			m_objs.clear ();
+			return;
+		}
 	}
+	
+	emit workDone ();
+	m_done = true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
+	vector<str> lines;
+	vector<LDObject*> objs;
+	
+	if (numWarnings)
+		*numWarnings = 0;
+	
+	FileLoader* loader = new FileLoader;
+	loader->setFilePointer (fp);
+	loader->setWarningsPointer (numWarnings);
+	
+	// Calculate the amount of lines
+	ulong numLines = 0;
+	char line[1024];
+	while (fgets (line, sizeof line, fp))
+		numLines++;
+	
+	rewind (fp);
+	
+	if (g_loadingMainFile) {
+		// Show a progress dialog if we're loading the main file here and move
+		// the actual work to a separate thread as this can be a rather intensive
+		// operation and if we don't respond quickly enough, the program can be
+		// deemed inresponsive.. which is a bad thing.
+		
+		// Init the thread and move the loader into it
+		QThread* loaderThread = new QThread;
+		QObject::connect (loaderThread, SIGNAL (started ()), loader, SLOT (work ()));
+		QObject::connect (loaderThread, SIGNAL (finished ()), loader, SLOT (deleteLater ()));
+		loader->moveToThread (loaderThread);
+		loaderThread->start ();
+		
+		// Now create a progress dialog for the operation
+		OpenFileDialog* dlg = new OpenFileDialog (g_win);
+		dlg->setFileName ("???");
+		dlg->setNumLines (numLines);
+		
+		// Connect the loader in so we can actually show updates
+		QObject::connect (loader, SIGNAL (progressUpdate (int)), dlg, SLOT (updateProgress (int)));
+		QObject::connect (loader, SIGNAL (workDone ()), dlg, SLOT (accept ()));
+		
+		// Show the dialog. If the user hits cancel, tell the loader to abort.
+		if (!dlg->exec ())
+			loader->abortflag = true;
+	} else
+		loader->work ();
+	
+	// If we wanted the success value, supply that now
+	if (ok)
+		*ok = loader->done ();
+	
+	// If the loader was done, return the objects it generated
+	if (loader->done ())
+		objs = loader->objs ();
 	
 	return objs;
 }
@@ -226,7 +298,7 @@ std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* openDATFile (str path, bool search, bool mainfile) {
+LDOpenFile* openDATFile (str path, bool search) {
 	logf ("Opening %s...\n", path.chars());
 	
 	// Convert the file name to lowercase since some parts contain uppercase
@@ -243,14 +315,21 @@ LDOpenFile* openDATFile (str path, bool search, bool mainfile) {
 		return null;
 	}
 	
+	LDOpenFile* oldLoad = g_curfile;
 	LDOpenFile* load = new LDOpenFile;
 	load->m_filename = path;
 	
-	if (mainfile)
+	if (g_loadingMainFile)
 		g_curfile = load;
 	
 	ulong numWarnings;
-	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings);
+	bool ok;
+	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
+	
+	if (!ok) {
+		load = oldLoad;
+		return null;
+	}
 	
 	for (LDObject* obj : objs)
 		load->m_objs.push_back (obj);
@@ -392,14 +471,17 @@ void addRecentFile (str path) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void openMainFile (str path) {
+	g_loadingMainFile = true;
 	closeAll ();
 	
-	LDOpenFile* file = openDATFile (path, false, true);
+	LDOpenFile* file = openDATFile (path, false);
 	
 	if (!file) {
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
 		critical (fmt ("Failed to open %s: %s", path.chars(), strerror (errno)));
+		
+		g_loadingMainFile = false;
 		return;
 	}
 	
@@ -418,6 +500,7 @@ void openMainFile (str path) {
 	
 	// Add it to the recent files list.
 	addRecentFile (path);
+	g_loadingMainFile = false;
 }
 
 // =============================================================================
@@ -598,11 +681,15 @@ LDObject* parseLine (str line) {
 			CHECK_TOKEN_COUNT (15)
 			CHECK_TOKEN_NUMBERS (1, 13)
 			
-			// Try open the file
-			LDOpenFile* pFile = loadSubfile (tokens[14]);
+			// Try open the file. Disable g_loadingMainFile temporarily since we're
+			// not loading the main file now, but the subfile
+			bool oldLoadingMainFile = g_loadingMainFile;
+			g_loadingMainFile = false;
+			LDOpenFile* load = loadSubfile (tokens[14]);
+			g_loadingMainFile = oldLoadingMainFile;
 			
 			// If we cannot open the file, mark it an error
-			if (!pFile)
+			if (!load)
 				return new LDGibberish (line, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
@@ -613,7 +700,7 @@ LDObject* parseLine (str line) {
 				obj->transform[i] = atof (tokens[i + 5]); // 5 - 13
 			
 			obj->fileName = tokens[14];
-			obj->fileInfo = pFile;
+			obj->fileInfo = load;
 			return obj;
 		}
 	
@@ -683,13 +770,15 @@ LDObject* parseLine (str line) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* loadSubfile (str zFile) {
-	// Try open the file
-	LDOpenFile* pFile = findLoadedFile (zFile);
-	if (!pFile)
-		pFile = openDATFile (zFile, true, false);
+LDOpenFile* loadSubfile (str fname) {
+	// Try find the subfile in the list of loaded files
+	LDOpenFile* load = findLoadedFile (fname);
 	
-	return pFile;
+	// If it's not loaded, try open it
+	if (!load)
+		load = openDATFile (fname, true);
+	
+	return load;
 }
 
 // =============================================================================
@@ -710,12 +799,12 @@ void reloadAllSubfiles () {
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : g_curfile->m_objs) {
 		if (obj->getType() == LDObject::Subfile) {
-			// Note: ref->pFile is invalid right now since all subfiles were closed.
+			// Note: ref->fileInfo is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDOpenFile* pFile = loadSubfile (ref->fileName);
+			LDOpenFile* fileInfo = loadSubfile (ref->fileName);
 			
-			if (pFile)
-				ref->fileInfo = pFile;
+			if (fileInfo)
+				ref->fileInfo = fileInfo;
 			else {
 				// Couldn't load the file, mark it an error
 				ref->replace (new LDGibberish (ref->getContents (), "Could not open referred file"));
@@ -723,7 +812,7 @@ void reloadAllSubfiles () {
 		}
 		
 		// Reparse gibberish files. It could be that they are invalid because
-		// the file could not be opened. Circumstances may be different now.
+		// of loading errors. Circumstances may be different now.
 		if (obj->getType() == LDObject::Gibberish)
 			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->contents));
 	}

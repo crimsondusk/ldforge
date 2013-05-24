@@ -88,12 +88,41 @@ str fullVersionString ();
 private: \
 	T m_##GET; \
 public: \
-	const T& GET () const { return m_##GET; } \
+	T const& GET () const { return m_##GET; } \
 
 // Read/write private property with get and set accessors
 #define PROPERTY(T, GET, SET) \
 	READ_PROPERTY(T, GET) \
 	void SET (T val) { m_##GET = val; }
+
+// Property that triggers a callback when it is changed
+#define CALLBACK_PROPERTY(T, GET, SET) \
+	READ_PROPERTY(T, GET) \
+	void callback_##SET (); \
+	void SET (T val) { m_##GET = val; callback_##SET (); }
+
+// Property with thread locking, use when multiple threads access the same property
+// Comes with a callback function for detecting when the value is changed.
+#define THREAD_PROPERTY(T, GET, SET) \
+private: \
+	T m_##GET; \
+	bool m_threadLock_##GET; \
+public: \
+	const T& GET () const { \
+		while (m_threadLock_##GET) \
+			; \
+		return m_##GET; \
+	} \
+	void callback_##SET (); \
+	void SET (T val) { \
+		while (m_threadLock_##GET) \
+			; \
+		 \
+		m_threadLock_##GET = true; \
+		m_##GET = val; \
+		callback_##SET (); \
+		m_threadLock_##GET = false; \
+	}
 
 #ifdef null
 #undef null
@@ -112,6 +141,7 @@ public: \
 
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
 void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
+
 #define assert(N) \
 	(N) ? ((void)(0)) : assertionFailure(__FILE__, __LINE__, FUNCNAME, #N)
 
@@ -169,6 +199,8 @@ static inline const char* qchars (const QString& qstr) {
 static const double pi = 3.14159265358979323846f;
 
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
+#error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
+
 // Current function name
 static const char* __func__ = "";
 
@@ -179,6 +211,8 @@ static const char* __func__ = "";
 #ifndef va_end
 #define va_end(va)
 #endif // va_end
+
+typedef void FILE; // :|
 #endif // IN_IDE_PARSER
 
 // -----------------------------------------------------------------------------

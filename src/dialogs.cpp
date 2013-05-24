@@ -25,6 +25,7 @@
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QGridLayout>
+#include <qprogressbar.h>
 
 #include "dialogs.h"
 #include "widgets.h"
@@ -423,6 +424,9 @@ void NewPartDialog::StaticDialog () {
 	g_win->fullRefresh ();
 }
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 RotationPointDialog::RotationPointDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	rb_rotpoint = new RadioBox ("Rotation Point", { "Object center", "Custom" }, 0, Qt::Vertical, this);
 	connect (rb_rotpoint, SIGNAL (valueChanged (int)), this, SLOT (radioBoxChanged ()));
@@ -471,4 +475,38 @@ void RotationPointDialog::setCustomPos (const vertex& pos) {
 
 void RotationPointDialog::radioBoxChanged () {
 	setCustom (rb_rotpoint->value ());
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+OpenFileDialog::OpenFileDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
+	progressBar = new QProgressBar;
+	progressText = new QLabel;
+	setNumLines (0);
+	m_progress = 0;
+	
+	QDialogButtonBox* dbb_buttons = new QDialogButtonBox;
+	dbb_buttons->addButton (QDialogButtonBox::Cancel);
+	connect (dbb_buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
+	
+	QVBoxLayout* layout = new QVBoxLayout (this);
+	layout->addWidget (progressText);
+	layout->addWidget (progressBar);
+	layout->addWidget (dbb_buttons);
+}
+
+void OpenFileDialog::callback_setNumLines () {
+	progressBar->setRange (0, numLines ());
+	updateValues ();
+}
+
+void OpenFileDialog::updateValues () {
+	progressBar->setValue (progress ());
+	progressText->setText (fmt ("%s: %lu/%lu lines parsed", fileName ().c (), progress (), numLines ()));
+}
+
+void OpenFileDialog::updateProgress (int progress) {
+	m_progress = progress;
+	updateValues ();
 }

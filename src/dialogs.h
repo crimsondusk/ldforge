@@ -22,6 +22,7 @@
 #include <QDialog>
 #include "common.h"
 
+class QProgressBar;
 class QGroupBox;
 class QDialogButtonBox;
 class QDoubleSpinBox;
@@ -152,6 +153,26 @@ private:
 	
 private slots:
 	void radioBoxChanged ();
+};
+
+// =============================================================================
+class OpenFileDialog : public QDialog {
+	Q_OBJECT
+	READ_PROPERTY (ulong, progress)
+	CALLBACK_PROPERTY (ulong, numLines, setNumLines)
+	PROPERTY (str, fileName, setFileName)
+	
+public:
+	explicit OpenFileDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	
+public slots:
+	void updateProgress (int progress);
+	
+private:
+	QProgressBar* progressBar;
+	QLabel* progressText;
+	
+	void updateValues ();
 };
 
 #endif // DIALOGS_H

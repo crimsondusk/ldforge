@@ -185,7 +185,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	default:
-		assert (false);
+		critical (fmt ("Unhandled LDObject type %d (%s) in AddObjectDialog", (int) type, g_saObjTypeNames[type]));
 		return;
 	}
 	

@@ -21,7 +21,9 @@
 
 #include "common.h"
 #include "ldtypes.h"
+#include <QObject>
 
+class OpenFileDialog;
 namespace LDPaths {
 	void initPaths ();
 	bool tryConfigure (str path);
@@ -94,7 +96,7 @@ LDOpenFile* findLoadedFile (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDOpenFile* openDATFile (str path, bool search, bool mainfile);
+LDOpenFile* openDATFile (str path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 FILE* openLDrawFile (str path, bool bSubDirectories);
@@ -121,12 +123,32 @@ typedef struct {
 // Init and parse parts.lst
 void initPartList ();
 
-std::vector< LDObject* > loadFileContents (FILE* fp, ulong* numWarnings);
+std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok = null);
 
 extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
 
 str basename (str path);
 str dirname (str path);
+
+class FileLoader : public QObject {
+	Q_OBJECT
+	
+	READ_PROPERTY (std::vector<LDObject*>, objs)
+	READ_PROPERTY (bool, done)
+	READ_PROPERTY (ulong, progress)
+	PROPERTY (FILE*, filePointer, setFilePointer)
+	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
+	
+public:
+	bool abortflag;
+	
+public slots:
+	void work ();
+	
+signals:
+	void progressUpdate (int progress);
+	void workDone ();
+};
 
 #endif // FILE_H
