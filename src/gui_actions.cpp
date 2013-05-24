@@ -450,3 +450,17 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 	if (ok)
 		g_win->R ()->setDepthValue (depth);
 }
+
+MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
+	LDOpenFile* file = loadFile ("axle.dat");
+	
+	if (!file) {
+		critical ("couldn't load axle.dat");
+		return;
+	}
+	
+	GLRenderer* rend = new GLRenderer;
+	rend->setFile (file);
+	rend->setDrawOnly (true);
+	rend->show ();
+}

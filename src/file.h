@@ -97,7 +97,7 @@ void closeAll ();
 LDObject* parseLine (str line);
 
 // Retrieves the pointer to - or loads - the given subfile.
-LDOpenFile* loadSubfile (str zFile);
+LDOpenFile* loadFile (str zFile);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles ();

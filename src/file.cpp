@@ -318,8 +318,10 @@ LDOpenFile* openDATFile (str path, bool search) {
 	LDOpenFile* load = new LDOpenFile;
 	load->setName (path);
 	
-	if (g_loadingMainFile)
+	if (g_loadingMainFile) {
 		g_curfile = load;
+		g_win->R ()->setFile (load);
+	}
 	
 	ulong numWarnings;
 	bool ok;
@@ -404,8 +406,9 @@ void closeAll () {
 	
 	// Clear the array
 	g_loadedFiles.clear();
-	g_curfile = NULL;
+	g_curfile = null;
 	
+	g_win->R ()->setFile (null);
 	g_win->fullRefresh ();
 }
 
@@ -425,6 +428,7 @@ void newFile () {
 	History::clear ();
 	
 	g_BBox.reset ();
+	g_win->R ()->setFile (f);
 	g_win->fullRefresh ();
 	g_win->updateTitle ();
 }
@@ -493,6 +497,7 @@ void openMainFile (str path) {
 	// Rebuild the object tree view now.
 	g_win->fullRefresh ();
 	g_win->updateTitle ();
+	g_win->R ()->setFile (file);
 	g_win->R ()->resetAngles ();
 	
 	History::clear ();
@@ -682,7 +687,7 @@ LDObject* parseLine (str line) {
 			// not loading the main file now, but the subfile
 			bool oldLoadingMainFile = g_loadingMainFile;
 			g_loadingMainFile = false;
-			LDOpenFile* load = loadSubfile (tokens[14]);
+			LDOpenFile* load = loadFile (tokens[14]);
 			g_loadingMainFile = oldLoadingMainFile;
 			
 			// If we cannot open the file, mark it an error
@@ -767,7 +772,7 @@ LDObject* parseLine (str line) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* loadSubfile (str fname) {
+LDOpenFile* loadFile (str fname) {
 	// Try find the subfile in the list of loaded files
 	LDOpenFile* load = findLoadedFile (fname);
 	
@@ -798,7 +803,7 @@ void reloadAllSubfiles () {
 		if (obj->getType() == LDObject::Subfile) {
 			// Note: ref->fileInfo is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDOpenFile* fileInfo = loadSubfile (ref->fileName);
+			LDOpenFile* fileInfo = loadFile (ref->fileName);
 			
 			if (fileInfo)
 				ref->fileInfo = fileInfo;

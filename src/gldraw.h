@@ -20,8 +20,6 @@
 #define GLDRAW_H
 
 #include <QGLWidget>
-#include <qtimer.h>
-#include <qdialog.h>
 #include "common.h"
 #include "ldtypes.h"
 
@@ -30,6 +28,8 @@ class RadioBox;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
+class LDOpenFile;
+class QTimer;
 
 enum EditMode {
 	Select,
@@ -55,7 +55,9 @@ struct overlayMeta {
 class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
+	PROPERTY (bool, drawOnly, setDrawOnly)
 	PROPERTY (double, zoom, setZoom)
+	PROPERTY (LDOpenFile*, file, setFile)
 	READ_PROPERTY (bool, picking)
 	CALLBACK_PROPERTY (EditMode, editMode, setEditMode)
 	
@@ -126,7 +128,7 @@ private:
 	void           compileVertex       (const vertex& vrt);                     // Compile a single vertex to a list
 	vertex         coordconv2_3        (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2        (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	void           drawGLScene         () const;                                // Paint the GL scene
+	void           drawGLScene         ();                                // Paint the GL scene
 	void           pick                (uint mouseX, uint mouseY);              // Perform object selection
 	void           setObjectColor      (LDObject* obj, const ListType list);    // Set the color to an object list
 	

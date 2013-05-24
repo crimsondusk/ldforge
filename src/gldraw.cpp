@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <QContextMenuEvent>
 #include <QInputDialog>
+#include <QTimer>
 #include <GL/glu.h>
 
 #include "common.h"
@@ -97,6 +98,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_drawToolTip = false;
 	m_editMode = Select;
 	m_rectdraw = false;
+	setFile (null);
+	setDrawOnly (false);
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -173,9 +176,9 @@ void GLRenderer::resetAngles () {
 	
 	// Set the default zoom based on the bounding box
 	if (g_BBox.empty () == false)
-		m_zoom = g_BBox.size () * 6;
+		setZoom (g_BBox.size () * 6);
 	else
-		m_zoom = 30.0f;
+		setZoom (30.0f);
 }
 
 // =============================================================================
@@ -233,7 +236,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		// Make the color by the object's index color if we're picking, so we can
 		// make the index from the color we get from the picking results. Be sure
 		// to use the top level parent's index since inlinees don't have an index.
-		long i = obj->topLevelParent ()->getIndex (g_curfile);
+		long i = obj->topLevelParent ()->getIndex (file ());
 		
 		// We should have the index now.
 		assert (i != -1);
@@ -343,8 +346,8 @@ void GLRenderer::resizeGL (int w, int h) {
 	glMatrixMode (GL_MODELVIEW);
 }
 
-void GLRenderer::drawGLScene () const {
-	if (g_curfile == null)
+void GLRenderer::drawGLScene () {
+	if (file () == null)
 		return;
 	
 	if (gl_wireframe && !picking ())
@@ -375,16 +378,18 @@ void GLRenderer::drawGLScene () const {
 		glLoadIdentity ();
 		
 		glTranslatef (0.0f, 0.0f, -2.0f);
-		glTranslatef (m_panX, m_panY, -m_zoom);
+		glTranslatef (m_panX, m_panY, -zoom ());
 		glRotatef (m_rotX, 1.0f, 0.0f, 0.0f);
 		glRotatef (m_rotY, 0.0f, 1.0f, 0.0f);
 		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	if (gl_colorbfc && !m_picking) {
+	const GL::ListType list = (!drawOnly () && m_picking) ? PickList : NormalList;
+	
+	if (gl_colorbfc && !m_picking && !drawOnly ()) {
 		glEnable (GL_CULL_FACE);
 		
-		for (LDObject* obj : g_curfile->objs ()) {
+		for (LDObject* obj : file ()->objs ()) {
 			if (obj->hidden ())
 				continue;
 			
@@ -397,15 +402,15 @@ void GLRenderer::drawGLScene () const {
 		
 		glDisable (GL_CULL_FACE);
 	} else {
-		for (LDObject* obj : g_curfile->objs ()) {
+		for (LDObject* obj : file ()->objs ()) {
 			if (obj->hidden ())
 				continue;
 			
-			glCallList (obj->glLists[(m_picking) ? PickList : NormalList]);
+			glCallList (obj->glLists[list]);
 		}
 	}
 	
-	if (gl_axes && !m_picking)
+	if (gl_axes && !m_picking && !drawOnly ())
 		glCallList (m_axeslist);
 	
 	glPopMatrix ();
@@ -474,7 +479,9 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 // =============================================================================
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
-	m_virtWidth = m_zoom;
+	
+	makeCurrent ();
+	m_virtWidth = zoom ();
 	m_virtHeight = (m_height * m_virtWidth) / m_width;
 	
 	initGLData ();
@@ -485,6 +492,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
+	
+	// If we wish to only draw the brick, stop here
+	if (drawOnly ())
+		return;
 	
 	if (m_camera != Free) {
 		// Paint the overlay image if we have one
@@ -660,12 +671,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileAllObjects () {
-	if (!g_curfile) {
-		printf ("renderer: no files loaded, cannot compile anything\n");
+	if (!file ())
 		return;
-	}
 	
-	for (LDObject* obj : g_curfile->objs ())
+	for (LDObject* obj : file ()->objs ())
 		compileObject (obj);
 	
 	// Compile axes
@@ -883,11 +892,13 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			break;
 		
 		case Select:
-			if (!m_rangepick)
-				m_addpick = (m_keymods & Qt::ControlModifier);
-			
-			if (m_totalmove < 10 || m_rangepick)
-				pick (ev->x (), ev->y ());
+			if (!drawOnly ()) {
+				if (!m_rangepick)
+					m_addpick = (m_keymods & Qt::ControlModifier);
+				
+				if (m_totalmove < 10 || m_rangepick)
+					pick (ev->x (), ev->y ());
+			}
 			break;
 		}
 		
@@ -941,8 +952,8 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	}
 	
 	if (ev->buttons () & Qt::MidButton) {
-		m_panX += 0.03f * dx * (m_zoom / 7.5f);
-		m_panY -= 0.03f * dy * (m_zoom / 7.5f);
+		m_panX += 0.03f * dx * (zoom () / 7.5f);
+		m_panY -= 0.03f * dy * (zoom () / 7.5f);
 	}
 	
 	// Start the tool tip timer
@@ -966,12 +977,14 @@ void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 
 // =============================================================================
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
-	if (m_zoom > 15)
-		m_zoom *= (ev->delta () < 0) ? 1.2f : (1.0f / 1.2f);
-	else
-		m_zoom += (double) ev->delta () / -100.0f;
+	makeCurrent ();
 	
-	m_zoom = clamp<double> (m_zoom, 0.01f, 10000.0f);
+	if (zoom () > 15)
+		setZoom (zoom () * (ev->delta () < 0 ? 1.2f : 0.833f));
+	else
+		setZoom (zoom () + ((double) ev->delta () / -100.0f));
+	
+	setZoom (clamp<double> (zoom (), 0.01f, 10000.0f));
 	
 	update ();
 	ev->accept ();
@@ -1002,6 +1015,7 @@ void GLRenderer::setCamera (const GL::Camera cam) {
 // =============================================================================
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	GLint viewport[4];
+	makeCurrent ();
 	
 	// Use particularly thick lines while picking ease up selecting lines.
 	glLineWidth (max<double> (gl_linethickness, 6.5f));
@@ -1080,7 +1094,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = g_curfile->obj (idx);
+		LDObject* obj = file ()->obj (idx);
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
@@ -1221,11 +1235,11 @@ void GLRenderer::endDraw (bool accept) {
 	}
 	
 	if (obj) {
-		g_curfile->addObject (obj);
+		file ()->addObject (obj);
 		compileObject (obj);
 		g_win->fullRefresh ();
 		
-		History::addEntry (new AddHistory ({(ulong) obj->getIndex (g_curfile)}, {obj->clone ()}));
+		History::addEntry (new AddHistory ({(ulong) obj->getIndex (file ())}, {obj->clone ()}));
 	}
 	
 	m_drawedVerts.clear ();
@@ -1239,6 +1253,9 @@ void GLRenderer::compileObject (LDObject* obj) {
 	deleteLists (obj);
 	
 	for (const GL::ListType listType : g_glListTypes) {
+		if (drawOnly () && listType != GL::NormalList)
+			continue;
+		
 		GLuint list = glGenLists (1);
 		glNewList (list, GL_COMPILE);
 		

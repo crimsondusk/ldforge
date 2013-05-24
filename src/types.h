@@ -211,6 +211,13 @@ public:
 		m_vect.resize (size);
 	}
 	
+	template<int N> vector<T>& operator= (T vals[N]) {
+		for (int i = 0; i < N; ++i)
+			push_back (vals[i]);
+		
+		return *this;
+	}
+	
 private:
 	std::vector<T> m_vect;
 };
