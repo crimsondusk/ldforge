@@ -238,7 +238,7 @@ str SetContentsDialog::text () const {
 	return le_contents->text ();
 }
 
-// ========================================================================================================================================
+// =================================================================================================
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
 	: QDialog (parent, f), m_validDefault (validDefault)
 {
@@ -286,7 +286,7 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 	mainLayout->addWidget (dbb_buttons);
 	setLayout (mainLayout);
 	
-	connect (le_path, SIGNAL (textEdited ()), this, SLOT (slot_tryConfigure ()));
+	connect (le_path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure ()));
 	connect (btn_findPath, SIGNAL (clicked ()), this, SLOT (slot_findPath ()));
 	connect (btn_tryConfigure, SIGNAL (clicked ()), this, SLOT (slot_tryConfigure ()));
 	connect (dbb_buttons, SIGNAL (accepted ()), this, SLOT (accept ()));
@@ -297,22 +297,18 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 		slot_tryConfigure ();
 }
 
-// ========================================================================================================================================
 QPushButton* LDrawPathDialog::okButton () {
 	return dbb_buttons->button (QDialogButtonBox::Ok);
 }
 
-// ========================================================================================================================================
 void LDrawPathDialog::setPath (str path) {
 	le_path->setText (path);
 }
 
-// ========================================================================================================================================
 str LDrawPathDialog::filename () const {
 	return le_path->text ();
 }
 
-// ========================================================================================================================================
 void LDrawPathDialog::slot_findPath () {
 	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 	
@@ -322,16 +318,14 @@ void LDrawPathDialog::slot_findPath () {
 	}
 }
 
-
-// ========================================================================================================================================
 void LDrawPathDialog::slot_exit () {
 	exit (1);
 }
 
-// ========================================================================================================================================
 void LDrawPathDialog::slot_tryConfigure () {
 	if (LDPaths::tryConfigure (filename ()) == false) {
-		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%s</span>", LDPaths::getError().chars ()));
+		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%s</span>",
+			LDPaths::getError().chars ()));
 		okButton ()->setEnabled (false);
 		return;
 	}
