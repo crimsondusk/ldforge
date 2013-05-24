@@ -297,7 +297,7 @@ MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data from a file.", (0)) {
+MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data from a file.", (0)) {
 	str fname = QFileDialog::getOpenFileName ();
 	ulong idx = g_win->getInsertionPoint ();
 	
@@ -329,6 +329,30 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 		History::addEntry (new AddHistory (historyIndices, historyCopies));
 		g_win->fullRefresh ();
 		g_win->scrollToSelection ();
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selection to file", (0)) {
+	if (g_win->sel ().size () == 0)
+		return;
+	
+	str fname = QFileDialog::getSaveFileName ();
+	if (fname.len () == 0)
+		return;
+	
+	QFile file (fname);
+	if (!file.open (QIODevice::WriteOnly | QIODevice::Text)) {
+		critical (fmt ("Unable to open %s for writing (%s)", fname.chars (), strerror (errno)));
+		return;
+	}
+	
+	for (LDObject* obj : g_win->sel ()) {
+		str contents = obj->getContents ();
+		file.write (contents, contents.len ());
+		file.write ("\r\n", 2);
 	}
 }
 

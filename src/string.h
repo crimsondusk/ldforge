@@ -45,14 +45,14 @@ public:
 	void		append			(const char data) { m_string.push_back (data); }
 	void		append			(const String data) { m_string.append (data.chars ()); }
 	it			begin			() { return m_string.begin (); }
+	c_it		begin			() const { return m_string.cbegin (); }
 	const char*	c				() const { return chars (); }
 	size_t		capacity		() const { return m_string.capacity (); }
 	const char*	chars			() const { return m_string.c_str (); }
 	int			compare			(const char* other) const { return m_string.compare (other); }
 	int			compare			(String other) const { return m_string.compare (other); }
 	it			end				() { return m_string.end (); }
-	c_it		cbegin			() const { return m_string.cbegin (); }
-	c_it		cend			() const { return m_string.end (); }
+	c_it		end				() const { return m_string.end (); }
 	void		clear			() { m_string.clear (); }
 	ushort		count			(const char needle) const;
 	bool		empty			() const { return m_string.empty (); }

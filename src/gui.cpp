@@ -167,6 +167,9 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("save");				// Save
 	addMenuAction ("saveAs");				// Save As
 	menu->addSeparator ();					// -------
+	addMenuAction ("insertFrom");			// Insert from File
+	addMenuAction ("exportTo");				// Export to File
+	menu->addSeparator ();					// -------
 	addMenuAction ("settings");			// Settings
 	addMenuAction ("setLDrawPath");		// Set LDraw Path
 	menu->addSeparator ();					// -------
@@ -188,7 +191,6 @@ void ForgeWindow::createMenus () {
 	
 	// Insert menu
 	initMenu ("&Insert");
-	addMenuAction ("insertFrom");			// Insert from File
 	addMenuAction ("insertRaw");			// Insert Raw
 	menu->addSeparator ();					// -------
 	addMenuAction ("newSubfile");			// New Subfile

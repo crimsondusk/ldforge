@@ -41,6 +41,8 @@
 	<file>./icons/empty.png</file>
 	<file>./icons/error.png</file>
 	<file>./icons/exit.png</file>
+	<file>./icons/file-export.png</file>
+	<file>./icons/file-import.png</file>
 	<file>./icons/file-new.png</file>
 	<file>./icons/file-open.png</file>
 	<file>./icons/file.png</file>

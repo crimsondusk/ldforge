@@ -155,7 +155,6 @@ str ftoa (double num) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 bool isNumber (const str& tok) {
-	char* ptr = &tok[0];
 	bool gotDot = false;
 	
 	for (const char& c : tok) {
