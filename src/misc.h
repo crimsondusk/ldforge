@@ -108,7 +108,7 @@ public:
 	}
 	
 private:
-	std::vector<str> m_tokens;
+	vector<str> m_tokens;
 	short m_pos;
 };
 

@@ -285,7 +285,7 @@ void ForgeWindow::updateRecentFilesMenu () {
 		delete recent;
 	m_recentFiles.clear ();
 	
-	std::vector<str> files = io_recentfiles.value / "@";
+	vector<str> files = io_recentfiles.value / "@";
 	for (long i = files.size() - 1; i >= 0; --i) {
 		str file = files[i];
 		
@@ -428,8 +428,8 @@ void ForgeWindow::createToolbars () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<quickColorMetaEntry> parseQuickColorMeta () {
-	std::vector<quickColorMetaEntry> meta;
+vector<quickColorMetaEntry> parseQuickColorMeta () {
+	vector<quickColorMetaEntry> meta;
 	
 	for (str colorname : gui_colortoolbar.value / ":") {
 		if (colorname == "|") {
@@ -552,11 +552,11 @@ void ForgeWindow::slot_action () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects) {
+void ForgeWindow::deleteSelection (vector<ulong>* ulapIndices, vector<LDObject*>* papObjects) {
 	if (m_sel.size () == 0)
 		return;
 	
-	std::vector<LDObject*> selCopy = m_sel;
+	vector<LDObject*> selCopy = m_sel;
 	
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy) {
@@ -726,7 +726,7 @@ void ForgeWindow::slot_selectionChanged () {
 	if (m_renderer->picking ())
 		return;
 	
-	std::vector<LDObject*> priorSelection = m_sel;
+	vector<LDObject*> priorSelection = m_sel;
 	
 	// Get the objects from the object list selection
 	m_sel.clear ();	
@@ -777,8 +777,8 @@ void ForgeWindow::slot_quickColor () {
 	if (col == null)
 		return;
 	
-	std::vector<ulong> indices;
-	std::vector<short> colors;
+	vector<ulong> indices;
+	vector<short> colors;
 	short newColor = col->index;
 	
 	for (LDObject* obj : m_sel) {
@@ -944,7 +944,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 }
 
 // ========================================================================================================================================
-DelHistory* ForgeWindow::deleteObjVector (const std::vector<LDObject*> objs) {
+DelHistory* ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	vector<ulong> indices;
 	vector<LDObject*> cache;
 	
@@ -982,7 +982,7 @@ DelHistory* ForgeWindow::deleteByColor (const short colnum) {
 
 // ========================================================================================================================================
 void ForgeWindow::updateEditModeActions () {
-	const GL::EditMode mode = R ()->editMode ();
+	const EditMode mode = R ()->editMode ();
 	const size_t numModeActions = (sizeof g_modeActionNames / sizeof *g_modeActionNames);
 	assert ((size_t) mode < numModeActions);
 	
@@ -992,7 +992,7 @@ void ForgeWindow::updateEditModeActions () {
 		act->setCheckable (true);
 		act->setChecked (i == (size_t) mode);
 		
-		if (i != GL::Select)
+		if (i != Select)
 			act->setEnabled (R ()->camera () != GL::Free);
 	}
 }

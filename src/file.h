@@ -51,9 +51,6 @@ class LDOpenFile {
 	PROPERTY (long, savePos, setSavePos)
 	
 public:
-	typedef std::vector<LDObject*>::iterator it;
-	typedef std::vector<LDObject*>::const_iterator c_it;
-	
 	LDOpenFile ();
 	~LDOpenFile ();
 	
@@ -75,11 +72,6 @@ public:
 	void insertObj (const ulong pos, LDObject* obj);
 	ulong numObjs () const { return m_objs.size (); }
 	void setObject (ulong idx, LDObject* obj);
-	
-	it begin () { return m_objs.begin (); }
-	it end () { return m_objs.end (); }
-	c_it cbegin () const { return m_objs.cbegin (); }
-	c_it cend () const { return m_objs.cend (); }
 };
 
 // Close all current loaded files and start off blank.
@@ -120,7 +112,7 @@ typedef struct {
 // Init and parse parts.lst
 void initPartList ();
 
-std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok = null);
+vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok = null);
 
 extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
@@ -131,7 +123,7 @@ str dirname (str path);
 class FileLoader : public QObject {
 	Q_OBJECT
 	
-	READ_PROPERTY (std::vector<LDObject*>, objs)
+	READ_PROPERTY (vector<LDObject*>, objs)
 	READ_PROPERTY (bool, done)
 	READ_PROPERTY (ulong, progress)
 	PROPERTY (FILE*, filePointer, setFilePointer)

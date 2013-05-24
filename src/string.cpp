@@ -107,7 +107,7 @@ vector<String> String::split (char del) const {
 }
 
 vector<String> String::split (String del) const {
-	std::vector<String> res;
+	vector<String> res;
 	size_t a = 0;
 	
 	// Find all separators and store the text left to them.

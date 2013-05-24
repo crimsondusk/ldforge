@@ -94,12 +94,12 @@ class EditHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Edit)
 	
-	std::vector<ulong> ulaIndices;
-	std::vector<LDObject*> paOldObjs, paNewObjs;
+	vector<ulong> ulaIndices;
+	vector<LDObject*> paOldObjs, paNewObjs;
 	
 	EditHistory () {}
-	EditHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paOldObjs,
-		std::vector<LDObject*> paNewObjs) :
+	EditHistory (vector<ulong> ulaIndices, vector<LDObject*> paOldObjs,
+		vector<LDObject*> paNewObjs) :
 		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
 	
 	void	addEntry		(LDObject* const oldObj, LDObject* const newObj);
@@ -114,10 +114,10 @@ class ListMoveHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (ListMove)
 	
-	std::vector<ulong> ulaIndices;
+	vector<ulong> ulaIndices;
 	bool bUp;
 	
-	std::vector<LDObject*> getObjects (short ofs);
+	vector<LDObject*> getObjects (short ofs);
 	ListMoveHistory (vector<ulong> ulaIndices, const bool bUp) :
 		ulaIndices (ulaIndices), bUp (bUp) {}
 };
@@ -134,11 +134,11 @@ public:
 	
 	IMPLEMENT_HISTORY_TYPE (Add)
 	
-	std::vector<ulong> ulaIndices;
-	std::vector<LDObject*> paObjs;
+	vector<ulong> ulaIndices;
+	vector<LDObject*> paObjs;
 	const Type eType;
 	
-	AddHistory (std::vector<ulong> ulaIndices, std::vector<LDObject*> paObjs,
+	AddHistory (vector<ulong> ulaIndices, vector<LDObject*> paObjs,
 		const Type eType = Other) :
 		ulaIndices (ulaIndices), paObjs (paObjs), eType (eType) {}
 };
@@ -150,10 +150,10 @@ class QuadSplitHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (QuadSplit)
 	
-	std::vector<ulong> ulaIndices;
-	std::vector<LDQuad*> paQuads;
+	vector<ulong> ulaIndices;
+	vector<LDQuad*> paQuads;
 	
-	QuadSplitHistory (std::vector<ulong> ulaIndices, std::vector<LDQuad*> paQuads) :
+	QuadSplitHistory (vector<ulong> ulaIndices, vector<LDQuad*> paQuads) :
 		ulaIndices (ulaIndices), paQuads (paQuads) {}
 };
 
@@ -164,12 +164,12 @@ class InlineHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Inline)
 	
-	const std::vector<ulong> ulaBitIndices, ulaRefIndices;
-	const std::vector<LDSubfile*> paRefs;
+	const vector<ulong> ulaBitIndices, ulaRefIndices;
+	const vector<LDSubfile*> paRefs;
 	const bool bDeep;
 	
-	InlineHistory (const std::vector<ulong> ulaBitIndices, const std::vector<ulong> ulaRefIndices,
-		const std::vector<LDSubfile*> paRefs, const bool bDeep) :
+	InlineHistory (const vector<ulong> ulaBitIndices, const vector<ulong> ulaRefIndices,
+		const vector<LDSubfile*> paRefs, const bool bDeep) :
 		ulaBitIndices (ulaBitIndices), ulaRefIndices (ulaRefIndices), paRefs (paRefs), bDeep (bDeep) {}
 };
 
@@ -180,10 +180,10 @@ class MoveHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Move)
 	
-	const std::vector<ulong> ulaIndices;
+	const vector<ulong> ulaIndices;
 	const vertex vVector;
 	
-	MoveHistory (const std::vector<ulong> ulaIndices, const vertex vVector) :
+	MoveHistory (const vector<ulong> ulaIndices, const vertex vVector) :
 		ulaIndices (ulaIndices), vVector (vVector) {}
 };
 
@@ -194,12 +194,12 @@ class ComboHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Combo)
 	
-	std::vector<HistoryEntry*> paEntries;
+	vector<HistoryEntry*> paEntries;
 	
 	ComboHistory () {}
-	ComboHistory (std::vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
+	ComboHistory (vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
 	
-	void			addEntry		(HistoryEntry* entry) { if (entry) paEntries.push_back (entry); }
+	void			addEntry		(HistoryEntry* entry) { if (entry) paEntries << entry; }
 	ulong			numEntries		() const { return paEntries.size (); }
 	ComboHistory&	operator<<		(HistoryEntry* entry) { addEntry (entry); return *this;}
 };
@@ -214,7 +214,7 @@ namespace History {
 	void clear ();
 	void updateActions ();
 	long pos ();
-	std::vector<HistoryEntry*>& entries ();
+	vector<HistoryEntry*>& entries ();
 };
 
 #endif // HISTORY_H

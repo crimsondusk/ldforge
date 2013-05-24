@@ -29,7 +29,7 @@ EXTERN_ACTION (redo)
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 namespace History {
-	std::vector<HistoryEntry*> s_entries;
+	vector<HistoryEntry*> s_entries;
 	static long s_pos = -1;
 	
 	// =========================================================================
@@ -38,7 +38,7 @@ namespace History {
 		// remove them now
 		for (ulong i = s_pos + 1; i < s_entries.size(); ++i) {
 			delete s_entries[i];
-			s_entries.erase (s_entries.begin() + i);
+			s_entries.erase (i);
 		}
 		
 		s_entries.push_back (entry);
@@ -96,7 +96,7 @@ namespace History {
 	}
 	
 	// =========================================================================
-	std::vector<HistoryEntry*>& entries () {
+	vector<HistoryEntry*>& entries () {
 		return s_entries;
 	}
 }
@@ -191,8 +191,8 @@ EditHistory::~EditHistory () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
-	std::vector<LDObject*> objs;
+vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
+	vector<LDObject*> objs;
 	
 	for (ulong idx : ulaIndices)
 		objs.push_back (g_curfile->object (idx + ofs));
@@ -201,13 +201,13 @@ std::vector<LDObject*> ListMoveHistory::getObjects (short ofs) {
 }
 
 void ListMoveHistory::undo () {
-	std::vector<LDObject*> objs = getObjects (bUp ? -1 : 1);
+	vector<LDObject*> objs = getObjects (bUp ? -1 : 1);
 	LDObject::moveObjects (objs, !bUp);
 	g_win->buildObjList ();
 }
 
 void ListMoveHistory::redo () {
-	std::vector<LDObject*> objs = getObjects (0);
+	vector<LDObject*> objs = getObjects (0);
 	LDObject::moveObjects (objs, bUp);
 	g_win->buildObjList ();
 }
@@ -277,7 +277,7 @@ void QuadSplitHistory::redo () {
 		ulong idx = ulaIndices[i];
 		
 		LDQuad* pQuad = static_cast<LDQuad*> (g_curfile->object (idx));
-		std::vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
+		vector<LDTriangle*> paTriangles = pQuad->splitToTriangles ();
 		
 		g_curfile->setObject (idx, paTriangles[0]);
 		g_curfile->insertObj (idx + 1, paTriangles[1]);
@@ -324,7 +324,7 @@ void InlineHistory::redo () {
 }
 
 InlineHistory::~InlineHistory () {
-	for (LDSubfile* ref : paRefs)
+	for (LDSubfile* const ref : paRefs)
 		delete ref;
 }
 
@@ -336,13 +336,13 @@ MoveHistory::~MoveHistory () {}
 void MoveHistory::undo () {
 	const vertex vInverse = -vVector;
 	
-	for (ulong i : ulaIndices)
+	for (const ulong& i : ulaIndices)
 		g_curfile->object (i)->move (vInverse);
 	g_win->fullRefresh ();
 }
 
 void MoveHistory::redo () {
-	for (ulong i : ulaIndices)
+	for (const ulong& i : ulaIndices)
 		g_curfile->object (i)->move (vVector);
 	g_win->fullRefresh ();
 }

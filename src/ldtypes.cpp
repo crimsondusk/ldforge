@@ -216,7 +216,7 @@ LDObject::~LDObject () {
 	// Remove this object from the selection array if it is there.
 	for (ulong i = 0; i < g_win->sel ().size(); ++i)
 		if (g_win->sel ()[i] == this)
-			g_win->sel ().erase (g_win->sel ().begin() + i);
+			g_win->sel ().erase (i);
 	
 	// Delete the GL lists
 	GL::deleteLists (this);
@@ -339,7 +339,7 @@ long LDObject::getIndex (LDOpenFile* file) const {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
+void LDObject::moveObjects (vector<LDObject*> objs, const bool bUp) {
 	// If we move down, we need to iterate the array in reverse order.
 	const long start = bUp ? 0 : (objs.size() - 1);
 	const long end = bUp ? objs.size() : -1;
@@ -378,7 +378,7 @@ void LDObject::moveObjects (std::vector<LDObject*> objs, const bool bUp) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str LDObject::objectListContents (const std::vector<LDObject*>& objs) {
+str LDObject::objectListContents (const vector<LDObject*>& objs) {
 	bool firstDetails = true;
 	str text = "";
 	
@@ -512,8 +512,8 @@ char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<LDObject*> LDRadial::decompose (bool applyTransform) {
-	std::vector<LDObject*> paObjects;
+vector<LDObject*> LDRadial::decompose (bool applyTransform) {
+	vector<LDObject*> paObjects;
 	
 	for (short i = 0; i < segs; ++i) {
 		double x0 = cos ((i * 2 * pi) / divs),

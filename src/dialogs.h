@@ -66,7 +66,7 @@ class ReplaceCoordsDialog : public QDialog {
 public:
 	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 	
-	std::vector< int > axes () const;
+	vector< int > axes () const;
 	double searchValue () const;
 	double replacementValue () const;
 	

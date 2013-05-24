@@ -38,7 +38,7 @@ class RadioBox : public QGroupBox {
 	Q_OBJECT
 	
 public:
-	typedef std::vector<QRadioButton*>::iterator iter;
+	typedef vector<QRadioButton*>::it it;
 	
 	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
 	explicit RadioBox () { init (Qt::Vertical); }
@@ -48,8 +48,8 @@ public:
 	
 	void			addButton		(const char* entry);
 	void			addButton		(QRadioButton* button);
-	iter			begin			();
-	iter			end				();
+	it				begin			();
+	it				end				();
 	void			init			(Qt::Orientation orient);
 	bool			isChecked		(int n) const;
 	void			rowBreak		();
@@ -67,8 +67,8 @@ signals:
 	void valueChanged (int val);
 
 private:
-	std::vector<QRadioButton*> m_objects;
-	std::vector<QBoxLayout*> m_layouts;
+	vector<QRadioButton*> m_objects;
+	vector<QBoxLayout*> m_layouts;
 	QBoxLayout* m_coreLayout;
 	QBoxLayout* m_currentLayout;
 	bool m_vert;

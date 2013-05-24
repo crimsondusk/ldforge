@@ -127,11 +127,11 @@ void RadioBox::slot_buttonReleased (int btn) {
 		emit valueChanged (newid);
 }
 
-RadioBox::iter RadioBox::begin() {
+RadioBox::it RadioBox::begin() {
 	 return m_objects.begin ();
 }
 
-RadioBox::iter RadioBox::end() {
+RadioBox::it RadioBox::end() {
 	return m_objects.end ();
 }
 
@@ -154,8 +154,8 @@ void CheckBoxGroup::addCheckBox (const char* label, int key, bool checked) {
 	connect (box, SIGNAL (stateChanged (int)), this, SLOT (buttonChanged ()));
 }
 
-std::vector<int> CheckBoxGroup::checkedValues () const {
-	std::vector<int> vals;
+vector<int> CheckBoxGroup::checkedValues () const {
+	vector<int> vals;
 	
 	for (const auto& kv : m_vals)
 		if (kv.second->isChecked ())

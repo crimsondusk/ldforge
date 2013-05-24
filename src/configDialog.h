@@ -68,8 +68,8 @@ public:
 	QListWidget* lw_quickColors;
 	QPushButton* pb_addColor, *pb_delColor, *pb_changeColor, *pb_addColorSeparator,
 		*pb_moveColorUp, *pb_moveColorDown, *pb_clearColors;
-	std::vector<QListWidgetItem*> quickColorItems;
-	std::vector<quickColorMetaEntry> quickColorMeta;
+	vector<QListWidgetItem*> quickColorItems;
+	vector<quickColorMetaEntry> quickColorMeta;
 	
 	// =========================================================================
 	// Grid tab
@@ -95,7 +95,7 @@ private:
 	void pickColor (strconfig& cfg, QPushButton* qButton);
 	void updateQuickColorList (quickColorMetaEntry* pSel = null);
 	void setShortcutText (QListWidgetItem* qItem, actionmeta meta);
-	long getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack);
+	long getItemRow (QListWidgetItem* qItem, vector<QListWidgetItem*>& haystack);
 	str makeColorToolBarString ();
 	QListWidgetItem* getSelectedQuickColor ();
 	QList<ShortcutListItem*> getShortcutSelection ();

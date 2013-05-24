@@ -237,7 +237,7 @@ void FileLoader::work () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
+vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
 	vector<str> lines;
 	vector<LDObject*> objs;
 	
@@ -323,7 +323,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	
 	ulong numWarnings;
 	bool ok;
-	std::vector<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
+	vector<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
 	
 	if (!ok) {
 		load = oldLoad;
@@ -831,7 +831,7 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
-	m_objs.insert (m_objs.begin () + pos, obj);
+	m_objs.insert (pos, obj);
 	
 	if (this == g_curfile)
 		g_BBox.calcObject (obj);
@@ -842,16 +842,16 @@ void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
 // =============================================================================
 void LDOpenFile::forgetObject (LDObject* obj) {
 	// Find the index for the given object
-	ulong ulIndex;
-	for (ulIndex = 0; ulIndex < (ulong)m_objs.size(); ++ulIndex)
-		if (m_objs[ulIndex] == obj)
+	ulong idx;
+	for (idx = 0; idx < (ulong)m_objs.size(); ++idx)
+		if (m_objs[idx] == obj)
 			break; // found it
 	
-	if (ulIndex >= m_objs.size ())
+	if (idx >= m_objs.size ())
 		return; // was not found
 	
 	// Erase it from memory
-	m_objs.erase (m_objs.begin() + ulIndex);
+	m_objs.erase (idx);
 	
 	// Update the bounding box
 	if (this == g_curfile)
@@ -861,7 +861,7 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-std::vector<partListEntry> g_PartList;
+vector<partListEntry> g_PartList;
 
 void initPartList () {
 	logf ("%s: initializing parts.lst\n", __func__);

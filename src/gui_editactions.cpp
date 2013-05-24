@@ -261,7 +261,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		if (lIndex == -1)
 			return;
 		
-		std::vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
+		vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
@@ -317,7 +317,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 	short colnum;
 	short defcol = -1;
 	
-	std::vector<LDObject*> objs = g_win->sel ();
+	vector<LDObject*> objs = g_win->sel ();
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
@@ -325,8 +325,8 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 	
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (colnum, defcol, g_win)) {
-		std::vector<ulong> indices;
-		std::vector<short> colornums;
+		vector<ulong> indices;
+		vector<short> colornums;
 		
 		for (LDObject* obj : objs) {
 			if (obj->isColored () == false)
@@ -522,7 +522,7 @@ MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive 
 // History.
 // =============================================================================
 MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
-	std::vector<LDObject*> sel = g_win->sel ();
+	vector<LDObject*> sel = g_win->sel ();
 	ComboHistory* history = new ComboHistory;
 	
 	for (LDObject* obj : sel) {
@@ -541,9 +541,9 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
-	std::vector<LDObject*> sel = g_win->sel ();
+	vector<LDObject*> sel = g_win->sel ();
 	vertex origin;
-	std::vector<vertex*> queue;
+	vector<vertex*> queue;
 	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 180;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2

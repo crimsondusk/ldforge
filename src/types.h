@@ -19,8 +19,11 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <vector>
 #include "common.h"
 
+class String;
+typedef String str;
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -36,7 +39,6 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 
 template<class T> using initlist = std::initializer_list<T>;
-using std::vector;
 
 enum Axis { X, Y, Z };
 static const Axis g_Axes[3] = {X, Y, Z};
@@ -111,6 +113,106 @@ public:
 
 private:
 	double m_coords[3];
+};
+
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// vector
+// 
+// Array class that wraps around vector
+// =============================================================================
+template<class T> class vector {
+public:
+	typedef typename std::vector<T>::iterator it;
+	typedef typename std::vector<T>::const_iterator c_it;
+	
+	vector () {}
+	vector (initlist<T> vals) {
+		m_vect = vals;
+	}
+	
+	it begin () {
+		return m_vect.begin ();
+	}
+	
+	c_it begin () const {
+		return m_vect.cbegin ();
+	}
+	
+	it end () {
+		return m_vect.end ();
+	}
+	
+	c_it end () const {
+		return m_vect.cend ();
+	}
+	
+	void erase (ulong pos) {
+		assert (pos < size ());
+		m_vect.erase (m_vect.begin () + pos);
+	}
+	
+	void push_back (const T& value) {
+		m_vect.push_back (value);
+	}
+	
+	bool pop (T& val) {
+		if (size () == 0)
+			return false;
+		
+		val = m_vect[size () - 1];
+		erase (size () - 1);
+		return true;
+	}
+	
+	vector<T>& operator<< (const T& value) {
+		push_back (value);
+		return *this;
+	}
+	
+	bool operator>> (T& value) {
+		return pop (value);
+	}
+	
+	vector<T> reverse () const {
+		vector<T> rev;
+		
+		for (const T& val : m_vect)
+			rev << val;
+		
+		return rev;
+	}
+	
+	void clear () {
+		m_vect.clear ();
+	}
+	
+	void insert (ulong pos, const T& value) {
+		m_vect.insert (m_vect.begin () + pos, value);
+	}
+	
+	ulong size () const {
+		return m_vect.size ();
+	}
+	
+	T& operator[] (ulong n) {
+		assert (n < size ());
+		return m_vect[n];
+	}
+	
+	const T& operator[] (ulong n) const {
+		assert (n < size ());
+		return m_vect[n];
+	}
+	
+	void resize (std::ptrdiff_t size) {
+		m_vect.resize (size);
+	}
+	
+private:
+	std::vector<T> m_vect;
 };
 
 #endif // TYPES_H

@@ -109,7 +109,7 @@ public:
 	void fullRefresh ();
 	void refresh ();
 	ulong getInsertionPoint ();
-	void deleteSelection (vector<ulong>* ulapIndices, std::vector<LDObject*>* papObjects);
+	void deleteSelection (vector<ulong>* ulapIndices, vector<LDObject*>* papObjects);
 	void updateToolBars ();
 	void updateRecentFilesMenu ();
 	void updateSelection ();
@@ -120,12 +120,12 @@ public:
 	LDObject::Type uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
-	DelHistory* deleteObjVector (const std::vector<LDObject*> objs);
+	DelHistory* deleteObjVector (vector<LDObject*> objs);
 	DelHistory* deleteSelection ();
 	DelHistory* deleteByColor (const short colnum);
 	GLRenderer* R () { return m_renderer; }
-	std::vector<LDObject*>& sel () { return m_sel; }
-	void setQuickColorMeta (std::vector<quickColorMetaEntry>& quickColorMeta) {
+	vector<LDObject*>& sel () { return m_sel; }
+	void setQuickColorMeta (vector<quickColorMetaEntry>& quickColorMeta) {
 		m_colorMeta = quickColorMeta;
 	}
 	void setStatusBarText (str text);
@@ -145,11 +145,11 @@ private:
 	QSplitter* m_splitter;
 	str m_msglogHTML;
 	QToolBar* m_colorToolBar;
-	std::vector<QToolBar*> m_toolBars;
-	std::vector<LDObject*> m_sel;
-	std::vector<quickColorMetaEntry> m_colorMeta;
-	std::vector<QToolButton*> m_colorButtons;
-	std::vector<QAction*> m_recentFiles;
+	vector<QToolBar*> m_toolBars;
+	vector<LDObject*> m_sel;
+	vector<quickColorMetaEntry> m_colorMeta;
+	vector<QToolButton*> m_colorButtons;
+	vector<QAction*> m_recentFiles;
 	
 	void createMenuActions ();
 	void createMenus ();
@@ -171,7 +171,7 @@ private slots:
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (const char* sIconName);
-std::vector<quickColorMetaEntry> parseQuickColorMeta ();
+vector<quickColorMetaEntry> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);

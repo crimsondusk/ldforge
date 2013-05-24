@@ -106,7 +106,7 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
-void writeObjects (std::vector<LDObject*>& objects, FILE* fp) {
+void writeObjects (vector<LDObject*>& objects, FILE* fp) {
 	for (LDObject* obj : objects) {
 		if (obj->getType () == LDObject::Subfile) {
 			vector<LDObject*> objs = static_cast<LDSubfile*> (obj)->inlineContents (true, false);
@@ -127,7 +127,7 @@ void writeObjects (std::vector<LDObject*>& objects, FILE* fp) {
 	}
 }
 
-void writeObjects (std::vector<LDObject*>& objects, str fname) {
+void writeObjects (vector<LDObject*>& objects, str fname) {
 	// Write the input file
 	FILE* fp = fopen (fname, "w");
 	if (!fp) {
@@ -153,7 +153,7 @@ void writeSelection (str fname) {
 
 // =============================================================================
 void writeColorGroup (const short colnum, str fname) {
-	std::vector<LDObject*> objects;
+	vector<LDObject*> objects;
 	for (LDObject*& obj : g_curfile->objs ()) {
 		if (obj->isColored () == false || obj->color != colnum)
 			continue;
@@ -217,9 +217,9 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 	}
 	
 	ComboHistory* cmb = new ComboHistory ();
-	std::vector<LDObject*> objs = loadFileContents (fp, null),
+	vector<LDObject*> objs = loadFileContents (fp, null),
 		copies;
-	std::vector<ulong> indices;
+	vector<ulong> indices;
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)

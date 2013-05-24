@@ -47,9 +47,6 @@ static const struct staticCameraMeta {
 	{ { 0, -1, 0 }, Z, Y, false, true },
 };
 
-overlayMeta g_overlays[6];
-double g_depthValues[6];
-
 cfg (str, gl_bgcolor, "#CCCCD9");
 cfg (str, gl_maincolor, "#707078");
 cfg (float, gl_maincolor_alpha, 1.0);
@@ -120,8 +117,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	}
 	
 	for (int i = 0; i < 6; ++i) {
-		g_overlays[i].img = null;
-		g_depthValues[i] = 0.0f;
+		m_overlays[i].img = null;
+		m_depthValues[i] = 0.0f;
 	}
 	
 	calcCameraIcons ();
@@ -133,7 +130,7 @@ GLRenderer::~GLRenderer () {
 		delete info.img;
 	
 	for (int i = 0; i < 6; ++i)
-		delete g_overlays[i].img;
+		delete m_overlays[i].img;
 }
 
 // =============================================================================
@@ -491,10 +488,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	
 	if (m_camera != Free) {
 		// Paint the overlay image if we have one
-		const overlayMeta& overlay = g_overlays[m_camera];
+		const overlayMeta& overlay = m_overlays[m_camera];
 		if (overlay.img != null) {
-			QPoint v0 = coordconv3_2 (g_overlays[m_camera].v0),
-				v1 = coordconv3_2 (g_overlays[m_camera].v1);
+			QPoint v0 = coordconv3_2 (m_overlays[m_camera].v0),
+				v1 = coordconv3_2 (m_overlays[m_camera].v1);
 			
 			QRect targRect (v0.x (), v0.y (), abs (v1.x () - v0.x ()), abs (v1.y () - v0.y ())),
 				srcRect (0, 0, overlay.img->width (), overlay.img->height ());
@@ -516,7 +513,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			textSize.height (), Qt::AlignCenter, text);
 		
 		// If we're drawing, draw the vertices onto the screen.
-		if (m_editMode == Draw) {
+		if (editMode () == Draw) {
 			ushort numverts;
 			
 			if (!m_rectdraw)
@@ -761,7 +758,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 	case LDObject::Radial:
 		{
 			LDRadial* rad = static_cast<LDRadial*> (obj);
-			std::vector<LDObject*> objs = rad->decompose (true);
+			vector<LDObject*> objs = rad->decompose (true);
 			
 			bool oldinvert = g_glInvert;
 			if (rad->transform.determinant () < 0)
@@ -901,7 +898,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	
 	if (wasRight && m_drawedVerts.size () > 0) {
 		// Remove the last vertex
-		m_drawedVerts.erase (m_drawedVerts.end () - 1);
+		m_drawedVerts.erase (m_drawedVerts.size () - 1);
 		
 		if (m_drawedVerts.size () == 0)
 			m_rectdraw = false;
@@ -1011,7 +1008,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
-		std::vector<LDObject*> oldsel = g_win->sel ();
+		vector<LDObject*> oldsel = g_win->sel ();
 		g_win->sel ().clear ();
 		
 		for (LDObject* obj : oldsel) {
@@ -1092,7 +1089,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 			
 			for (ulong i = 0; i < g_win->sel ().size(); ++i) {
 				if (g_win->sel ()[i] == obj) {
-					g_win->sel ().erase (g_win->sel ().begin () + i);
+					g_win->sel ().erase (i);
 					obj->setSelected (false);
 					removed = true;
 					removedObj = obj;
@@ -1110,11 +1107,10 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Remove duplicate entries. For this to be effective, the vector must be
 	// sorted first.
-	std::vector<LDObject*>& sel = g_win->sel ();
-	std::sort (sel.begin(), sel.end ());
-	std::vector<LDObject*>::iterator pos = std::unique (sel.begin (), sel.end ());
+	vector<LDObject*>& sel = g_win->sel ();
+	std::sort (sel.begin (), sel.end ());
+	vector<LDObject*>::it pos = std::unique (sel.begin (), sel.end ());
 	sel.resize (std::distance (sel.begin (), pos));
-	
 	// Update everything now.
 	g_win->updateSelection ();
 	
@@ -1137,8 +1133,8 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 }
 
 // =============================================================================
-void GLRenderer::setEditMode (EditMode mode) {
-	switch (mode) {
+void GLRenderer::callback_setEditMode () {
+	switch (editMode ()) {
 	case Select:
 		unsetCursor ();
 		setContextMenuPolicy (Qt::DefaultContextMenu);
@@ -1163,8 +1159,6 @@ void GLRenderer::setEditMode (EditMode mode) {
 		m_drawedVerts.clear ();
 		break;
 	}
-	
-	m_editMode = mode;
 	
 	g_win->updateEditModeActions ();
 	update ();
@@ -1320,7 +1314,7 @@ void GLRenderer::setupOverlay () {
 		return;
 	
 	QImage* img = new QImage (dlg.fpath ().chars ());
-	overlayMeta& info = g_overlays[camera ()];
+	overlayMeta& info = getOverlay (camera ());
 	
 	if (img->isNull ()) {
 		critical ("Failed to load overlay image!");
@@ -1329,7 +1323,7 @@ void GLRenderer::setupOverlay () {
 	}
 	
 	delete info.img; // delete the old image
-		
+	
 	info.fname = dlg.fpath ();
 	info.lw = dlg.lwidth ();
 	info.lh = dlg.lheight ();
@@ -1367,21 +1361,25 @@ void GLRenderer::clearOverlay () {
 	if (camera () == Free)
 		return;
 	
-	overlayMeta& info = g_overlays[camera ()];
+	overlayMeta& info = m_overlays[camera ()];
 	delete info.img;
 	info.img = null;
 }
 
 void GLRenderer::setDepthValue (double depth) {
 	assert (camera () < Free);
-	g_depthValues[camera ()] = depth;
+	m_depthValues[camera ()] = depth;
 }
 
 double GLRenderer::depthValue () const {
 	assert (camera () < Free);
-	return g_depthValues[camera ()];
+	return m_depthValues[camera ()];
 }
 
 const char* GLRenderer::cameraName () const {
 	return g_CameraNames[camera ()];
+}
+
+overlayMeta& GLRenderer::getOverlay (int newcam) {
+	 return m_overlays[newcam];
 }

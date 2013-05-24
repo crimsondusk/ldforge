@@ -157,8 +157,8 @@ public:
 	// Returns a sample object by the given value
 	static LDObject* getDefault (const LDObject::Type type);
 	
-	static void moveObjects (std::vector<LDObject*> objs, const bool bUp);
-	static str objectListContents (const std::vector<LDObject*>& objs);
+	static void moveObjects (vector<LDObject*> objs, const bool bUp);
+	static str objectListContents (const vector<LDObject*>& objs);
 	
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
@@ -273,7 +273,7 @@ public:
 	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	std::vector<LDObject*> inlineContents (bool deep, bool cache);
+	vector<LDObject*> inlineContents (bool deep, bool cache);
 };
 
 // =============================================================================
@@ -405,7 +405,7 @@ public:
 	
 	// Returns a set of objects that provide the equivalent of this radial.
 	// Note: objects are heap-allocated.
-	std::vector<LDObject*> decompose (bool applyTransform);
+	vector<LDObject*> decompose (bool applyTransform);
 	
 	// Compose a file name for this radial.
 	str makeFileName ();

@@ -115,7 +115,7 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 }
 
 void OverlayDialog::fillDefaults (int newcam) {
-	overlayMeta& info = g_overlays[newcam];
+	overlayMeta& info = g_win->R ()->getOverlay (newcam);
 	
 	if (info.img != null) {
 		le_fpath->setText (info.fname);
@@ -409,17 +409,17 @@ void NewPartDialog::StaticDialog () {
 		(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
 		null;
 	
-	objs.push_back (new LDComment (dlg.le_name->text ()));
-	objs.push_back (new LDComment ("Name: <untitled>.dat"));
-	objs.push_back (new LDComment (fmt ("Author: %s", author.chars())));
-	objs.push_back (new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")));
+	objs << new LDComment (dlg.le_name->text ());
+	objs << new LDComment ("Name: <untitled>.dat");
+	objs << new LDComment (fmt ("Author: %s", author.chars()));
+	objs << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != null)
-		objs.push_back (new LDComment (fmt ("!LICENSE %s", license)));
+		objs << new LDComment (fmt ("!LICENSE %s", license));
 	
-	objs.push_back (new LDEmpty);
-	objs.push_back (new LDBFC (BFCType));
-	objs.push_back (new LDEmpty);
+	objs << new LDEmpty;
+	objs << new LDBFC (BFCType);
+	objs << new LDEmpty;
 	
 	g_win->fullRefresh ();
 }

@@ -310,9 +310,9 @@ MAKE_ACTION (insertFrom, "Insert from File", "insert-from", "Insert LDraw data f
 		return;
 	}
 	
-	std::vector<LDObject*> historyCopies;
-	std::vector<ulong> historyIndices;
-	std::vector<LDObject*> objs = loadFileContents (fp, null);
+	vector<LDObject*> historyCopies;
+	vector<ulong> historyIndices;
+	vector<LDObject*> objs = loadFileContents (fp, null);
 	
 	g_win->sel ().clear ();
 	
@@ -342,8 +342,8 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	QVBoxLayout* const layout = new QVBoxLayout;
 	QTextEdit* const te_edit = new QTextEdit;
 	QDialogButtonBox* const bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	std::vector<LDObject*> historyCopies;
-	std::vector<ulong> historyIndices;
+	vector<LDObject*> historyCopies;
+	vector<ulong> historyIndices;
 	
 	layout->addWidget (te_edit);
 	layout->addWidget (bbx_buttons);
@@ -430,11 +430,11 @@ MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the ov
 
 // =========================================================================================================================================
 MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the camera view.", CTRL (1)) {
-	g_win->R ()->setEditMode (GL::Select);
+	g_win->R ()->setEditMode (Select);
 }
 
 MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera view.", CTRL (2)) {
-	g_win->R ()->setEditMode (GL::Draw);
+	g_win->R ()->setEditMode (Draw);
 }
 
 // =========================================================================================================================================

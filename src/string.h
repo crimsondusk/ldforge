@@ -22,8 +22,7 @@
 #include <string>
 #include <stdarg.h>
 #include <QString>
-
-using std::vector;
+#include "types.h"
 
 // =========================================================================================================================================
 char* dynafmt (const char* fmtstr, va_list va, ulong size);

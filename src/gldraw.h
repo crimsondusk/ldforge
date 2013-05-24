@@ -31,6 +31,20 @@ class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
 
+enum EditMode {
+	Select,
+	Draw
+};
+
+// Meta for overlays
+struct overlayMeta {
+	vertex v0, v1;
+	ushort ox, oy;
+	double lw, lh;
+	str fname;
+	QImage* img;
+};
+
 // =============================================================================
 // GLRenderer
 // 
@@ -43,49 +57,48 @@ class GLRenderer : public QGLWidget {
 	
 	PROPERTY (double, zoom, setZoom)
 	READ_PROPERTY (bool, picking)
+	CALLBACK_PROPERTY (EditMode, editMode, setEditMode)
 	
 public:
 	enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
-	enum EditMode { Select, Draw };
 	enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 	
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer ();
 	
-	Camera		camera				() const { return m_camera; }
-	Axis		cameraAxis			(bool y);
-	const char*	cameraName			() const;
-	void		clearOverlay		();
-	void		compileObject		(LDObject* obj);
-	void		compileAllObjects	();
-	double		depthValue			() const;
-	EditMode	editMode			() const { return m_editMode; }
-	void		endDraw				(bool accept);
-	QColor		getMainColor		();
-	void		hardRefresh		();
-	void		refresh			();
-	void		resetAngles		();
-	uchar*		screencap			(ushort& w, ushort& h);
-	void		setBackground		();
-	void		setCamera			(const Camera cam);
-	void		setDepthValue		(double depth);
-	void		setEditMode		(const EditMode mode);
-	void		setupOverlay		();
+	Camera         camera              () const { return m_camera; }
+	Axis           cameraAxis          (bool y);
+	const char*    cameraName          () const;
+	void           clearOverlay        ();
+	void           compileObject       (LDObject* obj);
+	void           compileAllObjects   ();
+	double         depthValue          () const;
+	void           endDraw             (bool accept);
+	QColor         getMainColor        ();
+	overlayMeta&   getOverlay          (int newcam);
+	void           hardRefresh         ();
+	void           refresh             ();
+	void           resetAngles         ();
+	uchar*         screencap           (ushort& w, ushort& h);
+	void           setBackground       ();
+	void           setCamera           (const Camera cam);
+	void           setDepthValue       (double depth);
+	void           setupOverlay        ();
 	
-	static void	deleteLists			(LDObject* obj);
+	static void    deleteLists         (LDObject* obj);
 
 protected:
-	void	contextMenuEvent	(QContextMenuEvent* ev);
-	void	initializeGL		();
-	void	keyPressEvent		(QKeyEvent* ev);
-	void	keyReleaseEvent	(QKeyEvent* ev);
-	void	leaveEvent			(QEvent* ev);
-	void	mousePressEvent	(QMouseEvent* ev);
-	void	mouseMoveEvent		(QMouseEvent* ev);
-	void	mouseReleaseEvent	(QMouseEvent* ev);
-	void	paintEvent			(QPaintEvent* ev);
-	void	resizeGL			(int w, int h);
-	void	wheelEvent			(QWheelEvent* ev);
+	void           contextMenuEvent    (QContextMenuEvent* ev);
+	void           initializeGL        ();
+	void           keyPressEvent       (QKeyEvent* ev);
+	void           keyReleaseEvent     (QKeyEvent* ev);
+	void           leaveEvent          (QEvent* ev);
+	void           mousePressEvent     (QMouseEvent* ev);
+	void           mouseMoveEvent      (QMouseEvent* ev);
+	void           mouseReleaseEvent   (QMouseEvent* ev);
+	void           paintEvent          (QPaintEvent* ev);
+	void           resizeGL            (int w, int h);
+	void           wheelEvent          (QWheelEvent* ev);
 
 private:
 	QTimer* m_toolTipTimer;
@@ -100,21 +113,22 @@ private:
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
 	ushort m_width, m_height;
-	std::vector<vertex> m_drawedVerts;
-	EditMode m_editMode;
+	vector<vertex> m_drawedVerts;
 	bool m_rectdraw;
 	QColor m_bgcolor;
+	double m_depthValues[6];
+	overlayMeta m_overlays[6];
 	
-	void	calcCameraIcons	();												// Compute geometry for camera icons
-	void	clampAngle			(double& angle) const;							// Clamps an angle to [0, 360]
-	void	compileList			(LDObject* obj, const ListType list);			// Compile one of the lists of an object
-	void	compileSubObject	(LDObject* obj, const GLenum gltype);			// Sub-routine for object compiling
-	void	compileVertex		(const vertex& vrt);							// Compile a single vertex to a list
-	vertex	coordconv2_3		(const QPoint& pos2d, bool snap) const;		// Convert a 2D point to a 3D point
-	QPoint	coordconv3_2		(const vertex& pos3d) const;					// Convert a 3D point to a 2D point
-	void	drawGLScene		() const;										// Paint the GL scene
-	void	pick				(uint mouseX, uint mouseY);					// Perform object selection
-	void	setObjectColor		(LDObject* obj, const ListType list);			// Set the color to an object list
+	void           calcCameraIcons     ();                                      // Compute geometry for camera icons
+	void           clampAngle          (double& angle) const;                   // Clamps an angle to [0, 360]
+	void           compileList         (LDObject* obj, const ListType list);    // Compile one of the lists of an object
+	void           compileSubObject    (LDObject* obj, const GLenum gltype);    // Sub-routine for object compiling
+	void           compileVertex       (const vertex& vrt);                     // Compile a single vertex to a list
+	vertex         coordconv2_3        (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
+	QPoint         coordconv3_2        (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
+	void           drawGLScene         () const;                                // Paint the GL scene
+	void           pick                (uint mouseX, uint mouseY);              // Perform object selection
+	void           setObjectColor      (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
 	void	slot_toolTipTimer	();
@@ -131,17 +145,7 @@ static const GLRenderer::ListType g_glListTypes[] = {
 	GL::BFCBackList,
 };
 
-// Meta for overlays
-struct overlayMeta {
-	vertex v0, v1;
-	ushort ox, oy;
-	double lw, lh;
-	str fname;
-	QImage* img;
-};
-
 extern const GL::Camera g_Cameras[7];
 extern const char* g_CameraNames[7];
-extern overlayMeta g_overlays[6];
 
 #endif // GLDRAW_H

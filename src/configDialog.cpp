@@ -442,7 +442,7 @@ void ConfigDialog::slot_setColor () {
 		else
 			idx = quickColorItems.size();
 		
-		quickColorMeta.insert (quickColorMeta.begin() + idx, entry);
+		quickColorMeta.insert (idx, entry);
 		entry = quickColorMeta[idx];
 	}
 	
@@ -456,9 +456,8 @@ void ConfigDialog::slot_delColor () {
 	if (lw_quickColors->selectedItems().size() == 0)
 		return;
 	
-	QListWidgetItem* qItem = lw_quickColors->selectedItems ()[0];
-	ulong ulIdx = getItemRow (qItem, quickColorItems);
-	quickColorMeta.erase (quickColorMeta.begin () + ulIdx);
+	QListWidgetItem* item = lw_quickColors->selectedItems ()[0];
+	quickColorMeta.erase (getItemRow (item, quickColorItems));
 	updateQuickColorList ();
 }
 
@@ -543,7 +542,7 @@ void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
 }
 
 // =============================================================================
-long ConfigDialog::getItemRow (QListWidgetItem* qItem, std::vector<QListWidgetItem*>& haystack) {
+long ConfigDialog::getItemRow (QListWidgetItem* qItem, vector<QListWidgetItem*>& haystack) {
 	long i = 0;
 	
 	for (QListWidgetItem* it : haystack) {
