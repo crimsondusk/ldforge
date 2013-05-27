@@ -109,6 +109,26 @@ vertex& vertex::operator+= (vertex other) {
 	return *this;
 }
 
+int vertex::operator< (const vertex& other) const {
+	if (operator== (other))
+		return false;
+	
+	if (coord (X) < other[X])
+		return true;
+	
+	if (coord (X) > other[X])
+		return false;
+	
+	if (coord (Y) < other[Y])
+		return true;
+	
+	if (coord (Y) > other[Y])
+		return false;
+	
+	return coord (Z) < other[Z];
+}
+
+// =============================================================================
 matrix::matrix (double vals[]) {
 	for (short i = 0; i < 9; ++i)
 		m_vals[i] = vals[i];
@@ -123,8 +143,6 @@ matrix::matrix (initlist<double> vals) {
 	assert (vals.size() == 9);
 	memcpy (&m_vals[0], &(*vals.begin ()), sizeof m_vals);
 }
-
-// =============================================================================
 void matrix::puts () const {
 	for (short i = 0; i < 3; ++i) {
 		for (short j = 0; j < 3; ++j)

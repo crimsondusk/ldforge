@@ -40,6 +40,8 @@ const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 int main (int argc, char* argv[]) {
+	const QApplication app (argc, argv);
+	
 	// Load or create the configuration
 	if (!config::load ()) {
 		printf ("Creating configuration file...\n");
@@ -49,7 +51,6 @@ int main (int argc, char* argv[]) {
 			printf ("failed to create configuration file!\n");
 	}
 	
-	const QApplication app (argc, argv);
 	LDPaths::initPaths ();
 	
 	initColors ();

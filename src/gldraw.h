@@ -124,6 +124,7 @@ private:
 	QColor m_bgcolor;
 	double m_depthValues[6];
 	overlayMeta m_overlays[6];
+	vector<vertex> m_knownVerts;
 	
 	void           calcCameraIcons     ();                                      // Compute geometry for camera icons
 	void           clampAngle          (double& angle) const;                   // Clamps an angle to [0, 360]

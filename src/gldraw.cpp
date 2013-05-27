@@ -667,6 +667,8 @@ void GLRenderer::compileAllObjects () {
 	if (!file ())
 		return;
 	
+	m_knownVerts.clear ();
+	
 	for (LDObject* obj : file ()->objs ())
 		compileObject (obj);
 	
@@ -675,11 +677,13 @@ void GLRenderer::compileAllObjects () {
 	m_axeslist = glGenLists (1);
 	glNewList (m_axeslist, GL_COMPILE);
 	glBegin (GL_LINES);
+	
 	for (const GLAxis& ax : g_GLAxes) {
 		qglColor (ax.col);
 		compileVertex (ax.vert);
 		compileVertex (-ax.vert);
 	}
+	
 	glEnd ();
 	glEndList ();
 }
@@ -841,6 +845,7 @@ void GLRenderer::clampAngle (double& angle) const {
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
 	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
+	const bool wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
 	
 	if (wasLeft) {
 		// Check if we selected a camera icon
@@ -897,6 +902,40 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		
 		m_rangepick = false;
 		m_totalmove = 0;
+		return;
+	}
+	
+	if (wasMid && editMode () == Draw && m_drawedVerts.size () < 4) {
+		// Find the closest vertex to our cursor
+		double mindist = 1024.0f;
+		vertex closest;
+		bool valid = false;
+		
+		QPoint curspos = coordconv3_2 (m_hoverpos);
+		
+		for (const vertex& pos3d: m_knownVerts) {
+			QPoint pos2d = coordconv3_2 (pos3d);
+			
+			// Measure squared distance
+			double dx = abs (pos2d.x () - curspos.x ());
+			double dy = abs (pos2d.y () - curspos.y ());
+			double distsq = (dx * dx) + (dy * dy);
+			
+			if (distsq >= 1024.0f) // 32.0f ** 2
+				continue; // too far away
+			
+			if (distsq < mindist) {
+				mindist = distsq;
+				closest = pos3d;
+				valid = true;
+			}
+		}
+		
+		if (valid) {
+			m_drawedVerts << closest;
+			update ();
+		}
+		
 		return;
 	}
 	
@@ -1108,17 +1147,14 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	delete[] pixeldata;
 	
-	// Remove duplicate entries. For this to be effective, the vector must be
-	// sorted first.
-	vector<LDObject*>& sel = g_win->sel ();
-	std::sort (sel.begin (), sel.end ());
-	vector<LDObject*>::it pos = std::unique (sel.begin (), sel.end ());
-	sel.resize (std::distance (sel.begin (), pos));
+	// Remove duplicated entries
+	g_win->sel ().makeUnique ();
+	
 	// Update everything now.
 	g_win->updateSelection ();
 	
 	// Recompile the objects now to update their color
-	for (LDObject* obj : sel)
+	for (LDObject* obj : g_win->sel ())
 		compileObject (obj);
 	
 	if (removedObj)
@@ -1235,6 +1271,29 @@ void GLRenderer::endDraw (bool accept) {
 	m_rectdraw = false;
 }
 
+static vector<vertex> getVertices (LDObject* obj) {
+	vector<vertex> verts;
+	
+	if (obj->vertices () >= 2)
+		for (int i = 0; i < obj->vertices (); ++i)
+			verts << obj->coords[i];
+	else if (obj->getType () == LDObject::Subfile || obj->getType () == LDObject::Radial) {
+		vector<LDObject*> objs;
+		
+		if (obj->getType () == LDObject::Subfile)
+			objs = static_cast<LDSubfile*> (obj)->inlineContents (true, true);
+		else
+			objs = static_cast<LDRadial*> (obj)->decompose (true);
+		
+		for (LDObject* obj : objs) {
+			verts << getVertices (obj);
+			delete obj;
+		}
+	}
+	
+	return verts;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -1253,6 +1312,10 @@ void GLRenderer::compileObject (LDObject* obj) {
 		
 		glEndList ();
 	}
+	
+	// Mark in known vertices of this object
+	m_knownVerts << getVertices (obj);
+	m_knownVerts.makeUnique ();
 	
 	obj->m_glinit = true;
 }

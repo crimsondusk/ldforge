@@ -106,6 +106,7 @@ public:
 	bool			operator==		(const vertex& other) const;
 	bool			operator!=		(const vertex& other) const;
 	vertex			operator-		() const;
+	int				operator<		(const vertex& other) const;
 	double&			operator[]		(const Axis ax);
 	const double&	operator[]		(const Axis ax) const;
 	double&			operator[]		(const int ax);
@@ -158,6 +159,11 @@ public:
 		m_vect.push_back (value);
 	}
 	
+	void push_back (const vector<T>& vals) {
+		for (const T& val : vals)
+			push_back (val);
+	}
+	
 	bool pop (T& val) {
 		if (size () == 0)
 			return false;
@@ -169,6 +175,11 @@ public:
 	
 	vector<T>& operator<< (const T& value) {
 		push_back (value);
+		return *this;
+	}
+	
+	vector<T>& operator<< (const vector<T>& vals) {
+		push_back (vals);
 		return *this;
 	}
 	
@@ -193,6 +204,14 @@ public:
 		m_vect.insert (m_vect.begin () + pos, value);
 	}
 	
+	void makeUnique () {
+		// Remove duplicate entries. For this to be effective, the vector must be
+		// sorted first.
+		sort ();
+		it pos = std::unique (begin (), end ());
+		resize (std::distance (begin (), pos));
+	}
+	
 	ulong size () const {
 		return m_vect.size ();
 	}
@@ -211,11 +230,8 @@ public:
 		m_vect.resize (size);
 	}
 	
-	template<int N> vector<T>& operator= (T vals[N]) {
-		for (int i = 0; i < N; ++i)
-			push_back (vals[i]);
-		
-		return *this;
+	void sort () {
+		std::sort (begin (), end ());
 	}
 	
 private:
