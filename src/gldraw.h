@@ -121,21 +121,25 @@ private:
 	ushort m_width, m_height;
 	vector<vertex> m_drawedVerts;
 	bool m_rectdraw;
+	vertex m_rectverts[4];
 	QColor m_bgcolor;
 	double m_depthValues[6];
 	overlayMeta m_overlays[6];
 	vector<vertex> m_knownVerts;
+	bool m_panning;
 	
-	void           addDrawnVertex      (vertex m_hoverpos);
-	void           calcCameraIcons     ();                                      // Compute geometry for camera icons
-	void           clampAngle          (double& angle) const;                   // Clamps an angle to [0, 360]
-	void           compileList         (LDObject* obj, const ListType list);    // Compile one of the lists of an object
-	void           compileSubObject    (LDObject* obj, const GLenum gltype);    // Sub-routine for object compiling
-	void           compileVertex       (const vertex& vrt);                     // Compile a single vertex to a list
-	vertex         coordconv2_3        (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
-	QPoint         coordconv3_2        (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	void           pick                (uint mouseX, uint mouseY);              // Perform object selection
-	void           setObjectColor      (LDObject* obj, const ListType list);    // Set the color to an object list
+	void           addDrawnVertex       (vertex m_hoverpos);
+	void           calcCameraIcons      ();                                      // Compute geometry for camera icons
+	void           clampAngle           (double& angle) const;                   // Clamps an angle to [0, 360]
+	void           compileList          (LDObject* obj, const ListType list);    // Compile one of the lists of an object
+	void           compileSubObject     (LDObject* obj, const GLenum gltype);    // Sub-routine for object compiling
+	void           compileVertex        (const vertex& vrt);                     // Compile a single vertex to a list
+	vertex         coordconv2_3         (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
+	QPoint         coordconv3_2         (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
+	void           buildKnownVertBlips ();
+	void           updateRectVerts      ();
+	void           pick                 (uint mouseX, uint mouseY);              // Perform object selection
+	void           setObjectColor       (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
 	void	slot_toolTipTimer	();

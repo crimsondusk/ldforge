@@ -97,6 +97,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_drawToolTip = false;
 	m_editMode = Select;
 	m_rectdraw = false;
+	m_panning = false;
 	setFile (null);
 	setDrawOnly (false);
 	resetAngles ();
@@ -435,8 +436,8 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	cy *= negYFac;
 	
 	pos3d = g_origin;
-	pos3d[axisX] = cx;
-	pos3d[axisY] = cy;
+	pos3d[axisX] = atof (fmt ("%.3f", cx));
+	pos3d[axisY] = atof (fmt ("%.3f", cy));
 	pos3d[3 - axisX - axisY] = depthValue ();
 	return pos3d;
 }
@@ -480,8 +481,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	initGLData ();
 	drawGLScene ();
 	
-	m_hoverpos = g_origin;
-	
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont ());
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
@@ -502,9 +501,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			paint.drawImage (targRect, *overlay.img, srcRect);
 		}
 		
-		// Calculate 3d position of the cursor
-		m_hoverpos = coordconv2_3 (m_pos, true);
-		
 		// Paint the coordinates onto the screen.
 		str text = fmt ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
 			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
@@ -520,61 +516,66 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		if (editMode () == Draw) {
 			ushort numverts;
 			
+			numverts = 4;
 			if (!m_rectdraw)
 				numverts = m_drawedVerts.size () + 1;
-			else
-				numverts = (m_drawedVerts.size () > 0) ? 4 : 1;
 			
 			const short blipsize = 8;
 			
 			if (numverts > 0) {
-				QPoint* poly = new QPoint[numverts];
+				QPoint poly[4];
+				vertex polyverts[4];
 				
 				if (!m_rectdraw) {
 					uchar i = 0;
 					for (vertex& vert : m_drawedVerts) {
 						poly[i] = coordconv3_2 (vert);
+						polyverts[i] = vert;
 						++i;
 					}
 					
 					// Draw the cursor vertex as the last one in the list.
-					if (numverts < 5)
+					if (numverts <= 4) {
 						poly[i] = coordconv3_2 (m_hoverpos);
-					else
+						polyverts[i] = m_hoverpos;
+					} else {
 						numverts = 4;
+					}
 				} else {
 					if (m_drawedVerts.size () > 0) {
-						QPoint v0 = coordconv3_2 (m_drawedVerts[0]),
-							v1 = coordconv3_2 ((m_drawedVerts.size () >= 2) ? m_drawedVerts[1] : m_hoverpos);
-						
-						poly[0] = QPoint (v0.x (), v0.y ());
-						poly[1] = QPoint (v0.x (), v1.y ());
-						poly[2] = QPoint (v1.x (), v1.y ());
-						poly[3] = QPoint (v1.x (), v0.y ());
+						// Get vertex information from m_rectverts
+						for (ushort i = 0; i < numverts; ++i) {
+							polyverts[i] = m_rectverts[i];
+							poly[i] = coordconv3_2 (polyverts[i]);
+						}
 					} else {
 						poly[0] = coordconv3_2 (m_hoverpos);
+						polyverts[0] = m_hoverpos;
 					}
 				}
 				
+				// Draw the polygon-to-be
 				QPen pen = m_thinBorderPen;
-				pen.setWidth (1);
-				paint.setPen (pen);
-				paint.setBrush (QColor (128, 192, 0));
-				
-				// Draw vertex blips
-				for (ushort i = 0; i < numverts; ++i) {
-					QPoint& blip = poly[i];
-					paint.drawEllipse (blip.x () - blipsize / 2, blip.y () - blipsize / 2,
-						blipsize, blipsize);
-				}
-				
 				pen.setWidth (2);
 				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 				paint.setPen (pen);
 				paint.setBrush (QColor (128, 192, 0, 128));
 				paint.drawPolygon (poly, numverts);
 				
-				delete[] poly;
+				// Draw vertex blips
+				pen = m_thinBorderPen;
+				pen.setWidth (1);
+				paint.setPen (pen);
+				paint.setBrush (QColor (128, 192, 0));
+				
+				for (ushort i = 0; i < numverts; ++i) {
+					QPoint& blip = poly[i];
+					paint.drawEllipse (blip.x () - blipsize / 2, blip.y () - blipsize / 2,
+						blipsize, blipsize);
+					
+					// Draw their coordinates
+					paint.drawText (blip.x (), blip.y () - 8, polyverts[i].stringRep (true));
+				}
 			}
 		}
 	}
@@ -858,7 +859,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
 	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
 	const bool wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
-	printf ("totalmove: %lu\n", m_totalmove);
+	
+	if (m_panning)
+		m_panning = false;
 	
 	if (wasLeft) {
 		// Check if we selected a camera icon
@@ -866,8 +869,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			for (CameraIcon& info : g_CameraIcons) {
 				if (info.destRect.contains (ev->pos ())) {
 					setCamera (info.cam);
-					update ();
-					return;
+					goto end;
 				}
 			}
 		}
@@ -891,7 +893,6 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			}
 			
 			addDrawnVertex (m_hoverpos);
-			update ();
 			break;
 		
 		case Select:
@@ -902,6 +903,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				if (m_totalmove < 10 || m_rangepick)
 					pick (ev->x (), ev->y ());
 			}
+			
 			break;
 		}
 		
@@ -944,10 +946,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		
 		if (m_drawedVerts.size () == 0)
 			m_rectdraw = false;
-		
-		update ();
 	}
 	
+end:
+	update ();
 	m_totalmove = 0;
 }
 
@@ -986,13 +988,22 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	if (ev->buttons () & Qt::MidButton) {
 		m_panX += 0.03f * dx * (zoom () / 7.5f);
 		m_panY -= 0.03f * dy * (zoom () / 7.5f);
+		m_panning = true;
 	}
 	
 	// Start the tool tip timer
 	if (!m_drawToolTip)
 		m_toolTipTimer->start (1000);
 	
+	// Update 2d position
 	m_pos = ev->pos ();
+	
+	// Calculate 3d position of the cursor
+	m_hoverpos = (camera () != Free) ? coordconv2_3 (m_pos, true) : g_origin;
+	
+	// Update rect vertices since m_hoverpos may have changed
+	updateRectVerts ();
+	
 	update ();
 }
 
@@ -1213,20 +1224,11 @@ void GLRenderer::endDraw (bool accept) {
 	
 	if (m_rectdraw) {
 		LDQuad* quad = new LDQuad;
-		vertex v0 = m_drawedVerts[0],
-			v1 = m_drawedVerts[1];
-		const Axis axisX = cameraAxis (false),
-			axisY = cameraAxis (true);
 		
-		memset (quad->coords, 0, sizeof quad->coords);
-		quad->coords[0][axisX] = v0[axisX];
-		quad->coords[0][axisY] = v0[axisY];
-		quad->coords[1][axisX] = v1[axisX];
-		quad->coords[1][axisY] = v0[axisY];
-		quad->coords[2][axisX] = v1[axisX];
-		quad->coords[2][axisY] = v1[axisY];
-		quad->coords[3][axisX] = v0[axisX];
-		quad->coords[3][axisY] = v1[axisY];
+		// Copy the vertices from m_rectverts
+		updateRectVerts ();
+		memcpy (quad->coords, m_rectverts, sizeof quad->coords);
+		
 		quad->color = maincolor;
 		obj = quad;
 	} else {
@@ -1314,7 +1316,8 @@ void GLRenderer::compileObject (LDObject* obj) {
 	}
 	
 	// Mark in known vertices of this object
-	m_knownVerts << getVertices (obj);
+	vector<vertex> verts = getVertices (obj);
+	m_knownVerts << verts;
 	m_knownVerts.makeUnique ();
 	
 	obj->m_glinit = true;
@@ -1465,6 +1468,7 @@ void GLRenderer::zoomNotch (bool inward) {
 		setZoom (zoom () + (inward ? -1.2f : 1.2f));
 }
 
+// =============================================================================
 void GLRenderer::zoomToFit () {
 	if (file () == null) {
 		setZoom (30.0f);
@@ -1540,4 +1544,36 @@ void GLRenderer::zoomToFit () {
 	
 	setBackground ();
 	m_picking = false;
+}
+
+// =============================================================================
+void GLRenderer::updateRectVerts () {
+	if (!m_rectdraw)
+		return;
+	
+	if (m_drawedVerts.size () == 0) {
+		for (int i = 0; i < 4; ++i)
+			m_rectverts[i] = m_hoverpos;
+		
+		return;
+	}
+	
+	vertex v0 = m_drawedVerts[0],
+		v1 = (m_drawedVerts.size () >= 2) ? m_drawedVerts[1] : m_hoverpos;
+	
+	const Axis ax = cameraAxis (false),
+		ay = cameraAxis (true),
+		az = (Axis) (3 - ax - ay);
+	
+	for (int i = 0; i < 4; ++i)
+		m_rectverts[i][az] = depthValue ();
+	
+	m_rectverts[0][ax] = v0[ax];
+	m_rectverts[0][ay] = v0[ay];
+	m_rectverts[1][ax] = v1[ax];
+	m_rectverts[1][ay] = v0[ay];
+	m_rectverts[2][ax] = v1[ax];
+	m_rectverts[2][ay] = v1[ay];
+	m_rectverts[3][ax] = v0[ax];
+	m_rectverts[3][ay] = v1[ay];
 }
