@@ -681,7 +681,7 @@ MAKE_ACTION (isecalc, "Isecalc", "isecalc", "Compute intersection between object
 	runIsecalc ();
 }
 
-// =========================================================================================================================================
+// =============================================================================
 MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
 	ReplaceCoordsDialog dlg;
 	
@@ -690,8 +690,10 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	
 	const double search = dlg.searchValue (),
 		replacement = dlg.replacementValue ();
-	vector<int> sel = dlg.axes ();
+	const bool any = dlg.any (),
+		rel = dlg.rel ();
 	
+	vector<int> sel = dlg.axes ();
 	EditHistory* history = new EditHistory;
 	
 	for (LDObject* obj : g_win->sel ()) {
@@ -701,8 +703,12 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 		for (int ax : sel) {
 			double& coord = obj->coords[i][(Axis) ax];
 			
-			if (coord == search)
-				coord = replacement;
+			if (any || coord == search) {
+				if (!rel)
+					coord = 0;
+				
+				coord += replacement;
+			}
 		}
 		
 		history->addEntry (copy, obj, obj->getIndex (g_curfile));

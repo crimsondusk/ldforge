@@ -26,6 +26,7 @@
 #include <QBoxLayout>
 #include <QGridLayout>
 #include <qprogressbar.h>
+#include <QCheckBox>
 
 #include "dialogs.h"
 #include "widgets.h"
@@ -164,12 +165,19 @@ ReplaceCoordsDialog::ReplaceCoordsDialog (QWidget* parent, Qt::WindowFlags f) : 
 	dsb_replacement = new QDoubleSpinBox;
 	dsb_replacement->setRange (-10000.0f, 10000.0f);
 	
+	cb_any = new QCheckBox ("Any");
+	cb_rel = new QCheckBox ("Relative");
+	
+	connect (cb_any, SIGNAL (stateChanged (int)), this, SLOT (anyChanged (int)));
+	
 	QGridLayout* valueLayout = new QGridLayout;
 	valueLayout->setColumnStretch (1, 1);
 	valueLayout->addWidget (lb_search, 0, 0);
 	valueLayout->addWidget (dsb_search, 0, 1);
+	valueLayout->addWidget (cb_any, 0, 2);
 	valueLayout->addWidget (lb_replacement, 1, 0);
 	valueLayout->addWidget (dsb_replacement, 1, 1);
+	valueLayout->addWidget (cb_rel, 1, 2);
 	
 	QVBoxLayout* layout = new QVBoxLayout;
 	layout->addWidget (cbg_axes);
@@ -188,6 +196,18 @@ double ReplaceCoordsDialog::replacementValue () const {
 
 vector<int> ReplaceCoordsDialog::axes () const {
 	return cbg_axes->checkedValues ();
+}
+
+void ReplaceCoordsDialog::anyChanged (int state) {
+	dsb_search->setEnabled (state != Qt::Checked);
+}
+
+bool ReplaceCoordsDialog::any () const {
+	return cb_any->isChecked ();
+}
+
+bool ReplaceCoordsDialog::rel () const {
+	return cb_rel->isChecked ();
 }
 
 // =============================================================================

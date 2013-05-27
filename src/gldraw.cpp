@@ -839,6 +839,18 @@ void GLRenderer::clampAngle (double& angle) const {
 		angle -= 360.0;
 }
 
+void GLRenderer::addDrawnVertex (vertex pos) {
+	// If we picked an already-existing vertex, stop drawing
+	for (vertex& vert : m_drawedVerts) {
+		if (vert == pos) {
+			endDraw (true);
+			return;
+		}
+	}
+	
+	m_drawedVerts << pos;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -846,6 +858,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
 	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
 	const bool wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
+	printf ("totalmove: %lu\n", m_totalmove);
 	
 	if (wasLeft) {
 		// Check if we selected a camera icon
@@ -875,17 +888,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				
 				if (m_drawedVerts.size () == 0 && ev->modifiers () & Qt::ShiftModifier)
 					m_rectdraw = true;
-				
-				// If we picked an already-existing vertex, stop drawing
-				for (vertex& vert : m_drawedVerts) {
-					if (vert == m_hoverpos) {
-						endDraw (true);
-						return;
-					}
-				}
 			}
 			
-			m_drawedVerts << m_hoverpos;
+			addDrawnVertex (m_hoverpos);
 			update ();
 			break;
 		
@@ -901,11 +906,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		}
 		
 		m_rangepick = false;
-		m_totalmove = 0;
-		return;
 	}
 	
-	if (wasMid && editMode () == Draw && m_drawedVerts.size () < 4) {
+	if (wasMid && editMode () == Draw && m_drawedVerts.size () < 4 && m_totalmove < 10) {
 		// Find the closest vertex to our cursor
 		double mindist = 1024.0f;
 		vertex closest;
@@ -931,12 +934,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			}
 		}
 		
-		if (valid) {
-			m_drawedVerts << closest;
-			update ();
-		}
-		
-		return;
+		if (valid)
+			addDrawnVertex (closest);
 	}
 	
 	if (wasRight && m_drawedVerts.size () > 0) {
@@ -948,14 +947,15 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		
 		update ();
 	}
+	
+	m_totalmove = 0;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
-	if (ev->buttons () & Qt::LeftButton)
-		m_totalmove = 0;
+	m_totalmove = 0;
 	
 	if (ev->modifiers () & Qt::ShiftModifier) {
 		m_rangepick = true;

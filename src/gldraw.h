@@ -126,6 +126,7 @@ private:
 	overlayMeta m_overlays[6];
 	vector<vertex> m_knownVerts;
 	
+	void           addDrawnVertex      (vertex m_hoverpos);
 	void           calcCameraIcons     ();                                      // Compute geometry for camera icons
 	void           clampAngle          (double& angle) const;                   // Clamps an angle to [0, 360]
 	void           compileList         (LDObject* obj, const ListType list);    // Compile one of the lists of an object
