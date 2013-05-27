@@ -490,7 +490,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	if (drawOnly ())
 		return;
 	
-	if (m_camera != Free) {
+	if (m_camera != Free && !picking ()) {
 		// Paint the overlay image if we have one
 		const overlayMeta& overlay = m_overlays[m_camera];
 		if (overlay.img != null) {
@@ -506,13 +506,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		m_hoverpos = coordconv2_3 (m_pos, true);
 		
 		// Paint the coordinates onto the screen.
-		str text;
-		text.format ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
+		str text = fmt ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
 			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
 		
 		QFontMetrics metrics = QFontMetrics (font ());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		
+		paint.setPen (m_darkbg ? Qt::white : Qt::black);
 		paint.drawText (m_width - textSize.width (), m_height - 16, textSize.width (),
 			textSize.height (), Qt::AlignCenter, text);
 		
