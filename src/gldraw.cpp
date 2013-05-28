@@ -959,11 +959,12 @@ end:
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 	m_totalmove = 0;
 	
-	if (ev->modifiers () & Qt::ShiftModifier) {
+	if (ev->modifiers () & Qt::ControlModifier) {
 		m_rangepick = true;
 		m_rangeStart.setX (ev->x ());
 		m_rangeStart.setY (ev->y ());
-		m_addpick = (m_keymods & Qt::ControlModifier);
+		m_addpick = (m_keymods & Qt::AltModifier);
+		ev->accept ();
 	}
 	
 	m_lastButtons = ev->buttons ();
@@ -977,18 +978,20 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	int dy = ev->y () - m_pos.y ();
 	m_totalmove += abs (dx) + abs (dy);
 	
-	if (ev->buttons () & Qt::LeftButton && !m_rangepick) {
+	const bool left = ev->buttons () & Qt::LeftButton,
+		mid = ev->buttons () & Qt::MidButton,
+		shift = ev->modifiers () & Qt::ShiftModifier;
+	
+	if (mid || (left && shift)) {
+		m_panX += 0.03f * dx * (zoom () / 7.5f);
+		m_panY -= 0.03f * dy * (zoom () / 7.5f);
+		m_panning = true;
+	} else if (left && !m_rangepick && camera () == Free) {
 		m_rotX = m_rotX + (dy);
 		m_rotY = m_rotY + (dx);
 		
 		clampAngle (m_rotX);
 		clampAngle (m_rotY);
-	}
-	
-	if (ev->buttons () & Qt::MidButton) {
-		m_panX += 0.03f * dx * (zoom () / 7.5f);
-		m_panY -= 0.03f * dy * (zoom () / 7.5f);
-		m_panning = true;
 	}
 	
 	// Start the tool tip timer
