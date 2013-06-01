@@ -633,12 +633,11 @@ void ForgeWindow::buildObjList () {
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
-				descr.format ("%s %s, (",
-					ref->fileName.chars(), ref->pos.stringRep (true).chars());
+				descr.format ("%s %s, (", ref->fileName.chars (),
+					ref->position ().stringRep (true).chars ());
 				
 				for (short i = 0; i < 9; ++i)
-					descr += fmt ("%s%s",
-						ftoa (ref->transform[i]).chars(),
+					descr += fmt ("%s%s", ftoa (ref->transform ()[i]).chars (),
 						(i != 8) ? " " : "");
 				
 				descr += ')';
@@ -657,7 +656,7 @@ void ForgeWindow::buildObjList () {
 				if (rad->type () == LDRadial::Ring || rad->type () == LDRadial::Cone)
 					descr += fmt (" %d", rad->number ());
 				
-				descr += fmt (" %s", rad->pos.stringRep (true).chars ());
+				descr += fmt (" %s", rad->position ().stringRep (true).chars ());
 			}
 			break;
 		

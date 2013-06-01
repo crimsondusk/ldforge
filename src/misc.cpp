@@ -182,27 +182,26 @@ bool isNumber (const str& tok) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void simplify (short& dNum, short& dDenom) {
-	bool bRepeat;
+void simplify (short& numer, short& denom) {
+	bool repeat;
 	
 	do {
-		bRepeat = false;
+		repeat = false;
 		
-		for (ulong x = 0; x < NUM_PRIMES; x++) {
-			ulong i = NUM_PRIMES - x - 1;
-			ushort uPrime = g_primes[i];
+		for (ushort x = 0; x < NUM_PRIMES; x++) {
+			const ushort prime = g_primes[NUM_PRIMES - x - 1];
 			
-			if (dNum <= uPrime || dDenom <= uPrime)
+			if (numer <= prime || denom <= prime)
 				continue;
 			
-			if ((dNum % uPrime == 0) && (dDenom % uPrime == 0)) {
-				dNum /= uPrime;
-				dDenom /= uPrime;
-				bRepeat = true;
+			if ((numer % prime == 0) && (denom % prime == 0)) {
+				numer /= prime;
+				denom /= prime;
+				repeat = true;
 				break;
 			}
 		}
-	} while (bRepeat);
+	} while (repeat);
 }
 
 // =============================================================================
@@ -214,10 +213,8 @@ vertex rotPoint (const vector<LDObject*>& objs) {
 	
 	// Calculate center vertex
 	for (LDObject* obj : objs) {
-		if (obj->getType () == LDObject::Subfile)
-			box << static_cast<LDSubfile*> (obj)->pos;
-		else if (obj->getType () == LDObject::Radial)
-			box << static_cast<LDRadial*> (obj)->pos;
+		if (obj->hasMatrix ())
+			box << dynamic_cast<LDMatrixObject*> (obj)->position ();
 		else
 			box << obj;
 	}

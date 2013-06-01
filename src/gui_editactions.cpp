@@ -171,8 +171,8 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		
 		// Create the replacement primitive.
 		LDSubfile* prim = new LDSubfile;
-		memcpy (&prim->pos, &rad->pos, sizeof rad->pos); // inherit position
-		memcpy (&prim->transform, &rad->transform, sizeof rad->transform); // inherit matrix
+		prim->setPosition (rad->position ()); // inherit position
+		prim->setTransform (rad->transform ()); // inherit matrix
 		prim->setColor (rad->color ()); // inherit color
 		prim->fileName = name;
 		prim->fileInfo = file;
@@ -435,8 +435,8 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
 	vector<LDObject*> sel = g_win->sel ();
-	vertex origin;
 	vector<vertex*> queue;
+	const vertex rotpoint = rotPoint (sel);
 	const double angle = (pi * currentGrid ().confs[Grid::Angle]->value) / 180;
 	
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
@@ -457,28 +457,27 @@ static void doRotate (const short l, const short m, const short n) {
 		(n * n * (1 - cosangle)) + cosangle
 	});
 	
-	origin = rotPoint (sel);
-	
-	// Apply the above matrix to everything
+	// Apply the above matrix to everything - first, mark down
+	// which vertices to transform
 	for (LDObject* obj : sel) {
 		if (obj->vertices ())
 			for (short i = 0; i < obj->vertices (); ++i)
 				queue << &obj->coords[i];
 		else if (obj->hasMatrix ()) {
-			LDMatrixObject* mobj = static_cast<LDSubfile*> (obj);
-			
-			queue << &mobj->pos;
-			mobj->transform = mobj->transform * transform;
+			LDMatrixObject* mo = static_cast<LDSubfile*> (obj);
+			queue << const_cast<vertex*> (&mo->position ()); // TEMPORARY HACK
+			mo->setTransform (mo->transform () * transform);
 		} else if (obj->getType () == LDObject::Vertex)
 			queue << &static_cast<LDVertex*> (obj)->pos;
 		
 		g_win->R ()->compileObject (obj);
 	}
 	
+	// Now do the actual transformations
 	for (vertex* v : queue) {
-		v->move (-origin);
+		v->move (-rotpoint);
 		v->transform (transform, g_origin);
-		v->move (origin);
+		v->move (rotpoint);
 	}
 	
 	g_win->refresh ();

@@ -240,40 +240,34 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addWidget (sb_radSegments, 2, 4);
 		layout->addWidget (lb_radRingNum, 3, 3);
 		layout->addWidget (sb_radRingNum, 3, 4);
-		
-		if (obj)
-			for (short i = 0; i < 3; ++i)
-				dsb_coords[i]->setValue (static_cast<LDRadial*> (obj)->pos.coord (i));
 		break;
 	
 	case LDObject::Subfile:
 		layout->addWidget (tw_subfileList, 1, 1, 1, 2);
 		layout->addWidget (lb_subfileName, 2, 1);
 		layout->addWidget (le_subfileName, 2, 2);
-		
-		if (obj)
-			for (short i = 0; i < 3; ++i)
-				dsb_coords[i]->setValue (static_cast<LDSubfile*> (obj)->pos.coord (i));
 		break;
 	
 	default:
 		break;
 	}
 	
-	if (type == LDObject::Subfile || type == LDObject::Radial) {
+	if (defaults->hasMatrix ()) {
+		LDMatrixObject* mo = obj ? dynamic_cast<LDMatrixObject*> (obj) : null;
+		
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
 		// le_matrix->setValidator (new QDoubleValidator);
-		matrix defval = g_identity;
+		matrix defaultMatrix = g_identity;
 		
-		if (obj) {
-			if (obj->getType () == LDObject::Subfile)
-				defval = static_cast<LDSubfile*> (obj)->transform;
-			else
-				defval = static_cast<LDRadial*> (obj)->transform;
+		if (mo) {
+			for (const Axis ax : g_Axes)
+				dsb_coords[ax]->setValue (mo->position ()[ax]);
+			
+			defaultMatrix = mo->transform ();
 		}
 		
-		le_matrix->setText (defval.stringRep ());
+		le_matrix->setText (defaultMatrix.stringRep ());
 		layout->addWidget (lb_matrix, 4, 1);
 		layout->addWidget (le_matrix, 4, 2, 1, 3);
 	}
@@ -433,13 +427,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			LDRadial* rad = initObj<LDRadial> (obj);
 			
 			for (const Axis ax : g_Axes)
-				rad->pos[ax] = dlg.dsb_coords[ax]->value ();
+				rad->setCoordinate (ax, dlg.dsb_coords[ax]->value ());
 			
 			rad->setDivisions (dlg.cb_radHiRes->isChecked () ? hires : lores);
 			rad->setSegments (min<short> (dlg.sb_radSegments->value (), rad->divisions ()));
 			rad->setType ((LDRadial::Type) dlg.rb_radType->value ());
 			rad->setNumber (dlg.sb_radRingNum->value ());
-			rad->transform = transform;
+			rad->setTransform (transform);
 		}
 		break;
 	
@@ -458,10 +452,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 			
 			for (const Axis ax : g_Axes)
-				ref->pos[ax] = dlg.dsb_coords[ax]->value ();
+				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value ());
 			
 			ref->fileName = name;
-			ref->transform = transform;
+			ref->setTransform (transform);
 			ref->fileInfo = file;
 		}
 		break;

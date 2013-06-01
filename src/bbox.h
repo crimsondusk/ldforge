@@ -40,7 +40,7 @@ public:
 	void calculate ();
 	double size () const;
 	void calcObject (LDObject* obj);
-	void calcVertex (vertex v);
+	void calcVertex (const vertex& v);
 	vertex center () const;
 	
 	bbox& operator<< (LDObject* obj) {
@@ -48,7 +48,7 @@ public:
 		return *this;
 	}
 	
-	bbox& operator<< (vertex& v) {
+	bbox& operator<< (const vertex& v) {
 		calcVertex (v);
 		return *this;
 	}

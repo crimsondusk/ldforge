@@ -28,13 +28,13 @@ vertex::vertex (double x, double y, double z) {
 }
 
 // =============================================================================
-void vertex::move (vertex other) {
+void vertex::move (const vertex& other) {
 	for (const Axis ax : g_Axes)
 		m_coords[ax] += other[ax];
 }
 
 // =============================================================================
-vertex vertex::midpoint (vertex& other) {
+vertex vertex::midpoint (const vertex& other) {
 	vertex mid;
 	
 	for (const Axis ax : g_Axes)
@@ -44,7 +44,7 @@ vertex vertex::midpoint (vertex& other) {
 }
 
 // =============================================================================
-str vertex::stringRep (const bool mangled) {
+str vertex::stringRep (bool mangled) const {
 	return fmt (mangled ? "(%s, %s, %s)" : "%s %s %s",
 		ftoa (coord (X)).chars(),
 		ftoa (coord (Y)).chars(),
@@ -104,9 +104,15 @@ vertex vertex::operator/ (const double d) const {
 	return other /= d;
 }
 
-vertex& vertex::operator+= (vertex other) {
+vertex& vertex::operator+= (const vertex& other) {
 	move (other);
 	return *this;
+}
+
+vertex& vertex::operator+ (const vertex& other) const {
+	vertex newvert = *this;
+	newvert.move (other);
+	return newvert;
 }
 
 int vertex::operator< (const vertex& other) const {
@@ -171,7 +177,7 @@ void matrix::zero () {
 }
 
 // =============================================================================
-matrix matrix::mult (matrix other) {
+matrix matrix::mult (matrix other) const {
 	matrix val;
 	val.zero ();
 	

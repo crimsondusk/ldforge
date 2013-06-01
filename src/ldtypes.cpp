@@ -78,8 +78,8 @@ str LDComment::getContents () {
 }
 
 str LDSubfile::getContents () {
-	str val = fmt ("1 %d %s ", color (), pos.stringRep (false).chars ());
-	val += transform.stringRep ();
+	str val = fmt ("1 %d %s ", color (), position ().stringRep (false).chars ());
+	val += transform ().stringRep ();
 	val += ' ';
 	val += fileName;
 	return val;
@@ -238,10 +238,12 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 	case LDObject::Subfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			matrix newMatrix = transform * ref->transform ();
+			vertex newpos = ref->position ();
 			
-			matrix newMatrix = transform * ref->transform;
-			ref->pos.transform (transform, pos);
-			ref->transform = newMatrix;
+			newpos.transform (transform, pos);
+			ref->setPosition (newpos);
+			ref->setTransform (newMatrix);
 		}
 		break;
 	
@@ -319,7 +321,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 		// Set the parent now so we know what inlined this.
 		obj->setParent (this);
 		
-		transformObject (obj, transform, pos, color ());
+		transformObject (obj, transform (), position (), color ());
 	}
 	
 	return objs;
@@ -461,11 +463,11 @@ void LDVertex::move (vertex vect) {
 }
 
 void LDSubfile::move (vertex vect) {
-	pos += vect;
+	setPosition (position () + vect);
 }
 
 void LDRadial::move (vertex vect) {
-	pos += vect;
+	setPosition (position () + vect);
 }
 
 void LDLine::move (vertex vect) {
@@ -521,16 +523,13 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 			z0 = sin ((i * 2 * pi) / divisions ()),
 			z1 = sin (((i + 1) * 2 * pi) / divisions ());
 		
+		LDObject* obj = null;
+		
 		switch (type ()) {
 		case LDRadial::Circle:
 			{
 				vertex v0 (x0, 0.0f, z0),
 					v1 (x1, 0.0f, z1);
-				
-				if (applyTransform) {
-					v0.transform (transform, pos);
-					v1.transform (transform, pos);
-				}
 				
 				LDLine* line = new LDLine;
 				line->coords[0] = v0;
@@ -538,7 +537,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				line->setColor (edgecolor);
 				line->setParent (this);
 				
-				objs << line;
+				obj = line;
 			}
 			break;
 		
@@ -581,22 +580,16 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v2 (x2, y2, z2),
 					v3 (x3, y3, z3);
 				
-				if (applyTransform) {
-					v0.transform (transform, pos);
-					v1.transform (transform, pos);
-					v2.transform (transform, pos);
-					v3.transform (transform, pos);
-				}
-				
 				LDQuad* quad = new LDQuad;
 				quad->coords[0] = v0;
 				quad->coords[1] = v1;
 				quad->coords[2] = v2;
 				quad->coords[3] = v3;
+				
 				quad->setColor (color ());
 				quad->setParent (this);
 				
-				objs << quad;
+				obj = quad;
 			}
 			break;
 		
@@ -616,12 +609,6 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v1 (x1, 0.0f, z1),
 					v2 (x2, 0.0f, z2);
 				
-				if (applyTransform) {
-					v0.transform (transform, pos);
-					v1.transform (transform, pos);
-					v2.transform (transform, pos);
-				}
-				
 				LDTriangle* seg = new LDTriangle;
 				seg->coords[0] = v0;
 				seg->coords[1] = v1;
@@ -629,12 +616,24 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				seg->setColor (color ());
 				seg->setParent (this);
 				
-				objs << seg;
+				if (applyTransform)
+					for (int i = 0; i < 3; ++i)
+						seg->coords[i].transform (transform (), position ());
+				
+				obj = seg;
 			}
 			break;
 		
 		default:
 			break;
+		}
+		
+		if (obj) {
+			if (applyTransform)
+				for (int i = 0; i < obj->vertices (); ++i)
+					obj->coords[i].transform (transform (), position ());
+			
+			objs << obj;
 		}
 	}
 	
@@ -648,7 +647,7 @@ str LDRadial::getContents () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName ()).upper ().strip (' ').c (),
 		color (), segments (), divisions (), number (),
-		pos.stringRep (false).chars(), transform.stringRep().chars());
+		position ().stringRep (false).chars (), transform ().stringRep().chars ());
 }
 
 char const* g_radialNameRoots[] = {

@@ -658,11 +658,13 @@ LDObject* parseLine (str line) {
 					obj->setSegments (atol (tokens[5]));
 					obj->setDivisions (atol (tokens[6]));
 					obj->setNumber (atol (tokens[7]));
-					obj->pos = parseVertex (tokens, 8); // 8 - 10
+					obj->setPosition (parseVertex (tokens, 8)); // 8 - 10
 					
+					matrix transform;
 					for (short i = 0; i < 9; ++i)
-						obj->transform[i] = atof (tokens[i + 11]); // 11 - 19
+						transform[i] = atof (tokens[i + 11]); // 11 - 19
 					
+					obj->setTransform (transform);
 					return obj;
 				}
 			}
@@ -691,11 +693,13 @@ LDObject* parseLine (str line) {
 			
 			LDSubfile* obj = new LDSubfile;
 			obj->setColor (atol (tokens[1]));
-			obj->pos = parseVertex (tokens, 2); // 2 - 4
+			obj->setPosition (parseVertex (tokens, 2)); // 2 - 4
 			
+			matrix transform;
 			for (short i = 0; i < 9; ++i)
-				obj->transform[i] = atof (tokens[i + 5]); // 5 - 13
+				transform[i] = atof (tokens[i + 5]); // 5 - 13
 			
+			obj->setTransform (transform);
 			obj->fileName = tokens[14];
 			obj->fileInfo = load;
 			return obj;

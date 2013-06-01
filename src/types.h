@@ -58,7 +58,7 @@ public:
 	matrix (double vals[]);
 	
 	double			determinant	() const;
-	matrix			mult			(matrix other);
+	matrix			mult			(matrix other) const;
 	void			puts			() const;
 	str				stringRep		() const;
 	void			zero			();
@@ -66,7 +66,7 @@ public:
 	const double&	val				(const uint idx) const { return m_vals[idx]; }
 	
 	matrix&			operator=		(matrix other);
-	matrix			operator*		(matrix other) { return mult (other); }
+	matrix			operator*		(matrix other) const { return mult (other); }
 	double&			operator[]		(const uint idx) { return m_vals[idx]; }
 	const double&	operator[]		(const uint idx) const { return m_vals[idx]; }
 
@@ -89,9 +89,9 @@ public:
 	
 	double&			coord			(const ushort n) { return m_coords[n]; }
 	const double&	coord			(const ushort n) const { return m_coords[n]; }
-	vertex			midpoint		(vertex& other);
-	void			move			(vertex other);
-	str				stringRep		(const bool mangled);
+	vertex			midpoint		(const vertex& other);
+	void			move			(const vertex& other);
+	str				stringRep		(bool mangled) const;
 	void			transform		(matrix matr, vertex pos);
 	double&			x				() { return m_coords[X]; }
 	const double&	x				() const { return m_coords[X]; }
@@ -100,7 +100,8 @@ public:
 	double&			z				() { return m_coords[Z]; }
 	const double&	z				() const { return m_coords[Z]; }
 	
-	vertex&			operator+=		(vertex other);
+	vertex&			operator+=		(const vertex& other);
+	vertex&			operator+		(const vertex& other) const;
 	vertex			operator/		(const double d) const;
 	vertex&			operator/=		(const double d);
 	bool			operator==		(const vertex& other) const;

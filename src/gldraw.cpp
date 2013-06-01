@@ -746,7 +746,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			
 			bool oldinvert = g_glInvert;
 			
-			if (ref->transform.determinant () < 0)
+			if (ref->transform ().determinant () < 0)
 				g_glInvert = !g_glInvert;
 			
 			LDObject* prev = ref->prev ();
@@ -768,7 +768,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			vector<LDObject*> objs = rad->decompose (true);
 			
 			bool oldinvert = g_glInvert;
-			if (rad->transform.determinant () < 0)
+			if (rad->transform ().determinant () < 0)
 				g_glInvert = !g_glInvert;
 			
 			LDObject* prev = rad->prev ();

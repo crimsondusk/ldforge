@@ -110,7 +110,7 @@ void bbox::calcObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::calcVertex (vertex v) {
+void bbox::calcVertex (const vertex& v) {
 	for (const Axis ax : g_Axes) {
 		if (v[ax] < m_v0[ax])
 			m_v0[ax] = v[ax];

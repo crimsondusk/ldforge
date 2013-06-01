@@ -57,13 +57,21 @@ class LDSubfile;
 // Common code for objects with matrices
 // =============================================================================
 class LDMatrixObject {
+	PROPERTY (matrix, transform, setTransform)
+	PROPERTY (vertex, position, setPosition)
+	
 public:
 	LDMatrixObject () {}
 	LDMatrixObject (const matrix& transform, const vertex& pos) :
-		transform (transform), pos (pos) {}
+		PROP_NAME (transform) (transform), PROP_NAME (position) (pos) {}
 	
-	matrix transform;
-	vertex pos;
+	const double& setCoordinate (const Axis ax, double value) {
+		vertex v = position ();
+		v[ax] = value;
+		setPosition (v);
+		
+		return position ()[ax];
+	}
 };
 
 // =============================================================================
