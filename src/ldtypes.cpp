@@ -502,11 +502,11 @@ static char const* g_saRadialTypeNames[] = {
 };
 
 char const* LDRadial::radialTypeName () {
-	return g_saRadialTypeNames[radType];
+	return g_saRadialTypeNames[type ()];
 }
 
-char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
-	return g_saRadialTypeNames[eType];
+char const* LDRadial::radialTypeName (const LDRadial::Type typeval) {
+	return g_saRadialTypeNames[typeval];
 }
 
 // =============================================================================
@@ -515,13 +515,13 @@ char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
 vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 	vector<LDObject*> objs;
 	
-	for (short i = 0; i < segs; ++i) {
-		double x0 = cos ((i * 2 * pi) / divs),
-			x1 = cos (((i + 1) * 2 * pi) / divs),
-			z0 = sin ((i * 2 * pi) / divs),
-			z1 = sin (((i + 1) * 2 * pi) / divs);
+	for (short i = 0; i < segments (); ++i) {
+		double x0 = cos ((i * 2 * pi) / divisions ()),
+			x1 = cos (((i + 1) * 2 * pi) / divisions ()),
+			z0 = sin ((i * 2 * pi) / divisions ()),
+			z1 = sin (((i + 1) * 2 * pi) / divisions ());
 		
-		switch (radType) {
+		switch (type ()) {
 		case LDRadial::Circle:
 			{
 				vertex v0 (x0, 0.0f, z0),
@@ -549,7 +549,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 				double x2, x3, z2, z3;
 				double y0, y1, y2, y3;
 				
-				if (radType == LDRadial::Cylinder) {
+				if (type () == LDRadial::Cylinder) {
 					x2 = x1;
 					x3 = x0;
 					z2 = z1;
@@ -558,17 +558,17 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					y0 = y1 = 0.0f;
 					y2 = y3 = 1.0f;
 				} else {
-					x2 = x1 * (ringNum + 1);
-					x3 = x0 * (ringNum + 1);
-					z2 = z1 * (ringNum + 1);
-					z3 = z0 * (ringNum + 1);
+					x2 = x1 * (number () + 1);
+					x3 = x0 * (number () + 1);
+					z2 = z1 * (number () + 1);
+					z3 = z0 * (number () + 1);
 					
-					x0 *= ringNum;
-					x1 *= ringNum;
-					z0 *= ringNum;
-					z1 *= ringNum;
+					x0 *= number ();
+					x1 *= number ();
+					z0 *= number ();
+					z1 *= number ();
 					
-					if (radType == LDRadial::Ring) {
+					if (type () == LDRadial::Ring) {
 						y0 = y1 = y2 = y3 = 0.0f;
 					} else {
 						y0 = y1 = 1.0f;
@@ -605,7 +605,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 			{
 				double x2, z2;
 				
-				if (radType == LDRadial::Disc) {
+				if (type () == LDRadial::Disc) {
 					x2 = z2 = 0.0f;
 				} else {
 					x2 = (x0 >= 0.0f) ? 1.0f : -1.0f;
@@ -646,8 +646,8 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 // =============================================================================
 str LDRadial::getContents () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
-		str (radialTypeName()).upper ().strip (' ').c (),
-		color (), segs, divs, ringNum,
+		str (radialTypeName ()).upper ().strip (' ').c (),
+		color (), segments (), divisions (), number (),
 		pos.stringRep (false).chars(), transform.stringRep().chars());
 }
 
@@ -665,8 +665,8 @@ char const* g_radialNameRoots[] = {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::makeFileName () {
-	short numer = segs,
-		denom = divs;
+	short numer = segments (),
+		denom = divisions ();
 	
 	// Simplify the fractional part, but the denominator must be at least 4.
 	simplify (numer, denom);
@@ -679,10 +679,10 @@ str LDRadial::makeFileName () {
 	}
 	
 	// Compose some general information: prefix, fraction, root, ring number
-	str prefix = (divs == 16) ? "" : fmt ("%d/", divs);
+	str prefix = (divisions () == lores) ? "" : fmt ("%d/", divisions ());
 	str frac = fmt ("%d-%d", numer, denom);
-	str root = g_radialNameRoots[radType];
-	str num = (radType == Ring || radType == Cone) ? fmt ("%d", ringNum) : "";
+	str root = g_radialNameRoots[type ()];
+	str num = (type () == Ring || type () == Cone) ? fmt ("%d", number ()) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.

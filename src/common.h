@@ -178,6 +178,9 @@ static const std::nullptr_t null = nullptr;
 static const short maincolor = 16;
 static const short edgecolor = 24;
 
+static const short lores = 16;
+static const short hires = 48;
+
 static const bool yup = true;
 static const bool nope = false;
 

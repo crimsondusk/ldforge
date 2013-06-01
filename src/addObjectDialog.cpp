@@ -172,10 +172,10 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj) {
 			LDRadial* rad = static_cast<LDRadial*> (obj);
 			
-			rb_radType->setValue (rad->radType);
-			sb_radSegments->setValue (rad->segs);
-			cb_radHiRes->setChecked ((rad->divs == 48) ? Qt::Checked : Qt::Unchecked);
-			sb_radRingNum->setValue (rad->ringNum);
+			rb_radType->setValue (rad->type ());
+			sb_radSegments->setValue (rad->segments ());
+			cb_radHiRes->setChecked ((rad->divisions () == hires) ? Qt::Checked : Qt::Unchecked);
+			sb_radRingNum->setValue (rad->number ());
 		}
 		break;
 	
@@ -430,16 +430,16 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	case LDObject::Radial:
 		{
-			LDRadial* pRad = initObj<LDRadial> (obj);
+			LDRadial* rad = initObj<LDRadial> (obj);
 			
 			for (const Axis ax : g_Axes)
-				pRad->pos[ax] = dlg.dsb_coords[ax]->value ();
+				rad->pos[ax] = dlg.dsb_coords[ax]->value ();
 			
-			pRad->divs = (dlg.cb_radHiRes->checkState () != Qt::Checked) ? 16 : 48;
-			pRad->segs = min<short> (dlg.sb_radSegments->value (), pRad->divs);
-			pRad->radType = (LDRadial::Type) dlg.rb_radType->value ();
-			pRad->ringNum = dlg.sb_radRingNum->value ();
-			pRad->transform = transform;
+			rad->setDivisions (dlg.cb_radHiRes->isChecked () ? hires : lores);
+			rad->setSegments (min<short> (dlg.sb_radSegments->value (), rad->divisions ()));
+			rad->setType ((LDRadial::Type) dlg.rb_radType->value ());
+			rad->setNumber (dlg.sb_radRingNum->value ());
+			rad->transform = transform;
 		}
 		break;
 	

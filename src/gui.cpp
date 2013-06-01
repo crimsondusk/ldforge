@@ -651,13 +651,13 @@ void ForgeWindow::buildObjList () {
 		
 		case LDObject::Radial:
 			{
-				LDRadial* pRad = static_cast<LDRadial*> (obj);
-				descr.format ("%d / %d %s", pRad->segs, pRad->divs, pRad->radialTypeName());
+				LDRadial* rad = static_cast<LDRadial*> (obj);
+				descr.format ("%d / %d %s", rad->segments (), rad->divisions (), rad->radialTypeName ());
 				
-				if (pRad->radType == LDRadial::Ring || pRad->radType == LDRadial::Cone)
-					descr += fmt (" %d", pRad->ringNum);
+				if (rad->type () == LDRadial::Ring || rad->type () == LDRadial::Cone)
+					descr += fmt (" %d", rad->number ());
 				
-				descr += fmt (" %s", pRad->pos.stringRep (true).chars ());
+				descr += fmt (" %s", rad->pos.stringRep (true).chars ());
 			}
 			break;
 		

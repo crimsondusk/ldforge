@@ -653,12 +653,11 @@ LDObject* parseLine (str line) {
 					
 					LDRadial* obj = new LDRadial;
 					
-					obj->radType = eType;
+					obj->setType (eType);
 					obj->setColor (atol (tokens[4]));
-					obj->segs = atol (tokens[5]);
-					obj->divs = atol (tokens[6]);
-					obj->ringNum = atol (tokens[7]);
-					
+					obj->setSegments (atol (tokens[5]));
+					obj->setDivisions (atol (tokens[6]));
+					obj->setNumber (atol (tokens[7]));
 					obj->pos = parseVertex (tokens, 8); // 8 - 10
 					
 					for (short i = 0; i < 9; ++i)

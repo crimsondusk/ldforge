@@ -384,17 +384,21 @@ public:
 		NumTypes
 	};
 	
+	PROPERTY (LDRadial::Type, type, setType)
+	PROPERTY (short, divisions, setDivisions)
+	PROPERTY (short, segments, setSegments)
+	PROPERTY (short, number, setNumber)
+	
+public:
 	LDOBJ (Radial)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	
-	LDRadial::Type radType;
-	short divs, segs, ringNum;
-	
 	LDRadial (LDRadial::Type radType, vertex pos, matrix transform, short divs, short segs, short ringNum) :
-		LDMatrixObject (transform, pos), radType (radType), divs (divs), segs (segs), ringNum (ringNum) {}
+		LDMatrixObject (transform, pos), PROP_NAME (type) (radType), PROP_NAME (divisions) (divs),
+		PROP_NAME (segments) (segs), PROP_NAME (number) (ringNum) {}
 	
 	// Returns a set of objects that provide the equivalent of this radial.
 	// Note: objects are heap-allocated.
