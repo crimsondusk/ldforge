@@ -77,6 +77,8 @@ public:
 class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
+	PROPERTY (short, color, setColor)
+	PROPERTY (LDObject*, parent, setParent)
 	
 public:
 	// Object type codes. Codes are sorted in order of significance.
@@ -102,18 +104,11 @@ public:
 	// Index (i.e. line number) of this object
 	long getIndex (LDOpenFile* pFile) const;
 	
-	// Color used by this object. Comments, gibberish and empty entries
-	// do not use this field.
-	short color;
-	
 	// OpenGL list for this object
 	uint glLists[4];
 	
 	// Vertices of this object
 	vertex coords[4];
-	
-	// Object this object was referenced from, if any
-	LDObject* parent;
 	
 	// Type enumerator of this object
 	virtual LDObject::Type getType () const {

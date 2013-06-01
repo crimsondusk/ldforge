@@ -30,9 +30,9 @@
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
 class bbox {
-	READ_PROPERTY (bool, empty)
-	READ_PROPERTY (vertex, v0)
-	READ_PROPERTY (vertex, v1)
+	READ_PROPERTY (bool, empty, setEmpty)
+	READ_PROPERTY (vertex, v0, setV0)
+	READ_PROPERTY (vertex, v1, setV1)
 	
 public:
 	bbox ();

@@ -627,7 +627,7 @@ LDObject* parseLine (str line) {
 					CHECK_TOKEN_NUMBERS (3, 6)
 					
 					LDVertex* obj = new LDVertex;
-					obj->color = atol (tokens[3]);
+					obj->setColor (atol (tokens[3]));
 					
 					for (const Axis ax : g_Axes)
 						obj->pos[ax] = atof (tokens[4 + ax]); // 4 - 6
@@ -653,11 +653,11 @@ LDObject* parseLine (str line) {
 					
 					LDRadial* obj = new LDRadial;
 					
-					obj->radType = eType;			// 3
-					obj->color = atol (tokens[4]);		// 4
-					obj->segs = atol (tokens[5]);	// 5
-					obj->divs = atol (tokens[6]);	// 6
-					obj->ringNum = atol (tokens[7]);	// 7
+					obj->radType = eType;
+					obj->setColor (atol (tokens[4]));
+					obj->segs = atol (tokens[5]);
+					obj->divs = atol (tokens[6]);
+					obj->ringNum = atol (tokens[7]);
 					
 					obj->pos = parseVertex (tokens, 8); // 8 - 10
 					
@@ -691,7 +691,7 @@ LDObject* parseLine (str line) {
 				return new LDGibberish (line, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
-			obj->color = atol (tokens[1]);
+			obj->setColor (atol (tokens[1]));
 			obj->pos = parseVertex (tokens, 2); // 2 - 4
 			
 			for (short i = 0; i < 9; ++i)
@@ -709,7 +709,7 @@ LDObject* parseLine (str line) {
 			
 			// Line
 			LDLine* obj = new LDLine;
-			obj->color = atol (tokens[1]);
+			obj->setColor (atol (tokens[1]));
 			for (short i = 0; i < 2; ++i)
 				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 7
 			return obj;
@@ -722,7 +722,7 @@ LDObject* parseLine (str line) {
 			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
-			obj->color = atol (tokens[1]);
+			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 3; ++i)
 				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 10
@@ -737,7 +737,7 @@ LDObject* parseLine (str line) {
 			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
-			obj->color = atol (tokens[1]);
+			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 4; ++i)
 				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
@@ -752,7 +752,7 @@ LDObject* parseLine (str line) {
 			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
-			obj->color = atol (tokens[1]);
+			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 4; ++i)
 				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13

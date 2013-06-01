@@ -42,7 +42,7 @@ cfg (bool, edit_schemanticinline, false);
 static bool copyToClipboard () {
 	vector<LDObject*> objs = g_win->sel ();
 	
-	if (objs.size() == 0)
+	if (objs.size () == 0)
 		return false;
 	
 	// Clear the clipboard first.
@@ -55,7 +55,7 @@ static bool copyToClipboard () {
 	// separate objects so that modifying the existing ones does not affect
 	// the clipboard. Thus, we add clones of the objects to the clipboard, not
 	// the objects themselves.
-	for (ulong i = 0; i < objs.size(); ++i)
+	for (ulong i = 0; i < objs.size (); ++i)
 		g_Clipboard << objs[i]->clone ();
 	
 	return true;
@@ -65,13 +65,10 @@ static bool copyToClipboard () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
-	vector<ulong> ulaIndices;
-	vector<LDObject*> copies;
-	
 	if (!copyToClipboard ())
 		return;
 	
-	g_win->deleteSelection (&ulaIndices, &copies);
+	g_win->deleteSelection ();
 }
 
 // =============================================================================
@@ -102,7 +99,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
-	g_win->deleteSelection (null, null);
+	g_win->deleteSelection ();
 }
 
 // =============================================================================
@@ -130,8 +127,7 @@ static void doInline (bool deep) {
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
 			// This object is now inlined so it has no parent anymore.
-			inlineobj->parent = null;
-			
+			inlineobj->setParent (null);
 			g_curfile->insertObj (idx++, inlineobj);
 		}
 		
@@ -177,7 +173,7 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		LDSubfile* prim = new LDSubfile;
 		memcpy (&prim->pos, &rad->pos, sizeof rad->pos); // inherit position
 		memcpy (&prim->transform, &rad->transform, sizeof rad->transform); // inherit matrix
-		prim->color = rad->color; // inherit color
+		prim->setColor (rad->color ()); // inherit color
 		prim->fileName = name;
 		prim->fileInfo = file;
 		
@@ -276,7 +272,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 			if (obj->isColored () == false)
 				continue;
 			
-			obj->color = colnum;
+			obj->setColor (colnum);
 			g_win->R ()->compileObject (obj);
 		}
 		
@@ -317,9 +313,8 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 		for (short i = 0; i < numLines; ++i) {
 			ulong idx = obj->getIndex (g_curfile) + i + 1;
 			
-			lines[i]->color = edgecolor;
+			lines[i]->setColor (edgecolor);
 			g_curfile->insertObj (idx, lines[i]);
-			
 			g_win->R ()->compileObject (lines[i]);
 		}
 	}
@@ -341,7 +336,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertex* vert = new LDVertex;
 			vert->pos = obj->coords[i];
-			vert->color = obj->color;
+			vert->setColor (obj->color ());
 			
 			g_curfile->insertObj (++idx, vert);
 			g_win->R ()->compileObject (vert);
@@ -540,7 +535,7 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 		if (obj->isColored () == false)
 			continue;
 		
-		obj->color = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
+		obj->setColor ((obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor);
 	}
 	
 	g_win->fullRefresh ();
@@ -654,7 +649,7 @@ MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional l
 // =================================================================================================
 static bool isColorUsed (short colnum) {
 	for (LDObject* obj : g_curfile->objs ())
-		if (obj->isColored () && obj->color == colnum)
+		if (obj->isColored () && obj->color () == colnum)
 			return true;
 	
 	return false;
@@ -675,7 +670,7 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 		if (obj->isColored () == false)
 			continue;
 		
-		obj->color = colnum;
+		obj->setColor (colnum);
 		g_win->R ()->compileObject (obj);
 	}
 	

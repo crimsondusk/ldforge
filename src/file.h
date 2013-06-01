@@ -126,9 +126,9 @@ str dirname (str path);
 class FileLoader : public QObject {
 	Q_OBJECT
 	
-	READ_PROPERTY (vector<LDObject*>, objs)
-	READ_PROPERTY (bool, done)
-	READ_PROPERTY (ulong, progress)
+	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
+	READ_PROPERTY (bool, done, setDone)
+	READ_PROPERTY (ulong, progress, setProgress)
 	PROPERTY (FILE*, filePointer, setFilePointer)
 	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
 	

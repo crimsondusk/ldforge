@@ -86,52 +86,65 @@ str fullVersionString ();
 #define NDEBUG // remove asserts
 #endif // RELEASE
 
+#define PROP_NAME(GET) m_##GET
+
+#define READ_ACCESSOR(T, GET) \
+	T const& GET () const { return PROP_NAME (GET); }
+
+#define SET_ACCESSOR(T, GET, SET) \
+	T const& SET (T val) { PROP_NAME (GET) = val; return PROP_NAME (GET); }
+
 // Read-only, private property with a get accessor
-#define READ_PROPERTY(T, GET) \
+#define READ_PROPERTY(T, GET, SET) \
 private: \
-	T m_##GET; \
+	T PROP_NAME (GET); \
+	SET_ACCESSOR (T, GET, SET) \
 public: \
-	T const& GET () const { return m_##GET; } \
+	READ_ACCESSOR (T, GET)
 
 // Same as above except not const
 #define MUTABLE_READ_PROPERTY(T, GET) \
 private: \
-	T m_##GET; \
+	T PROP_NAME(GET); \
 public: \
-	T& GET () { return m_##GET; } \
+	T& GET () { return PROP_NAME(GET); }
 
 // Read/write private property with get and set accessors
-#define SET_ACCESSOR(T, GET, SET) \
-	void SET (T val) { m_##GET = val; }
-
 #define PROPERTY(T, GET, SET) \
-	READ_PROPERTY(T, GET) \
-	SET_ACCESSOR(T, GET, SET)
-
-#define MUTABLE_PROPERTY(T, GET, SET) \
-	MUTABLE_READ_PROPERTY(T, GET) \
+private: \
+	T PROP_NAME(GET); \
+public: \
+	READ_ACCESSOR(T, GET) \
 	SET_ACCESSOR(T, GET, SET)
 
 // Property that triggers a callback when it is changed
-#define CALLBACK_PROPERTY(T, GET, SET) \
-	READ_PROPERTY(T, GET) \
-	void callback_##SET (); \
-	void SET (T val) { m_##GET = val; callback_##SET (); }
+#define CALLBACK_PROPERTY(T, GET, SET, CALLBACK) \
+private: \
+	T PROP_NAME(GET); \
+public: \
+	READ_ACCESSOR(T, GET) \
+	void CALLBACK (); \
+	T const& SET (T val) { \
+		PROP_NAME(GET) = val; \
+		CALLBACK (); \
+		return m_##GET; \
+	}
 
 // Property with thread locking, use when multiple threads access the same property
 // Comes with a callback function for detecting when the value is changed.
 #define THREAD_PROPERTY(T, GET, SET) \
 private: \
-	T m_##GET; \
+	T PROP_NAME (GET); \
 	QMutex m_threadLock_##GET; \
 public: \
-	const T& GET () const { return m_##GET; } \
+	READ_ACCESSOR(T, GET) \
 	void callback_##SET (); \
-	void SET (T val) { \
+	T const& SET (T val) { \
 		m_threadLock_##GET.lock (); \
-		m_##GET = val; \
+		PROP_NAME (GET) = val; \
 		callback_##SET (); \
 		m_threadLock_##GET.unlock (); \
+		return m_##GET; \
 	}
 
 #ifdef null

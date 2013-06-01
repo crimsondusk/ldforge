@@ -217,14 +217,14 @@ MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL
 MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	"Select all objects by the given color.", CTRL_SHIFT (A))
 {
-	short dColor = g_win->getSelectedColor ();
+	short colnum = g_win->getSelectedColor ();
 	
-	if (dColor == -1)
+	if (colnum == -1)
 		return; // no consensus on color
 	
 	g_win->sel ().clear ();
 	for (LDObject* obj : g_curfile->objs ())
-		if (obj->color == dColor)
+		if (obj->color () == colnum)
 			g_win->sel () << obj;
 	
 	g_win->updateSelection ();

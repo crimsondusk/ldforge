@@ -61,7 +61,7 @@ char const* g_saObjTypeIcons[] = {
 // LDObject constructors
 LDObject::LDObject () {
 	qObjListEntry = null;
-	parent = null;
+	setParent (null);
 	m_hidden = false;
 	m_selected = false;
 	m_glinit = false;
@@ -78,7 +78,7 @@ str LDComment::getContents () {
 }
 
 str LDSubfile::getContents () {
-	str val = fmt ("1 %d %s ", color, pos.stringRep (false).chars ());
+	str val = fmt ("1 %d %s ", color (), pos.stringRep (false).chars ());
 	val += transform.stringRep ();
 	val += ' ';
 	val += fileName;
@@ -86,7 +86,7 @@ str LDSubfile::getContents () {
 }
 
 str LDLine::getContents () {
-	str val = fmt ("2 %d", color);
+	str val = fmt ("2 %d", color ());
 	
 	for (ushort i = 0; i < 2; ++i)
 		val += fmt  (" %s", coords[i].stringRep (false).chars ());
@@ -95,7 +95,7 @@ str LDLine::getContents () {
 }
 
 str LDTriangle::getContents () {
-	str val = fmt ("3 %d", color);
+	str val = fmt ("3 %d", color ());
 	
 	for (ushort i = 0; i < 3; ++i)
 		val += fmt  (" %s", coords[i].stringRep (false).chars ());
@@ -104,7 +104,7 @@ str LDTriangle::getContents () {
 }
 
 str LDQuad::getContents () {
-	str val = fmt ("4 %d", color);
+	str val = fmt ("4 %d", color ());
 	
 	for (ushort i = 0; i < 4; ++i)
 		val += fmt  (" %s", coords[i].stringRep (false).chars ());
@@ -113,7 +113,7 @@ str LDQuad::getContents () {
 }
 
 str LDCondLine::getContents () {
-	str val = fmt ("5 %d", color);
+	str val = fmt ("5 %d", color ());
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
@@ -127,7 +127,7 @@ str LDGibberish::getContents () {
 }
 
 str LDVertex::getContents () {
-	return fmt ("0 !LDFORGE VERTEX %d %s", color, pos.stringRep (false).chars());
+	return fmt ("0 !LDFORGE VERTEX %d %s", color (), pos.stringRep (false).chars());
 }
 
 str LDEmpty::getContents () {
@@ -171,7 +171,7 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 	tri2->coords[2] = coords[3];
 	
 	// The triangles also inherit the quad's color
-	tri1->color = tri2->color = color;
+	tri1->setColor (tri2->setColor (color ()));
 	
 	vector<LDTriangle*> triangles;
 	triangles << tri1;
@@ -249,8 +249,8 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 		break;
 	}
 	
-	if (obj->color == maincolor)
-		obj->color = parentcolor;
+	if (obj->color () == maincolor)
+		obj->setColor (parentcolor);
 }
 
 // =============================================================================
@@ -317,9 +317,9 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 	// Transform the objects
 	for (LDObject* obj : objs) {
 		// Set the parent now so we know what inlined this.
-		obj->parent = this;
+		obj->setParent (this);
 		
-		transformObject (obj, transform, pos, color);
+		transformObject (obj, transform, pos, color ());
 	}
 	
 	return objs;
@@ -414,13 +414,13 @@ str LDObject::objectListContents (const vector<LDObject*>& objs) {
 
 // =============================================================================
 LDObject* LDObject::topLevelParent () {
-	if (!parent)
+	if (!parent ())
 		return this;
 	
 	LDObject* it = this;
 	
-	while (it->parent)
-		it = it->parent;
+	while (it->parent ())
+		it = it->parent ();
 	
 	return it;
 }
@@ -513,7 +513,7 @@ char const* LDRadial::radialTypeName (const LDRadial::Type eType) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 vector<LDObject*> LDRadial::decompose (bool applyTransform) {
-	vector<LDObject*> paObjects;
+	vector<LDObject*> objs;
 	
 	for (short i = 0; i < segs; ++i) {
 		double x0 = cos ((i * 2 * pi) / divs),
@@ -532,13 +532,13 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v1.transform (transform, pos);
 				}
 				
-				LDLine* pLine = new LDLine;
-				pLine->coords[0] = v0;
-				pLine->coords[1] = v1;
-				pLine->color = edgecolor;
-				pLine->parent = this;
+				LDLine* line = new LDLine;
+				line->coords[0] = v0;
+				line->coords[1] = v1;
+				line->setColor (edgecolor);
+				line->setParent (this);
 				
-				paObjects << pLine;
+				objs << line;
 			}
 			break;
 		
@@ -588,15 +588,15 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v3.transform (transform, pos);
 				}
 				
-				LDQuad* pQuad = new LDQuad;
-				pQuad->coords[0] = v0;
-				pQuad->coords[1] = v1;
-				pQuad->coords[2] = v2;
-				pQuad->coords[3] = v3;
-				pQuad->color = color;
-				pQuad->parent = this;
+				LDQuad* quad = new LDQuad;
+				quad->coords[0] = v0;
+				quad->coords[1] = v1;
+				quad->coords[2] = v2;
+				quad->coords[3] = v3;
+				quad->setColor (color ());
+				quad->setParent (this);
 				
-				paObjects << pQuad;
+				objs << quad;
 			}
 			break;
 		
@@ -622,14 +622,14 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v2.transform (transform, pos);
 				}
 				
-				LDTriangle* pSeg = new LDTriangle;
-				pSeg->coords[0] = v0;
-				pSeg->coords[1] = v1;
-				pSeg->coords[2] = v2;
-				pSeg->color = color;
-				pSeg->parent = this;
+				LDTriangle* seg = new LDTriangle;
+				seg->coords[0] = v0;
+				seg->coords[1] = v1;
+				seg->coords[2] = v2;
+				seg->setColor (color ());
+				seg->setParent (this);
 				
-				paObjects << pSeg;
+				objs << seg;
 			}
 			break;
 		
@@ -638,7 +638,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 		}
 	}
 	
-	return paObjects;
+	return objs;
 }
 
 // =============================================================================
@@ -647,7 +647,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 str LDRadial::getContents () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName()).upper ().strip (' ').c (),
-		color, segs, divs, ringNum,
+		color (), segs, divs, ringNum,
 		pos.stringRep (false).chars(), transform.stringRep().chars());
 }
 
@@ -798,7 +798,7 @@ void LDVertex::invert () { }
 LDLine* LDCondLine::demote () {
 	LDLine* repl = new LDLine;
 	memcpy (repl->coords, coords, sizeof coords);
-	repl->color = color;
+	repl->setColor (color ());
 	
 	replace (repl);
 	return repl;

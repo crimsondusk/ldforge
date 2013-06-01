@@ -69,7 +69,7 @@ private:
 	void setButtonBackground (QPushButton* button, short color);
 	char* currentSubfileName ();
 	
-	short dColor;
+	short colnum;
 	
 private slots:
 	void slot_colorButtonClicked ();

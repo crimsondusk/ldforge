@@ -29,7 +29,6 @@ class QComboBox;
 class ForgeWindow;
 class color;
 class QSplitter;
-class DelHistory;
 class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
@@ -109,7 +108,6 @@ public:
 	void fullRefresh ();
 	void refresh ();
 	ulong getInsertionPoint ();
-	void deleteSelection (vector<ulong>* ulapIndices, vector<LDObject*>* papObjects);
 	void updateToolBars ();
 	void updateRecentFilesMenu ();
 	void updateSelection ();
@@ -120,9 +118,9 @@ public:
 	LDObject::Type uniformSelectedType ();
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
-	DelHistory* deleteObjVector (vector<LDObject*> objs);
-	DelHistory* deleteSelection ();
-	DelHistory* deleteByColor (const short colnum);
+	void deleteObjVector (vector< LDObject* > objs);
+	void deleteSelection ();
+	void deleteByColor (const short int colnum);
 	GLRenderer* R () { return m_renderer; }
 	vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {

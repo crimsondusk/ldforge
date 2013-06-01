@@ -529,6 +529,8 @@ void ForgeWindow::updateTitle () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_action () {
+	g_curfile->history ().open ();
+	
 	// Get the action that triggered this slot.
 	QAction* qAct = static_cast<QAction*> (sender ());
 	
@@ -552,12 +554,14 @@ void ForgeWindow::slot_action () {
 	
 	// We have the meta, now call the handler.
 	(*pMeta->handler) ();
+	
+	g_curfile->history ().close ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::deleteSelection (vector<ulong>* indicesPtr, vector<LDObject*>* objsPtr) {
+void ForgeWindow::deleteSelection () {
 	if (m_sel.size () == 0)
 		return;
 	
@@ -565,11 +569,6 @@ void ForgeWindow::deleteSelection (vector<ulong>* indicesPtr, vector<LDObject*>*
 	
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy) {
-		if (objsPtr && indicesPtr) {
-			*objsPtr << obj->clone ();
-			*indicesPtr << obj->getIndex (g_curfile);
-		}
-		
 		g_curfile->forgetObject (obj);
 		delete obj;
 	}
@@ -681,11 +680,11 @@ void ForgeWindow::buildObjList () {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		} else if (lv_colorize && obj->isColored () &&
-			obj->color != maincolor && obj->color != edgecolor)
+			obj->color () != maincolor && obj->color () != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			color* col = getColor (obj->color);
+			color* col = getColor (obj->color ());
 			if (col)
 				item->setForeground (col->faceColor);
 		}
@@ -785,10 +784,10 @@ void ForgeWindow::slot_quickColor () {
 	short newColor = col->index;
 	
 	for (LDObject* obj : m_sel) {
-		if (obj->color == -1)
+		if (obj->isColored () == false)
 			continue; // uncolored object
 		
-		obj->color = newColor;
+		obj->setColor (newColor);
 	}
 	
 	fullRefresh ();
@@ -856,14 +855,14 @@ short ForgeWindow::getSelectedColor () {
 	short result = -1;
 	
 	for (LDObject* obj : m_sel) {
-		if (obj->color == -1)
+		if (obj->isColored () == false)
 			continue; // doesn't use color
 		
-		if (result != -1 && obj->color != result)
+		if (result != -1 && obj->color () != result)
 			return -1; // No consensus in object color
 		
 		if (result == -1)
-			result = obj->color;
+			result = obj->color ();
 	}
 	
 	return result;
@@ -876,7 +875,7 @@ LDObject::Type ForgeWindow::uniformSelectedType () {
 	LDObject::Type result = LDObject::Unidentified;
 	
 	for (LDObject* obj : m_sel) {
-		if (result != LDObject::Unidentified && obj->color != result)
+		if (result != LDObject::Unidentified && obj->color () != result)
 			return LDObject::Unidentified;
 		
 		if (result == LDObject::Unidentified)
@@ -943,31 +942,24 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 }
 
 // ========================================================================================================================================
-DelHistory* ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
+void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	for (LDObject* obj : objs) {
 		g_curfile->forgetObject (obj);
 		delete obj;
 	}
-	
-	return null;
 }
 
 // ========================================================================================================================================
-DelHistory* ForgeWindow::deleteSelection () {
-	return deleteObjVector (sel ());
-}
-
-// ========================================================================================================================================
-DelHistory* ForgeWindow::deleteByColor (const short colnum) {
+void ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
 	for (LDObject* obj : g_curfile->objs ()) {
-		if (!obj->isColored () || obj->color != colnum)
+		if (!obj->isColored () || obj->color () != colnum)
 			continue;
 		
 		objs << obj;
 	}
 	
-	return deleteObjVector (objs);
+	deleteObjVector (objs);
 }
 
 // ========================================================================================================================================
@@ -1071,10 +1063,10 @@ void makeColorSelector (QComboBox* box) {
 		if (!obj->isColored ())
 			continue;
 		
-		if (counts.find (obj->color) == counts.end ())
-			counts[obj->color] = 1;
+		if (counts.find (obj->color ()) == counts.end ())
+			counts[obj->color ()] = 1;
 		else
-			counts[obj->color]++;
+			counts[obj->color ()]++;
 	}
 	
 	box->clear ();

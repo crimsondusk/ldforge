@@ -254,34 +254,34 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		else
 			qcol = QColor (224, 0, 0);
 	} else {
-		if (obj->color == maincolor)
+		if (obj->color () == maincolor)
 			qcol = getMainColor ();
 		else {
-			color* col = getColor (obj->color);
+			color* col = getColor (obj->color ());
 			qcol = col->faceColor;
 		}
 		
-		if (obj->color == edgecolor) {
+		if (obj->color () == edgecolor) {
 			qcol = luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
 			color* col;
 			
-			if (!gl_blackedges && obj->parent != null && (col = getColor (obj->parent->color)) != null)
+			if (!gl_blackedges && obj->parent () != null && (col = getColor (obj->parent ()->color ())) != null)
 				qcol = col->edgeColor;
 		}
 		
 		if (qcol.isValid () == false) {
 			// The color was unknown. Use main color to make the object at least
 			// not appear pitch-black.
-			if (obj->color != edgecolor)
+			if (obj->color () != edgecolor)
 				qcol = getMainColor ();
 			
 			// Warn about the unknown colors, but only once.
 			for (short i : g_warnedColors)
-				if (obj->color == i)
+				if (obj->color () == i)
 					return;
 			
-			printf ("%s: Unknown color %d!\n", __func__, obj->color);
-			g_warnedColors << obj->color;
+			printf ("%s: Unknown color %d!\n", __func__, obj->color ());
+			g_warnedColors << obj->color ();
 			return;
 		}
 	}
@@ -1232,7 +1232,7 @@ void GLRenderer::endDraw (bool accept) {
 		updateRectVerts ();
 		memcpy (quad->coords, m_rectverts, sizeof quad->coords);
 		
-		quad->color = maincolor;
+		quad->setColor (maincolor);
 		obj = quad;
 	} else {
 		switch (verts.size ()) {
@@ -1240,13 +1240,13 @@ void GLRenderer::endDraw (bool accept) {
 			// 1 vertex - add a vertex object
 			obj = new LDVertex;
 			static_cast<LDVertex*> (obj)->pos = verts[0];
-			obj->color = maincolor;
+			obj->setColor (maincolor);
 			break;
 		
 		case 2:
 			// 2 verts - make a line
 			obj = new LDLine;
-			obj->color = edgecolor;
+			obj->setColor (edgecolor);
 			for (ushort i = 0; i < 2; ++i)
 				obj->coords[i] = verts[i];
 			break;
@@ -1257,7 +1257,7 @@ void GLRenderer::endDraw (bool accept) {
 				static_cast<LDObject*> (new LDTriangle) :
 				static_cast<LDObject*> (new LDQuad);
 			
-			obj->color = maincolor;
+			obj->setColor (maincolor);
 			for (ushort i = 0; i < obj->vertices (); ++i)
 				obj->coords[i] = verts[i];
 			break;

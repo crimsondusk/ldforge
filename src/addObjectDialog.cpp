@@ -33,11 +33,6 @@
 #include "history.h"
 #include "widgets.h"
 
-#define APPLY_COORDS(OBJ, N) \
-	for (short i = 0; i < N; ++i) \
-		for (const Axis ax : g_Axes) \
-			OBJ->coords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
-
 // =============================================================================
 class SubfileListItem : public QTreeWidgetItem {
 public:
@@ -198,12 +193,12 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored ()) {
 		if (obj != null)
-			dColor = obj->color;
+			colnum = obj->color ();
 		else
-			dColor = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
+			colnum = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
 		
 		pb_color = new QPushButton;
-		setButtonBackground (pb_color, dColor);
+		setButtonBackground (pb_color, colnum);
 		connect (pb_color, SIGNAL (clicked ()), this, SLOT (slot_colorButtonClicked ()));
 	}
 	
@@ -331,8 +326,8 @@ char* AddObjectDialog::currentSubfileName() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::slot_colorButtonClicked () {
-	ColorSelectDialog::staticDialog (dColor, dColor, this);
-	setButtonBackground (pb_color, dColor);
+	ColorSelectDialog::staticDialog (colnum, colnum, this);
+	setButtonBackground (pb_color, colnum);
 }
 
 // =============================================================================
@@ -406,35 +401,15 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 		break;
 	
 	case LDObject::Line:
-		{
-			LDLine* line = initObj<LDLine> (obj);
-			line->color = dlg.dColor;
-			APPLY_COORDS (line, 2)
-		}
-		break;
-	
 	case LDObject::Triangle:
-		{
-			LDTriangle* tri = initObj<LDTriangle> (obj);
-			tri->color = dlg.dColor;
-			APPLY_COORDS (tri, 3)
-		}
-		break;
-	
 	case LDObject::Quad:
-		{
-			LDQuad* quad = initObj<LDQuad> (obj);
-			quad->color = dlg.dColor;
-			APPLY_COORDS (quad, 4)
-		}
-		break;
-	
 	case LDObject::CondLine:
-		{
-			LDCondLine* line = initObj<LDCondLine> (obj);
-			line->color = dlg.dColor;
-			APPLY_COORDS (line, 4)
-		}
+		if (!obj)
+			obj = LDObject::getDefault (type);
+		
+		for (short i = 0; i < obj->vertices (); ++i)
+			for (const Axis ax : g_Axes)
+				obj->coords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
 		break;
 	
 	case LDObject::BFC:
@@ -447,7 +422,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Vertex:
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
-			vert->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value ();
@@ -457,7 +431,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Radial:
 		{
 			LDRadial* pRad = initObj<LDRadial> (obj);
-			pRad->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
 				pRad->pos[ax] = dlg.dsb_coords[ax]->value ();
@@ -483,7 +456,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			}
 			
 			LDSubfile* ref = initObj<LDSubfile> (obj);
-			ref->color = dlg.dColor;
 			
 			for (const Axis ax : g_Axes)
 				ref->pos[ax] = dlg.dsb_coords[ax]->value ();
@@ -497,6 +469,9 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	default:
 		break;
 	}
+	
+	if (obj->isColored ())
+		obj->setColor (dlg.colnum);
 	
 	if (newObject) {
 		ulong idx = g_win->getInsertionPoint ();

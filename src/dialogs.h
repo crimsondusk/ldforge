@@ -168,8 +168,8 @@ private slots:
 // =============================================================================
 class OpenProgressDialog : public QDialog {
 	Q_OBJECT
-	READ_PROPERTY (ulong, progress)
-	CALLBACK_PROPERTY (ulong, numLines, setNumLines)
+	READ_PROPERTY (ulong, progress, setProgress)
+	CALLBACK_PROPERTY (ulong, numLines, setNumLines, callback_setNumLines)
 	
 public:
 	explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);

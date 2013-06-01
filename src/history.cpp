@@ -46,3 +46,31 @@ void History::updateActions () {
 	ACTION (redo)->setEnabled (false);
 }
 
+void History::open () {
+	if (opened ())
+		return;
+	
+	setOpened (true);
+}
+
+void History::close () {
+	if (!opened ())
+		return;
+	
+	setOpened (false);
+	if (m_currentArchive.size () == 0)
+		return;
+	
+	while (pos () < size () - 1)
+		m_entries.erase (size () - 1);
+	
+	m_entries << m_currentArchive;
+	m_currentArchive.clear ();
+	setPos (pos () + 1);
+	updateActions ();
+}
+
+void History::add (AbstractHistoryEntry* entry) {
+	assert (opened ());
+	m_currentArchive << entry;
+}

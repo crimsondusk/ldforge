@@ -45,16 +45,30 @@ enum HistoryType {
 
 class History {
 	PROPERTY (long, pos, setPos)
+	READ_PROPERTY (bool, opened, setOpened)
 	
 public:
+	typedef vector<AbstractHistoryEntry*> list;
+	
 	History ();
 	void undo ();
 	void redo ();
 	void clear ();
 	void updateActions ();
 	
+	void open ();
+	void close ();
+	void add (AbstractHistoryEntry* entry);
+	long size () const { return m_entries.size (); }
+	
+	History& operator<< (AbstractHistoryEntry* entry) {
+		add (entry);
+		return *this;
+	}
+	
 private:
-	vector<vector<AbstractHistoryEntry*>> m_entries;
+	list m_currentArchive;
+	vector<list> m_entries;
 };
 
 // =============================================================================

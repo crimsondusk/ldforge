@@ -58,8 +58,8 @@ class GLRenderer : public QGLWidget {
 	PROPERTY (bool, drawOnly, setDrawOnly)
 	PROPERTY (double, zoom, setZoom)
 	PROPERTY (LDOpenFile*, file, setFile)
-	READ_PROPERTY (bool, picking)
-	CALLBACK_PROPERTY (EditMode, editMode, setEditMode)
+	READ_PROPERTY (bool, picking, setPicking)
+	CALLBACK_PROPERTY (EditMode, editMode, setEditMode, callback_setEditMode)
 	
 public:
 	enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
