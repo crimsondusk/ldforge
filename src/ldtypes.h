@@ -28,7 +28,7 @@
 	virtual LDObject::Type getType () const { \
 		return LDObject::T; \
 	} \
-	virtual str getContents (); \
+	virtual str raw (); \
 	virtual LD##T* clone () { \
 		return new LD##T (*this); \
 	} \
@@ -124,7 +124,7 @@ public:
 	};
 	
 	// A string that represents this line
-	virtual str getContents () {
+	virtual str raw () {
 		return "";
 	}
 	

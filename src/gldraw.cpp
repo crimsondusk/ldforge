@@ -897,6 +897,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 		
 		case Select:
 			if (!drawOnly ()) {
+				if (m_totalmove < 10)
+					m_rangepick = false;
+				
 				if (!m_rangepick)
 					m_addpick = (m_keymods & Qt::ControlModifier);
 				

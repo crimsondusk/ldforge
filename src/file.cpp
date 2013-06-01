@@ -538,7 +538,7 @@ bool LDOpenFile::save (str savepath) {
 	// Write all entries now
 	for (LDObject* obj : objs ()) {
 		// LDraw requires files to have DOS line endings
-		str line = fmt ("%s\r\n", obj->getContents ().chars ());
+		str line = fmt ("%s\r\n", obj->raw ().chars ());
 		fwrite (line.chars(), 1, line.len (), fp);
 	}
 	
@@ -801,7 +801,7 @@ void reloadAllSubfiles () {
 				ref->setFileInfo (fileInfo);
 			else {
 				// Couldn't load the file, mark it an error
-				ref->replace (new LDGibberish (ref->getContents (), "Could not open referred file"));
+				ref->replace (new LDGibberish (ref->raw (), "Could not open referred file"));
 			}
 		}
 		

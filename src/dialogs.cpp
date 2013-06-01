@@ -243,7 +243,7 @@ SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDia
 }
 
 void SetContentsDialog::setObject (LDObject* obj) {
-	le_contents->setText (obj->getContents ().chars());
+	le_contents->setText (obj->raw ().chars());
 	
 	if (obj->getType() == LDObject::Gibberish) {
 		lb_error->setText (fmt ("<span style=\"color: #900\">%s</span>",
@@ -356,9 +356,9 @@ NewPartDialog::NewPartDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	lb_brickIcon = new QLabel;
 	lb_brickIcon->setPixmap (getIcon ("brick"));
 	
-	lb_name = new QLabel ("Name:");
+	lb_name = new QLabel ("Title:");
 	le_name = new QLineEdit;
-	le_name->setMinimumWidth (320);
+	le_name->setMinimumWidth (384);
 	
 	lb_author = new QLabel ("Author:");
 	le_author = new QLineEdit;

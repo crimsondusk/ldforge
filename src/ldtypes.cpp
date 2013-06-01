@@ -73,11 +73,11 @@ LDGibberish::LDGibberish (str _zContent, str _zReason) {
 }
 
 // =============================================================================
-str LDComment::getContents () {
+str LDComment::raw () {
 	return fmt ("0 %s", text.chars ());
 }
 
-str LDSubfile::getContents () {
+str LDSubfile::raw () {
 	str val = fmt ("1 %d %s ", color (), position ().stringRep (false).chars ());
 	val += transform ().stringRep ();
 	val += ' ';
@@ -85,7 +85,7 @@ str LDSubfile::getContents () {
 	return val;
 }
 
-str LDLine::getContents () {
+str LDLine::raw () {
 	str val = fmt ("2 %d", color ());
 	
 	for (ushort i = 0; i < 2; ++i)
@@ -94,7 +94,7 @@ str LDLine::getContents () {
 	return val;
 }
 
-str LDTriangle::getContents () {
+str LDTriangle::raw () {
 	str val = fmt ("3 %d", color ());
 	
 	for (ushort i = 0; i < 3; ++i)
@@ -103,7 +103,7 @@ str LDTriangle::getContents () {
 	return val;
 }
 
-str LDQuad::getContents () {
+str LDQuad::raw () {
 	str val = fmt ("4 %d", color ());
 	
 	for (ushort i = 0; i < 4; ++i)
@@ -112,7 +112,7 @@ str LDQuad::getContents () {
 	return val;
 }
 
-str LDCondLine::getContents () {
+str LDCondLine::raw () {
 	str val = fmt ("5 %d", color ());
 	
 	// Add the coordinates
@@ -122,15 +122,15 @@ str LDCondLine::getContents () {
 	return val;
 }
 
-str LDGibberish::getContents () {
+str LDGibberish::raw () {
 	return contents;
 }
 
-str LDVertex::getContents () {
+str LDVertex::raw () {
 	return fmt ("0 !LDFORGE VERTEX %d %s", color (), pos.stringRep (false).chars());
 }
 
-str LDEmpty::getContents () {
+str LDEmpty::raw () {
 	return str ();
 }
 
@@ -146,7 +146,7 @@ const char* LDBFC::statements[] = {
 	"INVERTNEXT",
 };
 
-str LDBFC::getContents () {
+str LDBFC::raw () {
 	return fmt ("0 BFC %s", LDBFC::statements[type]);
 }
 
@@ -643,7 +643,7 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str LDRadial::getContents () {
+str LDRadial::raw () {
 	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
 		str (radialTypeName ()).upper ().strip (' ').c (),
 		color (), segments (), divisions (), number (),

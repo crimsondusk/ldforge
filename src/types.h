@@ -101,7 +101,7 @@ public:
 	const double&	z				() const { return m_coords[Z]; }
 	
 	vertex&			operator+=		(const vertex& other);
-	vertex&			operator+		(const vertex& other) const;
+	vertex			operator+		(const vertex& other) const;
 	vertex			operator/		(const double d) const;
 	vertex&			operator/=		(const double d);
 	bool			operator==		(const vertex& other) const;

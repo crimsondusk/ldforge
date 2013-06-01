@@ -13,3 +13,4 @@
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
 - When drawing, drawn vertices now display coordinate labels.
 - Calculated coordinates are now rounded down (to prevent stuff like Z:160.000001)
+- New part dialog: changed "Name:" to "Title", widened a tad.

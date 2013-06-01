@@ -343,7 +343,7 @@ MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selectio
 	}
 	
 	for (LDObject* obj : g_win->sel ()) {
-		str contents = obj->getContents ();
+		str contents = obj->raw ();
 		file.write (contents, contents.len ());
 		file.write ("\r\n", 2);
 	}

@@ -109,8 +109,8 @@ vertex& vertex::operator+= (const vertex& other) {
 	return *this;
 }
 
-vertex& vertex::operator+ (const vertex& other) const {
-	vertex newvert = *this;
+vertex vertex::operator+ (const vertex& other) const {
+	vertex newvert (*this);
 	newvert.move (other);
 	return newvert;
 }

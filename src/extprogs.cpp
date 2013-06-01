@@ -121,7 +121,7 @@ void writeObjects (vector<LDObject*>& objects, FILE* fp) {
 			for (LDObject* obj : objs)
 				delete obj;
 		} else {
-			str line = fmt ("%s\r\n", obj->getContents ().chars ());
+			str line = fmt ("%s\r\n", obj->raw ().chars ());
 			fwrite (line.chars(), 1, ~line, fp);
 		}
 	}
