@@ -138,7 +138,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		
 		if (obj) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			le_subfileName->setText (ref->fileName);
+			le_subfileName->setText (ref->fileInfo ()->name ());
 		}
 		break;
 	
@@ -454,9 +454,8 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			for (const Axis ax : g_Axes)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value ());
 			
-			ref->fileName = name;
 			ref->setTransform (transform);
-			ref->fileInfo = file;
+			ref->setFileInfo (file);
 		}
 		break;
 	

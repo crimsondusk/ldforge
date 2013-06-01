@@ -262,15 +262,14 @@ public:
 // Represents a single code-1 subfile reference.
 // =============================================================================
 class LDSubfile : public LDObject, public LDMatrixObject {
+	PROPERTY (LDOpenFile*, fileInfo, setFileInfo)
+	
 public:
 	LDOBJ (Subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	
-	str fileName; // Filename of the subpart (TODO: rid this too - use fileInfo->fileName instead)
-	LDOpenFile* fileInfo; // Pointer to opened file for this subfile. null if unopened.
 	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.

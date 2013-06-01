@@ -633,7 +633,7 @@ void ForgeWindow::buildObjList () {
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
-				descr.format ("%s %s, (", ref->fileName.chars (),
+				descr.format ("%s %s, (", ref->fileInfo ()->name ().chars (),
 					ref->position ().stringRep (true).chars ());
 				
 				for (short i = 0; i < 9; ++i)

@@ -81,7 +81,7 @@ str LDSubfile::getContents () {
 	str val = fmt ("1 %d %s ", color (), position ().stringRep (false).chars ());
 	val += transform ().stringRep ();
 	val += ' ';
-	val += fileName;
+	val += fileInfo ()->name ();
 	return val;
 }
 
@@ -262,14 +262,14 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 	vector<LDObject*> objs, objcache;
 	
 	// If we have this cached, just clone that
-	if (deep && fileInfo->cache ().size ()) {
-		for (LDObject* obj : fileInfo->cache ())
+	if (deep && fileInfo ()->cache ().size ()) {
+		for (LDObject* obj : fileInfo ()->cache ())
 			objs << obj->clone ();
 	} else {
 		if (!deep)
 			cache = false;
 		
-		for (LDObject* obj : fileInfo->objs ()) {
+		for (LDObject* obj : *fileInfo ()) {
 			// Skip those without schemantic meaning
 			switch (obj->getType ()) {
 			case LDObject::Comment:
@@ -313,7 +313,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 		}
 		
 		if (cache)
-			fileInfo->setCache (objcache);
+			fileInfo ()->setCache (objcache);
 	}
 	
 	// Transform the objects

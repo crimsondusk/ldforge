@@ -247,10 +247,10 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	str refName;
 	
 	if (type == LDObject::Subfile) {
-		refName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileName;
+		refName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileInfo ()->name ();
 		
-		for (LDObject* pObj : g_win->sel ())
-			if (static_cast<LDSubfile*> (pObj)->fileName != refName)
+		for (LDObject* obj : g_win->sel ())
+			if (static_cast<LDSubfile*> (obj)->fileInfo ()->name () != refName)
 				return;
 	}
 	
@@ -259,7 +259,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 		if (obj->getType() != type)
 			continue;
 		
-		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileName != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo ()->name () != refName)
 			continue;
 		
 		g_win->sel () << obj;

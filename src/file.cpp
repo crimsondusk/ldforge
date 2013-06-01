@@ -681,11 +681,11 @@ LDObject* parseLine (str line) {
 			CHECK_TOKEN_NUMBERS (1, 13)
 			
 			// Try open the file. Disable g_loadingMainFile temporarily since we're
-			// not loading the main file now, but the subfile
-			bool oldLoadingMainFile = g_loadingMainFile;
+			// not loading the main file now, but the subfile in question.
+			bool tmp = g_loadingMainFile;
 			g_loadingMainFile = false;
 			LDOpenFile* load = getFile (tokens[14]);
-			g_loadingMainFile = oldLoadingMainFile;
+			g_loadingMainFile = tmp;
 			
 			// If we cannot open the file, mark it an error
 			if (!load)
@@ -700,8 +700,7 @@ LDObject* parseLine (str line) {
 				transform[i] = atof (tokens[i + 5]); // 5 - 13
 			
 			obj->setTransform (transform);
-			obj->fileName = tokens[14];
-			obj->fileInfo = load;
+			obj->setFileInfo (load);
 			return obj;
 		}
 	
@@ -789,23 +788,17 @@ void reloadAllSubfiles () {
 	if (!g_curfile)
 		return;
 	
-	// First, close all but the current open file.
-	for (LDOpenFile* file : g_loadedFiles)
-		if (file != g_curfile)
-			delete file;
-	
 	g_loadedFiles.clear ();
 	g_loadedFiles << g_curfile;
 	
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : g_curfile->objs ()) {
 		if (obj->getType() == LDObject::Subfile) {
-			// Note: ref->fileInfo is invalid right now since all subfiles were closed.
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDOpenFile* fileInfo = getFile (ref->fileName);
+			LDOpenFile* fileInfo = getFile (ref->fileInfo ()->name ());
 			
 			if (fileInfo)
-				ref->fileInfo = fileInfo;
+				ref->setFileInfo (fileInfo);
 			else {
 				// Couldn't load the file, mark it an error
 				ref->replace (new LDGibberish (ref->getContents (), "Could not open referred file"));
@@ -814,9 +807,12 @@ void reloadAllSubfiles () {
 		
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
-		if (obj->getType() == LDObject::Gibberish)
+		if (obj->getType () == LDObject::Gibberish)
 			obj->replace (parseLine (static_cast<LDGibberish*> (obj)->contents));
 	}
+	
+	// Close all files left unused
+	LDOpenFile::closeUnused ();
 }
 
 // =============================================================================
@@ -930,4 +926,51 @@ bool safeToCloseAll () {
 void LDOpenFile::setObject (ulong idx, LDObject* obj) {
 	assert (idx < numObjs ());
 	m_objs[idx] = obj;
+}
+
+static vector<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
+	vector<LDOpenFile*> filesUsed;
+	
+	for (LDObject* obj : *node) {
+		if (obj->getType () != LDObject::Subfile)
+			continue;
+		
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		filesUsed << ref->fileInfo ();
+		filesUsed << getFilesUsed (ref->fileInfo ());
+	}
+	
+	return filesUsed;
+}
+
+// =============================================================================
+// Find out which files are unused and close them.
+void LDOpenFile::closeUnused () {
+	vector<LDOpenFile*> filesUsed = getFilesUsed (g_curfile);
+	
+	// Also, anything that's explicitly opened must not be closed
+	for (LDOpenFile* file : g_loadedFiles)
+		if (file->implicit () == false)
+			filesUsed << file;
+	
+	// Remove duplicated entries
+	filesUsed.makeUnique ();
+	
+	// Close all open files that aren't in filesUsed
+	for (LDOpenFile* file : g_loadedFiles) {
+		bool isused = false;
+		
+		for (LDOpenFile* usedFile : filesUsed) {
+			if (file == usedFile) {
+				isused = true;
+				break;
+			}
+		}
+		
+		if (!isused)
+			delete file;
+	}
+	
+	g_loadedFiles.clear ();
+	g_loadedFiles << filesUsed;
 }

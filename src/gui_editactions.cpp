@@ -174,8 +174,7 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		prim->setPosition (rad->position ()); // inherit position
 		prim->setTransform (rad->transform ()); // inherit matrix
 		prim->setColor (rad->color ()); // inherit color
-		prim->fileName = name;
-		prim->fileInfo = file;
+		prim->setFileInfo (file);
 		
 		// Replace the radial with the primitive.
 		rad->replace (prim);
