@@ -21,8 +21,10 @@
 
 #include "common.h"
 #include "ldtypes.h"
+#include "history.h"
 #include <QObject>
 
+class History;
 class OpenProgressDialog;
 namespace LDPaths {
 	void initPaths ();
@@ -49,6 +51,7 @@ class LDOpenFile {
 	MUTABLE_READ_PROPERTY (vector<LDObject*>, objs)
 	PROPERTY (vector<LDObject*>, cache, setCache)
 	PROPERTY (long, savePos, setSavePos)
+	MUTABLE_READ_PROPERTY (History, history)
 	
 public:
 	LDOpenFile ();

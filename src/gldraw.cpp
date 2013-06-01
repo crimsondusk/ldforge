@@ -1268,8 +1268,6 @@ void GLRenderer::endDraw (bool accept) {
 		file ()->addObject (obj);
 		compileObject (obj);
 		g_win->fullRefresh ();
-		
-		History::addEntry (new AddHistory ({(ulong) obj->getIndex (file ())}, {obj->clone ()}));
 	}
 	
 	m_drawedVerts.clear ();

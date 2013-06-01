@@ -382,10 +382,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	if (dlg.exec () == false)
 		return;
 	
-	LDObject* backup = null;
-	if (!newObject)
-		backup = obj->clone ();
-	
 	matrix transform = g_identity;
 	if (type == LDObject::Subfile || type == LDObject::Radial) {
 		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ");
@@ -505,9 +501,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	if (newObject) {
 		ulong idx = g_win->getInsertionPoint ();
 		g_curfile->insertObj (idx, obj);
-		History::addEntry (new AddHistory ({(ulong) idx}, {obj->clone ()}));
-	} else {
-		History::addEntry (new EditHistory ({(ulong) obj->getIndex (g_curfile)}, {backup}, {obj->clone ()}));
 	}
 	
 	g_win->fullRefresh ();

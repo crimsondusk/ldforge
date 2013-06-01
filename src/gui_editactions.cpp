@@ -23,7 +23,6 @@
 #include "gui.h"
 #include "common.h"
 #include "file.h"
-#include "history.h"
 #include "colorSelectDialog.h"
 #include "historyDialog.h"
 #include "misc.h"
@@ -73,7 +72,6 @@ MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL 
 		return;
 	
 	g_win->deleteSelection (&ulaIndices, &copies);
-	History::addEntry (new DelHistory (ulaIndices, copies, DelHistory::Cut));
 }
 
 // =============================================================================
@@ -87,22 +85,15 @@ MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", C
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
-	vector<ulong> historyIndices;
-	vector<LDObject*> historyCopies;
-	
 	ulong idx = g_win->getInsertionPoint ();
 	g_win->sel ().clear ();
 	
 	for (LDObject* obj : g_Clipboard) {
-		historyIndices << idx;
-		historyCopies << obj->clone ();
-		
 		LDObject* copy = obj->clone ();
 		g_curfile->insertObj (idx++, copy);
 		g_win->sel () << copy;
 	}
 	
-	History::addEntry (new AddHistory (historyIndices, historyCopies, AddHistory::Paste));
 	g_win->fullRefresh ();
 	g_win->scrollToSelection ();
 }
@@ -111,13 +102,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
-	vector<ulong> ulaIndices;
-	vector<LDObject*> copies;
-	
-	g_win->deleteSelection (&ulaIndices, &copies);
-	
-	if (copies.size ())
-		History::addEntry (new DelHistory (ulaIndices, copies));
+	g_win->deleteSelection (null, null);
 }
 
 // =============================================================================
@@ -125,18 +110,6 @@ MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
 // =============================================================================
 static void doInline (bool deep) {
 	vector<LDObject*> sel = g_win->sel ();
-	
-	// History stuff
-	vector<LDSubfile*> refs;
-	vector<ulong> refIndices, bitIndices;
-	
-	for (LDObject* obj : sel) {
-		if (obj->getType() != LDObject::Subfile)
-			continue;
-		
-		refIndices << obj->getIndex (g_curfile);
-		refs << static_cast<LDSubfile*> (obj)->clone ();
-	}
 	
 	for (LDObject* obj : sel) {
 		// Get the index of the subfile so we know where to insert the
@@ -156,8 +129,6 @@ static void doInline (bool deep) {
 		
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
-			bitIndices << idx;
-			
 			// This object is now inlined so it has no parent anymore.
 			inlineobj->parent = null;
 			
@@ -169,7 +140,6 @@ static void doInline (bool deep) {
 		delete obj;
 	}
 	
-	History::addEntry (new InlineHistory (bitIndices, refIndices, refs, deep));
 	g_win->fullRefresh ();
 }
 
@@ -189,7 +159,6 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert radials into primitives.", (0)) {
 	vector<str> fails;
 	vector<LDObject*> sel = g_win->sel ();
-	EditHistory* history = new EditHistory;
 	
 	for (LDObject* obj : sel) {
 		if (obj->getType() != LDObject::Radial)
@@ -212,9 +181,6 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		prim->fileName = name;
 		prim->fileInfo = file;
 		
-		// Add the history entry - this must be done while both objects are still valid.
-		history->addEntry (rad, prim);
-		
 		// Replace the radial with the primitive.
 		rad->replace (prim);
 	}
@@ -229,50 +195,36 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		critical (errmsg);
 	}
 	
-	History::addEntry (history);
 	g_win->fullRefresh ();
 }
 
-// =======================================================================================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =======================================================================================================================================
+// ===============================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// ===============================================================================================
 MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
 	vector<LDObject*> objs = g_win->sel ();
-	
-	vector<ulong> ulaIndices;
-	vector<LDQuad*> paCopies;
-	
-	// Store stuff first for history archival
-	for (LDObject* obj : objs) {
-		if (obj->getType() != LDObject::Quad)
-			continue;
-		
-		ulaIndices << obj->getIndex (g_curfile);
-		paCopies << static_cast<LDQuad*> (obj)->clone ();
-	}
 	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != LDObject::Quad)
 			continue;
 		
 		// Find the index of this quad
-		long lIndex = obj->getIndex (g_curfile);
+		long index = obj->getIndex (g_curfile);
 		
-		if (lIndex == -1)
+		if (index == -1)
 			return;
 		
 		vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles ();
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		g_curfile->setObject (lIndex, triangles[0]);
-		g_curfile->insertObj (lIndex + 1, triangles[1]);
+		g_curfile->setObject (index, triangles[0]);
+		g_curfile->insertObj (index + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
 	}
 	
-	History::addEntry (new QuadSplitHistory (ulaIndices, paCopies));
 	g_win->fullRefresh ();
 }
 
@@ -294,11 +246,6 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 	
 	// Reinterpret it from the text of the input field
 	obj = parseLine (dlg.text ());
-	
-	// Mark down the history now before we perform the replacement (which
-	// destroys the old object)
-	History::addEntry (new EditHistory ({(ulong) oldobj->getIndex (g_curfile)},
-		{oldobj->clone ()}, {obj->clone ()}));
 	
 	oldobj->replace (obj);
 	
@@ -325,21 +272,14 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 	
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelectDialog::staticDialog (colnum, defcol, g_win)) {
-		vector<ulong> indices;
-		vector<short> colornums;
-		
 		for (LDObject* obj : objs) {
 			if (obj->isColored () == false)
 				continue;
-			
-			indices << obj->getIndex (g_curfile);
-			colornums << obj->color;
 			
 			obj->color = colnum;
 			g_win->R ()->compileObject (obj);
 		}
 		
-		History::addEntry (new SetColorHistory (indices, colornums, colnum));
 		g_win->refresh ();
 	}
 }
@@ -349,8 +289,6 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 // =============================================================================
 MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.", CTRL_SHIFT (B)) {
 	vector<LDObject*> objs = g_win->sel ();
-	vector<ulong> historyIndices;
-	vector<LDObject*> historyObjs;
 	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != LDObject::Quad && obj->getType() != LDObject::Triangle)
@@ -382,13 +320,10 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			lines[i]->color = edgecolor;
 			g_curfile->insertObj (idx, lines[i]);
 			
-			historyIndices << idx;
-			historyObjs << lines[i]->clone ();
 			g_win->R ()->compileObject (lines[i]);
 		}
 	}
 	
-	History::addEntry (new AddHistory (historyIndices, historyObjs));
 	g_win->refresh ();
 }
 
@@ -398,9 +333,6 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	"Adds vertex objects to the corners of the given polygons", (0))
 {
-	vector<ulong> ulaIndices;
-	vector<LDObject*> paObjs;
-	
 	for (LDObject* obj : g_win->sel ()) {
 		if (obj->vertices () < 2)
 			continue;
@@ -412,31 +344,19 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 			vert->color = obj->color;
 			
 			g_curfile->insertObj (++idx, vert);
-			ulaIndices << idx;
-			paObjs << vert->clone ();
 			g_win->R ()->compileObject (vert);
 		}
 	}
 	
-	if (ulaIndices.size() > 0) {
-		History::addEntry (new AddHistory (ulaIndices, paObjs));
-		g_win->refresh ();
-	}
+	g_win->refresh ();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void doMoveSelection (const bool bUp) {
+static void doMoveSelection (const bool up) {
 	vector<LDObject*> objs = g_win->sel ();
-	
-	// Get the indices of the objects for history archival
-	vector<ulong> ulaIndices;
-	for (LDObject* obj : objs)
-		ulaIndices << obj->getIndex (g_curfile);
-	
-	LDObject::moveObjects (objs, bUp);
-	History::addEntry (new ListMoveHistory (ulaIndices, bUp));
+	LDObject::moveObjects (objs, up);
 	g_win->buildObjList ();
 }
 
@@ -452,11 +372,11 @@ MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection do
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
-	History::undo ();
+	
 }
 
 MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
-	History::redo ();
+	
 }
 
 MAKE_ACTION (showHistory, "Edit History", "history", "Show the history dialog.", (0)) {
@@ -467,21 +387,17 @@ MAKE_ACTION (showHistory, "Edit History", "history", "Show the history dialog.",
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void doMoveObjects (vertex vVector) {
-	vector<ulong> ulaIndices;
-	
+void doMoveObjects (vertex vect) {
 	// Apply the grid values
-	vVector[X] *= currentGrid ().confs[Grid::X]->value;
-	vVector[Y] *= currentGrid ().confs[Grid::Y]->value;
-	vVector[Z] *= currentGrid ().confs[Grid::Z]->value;
+	vect[X] *= currentGrid ().confs[Grid::X]->value;
+	vect[Y] *= currentGrid ().confs[Grid::Y]->value;
+	vect[Z] *= currentGrid ().confs[Grid::Z]->value;
 	
 	for (LDObject* obj : g_win->sel ()) {
-		ulaIndices << obj->getIndex (g_curfile);
-		obj->move (vVector);
+		obj->move (vect);
 		g_win->R ()->compileObject (obj);
 	}
 	
-	History::addEntry (new MoveHistory (ulaIndices, vVector));
 	g_win->refresh ();
 }
 
@@ -510,35 +426,17 @@ MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive 
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// invert - reverse winding
-// 
-// NOTE: History management gets a little tricky here. For lines, cond-lines,
-// triangles and quads, we edit the object, thus we record an EditHistory. For
-// subfiles and radials we create or delete invertnext objects. Since we have
-// multiple actions of different types, we store a history entry for each of
-// them and wrap them into a ComboHistory, which allows storage of multiple
-// simultaneous edits with different type. This is what we ultimately store into
-// History.
-// =============================================================================
 MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
 	vector<LDObject*> sel = g_win->sel ();
-	ComboHistory* history = new ComboHistory;
 	
 	for (LDObject* obj : sel) {
-		*history << obj->invert ();
+		obj->invert ();
 		g_win->R ()->compileObject (obj);
 	}
 	
-	if (history->numEntries () > 0) {
-		History::addEntry (history);
-		g_win->refresh ();
-	} else
-		delete history;
+	g_win->refresh ();
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doRotate (const short l, const short m, const short n) {
 	vector<LDObject*> sel = g_win->sel ();
@@ -638,24 +536,14 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everything selected to main and edge colors", (0)) {
-	vector<LDObject*> oldCopies, newCopies;
-	vector<ulong> indices;
-	
 	for (LDObject* obj : g_win->sel ()) {
 		if (obj->isColored () == false)
 			continue;
 		
-		indices << obj->getIndex (g_curfile);
-		oldCopies << obj->clone ();
-		
 		obj->color = (obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor;
-		newCopies << obj->clone ();
 	}
 	
-	if (indices.size () > 0) {
-		History::addEntry (new EditHistory (indices, oldCopies, newCopies));
-		g_win->fullRefresh ();
-	}
+	g_win->fullRefresh ();
 }
 
 // =============================================================================
@@ -694,11 +582,8 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 		rel = dlg.rel ();
 	
 	vector<int> sel = dlg.axes ();
-	EditHistory* history = new EditHistory;
 	
 	for (LDObject* obj : g_win->sel ()) {
-		LDObject* copy = obj->clone ();
-		
 		for (short i = 0; i < obj->vertices (); ++i)
 		for (int ax : sel) {
 			double& coord = obj->coords[i][(Axis) ax];
@@ -710,13 +595,8 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 				coord += replacement;
 			}
 		}
-		
-		history->addEntry (copy, obj, obj->getIndex (g_curfile));
-		
-		delete copy;
 	}
 	
-	History::addEntry (history);
 	g_win->fullRefresh ();
 }
 
@@ -740,58 +620,38 @@ private:
 	CheckBoxGroup* cbg_axes;
 };
 
+// ================================================================================================
 MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 	FlipDialog dlg;
 	
 	if (!dlg.exec ())
 		return;
 	
-	EditHistory* history = new EditHistory;
 	vector<int> sel = dlg.axes ();
 	
-	for (LDObject* obj : g_win->sel ()) {
-		bool altered = false;
-		LDObject* copy = obj->clone ();
-		
-		for (short i = 0; i < obj->vertices (); ++i)
-		for (int ax : sel) {
-			obj->coords[i][(Axis) ax] *= -1;
-			altered = true;
-		}
-		
-		if (altered)
-			history->addEntry (copy, obj, obj->getIndex (g_curfile));
-		
-		delete copy;
-	}
+	for (LDObject* obj : g_win->sel ())
+	for (short i = 0; i < obj->vertices (); ++i)
+	for (int ax : sel)
+		obj->coords[i][(Axis) ax] *= -1;
 	
-	History::addEntry (history);
 	g_win->fullRefresh ();
 }
 
-// =========================================================================================================================================
+// ================================================================================================
 MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional lines down to normal lines.", (0)) {
-	EditHistory* history = new EditHistory;
-	
 	vector<LDObject*> sel = g_win->sel ();
 	for (LDObject* obj : sel) {
 		if (obj->getType () != LDObject::CondLine)
 			continue;
 		
-		ulong idx = obj->getIndex (g_curfile);
-		LDObject* cache = obj->clone ();
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote ();
-		
-		history->addEntry (cache, repl, idx);
 		g_win->R ()->compileObject (repl);
-		delete cache;
 	}
 	
-	History::addEntry (history);
 	g_win->refresh ();
 }
 
-// =========================================================================================================================================
+// =================================================================================================
 static bool isColorUsed (short colnum) {
 	for (LDObject* obj : g_curfile->objs ())
 		if (obj->isColored () && obj->color == colnum)
@@ -802,8 +662,6 @@ static bool isColorUsed (short colnum) {
 
 MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given object to the first found unused color.", (0)) {
 	short colnum = 0;
-	vector<ulong> indices;
-	vector<short> colors;
 	
 	while (colnum < 512 && (getColor (colnum) == null || isColorUsed (colnum)))
 		colnum++;
@@ -817,13 +675,9 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 		if (obj->isColored () == false)
 			continue;
 		
-		indices << obj->getIndex (g_curfile);
-		colors << obj->color;
-		
 		obj->color = colnum;
 		g_win->R ()->compileObject (obj);
 	}
 	
-	History::addEntry (new SetColorHistory (indices, colors, colnum));
 	g_win->refresh ();
 }

@@ -351,7 +351,7 @@ bool LDOpenFile::safeToClose () {
 	setlocale (LC_ALL, "C");
 	
 	// If we have unsaved changes, warn and give the option of saving.
-	if (!implicit () && History::pos () != savePos ()) {
+	if (!implicit () && history ().pos () != savePos ()) {
 		switch (QMessageBox::question (g_win, "Unsaved Changes",
 			fmt ("There are unsaved changes to %s. Should it be saved?",
 			(name ().len () > 0) ? name ().c () : "<anonymous>"),
@@ -424,8 +424,6 @@ void newFile () {
 	f->setImplicit (false);
 	g_loadedFiles << f;
 	g_curfile = f;
-	
-	History::clear ();
 	
 	g_BBox.reset ();
 	g_win->R ()->setFile (f);
@@ -500,8 +498,6 @@ void openMainFile (str path) {
 	g_win->R ()->setFile (file);
 	g_win->R ()->resetAngles ();
 	
-	History::clear ();
-	
 	// Add it to the recent files list.
 	addRecentFile (path);
 	g_loadingMainFile = false;
@@ -549,7 +545,7 @@ bool LDOpenFile::save (str savepath) {
 	fclose (fp);
 	
 	// We have successfully saved, update the save position now.
-	setSavePos (History::pos ());
+	setSavePos (history ().pos ());
 	setName (savepath);
 	
 	g_win->updateTitle ();

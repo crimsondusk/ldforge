@@ -203,7 +203,7 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	}
 }
 
-// ========================================================================================================================================
+// ================================================================================================
 static void insertOutput (str fname, bool replace, vector<short> colorsToReplace) {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
@@ -216,17 +216,14 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		return;
 	}
 	
-	ComboHistory* cmb = new ComboHistory ();
-	vector<LDObject*> objs = loadFileContents (fp, null),
-		copies;
-	vector<ulong> indices;
+	vector<LDObject*> objs = loadFileContents (fp, null);
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)
-		*cmb << g_win->deleteSelection ();
+		g_win->deleteSelection ();
 	
 	for (const short colnum : colorsToReplace)
-		*cmb << g_win->deleteByColor (colnum);
+		g_win->deleteByColor (colnum);
 	
 	// Insert the new objects
 	g_win->sel ().clear ();
@@ -236,19 +233,9 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 			continue;
 		}
 		
-		ulong idx = g_curfile->addObject (obj);
-		indices << idx;
-		copies << obj->clone ();
+		g_curfile->addObject (obj);
 		g_win->sel () << obj;
 	}
-	
-	if (indices.size() > 0)
-		*cmb << new AddHistory ({indices, copies});
-	
-	if (cmb->paEntries.size () > 0)
-		History::addEntry (cmb);
-	else
-		delete cmb;
 	
 	fclose (fp);
 	g_win->fullRefresh ();

@@ -134,7 +134,7 @@ void ForgeWindow::createMenuActions () {
 	// things not implemented yet
 	findAction ("help")->setEnabled (false);
 	
-	History::updateActions ();
+	g_curfile->history ().updateActions ();
 }
 
 // =============================================================================
@@ -518,7 +518,7 @@ void ForgeWindow::updateTitle () {
 			title += fmt (": %s", comm->text.chars());
 		}
 		
-		if (History::pos () != g_curfile->savePos ())
+		if (g_curfile->history ().pos () != g_curfile->savePos ())
 			title += '*';
 	}
 	
@@ -782,21 +782,15 @@ void ForgeWindow::slot_quickColor () {
 	if (col == null)
 		return;
 	
-	vector<ulong> indices;
-	vector<short> colors;
 	short newColor = col->index;
 	
 	for (LDObject* obj : m_sel) {
 		if (obj->color == -1)
 			continue; // uncolored object
 		
-		indices << obj->getIndex (g_curfile);
-		colors << obj->color;
-		
 		obj->color = newColor;
 	}
 	
-	History::addEntry (new SetColorHistory (indices, colors, newColor));
 	fullRefresh ();
 }
 
@@ -950,19 +944,10 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 
 // ========================================================================================================================================
 DelHistory* ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
-	vector<ulong> indices;
-	vector<LDObject*> cache;
-	
 	for (LDObject* obj : objs) {
-		indices << obj->getIndex (g_curfile);
-		cache << obj->clone ();
-		
 		g_curfile->forgetObject (obj);
 		delete obj;
 	}
-	
-	if (indices.size () > 0)
-		return new DelHistory (indices, cache);
 	
 	return null;
 }

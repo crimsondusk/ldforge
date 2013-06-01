@@ -22,8 +22,6 @@
 #include "common.h"
 #include "types.h"
 
-class HistoryEntry;
-
 #define LDOBJ(T) \
 	LD##T () {} \
 	virtual ~LD##T () {} \
@@ -35,7 +33,7 @@ class HistoryEntry;
 		return new LD##T (*this); \
 	} \
 	virtual void move (vertex vVector); \
-	virtual HistoryEntry* invert ();
+	virtual void invert ();
 
 #define LDOBJ_VERTICES(V) virtual short vertices () const { return V; }
 #define LDOBJ_SETCOLORED(V) virtual bool isColored () const { return V; }
@@ -163,10 +161,10 @@ public:
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;
 	
-	virtual bool			hasMatrix		() const { return false; }
-	virtual HistoryEntry*	invert			();
-	LDObject*				next			() const;
-	LDObject*				prev			() const;
+	virtual bool        hasMatrix       () const { return false; }
+	virtual void        invert          ();
+	LDObject*           next            () const;
+	LDObject*           prev            () const;
 
 protected:
 	bool m_glinit;

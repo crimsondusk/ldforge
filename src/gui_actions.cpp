@@ -310,26 +310,19 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 		return;
 	}
 	
-	vector<LDObject*> historyCopies;
-	vector<ulong> historyIndices;
 	vector<LDObject*> objs = loadFileContents (fp, null);
 	
 	g_win->sel ().clear ();
 	
 	for (LDObject* obj : objs) {
-		historyCopies << obj->clone ();
-		historyIndices << idx;
 		g_curfile->insertObj (idx, obj);
 		g_win->sel () << obj;
 		
 		idx++;
 	}
 	
-	if (historyCopies.size() > 0) {
-		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_win->fullRefresh ();
-		g_win->scrollToSelection ();
-	}
+	g_win->fullRefresh ();
+	g_win->scrollToSelection ();
 }
 
 // =============================================================================
@@ -366,8 +359,6 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	QVBoxLayout* const layout = new QVBoxLayout;
 	QTextEdit* const te_edit = new QTextEdit;
 	QDialogButtonBox* const bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	vector<LDObject*> historyCopies;
-	vector<ulong> historyIndices;
 	
 	layout->addWidget (te_edit);
 	layout->addWidget (bbx_buttons);
@@ -385,17 +376,12 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 		LDObject* obj = parseLine (line);
 		
 		g_curfile->insertObj (idx, obj);
-		historyIndices << idx;
-		historyCopies << obj->clone ();
 		g_win->sel () << obj;
 		idx++;
 	}
 	
-	if (historyCopies.size () > 0) {
-		History::addEntry (new AddHistory (historyIndices, historyCopies));
-		g_win->fullRefresh ();
-		g_win->scrollToSelection ();
-	}
+	g_win->fullRefresh ();
+	g_win->scrollToSelection ();
 }
 
 // =========================================================================================================================================

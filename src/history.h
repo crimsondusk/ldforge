@@ -28,6 +28,8 @@
 	virtual void redo (); \
 	virtual HistoryType type () { return HISTORY_##N; }
 
+class AbstractHistoryEntry;
+
 // =============================================================================
 enum HistoryType {
 	HISTORY_Del,
@@ -41,180 +43,114 @@ enum HistoryType {
 	HISTORY_Combo,
 };
 
+class History {
+	PROPERTY (long, pos, setPos)
+	
+public:
+	History ();
+	void undo ();
+	void redo ();
+	void clear ();
+	void updateActions ();
+	
+private:
+	vector<vector<AbstractHistoryEntry*>> m_entries;
+};
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class HistoryEntry {
+class AbstractHistoryEntry {
 public:
 	virtual void undo () {}
 	virtual void redo () {}
-	virtual ~HistoryEntry () {}
+	virtual ~AbstractHistoryEntry () {}
 	virtual HistoryType type () { return (HistoryType)(0); }
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class DelHistory : public HistoryEntry {
+class DelHistory : public AbstractHistoryEntry {
 public:
 	enum Type {
-		Cut,	// were deleted with a cut operation
-		Other,	// were deleted witout specific reason
+		Cut,	// was deleted with a cut operation
+		Other,	// was deleted witout specific reason
 	};
 	
+	PROPERTY (ulong, index, setIndex)
+	PROPERTY (LDObject*, copy, setCopy)
+	PROPERTY (DelHistory::Type, type, setType)
+	
+public:
 	IMPLEMENT_HISTORY_TYPE (Del)
 	
-	vector<ulong> indices;
-	vector<LDObject*> cache;
-	const Type eType;
-	
-	DelHistory (vector<ulong> indices, vector<LDObject*> cache, const Type eType = Other) :
-		indices (indices), cache (cache), eType (eType) {}
+	DelHistory (ulong idx, LDObject* copy, Type type) :
+		m_index (idx), m_copy (copy), m_type (type) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class SetColorHistory : public HistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (SetColor)
+class EditHistory : public AbstractHistoryEntry {
+	PROPERTY (ulong, index, setIndex)
+	PROPERTY (LDObject*, oldCopy, setOldCopy)
+	PROPERTY (LDObject*, newCopy, setNewCopy)
 	
-	vector<ulong> ulaIndices;
-	vector<short> daColors;
-	short dNewColor;
-	
-	SetColorHistory (vector<ulong> ulaIndices, vector<short> daColors, short dNewColor) :
-		ulaIndices (ulaIndices), daColors (daColors), dNewColor (dNewColor) {}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-class EditHistory : public HistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Edit)
 	
-	vector<ulong> ulaIndices;
-	vector<LDObject*> paOldObjs, paNewObjs;
-	
-	EditHistory () {}
-	EditHistory (vector<ulong> ulaIndices, vector<LDObject*> paOldObjs,
-		vector<LDObject*> paNewObjs) :
-		ulaIndices (ulaIndices), paOldObjs (paOldObjs), paNewObjs (paNewObjs) {}
-	
-	void	addEntry		(LDObject* const oldObj, LDObject* const newObj);
-	void	addEntry		(LDObject* const oldObj, LDObject* const newObj, const ulong idx);
-	ulong	numEntries		() const { return ulaIndices.size (); }
+	EditHistory (ulong idx, LDObject* oldcopy, LDObject* newcopy) :
+		m_index (idx), m_oldCopy (oldcopy), m_newCopy (newcopy) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class ListMoveHistory : public HistoryEntry {
+class ListMoveHistory : public AbstractHistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (ListMove)
 	
-	vector<ulong> ulaIndices;
-	bool bUp;
+	vector<ulong> idxs;
+	long dest;
 	
-	vector<LDObject*> getObjects (short ofs);
-	ListMoveHistory (vector<ulong> ulaIndices, const bool bUp) :
-		ulaIndices (ulaIndices), bUp (bUp) {}
+	ListMoveHistory (vector<ulong> idxs, long dest) :
+		idxs (idxs), dest (dest) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class AddHistory : public HistoryEntry {
+class AddHistory : public AbstractHistoryEntry {
 public:
 	enum Type {
 		Other,	// was "just added"
 		Paste,	// was added through a paste operation
 	};
 	
+	PROPERTY (ulong, index, setIndex)
+	PROPERTY (LDObject*, copy, setCopy)
+	PROPERTY (AddHistory::Type, type, setType)
+	
+public:
 	IMPLEMENT_HISTORY_TYPE (Add)
 	
-	vector<ulong> ulaIndices;
-	vector<LDObject*> paObjs;
-	const Type eType;
-	
-	AddHistory (vector<ulong> ulaIndices, vector<LDObject*> paObjs,
-		const Type eType = Other) :
-		ulaIndices (ulaIndices), paObjs (paObjs), eType (eType) {}
+	AddHistory (ulong idx, LDObject* copy, Type type = Other) :
+		m_index (idx), m_copy (copy), m_type (type) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class QuadSplitHistory : public HistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (QuadSplit)
-	
-	vector<ulong> ulaIndices;
-	vector<LDQuad*> paQuads;
-	
-	QuadSplitHistory (vector<ulong> ulaIndices, vector<LDQuad*> paQuads) :
-		ulaIndices (ulaIndices), paQuads (paQuads) {}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-class InlineHistory : public HistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (Inline)
-	
-	const vector<ulong> ulaBitIndices, ulaRefIndices;
-	const vector<LDSubfile*> paRefs;
-	const bool bDeep;
-	
-	InlineHistory (const vector<ulong> ulaBitIndices, const vector<ulong> ulaRefIndices,
-		const vector<LDSubfile*> paRefs, const bool bDeep) :
-		ulaBitIndices (ulaBitIndices), ulaRefIndices (ulaRefIndices), paRefs (paRefs), bDeep (bDeep) {}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-class MoveHistory : public HistoryEntry {
+class MoveHistory : public AbstractHistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Move)
 	
-	const vector<ulong> ulaIndices;
-	const vertex vVector;
+	vector<ulong> indices;
+	vertex dest;
 	
-	MoveHistory (const vector<ulong> ulaIndices, const vertex vVector) :
-		ulaIndices (ulaIndices), vVector (vVector) {}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-class ComboHistory : public HistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (Combo)
-	
-	vector<HistoryEntry*> paEntries;
-	
-	ComboHistory () {}
-	ComboHistory (vector<HistoryEntry*> paEntries) : paEntries (paEntries) {}
-	
-	void			addEntry		(HistoryEntry* entry) { if (entry) paEntries << entry; }
-	ulong			numEntries		() const { return paEntries.size (); }
-	ComboHistory&	operator<<		(HistoryEntry* entry) { addEntry (entry); return *this;}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-namespace History {
-	void addEntry (HistoryEntry* entry);
-	void undo ();
-	void redo ();
-	void clear ();
-	void updateActions ();
-	long pos ();
-	vector<HistoryEntry*>& entries ();
+	MoveHistory (vector<ulong> indices, vertex dest) :
+		indices (indices), dest (dest) {}
 };
 
 #endif // HISTORY_H
