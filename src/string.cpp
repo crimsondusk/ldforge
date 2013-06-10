@@ -419,3 +419,16 @@ String::operator QString () {
 String::operator const QString () const {
 	return chars ();
 }
+
+str String::join (const vector<str>& items, const str& delim) {
+	str text;
+	
+	for (const str& item : items) {
+		if (item != items[0])
+			text += delim;
+		
+		text += item;
+	}
+	
+	return text;
+}

@@ -257,6 +257,18 @@ public:
 		std::sort (begin (), end ());
 	}
 	
+	ulong find (const T& needle) {
+		ulong i = 0;
+		for (const T& hay : *this) {
+			if (hay == needle)
+				return i;
+			
+			i++;
+		}
+		
+		return -1u;
+	}
+	
 private:
 	std::vector<T> m_vect;
 };

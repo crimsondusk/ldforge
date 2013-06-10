@@ -5,11 +5,12 @@
 - Added a progress dialog for file loading to respond to desktops while loading files. With large files
 	the no-response policy could be a bad thing.
 - Added Export To File action, moved it + insert from to File menu
+- Added: Parts are now zoomed to fit properly
+- Added: ability to snap to pre-existing vertices while drawing.
 - Fixed: text editing did not trigger checks while setting LDraw path, removed the Configure
 	button from the LDraw path config dialog, it's no longer needed.
 - Fixed: Coordinates weren't drawn properly on a bright background (was always drawn in bright colors..).
-- Parts are now zoomed to fit properly
-- Added ability to snap to pre-existing vertices while drawing.
+- Fixed: Recent files should behave coherently now.
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
 - When drawing, drawn vertices now display coordinate labels.
 - Calculated coordinates are now rounded down (to prevent stuff like Z:160.000001)

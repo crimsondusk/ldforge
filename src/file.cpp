@@ -31,6 +31,7 @@
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
+#include "string.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
@@ -437,34 +438,28 @@ void newFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void addRecentFile (str path) {
-	long pos = io_recentfiles.value.first (path);
+	vector<str> rfiles = io_recentfiles.value.split ('@');
+	
+	ulong idx = rfiles.find (path);
 	
 	// If this file already is in the list, pop it out.
-	if (pos != -1) {
-		if (~io_recentfiles.value == ~path)
+	if (idx != -1u) {
+		if (rfiles.size () == 1)
 			return; // only recent file - do nothing
 		
 		// Pop it out.
-		str front = io_recentfiles.value.substr (0, pos);
-		str back;
-		
-		if (pos + ~path + 1 < io_recentfiles.value.len ())
-			back = io_recentfiles.value.substr (pos + ~path + 1, -1);
-		else
-			back = "";
-		
-		io_recentfiles.value = front + back;
+		rfiles.erase (idx);
 	}
 	
 	// If there's too many recent files, drop one out.
-	while (io_recentfiles.value.count ('@') > 3)
-		io_recentfiles.value = io_recentfiles.value.substr (io_recentfiles.value.first ("@") + 1, -1);
+	while (rfiles.size () > (5 - 1))
+		rfiles.erase (0);
 	
 	// Add the file
-	if (~io_recentfiles.value > 0)
-		io_recentfiles.value += "@";
+	rfiles.push_back (path);
 	
-	io_recentfiles += path;
+	// Rebuild the config string
+	io_recentfiles = str::join (rfiles, "@");
 	
 	config::save ();
 	g_win->updateRecentFilesMenu ();

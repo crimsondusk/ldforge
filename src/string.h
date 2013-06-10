@@ -91,6 +91,8 @@ public:
 	operator QString              ();
 	operator const QString        () const;
 	
+	static str     join           (const vector<str>& items, const str& delim);
+	
 private:
 	std::string m_string;
 } str;
