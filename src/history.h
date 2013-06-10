@@ -24,31 +24,28 @@
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
 	virtual ~N##History (); \
-	virtual void undo (); \
-	virtual void redo (); \
-	virtual HistoryType type () { return HISTORY_##N; }
+	virtual void undo () const; \
+	virtual void redo () const; \
+	virtual History::Type type () { return History::N; }
 
 class AbstractHistoryEntry;
 
 // =============================================================================
-enum HistoryType {
-	HISTORY_Del,
-	HISTORY_SetColor,
-	HISTORY_Edit,
-	HISTORY_ListMove,
-	HISTORY_Add,
-	HISTORY_QuadSplit,
-	HISTORY_Inline,
-	HISTORY_Move,
-	HISTORY_Combo,
-};
-
 class History {
 	PROPERTY (long, pos, setPos)
+	PROPERTY (LDOpenFile*, file, setFile)
 	READ_PROPERTY (bool, opened, setOpened)
 	
 public:
 	typedef vector<AbstractHistoryEntry*> list;
+	
+	enum Type {
+		Del,
+		Edit,
+		ListMove,
+		Add,
+		Move,
+	};
 	
 	History ();
 	void undo ();
@@ -59,27 +56,33 @@ public:
 	void open ();
 	void close ();
 	void add (AbstractHistoryEntry* entry);
-	long size () const { return m_entries.size (); }
+	long size () const { return m_changesets.size (); }
 	
 	History& operator<< (AbstractHistoryEntry* entry) {
 		add (entry);
 		return *this;
 	}
 	
+	const list& changeset (long pos) const {
+		return m_changesets[pos];
+	}
+	
 private:
 	list m_currentArchive;
-	vector<list> m_entries;
+	vector<list> m_changesets;
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AbstractHistoryEntry {
+	PROPERTY (History*, parent, setParent)
+	
 public:
-	virtual void undo () {}
-	virtual void redo () {}
+	virtual void undo () const {}
+	virtual void redo () const {}
 	virtual ~AbstractHistoryEntry () {}
-	virtual HistoryType type () { return (HistoryType)(0); }
+	virtual History::Type type () { return (History::Type) 0; }
 };
 
 // =============================================================================
@@ -93,14 +96,14 @@ public:
 	};
 	
 	PROPERTY (ulong, index, setIndex)
-	PROPERTY (LDObject*, copy, setCopy)
+	PROPERTY (str, code, setCode)
 	PROPERTY (DelHistory::Type, type, setType)
 	
 public:
 	IMPLEMENT_HISTORY_TYPE (Del)
 	
-	DelHistory (ulong idx, LDObject* copy, Type type) :
-		m_index (idx), m_copy (copy), m_type (type) {}
+	DelHistory (ulong idx, LDObject* obj, Type type = Other) :
+		m_index (idx), m_code (obj->raw ()), m_type (type) {}
 };
 
 // =============================================================================
@@ -108,14 +111,14 @@ public:
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry {
 	PROPERTY (ulong, index, setIndex)
-	PROPERTY (LDObject*, oldCopy, setOldCopy)
-	PROPERTY (LDObject*, newCopy, setNewCopy)
+	PROPERTY (str, oldCode, setOldCode)
+	PROPERTY (str, newCode, setNewCode)
 	
 public:
 	IMPLEMENT_HISTORY_TYPE (Edit)
 	
-	EditHistory (ulong idx, LDObject* oldcopy, LDObject* newcopy) :
-		m_index (idx), m_oldCopy (oldcopy), m_newCopy (newcopy) {}
+	EditHistory (ulong idx, str oldCode, str newCode) :
+		m_index (idx), m_oldCode (oldCode), m_newCode (newCode) {}
 };
 
 // =============================================================================
@@ -143,14 +146,14 @@ public:
 	};
 	
 	PROPERTY (ulong, index, setIndex)
-	PROPERTY (LDObject*, copy, setCopy)
+	PROPERTY (str, code, setCode)
 	PROPERTY (AddHistory::Type, type, setType)
 	
 public:
 	IMPLEMENT_HISTORY_TYPE (Add)
 	
-	AddHistory (ulong idx, LDObject* copy, Type type = Other) :
-		m_index (idx), m_copy (copy), m_type (type) {}
+	AddHistory (ulong idx, LDObject* obj, Type type = Other) :
+		m_index (idx), m_code (obj->raw ()), m_type (type) {}
 };
 
 // =============================================================================

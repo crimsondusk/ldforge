@@ -52,6 +52,7 @@ class LDOpenFile {
 	PROPERTY (vector<LDObject*>, cache, setCache)
 	PROPERTY (long, savePos, setSavePos)
 	MUTABLE_READ_PROPERTY (History, history)
+	READ_PROPERTY (vector<LDObject*>, vertices, setVertices)
 	
 public:
 	typedef vector<LDObject*>::it it;

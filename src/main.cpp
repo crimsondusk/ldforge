@@ -41,6 +41,8 @@ const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 // =============================================================================
 int main (int argc, char* argv[]) {
 	const QApplication app (argc, argv);
+	g_app = &app;
+	g_curfile = NULL;
 	
 	// Load or create the configuration
 	if (!config::load ()) {
@@ -57,9 +59,6 @@ int main (int argc, char* argv[]) {
 	initPartList ();
 	
 	ForgeWindow* win = new ForgeWindow;
-	
-	g_app = &app;
-	
 	newFile ();
 	
 	win->show ();

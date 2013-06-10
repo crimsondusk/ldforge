@@ -21,6 +21,7 @@
 #include "file.h"
 #include "misc.h"
 #include "gui.h"
+#include "gldraw.h"
 
 EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
@@ -30,11 +31,33 @@ History::History () {
 }
 
 void History::undo () {
+	if (m_changesets.size () == 0 || pos () == -1)
+		return;
 	
+	const list& set = changeset (pos ());
+	
+	// Iterate the list in reverse and undo all actions
+	for (const AbstractHistoryEntry* change : c_rev<AbstractHistoryEntry*> (set))
+		change->undo ();
+	
+	setPos (pos () - 1);
+	g_win->refresh ();
+	updateActions ();
 }
 
 void History::redo () {
+	if (pos () == (long) m_changesets.size ())
+		return;
 	
+	const list& set = changeset (pos () + 1);
+	
+	// Redo things - in the order as they were done in the first place
+	for (const AbstractHistoryEntry* change : set)
+		change->redo ();
+	
+	setPos (pos () + 1);
+	g_win->refresh ();
+	updateActions ();
 }
 
 void History::clear () {
@@ -42,8 +65,8 @@ void History::clear () {
 }
 
 void History::updateActions () {
-	ACTION (undo)->setEnabled (false);
-	ACTION (redo)->setEnabled (false);
+	ACTION (undo)->setEnabled (pos () != -1);
+	ACTION (redo)->setEnabled (pos () < (long) m_changesets.size () - 1);
 }
 
 void History::open () {
@@ -58,19 +81,60 @@ void History::close () {
 		return;
 	
 	setOpened (false);
+	
 	if (m_currentArchive.size () == 0)
 		return;
 	
 	while (pos () < size () - 1)
-		m_entries.erase (size () - 1);
+		m_changesets.erase (size () - 1);
 	
-	m_entries << m_currentArchive;
+	m_changesets << m_currentArchive;
 	m_currentArchive.clear ();
 	setPos (pos () + 1);
 	updateActions ();
 }
 
 void History::add (AbstractHistoryEntry* entry) {
-	assert (opened ());
+	if (!opened ()) {
+		delete entry;
+		return;
+	}
+	
+	entry->setParent (this);
 	m_currentArchive << entry;
 }
+
+// =============================================================================
+void AddHistory::undo () const {
+	LDOpenFile* f = parent ()->file ();
+	LDObject* obj = f->object (index ());
+	f->forgetObject (obj);
+	delete obj;
+}
+
+void AddHistory::redo () const {
+	LDOpenFile* f = parent ()->file ();
+	LDObject* obj = parseLine (code ());
+	f->insertObj (index (), obj);
+	g_win->R ()->compileObject (obj);
+}
+
+AddHistory::~AddHistory () {}
+
+// =============================================================================
+// heh
+void DelHistory::undo () const {
+	LDOpenFile* f = parent ()->file ();
+	LDObject* obj = parseLine (code ());
+	f->insertObj (index (), obj);
+	g_win->R ()->compileObject (obj);
+}
+
+void DelHistory::redo () const {
+	LDOpenFile* f = parent ()->file ();
+	LDObject* obj = f->object (index ());
+	f->forgetObject (obj);
+	delete obj;
+}
+
+DelHistory::~DelHistory () {}

@@ -91,6 +91,7 @@ namespace LDPaths {
 LDOpenFile::LDOpenFile () {
 	setImplicit (true);
 	setSavePos (-1);
+	history ().setFile (this);
 }
 
 // =============================================================================
@@ -429,6 +430,7 @@ void newFile () {
 	g_win->R ()->setFile (f);
 	g_win->fullRefresh ();
 	g_win->updateTitle ();
+	f->history ().updateActions ();
 }
 
 // =============================================================================
@@ -819,7 +821,11 @@ void reloadAllSubfiles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ulong LDOpenFile::addObject (LDObject* obj) {
-	m_objs << obj;
+	PROP_NAME (history).add (new AddHistory (PROP_NAME (objs).size (), obj));
+	PROP_NAME (objs) << obj;
+	
+	if (obj->getType () == LDObject::Vertex)
+		PROP_NAME (vertices) << obj;
 	
 	if (this == g_curfile)
 		g_BBox.calcObject (obj);
@@ -831,6 +837,7 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
+	m_history.add (new AddHistory (pos, obj));
 	m_objs.insert (pos, obj);
 	
 	if (this == g_curfile)
@@ -841,16 +848,8 @@ void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDOpenFile::forgetObject (LDObject* obj) {
-	// Find the index for the given object
-	ulong idx;
-	for (idx = 0; idx < (ulong)m_objs.size(); ++idx)
-		if (m_objs[idx] == obj)
-			break; // found it
-	
-	if (idx >= m_objs.size ())
-		return; // was not found
-	
-	// Erase it from memory
+	ulong idx = obj->getIndex (this);
+	m_history.add (new DelHistory (idx, obj));
 	m_objs.erase (idx);
 	
 	// Update the bounding box

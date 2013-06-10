@@ -24,6 +24,9 @@
 
 class String;
 typedef String str;
+template<class T> class ConstVectorReverser;
+template<class T> using c_rev = ConstVectorReverser<T>;
+
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
@@ -129,6 +132,8 @@ template<class T> class vector {
 public:
 	typedef typename std::vector<T>::iterator it;
 	typedef typename std::vector<T>::const_iterator c_it;
+	typedef typename std::vector<T>::reverse_iterator r_it;
+	typedef typename std::vector<T>::const_reverse_iterator cr_it;
 	
 	vector () {}
 	vector (initlist<T> vals) {
@@ -149,6 +154,22 @@ public:
 	
 	c_it end () const {
 		return m_vect.cend ();
+	}
+	
+	r_it rbegin () {
+		return m_vect.rbegin ();
+	}
+	
+	cr_it crbegin () const {
+		return m_vect.crbegin ();
+	}
+	
+	r_it rend () {
+		return m_vect.rend ();
+	}
+	
+	cr_it crend () const {
+		return m_vect.crend ();
 	}
 	
 	void erase (ulong pos) {
@@ -191,7 +212,7 @@ public:
 	vector<T> reverse () const {
 		vector<T> rev;
 		
-		for (const T& val : m_vect)
+		for (const T& val : c_rev<T> (*this))
 			rev << val;
 		
 		return rev;
@@ -238,5 +259,48 @@ public:
 private:
 	std::vector<T> m_vect;
 };
+
+template<class T> class VectorReverser {
+public:
+	typedef typename vector<T>::r_it it;
+	
+	VectorReverser (vector<T>& vect) {
+		m_vect = &vect;
+	}
+	
+	it begin () {
+		return m_vect->rbegin ();
+	}
+	
+	it end () {
+		return m_vect->rend ();
+	}
+	
+private:
+	vector<T>* m_vect;
+};
+
+template<class T> class ConstVectorReverser {
+public:
+	typedef typename vector<T>::cr_it it;
+	
+	ConstVectorReverser (const vector<T>& vect) {
+		m_vect = &vect;
+	}
+	
+	it begin () const {
+		return m_vect->crbegin ();
+	}
+	
+	it end () const {
+		return m_vect->crend ();
+	}
+	
+private:
+	const vector<T>* m_vect;
+};
+
+template<class T> using rev = VectorReverser<T>;
+template<class T> using c_rev = ConstVectorReverser<T>;
 
 #endif // TYPES_H

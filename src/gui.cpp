@@ -133,8 +133,6 @@ void ForgeWindow::createMenuActions () {
 	
 	// things not implemented yet
 	findAction ("help")->setEnabled (false);
-	
-	g_curfile->history ().updateActions ();
 }
 
 // =============================================================================
@@ -528,8 +526,11 @@ void ForgeWindow::updateTitle () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
+EXTERN_ACTION (undo);
+EXTERN_ACTION (redo);
 void ForgeWindow::slot_action () {
-	g_curfile->history ().open ();
+	if (sender () != ACTION (undo) && sender () != ACTION (redo))
+		g_curfile->history ().open ();
 	
 	// Get the action that triggered this slot.
 	QAction* qAct = static_cast<QAction*> (sender ());

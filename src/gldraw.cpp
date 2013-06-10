@@ -1268,9 +1268,11 @@ void GLRenderer::endDraw (bool accept) {
 	}
 	
 	if (obj) {
+		file ()->history ().open ();
 		file ()->addObject (obj);
 		compileObject (obj);
 		g_win->fullRefresh ();
+		file ()->history ().close ();
 	}
 	
 	m_drawedVerts.clear ();
