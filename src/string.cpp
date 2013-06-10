@@ -20,6 +20,20 @@
 #include "common.h"
 #include "string.h"
 
+String::String () {}
+
+String::String (const char* data) {
+	m_string = data;
+}
+
+String::String (const QString data) {
+	m_string = data.toStdString ();
+}
+
+String::String (std::string data) {
+	m_string = data;
+}
+
 str fmt (const char* fmtstr, ...) {
 	va_list va;
 	
@@ -59,6 +73,88 @@ char* dynafmt (const char* fmtstr, va_list va, ulong size) {
 	return buf;
 }
 
+void String::append (const char* data) {
+	m_string.append (data);
+}
+
+void String::append (const char data) {
+	m_string.push_back (data);
+}
+
+void String::append (const String data) {
+	m_string.append (data.chars ());
+}
+
+String::it String::begin () {
+	return m_string.begin ();
+}
+
+String::c_it String::begin () const {
+	return m_string.cbegin ();
+}
+
+const char* String::c () const {
+	return chars ();
+}
+
+size_t String::capacity () const {
+	return m_string.capacity ();
+}
+
+const char* String::chars () const {
+	return m_string.c_str ();
+}
+
+int String::compare (const char* other) const {
+	return m_string.compare (other);
+}
+
+int String::compare (String other) const {
+	return m_string.compare (other);
+}
+
+String::it String::end () {
+	return m_string.end ();
+}
+
+String::c_it String::end () const {
+	return m_string.end ();
+}
+
+void String::clear () {
+	m_string.clear ();
+}
+
+bool String::empty() const {
+	return m_string.empty ();
+}
+
+void String::erase (size_t pos) {
+	m_string.erase (m_string.begin () + pos);
+}
+
+void String::insert (size_t pos, char c) {
+	m_string.insert (m_string.begin () + pos, c);
+}
+
+size_t String::len () const {
+	return m_string.length ();
+}
+
+size_t String::maxSize () const {
+	return m_string.max_size ();
+}
+
+void String::resize (size_t n) {
+	m_string.resize (n);
+}
+
+void String::shrinkToFit () {
+	m_string.shrink_to_fit ();
+}
+
+
+
 void String::trim (short n) {
 	if (n > 0)
 		for (short i = 0; i < n; ++i)
@@ -66,6 +162,10 @@ void String::trim (short n) {
 	else
 		for (short i = abs (n) - 1; i >= 0; ++i)
 			m_string.erase (m_string.begin () + i);
+}
+
+String String::strip (char unwanted) {
+	return strip ({unwanted});
 }
 
 String String::strip (std::initializer_list<char> unwanted) {
@@ -112,9 +212,9 @@ vector<String> String::split (String del) const {
 	
 	// Find all separators and store the text left to them.
 	while (1) {
-		size_t b = first (del, a);
+		long b = first (del, a);
 		
-		if (b == npos)
+		if (b == -1)
 			break;
 		
 		String sub = substr (a, b);
@@ -132,9 +232,9 @@ vector<String> String::split (String del) const {
 }
 
 void String::replace (const char* a, const char* b) {
-	size_t pos;
+	long pos;
 	
-	while ((pos = first (a)) != npos)
+	while ((pos = first (a)) != -1)
 		m_string = m_string.replace (pos, strlen (a), b);
 }
 
@@ -224,4 +324,98 @@ int String::last (const char* c, int a) const {
 	}
 	
 	return -1;
+}
+
+String String::operator+ (const String data) const {
+	String newstr = *this;
+	newstr += data;
+	return newstr;
+}
+
+String String::operator+ (const char* data) const {
+	String newstr = *this;
+	newstr += data;
+	return newstr;
+}
+
+String& String::operator+= (const String data) {
+	append (data);
+	return *this;
+}
+
+String& String::operator+= (const char* data) {
+	append (data);
+	return *this;
+}
+
+String& String::operator+= (const char data) {
+	append (data);
+	return *this;
+}
+
+String String::operator+ () const {
+	return upper ();
+}
+
+String String::operator- () const {
+	return lower ();
+}
+
+String String::operator- (size_t n) const {
+	String newstr = m_string;
+	newstr -= n;
+	return newstr;
+}
+
+String& String::operator-= (size_t n) {
+	trim (n);
+	return *this;
+}
+
+size_t String::operator~ () const {
+	return len ();
+}
+
+vector<String> String::operator/ (String del) const {
+	return split (del);
+}
+
+char& String::operator[] (size_t n) {
+	return m_string[n];
+}
+
+const char& String::operator[] (size_t n) const {
+	return m_string[n];
+}
+
+bool String::operator== (const String other) const {
+	return compare (other) == 0;
+}
+
+bool String::operator== (const char* other) const {
+	return compare (other) == 0;
+}
+
+bool String::operator!= (const String other) const {
+	return compare (other) != 0;
+}
+
+bool String::operator!= (const char* other) const {
+	return compare (other) != 0;
+}
+
+bool String::operator! () const {
+	return empty ();
+}
+
+String::operator const char* () const {
+	return chars ();
+}
+
+String::operator QString () {
+	return chars ();
+}
+
+String::operator const QString () const {
+	return chars ();
 }

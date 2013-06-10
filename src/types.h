@@ -42,6 +42,7 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 
 template<class T> using initlist = std::initializer_list<T>;
+using std::size_t;
 
 enum Axis { X, Y, Z };
 static const Axis g_Axes[3] = {X, Y, Z};

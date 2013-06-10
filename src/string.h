@@ -24,87 +24,79 @@
 #include <QString>
 #include "types.h"
 
-// =========================================================================================================================================
-char* dynafmt (const char* fmtstr, va_list va, ulong size);
-
-// =========================================================================================================================================
 typedef class String {
 public:
-#define STR_COMPARE_OPERATOR(T, OP) (T other) const { return compare (other) OP 0; }
-	
 	typedef typename std::string::iterator it;
 	typedef typename std::string::const_iterator c_it;
 	typedef vector<String> stringlist;
 	
-	String () {}
-	String (const char* data) { m_string = data; }
-	String (const QString data) { m_string = data.toStdString (); }
-	String (std::string data) { m_string = data; }
+	String ();
+	String (const char* data);
+	String (const QString data);
+	String (std::string data);
 	
-	void		append			(const char* data) { m_string.append (data); }
-	void		append			(const char data) { m_string.push_back (data); }
-	void		append			(const String data) { m_string.append (data.chars ()); }
-	it			begin			() { return m_string.begin (); }
-	c_it		begin			() const { return m_string.cbegin (); }
-	const char*	c				() const { return chars (); }
-	size_t		capacity		() const { return m_string.capacity (); }
-	const char*	chars			() const { return m_string.c_str (); }
-	int			compare			(const char* other) const { return m_string.compare (other); }
-	int			compare			(String other) const { return m_string.compare (other); }
-	it			end				() { return m_string.end (); }
-	c_it		end				() const { return m_string.end (); }
-	void		clear			() { m_string.clear (); }
-	ushort		count			(const char needle) const;
-	bool		empty			() const { return m_string.empty (); }
-	void		erase			(size_t pos) { m_string.erase (m_string.begin () + pos); }
-	int			first			(const char* c, int a = 0) const;
-	void		format			(const char* fmtstr, ...);
-	void		insert			(size_t pos, char c) { m_string.insert (m_string.begin () + pos, c); }
-	int			last			(const char* c, int a = -1) const;
-	size_t		len				() const { return m_string.length (); }
-	String		lower			() const;
-	size_t		maxSize			() const { return m_string.max_size (); }
-	void		replace			(const char* a, const char* b);
-	void		resize			(size_t n) { m_string.resize (n); }
-	void		shrinkToFit		() { m_string.shrink_to_fit (); }
-	stringlist	split			(String del) const;
-	stringlist	split			(char del) const;
-	String		strip			(char unwanted) { return strip ({unwanted}); }
-	String		strip			(std::initializer_list<char> unwanted);
-	String		substr			(long a, long b) const;
-	void		trim			(short n);
-	String		upper			() const;
-	void		writeToFile		(FILE* fp) const { fwrite (chars (), 1, len (), fp); }
+	void           append         (const char* data);
+	void           append         (const char data);
+	void           append         (const String data);
+	it             begin          ();
+	c_it           begin          () const;
+	const char*    c              () const;
+	size_t         capacity       () const;
+	const char*    chars          () const;
+	int            compare        (const char* other) const;
+	int            compare        (String other) const;
+	it             end            ();
+	c_it           end            () const;
+	void           clear          ();
+	ushort         count          (const char needle) const;
+	bool           empty          () const;
+	void           erase          (size_t pos);
+	int            first          (const char* c, int a = 0) const;
+	void           format         (const char* fmtstr, ...);
+	void           insert         (size_t pos, char c);
+	int            last           (const char* c, int a = -1) const;
+	size_t         len            () const;
+	String         lower          () const;
+	size_t         maxSize        () const;
+	void           replace        (const char* a, const char* b);
+	void           resize         (size_t n);
+	void           shrinkToFit    ();
+	stringlist     split          (String del) const;
+	stringlist     split          (char del) const;
+	String         strip          (char unwanted);
+	String         strip          (std::initializer_list<char> unwanted);
+	String         substr         (long a, long b) const;
+	void           trim           (short n);
+	String         upper          () const;
 	
-	String		operator+		(const String data) const { String newstr = *this; newstr += data; return newstr; }
-	String		operator+		(const char* data) const { String newstr = *this; newstr += data; return newstr; }
-	String&		operator+=		(const String data) { append (data); return *this; }
-	String&		operator+=		(const char* data) { append (data); return *this; }
-	String&		operator+=		(const char data) { append (data); return *this; }
-	String		operator+		() const { return upper (); }
-	String		operator-		() const { return lower (); }
-	String		operator-		(short n) const { String newstr = m_string; newstr -= n; return newstr; }
-	String&		operator-=		(short n) { trim (n); return *this; }
-	size_t		operator~		() const { return len (); }
-	vector<String> operator/	(String del) const { return split (del); }
-	char&		operator[]		(size_t n) { return m_string[n]; }
-	const char&	operator[]		(size_t n) const { return m_string[n]; }
-	bool		operator==		STR_COMPARE_OPERATOR (const char*, ==)
-	bool		operator==		STR_COMPARE_OPERATOR (String, ==)
-	bool		operator!=		STR_COMPARE_OPERATOR (const char*, !=)
-	bool		operator!=		STR_COMPARE_OPERATOR (String,  !=)
-	bool		operator!		() const { return empty (); }
-	operator const char*		() const { return chars (); }
-	operator QString			() { return chars (); }
-	operator const QString	() const { return chars (); }
+	String         operator+      (const String data) const;
+	String         operator+      (const char* data) const;
+	String&        operator+=     (const String data);
+	String&        operator+=     (const char* data);
+	String&        operator+=     (const char data);
+	String         operator+      () const;
+	String         operator-      () const;
+	String         operator-      (size_t n) const;
+	String&        operator-=     (size_t n);
+	size_t         operator~      () const;
+	vector<String> operator/      (String del) const;
+	char&          operator[]     (size_t n);
+	const char&    operator[]     (size_t n) const;
+	bool           operator==     (const String other) const;
+	bool           operator==     (const char* other) const;
+	bool           operator!=     (const String other) const;
+	bool           operator!=     (const char* other) const;
+	bool           operator!      () const;
+	operator const char*          () const;
+	operator QString              ();
+	operator const QString        () const;
 	
 private:
 	std::string m_string;
 } str;
 
-static const std::size_t npos = std::string::npos;
-
-// =========================================================================================================================================
-str fmt (const char* fmtstr, ...);
+// Accessories
+char*          dynafmt        (const char* fmtstr, va_list va, ulong size);
+str            fmt            (const char* fmtstr, ...);
 
 #endif // STR_H

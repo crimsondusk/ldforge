@@ -437,10 +437,10 @@ void newFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void addRecentFile (str path) {
-	size_t pos = io_recentfiles.value.first (path);
+	long pos = io_recentfiles.value.first (path);
 	
 	// If this file already is in the list, pop it out.
-	if (pos != npos) {
+	if (pos != -1) {
 		if (~io_recentfiles.value == ~path)
 			return; // only recent file - do nothing
 		

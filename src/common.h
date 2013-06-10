@@ -224,19 +224,20 @@ static inline const char* qchars (const QString& qstr) {
 
 static const double pi = 3.14159265358979323846f;
 
+// -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
-#error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
+# error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
 
 // Current function name
 static const char* __func__ = "";
 
-#ifndef va_start
-#define va_start(va, arg)
-#endif // va_start
+# ifndef va_start
+#  define va_start(va, arg)
+# endif // va_start
 
-#ifndef va_end
-#define va_end(va)
-#endif // va_end
+# ifndef va_end
+#  define va_end(va)
+# endif // va_end
 
 typedef void FILE; // :|
 #endif // IN_IDE_PARSER
