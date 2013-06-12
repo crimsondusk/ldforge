@@ -92,7 +92,7 @@ namespace LDPaths {
 LDOpenFile::LDOpenFile () {
 	setImplicit (true);
 	setSavePos (-1);
-	history ().setFile (this);
+	m_history.setFile (this);
 }
 
 // =============================================================================

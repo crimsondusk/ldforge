@@ -51,7 +51,7 @@ public:
 	void undo ();
 	void redo ();
 	void clear ();
-	void updateActions ();
+	void updateActions () const;
 	
 	void open ();
 	void close ();

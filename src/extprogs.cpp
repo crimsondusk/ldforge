@@ -154,7 +154,7 @@ void writeSelection (str fname) {
 // =============================================================================
 void writeColorGroup (const short colnum, str fname) {
 	vector<LDObject*> objects;
-	for (LDObject*& obj : g_curfile->objs ()) {
+	for (LDObject*& obj : *g_curfile) {
 		if (obj->isColored () == false || obj->color () != colnum)
 			continue;
 		

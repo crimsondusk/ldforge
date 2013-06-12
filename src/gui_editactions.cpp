@@ -366,11 +366,11 @@ MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection do
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
-	g_curfile->history ().undo ();
+	g_curfile->undo ();
 }
 
 MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
-	g_curfile->history ().redo ();
+	g_curfile->redo ();
 }
 
 MAKE_ACTION (showHistory, "Edit History", "history", "Show the history dialog.", (0)) {

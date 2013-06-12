@@ -1189,7 +1189,13 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 }
 
 // =============================================================================
-void GLRenderer::callback_setEditMode () {
+READ_ACCESSOR (EditMode, GLRenderer::editMode) {
+	return m_editMode;
+}
+
+SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
+	m_editMode = val;
+	
 	switch (editMode ()) {
 	case Select:
 		unsetCursor ();
@@ -1268,11 +1274,11 @@ void GLRenderer::endDraw (bool accept) {
 	}
 	
 	if (obj) {
-		file ()->history ().open ();
+		file ()->openHistory ();
 		file ()->addObject (obj);
 		compileObject (obj);
 		g_win->fullRefresh ();
-		file ()->history ().close ();
+		file ()->closeHistory ();
 	}
 	
 	m_drawedVerts.clear ();

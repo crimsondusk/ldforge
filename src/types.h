@@ -45,14 +45,14 @@ template<class T> using initlist = std::initializer_list<T>;
 using std::size_t;
 
 enum Axis { X, Y, Z };
-static const Axis g_Axes[3] = {X, Y, Z};
+static const Axis g_Axes[3] = { X, Y, Z };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // matrix
 // 
-// A templated, mathematical N x N matrix
+// A mathematical 3 x 3 matrix
 // =============================================================================
 class matrix {
 public:

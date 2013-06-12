@@ -64,7 +64,7 @@ void History::clear () {
 	
 }
 
-void History::updateActions () {
+void History::updateActions () const {
 	ACTION (undo)->setEnabled (pos () != -1);
 	ACTION (redo)->setEnabled (pos () < (long) m_changesets.size () - 1);
 }

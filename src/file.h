@@ -48,10 +48,10 @@ namespace LDPaths {
 class LDOpenFile {
 	PROPERTY (str, name, setName)
 	PROPERTY (bool, implicit, setImplicit)
-	MUTABLE_READ_PROPERTY (vector<LDObject*>, objs) // TODO: make this private!
+	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
 	PROPERTY (vector<LDObject*>, cache, setCache)
 	PROPERTY (long, savePos, setSavePos)
-	MUTABLE_READ_PROPERTY (History, history)
+	READ_PROPERTY (History, history, setHistory)
 	READ_PROPERTY (vector<LDObject*>, vertices, setVertices)
 	
 public:
@@ -80,12 +80,23 @@ public:
 	ulong numObjs () const { return m_objs.size (); }
 	void setObject (ulong idx, LDObject* obj);
 	
+	LDOpenFile& operator<< (LDObject* obj) {
+		addObject (obj);
+		return *this;
+	}
+	
 	it begin () { return PROP_NAME (objs).begin (); }
 	c_it begin () const { return PROP_NAME (objs).begin (); }
 	it end () { return PROP_NAME (objs).end (); }
 	c_it end () const { return PROP_NAME (objs).end (); }
 	
 	static void closeUnused ();
+	
+	void openHistory () { m_history.open (); }
+	void closeHistory () { m_history.close (); }
+	void undo () { m_history.undo (); }
+	void redo () { m_history.redo (); }
+	void clearHistory () { m_history.clear (); }
 };
 
 // Close all current loaded files and start off blank.

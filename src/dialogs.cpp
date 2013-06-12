@@ -161,9 +161,11 @@ ReplaceCoordsDialog::ReplaceCoordsDialog (QWidget* parent, Qt::WindowFlags f) : 
 	
 	dsb_search = new QDoubleSpinBox;
 	dsb_search->setRange (-10000.0f, 10000.0f);
+	dsb_search->setDecimals (6);
 	
 	dsb_replacement = new QDoubleSpinBox;
 	dsb_replacement->setRange (-10000.0f, 10000.0f);
+	dsb_replacement->setDecimals (6);
 	
 	cb_any = new QCheckBox ("Any");
 	cb_rel = new QCheckBox ("Relative");
@@ -404,7 +406,6 @@ void NewPartDialog::StaticDialog () {
 	
 	short idx;
 	str author = dlg.le_author->text ();
-	vector<LDObject*>& objs = g_curfile->objs ();
 	
 	idx = dlg.rb_BFC->value ();
 	const LDBFC::Type BFCType =
@@ -418,17 +419,17 @@ void NewPartDialog::StaticDialog () {
 		(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
 		null;
 	
-	objs << new LDComment (dlg.le_name->text ());
-	objs << new LDComment ("Name: <untitled>.dat");
-	objs << new LDComment (fmt ("Author: %s", author.chars()));
-	objs << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
+	*g_curfile << new LDComment (dlg.le_name->text ());
+	*g_curfile << new LDComment ("Name: <untitled>.dat");
+	*g_curfile << new LDComment (fmt ("Author: %s", author.chars()));
+	*g_curfile << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != null)
-		objs << new LDComment (fmt ("!LICENSE %s", license));
+		*g_curfile << new LDComment (fmt ("!LICENSE %s", license));
 	
-	objs << new LDEmpty;
-	objs << new LDBFC (BFCType);
-	objs << new LDEmpty;
+	*g_curfile << new LDEmpty;
+	*g_curfile << new LDBFC (BFCType);
+	*g_curfile << new LDEmpty;
 	
 	g_win->fullRefresh ();
 }
@@ -505,7 +506,12 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 	layout->addWidget (dbb_buttons);
 }
 
-void OpenProgressDialog::callback_setNumLines () {
+READ_ACCESSOR (ulong, OpenProgressDialog::numLines) {
+	return m_numLines;
+}
+
+SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines) {
+	m_numLines = val;
 	progressBar->setRange (0, numLines ());
 	updateValues ();
 }

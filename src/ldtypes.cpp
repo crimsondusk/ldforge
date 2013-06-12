@@ -171,7 +171,8 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 	tri2->coords[2] = coords[3];
 	
 	// The triangles also inherit the quad's color
-	tri1->setColor (tri2->setColor (color ()));
+	tri1->setColor (color ());
+	tri2->setColor (color ());
 	
 	vector<LDTriangle*> triangles;
 	triangles << tri1;
@@ -184,7 +185,7 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
 	// Replace the instance of the old object with the new object
-	for (LDObject*& obj : g_curfile->objs ()) {
+	for (LDObject*& obj : *g_curfile) {
 		if (obj == this) {
 			obj = replacement;
 			break;
@@ -199,7 +200,7 @@ void LDObject::replace (LDObject* replacement) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : g_curfile->objs ()) {
+	for (LDObject*& obj : *g_curfile) {
 		if (obj == this)
 			obj = other;
 		else if (obj == other)

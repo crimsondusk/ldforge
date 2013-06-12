@@ -529,34 +529,35 @@ void ForgeWindow::updateTitle () {
 EXTERN_ACTION (undo);
 EXTERN_ACTION (redo);
 void ForgeWindow::slot_action () {
+	// Open the history so we can record the edits done during this action.
 	if (sender () != ACTION (undo) && sender () != ACTION (redo))
-		g_curfile->history ().open ();
+		g_curfile->openHistory ();
 	
 	// Get the action that triggered this slot.
 	QAction* qAct = static_cast<QAction*> (sender ());
 	
 	// Find the meta for the action.
-	actionmeta* pMeta = null;
+	actionmeta* meta = null;
 	
-	for (actionmeta meta : g_actionMeta) {
-		if (meta.qAct == null)
+	for (actionmeta& it : g_actionMeta) {
+		if (it.qAct == null)
 			break;
 		
-		if (*meta.qAct == qAct) {
-			pMeta = &meta;
+		if (*it.qAct == qAct) {
+			meta = &it;
 			break;
 		}
 	}
 	
-	if (!pMeta) {
+	if (!meta) {
 		logf (LOG_Warning, "unknown signal sender %p!\n", qAct);
 		return;
 	}
 	
 	// We have the meta, now call the handler.
-	(*pMeta->handler) ();
+	(*meta->handler) ();
 	
-	g_curfile->history ().close ();
+	g_curfile->closeHistory ();
 }
 
 // =============================================================================

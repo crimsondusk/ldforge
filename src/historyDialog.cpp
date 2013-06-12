@@ -23,8 +23,6 @@
 #include "colors.h"
 #include "file.h"
 
-History* g_history = null;
-
 EXTERN_ACTION (undo);
 EXTERN_ACTION (redo);
 
@@ -32,8 +30,6 @@ EXTERN_ACTION (redo);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 HistoryDialog::HistoryDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	g_history = &g_curfile->history ();
-	
 	historyList = new QListWidget;
 	undoButton = new QPushButton ("Undo");
 	redoButton = new QPushButton ("Redo");
@@ -85,7 +81,7 @@ void HistoryDialog::populateList () {
 	historyList->addItem (qItem);
 	
 #if 0
-	for (AbstractHistoryEntry* entry : g_history->entries ()) {
+	for (AbstractHistoryEntry* entry : g_curfile->history ().entries ()) {
 		str text;
 		QIcon entryIcon;
 		
@@ -107,14 +103,14 @@ void HistoryDialog::populateList () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void HistoryDialog::slot_undo () {
-	g_curfile->history ().undo ();
+	g_curfile->undo ();
 	updateButtons ();
 	updateSelection ();
 }
 
 // =============================================================================
 void HistoryDialog::slot_redo () {
-	g_curfile->history ().redo ();
+	g_curfile->redo ();
 	updateButtons ();
 	updateSelection ();
 }
@@ -128,7 +124,7 @@ void HistoryDialog::slot_clear () {
 	if (!confirm ("Are you sure you want to clear the edit history?\nThis cannot be undone."))
 		return; // Canceled
 	
-	g_curfile->history ().clear ();
+	g_curfile->clearHistory ();
 	populateList ();
 	updateButtons ();
 }
@@ -156,15 +152,12 @@ void HistoryDialog::slot_selChanged () {
 	// the index now
 	index--;
 	
-	if (index == g_curfile->history ().pos ())
-		return;
-	
 	// Seek to the selected edit by repeadetly undoing or redoing.
-	while (g_history->pos () != index) {
-		if (g_history->pos () > index)
-			g_history->undo ();
+	while (g_curfile->history ().pos () != index) {
+		if (g_curfile->history ().pos () > index)
+			g_curfile->undo ();
 		else
-			g_history->redo ();
+			g_curfile->redo ();
 	}
 	
 	updateButtons ();
