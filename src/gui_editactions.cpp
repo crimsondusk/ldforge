@@ -32,7 +32,7 @@
 #include "dialogs.h"
 #include "colors.h"
 
-vector<LDObject*> g_Clipboard;
+vector<str> g_Clipboard;
 
 cfg (bool, edit_schemanticinline, false);
 
@@ -42,21 +42,12 @@ cfg (bool, edit_schemanticinline, false);
 static bool copyToClipboard () {
 	vector<LDObject*> objs = g_win->sel ();
 	
-	if (objs.size () == 0)
-		return false;
-	
 	// Clear the clipboard first.
-	for (LDObject* obj : g_Clipboard)
-		delete obj;
-	
 	g_Clipboard.clear ();
 	
-	// Now, copy the contents into the clipboard. The objects should be
-	// separate objects so that modifying the existing ones does not affect
-	// the clipboard. Thus, we add clones of the objects to the clipboard, not
-	// the objects themselves.
-	for (ulong i = 0; i < objs.size (); ++i)
-		g_Clipboard << objs[i]->clone ();
+	// Now, copy the contents into the clipboard.
+	for (LDObject* obj : objs)
+		g_Clipboard << obj->raw ();
 	
 	return true;
 }
@@ -65,9 +56,7 @@ static bool copyToClipboard () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
-	if (!copyToClipboard ())
-		return;
-	
+	copyToClipboard ();
 	g_win->deleteSelection ();
 }
 
@@ -85,11 +74,11 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	ulong idx = g_win->getInsertionPoint ();
 	g_win->sel ().clear ();
 	
-	for (LDObject* obj : g_Clipboard) {
-		LDObject* copy = obj->clone ();
-		g_curfile->insertObj (idx++, copy);
-		g_win->sel () << copy;
-		g_win->R ()->compileObject (copy);
+	for (str line : g_Clipboard) {
+		LDObject* pasted = parseLine (line);
+		g_curfile->insertObj (idx++, pasted);
+		g_win->sel () << pasted;
+		g_win->R ()->compileObject (pasted);
 	}
 	
 	g_win->refresh ();
