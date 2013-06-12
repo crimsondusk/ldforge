@@ -97,6 +97,7 @@ public:
 	void undo () { m_history.undo (); }
 	void redo () { m_history.redo (); }
 	void clearHistory () { m_history.clear (); }
+	void addToHistory (AbstractHistoryEntry* entry) { m_history << entry; }
 };
 
 // Close all current loaded files and start off blank.

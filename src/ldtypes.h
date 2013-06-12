@@ -85,8 +85,8 @@ public:
 class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
-	PROPERTY (short, color, setColor)
 	PROPERTY (LDObject*, parent, setParent)
+	DECLARE_PROPERTY (short, color, setColor)
 	
 public:
 	// Object type codes. Codes are sorted in order of significance.

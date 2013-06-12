@@ -803,3 +803,16 @@ LDLine* LDCondLine::demote () {
 	replace (repl);
 	return repl;
 }
+
+READ_ACCESSOR (short, LDObject::color) { return m_color; }
+SET_ACCESSOR (short, LDObject::setColor) {
+	long idx;
+	if ((idx = getIndex (g_curfile)) != -1) {
+		str before = raw ();
+		m_color = val;
+		str after = raw ();
+		
+		g_curfile->addToHistory (new EditHistory (idx, before, after));
+	} else
+		m_color = val;
+}

@@ -769,6 +769,7 @@ void ForgeWindow::slot_recentFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_quickColor () {
+	g_curfile->openHistory ();
 	QToolButton* button = static_cast<QToolButton*> (sender ());
 	color* col = null;
 	
@@ -792,6 +793,7 @@ void ForgeWindow::slot_quickColor () {
 	}
 	
 	fullRefresh ();
+	g_curfile->closeHistory ();
 }
 
 // =============================================================================
