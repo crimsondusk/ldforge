@@ -23,7 +23,6 @@
 #include "types.h"
 
 #define LDOBJ(T) \
-	LD##T () {} \
 	virtual ~LD##T () {} \
 	virtual LDObject::Type getType () const { \
 		return LDObject::T; \
@@ -57,8 +56,9 @@ class LDSubfile;
 // Common code for objects with matrices
 // =============================================================================
 class LDMatrixObject {
-	PROPERTY (matrix, transform, setTransform)
-	PROPERTY (vertex, position, setPosition)
+	DECLARE_PROPERTY (matrix, transform, setTransform)
+	DECLARE_PROPERTY (vertex, position, setPosition)
+	PROPERTY (LDObject*, linkPointer, setLinkPointer)
 	
 public:
 	LDMatrixObject () {}
@@ -115,9 +115,6 @@ public:
 	// OpenGL list for this object
 	uint glLists[4];
 	
-	// Vertices of this object
-	vertex coords[4];
-	
 	// Type enumerator of this object
 	virtual LDObject::Type getType () const {
 		return LDObject::Unidentified;
@@ -168,10 +165,16 @@ public:
 	virtual void        invert          ();
 	LDObject*           next            () const;
 	LDObject*           prev            () const;
+	void                setVertex       (int i, const vertex& vert);
+	const vertex&       getVertex       (int i) const;
+	void                setVertexCoord  (int i, const Axis ax, double value);
 
 protected:
 	bool m_glinit;
 	friend class GLRenderer;
+	
+private:
+	vertex m_coords[4];
 };
 
 // =============================================================================
@@ -190,6 +193,7 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
+	LDGibberish ();
 	LDGibberish (str _zContent, str _zReason);
 	
 	// Content of this unknown line
@@ -227,6 +231,7 @@ public:
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
+	LDComment () {}
 	LDComment (str text) : text (text) {}
 	
 	str text; // The text of this comment
@@ -238,7 +243,7 @@ public:
 // Represents a 0 BFC statement in the LDraw code. eStatement contains the type
 // of this statement.
 // =============================================================================
-class LDBFC : public LDComment {
+class LDBFC : public LDObject {
 public:
 	enum Type { CertifyCCW, CCW, CertifyCW, CW, NoCertify, InvertNext, NumStatements };
 	
@@ -248,6 +253,7 @@ public:
 	LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
 	LDOBJ_NO_MATRIX
 	
+	LDBFC () {}
 	LDBFC (const LDBFC::Type type) : type (type) {}
 	
 	// Statement strings
@@ -271,6 +277,10 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	
+	LDSubfile () {
+		setLinkPointer (this);
+	}
+	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
 	vector<LDObject*> inlineContents (bool deep, bool cache);
@@ -291,6 +301,7 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
+	LDLine () {}
 	LDLine (vertex v1, vertex v2);
 };
 
@@ -308,6 +319,7 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
+	LDCondLine () {}
 	LDLine* demote ();
 };
 
@@ -326,10 +338,11 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 	
-	LDTriangle (vertex _v0, vertex _v1, vertex _v2) {
-		coords[0] = _v0;
-		coords[1] = _v1;
-		coords[2] = _v2;
+	LDTriangle () {}
+	LDTriangle (vertex v0, vertex v1, vertex v2) {
+		setVertex (0, v0);
+		setVertex (1, v1);
+		setVertex (2, v2);
 	}
 };
 
@@ -346,6 +359,8 @@ public:
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
+	
+	LDQuad () {}
 	
 	// Split this quad into two triangles (note: heap-allocated)
 	vector<LDTriangle*> splitToTriangles ();
@@ -366,6 +381,8 @@ public:
 	LDOBJ_COLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
+	
+	LDVertex () {}
 	
 	vertex pos;
 };
@@ -403,9 +420,13 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	
+	LDRadial () { setLinkPointer (this); }
 	LDRadial (LDRadial::Type radType, vertex pos, matrix transform, short divs, short segs, short ringNum) :
 		LDMatrixObject (transform, pos), PROP_NAME (type) (radType), PROP_NAME (divisions) (divs),
-		PROP_NAME (segments) (segs), PROP_NAME (number) (ringNum) {}
+		PROP_NAME (segments) (segs), PROP_NAME (number) (ringNum)
+	{
+		setLinkPointer (this);
+	}
 	
 	// Returns a set of objects that provide the equivalent of this radial.
 	// Note: objects are heap-allocated.

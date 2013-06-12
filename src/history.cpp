@@ -26,6 +26,8 @@
 EXTERN_ACTION (undo)
 EXTERN_ACTION (redo)
 
+bool g_fullRefresh = false;
+
 History::History () {
 	setPos (-1);
 }
@@ -35,13 +37,19 @@ void History::undo () {
 		return;
 	
 	const list& set = changeset (pos ());
+	g_fullRefresh = false;
 	
 	// Iterate the list in reverse and undo all actions
 	for (const AbstractHistoryEntry* change : c_rev<AbstractHistoryEntry*> (set))
 		change->undo ();
 	
 	setPos (pos () - 1);
-	g_win->refresh ();
+	
+	if (!g_fullRefresh)
+		g_win->refresh ();
+	else
+		g_win->fullRefresh ();
+	
 	updateActions ();
 }
 
@@ -50,13 +58,19 @@ void History::redo () {
 		return;
 	
 	const list& set = changeset (pos () + 1);
+	g_fullRefresh = false;
 	
 	// Redo things - in the order as they were done in the first place
 	for (const AbstractHistoryEntry* change : set)
 		change->redo ();
 	
 	setPos (pos () + 1);
-	g_win->refresh ();
+	
+	if (!g_fullRefresh)
+		g_win->refresh ();
+	else
+		g_win->fullRefresh ();
+	
 	updateActions ();
 }
 
@@ -110,6 +124,8 @@ void AddHistory::undo () const {
 	LDObject* obj = f->object (index ());
 	f->forgetObject (obj);
 	delete obj;
+	
+	g_fullRefresh = true;
 }
 
 void AddHistory::redo () const {
@@ -135,6 +151,8 @@ void DelHistory::redo () const {
 	LDObject* obj = f->object (index ());
 	f->forgetObject (obj);
 	delete obj;
+	
+	g_fullRefresh = true;
 }
 
 DelHistory::~DelHistory () {}

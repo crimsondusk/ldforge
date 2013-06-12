@@ -618,7 +618,7 @@ void ForgeWindow::buildObjList () {
 				if (i != 0)
 					descr += ", ";
 				
-				descr += obj->coords[i].stringRep (true).chars();
+				descr += obj->getVertex (i).stringRep (true);
 			}
 			break;
 		

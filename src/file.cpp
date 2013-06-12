@@ -710,7 +710,7 @@ LDObject* parseLine (str line) {
 			LDLine* obj = new LDLine;
 			obj->setColor (atol (tokens[1]));
 			for (short i = 0; i < 2; ++i)
-				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 7
+				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 7
 			return obj;
 		}
 	
@@ -724,7 +724,7 @@ LDObject* parseLine (str line) {
 			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 3; ++i)
-				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 10
+				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 10
 			
 			return obj;
 		}
@@ -739,7 +739,7 @@ LDObject* parseLine (str line) {
 			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 4; ++i)
-				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
+				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 13
 			
 			return obj;
 		}
@@ -754,7 +754,7 @@ LDObject* parseLine (str line) {
 			obj->setColor (atol (tokens[1]));
 			
 			for (short i = 0; i < 4; ++i)
-				obj->coords[i] = parseVertex (tokens, 2 + (i * 3)); // 2 - 13
+				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 13
 			
 			return obj;
 		}
@@ -919,6 +919,11 @@ bool safeToCloseAll () {
 // =============================================================================
 void LDOpenFile::setObject (ulong idx, LDObject* obj) {
 	assert (idx < numObjs ());
+	
+	str oldcode = m_objs[idx]->raw ();
+	str newcode = obj->raw ();
+	m_history << new EditHistory (idx, oldcode, newcode);
+	
 	m_objs[idx] = obj;
 }
 

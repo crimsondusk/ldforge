@@ -89,9 +89,10 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 		LDObject* copy = obj->clone ();
 		g_curfile->insertObj (idx++, copy);
 		g_win->sel () << copy;
+		g_win->R ()->compileObject (copy);
 	}
 	
-	g_win->fullRefresh ();
+	g_win->refresh ();
 	g_win->scrollToSelection ();
 }
 
@@ -296,17 +297,17 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			numLines = 4;
 			
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->coords[0], quad->coords[1]);
-			lines[1] = new LDLine (quad->coords[1], quad->coords[2]);
-			lines[2] = new LDLine (quad->coords[2], quad->coords[3]);
-			lines[3] = new LDLine (quad->coords[3], quad->coords[0]);
+			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
+			lines[1] = new LDLine (quad->getVertex (1), quad->getVertex (2));
+			lines[2] = new LDLine (quad->getVertex (2), quad->getVertex (3));
+			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
 		} else {
 			numLines = 3;
 			
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->coords[0], tri->coords[1]);
-			lines[1] = new LDLine (tri->coords[1], tri->coords[2]);
-			lines[2] = new LDLine (tri->coords[2], tri->coords[0]); 
+			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
+			lines[1] = new LDLine (tri->getVertex (1), tri->getVertex (2));
+			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0)); 
 		}
 		
 		for (short i = 0; i < numLines; ++i) {
@@ -334,7 +335,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 		ulong idx = obj->getIndex (g_curfile);
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertex* vert = new LDVertex;
-			vert->pos = obj->coords[i];
+			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color ());
 			
 			g_curfile->insertObj (++idx, vert);
@@ -432,6 +433,12 @@ MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects."
 }
 
 // =============================================================================
+static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& transform) {
+	v.move (-rotpoint);
+	v.transform (transform, g_origin);
+	v.move (rotpoint);
+}
+
 static void doRotate (const short l, const short m, const short n) {
 	vector<LDObject*> sel = g_win->sel ();
 	vector<vertex*> queue;
@@ -456,27 +463,28 @@ static void doRotate (const short l, const short m, const short n) {
 		(n * n * (1 - cosangle)) + cosangle
 	});
 	
-	// Apply the above matrix to everything - first, mark down
-	// which vertices to transform
+	// Apply the above matrix to everything
 	for (LDObject* obj : sel) {
-		if (obj->vertices ())
-			for (short i = 0; i < obj->vertices (); ++i)
-				queue << &obj->coords[i];
-		else if (obj->hasMatrix ()) {
-			LDMatrixObject* mo = static_cast<LDSubfile*> (obj);
-			queue << const_cast<vertex*> (&mo->position ()); // TEMPORARY HACK
+		if (obj->vertices ()) {
+			for (short i = 0; i < obj->vertices (); ++i) {
+				vertex v = obj->getVertex (i);
+				rotateVertex (v, rotpoint, transform);
+				obj->setVertex (i, v);
+			}
+		} else if (obj->hasMatrix ()) {
+			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+			vertex v = mo->position ();
+			rotateVertex (v, rotpoint, transform);
+			mo->setPosition (v);
 			mo->setTransform (mo->transform () * transform);
-		} else if (obj->getType () == LDObject::Vertex)
-			queue << &static_cast<LDVertex*> (obj)->pos;
+		} else if (obj->getType () == LDObject::Vertex) {
+			LDVertex* vert = static_cast<LDVertex*> (obj);
+			vertex v = vert->pos;
+			rotateVertex (v, rotpoint, transform);
+			vert->pos = v;
+		}
 		
 		g_win->R ()->compileObject (obj);
-	}
-	
-	// Now do the actual transformations
-	for (vertex* v : queue) {
-		v->move (-rotpoint);
-		v->transform (transform, g_origin);
-		v->move (rotpoint);
 	}
 	
 	g_win->refresh ();
@@ -518,9 +526,14 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	setlocale (LC_ALL, "C");
 	
 	for (LDObject* obj : g_win->sel ())
-	for (short i = 0; i < obj->vertices (); ++i)
-	for (const Axis ax : g_Axes)
-		obj->coords[i][ax] = atof (fmt ("%.3f", obj->coords[i][ax]));
+	for (short i = 0; i < obj->vertices (); ++i) {
+		vertex v = obj->getVertex (i);
+		
+		for (const Axis ax : g_Axes)
+			v[ax] = atof (fmt ("%.3f", v[ax]));
+		
+		obj->setVertex (i, v);
+	}
 	
 	g_win->fullRefresh ();
 }
@@ -576,10 +589,11 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	
 	vector<int> sel = dlg.axes ();
 	
-	for (LDObject* obj : g_win->sel ()) {
-		for (short i = 0; i < obj->vertices (); ++i)
+	for (LDObject* obj : g_win->sel ())
+	for (short i = 0; i < obj->vertices (); ++i) {
+		vertex v = obj->getVertex (i);
 		for (int ax : sel) {
-			double& coord = obj->coords[i][(Axis) ax];
+			double& coord = v[(Axis) ax];
 			
 			if (any || coord == search) {
 				if (!rel)
@@ -588,14 +602,16 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 				coord += replacement;
 			}
 		}
+		
+		obj->setVertex (i, v);
 	}
 	
 	g_win->fullRefresh ();
 }
 
-// =========================================================================================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =========================================================================================================================================
+// =================================================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =================================================================================================
 class FlipDialog : public QDialog {
 public:
 	explicit FlipDialog (QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog (parent, f) {
@@ -623,9 +639,14 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 	vector<int> sel = dlg.axes ();
 	
 	for (LDObject* obj : g_win->sel ())
-	for (short i = 0; i < obj->vertices (); ++i)
-	for (int ax : sel)
-		obj->coords[i][(Axis) ax] *= -1;
+	for (short i = 0; i < obj->vertices (); ++i) {
+		vertex v = obj->getVertex (i);
+		
+		for (int ax : sel)
+			v[(Axis) ax] *= -1;
+		
+		obj->setVertex (i, v);
+	}
 	
 	g_win->fullRefresh ();
 }

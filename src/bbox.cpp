@@ -47,35 +47,11 @@ void bbox::calculate () {
 void bbox::calcObject (LDObject* obj) {
 	switch (obj->getType ()) {
 	case LDObject::Line:
-		{
-			LDLine* line = static_cast<LDLine*> (obj);
-			for (short i = 0; i < 2; ++i)
-				calcVertex (line->coords[i]);
-		}
-		break;
-	
 	case LDObject::Triangle:
-		{
-			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			for (short i = 0; i < 3; ++i)
-				calcVertex (tri->coords[i]);
-		}
-		break;
-	
 	case LDObject::Quad:
-		{
-			LDQuad* quad = static_cast<LDQuad*> (obj);
-			for (short i = 0; i < 4; ++i)
-				calcVertex (quad->coords[i]);
-		}
-		break;
-	
 	case LDObject::CondLine:
-		{
-			LDCondLine* line = static_cast<LDCondLine*> (obj);
-			for (short i = 0; i < 4; ++i)
-				calcVertex (line->coords[i]);
-		}
+		for (short i = 0; i < obj->vertices (); ++i)
+			calcVertex (obj->getVertex (i));
 		break;
 	
 	case LDObject::Subfile:

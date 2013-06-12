@@ -67,10 +67,8 @@ LDObject::LDObject () {
 	m_glinit = false;
 }
 
-LDGibberish::LDGibberish (str _zContent, str _zReason) {
-	contents = _zContent;
-	reason = _zReason;
-}
+LDGibberish::LDGibberish () {}
+LDGibberish::LDGibberish (str contents, str reason) : contents (contents), reason (reason) {}
 
 // =============================================================================
 str LDComment::raw () {
@@ -89,7 +87,7 @@ str LDLine::raw () {
 	str val = fmt ("2 %d", color ());
 	
 	for (ushort i = 0; i < 2; ++i)
-		val += fmt  (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
 	
 	return val;
 }
@@ -98,7 +96,7 @@ str LDTriangle::raw () {
 	str val = fmt ("3 %d", color ());
 	
 	for (ushort i = 0; i < 3; ++i)
-		val += fmt  (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
 	
 	return val;
 }
@@ -107,7 +105,7 @@ str LDQuad::raw () {
 	str val = fmt ("4 %d", color ());
 	
 	for (ushort i = 0; i < 4; ++i)
-		val += fmt  (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
 	
 	return val;
 }
@@ -117,7 +115,7 @@ str LDCondLine::raw () {
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
-		val += fmt  (" %s", coords[i].stringRep (false).chars ());
+		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
 	
 	return val;
 }
@@ -160,15 +158,8 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 	// |   |  =  | /    / |
 	// |   |     |/    /  |
 	// 1---2     1    1---2
-	LDTriangle* tri1 = new LDTriangle;
-	tri1->coords[0] = coords[0];
-	tri1->coords[1] = coords[1];
-	tri1->coords[2] = coords[3];
-	
-	LDTriangle* tri2 = new LDTriangle;
-	tri2->coords[0] = coords[1];
-	tri2->coords[1] = coords[2];
-	tri2->coords[2] = coords[3];
+	LDTriangle* tri1 = new LDTriangle (getVertex (0), getVertex (1), getVertex (3));
+	LDTriangle* tri2 = new LDTriangle (getVertex (1), getVertex (2), getVertex (3));
 	
 	// The triangles also inherit the quad's color
 	tri1->setColor (color ());
@@ -184,13 +175,11 @@ vector<LDTriangle*> LDQuad::splitToTriangles () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::replace (LDObject* replacement) {
+	long idx = getIndex (g_curfile);
+	assert (idx != -1);
+	
 	// Replace the instance of the old object with the new object
-	for (LDObject*& obj : *g_curfile) {
-		if (obj == this) {
-			obj = replacement;
-			break;
-		}
-	}
+	g_curfile->setObject (idx, replacement);
 	
 	// Remove the old object
 	delete this;
@@ -209,8 +198,8 @@ void LDObject::swap (LDObject* other) {
 }
 
 LDLine::LDLine (vertex v1, vertex v2) {
-	coords[0] = v1;
-	coords[1] = v2;
+	setVertex (0, v1);
+	setVertex (1, v2);
 }
 
 LDObject::~LDObject () {
@@ -232,8 +221,11 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 	case LDObject::CondLine:
 	case LDObject::Triangle:
 	case LDObject::Quad:
-		for (short i = 0; i < obj->vertices (); ++i)
-			obj->coords[i].transform (transform, pos);
+		for (short i = 0; i < obj->vertices (); ++i) {
+			vertex v = obj->getVertex (i);
+			v.transform (transform, pos);
+			obj->setVertex (i, v);
+		}
 		break;
 	
 	case LDObject::Subfile:
@@ -473,22 +465,22 @@ void LDRadial::move (vertex vect) {
 
 void LDLine::move (vertex vect) {
 	for (short i = 0; i < 2; ++i)
-		coords[i] += vect;
+		setVertex (i, getVertex (i) + vect);
 }
 
 void LDTriangle::move (vertex vect) {
 	for (short i = 0; i < 3; ++i)
-		coords[i] += vect;
+		setVertex (i, getVertex (i) + vect);
 }
 
 void LDQuad::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
-		coords[i] += vect;
+		setVertex (i, getVertex (i) + vect);
 }
 
 void LDCondLine::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
-		coords[i] += vect;
+		setVertex (i, getVertex (i) + vect);
 }
 
 // =============================================================================
@@ -533,8 +525,8 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v1 (x1, 0.0f, z1);
 				
 				LDLine* line = new LDLine;
-				line->coords[0] = v0;
-				line->coords[1] = v1;
+				line->setVertex (0, v0);
+				line->setVertex (1, v1);
 				line->setColor (edgecolor);
 				line->setParent (this);
 				
@@ -582,10 +574,10 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v3 (x3, y3, z3);
 				
 				LDQuad* quad = new LDQuad;
-				quad->coords[0] = v0;
-				quad->coords[1] = v1;
-				quad->coords[2] = v2;
-				quad->coords[3] = v3;
+				quad->setVertex (0, v0);
+				quad->setVertex (1, v1);
+				quad->setVertex (2, v2);
+				quad->setVertex (3, v3);
 				
 				quad->setColor (color ());
 				quad->setParent (this);
@@ -611,15 +603,19 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 					v2 (x2, 0.0f, z2);
 				
 				LDTriangle* seg = new LDTriangle;
-				seg->coords[0] = v0;
-				seg->coords[1] = v1;
-				seg->coords[2] = v2;
+				seg->setVertex (0, v0);
+				seg->setVertex (1, v1);
+				seg->setVertex (2, v2);
 				seg->setColor (color ());
 				seg->setParent (this);
 				
-				if (applyTransform)
-					for (int i = 0; i < 3; ++i)
-						seg->coords[i].transform (transform (), position ());
+				if (applyTransform) {
+					for (int i = 0; i < 3; ++i) {
+						vertex v = seg->getVertex (i);
+						v.transform (transform (), position ());
+						seg->setVertex (i, v);
+					}
+				}
 				
 				obj = seg;
 			}
@@ -630,9 +626,13 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 		}
 		
 		if (obj) {
-			if (applyTransform)
-				for (int i = 0; i < obj->vertices (); ++i)
-					obj->coords[i].transform (transform (), position ());
+			if (applyTransform) {
+				for (int i = 0; i < obj->vertices (); ++i) {
+					vertex v = obj->getVertex (i);
+					v.transform (transform (), position ());
+					obj->setVertex (i, v);
+				}
+			}
 			
 			objs << obj;
 		}
@@ -727,9 +727,9 @@ void LDGibberish::invert () { }
 void LDTriangle::invert () {
 	// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
 	// Thus, we swap 1 and 2.
-	vertex tmp = coords[1];
-	coords[1] = coords[2];
-	coords[2] = tmp;
+	vertex tmp = getVertex (1);
+	setVertex (1, getVertex (2));
+	setVertex (2, tmp);
 	
 	return;
 }
@@ -738,9 +738,9 @@ void LDQuad::invert () {
 	// Quad: 0 -> 1 -> 2 -> 3
 	// rev:  0 -> 3 -> 2 -> 1
 	// Thus, we swap 1 and 3.
-	vertex tmp = coords[1];
-	coords[1] = coords[3];
-	coords[3] = tmp;
+	vertex tmp = getVertex (1);
+	setVertex (1, getVertex (3));
+	setVertex (3, tmp);
 }
 
 static void invertSubfile (LDObject* obj) {
@@ -779,9 +779,9 @@ void LDRadial::invert () {
 static void invertLine (LDObject* line) {
 	// For lines, we swap the vertices. I don't think that a
 	// cond-line's control points need to be swapped, do they?
-	vertex tmp = line->coords[0];
-	line->coords[0] = line->coords[1];
-	line->coords[1] = tmp;
+	vertex tmp = line->getVertex (0);
+	line->setVertex (0, line->getVertex (1));
+	line->setVertex (1, tmp);
 }
 
 void LDLine::invert () {
@@ -797,22 +797,48 @@ void LDVertex::invert () { }
 // =============================================================================
 LDLine* LDCondLine::demote () {
 	LDLine* repl = new LDLine;
-	memcpy (repl->coords, coords, sizeof coords);
+	
+	for (int i = 0; i < repl->vertices (); ++i)
+		repl->setVertex (i, getVertex (i));
+	
 	repl->setColor (color ());
 	
 	replace (repl);
 	return repl;
 }
 
-READ_ACCESSOR (short, LDObject::color) { return m_color; }
-SET_ACCESSOR (short, LDObject::setColor) {
+// =============================================================================
+template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
 	long idx;
-	if ((idx = getIndex (g_curfile)) != -1) {
-		str before = raw ();
-		m_color = val;
-		str after = raw ();
+	if ((idx = obj->getIndex (g_curfile)) != -1) {
+		str before = obj->raw ();
+		*ptr = val;
+		str after = obj->raw ();
 		
 		g_curfile->addToHistory (new EditHistory (idx, before, after));
 	} else
-		m_color = val;
+		*ptr = val;
+}
+
+READ_ACCESSOR (short, LDObject::color) { return m_color; }
+SET_ACCESSOR (short, LDObject::setColor) {
+	changeProperty (this, &m_color, val);
+}
+
+const vertex& LDObject::getVertex (int i) const {
+	return m_coords[i];
+}
+
+void LDObject::setVertex (int i, const vertex& vert) {
+	changeProperty (this, &m_coords[i], vert);
+}
+
+READ_ACCESSOR (vertex, LDMatrixObject::position) { return m_position; }
+SET_ACCESSOR (vertex, LDMatrixObject::setPosition) {
+	changeProperty (linkPointer (), &m_position, val);
+}
+
+READ_ACCESSOR (matrix, LDMatrixObject::transform) { return m_transform; }
+SET_ACCESSOR (matrix, LDMatrixObject::setTransform) {
+	changeProperty (linkPointer (), &m_transform, val);
 }

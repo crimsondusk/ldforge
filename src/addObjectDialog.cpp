@@ -221,7 +221,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj) {
 			for (short i = 0; i < coordCount / 3; ++i)
 			for (short j = 0; j < 3; ++j)
-				dsb_coords[(i * 3) + j]->setValue (obj->coords[i].coord (j));
+				dsb_coords[(i * 3) + j]->setValue (obj->getVertex (i).coord (j));
 		}
 		break;
 	
@@ -401,9 +401,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 		if (!obj)
 			obj = LDObject::getDefault (type);
 		
-		for (short i = 0; i < obj->vertices (); ++i)
+		for (short i = 0; i < obj->vertices (); ++i) {
+			vertex v;
 			for (const Axis ax : g_Axes)
-				obj->coords[i][ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
+				v[ax] = dlg.dsb_coords[(i * 3) + ax]->value ();
+			
+			obj->setVertex (i, v);
+		}
 		break;
 	
 	case LDObject::BFC:

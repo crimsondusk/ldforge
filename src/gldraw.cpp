@@ -701,10 +701,10 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	
 	if (g_glInvert == false)
 		for (short i = 0; i < numverts; ++i)
-			compileVertex (obj->coords[i]);
+			compileVertex (obj->m_coords[i]);
 	else
 		for (short i = numverts - 1; i >= 0; --i)
-			compileVertex (obj->coords[i]);
+			compileVertex (obj->m_coords[i]);
 	
 	glEnd ();
 }
@@ -1239,7 +1239,9 @@ void GLRenderer::endDraw (bool accept) {
 		
 		// Copy the vertices from m_rectverts
 		updateRectVerts ();
-		memcpy (quad->coords, m_rectverts, sizeof quad->coords);
+		
+		for (int i = 0; i < quad->vertices (); ++i)
+			quad->setVertex (i, m_rectverts[i]);
 		
 		quad->setColor (maincolor);
 		obj = quad;
@@ -1254,10 +1256,8 @@ void GLRenderer::endDraw (bool accept) {
 		
 		case 2:
 			// 2 verts - make a line
-			obj = new LDLine;
+			obj = new LDLine (verts[0], verts[1]);
 			obj->setColor (edgecolor);
-			for (ushort i = 0; i < 2; ++i)
-				obj->coords[i] = verts[i];
 			break;
 			
 		case 3:
@@ -1268,7 +1268,7 @@ void GLRenderer::endDraw (bool accept) {
 			
 			obj->setColor (maincolor);
 			for (ushort i = 0; i < obj->vertices (); ++i)
-				obj->coords[i] = verts[i];
+				obj->setVertex (i, verts[i]);
 			break;
 		}
 	}
@@ -1290,7 +1290,7 @@ static vector<vertex> getVertices (LDObject* obj) {
 	
 	if (obj->vertices () >= 2)
 		for (int i = 0; i < obj->vertices (); ++i)
-			verts << obj->coords[i];
+			verts << obj->getVertex (i);
 	else if (obj->getType () == LDObject::Subfile || obj->getType () == LDObject::Radial) {
 		vector<LDObject*> objs;
 		
