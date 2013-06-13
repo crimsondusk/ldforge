@@ -2,16 +2,17 @@
 == Changes since version 1.0
 =================================================
 
-- Added a progress dialog for file loading to respond to desktops while loading files. With large files
+- Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.
+- Added ability to snap to pre-existing vertices while drawing.
+- When drawing, drawn vertices now display coordinate labels.
+- Added an export to file action, moved it + insert from to File menu
+- Parts are now zoomed to fit properly, making the initial view of the part clearer.
+- Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
+- Added a progress box for file loading to respond to desktops while loading files. With large files
 	the no-response policy could be a bad thing.
-- Added Export To File action, moved it + insert from to File menu
-- Added: Parts are now zoomed to fit properly
-- Added: ability to snap to pre-existing vertices while drawing.
 - Fixed: text editing did not trigger checks while setting LDraw path, removed the Configure
 	button from the LDraw path config dialog, it's no longer needed.
 - Fixed: Coordinates weren't drawn properly on a bright background (was always drawn in bright colors..).
 - Fixed: Recent files should behave coherently now.
-- Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
-- When drawing, drawn vertices now display coordinate labels.
 - Calculated coordinates are now rounded down (to prevent stuff like Z:160.000001)
 - New part dialog: changed "Name:" to "Title", widened a tad.
