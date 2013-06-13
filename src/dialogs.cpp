@@ -216,11 +216,9 @@ bool ReplaceCoordsDialog::rel () const {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	setWindowTitle (APPNAME ": Set Contents");
-	
 	lb_error = new QLabel;
 	lb_errorIcon = new QLabel;
-	lb_contents = new QLabel ("Set contents:", parent);
+	lb_contents = new QLabel ("LDraw code:", parent);
 	
 	le_contents = new QLineEdit (parent);
 	le_contents->setWhatsThis ("The LDraw code of this object. The code written "
@@ -240,7 +238,6 @@ SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDia
 	layout->addWidget (le_contents);
 	layout->addLayout (bottomRow);
 	
-	setWindowTitle ("Set Contents");
 	setWindowIcon (getIcon ("set-contents"));
 }
 
