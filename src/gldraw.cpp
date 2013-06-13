@@ -888,8 +888,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 					return;
 				}
 				
-				if (m_drawedVerts.size () == 0 && ev->modifiers () & Qt::ShiftModifier)
+				if (m_drawedVerts.size () == 0 && ev->modifiers () & Qt::ShiftModifier) {
 					m_rectdraw = true;
+					updateRectVerts ();
+				}
 			}
 			
 			addDrawnVertex (m_hoverpos);
