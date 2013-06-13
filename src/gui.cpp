@@ -39,6 +39,7 @@
 #include "colors.h"
 #include "history.h"
 #include "widgets.h"
+#include "addObjectDialog.h"
 #include "config.h"
 
 actionmeta g_actionMeta[MAX_ACTIONS];
@@ -71,6 +72,7 @@ ForgeWindow::ForgeWindow () {
 	m_objList->setSelectionMode (QListWidget::ExtendedSelection);
 	m_objList->setAlternatingRowColors (true);
 	connect (m_objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
+	connect (m_objList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
 	
 	m_splitter = new QSplitter;
 	m_splitter->addWidget (m_renderer);
@@ -944,7 +946,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	contextMenu->exec (pos);
 }
 
-// ========================================================================================================================================
+// =============================================================================
 void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	for (LDObject* obj : objs) {
 		g_curfile->forgetObject (obj);
@@ -952,7 +954,7 @@ void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	}
 }
 
-// ========================================================================================================================================
+// =============================================================================
 void ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
 	for (LDObject* obj : g_curfile->objs ()) {
@@ -965,7 +967,7 @@ void ForgeWindow::deleteByColor (const short colnum) {
 	deleteObjVector (objs);
 }
 
-// ========================================================================================================================================
+// =============================================================================
 void ForgeWindow::updateEditModeActions () {
 	const EditMode mode = R ()->editMode ();
 	const size_t numModeActions = (sizeof g_modeActionNames / sizeof *g_modeActionNames);
@@ -982,7 +984,19 @@ void ForgeWindow::updateEditModeActions () {
 	}
 }
 
-// ========================================================================================================================================
+void ForgeWindow::slot_editObject (QListWidgetItem* listitem) {
+	LDObject* obj = null;
+	for (LDObject* it : *g_curfile) {
+		if (it->qObjListEntry == listitem) {
+			obj = it;
+			break;
+		}
+	}
+	
+	AddObjectDialog::staticDialog (obj->getType (), obj);
+}
+
+// ============================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 	g_win->spawnContextMenu (ev->globalPos ());
 }

@@ -164,6 +164,7 @@ private slots:
 	void slot_recentFile ();
 	void slot_quickColor ();
 	void slot_lastSecondCleanup ();
+	void slot_editObject (QListWidgetItem* listitem);
 };
 
 // -----------------------------------------------------------------------------

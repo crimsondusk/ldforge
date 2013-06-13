@@ -8,6 +8,7 @@
 - Added an export to file action, moved it + insert from to File menu
 - Parts are now zoomed to fit properly, making the initial view of the part clearer.
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
+- Objects can now be edited by double-clicking on them in the object list view.
 - Added a progress box for file loading to respond to desktops while loading files. With large files
 	the no-response policy could be a bad thing.
 - Fixed: text editing did not trigger checks while setting LDraw path, removed the Configure

@@ -342,11 +342,11 @@ static void doMoveSelection (const bool up) {
 	g_win->buildObjList ();
 }
 
-MAKE_ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", SHIFT (Up)) {
+MAKE_ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", KEY (PageUp)) {
 	doMoveSelection (true);
 }
 
-MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", SHIFT (Down)) {
+MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", KEY (PageDown)) {
 	doMoveSelection (false);
 }
 
@@ -387,7 +387,7 @@ MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative 
 	doMoveObjects ({-1, 0, 0});
 }
 
-MAKE_ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (PageUp)) {
+MAKE_ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (Home)) {
 	doMoveObjects ({0, -1, 0});
 }
 
@@ -399,7 +399,7 @@ MAKE_ACTION (moveXPos, "Move +X", "move-x-pos", "Move selected objects positive 
 	doMoveObjects ({1, 0, 0});
 }
 
-MAKE_ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (PageDown)) {
+MAKE_ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (End)) {
 	doMoveObjects ({0, 1, 0});
 }
 
@@ -481,7 +481,7 @@ MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X a
 	doRotate (1, 0, 0);
 }
 
-MAKE_ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (PageDown)) {
+MAKE_ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (End)) {
 	doRotate (0, 1, 0);
 }
 
@@ -493,7 +493,7 @@ MAKE_ACTION (rotateXNeg, "Rotate -X", "rotate-x-neg", "Rotate objects around X a
 	doRotate (-1, 0, 0);
 }
 
-MAKE_ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (PageUp)) {
+MAKE_ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (Home)) {
 	doRotate (0, -1, 0);
 }
 
