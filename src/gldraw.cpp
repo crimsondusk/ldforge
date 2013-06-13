@@ -34,6 +34,7 @@
 #include "misc.h"
 #include "history.h"
 #include "dialogs.h"
+#include "addObjectDialog.h"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];
@@ -1588,4 +1589,15 @@ void GLRenderer::updateRectVerts () {
 	m_rectverts[2][ay] = v1[ay];
 	m_rectverts[3][ax] = v0[ax];
 	m_rectverts[3][ay] = v1[ay];
+}
+
+void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
+	pick (ev->x (), ev->y ());
+	
+	if (g_win->sel ().size () == 0)
+		return;
+	
+	LDObject* obj = g_win->sel ()[0];
+	AddObjectDialog::staticDialog (obj->getType (), obj);
+	ev->accept ();
 }

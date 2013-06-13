@@ -94,17 +94,18 @@ public:
 	static void    deleteLists         (LDObject* obj);
 
 protected:
-	void           contextMenuEvent    (QContextMenuEvent* ev);
-	void           initializeGL        ();
-	void           keyPressEvent       (QKeyEvent* ev);
-	void           keyReleaseEvent     (QKeyEvent* ev);
-	void           leaveEvent          (QEvent* ev);
-	void           mousePressEvent     (QMouseEvent* ev);
-	void           mouseMoveEvent      (QMouseEvent* ev);
-	void           mouseReleaseEvent   (QMouseEvent* ev);
-	void           paintEvent          (QPaintEvent* ev);
-	void           resizeGL            (int w, int h);
-	void           wheelEvent          (QWheelEvent* ev);
+	void           contextMenuEvent      (QContextMenuEvent* ev);
+	void           initializeGL          ();
+	void           keyPressEvent         (QKeyEvent* ev);
+	void           keyReleaseEvent       (QKeyEvent* ev);
+	void           leaveEvent            (QEvent* ev);
+	void           mouseDoubleClickEvent (QMouseEvent* ev);
+	void           mousePressEvent       (QMouseEvent* ev);
+	void           mouseMoveEvent        (QMouseEvent* ev);
+	void           mouseReleaseEvent     (QMouseEvent* ev);
+	void           paintEvent            (QPaintEvent* ev);
+	void           resizeGL              (int w, int h);
+	void           wheelEvent            (QWheelEvent* ev);
 
 private:
 	QTimer* m_toolTipTimer;
@@ -136,13 +137,13 @@ private:
 	void           compileVertex        (const vertex& vrt);                     // Compile a single vertex to a list
 	vertex         coordconv2_3         (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2         (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	void           buildKnownVertBlips ();
+	void           buildKnownVertBlips  ();
 	void           updateRectVerts      ();
 	void           pick                 (uint mouseX, uint mouseY);              // Perform object selection
 	void           setObjectColor       (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
-	void	slot_toolTipTimer	();
+	void           slot_toolTipTimer    ();
 };
 
 // Alias for short namespaces
