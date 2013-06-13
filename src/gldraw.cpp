@@ -514,13 +514,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		// If we're drawing, draw the vertices onto the screen.
 		if (editMode () == Draw) {
-			ushort numverts;
+			const short blipsize = 8;
+			int numverts = 4;
 			
-			numverts = 4;
 			if (!m_rectdraw)
 				numverts = m_drawedVerts.size () + 1;
-			
-			const short blipsize = 8;
 			
 			if (numverts > 0) {
 				QPoint poly[4];
@@ -544,7 +542,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				} else {
 					if (m_drawedVerts.size () > 0) {
 						// Get vertex information from m_rectverts
-						for (ushort i = 0; i < numverts; ++i) {
+						for (int i = 0; i < numverts; ++i) {
 							polyverts[i] = m_rectverts[i];
 							poly[i] = coordconv3_2 (polyverts[i]);
 						}
@@ -645,7 +643,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	}
 	
 	// If we're range-picking, draw a rectangle encompassing the selection area.
-	if (m_rangepick && !m_picking) {
+	if (m_rangepick && !m_picking && m_totalmove >= 10) {
 		const short x0 = m_rangeStart.x (),
 			y0 = m_rangeStart.y (),
 			x1 = m_pos.x (),
