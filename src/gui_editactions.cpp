@@ -39,7 +39,7 @@ cfg (bool, edit_schemanticinline, false);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static bool copyToClipboard () {
+static void copyToClipboard () {
 	vector<LDObject*> objs = g_win->sel ();
 	
 	// Clear the clipboard first.
@@ -48,8 +48,6 @@ static bool copyToClipboard () {
 	// Now, copy the contents into the clipboard.
 	for (LDObject* obj : objs)
 		g_Clipboard << obj->raw ();
-	
-	return true;
 }
 
 // =============================================================================
@@ -216,7 +214,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of this object.", KEY (F9)) {
+MAKE_ACTION (setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw code of this object.", KEY (F9)) {
 	if (g_win->sel ().size() != 1)
 		return;
 	
@@ -234,7 +232,7 @@ MAKE_ACTION (setContents, "Set Contents", "set-contents", "Set the raw code of t
 	
 	oldobj->replace (obj);
 	
-	// Rebuild stuff after this
+	// Refresh
 	g_win->R ()->compileObject (obj);
 	g_win->refresh ();
 }

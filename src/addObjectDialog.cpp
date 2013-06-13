@@ -59,6 +59,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		le_comment = new QLineEdit;
 		if (obj)
 			le_comment->setText (static_cast<LDComment*> (obj)->text);
+		
+		le_comment->setMinimumWidth (384);
 		break;
 	
 	case LDObject::Line:
