@@ -20,6 +20,7 @@
 #include <QMessageBox>
 #include <QAbstractButton>
 #include <qfile.h>
+#include <QTextStream>
 #include "gui.h"
 #include "file.h"
 #include "bbox.h"
@@ -33,14 +34,15 @@ LDOpenFile* g_curfile = null;
 ForgeWindow* g_win = null; 
 bbox g_BBox;
 const QApplication* g_app = null;
-QFile g_file_stdout, g_file_stderr;
+File g_file_stdout (stdout, File::Write);
+File g_file_stderr (stderr, File::Write);
 
 const vertex g_origin (0.0f, 0.0f, 0.0f);
 const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
 
-void doPrint (QFile& f, initlist<StringFormatArg> args) {
+void doPrint (File& f, initlist<StringFormatArg> args) {
 	str msg = DoFormat (args);
-	f.write (msg.toUtf8 (), msg.length ());
+	f.write (msg.toUtf8 ());
 	f.flush ();
 }
 
@@ -57,12 +59,9 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 int main (int argc, char* argv[]) {
-	g_file_stdout.open (stdout, QIODevice::WriteOnly);
-	g_file_stderr.open (stderr, QIODevice::WriteOnly);
-	
 	const QApplication app (argc, argv);
 	g_app = &app;
-	g_curfile = NULL;
+	g_curfile = null;
 	
 	// Load or create the configuration
 	if (!config::load ()) {

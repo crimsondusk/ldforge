@@ -23,6 +23,9 @@
 #include <vector>
 #include "common.h"
 
+// Null pointer
+static const std::nullptr_t null = nullptr;
+
 typedef QChar qchar;
 typedef QString str;
 template<class T> class ConstVectorReverser;
@@ -30,6 +33,8 @@ template<class T> using c_rev = ConstVectorReverser<T>;
 class strconfig;
 class intconfig;
 class floatconfig;
+class QFile;
+class QTextStream;
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -125,13 +130,12 @@ private:
 	double m_coords[3];
 };
 
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // vector
 // 
-// Array class that wraps around vector
+// Array class that wraps around std::vector
 // =============================================================================
 template<class T> class vector {
 public:
@@ -277,6 +281,13 @@ private:
 	std::vector<T> m_vect;
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// VectorReverser (aka rev)
+// 
+// Helper class used to reverse-iterate vectors in range-for-loops.
+// =============================================================================
 template<class T> class VectorReverser {
 public:
 	typedef typename vector<T>::r_it it;
@@ -297,6 +308,13 @@ private:
 	vector<T>* m_vect;
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// ConstVectorReverser (aka c_rev)
+// 
+// Like VectorReverser, except works on const vectors.
+// =============================================================================
 template<class T> class ConstVectorReverser {
 public:
 	typedef typename vector<T>::cr_it it;
@@ -320,6 +338,13 @@ private:
 template<class T> using rev = VectorReverser<T>;
 template<class T> using c_rev = ConstVectorReverser<T>;
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// StringFormatArg
+// 
+// Converts a given value into a string that can be retrieved with ::value ().
+// Used as the argument type to the formatting functions, hence its name.
 // =============================================================================
 class StringFormatArg {
 public:
@@ -356,11 +381,68 @@ private:
 	str m_val;
 };
 
-str DoFormat (vector< StringFormatArg > args);
+// Formatter function
+str DoFormat (vector<StringFormatArg> args);
 #ifndef IN_IDE_PARSER
 #define fmt(...) DoFormat ({__VA_ARGS__})
 #else
 str fmt (const char* fmtstr, ...);
 #endif
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+// File
+// 
+// A file interface with simple interface and support for range-for-loops.
+// =============================================================================
+class File {
+public:
+	// Iterator class to enable range-for-loop support. Rough hack.. don't use directly!
+	class iterator {
+	public:
+		iterator () : m_file (null) {} // end iterator has m_file == null
+		iterator (File* f) : m_file (f), m_text (m_file->readLine ()) {}
+		void operator++ ();
+		str  operator* ();
+		bool operator== (iterator& other);
+		bool operator!= (iterator& other);
+	
+	private:
+		File* m_file;
+		str m_text;
+	};
+	
+	enum OpenType {
+		Read,
+		Write,
+		Append
+	};
+	
+	File (const std::nullptr_t&);
+	File (str path, File::OpenType rtype);
+	File (FILE* fp, File::OpenType rtype);
+	~File ();
+	
+	bool         atEnd         () const;
+	iterator     begin         ();
+	void         close         ();
+	iterator&    end           ();
+	bool         flush         ();
+	bool         isNull        () const;
+	str          readLine      ();
+	bool         open          (FILE* fp, OpenType rtype);
+	bool         open          (str path, OpenType rtype, FILE* fp = null);
+	bool         operator!     () const;
+	void         write         (str msg);
+	
+private:
+	QFile*       m_file;
+	QTextStream* m_textstream;
+	iterator     m_endIterator;
+};
+
+// Null-file, equivalent to a null FILE*
+extern const File nullfile;
 
 #endif // TYPES_H

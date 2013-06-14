@@ -46,16 +46,14 @@ bool config::load () {
 	// Locale must be disabled for atof
 	setlocale (LC_NUMERIC, "C");
 	
-	QFile f (filepath ());
-	if (!f.open (QIODevice::ReadOnly))
+	File f (filepath (), File::Read);
+	if (!f)
 		return false;
 	
-	QTextStream input (&f);
 	size_t ln = 0;
 	
 	// Read the values.
-	while (!input.atEnd ()) {
-		str line = input.readLine ().simplified ();
+	for (str line : f) {
 		ln++;
 		
 		if (line.isEmpty () || line[0] == '#')
@@ -141,10 +139,10 @@ bool config::save () {
 		}
 	}
 	
-	QFile f (filepath ());
-	print ("writing cfg to %1\n", qchars (filepath ()));
+	File f (filepath (), File::Write);
+	print ("writing cfg to %1\n", filepath ());
 	
-	if (!f.open (QIODevice::WriteOnly)) {
+	if (!f) {
 		critical (fmt ("Cannot save configuration, cannot open %1 for writing\n", filepath ()));
 		return false;
 	}

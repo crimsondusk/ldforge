@@ -18,10 +18,14 @@
 
 #include <QObject>
 #include <QStringList>
+#include <QTextStream>
+#include <qfile.h>
 #include <assert.h>
 #include "common.h"
 #include "types.h"
 #include "misc.h"
+
+const File nullfile (null);
 
 str DoFormat (vector<StringFormatArg> args) {
 	assert (args.size () >= 1);
@@ -269,4 +273,126 @@ StringFormatArg::StringFormatArg (const intconfig& v) {
 
 StringFormatArg::StringFormatArg (const floatconfig& v) {
 	m_val.number (v.value);
+}
+
+// =============================================================================
+File::File (const std::nullptr_t&) {
+	// Make a null file
+	m_file = null;
+	m_textstream = null;
+}
+
+File::File (str path, OpenType rtype) {
+	m_file = null;
+	open (path, rtype);
+}
+
+File::File (FILE* fp, OpenType rtype) {
+	m_file = null;
+	open (fp, rtype);
+}
+
+File::~File () {
+	if (m_file) {
+		m_file->close ();
+		delete m_file;
+		
+		if (m_textstream)
+			delete m_textstream;
+	}
+}
+
+bool File::open (FILE* fp, OpenType rtype) {
+	return open ("", rtype, fp);
+}
+
+bool File::open (str path, OpenType rtype, FILE* fp) {
+	close ();
+	
+	if (!m_file)
+		m_file = new QFile;
+	
+	m_file->setFileName (path);
+	
+	bool result;
+	
+	QIODevice::OpenMode mode =
+		(rtype == Read) ? QIODevice::ReadOnly :
+		(rtype == Write) ? QIODevice::WriteOnly :
+		QIODevice::Append;
+	
+	if (fp)
+		result = m_file->open (fp, mode);
+	else
+		result = m_file->open (mode);
+	
+	if (result) {
+		m_textstream = new QTextStream (m_file);
+		return true;
+	}
+	
+	delete m_file;
+	m_file = null;
+	return false;
+}
+
+File::iterator File::begin() {
+	return iterator (this);
+}
+
+File::iterator& File::end () {
+	return m_endIterator;
+}
+
+void File::write (str msg) {
+	m_file->write (msg.toUtf8 (), msg.length ());
+}
+
+str File::readLine () {
+	return m_textstream->readLine ();
+}
+
+bool File::atEnd () const {
+	 return m_textstream->atEnd ();
+}
+
+bool File::isNull () const {
+	return m_file == null;
+}
+
+bool File::operator!() const {
+	return isNull ();
+}
+
+void File::close () {
+	if (!m_file)
+		return;
+	
+	delete m_file;
+	m_file = null;
+	
+	if (m_textstream) {
+		delete m_textstream;
+		m_textstream = null;
+	}
+}
+
+bool File::flush () {
+	return m_file->flush ();
+}
+
+void File::iterator::operator++() {
+	m_text = m_file->readLine ();
+}
+
+str File::iterator::operator*() {
+	return m_text;
+}
+
+bool File::iterator::operator== (File::iterator& other) {
+	return (other.m_file == null && m_file->atEnd ());
+}
+
+bool File::iterator::operator!= (File::iterator& other) {
+	return !operator== (other);
 }

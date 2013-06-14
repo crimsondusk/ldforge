@@ -59,9 +59,8 @@
 # define devf(...)
 #endif // RELEASE
 
-class QFile;
-extern QFile g_file_stdout;
-extern QFile g_file_stderr;
+extern File g_file_stdout;
+extern File g_file_stderr;
 
 void doDevf (const char* func, const char* fmtstr, ...);
 
@@ -149,10 +148,10 @@ public: \
 #define fprint(F, ...) doPrint (F, {__VA_ARGS__})
 #else
 void print (const char* fmtstr, ...);
-void fprint (QFile& f, const char* fmtstr, ...);
+void fprint (File& f, const char* fmtstr, ...);
 #endif
-void doPrint (QFile& f, initlist<StringFormatArg> args);
-void doPrint (FILE* f, initlist<StringFormatArg> args);
+void doPrint (File& f, initlist<StringFormatArg> args);
+void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
 
 // Replace assert with a version that shows a GUI dialog if possible
 #ifdef assert
@@ -167,9 +166,6 @@ void fatalError (const char* file, const ulong line, const char* funcname, str e
 
 #define fatal(MSG) \
 	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
-
-// Null pointer
-static const std::nullptr_t null = nullptr;
 
 // Main and edge color identifiers
 static const short maincolor = 16;
