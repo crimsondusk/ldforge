@@ -402,7 +402,7 @@ public:
 	class iterator {
 	public:
 		iterator () : m_file (null) {} // end iterator has m_file == null
-		iterator (File* f) : m_file (f), m_text (m_file->readLine ()) {}
+		iterator (File* f);
 		void operator++ ();
 		str  operator* ();
 		bool operator== (iterator& other);
@@ -411,6 +411,7 @@ public:
 	private:
 		File* m_file;
 		str m_text;
+		bool m_gotdata = false;
 	};
 	
 	enum OpenType {
@@ -419,7 +420,7 @@ public:
 		Append
 	};
 	
-	File (const std::nullptr_t&);
+	File ();
 	File (str path, File::OpenType rtype);
 	File (FILE* fp, File::OpenType rtype);
 	~File ();
@@ -430,11 +431,14 @@ public:
 	iterator&    end           ();
 	bool         flush         ();
 	bool         isNull        () const;
-	str          readLine      ();
+	bool         readLine      (str& line);
+	void         rewind        ();
 	bool         open          (FILE* fp, OpenType rtype);
 	bool         open          (str path, OpenType rtype, FILE* fp = null);
-	bool         operator!     () const;
 	void         write         (str msg);
+	
+	bool         operator!     () const;
+	operator bool () const;
 	
 private:
 	QFile*       m_file;

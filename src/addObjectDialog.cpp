@@ -113,9 +113,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			for (partListEntry& part : g_PartList) {
 				QList<QTreeWidgetItem*> subfileItems;
 				
-				str fileName = part.sName;
+				str fileName = part.name;
 				const bool isSubpart = fileName.mid (0, 2) == "s\\";
-				const bool isPrimitive = str (part.sTitle).mid (0, 9) == "Primitive";
+				const bool isPrimitive = part.title.mid (0, 9) == "Primitive";
 				const bool isHiRes = fileName.mid (0, 3) == "48\\";
 				
 				if ((i == Subparts && isSubpart) ||
@@ -124,7 +124,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 					(i == Parts && !isSubpart && !isPrimitive && !isHiRes))
 				{
 					SubfileListItem* item = new SubfileListItem (parentItem, j);
-					item->setText (0, fmt ("%1 - %2", part.sName, part.sTitle));
+					item->setText (0, fmt ("%1 - %2", part.name, part.title));
 					subfileItems.append (item);
 				}
 				
@@ -308,13 +308,13 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-char* AddObjectDialog::currentSubfileName() {
+str AddObjectDialog::currentSubfileName() {
 	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem ());
 	
 	if (item->subfileID == -1)
-		return null; // selected a heading
+		return ""; // selected a heading
 	
-	return g_PartList[item->subfileID].sName;
+	return g_PartList[item->subfileID].name;
 }
 
 // =============================================================================
@@ -337,9 +337,9 @@ void AddObjectDialog::slot_radialTypeChanged (int dType) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::slot_subfileTypeChanged () {
-	char* name = currentSubfileName ();
+	str name = currentSubfileName ();
 	
-	if (name)
+	if (name.length () > 0)
 		le_subfileName->setText (name);
 }
 

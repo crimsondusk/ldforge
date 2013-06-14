@@ -114,7 +114,7 @@ LDOpenFile* findLoadedFile (str name);
 LDOpenFile* openDATFile (str path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
-FILE* openLDrawFile (str path, bool bSubDirectories);
+File* openLDrawFile (str relpath, bool subdirs);
 
 // Close all open files, whether user-opened or subfile caches.
 void closeAll ();
@@ -132,13 +132,13 @@ void reloadAllSubfiles ();
 bool safeToCloseAll ();
 
 typedef struct {
-	char sName[65], sTitle[81];
+	str name, title;
 } partListEntry;
 
 // Init and parse parts.lst
 void initPartList ();
 
-vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok = null);
+vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
 
 extern vector<LDOpenFile*> g_loadedFiles;
 extern vector<partListEntry> g_PartList;
@@ -152,7 +152,7 @@ class FileLoader : public QObject {
 	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
 	READ_PROPERTY (bool, done, setDone)
 	READ_PROPERTY (ulong, progress, setProgress)
-	PROPERTY (FILE*, filePointer, setFilePointer)
+	PROPERTY (File*, file, setFile)
 	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
 	
 public:

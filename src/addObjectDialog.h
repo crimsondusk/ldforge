@@ -67,7 +67,7 @@ public:
 	
 private:
 	void setButtonBackground (QPushButton* button, short color);
-	char* currentSubfileName ();
+	str currentSubfileName ();
 	
 	short colnum;
 	

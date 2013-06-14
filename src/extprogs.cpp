@@ -106,37 +106,35 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
-void writeObjects (vector<LDObject*>& objects, FILE* fp) {
+void writeObjects (vector<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
 		if (obj->getType () == LDObject::Subfile) {
 			vector<LDObject*> objs = static_cast<LDSubfile*> (obj)->inlineContents (true, false);
 			
-			writeObjects (objs, fp);
+			writeObjects (objs, f);
 			for (LDObject* obj : objs)
 				delete obj;
 		} else if (obj->getType () == LDObject::Radial) {
 			vector<LDObject*> objs = static_cast<LDRadial*> (obj)->decompose (true);
 			
-			writeObjects (objs, fp);
+			writeObjects (objs, f);
 			for (LDObject* obj : objs)
 				delete obj;
-		} else {
-			str line = obj->raw () + "\r\n";
-			fwrite (qchars (line), 1, line.length (), fp);
-		}
+		} else
+			f.write (obj->raw () + "\r\n");
 	}
 }
 
 void writeObjects (vector<LDObject*>& objects, str fname) {
 	// Write the input file
-	FILE* fp = fopen (qchars (fname), "w");
-	if (!fp) {
+	File f (fname, File::Write);
+	if (!f) {
 		critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
 		return;
 	}
 	
-	writeObjects (objects, fp);
-	fclose (fp);
+	writeObjects (objects, f);
+	f.close ();
 }
 
 // =============================================================================
@@ -171,17 +169,14 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	QProcess proc;
 	
 	// Init stdin
-	FILE* stdinfp = fopen (qchars (inputname), "w");
+	File stdinfp (inputname, File::Write);
 	
 	// Begin!
 	proc.setStandardInputFile (inputname);
 	proc.start (path, argv);
 	
 	// Write an enter - one is expected
-	char enter[2] = "\n";
-	enter[1] = '\0';
-	fwrite (enter, 1, sizeof enter, stdinfp);
-	fflush (stdinfp);
+	stdinfp.write ("\n");
 	
 	// Wait while it runs
 	proc.waitForFinished ();
@@ -203,13 +198,13 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 #endif // RELEASE
 	
 	// Read the output file
-	FILE* fp = fopen (qchars (fname), "r");
-	if (!fp) {
+	File f (fname, File::Read);
+	if (!f) {
 		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
 	}
 	
-	vector<LDObject*> objs = loadFileContents (fp, null);
+	vector<LDObject*> objs = loadFileContents (&f, null);
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)
@@ -230,7 +225,6 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		g_win->sel () << obj;
 	}
 	
-	fclose (fp);
 	g_win->fullRefresh ();
 }
 

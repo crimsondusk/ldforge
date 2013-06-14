@@ -25,7 +25,7 @@
 #include "types.h"
 #include "misc.h"
 
-const File nullfile (null);
+const File nullfile;
 
 str DoFormat (vector<StringFormatArg> args) {
 	assert (args.size () >= 1);
@@ -276,7 +276,7 @@ StringFormatArg::StringFormatArg (const floatconfig& v) {
 }
 
 // =============================================================================
-File::File (const std::nullptr_t&) {
+File::File () {
 	// Make a null file
 	m_file = null;
 	m_textstream = null;
@@ -348,12 +348,19 @@ void File::write (str msg) {
 	m_file->write (msg.toUtf8 (), msg.length ());
 }
 
-str File::readLine () {
-	return m_textstream->readLine ();
+bool File::readLine (str& line) {
+	if (!m_textstream || m_textstream->atEnd ())
+		return false;
+	
+	line = m_textstream->readLine ();
+	return true;
 }
 
 bool File::atEnd () const {
-	 return m_textstream->atEnd ();
+	if (!m_textstream)
+		fatal ("cannot use atEnd on a null file");
+	
+	return m_textstream->atEnd ();
 }
 
 bool File::isNull () const {
@@ -381,16 +388,29 @@ bool File::flush () {
 	return m_file->flush ();
 }
 
-void File::iterator::operator++() {
-	m_text = m_file->readLine ();
+File::operator bool () const {
+	return !isNull ();
 }
 
-str File::iterator::operator*() {
+void File::rewind () {
+	m_file->seek (0);
+}
+
+File::iterator::iterator (File* f) : m_file (f) {
+	operator++ ();
+}
+
+void File::iterator::operator++ () {
+	m_gotdata = m_file->readLine (m_text);
+}
+
+str File::iterator::operator* () {
 	return m_text;
 }
 
+// The prime contestant for the weirdest operator== 2013 award?
 bool File::iterator::operator== (File::iterator& other) {
-	return (other.m_file == null && m_file->atEnd ());
+	return (other.m_file == null && !m_gotdata);
 }
 
 bool File::iterator::operator!= (File::iterator& other) {

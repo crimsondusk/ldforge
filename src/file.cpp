@@ -141,8 +141,9 @@ str basename (str path) {
 }
 
 // =============================================================================
-FILE* openLDrawFile (str relpath, bool subdirs) {
-	printf ("%s: Try to open %s\n", __func__, qchars (relpath));
+File* openLDrawFile (str relpath, bool subdirs) {
+	print ("%1: Try to open %2\n", __func__, relpath);
+	File* f = new File;
 	
 #ifndef WIN32
 	relpath.replace ("\\", "/");
@@ -150,28 +151,24 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 	
 	if (g_curfile != null) {
 		str partpath = fmt ("%1" DIRSLASH "%2", dirname (g_curfile->name ()), relpath);
-		printf ("try %s\n", qchars (partpath));
-		FILE* fp = fopen (qchars (partpath), "r");
+		print ("try %1\n", partpath);
 		
-		if (fp != null)
-			return fp;
+		if (f->open (partpath, File::Read))
+			return f;
 	}
 	
-	printf ("try %s\n", qchars (relpath));
-	FILE* fp = fopen (qchars (relpath), "r");
+	print ("try %1\n", relpath);
+	if (f->open (relpath, File::Read))
+		return f;
+	
 	str fullPath;
-	
-	if (fp != null)
-		return fp;
-	
 	if (io_ldpath.value.length () > 0) {
 		// Try with just the LDraw path first
 		fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
-		printf ("try %s\n", qchars (fullPath));
+		print ("try %1\n", fullPath);
 		
-		fp = fopen (qchars (fullPath), "r");
-		if (fp != null)
-			return fp;
+		if (f->open (fullPath, File::Read))
+			return f;
 		
 		if (subdirs) {
 			for (auto subdir : initlist<const char*> ({"parts", "p"})) {
@@ -179,14 +176,13 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 					io_ldpath, subdir, relpath);
 				
 				printf ("try %s\n", qchars (fullPath));
-				fp = fopen (qchars (fullPath), "r");
-				
-				if (fp)
-					return fp;
+				if (f->open (fullPath, File::Read))
+					return f;
 			}
 		}
 	}
 	
+	delete f;
 	return null;
 }
 
@@ -194,18 +190,16 @@ FILE* openLDrawFile (str relpath, bool subdirs) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void FileLoader::work () {
-	char line[1024];
 	m_progress = 0;
 	abortflag = false;
 	
-	while (fgets (line, sizeof line, filePointer ())) {
+	for (str line : *PROP_NAME (file)) {
 		// Trim the trailing newline
-		str data = line;
 		qchar c;
-		while ((c = data[data.length () - 1]) == '\n' || c == '\r')
-			data.chop (1);
+		while ((c = line[line.length () - 1]) == '\n' || c == '\r')
+			line.chop (1);
 		
-		LDObject* obj = parseLine (data);
+		LDObject* obj = parseLine (line);
 		assert (obj != null);
 		
 		// Check for parse errors and warn about tthem
@@ -213,7 +207,7 @@ void FileLoader::work () {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
 				m_progress + 1, qchars (static_cast<LDGibberish*> (obj)->reason));
 			
-			logf (LOG_Warning, "- Line was: %s\n", qchars (data));
+			logf (LOG_Warning, "- Line was: %s\n", qchars (line));
 			
 			if (m_warningsPointer)
 				(*m_warningsPointer)++;
@@ -240,7 +234,7 @@ void FileLoader::work () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
+vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	vector<str> lines;
 	vector<LDObject*> objs;
 	
@@ -248,16 +242,17 @@ vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
 		*numWarnings = 0;
 	
 	FileLoader* loader = new FileLoader;
-	loader->setFilePointer (fp);
+	loader->setFile (f);
 	loader->setWarningsPointer (numWarnings);
 	
 	// Calculate the amount of lines
 	ulong numLines = 0;
-	char line[1024];
-	while (fgets (line, sizeof line, fp))
+	for (str line : *f) {
+		(void) line;
 		numLines++;
+	}
 	
-	rewind (fp);
+	f->rewind ();
 	
 	if (g_loadingMainFile) {
 		// Show a progress dialog if we're loading the main file here and move
@@ -304,13 +299,19 @@ LDOpenFile* openDATFile (str path, bool search) {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
-	FILE* fp;
+	File* f;
 	if (search)
-		fp = openLDrawFile (path.toLower (), true);
-	else
-		fp = fopen (qchars (path), "r");
+		f = openLDrawFile (path.toLower (), true);
+	else {
+		f = new File (path, File::Read);
+		
+		if (!*f) {
+			delete f;
+			f = null;
+		}
+	}
 	
-	if (!fp)
+	if (!f)
 		return null;
 	
 	LDOpenFile* oldLoad = g_curfile;
@@ -324,7 +325,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	
 	ulong numWarnings;
 	bool ok;
-	vector<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
+	vector<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
 	
 	if (!ok) {
 		load = oldLoad;
@@ -334,7 +335,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	for (LDObject* obj : objs)
 		load->addObject (obj);
 	
-	fclose (fp);
+	delete f;
 	g_loadedFiles << load;
 	
 	logf ("File %s parsed successfully (%lu warning%s).\n",
@@ -479,6 +480,10 @@ void openMainFile (str path) {
 	LDOpenFile* file = openDATFile (path, false);
 	
 	if (!file) {
+		// Loading failed, thus drop down to a new file since we
+		// closed everything prior.
+		newFile ();
+		
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
 		critical (fmt ("Failed to open %1: %2", path, strerror (errno)));
@@ -511,9 +516,9 @@ bool LDOpenFile::save (str savepath) {
 	if (!savepath.length ())
 		savepath = name ();
 	
-	FILE* fp = fopen (qchars (savepath), "w");
+	File f (savepath, File::Write);
 	
-	if (!fp)
+	if (!f)
 		return false;
 	
 	// If the second object in the list holds the file name, update that now.
@@ -539,11 +544,10 @@ bool LDOpenFile::save (str savepath) {
 	// Write all entries now
 	for (LDObject* obj : objs ()) {
 		// LDraw requires files to have DOS line endings
-		str line = obj->raw () + "\r\n";
-		fwrite (qchars (line), 1, line.length (), fp);
+		f.write (obj->raw () + "\r\n");
 	}
 	
-	fclose (fp);
+	f.close ();
 	
 	// We have successfully saved, update the save position now.
 	setSavePos (history ().pos ());
@@ -862,51 +866,22 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 vector<partListEntry> g_PartList;
 
 void initPartList () {
-	FILE* fp = openLDrawFile ("parts.lst", false);
+	File* f = openLDrawFile ("parts.lst", false);
 	
-	if (!fp)
+	if (!f)
 		return;
 	
-	char sLine[1024];
-	while (fgets (sLine, sizeof sLine, fp)) {
-		// Locate the first whitespace
-		char* cpWhite = strstr (sLine, " ");
-		
-		char sName[65];
-		size_t uLength = (cpWhite - sLine);
-		
-		if (uLength >= 64)
-			continue; // too long
-		
-		strncpy (sName, sLine, uLength);
-		sName[uLength] = '\0';
-		
-		// Surf through the whitespace sea!
-		while (*cpWhite == ' ')
-			cpWhite++;
-		
-		// Get the end point
-		char* cpEnd = strstr (sLine, "\r");
-		
-		if (cpEnd == null) {
-			// must not be DOS-formatted
-			cpEnd = strstr (sLine, "\n");
-		}
-		
-		assert (cpEnd != null);
-		
-		// Make the file title now
-		char sTitle[81];
-		uLength = (cpEnd - cpWhite);
-		strncpy (sTitle, cpWhite, uLength);
-		sTitle[uLength] = '\0';
+	for (str line : *f) {
+		int white = line.indexOf (" ");
+		str name = line.left (white);
+		str title = line.mid (white + 1);
 		
 		// Add it to the array.
-		partListEntry entry;
-		strcpy (entry.sName, sName);
-		strcpy (entry.sTitle, sTitle);
+		partListEntry entry = { name, title };
 		g_PartList << entry;
 	}
+	
+	delete f;
 }
 
 // =============================================================================

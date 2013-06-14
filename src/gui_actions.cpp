@@ -302,13 +302,13 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 	if (!fname.length ())
 		return;
 	
-	FILE* fp = fopen (qchars (fname), "r");
-	if (!fp) {
+	File f (fname, File::Read);
+	if (!f) {
 		critical (fmt ("Couldn't open %1 (%2)", fname, strerror (errno)));
 		return;
 	}
 	
-	vector<LDObject*> objs = loadFileContents (fp, null);
+	vector<LDObject*> objs = loadFileContents (&f, null);
 	
 	g_win->sel ().clear ();
 	

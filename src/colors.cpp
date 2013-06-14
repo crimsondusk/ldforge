@@ -78,23 +78,23 @@ static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
 
 // =============================================================================
 void parseLDConfig () {
-	FILE* fp = openLDrawFile ("LDConfig.ldr", false);
+	File* f = openLDrawFile ("LDConfig.ldr", false);
 	
-	if (!fp) {
+	if (!*f) {
 		critical (fmt ("Unable to open LDConfig.ldr for parsing! (%1)", strerror (errno)));
+		delete f;
 		return;
 	}
 	
 	// Read in the lines
-	char buf[1024];
-	while (fgets (buf, sizeof buf, fp)) {
-		if (strlen (buf) == 0 || buf[0] != '0')
+	for (str line : *f) {
+		if (line.length () == 0 || line[0] != '0')
 			continue; // empty or illogical
 		
-		// Use StringParser to parse the LDConfig.ldr file.
-		str line = buf;
 		line.remove ('\r');
 		line.remove ('\n');
+		
+		// Parse the line
 		StringParser pars (line, ' ');
 		
 		short code = 0, alpha = 255;
@@ -145,5 +145,5 @@ void parseLDConfig () {
 		g_LDColors[code] = col;
 	}
 	
-	fclose (fp);
+	delete f;
 }
