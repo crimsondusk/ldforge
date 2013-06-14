@@ -75,7 +75,6 @@ int main (int argc, char* argv[]) {
 	LDPaths::initPaths ();
 	
 	initColors ();
-	initPartList ();
 	
 	ForgeWindow* win = new ForgeWindow;
 	newFile ();

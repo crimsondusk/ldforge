@@ -861,30 +861,6 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-vector<partListEntry> g_PartList;
-
-void initPartList () {
-	File* f = openLDrawFile ("parts.lst", false);
-	
-	if (!f)
-		return;
-	
-	for (str line : *f) {
-		int white = line.indexOf (" ");
-		str name = line.left (white);
-		str title = line.mid (white + 1);
-		
-		// Add it to the array.
-		partListEntry entry = { name, title };
-		g_PartList << entry;
-	}
-	
-	delete f;
-}
-
-// =============================================================================
 bool safeToCloseAll () {
 	for (LDOpenFile* f : g_loadedFiles)
 		if (!f->safeToClose ())

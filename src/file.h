@@ -131,17 +131,9 @@ void reloadAllSubfiles ();
 // Is it safe to close all files?
 bool safeToCloseAll ();
 
-typedef struct {
-	str name, title;
-} partListEntry;
-
-// Init and parse parts.lst
-void initPartList ();
-
 vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
 
 extern vector<LDOpenFile*> g_loadedFiles;
-extern vector<partListEntry> g_PartList;
 
 str basename (str path);
 str dirname (str path);

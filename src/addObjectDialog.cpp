@@ -102,6 +102,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		};
 		
 		tw_subfileList = new QTreeWidget ();
+/*
 		for (int i : vector<int> ({Parts, Subparts, Primitives, HiRes})) {
 			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, -1);
 			parentItem->setText (0, (i == Parts) ? "Parts" :
@@ -133,6 +134,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			
 			tw_subfileList->addTopLevelItem (parentItem);
 		}
+*/
 		
 		connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
 		lb_subfileName = new QLabel ("File:");
@@ -308,13 +310,8 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str AddObjectDialog::currentSubfileName() {
-	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem ());
-	
-	if (item->subfileID == -1)
-		return ""; // selected a heading
-	
-	return g_PartList[item->subfileID].name;
+str AddObjectDialog::currentSubfileName () {
+	return "";
 }
 
 // =============================================================================
