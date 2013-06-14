@@ -52,14 +52,14 @@ const char* g_extProgNames[] = {
 
 // =============================================================================
 static bool checkProgPath (str path, const extprog prog) {
-	if (~path)
+	if (path.length () > 0)
 		return true;
 	
 	const char* name = g_extProgNames[prog];
 	
-	critical (fmt ("Couldn't run %s as no path has "
+	critical (fmt ("Couldn't run %1 as no path has "
 		"been defined for it. Use the configuration dialog's External Programs "
-		"tab to define a path for %s.", name, name));
+		"tab to define a path for %1.", name));
 	return false;
 }
 
@@ -70,25 +70,25 @@ static void processError (const extprog prog, QProcess& proc) {
 	
 	switch (proc.error ()) {
 	case QProcess::FailedToStart:
-		errmsg = fmt ("Failed to launch %s. Check that you have set the proper path "
-			"to %s and that you have the proper permissions to launch it.", name, name);
+		errmsg = fmt ("Failed to launch %1. Check that you have set the proper path "
+			"to %1 and that you have the proper permissions to launch it.", name);
 		break;
 	
 	case QProcess::Crashed:
-		errmsg = fmt ("%s crashed.", name);
+		errmsg = fmt ("%1 crashed.", name);
 		break;
 	
 	case QProcess::WriteError:
 	case QProcess::ReadError:
-		errmsg = fmt ("I/O error while interacting with %s.", name);
+		errmsg = fmt ("I/O error while interacting with %1.", name);
 		break;
 	
 	case QProcess::UnknownError:
-		errmsg = fmt ("Unknown error occurred while executing %s.", name);
+		errmsg = fmt ("Unknown error occurred while executing %1.", name);
 		break;
 	
 	case QProcess::Timedout:
-		errmsg = fmt ("%s timed out.", name);
+		errmsg = fmt ("%1 timed out.", name);
 		break;
 	}
 	
@@ -121,28 +121,21 @@ void writeObjects (vector<LDObject*>& objects, FILE* fp) {
 			for (LDObject* obj : objs)
 				delete obj;
 		} else {
-			str line = fmt ("%s\r\n", obj->raw ().chars ());
-			fwrite (line.chars(), 1, ~line, fp);
+			str line = obj->raw () + "\r\n";
+			fwrite (qchars (line), 1, line.length (), fp);
 		}
 	}
 }
 
 void writeObjects (vector<LDObject*>& objects, str fname) {
 	// Write the input file
-	FILE* fp = fopen (fname, "w");
+	FILE* fp = fopen (qchars (fname), "w");
 	if (!fp) {
-		critical (fmt ("Couldn't open temporary file %s for writing.\n", fname.chars ()));
+		critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
 		return;
 	}
 	
 	writeObjects (objects, fp);
-	
-#if 0
-	ushort idx = rand ();
-	printf ("%s -> debug_%u\n", fname.chars (), idx);
-	QFile::copy (fname.chars (), fmt ("debug_%u", idx));
-#endif // 0
-	
 	fclose (fp);
 }
 
@@ -170,7 +163,7 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	str inputname, outputname;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 	
-	printf ("cmdline: %s %s\n", path.chars (), qchars (argvstr));
+	printf ("cmdline: %s %s\n", qchars (path), qchars (argvstr));
 	
 	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
 		return;
@@ -178,7 +171,7 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	QProcess proc;
 	
 	// Init stdin
-	FILE* stdinfp = fopen (inputname, "w");
+	FILE* stdinfp = fopen (qchars (inputname), "w");
 	
 	// Begin!
 	proc.setStandardInputFile (inputname);
@@ -210,9 +203,9 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 #endif // RELEASE
 	
 	// Read the output file
-	FILE* fp = fopen (fname, "r");
+	FILE* fp = fopen (qchars (fname), "r");
 	if (!fp) {
-		critical (fmt ("Couldn't open temporary file %s for reading.\n", fname.chars ()));
+		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
 	}
 	
@@ -288,10 +281,15 @@ void runYtruder () {
 		return;
 	
 	// Compose the command-line arguments
-	str argv = fmt ("%s %s %f -a %f %s %s",
+	str argv = join ({
 		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
-		depth, condAngle, inDATName.chars (), outDATName.chars ());
+		depth,
+		"-a",
+		condAngle,
+		inDATName,
+		outDATName
+	});
 	
 	writeSelection (inDATName);
 	runUtilityProcess (Ytruder, prog_ytruder, argv);
@@ -345,12 +343,16 @@ void runRectifier () {
 		return;
 	
 	// Compose arguments
-	str argv = fmt ("%s %s %s %s -t %f %s %s",
+	str argv = join ({
 		(condense == false) ? "-q" : "",
 		(subst == false) ? "-r" : "",
 		(condlineCheck) ? "-a" : "",
 		(colorize) ? "-c" : "",
-		coplthres, inDATName.chars (), outDATName.chars ());
+		"-t",
+		coplthres,
+		inDATName,
+		outDATName
+	});
 	
 	writeSelection (inDATName);
 	runUtilityProcess (Rectifier, prog_rectifier, argv);
@@ -438,13 +440,26 @@ exec:
 		return;
 	}
 	
-	str parms = fmt ("%s %s -s %f",
+	str parms = join ({
 		(cb_colorize->isChecked ()) ? "-c" : "",
 		(cb_nocondense->isChecked ()) ? "-t" : "",
-		dsb_prescale->w ()->value ());
+		"-s",
+		dsb_prescale->w ()->value ()
+	});
 	
-	str argv_normal = fmt ("%s %s %s %s", parms.chars (), inDATName.chars (), cutDATName.chars (), outDATName.chars ());
-	str argv_inverse = fmt ("%s %s %s %s", parms.chars (), cutDATName.chars (), inDATName.chars (), outDAT2Name.chars ());
+	str argv_normal = join ({
+		parms,
+		inDATName,
+		cutDATName,
+		outDATName
+	});
+	
+	str argv_inverse = join ({
+		parms,
+		cutDATName,
+		inDATName,
+		outDAT2Name
+	});
 	
 	writeColorGroup (inCol, inDATName);
 	writeColorGroup (cutCol, cutDATName);
@@ -457,7 +472,7 @@ exec:
 	}
 	
 	if (cb_edges->isChecked ()) {
-		runUtilityProcess (Isecalc, prog_isecalc, fmt ("%s %s %s", inDATName.chars (), cutDATName.chars (), edgesDATName.chars ()));
+		runUtilityProcess (Isecalc, prog_isecalc, join ({inDATName, cutDATName, edgesDATName}));
 		insertOutput (edgesDATName, false, {});
 	}
 }
@@ -520,12 +535,15 @@ exec:
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = fmt ("%s %s %s %s %s %s %s",
+	str argv = join ({
 		(cb_oldsweep->isChecked () ? "-s" : ""),
 		(cb_reverse->isChecked () ? "-r" : ""),
-		(dsb_segsplit->value () != 0 ? fmt ("-l %f", dsb_segsplit->value ()).c () : ""),
-		(sb_bias->value () != 0 ? fmt ("-s %d", sb_bias->value ()).c () : ""),
-		in1DATName.c (), in2DATName.c (), outDATName.c ());
+		(dsb_segsplit->value () != 0 ? fmt ("-l %1", dsb_segsplit->value ()) : ""),
+		(sb_bias->value () != 0 ? fmt ("-s %1", sb_bias->value ()) : ""),
+		in1DATName,
+		in2DATName,
+		outDATName
+	});
 	
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);
@@ -567,7 +585,11 @@ exec:
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = fmt ("%s %s %s", in1DATName.c (), in2DATName.c (), outDATName.c ());
+	str argv = join ({
+		in1DATName,
+		in2DATName,
+		outDATName
+	});
 	
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);

@@ -290,10 +290,8 @@ void ForgeWindow::updateRecentFilesMenu () {
 		delete recent;
 	m_recentFiles.clear ();
 	
-	vector<str> files = io_recentfiles.value / "@";
-	for (long i = files.size() - 1; i >= 0; --i) {
-		str file = files[i];
-		
+	vector<str> files = container_cast<QStringList, vector<str>> (io_recentfiles.value.split ("@"));
+	for (str file : c_rev<str> (files)) {
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 		
 		connect (recent, SIGNAL (triggered ()), this, SLOT (slot_recentFile ()));
@@ -436,11 +434,11 @@ void ForgeWindow::createToolbars () {
 vector<quickColor> parseQuickColorMeta () {
 	vector<quickColor> meta;
 	
-	for (str colorname : gui_colortoolbar.value / ":") {
+	for (str colorname : gui_colortoolbar.value.split (":")) {
 		if (colorname == "|") {
 			meta << quickColor ({null, null, true});
 		} else {
-			color* col = getColor (atoi (colorname));
+			color* col = getColor (colorname.toLong ());
 			assert (col != null);
 			meta << quickColor ({col, null, false});
 		}
@@ -501,12 +499,12 @@ void ForgeWindow::updateGridToolBar () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateTitle () {
-	str title = fmt (APPNAME " %s", fullVersionString().chars ());
+	str title = fmt (APPNAME " %1", fullVersionString());
 	
 	// Append our current file if we have one
 	if (g_curfile) {
-		if (g_curfile->name ().len () > 0)
-			title += fmt (": %s", basename (g_curfile->name ()).c ());
+		if (g_curfile->name ().length () > 0)
+			title += fmt (": %1", basename (g_curfile->name ()));
 		else
 			title += fmt (": <anonymous>");
 		
@@ -515,7 +513,7 @@ void ForgeWindow::updateTitle () {
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (g_curfile->obj (0));
-			title += fmt (": %s", comm->text.chars());
+			title += fmt (": %1", comm->text);
 		}
 		
 		if (g_curfile->history ().pos () != g_curfile->savePos ())
@@ -602,11 +600,11 @@ void ForgeWindow::buildObjList () {
 		
 		switch (obj->getType ()) {
 		case LDObject::Comment:
-			descr = static_cast<LDComment*> (obj)->text.chars();
+			descr = static_cast<LDComment*> (obj)->text;
 			
 			// Remove leading whitespace
-			while (~descr && descr[0] == ' ')
-				descr -= -1;
+			while (descr[0] == ' ')
+				descr.remove (0, 1);
 			break;
 		
 		case LDObject::Empty:
@@ -625,23 +623,22 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case LDObject::Gibberish:
-			descr.format ("ERROR: %s",
-				static_cast<LDGibberish*> (obj)->contents.chars());
+			descr = fmt ("ERROR: %1", static_cast<LDGibberish*> (obj)->contents);
 			break;
 		
 		case LDObject::Vertex:
-			descr.format ("%s", static_cast<LDVertex*> (obj)->pos.stringRep (true).chars());
+			descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
 			break;
 		
 		case LDObject::Subfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
-				descr.format ("%s %s, (", ref->fileInfo ()->name ().chars (),
-					ref->position ().stringRep (true).chars ());
+				descr = fmt ("%1 %2, (", ref->fileInfo ()->name (),
+					ref->position ().stringRep (true));
 				
 				for (short i = 0; i < 9; ++i)
-					descr += fmt ("%s%s", ftoa (ref->transform ()[i]).chars (),
+					descr += fmt ("%1%2", ftoa (ref->transform ()[i]),
 						(i != 8) ? " " : "");
 				
 				descr += ')';
@@ -655,12 +652,12 @@ void ForgeWindow::buildObjList () {
 		case LDObject::Radial:
 			{
 				LDRadial* rad = static_cast<LDRadial*> (obj);
-				descr.format ("%d / %d %s", rad->segments (), rad->divisions (), rad->radialTypeName ());
+				descr = fmt ("%1 / %2 %3", rad->segments (), rad->divisions (), rad->radialTypeName ());
 				
 				if (rad->type () == LDRadial::Ring || rad->type () == LDRadial::Cone)
-					descr += fmt (" %d", rad->number ());
+					descr += fmt (" %1", rad->number ());
 				
-				descr += fmt (" %s", rad->position ().stringRep (true).chars ());
+				descr += " " + rad->position ().stringRep (true);
 			}
 			break;
 		
@@ -671,11 +668,10 @@ void ForgeWindow::buildObjList () {
 		
 		// Put it into brackets if it's hidden
 		if (obj->hidden ()) {
-			str copy = descr.chars ();
-			descr.format ("[[ %s ]]", copy.chars ());
+			descr = fmt ("[[ %1 ]]", descr);
 		}
 		
-		QListWidgetItem* item = new QListWidgetItem (descr.chars());
+		QListWidgetItem* item = new QListWidgetItem (descr);
 		item->setIcon (getIcon (g_saObjTypeIcons[obj->getType ()]));
 		
 		// Color gibberish orange on red so it stands out.
@@ -1004,8 +1000,8 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-QPixmap getIcon (const char* iconName) {
-	return (QPixmap (fmt (":/icons/%s.png", iconName)));
+QPixmap getIcon (str iconName) {
+	return (QPixmap (fmt (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
@@ -1047,7 +1043,7 @@ QAction* findAction (str name) {
 			return *meta.qAct;
 	}
 	
-	fatal (fmt ("%s: couldn't find action named `%s'!\n", __func__, name.chars ()));
+	fatal (fmt ("Couldn't find action named `%2'!", name));
 	abort ();
 	return null;
 }
@@ -1061,7 +1057,7 @@ QIcon makeColorIcon (color* colinfo, const ushort size) {
 	QColor col = colinfo->faceColor;
 	if (colinfo->index == maincolor) {
 		// Use the user preferences for main color here
-		col = gl_maincolor.value.chars ();
+		col = gl_maincolor.value;
 		col.setAlpha (gl_maincolor_alpha * 255.0f);
 	}
 	
@@ -1093,8 +1089,8 @@ void makeColorSelector (QComboBox* box) {
 		assert (col != null);
 		
 		QIcon ico = makeColorIcon (col, 16);
-		box->addItem (ico, fmt ("[%d] %s (%lu object%s)",
-			pair.first, col->name.chars (), pair.second, plural (pair.second)));
+		box->addItem (ico, fmt ("[%1] %2 (%3 object%4)",
+			pair.first, col->name, pair.second, plural (pair.second)));
 		box->setItemData (row, pair.first);
 		
 		++row;

@@ -112,12 +112,12 @@ void ColorSelectDialog::drawScene () {
 		
 		if (i == maincolor) {
 			// Use the user preferences for main color here
-			col = gl_maincolor.value.chars ();
+			col = gl_maincolor.value;
 			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
 		gs_scene->addRect (x, y, w, w, pen, col);
-		QGraphicsTextItem* numtext = gs_scene->addText (fmt ("%d", i).chars());
+		QGraphicsTextItem* numtext = gs_scene->addText (fmt ("%1", i));
 		numtext->setDefaultTextColor ((luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 		
@@ -139,8 +139,8 @@ void ColorSelectDialog::drawColorInfo () {
 		return;
 	}
 	
-	lb_colorInfo->setText (fmt ("%d - %s",
-		selColor, col->name.chars()));
+	lb_colorInfo->setText (fmt ("%1 - %2",
+		selColor, col->name));
 }
 
 // =============================================================================

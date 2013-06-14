@@ -242,11 +242,11 @@ SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDia
 }
 
 void SetContentsDialog::setObject (LDObject* obj) {
-	le_contents->setText (obj->raw ().chars());
+	le_contents->setText (obj->raw ());
 	
 	if (obj->getType() == LDObject::Gibberish) {
-		lb_error->setText (fmt ("<span style=\"color: #900\">%s</span>",
-			static_cast<LDGibberish*> (obj)->reason.chars()));
+		lb_error->setText (fmt ("<span style=\"color: #900\">%1</span>",
+			static_cast<LDGibberish*> (obj)->reason));
 		
 		QPixmap errorPixmap = getIcon ("error").scaledToHeight (16);
 		lb_errorIcon->setPixmap (errorPixmap);
@@ -326,7 +326,7 @@ str LDrawPathDialog::filename () const {
 void LDrawPathDialog::slot_findPath () {
 	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 	
-	if (~newpath > 0 && newpath != filename ()) {
+	if (newpath.length () > 0 && newpath != filename ()) {
 		setPath (newpath);
 		slot_tryConfigure ();
 	}
@@ -338,8 +338,8 @@ void LDrawPathDialog::slot_exit () {
 
 void LDrawPathDialog::slot_tryConfigure () {
 	if (LDPaths::tryConfigure (filename ()) == false) {
-		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%s</span>",
-			LDPaths::getError().chars ()));
+		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%1</span>",
+			LDPaths::getError()));
 		okButton ()->setEnabled (false);
 		return;
 	}
@@ -418,11 +418,11 @@ void NewPartDialog::StaticDialog () {
 	
 	*g_curfile << new LDComment (dlg.le_name->text ());
 	*g_curfile << new LDComment ("Name: <untitled>.dat");
-	*g_curfile << new LDComment (fmt ("Author: %s", author.chars()));
+	*g_curfile << new LDComment (fmt ("Author: %1", author));
 	*g_curfile << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != null)
-		*g_curfile << new LDComment (fmt ("!LICENSE %s", license));
+		*g_curfile << new LDComment (fmt ("!LICENSE %1", license));
 	
 	*g_curfile << new LDEmpty;
 	*g_curfile << new LDBFC (BFCType);

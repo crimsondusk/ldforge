@@ -19,6 +19,7 @@
 #include <QApplication>
 #include <QMessageBox>
 #include <QAbstractButton>
+#include <qfile.h>
 #include "gui.h"
 #include "file.h"
 #include "bbox.h"
@@ -32,14 +33,33 @@ LDOpenFile* g_curfile = null;
 ForgeWindow* g_win = null; 
 bbox g_BBox;
 const QApplication* g_app = null;
+QFile g_file_stdout, g_file_stderr;
 
 const vertex g_origin (0.0f, 0.0f, 0.0f);
 const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
+
+void doPrint (QFile& f, initlist<StringFormatArg> args) {
+	str msg = DoFormat (args);
+	f.write (msg.toUtf8 (), msg.length ());
+	f.flush ();
+}
+
+void doPrint (FILE* fp, initlist<StringFormatArg> args) {
+	if (fp == stdout)
+		doPrint (g_file_stdout, args);
+	else if (fp == stderr)
+		doPrint (g_file_stderr, args);
+	
+	fatal ("unknown FILE* argument");
+}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 int main (int argc, char* argv[]) {
+	g_file_stdout.open (stdout, QIODevice::WriteOnly);
+	g_file_stderr.open (stderr, QIODevice::WriteOnly);
+	
 	const QApplication app (argc, argv);
 	g_app = &app;
 	g_curfile = NULL;
@@ -94,9 +114,9 @@ void doDevf (const char* func, const char* fmtstr, ...) {
 
 str versionString () {
 #if VERSION_PATCH == 0
-	return fmt ("%d.%d", VERSION_MAJOR, VERSION_MINOR);
+	return fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
 #else
-	return fmt ("%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+	return fmt ("%1.%2.%3", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 #endif // VERSION_PATCH
 }
 
@@ -115,7 +135,7 @@ const char* versionMoniker () {
 }
 
 str fullVersionString () {
-	return fmt ("v%s%s", versionString ().chars (), versionMoniker ());
+	return fmt ("v%1%2", versionString (), versionMoniker ());
 }
 
 static void bombBox (str msg) {
@@ -134,7 +154,7 @@ static void bombBox (str msg) {
 }
 
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr) {
-	str errmsg = fmt ("File %s\nLine: %lu:\nFunction %s:\n\nAssertion `%s' failed",
+	str errmsg = fmt ("File: %1\nLine: %2:\nFunction %3:\n\nAssertion `%4' failed",
 		file, line, funcname, expr);
 	
 #if BUILD_ID == BUILD_INTERNAL
@@ -143,7 +163,7 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 	errmsg += ".";
 #endif
 	
-	printf ("%s\n", errmsg.chars ());
+	printf ("%s\n", qchars (errmsg));
 	
 #if BUILD_ID == BUILD_INTERNAL
 	if (g_win)
@@ -155,10 +175,10 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 }
 
 void fatalError (const char* file, const ulong line, const char* funcname, str msg) {
-	str errmsg = fmt ("Aborting over a call to fatal():\nFile: %s\nLine: %lu\nFunction: %s\n\n%s",
-		file, line, funcname, msg.chars ());
+	str errmsg = fmt ("Aborting over a call to fatal():\nFile: %1\nLine: %2\nFunction: %3\n\n%4",
+		file, line, funcname, msg);
 	
-	printf ("%s\n", errmsg.chars ());
+	printf ("%s\n", qchars (errmsg));
 	
 	if (g_win)
 		g_win->deleteLater ();

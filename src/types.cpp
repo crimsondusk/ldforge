@@ -16,10 +16,22 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QObject>
+#include <QStringList>
 #include <assert.h>
 #include "common.h"
 #include "types.h"
 #include "misc.h"
+
+str DoFormat (vector<StringFormatArg> args) {
+	assert (args.size () >= 1);
+	str text = args[0].value ();
+	
+	for (uchar i = 1; i < args.size (); ++i)
+		text = text.arg (args[i].value ());
+	
+	return text;
+}
 
 vertex::vertex (double x, double y, double z) {
 	m_coords[X] = x;
@@ -45,10 +57,14 @@ vertex vertex::midpoint (const vertex& other) {
 
 // =============================================================================
 str vertex::stringRep (bool mangled) const {
-	return fmt (mangled ? "(%s, %s, %s)" : "%s %s %s",
-		ftoa (coord (X)).chars(),
-		ftoa (coord (Y)).chars(),
-		ftoa (coord (Z)).chars());
+	if (mangled)
+		return (str ("(") +
+		ftoa (coord (X)) + ", " +
+		ftoa (coord (Y)) + ", " +
+		ftoa (coord (Z)) + ")");
+	
+	return QStringList ({ftoa (coord (X)), ftoa (coord (Y)),
+		ftoa (coord (Z))}).join (" ");
 }
 
 // =============================================================================
@@ -165,7 +181,7 @@ str matrix::stringRep () const {
 		if (i > 0)
 			val += ' ';
 		
-		val += fmt ("%s", ftoa (m_vals[i]).chars());
+		val += ftoa (m_vals[i]);
 	}
 	
 	return val;	
@@ -204,4 +220,53 @@ double matrix::determinant () const {
 		(val (2) * val (4) * val (6)) -
 		(val (1) * val (3) * val (8)) -
 		(val (0) * val (5) * val (7));
+}
+
+// =============================================================================
+StringFormatArg::StringFormatArg (const str& v) {
+	m_val = v;
+}
+
+StringFormatArg::StringFormatArg (const char& v) {
+	m_val = v;
+}
+
+StringFormatArg::StringFormatArg (const uchar& v) {
+	m_val = v;
+}
+
+StringFormatArg::StringFormatArg (const qchar& v) {
+	m_val = v;
+}
+
+StringFormatArg::StringFormatArg (const float& v) {
+	m_val = ftoa (v);
+}
+
+StringFormatArg::StringFormatArg (const double& v) {
+	m_val = ftoa (v);
+}
+
+StringFormatArg::StringFormatArg (const vertex& v) {
+	m_val = v.stringRep (false);
+}
+
+StringFormatArg::StringFormatArg (const matrix& v) {
+	m_val = v.stringRep ();
+}
+
+StringFormatArg::StringFormatArg (const char* v) {
+	m_val = v;
+}
+
+StringFormatArg::StringFormatArg (const strconfig& v) {
+	m_val = v.value;
+}
+
+StringFormatArg::StringFormatArg (const intconfig& v) {
+	m_val.number (v.value);
+}
+
+StringFormatArg::StringFormatArg (const floatconfig& v) {
+	m_val.number (v.value);
 }

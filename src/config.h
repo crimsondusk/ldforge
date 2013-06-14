@@ -171,14 +171,9 @@ public:
 	DEFINE_COMPARE_OPERATOR (str, !=)
 	DEFINE_ASSIGN_OPERATOR (str, =)
 	DEFINE_ASSIGN_OPERATOR (str, +=)
-	DEFINE_CAST_OPERATOR (const char*)
 	
-	char operator[] (size_t n) {
+	qchar operator[] (int n) {
 		return value[n];
-	}
-	
-	operator QString () {
-		return QString (value.chars());
 	}
 };
 

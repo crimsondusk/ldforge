@@ -26,14 +26,14 @@
 static color* g_LDColors[MAX_COLORS];
 
 void initColors () {
-	printf ("%s: initializing color information.\n", __func__);
+	print ("%1: initializing color information.\n", __func__);
 	
 	color* col;
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new color;
 	col->hexcode = "#AAAAAA";
-	col->faceColor = col->hexcode.chars ();
+	col->faceColor = col->hexcode;
 	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
 	
@@ -81,7 +81,7 @@ void parseLDConfig () {
 	FILE* fp = openLDrawFile ("LDConfig.ldr", false);
 	
 	if (!fp) {
-		critical (fmt ("Unable to open LDConfig.ldr for parsing! (%s)", strerror (errno)));
+		critical (fmt ("Unable to open LDConfig.ldr for parsing! (%1)", strerror (errno)));
 		return;
 	}
 	
@@ -92,7 +92,9 @@ void parseLDConfig () {
 			continue; // empty or illogical
 		
 		// Use StringParser to parse the LDConfig.ldr file.
-		str line = str (buf).strip ({'\n', '\r'});
+		str line = buf;
+		line.remove ('\r');
+		line.remove ('\n');
 		StringParser pars (line, ' ');
 		
 		short code = 0, alpha = 255;
@@ -113,8 +115,9 @@ void parseLDConfig () {
 			continue; // not a number
 		
 		// Ensure that the code is within [0 - 511]
-		code = atoi (valuestr);
-		if (code < 0 || code >= 512)
+		bool ok;
+		code = valuestr.toShort (&ok);
+		if (!ok || code < 0 || code >= 512)
 			continue;
 		
 		// VALUE and EDGE tags
@@ -122,15 +125,15 @@ void parseLDConfig () {
 			continue;
 		
 		// Ensure that our colors are correct
-		QColor faceColor (facename.chars()),
-			edgeColor (edgename.chars());
+		QColor faceColor (facename),
+			edgeColor (edgename);
 		
 		if (!faceColor.isValid () || !edgeColor.isValid ())
 			continue;
 		
 		// Parse alpha if given.
 		if (parseLDConfigTag (pars, "ALPHA", valuestr))
-			alpha = clamp<short> (atoi (valuestr), 0, 255);
+			alpha = clamp<short> (valuestr.toShort (), 0, 255);
 		
 		color* col = new color;
 		col->name = name;
@@ -139,7 +142,6 @@ void parseLDConfig () {
 		col->hexcode = facename;
 		col->faceColor.setAlpha (alpha);
 		col->index = code;
-		
 		g_LDColors[code] = col;
 	}
 	

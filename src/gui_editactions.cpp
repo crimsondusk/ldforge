@@ -173,7 +173,7 @@ MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert ra
 		str errmsg = fmt ("Couldn't replace %lu radials as replacement subfiles could not be loaded:<br />", (ulong)fails.size ());
 		
 		for (str& fail : fails) 
-			errmsg += fmt ("* %s<br />", fail.chars ());
+			errmsg += fmt ("* %1<br />", fail);
 		
 		critical (errmsg);
 	}
@@ -516,8 +516,12 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 	for (short i = 0; i < obj->vertices (); ++i) {
 		vertex v = obj->getVertex (i);
 		
-		for (const Axis ax : g_Axes)
-			v[ax] = atof (fmt ("%.3f", v[ax]));
+		for (const Axis ax : g_Axes) {
+			// HACK: :p
+			char valstr[64];
+			sprintf (valstr, "%.3f", v[ax]);
+			v[ax] = atof (valstr);
+		}
 		
 		obj->setVertex (i, v);
 	}

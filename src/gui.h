@@ -169,7 +169,7 @@ private slots:
 
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
-QPixmap getIcon (const char* sIconName);
+QPixmap getIcon (str iconName);
 vector<quickColor> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);

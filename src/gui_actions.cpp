@@ -55,7 +55,7 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 	
 	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
-	if (name.len () == 0)
+	if (name.length () == 0)
 		return;
 	
 	closeAll ();
@@ -68,11 +68,11 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 void doSave (bool saveAs) {
 	str path = g_curfile->name ();
 	
-	if (~path == 0 || saveAs) {
+	if (path.length () == 0 || saveAs) {
 		path = QFileDialog::getSaveFileName (g_win, "Save As",
 			g_curfile->name (), "LDraw files (*.dat *.ldr)");
 		
-		if (~path == 0) {
+		if (path.length () == 0) {
 			// User didn't give a file name. This happens if the user cancelled
 			// saving in the save file dialog. Abort.
 			return;
@@ -82,14 +82,12 @@ void doSave (bool saveAs) {
 	if (g_curfile->save (path)) {
 		g_curfile->setName (path);
 		g_win->updateTitle ();
-		
-		logf ("Saved successfully to %s\n", path.chars ());
 	} else {
 		setlocale (LC_ALL, "C");
 		
 		// Tell the user the save failed, and give the option for saving as with it.
 		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
-			fmt ("Failed to save to %s\nReason: %s", path.chars(), strerror (errno)),
+			fmt ("Failed to save to %1\nReason: %2", path, strerror (errno)),
 			QMessageBox::Close, g_win);
 		
 		QPushButton* saveAsBtn = new QPushButton ("Save As");
@@ -301,12 +299,12 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 	str fname = QFileDialog::getOpenFileName ();
 	ulong idx = g_win->getInsertionPoint ();
 	
-	if (!~fname)
+	if (!fname.length ())
 		return;
 	
-	FILE* fp = fopen (fname, "r");
+	FILE* fp = fopen (qchars (fname), "r");
 	if (!fp) {
-		critical (fmt ("Couldn't open %s\n%s", fname.chars(), strerror (errno)));
+		critical (fmt ("Couldn't open %1 (%2)", fname, strerror (errno)));
 		return;
 	}
 	
@@ -333,18 +331,19 @@ MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selectio
 		return;
 	
 	str fname = QFileDialog::getSaveFileName ();
-	if (fname.len () == 0)
+	if (fname.length () == 0)
 		return;
 	
 	QFile file (fname);
 	if (!file.open (QIODevice::WriteOnly | QIODevice::Text)) {
-		critical (fmt ("Unable to open %s for writing (%s)", fname.chars (), strerror (errno)));
+		critical (fmt ("Unable to open %1 for writing (%2)", fname, strerror (errno)));
 		return;
 	}
 	
 	for (LDObject* obj : g_win->sel ()) {
 		str contents = obj->raw ();
-		file.write (contents, contents.len ());
+		QByteArray data = contents.toUtf8 ();
+		file.write (data, data.size ());
 		file.write ("\r\n", 2);
 	}
 }
@@ -393,15 +392,15 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
 	str root = basename (g_curfile->name ());
-	if (~root >= 4 && root.substr (~root - 4, -1) == ".dat")
-		root -= 4;
+	if (root.right (4) == ".dat")
+		root.chop (4);
 	
-	str defaultname = (~root > 0) ? fmt ("%s.png", root.c ()) : "";
+	str defaultname = (root.length () > 0) ? fmt ("%1.png", root) : "";
 	str fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	
-	if (~fname > 0 && !img.save (fname))
-		critical (fmt ("Couldn't open %s for writing to save screencap: %s", fname.c (), strerror (errno)));
+	if (fname.length () > 0 && !img.save (fname))
+		critical (fmt ("Couldn't open %1 for writing to save screencap: %2", fname, strerror (errno)));
 	
 	delete[] imgdata;
 }
@@ -452,7 +451,7 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 	
 	bool ok;
 	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
-		fmt ("Depth value for %s Camera:", g_win->R ()->cameraName ()),
+		fmt ("Depth value for %1 Camera:", g_win->R ()->cameraName ()),
 		g_win->R ()->depthValue (), -10000.0f, 10000.0f, 3, &ok);
 	
 	if (ok)

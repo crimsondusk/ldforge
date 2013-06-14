@@ -137,16 +137,17 @@ str ftoa (double num) {
 	// turn into anything weird (like commas)
 	setlocale (LC_NUMERIC, "C");
 	
-	str rep = fmt ("%f", num);
+	str rep;
+	rep.sprintf ("%f", num);
 	
 	// Remove trailing zeroes
-	while (rep[~rep - 1] == '0')
-		rep -= 1;
+	while (rep.right (1) == "0")
+		rep.chop (1);
 	
-	// If there was only zeroes in the decimal place, remove
+	// If there were only zeroes in the decimal place, remove
 	// the decimal point now.
-	if (rep[~rep - 1] == '.')
-		rep -= 1;
+	if (rep.right (1) == ".")
+		rep.chop (1);
 	
 	return rep;
 }
@@ -157,9 +158,11 @@ str ftoa (double num) {
 bool isNumber (const str& tok) {
 	bool gotDot = false;
 	
-	for (const char& c : tok) {
+	for (int i = 0; i < tok.length (); ++i) {
+		const qchar c = tok[i];
+		
 		// Allow leading hyphen for negatives
-		if (&c == &tok[0] && c == '-')
+		if (i == 0 && c == '-')
 			continue;
 		
 		// Check for decimal point
@@ -238,11 +241,20 @@ void configRotationPoint () {
 	edit_rotpoint_z = pos[Z];
 }
 
+str join (initlist<StringFormatArg> vals, str delim) {
+	QStringList list;
+	for (const StringFormatArg& arg : vals)
+		list << arg.value ();
+	
+	return list.join (delim);
+}
+
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 StringParser::StringParser (str inText, char sep) {
-	m_tokens = inText.split (sep);
+	m_tokens = container_cast<QStringList, vector<str>> (inText.split (sep, QString::SkipEmptyParts));
 	m_pos = -1;
 }
 

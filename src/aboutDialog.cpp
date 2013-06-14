@@ -32,9 +32,9 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	icon->setPixmap (getIcon ("ldforge"));
 	
 	// Heading - application label and copyright information
-	QLabel* title = new QLabel (fmt ("<b>" APPNAME " %s</b><br />"
+	QLabel* title = new QLabel (fmt ("<b>" APPNAME " %1</b><br />"
 		"Copyright (C) 2013 Santeri Piippo",
-		fullVersionString ().chars ()));
+		qchars (fullVersionString ())));
 	
 	// Body text
 	QLabel* info = new QLabel (

@@ -74,9 +74,9 @@ namespace LDPaths {
 			return false;
 		}
 		
-		pathInfo.partsPath = fmt ("%s" DIRSLASH "parts", path.chars ());
-		pathInfo.LDConfigPath = fmt ("%s" DIRSLASH "LDConfig.ldr", path.chars ());
-		pathInfo.primsPath = fmt ("%s" DIRSLASH "p", path.chars ());
+		pathInfo.partsPath = fmt ("%1" DIRSLASH "parts", path);
+		pathInfo.LDConfigPath = fmt ("%1" DIRSLASH "LDConfig.ldr", path);
+		pathInfo.primsPath = fmt ("%1" DIRSLASH "p", path);
 		
 		return true;
 	}
@@ -117,10 +117,10 @@ LDOpenFile* findLoadedFile (str name) {
 
 // =============================================================================
 str dirname (str path) {
-	long lastpos = path.last (DIRSLASH);
+	long lastpos = path.lastIndexOf (DIRSLASH);
 	
 	if (lastpos > 0)
-		return path.substr (0, lastpos);
+		return path.left (lastpos);
 	
 #ifndef _WIN32
 	if (path[0] == DIRSLASH_CHAR)
@@ -132,54 +132,54 @@ str dirname (str path) {
 
 // =============================================================================
 str basename (str path) {
-	long lastpos = path.last (DIRSLASH);
+	long lastpos = path.lastIndexOf (DIRSLASH);
 	
-	if (lastpos < (long) path.len () - 1)
-		return path.substr (lastpos + 1, -1);
+	if (lastpos != -1)
+		return path.mid (lastpos + 1);
 	
 	return path;
 }
 
 // =============================================================================
 FILE* openLDrawFile (str relpath, bool subdirs) {
-	printf ("%s: Try to open %s\n", __func__, relpath.c ());
+	printf ("%s: Try to open %s\n", __func__, qchars (relpath));
 	
 #ifndef WIN32
 	relpath.replace ("\\", "/");
 #endif // WIN32
 	
 	if (g_curfile != null) {
-		str partpath = fmt ("%s" DIRSLASH "%s", dirname (g_curfile->name ()).c (), relpath.c ());
-		printf ("try %s\n", partpath.c ());
-		FILE* fp = fopen (partpath, "r");
+		str partpath = fmt ("%1" DIRSLASH "%2", dirname (g_curfile->name ()), relpath);
+		printf ("try %s\n", qchars (partpath));
+		FILE* fp = fopen (qchars (partpath), "r");
 		
 		if (fp != null)
 			return fp;
 	}
 	
-	printf ("try %s\n", relpath.chars ());
-	FILE* fp = fopen (relpath, "r");
+	printf ("try %s\n", qchars (relpath));
+	FILE* fp = fopen (qchars (relpath), "r");
 	str fullPath;
 	
 	if (fp != null)
 		return fp;
 	
-	if (~io_ldpath.value) {
+	if (io_ldpath.value.length () > 0) {
 		// Try with just the LDraw path first
-		fullPath = fmt ("%s" DIRSLASH "%s", io_ldpath.value.chars(), relpath.chars());
-		printf ("try %s\n", fullPath.chars ());
+		fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
+		printf ("try %s\n", qchars (fullPath));
 		
-		fp = fopen (fullPath, "r");
+		fp = fopen (qchars (fullPath), "r");
 		if (fp != null)
 			return fp;
 		
 		if (subdirs) {
 			for (auto subdir : initlist<const char*> ({"parts", "p"})) {
-				fullPath = fmt ("%s" DIRSLASH "%s" DIRSLASH "%s",
-					io_ldpath.value.chars(), subdir, relpath.chars());
+				fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3",
+					io_ldpath, subdir, relpath);
 				
-				printf ("try %s\n", fullPath.chars ());
-				fp = fopen (fullPath.chars (), "r");
+				printf ("try %s\n", qchars (fullPath));
+				fp = fopen (qchars (fullPath), "r");
 				
 				if (fp)
 					return fp;
@@ -201,8 +201,9 @@ void FileLoader::work () {
 	while (fgets (line, sizeof line, filePointer ())) {
 		// Trim the trailing newline
 		str data = line;
-		while (data[~data - 1] == '\n' || data[~data - 1] == '\r')
-			data -= 1;
+		qchar c;
+		while ((c = data[data.length () - 1]) == '\n' || c == '\r')
+			data.chop (1);
 		
 		LDObject* obj = parseLine (data);
 		assert (obj != null);
@@ -210,9 +211,9 @@ void FileLoader::work () {
 		// Check for parse errors and warn about tthem
 		if (obj->getType () == LDObject::Gibberish) {
 			logf (LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				m_progress + 1, static_cast<LDGibberish*> (obj)->reason.chars());
+				m_progress + 1, qchars (static_cast<LDGibberish*> (obj)->reason));
 			
-			logf (LOG_Warning, "- Line was: %s\n", data.chars());
+			logf (LOG_Warning, "- Line was: %s\n", qchars (data));
 			
 			if (m_warningsPointer)
 				(*m_warningsPointer)++;
@@ -300,21 +301,17 @@ vector<LDObject*> loadFileContents (FILE* fp, ulong* numWarnings, bool* ok) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 LDOpenFile* openDATFile (str path, bool search) {
-	logf ("Opening %s...\n", path.chars());
-	
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
 	FILE* fp;
 	if (search)
-		fp = openLDrawFile (-path, true);
+		fp = openLDrawFile (path.toLower (), true);
 	else
-		fp = fopen (path, "r");
+		fp = fopen (qchars (path), "r");
 	
-	if (!fp) {
-		logf (LOG_Error, "Couldn't open %s: %s\n", path.chars (), strerror (errno));
+	if (!fp)
 		return null;
-	}
 	
 	LDOpenFile* oldLoad = g_curfile;
 	LDOpenFile* load = new LDOpenFile;
@@ -341,7 +338,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	g_loadedFiles << load;
 	
 	logf ("File %s parsed successfully (%lu warning%s).\n",
-		path.chars(), numWarnings, plural (numWarnings));
+		qchars (path), numWarnings, plural (numWarnings));
 	
 	return load;
 }
@@ -355,25 +352,25 @@ bool LDOpenFile::safeToClose () {
 	// If we have unsaved changes, warn and give the option of saving.
 	if (!implicit () && history ().pos () != savePos ()) {
 		switch (QMessageBox::question (g_win, "Unsaved Changes",
-			fmt ("There are unsaved changes to %s. Should it be saved?",
-			(name ().len () > 0) ? name ().c () : "<anonymous>"),
+			fmt ("There are unsaved changes to %1. Should it be saved?",
+			(name ().length () > 0) ? name () : "<anonymous>"),
 			(QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel), QMessageBox::Cancel))
 		{
 		case QMessageBox::Yes:
 			// If we don't have a file path yet, we have to ask the user for one.
-			if (name ().len () == 0) {
+			if (name ().length () == 0) {
 				str newpath = QFileDialog::getSaveFileName (g_win, "Save As",
 					g_curfile->name (), "LDraw files (*.dat *.ldr)");
 				
-				if (newpath.len () == 0)
+				if (newpath.length () == 0)
 					return false;
 				
 				setName (newpath);
 			}
 			
 			if (!save ()) {
-				str errormsg = fmt ("Failed to save %s: %s\nDo you still want to close?",
-					name ().c (), strerror (errno));
+				str errormsg = fmt ("Failed to save %1: %2\nDo you still want to close?",
+					name (), strerror (errno));
 				
 				if (QMessageBox::critical (g_win, "Save Failure", errormsg,
 					(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::No)
@@ -438,28 +435,35 @@ void newFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void addRecentFile (str path) {
-	vector<str> rfiles = io_recentfiles.value.split ('@');
+	QStringList rfiles = io_recentfiles.value.split ('@');
 	
-	ulong idx = rfiles.find (path);
+	int idx = 0;
+	
+	for (str& it : rfiles) {
+		if (it == path)
+			break;
+		
+		idx++;
+	}
 	
 	// If this file already is in the list, pop it out.
-	if (idx != -1u) {
+	if (idx != rfiles.size ()) {
 		if (rfiles.size () == 1)
 			return; // only recent file - do nothing
 		
 		// Pop it out.
-		rfiles.erase (idx);
+		rfiles.removeAt (idx);
 	}
 	
 	// If there's too many recent files, drop one out.
 	while (rfiles.size () > (5 - 1))
-		rfiles.erase (0);
+		rfiles.removeAt (0);
 	
 	// Add the file
 	rfiles.push_back (path);
 	
 	// Rebuild the config string
-	io_recentfiles = str::join (rfiles, "@");
+	io_recentfiles = rfiles.join ("@");
 	
 	config::save ();
 	g_win->updateRecentFilesMenu ();
@@ -477,7 +481,7 @@ void openMainFile (str path) {
 	if (!file) {
 		// Tell the user loading failed.
 		setlocale (LC_ALL, "C");
-		critical (fmt ("Failed to open %s: %s", path.chars(), strerror (errno)));
+		critical (fmt ("Failed to open %1: %2", path, strerror (errno)));
 		
 		g_loadingMainFile = false;
 		return;
@@ -504,10 +508,10 @@ void openMainFile (str path) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 bool LDOpenFile::save (str savepath) {
-	if (!~savepath)
+	if (!savepath.length ())
 		savepath = name ();
 	
-	FILE* fp = fopen (savepath, "w");
+	FILE* fp = fopen (qchars (savepath), "w");
 	
 	if (!fp)
 		return false;
@@ -519,15 +523,15 @@ bool LDOpenFile::save (str savepath) {
 	if (!implicit () && objs ().size () >= 2 && object (1)->getType () == LDObject::Comment) {
 		fpathComment = static_cast<LDComment*> (object (1));
 		
-		if (fpathComment->text.substr (0, 6) == "Name: ") {
+		if (fpathComment->text.left (6) == "Name: ") {
 			str newfname;
 			str dir = basename (dirname (savepath));
 			
 			if (dir == "s" || dir == "48")
-				newfname = fmt ("%s\\", dir.c ());
+				newfname = dir + "\\";
 			
 			newfname += basename (savepath);
-			fpathComment->text = fmt ("Name: %s", newfname.c ());
+			fpathComment->text = fmt ("Name: %1", newfname);
 			g_win->buildObjList ();
 		}
 	}
@@ -535,8 +539,8 @@ bool LDOpenFile::save (str savepath) {
 	// Write all entries now
 	for (LDObject* obj : objs ()) {
 		// LDraw requires files to have DOS line endings
-		str line = fmt ("%s\r\n", obj->raw ().chars ());
-		fwrite (line.chars(), 1, line.len (), fp);
+		str line = obj->raw () + "\r\n";
+		fwrite (qchars (line), 1, line.length (), fp);
 	}
 	
 	fclose (fp);
@@ -556,13 +560,13 @@ bool LDOpenFile::save (str savepath) {
 #define CHECK_TOKEN_NUMBERS(MIN,MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDGibberish (line, fmt ("Token #%u was `%s`, expected a number", \
-				(i + 1), tokens[i].chars()));
+			return new LDGibberish (line, fmt ("Token #%1 was `%2`, expected a number", \
+				(i + 1), tokens[i]));
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static vertex parseVertex (vector<str>& s, const ushort n) {
+static vertex parseVertex (QStringList& s, const ushort n) {
 	// Disable the locale while parsing the line or atof's behavior changes
 	// between locales (i.e. fails to read decimals properly). That is
 	// quite undesired...
@@ -570,7 +574,7 @@ static vertex parseVertex (vector<str>& s, const ushort n) {
 	
 	vertex v;
 	for (const Axis ax : g_Axes)
-		v[ax] = atof (s[n + ax]);
+		v[ax] = s[n + ax].toFloat ();
 	
 	return v;
 }
@@ -579,23 +583,23 @@ static vertex parseVertex (vector<str>& s, const ushort n) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 LDObject* parseLine (str line) {
-	vector<str> tokens = line.split (" ");
+	QStringList tokens = line.split (" ", str::SkipEmptyParts);
 	
 	if (!tokens.size ()) {
 		// Line was empty, or only consisted of whitespace
 		return new LDEmpty;
 	}
 	
-	if (~tokens[0] != 1)
+	if (tokens[0].length () != 1)
 		return new LDGibberish (line, "Illogical line code");
 	
-	const char c = tokens[0][0];
-	switch (c - '0') {
+	const qchar c = tokens[0][0];
+	switch (c.toAscii () - '0') {
 	case 0:
 		{
 			// Comment
 			str comm;
-			for (uint i = 1; i < tokens.size(); ++i) {
+			for (int i = 1; i < tokens.size(); ++i) {
 				comm += tokens[i];
 				
 				if (i != tokens.size() - 1)
@@ -605,7 +609,7 @@ LDObject* parseLine (str line) {
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
 				for (short i = 0; i < LDBFC::NumStatements; ++i)
-					if (comm == fmt ("BFC %s", LDBFC::statements [i]))
+					if (comm == fmt ("BFC %1", LDBFC::statements [i]))
 						return new LDBFC ((LDBFC::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
@@ -624,10 +628,10 @@ LDObject* parseLine (str line) {
 					CHECK_TOKEN_NUMBERS (3, 6)
 					
 					LDVertex* obj = new LDVertex;
-					obj->setColor (atol (tokens[3]));
+					obj->setColor (tokens[3].toLong ());
 					
 					for (const Axis ax : g_Axes)
-						obj->pos[ax] = atof (tokens[4 + ax]); // 4 - 6
+						obj->pos[ax] = tokens[4 + ax].toDouble (); // 4 - 6
 					
 					return obj;
 				}
@@ -639,27 +643,27 @@ LDObject* parseLine (str line) {
 					LDRadial::Type eType = LDRadial::NumTypes;
 					
 					for (int i = 0; i < LDRadial::NumTypes; ++i) {
-						if (str (LDRadial::radialTypeName ((LDRadial::Type) i)).upper ().strip (' ') == tokens[3]) {
+						if (str (LDRadial::radialTypeName ((LDRadial::Type) i)).toUpper ().remove (' ') == tokens[3]) {
 							eType = (LDRadial::Type) i;
 							break;
 						}
 					}
 					
 					if (eType == LDRadial::NumTypes)
-						return new LDGibberish (line, fmt ("Unknown radial type %s", tokens[3].chars ()));
+						return new LDGibberish (line, fmt ("Unknown radial type %1", tokens[3]));
 					
 					LDRadial* obj = new LDRadial;
 					
 					obj->setType (eType);
-					obj->setColor (atol (tokens[4]));
-					obj->setSegments (atol (tokens[5]));
-					obj->setDivisions (atol (tokens[6]));
-					obj->setNumber (atol (tokens[7]));
+					obj->setColor (tokens[4].toLong ());
+					obj->setSegments (tokens[5].toLong ());
+					obj->setDivisions (tokens[6].toLong ());
+					obj->setNumber (tokens[7].toLong ());
 					obj->setPosition (parseVertex (tokens, 8)); // 8 - 10
 					
 					matrix transform;
 					for (short i = 0; i < 9; ++i)
-						transform[i] = atof (tokens[i + 11]); // 11 - 19
+						transform[i] = tokens[i + 11].toDouble (); // 11 - 19
 					
 					obj->setTransform (transform);
 					return obj;
@@ -689,12 +693,12 @@ LDObject* parseLine (str line) {
 				return new LDGibberish (line, "Could not open referred file");
 			
 			LDSubfile* obj = new LDSubfile;
-			obj->setColor (atol (tokens[1]));
+			obj->setColor (tokens[1].toLong ());
 			obj->setPosition (parseVertex (tokens, 2)); // 2 - 4
 			
 			matrix transform;
 			for (short i = 0; i < 9; ++i)
-				transform[i] = atof (tokens[i + 5]); // 5 - 13
+				transform[i] = tokens[i + 5].toDouble (); // 5 - 13
 			
 			obj->setTransform (transform);
 			obj->setFileInfo (load);
@@ -708,7 +712,7 @@ LDObject* parseLine (str line) {
 			
 			// Line
 			LDLine* obj = new LDLine;
-			obj->setColor (atol (tokens[1]));
+			obj->setColor (tokens[1].toLong ());
 			for (short i = 0; i < 2; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 7
 			return obj;
@@ -721,7 +725,7 @@ LDObject* parseLine (str line) {
 			
 			// Triangle
 			LDTriangle* obj = new LDTriangle;
-			obj->setColor (atol (tokens[1]));
+			obj->setColor (tokens[1].toLong ());
 			
 			for (short i = 0; i < 3; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 10
@@ -736,7 +740,7 @@ LDObject* parseLine (str line) {
 			
 			// Quadrilateral
 			LDQuad* obj = new LDQuad;
-			obj->setColor (atol (tokens[1]));
+			obj->setColor (tokens[1].toLong ());
 			
 			for (short i = 0; i < 4; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 13
@@ -751,7 +755,7 @@ LDObject* parseLine (str line) {
 			
 			// Conditional line
 			LDCondLine* obj = new LDCondLine;
-			obj->setColor (atol (tokens[1]));
+			obj->setColor (tokens[1].toLong ());
 			
 			for (short i = 0; i < 4; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3))); // 2 - 13
@@ -858,8 +862,6 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 vector<partListEntry> g_PartList;
 
 void initPartList () {
-	logf ("%s: initializing parts.lst\n", __func__);
-	
 	FILE* fp = openLDrawFile ("parts.lst", false);
 	
 	if (!fp)

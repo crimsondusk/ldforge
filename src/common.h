@@ -59,6 +59,10 @@
 # define devf(...)
 #endif // RELEASE
 
+class QFile;
+extern QFile g_file_stdout;
+extern QFile g_file_stderr;
+
 void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
@@ -138,6 +142,17 @@ public: \
 #else
 #define FUNCNAME __func__
 #endif // __GNUC__
+
+// printf replacement
+#ifndef IN_IDE_PARSER
+#define print(...) doPrint (g_file_stdout, {__VA_ARGS__})
+#define fprint(F, ...) doPrint (F, {__VA_ARGS__})
+#else
+void print (const char* fmtstr, ...);
+void fprint (QFile& f, const char* fmtstr, ...);
+#endif
+void doPrint (QFile& f, initlist<StringFormatArg> args);
+void doPrint (FILE* f, initlist<StringFormatArg> args);
 
 // Replace assert with a version that shows a GUI dialog if possible
 #ifdef assert

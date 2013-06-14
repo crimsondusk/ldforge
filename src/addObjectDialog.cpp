@@ -32,6 +32,7 @@
 #include "colorSelectDialog.h"
 #include "history.h"
 #include "widgets.h"
+#include "misc.h"
 
 // =============================================================================
 class SubfileListItem : public QTreeWidgetItem {
@@ -113,9 +114,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				QList<QTreeWidgetItem*> subfileItems;
 				
 				str fileName = part.sName;
-				const bool isSubpart = fileName.substr (0, 2) == "s\\";
-				const bool isPrimitive = str (part.sTitle).substr (0, 9) == "Primitive";
-				const bool isHiRes = fileName.substr (0, 3) == "48\\";
+				const bool isSubpart = fileName.mid (0, 2) == "s\\";
+				const bool isPrimitive = str (part.sTitle).mid (0, 9) == "Primitive";
+				const bool isHiRes = fileName.mid (0, 3) == "48\\";
 				
 				if ((i == Subparts && isSubpart) ||
 					(i == Primitives && isPrimitive) ||
@@ -123,7 +124,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 					(i == Parts && !isSubpart && !isPrimitive && !isHiRes))
 				{
 					SubfileListItem* item = new SubfileListItem (parentItem, j);
-					item->setText (0, fmt ("%s - %s", part.sName, part.sTitle));
+					item->setText (0, fmt ("%1 - %2", part.sName, part.sTitle));
 					subfileItems.append (item);
 				}
 				
@@ -182,11 +183,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	default:
-		critical (fmt ("Unhandled LDObject type %d (%s) in AddObjectDialog", (int) type, g_saObjTypeNames[type]));
+		critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, g_saObjTypeNames[type]));
 		return;
 	}
 	
-	QPixmap icon = getIcon (fmt ("add-%s", g_saObjTypeIcons[type]));
+	QPixmap icon = getIcon (fmt ("add-%1", g_saObjTypeIcons[type]));
 	LDObject* defaults = LDObject::getDefault (type);
 	
 	lb_typeIcon = new QLabel;
@@ -288,8 +289,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	
 	layout->addWidget (makeButtonBox (*this), 5, 0, 1, 4);
 	setLayout (layout);
-	setWindowTitle (fmt (APPNAME ": New %s",
-		g_saObjTypeNames[type]).chars());
+	setWindowTitle (fmt (APPNAME ": New %1",
+		g_saObjTypeNames[type]));
 	
 	setWindowIcon (icon);
 	delete defaults;
@@ -301,9 +302,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
-	button->setStyleSheet (
-		fmt ("background-color: %s", getColor (color)->hexcode.chars()).chars()
-	);
+	button->setStyleSheet (fmt ("background-color: %1", getColor (color)->hexcode));
 }
 
 // =============================================================================
@@ -375,14 +374,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	matrix transform = g_identity;
 	if (type == LDObject::Subfile || type == LDObject::Radial) {
-		vector<str> matrixstrvals = str (dlg.le_matrix->text ()).split (" ");
+		vector<str> matrixstrvals = container_cast<QStringList, vector<str>> (str (dlg.le_matrix->text ()).split (" "));
 		
 		if (matrixstrvals.size () == 9) {
 			double matrixvals[9];
 			int i = 0;
 			
 			for (str val : matrixstrvals)
-				matrixvals[i++] = atof (val);
+				matrixvals[i++] = val.toFloat ();
 			
 			transform = matrix (matrixvals);
 		}
@@ -446,12 +445,12 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Subfile:
 		{
 			str name = dlg.le_subfileName->text ();
-			if (~name == 0)
+			if (name.length () == 0)
 				return; // no subfile filename
 			
 			LDOpenFile* file = getFile (name);
 			if (!file) {
-				critical (fmt ("Couldn't open `%s': %s", name.c (), strerror (errno)));
+				critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
 				return;
 			}
 			

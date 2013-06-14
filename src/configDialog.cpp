@@ -283,10 +283,10 @@ void ConfigDialog::initGridTab () {
 	for (int i = 0; i < g_NumGrids; ++i) {
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%s", str (g_GridInfo[i].name).lower ().chars ())));
+		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%1", str (g_GridInfo[i].name).toLower ())));
 		
 		// Text label
-		lb_gridLabels[i] = new QLabel (fmt ("%s:", g_GridInfo[i].name));
+		lb_gridLabels[i] = new QLabel (fmt ("%1:", g_GridInfo[i].name));
 		
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
@@ -509,16 +509,15 @@ void ConfigDialog::makeSlider (QSlider*& slider, short min, short max, short def
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::pickColor (strconfig& cfg, QPushButton* qButton) {
-	QColorDialog dlg (QColor (cfg.value.chars()));
-	dlg.setWindowIcon (getIcon ("colorselect"));
+void ConfigDialog::pickColor (strconfig& conf, QPushButton* button) {
+	QColor col = QColorDialog::getColor (QColor (conf));
 	
-	if (dlg.exec ()) {
-		uchar r = dlg.currentColor ().red (),
-			g = dlg.currentColor ().green (),
-			b = dlg.currentColor ().blue ();
-		cfg.value.format ("#%.2X%.2X%.2X", r, g, b);
-		setButtonBackground (qButton, cfg.value);
+	if (col.isValid ()) {
+		uchar r = col.red (),
+			g = col.green (),
+			b = col.blue ();
+		conf.value.sprintf ("#%.2X%.2X%.2X", r, g, b);
+		setButtonBackground (button, conf.value);
 	}
 }
 
@@ -533,12 +532,10 @@ void ConfigDialog::slot_setGLForeground () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::setButtonBackground (QPushButton* qButton, str zValue) {
-	qButton->setIcon (getIcon ("colorselect"));
-	qButton->setAutoFillBackground (true);
-	qButton->setStyleSheet (
-		fmt ("background-color: %s", zValue.chars()).chars()
-	);
+void ConfigDialog::setButtonBackground (QPushButton* button, str value) {
+	button->setIcon (getIcon ("colorselect"));
+	button->setAutoFillBackground (true);
+	button->setStyleSheet (fmt ("background-color: %1", value));
 }
 
 // =============================================================================
@@ -631,8 +628,8 @@ void ConfigDialog::slot_setExtProgPath () {
 	filter = "Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
 #endif // WIN32
 	
-	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %s", info->name), "", filter);
-	if (!~fpath)
+	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), "", filter);
+	if (fpath.length () == 0)
 		return;
 	
 	info->input->setText (fpath);
@@ -641,12 +638,12 @@ void ConfigDialog::slot_setExtProgPath () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::setShortcutText (QListWidgetItem* qItem, actionmeta meta) {
+void ConfigDialog::setShortcutText (QListWidgetItem* item, actionmeta meta) {
 	QAction* const act = *meta.qAct;
-	str zLabel = act->iconText ();
-	str zKeybind = act->shortcut ().toString ();
+	str label = act->iconText ();
+	str keybind = act->shortcut ().toString ();
 	
-	qItem->setText (fmt ("%s (%s)", zLabel.chars () ,zKeybind.chars ()).chars());
+	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
 // =============================================================================
@@ -656,13 +653,13 @@ str ConfigDialog::makeColorToolBarString () {
 	str val;
 	
 	for (quickColor entry : quickColorMeta) {
-		if (~val > 0)
+		if (val.length () > 0)
 			val += ':';
 		
 		if (entry.bSeparator)
 			val += '|';
 		else
-			val += fmt ("%d", entry.col->index);
+			val += fmt ("%1", entry.col->index);
 	}
 	
 	return val;
@@ -757,7 +754,7 @@ void KeySequenceDialog::updateOutput () {
 	if (seq == QKeySequence ())
 		shortcut = "&lt;empty&gt;";
 	
-	str text = fmt ("<center><b>%s</b></center>", shortcut.chars ());
+	str text = fmt ("<center><b>%1</b></center>", shortcut);
 	
 	lb_output->setText (text);
 }

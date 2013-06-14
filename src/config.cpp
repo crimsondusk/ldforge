@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <time.h>
 #include <QDir>
+#include <qtextstream.h>
 #include "common.h"
 #include "config.h"
 #include "misc.h"
@@ -26,33 +27,6 @@
 
 config* g_configPointers[MAX_CONFIG];
 static ushort g_cfgPointerCursor = 0;
-
-// =============================================================================
-const char* g_WeekdayNames[7] = {
-	"Sunday",
-	"Monday",
-	"Tuesday",
-	"Wednesday",
-	"Thursday",
-	"Friday",
-	"Saturday",
-};
-
-// =============================================================================
-static const char* g_MonthNames[12] = {
-	"Januray",
-	"February",
-	"March",
-	"April",
-	"May",
-	"June",
-	"July",
-	"August",
-	"September",
-	"October",
-	"November"
-	"December",
-};
 
 static const char* g_ConfigTypeNames[] = {
 	"None",
@@ -66,39 +40,38 @@ static const char* g_ConfigTypeNames[] = {
 // =============================================================================
 // Load the configuration from file
 bool config::load () {
-	printf ("config::load: Loading configuration file...\n");
-	printf ("config::load: Path to configuration is %s\n", filepath ().chars ());
+	print ("config::load: Loading configuration file...\n");
+	print ("config::load: Path to configuration is %1\n", filepath ());
 	
 	// Locale must be disabled for atof
 	setlocale (LC_NUMERIC, "C");
 	
-	FILE* fp = fopen (filepath ().chars(), "r");
-	char linedata[MAX_INI_LINE];
-	char* line;
+	QFile f (filepath ());
+	if (!f.open (QIODevice::ReadOnly))
+		return false;
+	
+	QTextStream input (&f);
 	size_t ln = 0;
 	
-	if (!fp)
-		return false; // can't open for reading
-	
 	// Read the values.
-	while (fgets (linedata, MAX_INI_LINE, fp)) {
+	while (!input.atEnd ()) {
+		str line = input.readLine ().simplified ();
 		ln++;
-		line = linedata;
 		
-		while (*line != 0 && (*line <= 32 || *line >= 127))
-			line++; // Skip junk
-		
-		if (*line == '\0' || line[0] == '#')
+		if (line.isEmpty () || line[0] == '#')
 			continue; // Empty line or comment.
 		
 		// Find the equals sign.
-		char* equals = strchr (line, '=');
-		if (!equals) {
-			fprintf (stderr, "couldn't find `=` sign in entry `%s`\n", line);
+		int equals = line.indexOf ('=');
+		if (equals == -1) {
+			fprint (stderr, "couldn't find `=` sign in entry `%1`\n", line);
 			continue;
 		}
 		
-		str entry = str (line).substr (0, equals - line);
+		str entry = line.left (equals);
+		str valstring = line.right (line.length () - equals - 1);
+		
+		print ("config: `%1` -> %2 == %3 (%4)\n", line, entry, valstring, equals);
 		
 		// Find the config entry for this.
 		config* cfg = null;
@@ -111,24 +84,13 @@ bool config::load () {
 		}
 		
 		if (!cfg) {
-			fprintf (stderr, "unknown config `%s`\n", entry.chars());
+			fprint (stderr, "unknown config `%1`\n", entry);
 			continue;
-		}
-		
-		str valstring = str (line).substr (equals - line + 1, -1);
-		
-		// Trim the crap off the end
-		while (~valstring) {
-			char c = valstring[~valstring - 1];
-			if (c <= 32 || c >= 127) {
-				valstring -= 1;
-			} else
-				break;
 		}
 		
 		switch (cfg->getType()) {
 		case CONFIG_int:
-			static_cast<intconfig*> (cfg)->value = atoi (valstring.chars());
+			static_cast<intconfig*> (cfg)->value = valstring.toInt ();
 			break;
 		
 		case CONFIG_str:
@@ -136,22 +98,22 @@ bool config::load () {
 			break;
 		
 		case CONFIG_float:
-			static_cast<floatconfig*> (cfg)->value = atof (valstring.chars());
+			static_cast<floatconfig*> (cfg)->value = valstring.toFloat ();
 			break;
 		
 		case CONFIG_bool:
 		{
 			bool& val = static_cast<boolconfig*> (cfg)->value;
 			
-			if (+valstring == "TRUE" || valstring == "1")
+			if (valstring.toUpper () == "TRUE" || valstring == "1")
 				val = true;
-			else if (+valstring == "FALSE" || valstring == "0")
+			else if (valstring.toUpper () == "FALSE" || valstring == "0")
 				val = false;
 			break;
 		}
 		
 		case CONFIG_keyseq:
-			static_cast<keyseqconfig*> (cfg)->value = keyseq::fromString (valstring.chars ());
+			static_cast<keyseqconfig*> (cfg)->value = keyseq::fromString (valstring);
 			break;
 		
 		default:
@@ -159,23 +121,8 @@ bool config::load () {
 		}
 	}
 	
-	fclose (fp);
+	f.close ();
 	return true;
-}
-
-// =============================================================================
-// Write a given formatted string to the given file stream
-static size_t writef (FILE* fp, const char* fmt, ...) {
-	va_list va;
-	
-	va_start (va, fmt);
-	char* buf = dynafmt (fmt, va, 256);
-	va_end (va);
-	
-	size_t len = fwrite (buf, 1, strlen (buf), fp);
-	delete[] buf;
-	
-	return len;
 }
 
 // =============================================================================
@@ -187,33 +134,22 @@ bool config::save () {
 	
 	// If the directory doesn't exist, create it now.
 	if (QDir (dirpath ()).exists () == false) {
-		fprintf (stderr, "Creating config path %s...\n", dirpath().chars());
-		if (!QDir ().mkpath (dirpath ().chars ())) {
-			critical ("Failed to create the directory. Configuration cannot be saved!\n");
-			return false; // Couldn't create directory
+		fprint (stderr, "Creating config path %1...\n", dirpath ());
+		if (!QDir ().mkpath (dirpath ())) {
+			critical ("Failed to create the configuration directory. Configuration cannot be saved!\n");
+			return false;
 		}
 	}
 	
-	FILE* fp = fopen (filepath ().chars (), "w");
-	printf ("writing cfg to %s\n", filepath().chars());
+	QFile f (filepath ());
+	print ("writing cfg to %1\n", qchars (filepath ()));
 	
-	if (!fp) {
-		critical (fmt ("Cannot save configuration, cannot open %s for writing\n", filepath ().chars ()));
+	if (!f.open (QIODevice::WriteOnly)) {
+		critical (fmt ("Cannot save configuration, cannot open %1 for writing\n", filepath ()));
 		return false;
 	}
 	
-	const time_t curtime = time (NULL);
-	const struct tm* timeinfo = localtime (&curtime);
-	const char* daysuffix =
-		(timeinfo->tm_mday % 10 == 1) ? "st" :
-		(timeinfo->tm_mday % 10 == 2) ? "nd" :
-		(timeinfo->tm_mday % 10 == 3) ? "rd" : "th";
-	
-	writef (fp, "# Configuration file for " APPNAME "\n");
-	writef (fp, "# Written on %s, %s %d%s %d %.2d:%.2d:%.2d\n",
-		g_WeekdayNames[timeinfo->tm_wday], g_MonthNames[timeinfo->tm_mon],
-		timeinfo->tm_mday, daysuffix, timeinfo->tm_year + 1900,
-		timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
+	fprint (f, "# Configuration file for " APPNAME "\n");
 	
 	for (config* cfg : g_configPointers) {
 		if (!cfg)
@@ -222,7 +158,7 @@ bool config::save () {
 		str valstring;
 		switch (cfg->getType()) {
 		case CONFIG_int:
-			valstring.format ("%d", static_cast<intconfig*> (cfg)->value);
+			valstring = fmt ("%1", static_cast<intconfig*> (cfg)->value);
 			break;
 		
 		case CONFIG_str:
@@ -230,7 +166,7 @@ bool config::save () {
 			break;
 		
 		case CONFIG_float:
-			valstring.format ("%s", ftoa (static_cast<floatconfig*> (cfg)->value).c ());
+			valstring = fmt ("%1", static_cast<floatconfig*> (cfg)->value);
 			break;
 		
 		case CONFIG_bool:
@@ -249,11 +185,11 @@ bool config::save () {
 			qchars (static_cast<keyseqconfig*> (cfg)->defval.toString ());
 		
 		// Write the entry now.
-		writef (fp, "\n# [%s] default: %s\n", g_ConfigTypeNames[cfg->getType()], defstr);
-		writef (fp, "%s=%s\n", cfg->name, valstring.chars());
+		fprint (f, "\n# [%1] default: %2\n", g_ConfigTypeNames[cfg->getType()], defstr);
+		fprint (f, "%1=%2\n", cfg->name, valstring);
 	}
 	
-	fclose (fp);
+	f.close ();
 	return true;
 }
 
@@ -269,20 +205,18 @@ void config::reset () {
 
 // =============================================================================
 str config::filepath () {
-	str path;
-	path.format ("%s%s.cfg", dirpath ().chars (),
-		str (APPNAME).lower ().chars ());
+	str path = fmt ("%1%2.cfg", dirpath (),
+		str (APPNAME).toLower ());
 	return path;
 }
 
 // =============================================================================
 str config::dirpath () {
 #ifndef _WIN32
-	return fmt ("%s" DIRSLASH ".%s" DIRSLASH,
-		qchars (QDir::homePath ()),
-		str (APPNAME).lower ().chars ());
+	return fmt ("%1" DIRSLASH ".%2" DIRSLASH,
+		QDir::homePath (), str (APPNAME).toLower ());
 #else
-	return fmt ("%s" DIRSLASH APPNAME DIRSLASH, qchars (QDir::homePath ()));
+	return fmt ("%1" DIRSLASH APPNAME DIRSLASH, QDir::homePath ());
 #endif // _WIN32
 }
 

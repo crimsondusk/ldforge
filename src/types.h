@@ -19,13 +19,17 @@
 #ifndef TYPES_H
 #define TYPES_H
 
+#include <QString>
 #include <vector>
 #include "common.h"
 
-class String;
-typedef String str;
+typedef QChar qchar;
+typedef QString str;
 template<class T> class ConstVectorReverser;
 template<class T> using c_rev = ConstVectorReverser<T>;
+class strconfig;
+class intconfig;
+class floatconfig;
 
 typedef unsigned int uint;
 typedef unsigned short ushort;
@@ -315,5 +319,48 @@ private:
 
 template<class T> using rev = VectorReverser<T>;
 template<class T> using c_rev = ConstVectorReverser<T>;
+
+// =============================================================================
+class StringFormatArg {
+public:
+	StringFormatArg (const str& v);
+	StringFormatArg (const char& v);
+	StringFormatArg (const uchar& v);
+	StringFormatArg (const qchar& v);
+	
+#define NUMERIC_FORMAT_ARG(T,C) \
+	StringFormatArg (const T& v) { \
+		char valstr[32]; \
+		sprintf (valstr, "%" #C, v); \
+		m_val = valstr; \
+	}
+	
+	NUMERIC_FORMAT_ARG (int, d)
+	NUMERIC_FORMAT_ARG (short, d)
+	NUMERIC_FORMAT_ARG (long, ld)
+	NUMERIC_FORMAT_ARG (uint, u)
+	NUMERIC_FORMAT_ARG (ushort, u)
+	NUMERIC_FORMAT_ARG (ulong, lu)
+	
+	StringFormatArg (const float& v);
+	StringFormatArg (const double& v);
+	StringFormatArg (const vertex& v);
+	StringFormatArg (const matrix& v);
+	StringFormatArg (const char* v);
+	StringFormatArg (const strconfig& v);
+	StringFormatArg (const intconfig& v);
+	StringFormatArg (const floatconfig& v);
+	
+	str value () const { return m_val; }
+private:
+	str m_val;
+};
+
+str DoFormat (vector< StringFormatArg > args);
+#ifndef IN_IDE_PARSER
+#define fmt(...) DoFormat ({__VA_ARGS__})
+#else
+str fmt (const char* fmtstr, ...);
+#endif
 
 #endif // TYPES_H

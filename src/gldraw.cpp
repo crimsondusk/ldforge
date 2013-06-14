@@ -113,8 +113,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	
 	// Init camera icons
 	for (const GL::Camera cam : g_Cameras) {
-		str iconname;
-		iconname.format ("camera-%s", str (g_CameraNames[cam]).lower ().c ());
+		str iconname = fmt ("camera-%1", str (g_CameraNames[cam]).toLower ());
 		
 		CameraIcon* info = &g_CameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
@@ -193,7 +192,7 @@ void GLRenderer::initializeGL () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 QColor GLRenderer::getMainColor () {
-	QColor col (gl_maincolor.value.chars());
+	QColor col (gl_maincolor);
 	
 	if (!col.isValid ())
 		return QColor (0, 0, 0);
@@ -204,7 +203,7 @@ QColor GLRenderer::getMainColor () {
 
 // -----------------------------------------------------------------------------
 void GLRenderer::setBackground () {
-	QColor col (gl_bgcolor.value.chars());
+	QColor col (gl_bgcolor);
 	
 	if (!col.isValid ())
 		return;
@@ -436,9 +435,10 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	cx *= negXFac;
 	cy *= negYFac;
 	
+	str tmp;
 	pos3d = g_origin;
-	pos3d[axisX] = atof (fmt ("%.3f", cx));
-	pos3d[axisY] = atof (fmt ("%.3f", cy));
+	pos3d[axisX] = tmp.sprintf ("%.3f", cx).toDouble ();
+	pos3d[axisY] = tmp.sprintf ("%.3f", cy).toDouble ();
 	pos3d[3 - axisX - axisY] = depthValue ();
 	return pos3d;
 }
@@ -503,8 +503,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		}
 		
 		// Paint the coordinates onto the screen.
-		str text = fmt ("X: %s, Y: %s, Z: %s", ftoa (m_hoverpos[X]).chars (),
-			ftoa (m_hoverpos[Y]).chars (), ftoa (m_hoverpos[Z]).chars ());
+		str text = fmt ("X: %1, Y: %2, Z: %3", m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
 		
 		QFontMetrics metrics = QFontMetrics (font ());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
@@ -600,7 +599,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			const ushort margin = 4;
 			
 			str label;
-			label.format ("%s Camera", g_CameraNames[camera ()]);
+			label = fmt ("%1 Camera", g_CameraNames[camera ()]);
 			paint.setPen (m_darkbg ? Qt::white : Qt::black);
 			paint.drawText (QPoint (margin, margin + metrics.ascent ()), label);
 		}
@@ -617,8 +616,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				ushort x0 = m_pos.x (),
 					y0 = m_pos.y ();
 				
-				str label;
-				label.format ("%s Camera", g_CameraNames[m_toolTipCamera]);
+				str label = fmt ("%1 Camera", g_CameraNames[m_toolTipCamera]);
 				
 				const ushort textWidth = metrics.width (label),
 					textHeight = metrics.height (),
@@ -1398,7 +1396,7 @@ void GLRenderer::setupOverlay () {
 	if (!dlg.exec ())
 		return;
 	
-	QImage* img = new QImage (dlg.fpath ().chars ());
+	QImage* img = new QImage (dlg.fpath ());
 	overlayMeta& info = getOverlay (camera ());
 	
 	if (img->isNull ()) {

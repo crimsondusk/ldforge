@@ -21,6 +21,7 @@
 
 #include "config.h"
 #include "common.h"
+#include "types.h"
 
 #define NUM_PRIMES 500
 
@@ -38,6 +39,8 @@ str ftoa (double num);
 
 // Simplifies the given fraction.
 void simplify (short& numer, short& denom);
+
+str join (initlist<StringFormatArg> vals, str delim = " ");
 
 // Grid stuff
 typedef struct {
@@ -57,6 +60,15 @@ inline const gridinfo& currentGrid () {
 // =============================================================================
 vertex rotPoint (const vector<LDObject*>& objs);
 void configRotationPoint ();
+
+template<class T, class R> R container_cast (const T& a) {
+	R b;
+	
+	for (auto i : a)
+		b << i;
+	
+	return b;
+}
 
 // =============================================================================
 namespace Grid {

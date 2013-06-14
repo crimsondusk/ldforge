@@ -72,11 +72,11 @@ LDGibberish::LDGibberish (str contents, str reason) : contents (contents), reaso
 
 // =============================================================================
 str LDComment::raw () {
-	return fmt ("0 %s", text.chars ());
+	return fmt ("0 %1", text);
 }
 
 str LDSubfile::raw () {
-	str val = fmt ("1 %d %s ", color (), position ().stringRep (false).chars ());
+	str val = fmt ("1 %1 %2 ", color (), position ());
 	val += transform ().stringRep ();
 	val += ' ';
 	val += fileInfo ()->name ();
@@ -84,38 +84,38 @@ str LDSubfile::raw () {
 }
 
 str LDLine::raw () {
-	str val = fmt ("2 %d", color ());
+	str val = fmt ("2 %1", color ());
 	
 	for (ushort i = 0; i < 2; ++i)
-		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
+		val += fmt (" %1", getVertex (i));
 	
 	return val;
 }
 
 str LDTriangle::raw () {
-	str val = fmt ("3 %d", color ());
+	str val = fmt ("3 %1", color ());
 	
 	for (ushort i = 0; i < 3; ++i)
-		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
+		val += fmt  (" %1", getVertex (i));
 	
 	return val;
 }
 
 str LDQuad::raw () {
-	str val = fmt ("4 %d", color ());
+	str val = fmt ("4 %1", color ());
 	
 	for (ushort i = 0; i < 4; ++i)
-		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
+		val += fmt  (" %1", getVertex (i));
 	
 	return val;
 }
 
 str LDCondLine::raw () {
-	str val = fmt ("5 %d", color ());
+	str val = fmt ("5 %1", color ());
 	
 	// Add the coordinates
 	for (ushort i = 0; i < 4; ++i)
-		val += fmt  (" %s", getVertex (i).stringRep (false).chars ());
+		val += fmt  (" %1", getVertex (i));
 	
 	return val;
 }
@@ -125,7 +125,7 @@ str LDGibberish::raw () {
 }
 
 str LDVertex::raw () {
-	return fmt ("0 !LDFORGE VERTEX %d %s", color (), pos.stringRep (false).chars());
+	return fmt ("0 !LDFORGE VERTEX %1 %2", color (), pos);
 }
 
 str LDEmpty::raw () {
@@ -145,7 +145,7 @@ const char* LDBFC::statements[] = {
 };
 
 str LDBFC::raw () {
-	return fmt ("0 BFC %s", LDBFC::statements[type]);
+	return fmt ("0 BFC %1", LDBFC::statements[type]);
 }
 
 // =============================================================================
@@ -394,13 +394,13 @@ str LDObject::objectListContents (const vector<LDObject*>& objs) {
 		if (!firstDetails)
 			text += ", ";
 		
-		str noun = fmt ("%s%s", g_saObjTypeNames[objType], plural (objCount));
+		str noun = fmt ("%1%2", g_saObjTypeNames[objType], plural (objCount));
 		
 		// Plural of "vertex" is "vertices". Stupid English.
 		if (objType == LDObject::Vertex && objCount != 1)
 			noun = "vertices";
 		
-		text += fmt  ("%lu %s", objCount, noun.chars ());
+		text += fmt  ("%1 %2", objCount, noun);
 		firstDetails = false;
 	}
 	
@@ -645,10 +645,10 @@ vector<LDObject*> LDRadial::decompose (bool applyTransform) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::raw () {
-	return fmt ("0 !LDFORGE RADIAL %s %d %d %d %d %s %s",
-		str (radialTypeName ()).upper ().strip (' ').c (),
+	return fmt ("0 !LDFORGE RADIAL %1 %2 %3 %4 %5 %6 %7",
+		str (radialTypeName ()).toUpper ().remove (' '),
 		color (), segments (), divisions (), number (),
-		position ().stringRep (false).chars (), transform ().stringRep().chars ());
+		position ().stringRep (false), transform ().stringRep());
 }
 
 char const* g_radialNameRoots[] = {
@@ -679,18 +679,18 @@ str LDRadial::makeFileName () {
 	}
 	
 	// Compose some general information: prefix, fraction, root, ring number
-	str prefix = (divisions () == lores) ? "" : fmt ("%d/", divisions ());
-	str frac = fmt ("%d-%d", numer, denom);
+	str prefix = (divisions () == lores) ? "" : fmt ("%1/", divisions ());
+	str frac = fmt ("%1-%2", numer, denom);
 	str root = g_radialNameRoots[type ()];
-	str num = (type () == Ring || type () == Cone) ? fmt ("%d", number ()) : "";
+	str num = (type () == Ring || type () == Cone) ? fmt ("%1", number ()) : "";
 	
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
-	short extra = (~frac + ~num + ~root) - 8;
-	root -= min<short> (max<short> (extra, 0), 2);
+	short extra = (frac.length () + num.length () + root.length ()) - 8;
+	root.chop (min<short> (max<short> (extra, 0), 2));
 	
 	// Stick them all together and return the result.
-	return fmt ("%s%s%s%s.dat", prefix.chars(), frac.chars (), root.chars (), num.chars ());
+	return (prefix + frac + root + num + ".dat");
 }
 
 // =============================================================================
