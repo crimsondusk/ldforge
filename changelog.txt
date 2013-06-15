@@ -20,6 +20,7 @@
 	button from the LDraw path config dialog, it's no longer needed.
 - Fixed: Coordinates weren't drawn properly on a bright background (was always drawn in bright colors..).
 - Renamed "Set Contents" into "Edit LDraw Code", should be clearer
+- Changed the green color to more "greener" green, rather than yellowish lime.
 - The dialog box for setting a comment's text is now a lot wider
 - Calculated coordinates are now rounded down (to prevent stuff like Z:160.000001)
 - New part dialog: changed "Name:" to "Title", widened a tad.

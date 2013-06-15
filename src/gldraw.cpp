@@ -244,7 +244,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		obj->getType () != LDObject::CondLine)
 	{
 		if (list == GL::BFCFrontList)
-			qcol = QColor (80, 192, 0);
+			qcol = QColor (40, 192, 0);
 		else
 			qcol = QColor (224, 0, 0);
 	} else {
@@ -551,14 +551,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				pen.setWidth (2);
 				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 				paint.setPen (pen);
-				paint.setBrush (QColor (128, 192, 0, 128));
+				paint.setBrush (QColor (64, 192, 0, 128));
 				paint.drawPolygon (poly, numverts);
 				
 				// Draw vertex blips
 				pen = m_thinBorderPen;
 				pen.setWidth (1);
 				paint.setPen (pen);
-				paint.setBrush (QColor (128, 192, 0));
+				paint.setBrush (QColor (64, 192, 0));
 				
 				for (ushort i = 0; i < numverts; ++i) {
 					QPoint& blip = poly[i];
@@ -643,7 +643,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			y1 = m_pos.y ();
 		
 		QRect rect (x0, y0, x1 - x0, y1 - y0);
-		QColor fillColor = (m_addpick ? "#80FF00" : "#00CCFF");
+		QColor fillColor = (m_addpick ? "#40FF00" : "#00CCFF");
 		fillColor.setAlphaF (0.2f);
 		
 		paint.setPen (m_thickBorderPen);
@@ -1579,6 +1579,9 @@ void GLRenderer::updateRectVerts () {
 }
 
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
+	if (!(ev->buttons () & Qt::LeftButton) || editMode () != Select)
+		return;
+	
 	pick (ev->x (), ev->y ());
 	
 	if (g_win->sel ().size () == 0)
