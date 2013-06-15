@@ -21,9 +21,34 @@
 
 #include "common.h"
 #include "types.h"
+#include <QRegExp>
 
+class PrimitiveCategory;
 struct Primitive {
 	str name, title;
+	PrimitiveCategory* cat;
+};
+
+class PrimitiveCategory {
+	PROPERTY (str, name, setName)
+	
+public:
+	enum Type {
+		Filename,
+		Title
+	};
+	
+	struct RegexEntry {
+		QRegExp regex;
+		Type type;
+	};
+	
+	typedef vector<RegexEntry>::it it;
+	typedef vector<RegexEntry>::c_it c_it;
+	
+	vector<RegexEntry> regexes;
+	vector<Primitive> prims;
+	static vector<Primitive> uncat;
 };
 
 // =============================================================================
@@ -52,9 +77,7 @@ private:
 	vector<Primitive> m_prims;
 };
 
-extern vector<Primitive> g_Primitives;
-extern PrimitiveLister* g_activePrimLister;
-extern bool g_primListerMutex;
+extern vector<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives ();
 

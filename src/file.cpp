@@ -38,7 +38,6 @@ cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
 
 static bool g_loadingMainFile = false;
-bool g_primListerMutex = false;
 
 // =============================================================================
 namespace LDPaths {

@@ -52,6 +52,7 @@ typedef uint32_t uint32;
 typedef uint64_t uint64;
 
 template<class T> using initlist = std::initializer_list<T>;
+template<class T, class R> using pair = std::pair<T, R>;
 using std::size_t;
 
 enum Axis { X, Y, Z };
@@ -187,8 +188,9 @@ public:
 		m_vect.erase (m_vect.begin () + pos);
 	}
 	
-	void push_back (const T& value) {
+	T& push_back (const T& value) {
 		m_vect.push_back (value);
+		return m_vect[m_vect.size () - 1];
 	}
 	
 	void push_back (const vector<T>& vals) {
@@ -205,14 +207,12 @@ public:
 		return true;
 	}
 	
-	vector<T>& operator<< (const T& value) {
-		push_back (value);
-		return *this;
+	T& operator<< (const T& value) {
+		return push_back (value);
 	}
 	
-	vector<T>& operator<< (const vector<T>& vals) {
+	void operator<< (const vector<T>& vals) {
 		push_back (vals);
-		return *this;
 	}
 	
 	bool operator>> (T& value) {

@@ -96,17 +96,22 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			coordCount = 3;
 			
 			tw_subfileList = new QTreeWidget ();
-			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
-			parentItem->setText (0, "Primitives");
-			QList<QTreeWidgetItem*> subfileItems;
+			tw_subfileList->setHeaderLabel ("Primitives");
 			
-			for (Primitive& info : g_Primitives) {
-				SubfileListItem* item = new SubfileListItem (parentItem, &info);
-				item->setText (0, fmt ("%1 - %2", info.name, info.title));
-				subfileItems << item;
+			for (PrimitiveCategory& cat : g_PrimitiveCategories) {
+				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
+				parentItem->setText (0, cat.name ());
+				QList<QTreeWidgetItem*> subfileItems;
+				
+				for (Primitive& prim : cat.prims) {
+					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
+					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
+					subfileItems << item;
+				}
+				
+				tw_subfileList->addTopLevelItem (parentItem);
 			}
 			
-			tw_subfileList->addTopLevelItem (parentItem);
 			connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
 			lb_subfileName = new QLabel ("File:");
 			le_subfileName = new QLineEdit;

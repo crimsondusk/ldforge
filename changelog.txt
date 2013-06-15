@@ -6,7 +6,8 @@
 - Added ability to snap to pre-existing vertices while drawing.
 - When drawing, drawn vertices now display coordinate labels.
 - Replaced parts list in subfile item list with a primitive listing. Listing is generated either if
-	it's not cached (prims.cfg in configuration directory) or on user demand.
+	it's not cached (prims.cfg in configuration directory) or on user demand. Primitives can be categorised
+	with the use of a regex-based configuration file, with a valid default which should cater to most users.
 - Added an export to file action, moved it + insert from to File menu
 - Parts are now zoomed to fit properly, making the initial view of the part clearer.
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)

@@ -100,6 +100,7 @@
 	<file>./icons/visibility.png</file>
 	<file>./icons/wireframe.png</file>
 	<file>./icons/ytruder.png</file>
+	<file>data/primitive-categories.cfg</file>
 	<file>LICENSE</file>
 	<file>LICENSE.icons</file>
 </qresource>
