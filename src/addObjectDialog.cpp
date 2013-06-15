@@ -107,6 +107,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
 					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
 					subfileItems << item;
+					
+					// If this primitive is the one the current object points to,
+					// select it by default
+					if (obj && static_cast<LDSubfile*> (obj)->fileInfo ()->name () == prim.name)
+						tw_subfileList->setCurrentItem (item);
 				}
 				
 				tw_subfileList->addTopLevelItem (parentItem);
