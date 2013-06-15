@@ -33,14 +33,15 @@
 #include "history.h"
 #include "widgets.h"
 #include "misc.h"
+#include "primitives.h"
 
 class SubfileListItem : public QTreeWidgetItem {
-	PROPERTY (PrimitiveInfo*, primInfo, setPrimInfo)
+	PROPERTY (Primitive*, primInfo, setPrimInfo)
 	
 public:
-	SubfileListItem (QTreeWidgetItem* parent, PrimitiveInfo* info) :
+	SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
 		QTreeWidgetItem (parent), m_primInfo (info) {}
-	SubfileListItem (QTreeWidget* parent, PrimitiveInfo* info) :
+	SubfileListItem (QTreeWidget* parent, Primitive* info) :
 		QTreeWidgetItem (parent), m_primInfo (info) {}
 };
 
@@ -99,7 +100,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			parentItem->setText (0, "Primitives");
 			QList<QTreeWidgetItem*> subfileItems;
 			
-			for (PrimitiveInfo& info : g_Primitives) {
+			for (Primitive& info : g_Primitives) {
 				SubfileListItem* item = new SubfileListItem (parentItem, &info);
 				item->setText (0, fmt ("%1 - %2", info.name, info.title));
 				subfileItems << item;

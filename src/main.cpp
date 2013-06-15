@@ -28,6 +28,7 @@
 #include "config.h"
 #include "colors.h"
 #include "types.h"
+#include "primitives.h"
 
 vector<LDOpenFile*> g_loadedFiles;
 LDOpenFile* g_curfile = null;
@@ -73,13 +74,12 @@ int main (int argc, char* argv[]) {
 	}
 	
 	LDPaths::initPaths ();
-	
 	initColors ();
-	
+
 	ForgeWindow* win = new ForgeWindow;
-	newFile ();
 	
-	loadPrimitiveInfo ();
+	newFile ();
+	loadPrimitives ();
 	
 	win->show ();
 	return app.exec ();
@@ -178,7 +178,7 @@ void fatalError (const char* file, const ulong line, const char* funcname, str m
 	str errmsg = fmt ("Aborting over a call to fatal():\nFile: %1\nLine: %2\nFunction: %3\n\n%4",
 		file, line, funcname, msg);
 	
-	printf ("%s\n", qchars (errmsg));
+	print ("%1\n", errmsg);
 	
 	if (g_win)
 		g_win->deleteLater ();

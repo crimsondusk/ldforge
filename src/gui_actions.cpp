@@ -33,6 +33,7 @@
 #include "misc.h"
 #include "gldraw.h"
 #include "dialogs.h"
+#include "primitives.h"
 
 extern_cfg (bool, gl_wireframe);
 

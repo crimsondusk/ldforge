@@ -167,40 +167,4 @@ signals:
 	void workDone ();
 };
 
-struct PrimitiveInfo {
-	str name, title;
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// PrimitiveLister
-// 
-// Worker object that scans the primitives folder for primitives and
-// builds an index of them.
-// =============================================================================
-class PrimitiveLister : public QObject {
-	Q_OBJECT
-	
-public:
-	static void start ();
-	
-public slots:
-	void work ();
-	
-signals:
-	void starting (ulong num);
-	void workDone ();
-	void update (ulong i);
-	
-private:
-	vector<PrimitiveInfo> m_prims;
-};
-
-extern vector<PrimitiveInfo> g_Primitives;
-extern PrimitiveLister* g_activePrimLister;
-extern bool g_primListerMutex;
-
-void loadPrimitiveInfo ();
-
 #endif // FILE_H
