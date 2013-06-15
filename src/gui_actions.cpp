@@ -470,6 +470,7 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	ushort w, h;
 	
 	GLRenderer* rend = new GLRenderer;
+	rend->resize (64, 64);
 	rend->setAttribute (Qt::WA_DontShowOnScreen);
 	rend->show ();
 	rend->setFile (file);

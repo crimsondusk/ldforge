@@ -59,15 +59,6 @@ cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
 cfg (bool, gl_wireframe, false);
 
-// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
-// initialized before program gets to main() and constructs a QApplication
-// and Qt doesn't like that.
-struct CameraIcon {
-	QPixmap* img;
-	QRect srcRect, destRect, selRect;
-	GL::Camera cam;
-} g_CameraIcons[7];
-
 const char* g_CameraNames[7] = { "Top", "Front", "Left", "Bottom", "Back", "Right", "Free" };
 
 const GL::Camera g_Cameras[7] = {
@@ -115,7 +106,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	for (const GL::Camera cam : g_Cameras) {
 		str iconname = fmt ("camera-%1", str (g_CameraNames[cam]).toLower ());
 		
-		CameraIcon* info = &g_CameraIcons[cam];
+		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
 	}
@@ -132,6 +123,9 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 GLRenderer::~GLRenderer () {
 	for (int i = 0; i < 6; ++i)
 		delete m_overlays[i].img;
+	
+	for (CameraIcon& info : m_cameraIcons)
+		delete info.img;
 }
 
 // =============================================================================
@@ -140,7 +134,7 @@ GLRenderer::~GLRenderer () {
 void GLRenderer::calcCameraIcons () {
 	ushort i = 0;
 	
-	for (CameraIcon& info : g_CameraIcons) {
+	for (CameraIcon& info : m_cameraIcons) {
 		const long x1 = (m_width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
 			y1 = ((i / 3) * 16) + 1;
 		
@@ -583,12 +577,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
-		paint.drawRect (g_CameraIcons[camera ()].selRect);
+		paint.drawRect (m_cameraIcons[camera ()].selRect);
 		
 		// Draw the actual icons
-		for (CameraIcon& info : g_CameraIcons) {
+		for (CameraIcon& info : m_cameraIcons) {
 			// Don't draw the free camera icon when in draw mode
-			if (&info == &g_CameraIcons[GL::Free] && editMode () != Select)
+			if (&info == &m_cameraIcons[GL::Free] && editMode () != Select)
 				continue;
 			
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
@@ -606,7 +600,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		// Tool tips
 		if (m_drawToolTip) {
-			if (g_CameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
+			if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
 				m_drawToolTip = false;
 			else {
 				QPen bord = m_thinBorderPen;
@@ -863,7 +857,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	if (wasLeft) {
 		// Check if we selected a camera icon
 		if (!m_rangepick) {
-			for (CameraIcon& info : g_CameraIcons) {
+			for (CameraIcon& info : m_cameraIcons) {
 				if (info.destRect.contains (ev->pos ())) {
 					setCamera (info.cam);
 					goto end;
@@ -1358,7 +1352,7 @@ void GLRenderer::slot_toolTipTimer () {
 	// We come here if the cursor has stayed in one place for longer than a
 	// a second. Check if we're holding it over a camera icon - if so, draw
 	// a tooltip.
-	for (CameraIcon& icon : g_CameraIcons) {
+	for (CameraIcon& icon : m_cameraIcons) {
 		if (icon.destRect.contains (m_pos)) {
 			m_toolTipCamera = icon.cam;
 			m_drawToolTip = true;
@@ -1465,11 +1459,6 @@ const char* GLRenderer::cameraName () const {
 
 overlayMeta& GLRenderer::getOverlay (int newcam) {
 	 return m_overlays[newcam];
-}
-
-void deleteCameraIcons () {
-	for (CameraIcon& info : g_CameraIcons)
-		delete info.img;
 }
 
 void GLRenderer::zoomNotch (bool inward) {

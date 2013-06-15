@@ -108,6 +108,15 @@ protected:
 	void           wheelEvent            (QWheelEvent* ev);
 
 private:
+	// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
+	// initialized before program gets to main() and constructs a QApplication
+	// and Qt doesn't like that.
+	struct CameraIcon {
+		QPixmap* img;
+		QRect srcRect, destRect, selRect;
+		Camera cam;
+	} m_cameraIcons[7];
+	
 	QTimer* m_toolTipTimer;
 	Qt::MouseButtons m_lastButtons;
 	Qt::KeyboardModifiers m_keymods;
@@ -156,7 +165,6 @@ static const GLRenderer::ListType g_glListTypes[] = {
 	GL::BFCBackList,
 };
 
-void deleteCameraIcons ();
 extern const GL::Camera g_Cameras[7];
 extern const char* g_CameraNames[7];
 
