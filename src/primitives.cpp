@@ -233,7 +233,8 @@ static void loadPrimitiveCatgories () {
 					type = PrimitiveCategory::Filename;
 				} else if (cmd == "t") {
 					type = PrimitiveCategory::Title;
-				}
+				} else
+					continue;
 				
 				QRegExp regex (line.mid (colon + 1));
 				PrimitiveCategory::RegexEntry entry = { regex, type };
