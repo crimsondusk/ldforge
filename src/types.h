@@ -20,6 +20,7 @@
 #define TYPES_H
 
 #include <QString>
+#include <QObject>
 #include <vector>
 #include "common.h"
 

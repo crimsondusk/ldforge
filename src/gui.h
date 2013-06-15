@@ -25,7 +25,6 @@
 #include "config.h"
 #include "ldtypes.h"
 
-class QComboBox;
 class ForgeWindow;
 class color;
 class QSplitter;
@@ -33,6 +32,8 @@ class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
 class CheckBoxGroup;
+class QComboBox;
+class QProgressBar;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -129,6 +130,11 @@ public:
 	void setStatusBarText (str text);
 	void addActionMeta (actionmeta& meta);
 	
+public slots:
+	void primitiveLoaderStart (ulong max);
+	void primitiveLoaderUpdate (ulong prog);
+	void primitiveLoaderEnd ();
+	
 protected:
 	void closeEvent (QCloseEvent* ev);
 	void logVA (LogType eType, const char* fmtstr, va_list va);
@@ -143,6 +149,8 @@ private:
 	QSplitter* m_splitter;
 	str m_msglogHTML;
 	QToolBar* m_colorToolBar;
+	QProgressBar* m_primLoaderBar;
+	QWidget* m_primLoaderWidget;
 	vector<QToolBar*> m_toolBars;
 	vector<LDObject*> m_sel;
 	vector<quickColor> m_colorMeta;

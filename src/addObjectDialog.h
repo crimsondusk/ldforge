@@ -22,6 +22,7 @@
 #include <QDialog>
 #include "ldtypes.h"
 
+class QTreeWidgetItem;
 class QLineEdit;
 class RadioBox;
 class QCheckBox;

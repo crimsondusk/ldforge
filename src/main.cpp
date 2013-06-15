@@ -79,6 +79,8 @@ int main (int argc, char* argv[]) {
 	ForgeWindow* win = new ForgeWindow;
 	newFile ();
 	
+	loadPrimitiveInfo ();
+	
 	win->show ();
 	return app.exec ();
 }

@@ -69,8 +69,6 @@ bool config::load () {
 		str entry = line.left (equals);
 		str valstring = line.right (line.length () - equals - 1);
 		
-		print ("config: `%1` -> %2 == %3 (%4)\n", line, entry, valstring, equals);
-		
 		// Find the config entry for this.
 		config* cfg = null;
 		for (config* i : g_configPointers) {

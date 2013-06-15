@@ -34,15 +34,14 @@
 #include "widgets.h"
 #include "misc.h"
 
-// =============================================================================
 class SubfileListItem : public QTreeWidgetItem {
-public:
-	SubfileListItem (QTreeWidgetItem* parent, int subfileID) :
-		QTreeWidgetItem (parent), subfileID (subfileID) {}
-	SubfileListItem (QTreeWidget* parent, int subfileID) :
-		QTreeWidgetItem (parent), subfileID (subfileID) {}
+	PROPERTY (PrimitiveInfo*, primInfo, setPrimInfo)
 	
-	int subfileID;
+public:
+	SubfileListItem (QTreeWidgetItem* parent, PrimitiveInfo* info) :
+		QTreeWidgetItem (parent), m_primInfo (info) {}
+	SubfileListItem (QTreeWidget* parent, PrimitiveInfo* info) :
+		QTreeWidgetItem (parent), m_primInfo (info) {}
 };
 
 // =============================================================================
@@ -92,60 +91,32 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::Subfile:
-		coordCount = 3;
-		
-		enum {
-			Parts,
-			Subparts,
-			Primitives,
-			HiRes,
-		};
-		
-		tw_subfileList = new QTreeWidget ();
-/*
-		for (int i : vector<int> ({Parts, Subparts, Primitives, HiRes})) {
-			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, -1);
-			parentItem->setText (0, (i == Parts) ? "Parts" :
-				(i == Subparts) ? "Subparts" :
-				(i == Primitives) ? "Primitives" :
-				"Hi-Res");
+		{
+			coordCount = 3;
 			
-			ulong j = 0;
-			for (partListEntry& part : g_PartList) {
-				QList<QTreeWidgetItem*> subfileItems;
-				
-				str fileName = part.name;
-				const bool isSubpart = fileName.mid (0, 2) == "s\\";
-				const bool isPrimitive = part.title.mid (0, 9) == "Primitive";
-				const bool isHiRes = fileName.mid (0, 3) == "48\\";
-				
-				if ((i == Subparts && isSubpart) ||
-					(i == Primitives && isPrimitive) ||
-					(i == HiRes && isHiRes) ||
-					(i == Parts && !isSubpart && !isPrimitive && !isHiRes))
-				{
-					SubfileListItem* item = new SubfileListItem (parentItem, j);
-					item->setText (0, fmt ("%1 - %2", part.name, part.title));
-					subfileItems.append (item);
-				}
-				
-				j++;
+			tw_subfileList = new QTreeWidget ();
+			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
+			parentItem->setText (0, "Primitives");
+			QList<QTreeWidgetItem*> subfileItems;
+			
+			for (PrimitiveInfo& info : g_Primitives) {
+				SubfileListItem* item = new SubfileListItem (parentItem, &info);
+				item->setText (0, fmt ("%1 - %2", info.name, info.title));
+				subfileItems << item;
 			}
 			
 			tw_subfileList->addTopLevelItem (parentItem);
+			connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
+			lb_subfileName = new QLabel ("File:");
+			le_subfileName = new QLineEdit;
+			le_subfileName->setFocus ();
+			
+			if (obj) {
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				le_subfileName->setText (ref->fileInfo ()->name ());
+			}
+			break;
 		}
-*/
-		
-		connect (tw_subfileList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_subfileTypeChanged ()));
-		lb_subfileName = new QLabel ("File:");
-		le_subfileName = new QLineEdit;
-		le_subfileName->setFocus ();
-		
-		if (obj) {
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			le_subfileName->setText (ref->fileInfo ()->name ());
-		}
-		break;
 	
 	case LDObject::Radial:
 		coordCount = 3;
@@ -311,7 +282,12 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str AddObjectDialog::currentSubfileName () {
-	return "";
+	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem ());
+	
+	if (item->primInfo () == null)
+		return ""; // selected a heading
+	
+	return item->primInfo ()->name;
 }
 
 // =============================================================================

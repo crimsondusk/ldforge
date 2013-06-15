@@ -495,3 +495,7 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	delete[] imgdata;
 	rend->deleteLater ();
 }
+
+MAKE_ACTION (reloadPrimitives, "Scan Primitives", "", "", (0)) {
+	PrimitiveLister::start ();
+}

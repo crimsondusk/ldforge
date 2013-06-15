@@ -28,7 +28,10 @@
 #include <QComboBox>
 #include <QDialogButtonBox>
 #include <QToolBar>
+#include <QProgressBar>
+#include <QLabel>
 #include <QCoreApplication>
+#include <QTimer>
 
 #include "common.h"
 #include "gldraw.h"
@@ -88,6 +91,15 @@ ForgeWindow::ForgeWindow () {
 	slot_selectionChanged ();
 	
 	setStatusBar (new QStatusBar);
+	
+	m_primLoaderBar = new QProgressBar;
+	m_primLoaderWidget = new QWidget;
+	QHBoxLayout* primLoaderLayout = new QHBoxLayout (m_primLoaderWidget);
+	primLoaderLayout->addWidget (new QLabel ("Loading primitives:"));
+	primLoaderLayout->addWidget (m_primLoaderBar);
+	statusBar ()->addPermanentWidget (m_primLoaderWidget);
+	m_primLoaderWidget->hide ();
+	
 	setWindowIcon (getIcon ("ldforge"));
 	updateTitle ();
 	setMinimumSize (320, 200);
@@ -174,6 +186,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("setLDrawPath");		// Set LDraw Path
 	menu->addSeparator ();					// -------
 	addMenuAction ("testpic");		// Set LDraw Path
+	addMenuAction ("reloadPrimitives");
 	menu->addSeparator ();					// -------
 	addMenuAction ("exit");				// Exit
 	
@@ -992,6 +1005,23 @@ void ForgeWindow::slot_editObject (QListWidgetItem* listitem) {
 	AddObjectDialog::staticDialog (obj->getType (), obj);
 }
 
+void ForgeWindow::primitiveLoaderStart (ulong max) {
+	m_primLoaderWidget->show ();
+	m_primLoaderBar->setRange (0, max);
+	m_primLoaderBar->setValue (0);
+}
+
+void ForgeWindow::primitiveLoaderUpdate (ulong prog) {
+	m_primLoaderBar->setValue (prog);
+}
+
+void ForgeWindow::primitiveLoaderEnd () {
+	QTimer* hidetimer = new QTimer;
+	connect (hidetimer, SIGNAL (timeout ()), m_primLoaderWidget, SLOT (hide ()));
+	hidetimer->setSingleShot (true);
+	hidetimer->start (2000);
+}
+
 // ============================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev) {
 	g_win->spawnContextMenu (ev->globalPos ());
@@ -1097,7 +1127,7 @@ void makeColorSelector (QComboBox* box) {
 	}
 }
 
-// ========================================================================================================================================
+// =============================================================================
 QDialogButtonBox* makeButtonBox (QDialog& dlg) {
 	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
 	QWidget::connect (bbx_buttons, SIGNAL (accepted ()), &dlg, SLOT (accept ()));
