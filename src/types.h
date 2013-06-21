@@ -377,6 +377,24 @@ public:
 	StringFormatArg (const intconfig& v);
 	StringFormatArg (const floatconfig& v);
 	
+	template<class T> StringFormatArg (const vector<T>& v) {
+		m_val = "{ ";
+		
+		uint i = 0;
+		for (const T& it : v) {
+			if (i++)
+				m_val += ", ";
+			
+			StringFormatArg arg (it);
+			m_val += arg.value ();
+		}
+		
+		if (i)
+			m_val += " ";
+		
+		m_val += "}";
+	}
+	
 	str value () const { return m_val; }
 private:
 	str m_val;
