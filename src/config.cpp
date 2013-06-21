@@ -177,11 +177,7 @@ bool config::save () {
 			break;
 		}
 		
-		const char* defstr = (cfg->getType() != CONFIG_keyseq) ? cfg->defaultstring :
-			qchars (static_cast<keyseqconfig*> (cfg)->defval.toString ());
-		
 		// Write the entry now.
-		fprint (f, "\n# [%1] default: %2\n", g_ConfigTypeNames[cfg->getType()], defstr);
 		fprint (f, "%1=%2\n", cfg->name, valstring);
 	}
 	

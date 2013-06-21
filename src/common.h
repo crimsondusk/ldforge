@@ -32,7 +32,6 @@
 #include <QString>
 #include <QMutex>
 
-#include "string.h"
 #include "config.h"
 #include "types.h"
 

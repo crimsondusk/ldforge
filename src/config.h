@@ -23,13 +23,16 @@
 
 // =============================================================================
 #include <QString>
-#include <qkeysequence.h>
+#include <QKeySequence>
+
+typedef QChar qchar;
+typedef QString str;
 
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
 
 #define cfg(T, NAME, DEFAULT) \
-	T##config NAME (DEFAULT, #NAME, #T, #DEFAULT)
+	T##config NAME (DEFAULT, #NAME)
 
 #define extern_cfg(T, NAME) \
 	extern T##config NAME
@@ -47,7 +50,7 @@ enum configtype_e {
 // =========================================================
 class config {
 public:
-	const char* name, *typestring, *defaultstring;
+	const char* name;
 	
 	virtual configtype_e getType () {
 		return CONFIG_none;
@@ -111,13 +114,10 @@ class T##config : public config
 #define IMPLEMENT_CONFIG(T) \
 	T value, defval; \
 	\
-	T##config (T _defval, const char* _name, const char* _typestring, \
-		const char* _defaultstring) \
+	T##config (T _defval, const char* _name) \
 	{ \
 		value = defval = _defval; \
 		name = _name; \
-		typestring = _typestring; \
-		defaultstring = _defaultstring; \
 		addConfig (this); \
 	} \
 	operator T () { \

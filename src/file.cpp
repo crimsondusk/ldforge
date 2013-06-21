@@ -32,7 +32,6 @@
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
-#include "string.h"
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
