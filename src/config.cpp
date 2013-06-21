@@ -148,11 +148,11 @@ bool config::save () {
 	fprint (f, "# Configuration file for " APPNAME "\n");
 	
 	for (config* cfg : g_configPointers) {
-		if (!cfg)
+		if (!cfg || cfg->isDefault ())
 			break;
 		
 		str valstring;
-		switch (cfg->getType()) {
+		switch (cfg->getType ()) {
 		case CONFIG_int:
 			valstring = fmt ("%1", static_cast<intconfig*> (cfg)->value);
 			break;

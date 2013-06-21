@@ -52,11 +52,12 @@ class config {
 public:
 	const char* name;
 	
-	virtual configtype_e getType () {
+	virtual configtype_e getType () const {
 		return CONFIG_none;
 	}
 	
 	virtual void resetValue () {}
+	virtual bool isDefault () const { return false; }
 	
 	// ------------------------------------------
 	static bool load ();
@@ -120,14 +121,17 @@ class T##config : public config
 		name = _name; \
 		addConfig (this); \
 	} \
-	operator T () { \
+	operator const T& () const { \
 		return value; \
 	} \
-	configtype_e getType () { \
+	configtype_e getType () const { \
 		return CONFIG_##T; \
 	} \
 	virtual void resetValue () { \
 		value = defval; \
+	} \
+	virtual bool isDefault () const { \
+		return value == defval; \
 	}
 
 // =============================================================================
