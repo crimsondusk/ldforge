@@ -316,17 +316,32 @@ extern_cfg (str, prog_rectifier);
 extern_cfg (str, prog_intersector);
 extern_cfg (str, prog_coverer);
 extern_cfg (str, prog_isecalc);
+extern_cfg (bool, prog_ytruder_wine);
+extern_cfg (bool, prog_rectifier_wine);
+extern_cfg (bool, prog_intersector_wine);
+extern_cfg (bool, prog_coverer_wine);
+extern_cfg (bool, prog_isecalc_wine);
 static const struct extProgInfo {
-	const char* const name, *iconname;
+	const str name, iconname;
 	strconfig* const path;
 	mutable QLineEdit* input;
 	mutable QPushButton* setPathButton;
+#ifndef _WIN32
+	boolconfig* const wine;
+	mutable QCheckBox* wineBox;
+#endif // _WIN32
 } g_extProgInfo[] = {
-	{ "Ytruder", "ytruder", &prog_ytruder, null, null },
-	{ "Rectifier", "rectifier", &prog_rectifier, null, null },
-	{ "Intersector", "intersector", &prog_intersector, null, null },
-	{ "Isecalc", "isecalc", &prog_isecalc, null, null },
-	{ "Coverer", "coverer", &prog_coverer, null, null },
+#ifndef _WIN32
+# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null, &prog_##LOWNAME##_wine, null },
+#else
+# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null },
+#endif
+	EXTPROG (Ytruder, ytruder)
+	EXTPROG (Rectifir, rectifier)
+	EXTPROG (Intersector, intersector)
+	EXTPROG (Isecalc, isecalc)
+	EXTPROG (Coverer, coverer)
+#undef EXTPROG
 };
 
 void ConfigDialog::initExtProgTab () {
@@ -340,7 +355,7 @@ void ConfigDialog::initExtProgTab () {
 		QLabel* icon = new QLabel,
 			*progLabel = new QLabel (info.name);
 		QLineEdit* input = new QLineEdit;
-		QPushButton* setPathButton = new QPushButton ();
+		QPushButton* setPathButton = new QPushButton;
 		
 		icon->setPixmap (getIcon (info.iconname));
 		input->setText (info.path->value);
@@ -354,6 +369,14 @@ void ConfigDialog::initExtProgTab () {
 		pathsLayout->addWidget (progLabel, row, 1);
 		pathsLayout->addWidget (input, row, 2);
 		pathsLayout->addWidget (setPathButton, row, 3);
+		
+#ifndef _WIN32
+		QCheckBox* wineBox = new QCheckBox ("Wine");
+		wineBox->setChecked (*info.wine);
+		info.wineBox = wineBox;
+		pathsLayout->addWidget (wineBox, row, 4);
+#endif
+		
 		++row;
 	}
 	
@@ -628,7 +651,7 @@ void ConfigDialog::slot_setExtProgPath () {
 	filter = "Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
 #endif // WIN32
 	
-	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), "", filter);
+	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, filter);
 	if (fpath.length () == 0)
 		return;
 	

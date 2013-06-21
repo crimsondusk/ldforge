@@ -121,6 +121,8 @@ bool config::load () {
 	return true;
 }
 
+extern_cfg (str, io_ldpath);
+
 // =============================================================================
 // Save the configuration to disk
 bool config::save () {
@@ -148,8 +150,11 @@ bool config::save () {
 	fprint (f, "# Configuration file for " APPNAME "\n");
 	
 	for (config* cfg : g_configPointers) {
-		if (!cfg || cfg->isDefault ())
+		if (!cfg)
 			break;
+		
+		if (cfg->isDefault ())
+			continue;
 		
 		str valstring;
 		switch (cfg->getType ()) {

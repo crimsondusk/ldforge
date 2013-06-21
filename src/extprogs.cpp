@@ -42,6 +42,22 @@ cfg (str, prog_coverer, "");
 cfg (str, prog_ytruder, "");
 cfg (str, prog_rectifier, "");
 
+#ifndef _WIN32
+cfg (bool, prog_isecalc_wine, false);
+cfg (bool, prog_intersector_wine, false);
+cfg (bool, prog_coverer_wine, false);
+cfg (bool, prog_ytruder_wine, false);
+cfg (bool, prog_rectifier_wine, false);
+
+boolconfig* const g_extProgWine[] = {
+	&prog_isecalc_wine,
+	&prog_intersector_wine,
+	&prog_coverer_wine,
+	&prog_ytruder_wine,
+	&prog_rectifier_wine,
+};
+#endif // _WIN32
+
 const char* g_extProgNames[] = {
 	"Isecalc",
 	"Intersector",
@@ -161,7 +177,14 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	str inputname, outputname;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 	
-	printf ("cmdline: %s %s\n", qchars (path), qchars (argvstr));
+	print ("cmdline: %1 %2\n", path, argvstr);
+	
+#ifndef _WIN32
+	if (g_extProgWine[prog]) {
+		argv.insert (0, path);
+		path = "wine";
+	}
+#endif // _WIN32
 	
 	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
 		return;

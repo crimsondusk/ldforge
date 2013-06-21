@@ -13,6 +13,7 @@
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
 - Objects can now be edited by double-clicking on them.
 - Changed default keys for Y-axis moving from PgUp/PgDown to Home and End ala MLCAD.
+- [Linux] External programs can now be launched with Wine.
 - Added a progress box for file loading to respond to desktops while loading files. With large files
 	the no-response policy could be a bad thing.
 - Fixed: Recent files should behave coherently now.
