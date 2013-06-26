@@ -27,6 +27,7 @@ enum extprog {
 	Coverer,
 	Ytruder,
 	Rectifier,
+	Edger2,
 };
 
 void runYtruder ();

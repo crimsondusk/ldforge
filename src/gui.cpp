@@ -171,111 +171,111 @@ void ForgeWindow::createMenus () {
 	
 	// File menu
 	initMenu ("&File");
-	addMenuAction ("newFile");				// New
-	addMenuAction ("open");				// Open
-	menu->addMenu (m_recentFilesMenu);	// Open Recent
-	addMenuAction ("save");				// Save
-	addMenuAction ("saveAs");				// Save As
-	menu->addSeparator ();					// -------
-	addMenuAction ("insertFrom");			// Insert from File
-	addMenuAction ("exportTo");				// Export to File
-	menu->addSeparator ();					// -------
-	addMenuAction ("settings");			// Settings
-	addMenuAction ("setLDrawPath");		// Set LDraw Path
-	menu->addSeparator ();					// -------
-	addMenuAction ("testpic");		// Set LDraw Path
+	addMenuAction ("newFile");
+	addMenuAction ("open");
+	menu->addMenu (m_recentFilesMenu);
+	addMenuAction ("save");
+	addMenuAction ("saveAs");
+	menu->addSeparator ();
+	addMenuAction ("insertFrom");
+	addMenuAction ("exportTo");
+	menu->addSeparator ();
+	addMenuAction ("settings");
+	addMenuAction ("setLDrawPath");
+	menu->addSeparator ();
+	addMenuAction ("testpic");
 	addMenuAction ("reloadPrimitives");
-	menu->addSeparator ();					// -------
-	addMenuAction ("exit");				// Exit
+	menu->addSeparator ();
+	addMenuAction ("exit");
 	
 	// View menu
 	initMenu ("&View");
-	addMenuAction ("resetView");			// Reset View
-	addMenuAction ("axes");				// Draw Axes
-	addMenuAction ("wireframe");			// Wireframe
-	menu->addSeparator ();					// -----
-	addMenuAction ("setOverlay");			// Set Overlay Image
-	addMenuAction ("clearOverlay");		// Clear Overlay Image
-	menu->addSeparator ();					// -----
-	addMenuAction ("screencap");			// Screencap Part
-	addMenuAction ("showHistory");		// Edit History
+	addMenuAction ("resetView");
+	addMenuAction ("axes");
+	addMenuAction ("wireframe");
+	menu->addSeparator ();
+	addMenuAction ("setOverlay");
+	addMenuAction ("clearOverlay");
+	menu->addSeparator ();
+	addMenuAction ("screencap");
+	addMenuAction ("showHistory");
 	
 	// Insert menu
 	initMenu ("&Insert");
-	addMenuAction ("insertRaw");			// Insert Raw
-	menu->addSeparator ();					// -------
-	addMenuAction ("newSubfile");			// New Subfile
-	addMenuAction ("newLine");			// New Line
-	addMenuAction ("newTriangle");		// New Triangle
-	addMenuAction ("newQuad");				// New Quad
-	addMenuAction ("newCondLine");		// New Conditional Line
-	addMenuAction ("newComment");			// New Comment
-	addMenuAction ("newBFC");				// New BFC Statment
-	addMenuAction ("newVertex");			// New Vertex
-	addMenuAction ("newRadial");			// New Radial
+	addMenuAction ("insertRaw");
+	menu->addSeparator ();
+	addMenuAction ("newSubfile");
+	addMenuAction ("newLine");
+	addMenuAction ("newTriangle");
+	addMenuAction ("newQuad");
+	addMenuAction ("newCondLine");
+	addMenuAction ("newComment");
+	addMenuAction ("newBFC");
+	addMenuAction ("newVertex");
+	addMenuAction ("newRadial");
 	
 	// Edit menu
 	initMenu ("&Edit");
-	addMenuAction ("undo");				// Undo
-	addMenuAction ("redo");				// Redo
-	menu->addSeparator ();					// -----
-	addMenuAction ("cut");					// Cut
-	addMenuAction ("copy");				// Copy
-	addMenuAction ("paste");				// Paste
-	addMenuAction ("del");					// Delete
-	menu->addSeparator ();					// -----
-	addMenuAction ("selectAll");			// Select All
-	addMenuAction ("selectByColor");		// Select by Color
-	addMenuAction ("selectByType");		// Select by Type
-	menu->addSeparator ();					// -----
-	addMenuAction ("modeSelect");			// Select Mode
-	addMenuAction ("modeDraw");			// Draw Mode
-	menu->addSeparator ();					// -----
-	addMenuAction ("setDrawDepth");		// Set Draw Depth
+	addMenuAction ("undo");
+	addMenuAction ("redo");
+	menu->addSeparator ();
+	addMenuAction ("cut");
+	addMenuAction ("copy");
+	addMenuAction ("paste");
+	addMenuAction ("del");
+	menu->addSeparator ();
+	addMenuAction ("selectAll");
+	addMenuAction ("selectByColor");
+	addMenuAction ("selectByType");
+	menu->addSeparator ();
+	addMenuAction ("modeSelect");
+	addMenuAction ("modeDraw");
+	menu->addSeparator ();
+	addMenuAction ("setDrawDepth");
 	
 	initMenu ("&Tools");
-	addMenuAction ("setColor");			// Set Color
-	addMenuAction ("autoColor");			// Auto-color
-	addMenuAction ("uncolorize");			// Uncolorize
-	menu->addSeparator ();					// -----
-	addMenuAction ("invert");				// Invert
-	addMenuAction ("inlineContents");		// Inline
-	addMenuAction ("deepInline");			// Deep Inline
-	addMenuAction ("radialConvert");		// Radials to Subfiles
-	menu->addSeparator ();					// -----
-	addMenuAction ("splitQuads");			// Split Quads
-	addMenuAction ("setContents");		// Set Contents
-	addMenuAction ("makeBorders");		// Make Borders
-	addMenuAction ("makeCornerVerts");	// Make Corner Vertices
-	addMenuAction ("roundCoords");		// Round Coordinates
-	addMenuAction ("visibility");			// Toggle Visibility
-	addMenuAction ("replaceCoords");		// Replace Coordinates
-	addMenuAction ("flip");				// Flip
-	addMenuAction ("demote");				// Demote Conditional Lines
+	addMenuAction ("setColor");
+	addMenuAction ("autoColor");
+	addMenuAction ("uncolorize");
+	menu->addSeparator ();
+	addMenuAction ("invert");
+	addMenuAction ("inlineContents");
+	addMenuAction ("deepInline");
+	addMenuAction ("radialConvert");
+	menu->addSeparator ();
+	addMenuAction ("splitQuads");
+	addMenuAction ("setContents");
+	addMenuAction ("makeBorders");
+	addMenuAction ("makeCornerVerts");
+	addMenuAction ("roundCoords");
+	addMenuAction ("visibility");
+	addMenuAction ("replaceCoords");
+	addMenuAction ("flip");
+	addMenuAction ("demote");
 	
 	// Move menu
 	initMenu ("&Move");
-	addMenuAction ("moveUp");				// Move Up
-	addMenuAction ("moveDown");			// Move Down
-	menu->addSeparator ();					// -----
-	addMenuAction ("gridCoarse");			// Coarse Grid
-	addMenuAction ("gridMedium");			// Medium Grid
-	addMenuAction ("gridFine");			// Fine Grid
-	menu->addSeparator ();					// -----
-	addMenuAction ("moveXPos");			// Move +X
-	addMenuAction ("moveXNeg");			// Move -X
-	addMenuAction ("moveYPos");			// Move +Y
-	addMenuAction ("moveYNeg");			// Move -Y
-	addMenuAction ("moveZPos");			// Move +Z
-	addMenuAction ("moveZNeg");			// Move -Z
-	menu->addSeparator ();					// -----
-	addMenuAction ("rotateXPos");			// Rotate +X
-	addMenuAction ("rotateXNeg");			// Rotate -X
-	addMenuAction ("rotateYPos");			// Rotate +Y
-	addMenuAction ("rotateYNeg");			// Rotate -Y
-	addMenuAction ("rotateZPos");			// Rotate +Z
-	addMenuAction ("rotateZNeg");			// Rotate -Z
-	addMenuAction ("rotpoint");			// Set Rotation Point
+	addMenuAction ("moveUp");
+	addMenuAction ("moveDown");
+	menu->addSeparator ();
+	addMenuAction ("gridCoarse");
+	addMenuAction ("gridMedium");
+	addMenuAction ("gridFine");
+	menu->addSeparator ();
+	addMenuAction ("moveXPos");
+	addMenuAction ("moveXNeg");
+	addMenuAction ("moveYPos");
+	addMenuAction ("moveYNeg");
+	addMenuAction ("moveZPos");
+	addMenuAction ("moveZNeg");
+	menu->addSeparator ();
+	addMenuAction ("rotateXPos");
+	addMenuAction ("rotateXNeg");
+	addMenuAction ("rotateYPos");
+	addMenuAction ("rotateYNeg");
+	addMenuAction ("rotateZPos");
+	addMenuAction ("rotateZNeg");
+	addMenuAction ("rotpoint");
 	
 	initMenu ("E&xternal Programs");
 	addMenuAction ("ytruder");
@@ -283,6 +283,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("intersector");
 	addMenuAction ("isecalc");
 	addMenuAction ("coverer");
+	addMenuAction ("edger2");
 	
 	// Help menu
 	initMenu ("&Help");
