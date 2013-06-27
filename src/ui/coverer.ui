@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>CovererUI</class>
+ <widget class="QDialog" name="CovererUI">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>310</width>
+    <height>220</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>310</width>
+    <height>220</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>10000</width>
+    <height>10000</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>Coverer</string>
+  </property>
+  <widget class="QDialogButtonBox" name="buttonBox">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>180</y>
+     <width>261</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+   </property>
+  </widget>
+  <widget class="QWidget" name="gridLayoutWidget">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>5</y>
+     <width>291</width>
+     <height>171</height>
+    </rect>
+   </property>
+   <layout class="QGridLayout" name="gridLayout" columnstretch="0,1">
+    <item row="0" column="0">
+     <widget class="QLabel" name="label">
+      <property name="text">
+       <string>Shape 1</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="0">
+     <widget class="QLabel" name="label_2">
+      <property name="text">
+       <string>Shape 2</string>
+      </property>
+     </widget>
+    </item>
+    <item row="1" column="1">
+     <widget class="QComboBox" name="cmb_col2"/>
+    </item>
+    <item row="0" column="1">
+     <widget class="QComboBox" name="cmb_col1"/>
+    </item>
+    <item row="2" column="0">
+     <widget class="QLabel" name="label_3">
+      <property name="text">
+       <string>Segment split length:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="0">
+     <widget class="QLabel" name="label_4">
+      <property name="text">
+       <string>Bias:</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="1">
+     <widget class="QDoubleSpinBox" name="dsb_segsplit">
+      <property name="maximum">
+       <double>10000.000000000000000</double>
+      </property>
+     </widget>
+    </item>
+    <item row="3" column="1">
+     <widget class="QSpinBox" name="sb_bias">
+      <property name="minimum">
+       <number>-100</number>
+      </property>
+      <property name="maximum">
+       <number>100</number>
+      </property>
+     </widget>
+    </item>
+    <item row="4" column="0">
+     <widget class="QCheckBox" name="cb_reverse">
+      <property name="text">
+       <string>Reverse shape 2</string>
+      </property>
+     </widget>
+    </item>
+    <item row="5" column="0">
+     <widget class="QCheckBox" name="cb_oldsweep">
+      <property name="text">
+       <string>Old sweep method</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>CovererUI</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>CovererUI</receiver>
+   <slot>reject()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>316</x>
+     <y>260</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>286</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

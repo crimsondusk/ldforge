@@ -35,6 +35,8 @@
 #include "history.h"
 #include "labeledwidget.h"
 
+#include "ui_intersector.h"
+#include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
 
@@ -87,35 +89,26 @@ static bool checkProgPath (str path, const extprog prog) {
 }
 
 // =============================================================================
-static void processError (const extprog prog, QProcess& proc) {
-	const char* name = g_extProgNames[prog];
-	str errmsg;
-	
-	switch (proc.error ()) {
+static str processErrorString (const extprog prog, QProcess& proc) {
+	switch (proc.error()) {
 	case QProcess::FailedToStart:
-		errmsg = fmt ("Failed to launch %1. Check that you have set the proper path "
-			"to %1 and that you have the proper permissions to launch it.", name);
-		break;
+		return "Failed to start (check your permissions)";
 	
 	case QProcess::Crashed:
-		errmsg = fmt ("%1 crashed.", name);
-		break;
+		return "Crashed.";
 	
 	case QProcess::WriteError:
 	case QProcess::ReadError:
-		errmsg = fmt ("I/O error while interacting with %1.", name);
-		break;
+		return "I/O error.";
 	
 	case QProcess::UnknownError:
-		errmsg = fmt ("Unknown error occurred while executing %1.", name);
-		break;
+		return "Unknown error";
 	
 	case QProcess::Timedout:
-		errmsg = fmt ("%1 timed out.", name);
-		break;
+		return fmt( "Timed out (30 seconds)" );
 	}
 	
-	critical (errmsg);
+	return "";
 }
 
 // =============================================================================
@@ -178,23 +171,40 @@ void writeColorGroup (const short colnum, str fname) {
 	writeObjects (objects, fname);
 }
 
+void waitForProcess( QProcess* proc ) {
+	proc->waitForFinished();
+	
+#if 0
+	int msecs = 30000;
+	int msectic = 10;
+	
+	for (int i = 0; i < msecs / msectic; ++i) {
+		if (proc->waitForFinished (msectic))
+			return;
+		
+		
+	}
+#endif // 0
+}
+
 // =============================================================================
-void runUtilityProcess (extprog prog, str path, QString argvstr) {
+bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	QTemporaryFile input, output;
 	str inputname, outputname;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 	
-	print ("cmdline: %1 %2\n", path, argvstr);
-	
 #ifndef _WIN32
-	if (g_extProgWine[prog]) {
+	if (*g_extProgWine[prog]) {
 		argv.insert (0, path);
 		path = "wine";
 	}
 #endif // _WIN32
 	
-	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
-		return;
+	print ("cmdline: %1 %2\n", path, argv.join (" "));
+	
+	// Temporary files for stdin and stdout
+	if( !mkTempFile( input, inputname ) || !mkTempFile( output, outputname ))
+		return false;
 	
 	QProcess proc;
 	
@@ -205,20 +215,31 @@ void runUtilityProcess (extprog prog, str path, QString argvstr) {
 	proc.setStandardInputFile (inputname);
 	proc.start (path, argv);
 	
-	// Write an enter - one is expected
+	// Write an enter, the utility tools all expect one
 	stdinfp.write ("\n");
 	
 	// Wait while it runs
-	proc.waitForFinished ();
+	waitForProcess( &proc );
 	
 #ifndef RELEASE
-	printf ("%s", qchars (QString (proc.readAllStandardOutput ())));
+	print ("%1", str (proc.readAllStandardOutput ()));
 #endif // RELEASE
 	
-	if (proc.exitStatus () == QProcess::CrashExit) {
-		processError (prog, proc);
-		return;
+	str err = "";
+	
+	if ( proc.exitStatus() != QProcess::NormalExit )
+		err = processErrorString (prog, proc);
+	
+	// Check the return code
+	if (proc.exitCode() != 0)
+		err = fmt ("Program exited abnormally (return code %1).",  proc.exitCode());
+	
+	if (err.length() > 0) {
+		critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
+		return false;
 	}
+	
+	return true;
 }
 
 // ================================================================================================
@@ -318,7 +339,10 @@ void runYtruder () {
 	});
 	
 	writeSelection (inDATName);
-	runUtilityProcess (Ytruder, prog_ytruder, argv);
+	
+	if (!runUtilityProcess (Ytruder, prog_ytruder, argv))
+		return;
+	
 	insertOutput (outDATName, false, {});
 }
 
@@ -383,7 +407,10 @@ void runRectifier () {
 	});
 	
 	writeSelection (inDATName);
-	runUtilityProcess (Rectifier, prog_rectifier, argv);
+	
+	if (!runUtilityProcess (Rectifier, prog_rectifier, argv))
+		return;
+	
 	insertOutput (outDATName, true, {});
 }
 
@@ -403,53 +430,33 @@ void runIntersector () {
 	if (!checkProgPath (prog_intersector, Intersector))
 		return;
 	
-	QDialog dlg;
+	QDialog* dlg = new QDialog;
+	Ui::IntersectorUI ui;
+	ui.setupUi( dlg );
 	
-	LabeledWidget<QComboBox>* cmb_incol = buildColorSelector ("Input"),
-		*cmb_cutcol = buildColorSelector ("Cutter");
-	QCheckBox* cb_colorize = new QCheckBox ("Colorize output"),
-		*cb_nocondense = new QCheckBox ("No condensing"),
-		*cb_repeatInverse = new QCheckBox ("Repeat inverse"),
-		*cb_edges = new QCheckBox ("Add edges");
-	LabeledWidget<QDoubleSpinBox>* dsb_prescale = new LabeledWidget<QDoubleSpinBox> ("Prescaling factor");
+	makeColorSelector( ui.cmb_incol );
+	makeColorSelector( ui.cmb_cutcol );
+	ui.cb_repeat->setWhatsThis( "If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
+		" cutter group with the input group. Both groups are cut by the intersection." );
+	ui.cb_edges->setWhatsThis( "Makes " APPNAME " try run Isecalc to create edgelines for the intersection." );
 	
-	cb_repeatInverse->setWhatsThis ("If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
-		" cutter group with the input group. Both groups are cut by the intersection.");
-	cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
+	short inCol, cutCol;
+	const bool repeatInverse = ui.cb_repeat->isChecked ();
 	
-	dsb_prescale->w ()->setMinimum (0.0f);
-	dsb_prescale->w ()->setMaximum (10000.0f);
-	dsb_prescale->w ()->setSingleStep (0.01f);
-	dsb_prescale->w ()->setValue (1.0f);
-	
-	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (cmb_incol);
-	layout->addWidget (cmb_cutcol);
-	
-	QHBoxLayout* cblayout = new QHBoxLayout;
-	cblayout->addWidget (cb_colorize);
-	cblayout->addWidget (cb_nocondense);
-	
-	QHBoxLayout* cb2layout = new QHBoxLayout;
-	cb2layout->addWidget (cb_repeatInverse);
-	cb2layout->addWidget (cb_edges);
-	
-	layout->addLayout (cblayout);
-	layout->addLayout (cb2layout);
-	layout->addWidget (dsb_prescale);
-	layout->addWidget (makeButtonBox (dlg));
-	
-exec:
-	if (!dlg.exec ())
-		return;
-	
-	const short inCol = cmb_incol->w ()->itemData (cmb_incol->w ()->currentIndex ()).toInt (),
-		cutCol =  cmb_cutcol->w ()->itemData (cmb_cutcol->w ()->currentIndex ()).toInt ();
-	const bool repeatInverse = cb_repeatInverse->isChecked ();
-	
-	if (inCol == cutCol) {
-		critical ("Cannot use the same color group for both input and cutter!");
-		goto exec;
+	for( ;; )
+	{
+		if (!dlg->exec ())
+			return;
+		
+		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex ()).toInt ();
+		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex ()).toInt ();
+		
+		if (inCol == cutCol) {
+			critical ("Cannot use the same color group for both input and cutter!");
+			continue;
+		}
+		
+		break;
 	}
 	
 	// Five temporary files!
@@ -469,10 +476,10 @@ exec:
 	}
 	
 	str parms = join ({
-		(cb_colorize->isChecked ()) ? "-c" : "",
-		(cb_nocondense->isChecked ()) ? "-t" : "",
+		(ui.cb_colorize->isChecked ()) ? "-c" : "",
+		(ui.cb_nocondense->isChecked ()) ? "-t" : "",
 		"-s",
-		dsb_prescale->w ()->value ()
+		ui.dsb_prescale->value ()
 	});
 	
 	str argv_normal = join ({
@@ -491,16 +498,18 @@ exec:
 	
 	writeColorGroup (inCol, inDATName);
 	writeColorGroup (cutCol, cutDATName);
-	runUtilityProcess (Intersector, prog_intersector, argv_normal);
+	
+	if (!runUtilityProcess (Intersector, prog_intersector, argv_normal))
+		return;
+	
 	insertOutput (outDATName, false, {inCol});
 	
-	if (repeatInverse) {
-		runUtilityProcess (Intersector, prog_intersector, argv_inverse);
+	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
-	}
 	
-	if (cb_edges->isChecked ()) {
-		runUtilityProcess (Isecalc, prog_isecalc, join ({inDATName, cutDATName, edgesDATName}));
+	if (ui.cb_edges->isChecked () && runUtilityProcess (Isecalc, prog_isecalc,
+		join ({inDATName, cutDATName, edgesDATName})))
+	{
 		insertOutput (edgesDATName, false, {});
 	}
 }
@@ -514,47 +523,26 @@ void runCoverer () {
 	if (!checkProgPath (prog_coverer, Coverer))
 		return;
 	
-	QDialog dlg;
+	QDialog* dlg = new QDialog;
+	Ui::CovererUI ui;
+	ui.setupUi( dlg );
+	makeColorSelector( ui.cmb_col1 );
+	makeColorSelector( ui.cmb_col2 );
 	
-	LabeledWidget<QComboBox>* cmb_col1 = buildColorSelector ("Shape 1"),
-		*cmb_col2 = buildColorSelector ("Shape 2");
-	
-	QDoubleSpinBox* dsb_segsplit = new QDoubleSpinBox;
-	QLabel* lb_segsplit = new QLabel ("Segment split length:");
-	QSpinBox* sb_bias = new QSpinBox;
-	QLabel* lb_bias = new QLabel ("Bias:");
-	QCheckBox* cb_reverse = new QCheckBox ("Reverse shape 2"),
-		*cb_oldsweep = new QCheckBox ("Old sweep method");
-	
-	dsb_segsplit->setSpecialValueText ("No splitting");
-	dsb_segsplit->setRange (0.0f, 10000.0f);
-	sb_bias->setSpecialValueText ("No bias");
-	sb_bias->setRange (-100, 100);
-	
-	QGridLayout* spinboxlayout = new QGridLayout;
-	spinboxlayout->addWidget (lb_segsplit, 0, 0);
-	spinboxlayout->addWidget (dsb_segsplit, 0, 1);
-	spinboxlayout->addWidget (lb_bias, 1, 0);
-	spinboxlayout->addWidget (sb_bias, 1, 1);
-	
-	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (cmb_col1);
-	layout->addWidget (cmb_col2);
-	layout->addLayout (spinboxlayout);
-	layout->addWidget (cb_reverse);
-	layout->addWidget (cb_oldsweep);
-	layout->addWidget (makeButtonBox (dlg));
-	
-exec:
-	if (!dlg.exec ())
-		return;
-	
-	const short in1Col = cmb_col1->w ()->itemData (cmb_col1->w ()->currentIndex ()).toInt (),
-		in2Col = cmb_col1->w ()->itemData (cmb_col2->w ()->currentIndex ()).toInt ();
-	
-	if (in1Col == in2Col) {
-		critical ("Cannot use the same color group for both input and cutter!");
-		goto exec;
+	short in1Col, in2Col;
+	for (;;) {
+		if (!dlg->exec ())
+			return;
+		
+		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex ()).toInt ();
+		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex ()).toInt ();
+		
+		if (in1Col == in2Col) {
+			critical ("Cannot use the same color group for both input and cutter!");
+			continue;
+		}
+		
+		break;
 	}
 	
 	QTemporaryFile in1dat, in2dat, outdat;
@@ -564,10 +552,10 @@ exec:
 		return;
 	
 	str argv = join ({
-		(cb_oldsweep->isChecked () ? "-s" : ""),
-		(cb_reverse->isChecked () ? "-r" : ""),
-		(dsb_segsplit->value () != 0 ? fmt ("-l %1", dsb_segsplit->value ()) : ""),
-		(sb_bias->value () != 0 ? fmt ("-s %1", sb_bias->value ()) : ""),
+		(ui.cb_oldsweep->isChecked () ? "-s" : ""),
+		(ui.cb_reverse->isChecked () ? "-r" : ""),
+		(ui.dsb_segsplit->value () != 0 ? fmt ("-l %1", ui.dsb_segsplit->value ()) : ""),
+		(ui.sb_bias->value () != 0 ? fmt ("-s %1", ui.sb_bias->value ()) : ""),
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -575,7 +563,10 @@ exec:
 	
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);
-	runUtilityProcess (Coverer, prog_coverer, argv);
+	
+	if (!runUtilityProcess (Coverer, prog_coverer, argv))
+		return;
+	
 	insertOutput (outDATName, false, {});
 }
 

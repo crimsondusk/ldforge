@@ -715,7 +715,10 @@ void ConfigDialog::staticDialog () {
 		
 		// Ext program settings
 		for (const extProgInfo& info : g_extProgInfo)
+		{
 			*info.path = info.input->text ();
+			*info.wine = info.wineBox->isChecked();
+		}
 		
 		// Save the config
 		config::save ();
