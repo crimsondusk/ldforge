@@ -34,6 +34,8 @@
 #include "widgets.h"
 #include "history.h"
 #include "labeledwidget.h"
+
+#include "ui_isecalc.h"
 #include "ui_edger2.h"
 
 // =============================================================================
@@ -586,26 +588,30 @@ void runIsecalc () {
 	if (!checkProgPath (prog_isecalc, Isecalc))
 		return;
 	
-	QDialog dlg;
+	Ui::IsecalcUI ui;
+	QDialog* dlg = new QDialog;
+	ui.setupUi( dlg );
 	
-	LabeledWidget<QComboBox>* cmb_col1 = buildColorSelector ("Shape 1"),
-		*cmb_col2 = buildColorSelector ("Shape 2");
+	makeColorSelector( ui.cmb_col1 );
+	makeColorSelector( ui.cmb_col2 );
 	
-	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (cmb_col1);
-	layout->addWidget (cmb_col2);
-	layout->addWidget (makeButtonBox (dlg));
+	short in1Col, in2Col;
 	
-exec:
-	if (!dlg.exec ())
-		return;
-	
-	const short in1Col = cmb_col1->w ()->itemData (cmb_col1->w ()->currentIndex ()).toInt (),
-		in2Col = cmb_col1->w ()->itemData (cmb_col2->w ()->currentIndex ()).toInt ();
-	
-	if (in1Col == in2Col) {
-		critical ("Cannot use the same color group for both input and cutter!");
-		goto exec;
+	// Run the dialog and validate input
+	for( ;; )
+	{
+		if (!dlg->exec ())
+			return;
+		
+		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex ()).toInt (),
+			in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex ()).toInt ();
+		
+		if (in1Col == in2Col) {
+			critical ("Cannot use the same color group for both input and cutter!");
+			continue;
+		}
+		
+		break;
 	}
 	
 	QTemporaryFile in1dat, in2dat, outdat;
