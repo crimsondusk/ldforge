@@ -36,6 +36,7 @@
 #include "labeledwidget.h"
 
 #include "ui_intersector.h"
+#include "ui_rectifier.h"
 #include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
@@ -89,7 +90,7 @@ static bool checkProgPath (str path, const extprog prog) {
 }
 
 // =============================================================================
-static str processErrorString (const extprog prog, QProcess& proc) {
+static str processErrorString (QProcess& proc) {
 	switch (proc.error()) {
 	case QProcess::FailedToStart:
 		return "Failed to start (check your permissions)";
@@ -228,7 +229,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	str err = "";
 	
 	if ( proc.exitStatus() != QProcess::NormalExit )
-		err = processErrorString (prog, proc);
+		err = processErrorString (proc);
 	
 	// Check the return code
 	if (proc.exitCode() != 0)
@@ -356,36 +357,12 @@ void runRectifier () {
 	if (!checkProgPath (prog_rectifier, Rectifier))
 		return;
 	
-	QDialog dlg;
-	QCheckBox* cb_condense = new QCheckBox ("Condense triangles to quads"),
-		*cb_subst = new QCheckBox ("Substitute rect primitives"),
-		*cb_condlineCheck = new QCheckBox ("Don't replace quads with adj. condlines"),
-		*cb_colorize = new QCheckBox ("Colorize resulting objects");
-	LabeledWidget<QDoubleSpinBox>* dsb_coplthres = new LabeledWidget<QDoubleSpinBox> ("Coplanarity threshold");
+	QDialog* dlg = new QDialog;
+	Ui::RectifierUI ui;
+	ui.setupUi (dlg);
 	
-	dsb_coplthres->w ()->setMinimum (0.0f);
-	dsb_coplthres->w ()->setMaximum (360.0f);
-	dsb_coplthres->w ()->setDecimals (3);
-	dsb_coplthres->w ()->setValue (0.95f);
-	cb_condense->setChecked (true);
-	cb_subst->setChecked (true);
-	
-	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (cb_condense);
-	layout->addWidget (cb_subst);
-	layout->addWidget (cb_condlineCheck);
-	layout->addWidget (cb_colorize);
-	layout->addWidget (dsb_coplthres);
-	layout->addWidget (makeButtonBox (dlg));
-	
-	if (!dlg.exec ())
+	if (!dlg->exec ())
 		return;
-	
-	const bool condense = cb_condense->isChecked (),
-		subst = cb_subst->isChecked (),
-		condlineCheck = cb_condlineCheck->isChecked (),
-		colorize = cb_colorize->isChecked ();
-	const double coplthres = dsb_coplthres->w ()->value ();
 	
 	QTemporaryFile indat, outdat;
 	str inDATName, outDATName;
@@ -396,12 +373,12 @@ void runRectifier () {
 	
 	// Compose arguments
 	str argv = join ({
-		(condense == false) ? "-q" : "",
-		(subst == false) ? "-r" : "",
-		(condlineCheck) ? "-a" : "",
-		(colorize) ? "-c" : "",
+		(!ui.cb_condense->isChecked ()) ? "-q" : "",
+		(!ui.cb_subst->isChecked ()) ? "-r" : "",
+		(ui.cb_condlineCheck->isChecked ()) ? "-a" : "",
+		(ui.cb_colorize->isChecked ()) ? "-c" : "",
 		"-t",
-		coplthres,
+		ui.dsb_coplthres->value (),
 		inDATName,
 		outDATName
 	});
