@@ -587,7 +587,7 @@ void ForgeWindow::deleteSelection () {
 		delete obj;
 	}
 	
-	fullRefresh ();
+	refresh ();
 }
 
 // =============================================================================

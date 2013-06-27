@@ -76,6 +76,8 @@ LDObject::LDObject () {
 			id = obj->id() + 1;
 	
 	setID( id );
+	
+	g_LDObjects << this;
 }
 
 LDGibberish::LDGibberish () {}
@@ -215,12 +217,17 @@ LDLine::LDLine (vertex v1, vertex v2) {
 
 LDObject::~LDObject () {
 	// Remove this object from the selection array if it is there.
-	for (ulong i = 0; i < g_win->sel ().size(); ++i)
+	for (ulong i = 0; i < g_win->sel().size(); ++i)
 		if (g_win->sel ()[i] == this)
 			g_win->sel ().erase (i);
 	
 	// Delete the GL lists
-	GL::deleteLists (this);
+	GL::deleteLists( this );
+	
+	// Remove this object from the list of LDObjects
+	ulong pos = g_LDObjects.find( this );
+	if( pos < g_LDObjects.size())
+		g_LDObjects.erase( pos );
 }
 
 // =============================================================================
@@ -817,6 +824,15 @@ LDLine* LDCondLine::demote () {
 	replace (repl);
 	return repl;
 }
+
+LDObject* LDObject::fromID (int id) {
+	for( LDObject* obj : g_LDObjects )
+		if( obj->id() == id )
+			return obj;
+	
+	return null;
+}
+
 
 // =============================================================================
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {

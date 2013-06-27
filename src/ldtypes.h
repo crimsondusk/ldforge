@@ -158,6 +158,7 @@ public:
 	
 	static void moveObjects (vector<LDObject*> objs, const bool bUp);
 	static str objectListContents (const vector<LDObject*>& objs);
+	static LDObject* fromID( int id );
 	
 	// Object list entry for this object
 	QListWidgetItem* qObjListEntry;

@@ -220,13 +220,11 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		return;
 	
 	if (list == GL::PickList) {
-		// Make the color by the object's index color if we're picking, so we can
-		// make the index from the color we get from the picking results. Be sure
-		// to use the top level parent's index since inlinees don't have an index.
-		long i = obj->topLevelParent ()->getIndex (file ());
-		
-		// We should have the index now.
-		assert (i != -1);
+		// Make the color by the object's ID if we're picking, so we can make the
+		// ID again from the color we get from the picking results. Be sure to use
+		// the top level parent's index since we want a subfile's children point
+		// to the subfile itself.
+		long i = obj->topLevelParent()->id();
 		
 		// Calculate a color based from this index. This method caters for
 		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
@@ -1123,8 +1121,8 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Go through each pixel read and add them to the selection.
 	for (long i = 0; i < numpixels; ++i) {
-		uint32 idx =
-			(*(pixelptr) * 0x10000) +
+		long idx =
+			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x00100) +
 			(*(pixelptr + 2) * 0x00001);
 		pixelptr += 4;
@@ -1132,7 +1130,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = file ()->obj (idx);
+		LDObject* obj = LDObject::fromID( idx );
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
