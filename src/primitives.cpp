@@ -55,9 +55,9 @@ void loadPrimitives () {
 			info.title = line.mid (space + 1);
 			g_primitives << info;
 		}
+		
+		populateCategories ();
 	}
-	
-	populateCategories ();
 }
 
 // =============================================================================
@@ -104,14 +104,12 @@ void PrimitiveLister::work () {
 			info.title = "";
 		
 		info.title = info.title.simplified ();
+		info.cat = null;
 		
 		if (info.title[0] == '0') {
 			info.title.remove (0, 1); // remove 0
 			info.title = info.title.simplified ();
 		}
-		
-		// Figure which category to use
-		info.cat = null;
 		
 		m_prims << info;
 		emit update (++i);
@@ -126,6 +124,7 @@ void PrimitiveLister::work () {
 	
 	g_primListerMutex = true;
 	g_primitives = m_prims;
+	populateCategories ();
 	g_primListerMutex = false;
 	g_activePrimLister = null;
 	emit workDone ();
@@ -268,4 +267,8 @@ static void loadPrimitiveCatgories () {
 	PrimitiveCategory cat;
 	cat.setName ("Other");
 	g_PrimitiveCategories << cat;
+}
+
+bool primitiveLoaderBusy() {
+	return g_primListerMutex;
 }

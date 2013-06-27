@@ -80,5 +80,6 @@ private:
 extern vector<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives ();
+bool primitiveLoaderBusy ();
 
 #endif // PRIMITIVES_H

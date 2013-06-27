@@ -55,6 +55,9 @@ char const* g_saObjTypeIcons[] = {
 	"error",
 };
 
+// List of all LDObjects
+vector<LDObject*> g_LDObjects;
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -65,6 +68,14 @@ LDObject::LDObject () {
 	m_hidden = false;
 	m_selected = false;
 	m_glinit = false;
+	
+	// Determine ID
+	int id = 1; // 0 is invalid
+	for( LDObject* obj : g_LDObjects )
+		if( obj->id() >= id )
+			id = obj->id() + 1;
+	
+	setID( id );
 }
 
 LDGibberish::LDGibberish () {}

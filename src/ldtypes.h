@@ -86,6 +86,7 @@ class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
+	READ_PROPERTY (int, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 	
 public:

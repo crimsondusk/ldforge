@@ -95,6 +95,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		{
 			coordCount = 3;
 			
+			// If the primitive lister is busy writing data, we have to wait
+			// for that to happen first. This should be quite considerably rare.
+			while (primitiveLoaderBusy())
+				;
+			
 			tw_subfileList = new QTreeWidget ();
 			tw_subfileList->setHeaderLabel ("Primitives");
 			

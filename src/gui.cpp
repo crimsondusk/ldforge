@@ -1008,6 +1008,7 @@ void ForgeWindow::primitiveLoaderStart (ulong max) {
 	m_primLoaderWidget->show ();
 	m_primLoaderBar->setRange (0, max);
 	m_primLoaderBar->setValue (0);
+	m_primLoaderBar->setFormat ("%p%");
 }
 
 void ForgeWindow::primitiveLoaderUpdate (ulong prog) {
@@ -1018,7 +1019,8 @@ void ForgeWindow::primitiveLoaderEnd () {
 	QTimer* hidetimer = new QTimer;
 	connect (hidetimer, SIGNAL (timeout ()), m_primLoaderWidget, SLOT (hide ()));
 	hidetimer->setSingleShot (true);
-	hidetimer->start (2000);
+	hidetimer->start (1500);
+	m_primLoaderBar->setFormat ("Done");
 }
 
 // ============================================================================
