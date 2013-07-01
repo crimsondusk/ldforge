@@ -74,7 +74,7 @@ public:
 	// Deletes the given object from the object chain.
 	void forgetObject (LDObject* obj);
 	
-	LDObject* object (ulong pos) const { return m_objs[pos]; }
+	LDObject* object (ulong pos) const;
 	LDObject* obj (ulong pos) const { return object (pos); }
 	
 	void insertObj (const ulong pos, LDObject* obj);
