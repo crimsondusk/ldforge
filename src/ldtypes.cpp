@@ -551,32 +551,7 @@ char const* g_radialNameRoots[] = {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 str LDRadial::makeFileName () {
-	short numer = segments (),
-		denom = divisions ();
-	
-	// Simplify the fractional part, but the denominator must be at least 4.
-	simplify (numer, denom);
-	
-	if (denom < 4) {
-		const short factor = (4 / denom);
-		
-		numer *= factor;
-		denom *= factor;
-	}
-	
-	// Compose some general information: prefix, fraction, root, ring number
-	str prefix = (divisions () == lores) ? "" : fmt ("%1/", divisions ());
-	str frac = fmt ("%1-%2", numer, denom);
-	str root = g_radialNameRoots[type ()];
-	str num = (type () == Ring || type () == Cone) ? fmt ("%1", number ()) : "";
-	
-	// Truncate the root if necessary (7-16rin4.dat for instance).
-	// However, always keep the root at least 2 characters.
-	short extra = (frac.length () + num.length () + root.length ()) - 8;
-	root.chop (min<short> (max<short> (extra, 0), 2));
-	
-	// Stick them all together and return the result.
-	return (prefix + frac + root + num + ".dat");
+	return "";
 }
 
 // =============================================================================

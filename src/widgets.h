@@ -20,6 +20,7 @@
 #define WIDGETS_H
 
 #include <QGroupBox>
+#include <QSpinBox>
 #include <map>
 #include "common.h"
 #include "types.h"
@@ -105,6 +106,24 @@ private:
 	
 private slots:
 	void buttonChanged		();
+};
+
+// =============================================================================
+// SpinBox
+// =============================================================================
+class SpinBox : public QSpinBox
+{
+	Q_OBJECT
+public:
+	explicit SpinBox( QWidget* parent = 0 );
+	SpinBox();
+	
+public slots:
+	void enable();
+	void disable();
+	
+private:
+	Q_DISABLE_COPY( SpinBox )
 };
 
 #endif // WIDGETS_H

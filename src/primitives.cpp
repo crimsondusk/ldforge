@@ -24,6 +24,7 @@
 #include "gui.h"
 #include "primitives.h"
 #include "ui_makeprim.h"
+#include "misc.h"
 
 vector<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;
@@ -373,11 +374,13 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 					v1( x1, 0.0f, z1 ),
 					v2( x2, 0.0f, z2 );
 				
+				// Disc negatives need to go the other way around, otherwise
+				// they'll end up upside-down.
 				LDTriangle* seg = new LDTriangle;
 				seg->setColor( maincolor );
-				seg->setVertex( 0, v0 );
+				seg->setVertex( type == Disc ? 0 : 2, v0 );
 				seg->setVertex( 1, v1 );
-				seg->setVertex( 2, v2 );
+				seg->setVertex( type == Disc ? 2 : 0, v2 );
 				obj = seg;
 			}
 			break;
@@ -403,6 +406,49 @@ str primitiveTypeName( PrimitiveType type )
 	                          "Cone";
 }
 
+static const str g_radialNameRoots[] = {
+	"edge",
+	"cyli",
+	"disc",
+	"ndis",
+	"ring",
+	"con"
+};
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+str radialFileName( PrimitiveType type, int segs, int divs, int num )
+{
+	short numer = segs,
+		denom = divs;
+	
+	// Simplify the fractional part, but the denominator must be at least 4.
+	simplify( numer, denom );
+	
+	if( denom < 4 )
+	{
+		const short factor = 4 / denom;
+		
+		numer *= factor;
+		denom *= factor;
+	}
+	
+	// Compose some general information: prefix, fraction, root, ring number
+	str prefix = (divs == lores) ? "" : fmt( "%1/", divs );
+	str frac = fmt( "%1-%2", numer, denom );
+	str root = g_radialNameRoots[type];
+	str numstr = ( type == Ring || type == Cone ) ? fmt ( "%1", num ) : "";
+	
+	// Truncate the root if necessary (7-16rin4.dat for instance).
+	// However, always keep the root at least 2 characters.
+	int extra = ( frac.length() + numstr.length() + root.length() ) - 8;
+	root.chop( min<short>( max<short>( extra, 0 ), 2 ));
+	
+	// Stick them all together and return the result.
+	return prefix + frac + root + numstr + ".dat";
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -412,7 +458,6 @@ void generatePrimitive()
 	Ui::MakePrimUI ui;
 	ui.setupUi( dlg );
 	
-exec:
 	if( !dlg->exec() )
 		return;
 	
@@ -428,23 +473,32 @@ exec:
 		                              Cone;
 	
 	// Make the description
-	str descr = fmt ("%1 / %2 %3", segs, divs, primitiveTypeName( type ));
+	str frac = ftoa(( (float) segs ) / divs );
+	str name = radialFileName( type, segs, divs, num );
+	str descr;
+	
+	// Ensure that there's decimals, even if they're 0.
+	if( frac.indexOf( "." ) == -1 )
+		frac += ".0";
 	
 	if (type == Ring || type == Cone)
-		descr += fmt (" %1", num);
+		descr = fmt( "%1 %2 x %3", primitiveTypeName( type ), num, frac );
+	else
+		descr = fmt( "%1 %2", primitiveTypeName( type ), frac );
 	
 	LDOpenFile* f = new LDOpenFile;
+	f->setName( QFileDialog::getSaveFileName( null, QObject::tr( "Save Primitive" ), name ));
 	
 	*f << new LDComment( descr );
-	*f << new LDComment( fmt( "Name: ???.dat" ));
+	*f << new LDComment( fmt( "Name: %1", name ));
 	*f << new LDComment( fmt( "Author: LDForge" ));
 	*f << new LDComment( fmt( "!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "" ));
-	*f << new LDComment( "Redistributable under CCAL version 2.0 : see CAreadme.txt" );
+	*f << new LDComment( CALicense );
 	*f << new LDEmpty;
 	*f << new LDBFC( LDBFC::CertifyCCW );
 	*f << new LDEmpty;
 	*f << makePrimitive( type, segs, divs, num );
 	
-	g_win->save( f, true );
+	g_win->save( f, false );
 	delete f;
 }

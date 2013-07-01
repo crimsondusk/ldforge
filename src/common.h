@@ -176,6 +176,9 @@ static const short hires = 48;
 static const bool yup = true;
 static const bool nope = false;
 
+static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
+	NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
+
 class ForgeWindow;
 class LDObject;
 class bbox;

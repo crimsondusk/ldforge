@@ -175,3 +175,16 @@ void CheckBoxGroup::buttonChanged () {
 bool CheckBoxGroup::buttonChecked (int key) {
 	return m_vals[key]->isChecked ();
 }
+
+SpinBox::SpinBox( QWidget* parent ) : QSpinBox( parent ) {}
+SpinBox::SpinBox() : QSpinBox() {}
+
+void SpinBox::enable()
+{
+	setEnabled( true );
+}
+
+void SpinBox::disable()
+{
+	setEnabled( false );
+}

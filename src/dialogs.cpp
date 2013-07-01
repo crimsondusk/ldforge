@@ -411,18 +411,18 @@ void NewPartDialog::StaticDialog () {
 		LDBFC::NoCertify;
 	
 	idx = dlg.rb_license->value ();
-	const char* license =
-		(idx == CCAL) ? "Redistributable under CCAL version 2.0 : see CAreadme.txt" :
-		(idx == NonCA) ? "Not redistributable : see NonCAreadme.txt" :
-		null;
+	const str license =
+		(idx == CCAL) ? CALicense :
+		(idx == NonCA) ? NonCALicense :
+		"";
 	
 	*g_curfile << new LDComment (dlg.le_name->text ());
 	*g_curfile << new LDComment ("Name: <untitled>.dat");
 	*g_curfile << new LDComment (fmt ("Author: %1", author));
 	*g_curfile << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
-	if (license != null)
-		*g_curfile << new LDComment (fmt ("!LICENSE %1", license));
+	if( license != "" )
+		*g_curfile << new LDComment ( license );
 	
 	*g_curfile << new LDEmpty;
 	*g_curfile << new LDBFC (BFCType);
