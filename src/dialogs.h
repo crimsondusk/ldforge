@@ -131,20 +131,6 @@ private slots:
 };
 
 // =============================================================================
-class NewPartDialog : public QDialog {
-public:
-	enum { CCAL, NonCA, NoLicense };
-	enum { CCW, CW, NoWinding };
-	
-	explicit NewPartDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	static void StaticDialog ();
-	
-	QLabel* lb_brickIcon, *lb_name, *lb_author, *lb_license, *lb_BFC;
-	QLineEdit* le_name, *le_author;
-	RadioBox* rb_license, *rb_BFC;
-};
-
-// =============================================================================
 class RotationPointDialog : public QDialog {
 	Q_OBJECT
 	

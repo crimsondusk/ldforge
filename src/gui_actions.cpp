@@ -34,6 +34,7 @@
 #include "gldraw.h"
 #include "dialogs.h"
 #include "primitives.h"
+#include "ui_newpart.h"
 
 extern_cfg (bool, gl_wireframe);
 
@@ -44,7 +45,38 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 	if (safeToCloseAll () == false)
 		return;
 	
-	NewPartDialog::StaticDialog ();
+	QDialog* dlg = new QDialog( g_win );
+	Ui::NewPartUI ui;
+	ui.setupUi( dlg );
+	
+	if (dlg->exec () == false)
+		return;
+	
+	newFile ();
+	
+	const LDBFC::Type BFCType =
+		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
+		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW :
+		                             LDBFC::NoCertify;
+	
+	const str license =
+		ui.rb_license_ca->isChecked()    ? CALicense :
+		ui.rb_license_nonca->isChecked() ? NonCALicense :
+		                                   "";
+	
+	*g_curfile << new LDComment( ui.le_title->text() );
+	*g_curfile << new LDComment( "Name: <untitled>.dat" );
+	*g_curfile << new LDComment( fmt( "Author: %1", ui.le_author->text() ));
+	*g_curfile << new LDComment( fmt( "!LDRAW_ORG Unofficial_Part" ));
+	
+	if( license != "" )
+		*g_curfile << new LDComment( license );
+	
+	*g_curfile << new LDEmpty;
+	*g_curfile << new LDBFC( BFCType );
+	*g_curfile << new LDEmpty;
+	
+	g_win->fullRefresh();
 }
 
 // =============================================================================
