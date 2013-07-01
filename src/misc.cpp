@@ -249,6 +249,23 @@ str join (initlist<StringFormatArg> vals, str delim) {
 	return list.join (delim);
 }
 
+double atof( str val )
+{
+	// Disable the locale while parsing the line or atof's behavior changes
+	// between locales (i.e. fails to read decimals properly). That is
+	// quite undesired...
+	setlocale( LC_NUMERIC, "C" );
+	char* buf = new char[val.length()];
+	char* bufptr = &buf[0];
+	
+	for( qchar& c : val )
+		*bufptr++ = c.toAscii();
+	*bufptr = '\0';
+	
+	double fval = atof( buf );
+	delete[] buf;
+	return fval;
+}
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

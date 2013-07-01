@@ -37,6 +37,8 @@ bool isNumber (const str& tok);
 // Converts a float value to a string value.
 str ftoa (double num);
 
+double atof( str val );
+
 // Simplifies the given fraction.
 void simplify (short& numer, short& denom);
 

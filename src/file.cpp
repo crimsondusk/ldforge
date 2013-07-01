@@ -570,15 +570,11 @@ bool LDOpenFile::save (str savepath) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static vertex parseVertex (QStringList& s, const ushort n) {
-	// Disable the locale while parsing the line or atof's behavior changes
-	// between locales (i.e. fails to read decimals properly). That is
-	// quite undesired...
-	setlocale (LC_NUMERIC, "C");
-	
+static vertex parseVertex( QStringList& s, const ushort n )
+{
 	vertex v;
-	for (const Axis ax : g_Axes)
-		v[ax] = s[n + ax].toFloat ();
+	for( const Axis ax : g_Axes )
+		v[ax] = atof( s[n + ax] );
 	
 	return v;
 }
