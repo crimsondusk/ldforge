@@ -122,6 +122,7 @@ public:
 	void deleteObjVector (vector< LDObject* > objs);
 	void deleteSelection ();
 	void deleteByColor (const short int colnum);
+	void save( LDOpenFile* f, bool saveAs );
 	GLRenderer* R () { return m_renderer; }
 	vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {

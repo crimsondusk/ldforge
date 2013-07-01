@@ -188,7 +188,7 @@ str matrix::stringRep () const {
 		val += ftoa (m_vals[i]);
 	}
 	
-	return val;	
+	return val;
 }
 
 // =============================================================================

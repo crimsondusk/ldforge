@@ -82,4 +82,17 @@ extern vector<PrimitiveCategory> g_PrimitiveCategories;
 void loadPrimitives ();
 bool primitiveLoaderBusy ();
 
+enum PrimitiveType
+{
+	Circle,
+	Cylinder,
+	Disc,
+	DiscNeg,
+	Ring,
+	Cone,
+};
+
+// =============================================================================
+void generatePrimitive();
+
 #endif // PRIMITIVES_H

@@ -66,54 +66,17 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void doSave (bool saveAs) {
-	str path = g_curfile->name ();
-	
-	if (path.length () == 0 || saveAs) {
-		path = QFileDialog::getSaveFileName (g_win, "Save As",
-			g_curfile->name (), "LDraw files (*.dat *.ldr)");
-		
-		if (path.length () == 0) {
-			// User didn't give a file name. This happens if the user cancelled
-			// saving in the save file dialog. Abort.
-			return;
-		}
-	}
-	
-	if (g_curfile->save (path)) {
-		g_curfile->setName (path);
-		g_win->updateTitle ();
-	} else {
-		setlocale (LC_ALL, "C");
-		
-		// Tell the user the save failed, and give the option for saving as with it.
-		QMessageBox dlg (QMessageBox::Critical, "Save Failure",
-			fmt ("Failed to save to %1\nReason: %2", path, strerror (errno)),
-			QMessageBox::Close, g_win);
-		
-		QPushButton* saveAsBtn = new QPushButton ("Save As");
-		saveAsBtn->setIcon (getIcon ("file-save-as"));
-		dlg.addButton (saveAsBtn, QMessageBox::ActionRole);
-		dlg.setDefaultButton (QMessageBox::Close);
-		dlg.exec ();
-		
-		if (dlg.clickedButton () == saveAsBtn)
-			doSave (true); // yay recursion!
-	}
+MAKE_ACTION( save, "&Save", "file-save", "Save the part model.", CTRL( S ))
+{
+	g_win->save( g_curfile, false );
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S)) {
-	doSave (false);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S)) {
-	doSave (true);
+MAKE_ACTION( saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT( S ))
+{
+	g_win->save( g_curfile, true );
 }
 
 // =============================================================================
@@ -170,8 +133,9 @@ MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) 
 	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
-MAKE_ACTION (newRadial, "New Radial", "add-radial", "Creates a new radial.", 0) {
-	AddObjectDialog::staticDialog (LDObject::Radial, null);
+MAKE_ACTION( makePrimitive, "Make a Primitive", "radial", "Generate a new circular primitive.", 0 )
+{
+	generatePrimitive();
 }
 
 MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {

@@ -966,3 +966,11 @@ LDObject* LDOpenFile::object( ulong pos ) const
 	
 	return m_objs[pos];
 }
+
+LDOpenFile& LDOpenFile::operator<<( vector<LDObject*> objs )
+{
+	for( LDObject* obj : objs )
+		m_objs << obj;
+	
+	return *this;
+}

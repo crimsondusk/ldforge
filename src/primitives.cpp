@@ -19,9 +19,11 @@
 #include <QDir>
 #include <QThread>
 #include <QRegExp>
+#include <QFileDialog>
 #include "file.h"
 #include "gui.h"
 #include "primitives.h"
+#include "ui_makeprim.h"
 
 vector<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;
@@ -269,6 +271,180 @@ static void loadPrimitiveCatgories () {
 	g_PrimitiveCategories << cat;
 }
 
-bool primitiveLoaderBusy() {
+// =============================================================================
+bool primitiveLoaderBusy()
+{
 	return g_primListerMutex;
+}
+
+vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num )
+{
+	vector<LDObject*> objs;
+	
+	for( int i = 0; i < segs; ++i )
+	{
+		double x0 = cos(( i * 2 * pi ) / divs ),
+			x1 = cos((( i + 1 ) * 2 * pi) / divs ),
+			z0 = sin(( i * 2 * pi ) / divs ),
+			z1 = sin((( i + 1 ) * 2 * pi ) / divs );
+		
+		LDObject* obj = null;
+		
+		switch( type )
+		{
+		case Circle:
+			{
+				vertex v0( x0, 0.0f, z0 ),
+					v1( x1, 0.0f, z1 );
+				
+				LDLine* line = new LDLine;
+				line->setVertex( 0, v0 );
+				line->setVertex( 1, v1 );
+				line->setColor( edgecolor );
+				obj = line;
+			}
+			break;
+		
+		case Cylinder:
+		case Ring:
+		case Cone:
+			{
+				double x2, x3, z2, z3;
+				double y0, y1, y2, y3;
+				
+				if( type == Cylinder )
+				{
+					x2 = x1;
+					x3 = x0;
+					z2 = z1;
+					z3 = z0;
+					
+					y0 = y1 = 0.0f;
+					y2 = y3 = 1.0f;
+				} else {
+					x2 = x1 * (num + 1);
+					x3 = x0 * (num + 1);
+					z2 = z1 * (num + 1);
+					z3 = z0 * (num + 1);
+					
+					x0 *= num;
+					x1 *= num;
+					z0 *= num;
+					z1 *= num;
+					
+					if( type == Ring )
+						y0 = y1 = y2 = y3 = 0.0f;
+					else
+					{
+						y0 = y1 = 1.0f;
+						y2 = y3 = 0.0f;
+					} 
+				}
+				
+				vertex v0( x0, y0, z0 ),
+					v1( x1, y1, z1 ),
+					v2( x2, y2, z2 ),
+					v3( x3, y3, z3 );
+				
+				LDQuad* quad = new LDQuad;
+				quad->setColor( maincolor );
+				quad->setVertex( 0, v0 );
+				quad->setVertex( 1, v1 );
+				quad->setVertex( 2, v2 );
+				quad->setVertex( 3, v3 );
+				obj = quad;
+			}
+			break;
+		
+		case Disc:
+		case DiscNeg:
+			{
+				double x2, z2;
+				
+				if( type == Disc )
+					x2 = z2 = 0.0f;
+				else
+				{
+					x2 = ( x0 >= 0.0f ) ? 1.0f : -1.0f;
+					z2 = ( z0 >= 0.0f ) ? 1.0f : -1.0f;
+				}
+				
+				vertex v0( x0, 0.0f, z0 ),
+					v1( x1, 0.0f, z1 ),
+					v2( x2, 0.0f, z2 );
+				
+				LDTriangle* seg = new LDTriangle;
+				seg->setColor( maincolor );
+				seg->setVertex( 0, v0 );
+				seg->setVertex( 1, v1 );
+				seg->setVertex( 2, v2 );
+				obj = seg;
+			}
+			break;
+		
+		default:
+			break;
+		}
+		
+		if( obj )
+			objs << obj;
+	}
+	
+	return objs;
+}
+
+str primitiveTypeName( PrimitiveType type )
+{
+	return type == Circle   ? "Circle" :
+	       type == Cylinder ? "Cylinder" :
+	       type == Disc     ? "Disc" :
+	       type == DiscNeg  ? "Disc Negative" :
+	       type == Ring     ? "Ring" :
+	                          "Cone";
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void generatePrimitive()
+{
+	QDialog* dlg = new QDialog( g_win );
+	Ui::MakePrimUI ui;
+	ui.setupUi( dlg );
+	
+exec:
+	if( !dlg->exec() )
+		return;
+	
+	int segs = ui.sb_segs->value();
+	int divs = ui.cb_hires->isChecked() ? hires : lores;
+	int num = ui.sb_ringnum->value();
+	PrimitiveType type =
+		ui.rb_circle->isChecked()   ? Circle :
+		ui.rb_cylinder->isChecked() ? Cylinder :
+		ui.rb_disc->isChecked()     ? Disc :
+		ui.rb_ndisc->isChecked()    ? DiscNeg :
+		ui.rb_ring->isChecked()     ? Ring :
+		                              Cone;
+	
+	// Make the description
+	str descr = fmt ("%1 / %2 %3", segs, divs, primitiveTypeName( type ));
+	
+	if (type == Ring || type == Cone)
+		descr += fmt (" %1", num);
+	
+	LDOpenFile* f = new LDOpenFile;
+	
+	*f << new LDComment( descr );
+	*f << new LDComment( fmt( "Name: ???.dat" ));
+	*f << new LDComment( fmt( "Author: LDForge" ));
+	*f << new LDComment( fmt( "!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "" ));
+	*f << new LDComment( "Redistributable under CCAL version 2.0 : see CAreadme.txt" );
+	*f << new LDEmpty;
+	*f << new LDBFC( LDBFC::CertifyCCW );
+	*f << new LDEmpty;
+	*f << makePrimitive( type, segs, divs, num );
+	
+	g_win->save( f, true );
+	delete f;
 }

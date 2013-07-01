@@ -30,6 +30,8 @@
 #include <QToolBar>
 #include <QProgressBar>
 #include <QLabel>
+#include <QFileDialog>
+#include <QPushButton>
 #include <QCoreApplication>
 #include <QTimer>
 
@@ -212,7 +214,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("newComment");
 	addMenuAction ("newBFC");
 	addMenuAction ("newVertex");
-	addMenuAction ("newRadial");
 	
 	// Edit menu
 	initMenu ("&Edit");
@@ -241,7 +242,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("invert");
 	addMenuAction ("inlineContents");
 	addMenuAction ("deepInline");
-	addMenuAction ("radialConvert");
+	addMenuAction ("makePrimitive");
 	menu->addSeparator ();
 	addMenuAction ("splitQuads");
 	addMenuAction ("setContents");
@@ -287,10 +288,10 @@ void ForgeWindow::createMenus () {
 	
 	// Help menu
 	initMenu ("&Help");
-	addMenuAction ("help");				// Help
-	menu->addSeparator ();					// -----
-	addMenuAction ("about");				// About
-	addMenuAction ("aboutQt");				// About Qt
+	addMenuAction ("help");
+	menu->addSeparator ();
+	addMenuAction ("about");
+	addMenuAction ("aboutQt");
 }
 
 // =============================================================================
@@ -349,7 +350,6 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("newComment");
 	addToolBarAction ("newBFC");
 	addToolBarAction ("newVertex");
-	addToolBarAction ("newRadial");
 	
 	// ==========================================
 	initSingleToolBar ("Edit");
@@ -413,7 +413,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("invert");
 	addToolBarAction ("inlineContents");
 	addToolBarAction ("deepInline");
-	addToolBarAction ("radialConvert");
+	addToolBarAction ("makePrimitive");
 	addToolBarAction ("splitQuads");
 	addToolBarAction ("setContents");
 	addToolBarAction ("makeBorders");
@@ -660,18 +660,6 @@ void ForgeWindow::buildObjList () {
 		case LDObject::BFC:
 			descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
 		break;
-		
-		case LDObject::Radial:
-			{
-				LDRadial* rad = static_cast<LDRadial*> (obj);
-				descr = fmt ("%1 / %2 %3", rad->segments (), rad->divisions (), rad->radialTypeName ());
-				
-				if (rad->type () == LDRadial::Ring || rad->type () == LDRadial::Cone)
-					descr += fmt (" %1", rad->number ());
-				
-				descr += " " + rad->position ().stringRep (true);
-			}
-			break;
 		
 		default:
 			descr = g_saObjTypeNames[obj->getType ()];
@@ -1021,6 +1009,53 @@ void ForgeWindow::primitiveLoaderEnd () {
 	hidetimer->setSingleShot (true);
 	hidetimer->start (1500);
 	m_primLoaderBar->setFormat ("Done");
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void ForgeWindow::save( LDOpenFile* f, bool saveAs )
+{
+	str path = f->name ();
+	
+	if (path.length () == 0 || saveAs) {
+		path = QFileDialog::getSaveFileName (g_win, "Save As",
+			g_curfile->name (), "LDraw files (*.dat *.ldr)");
+		
+		if (path.length () == 0) {
+			// User didn't give a file name. This happens if the user cancelled
+			// saving in the save file dialog. Abort.
+			return;
+		}
+	}
+	
+	if( f->save( path ))
+	{
+		f->setName (path);
+		
+		if( f == g_curfile )
+			g_win->updateTitle ();
+	}
+	else
+	{
+		setlocale( LC_ALL, "C" );
+		
+		str message = fmt ("Failed to save to %1\nReason: %2", path, strerror (errno));
+		
+		// Tell the user the save failed, and give the option for saving as with it.
+		QMessageBox dlg( QMessageBox::Critical, "Save Failure", message,
+			QMessageBox::Close, g_win );
+		
+		// Add a save-as button
+		QPushButton* saveAsBtn = new QPushButton( "Save As" );
+		saveAsBtn->setIcon( getIcon( "file-save-as" ));
+		dlg.addButton( saveAsBtn, QMessageBox::ActionRole );
+		dlg.setDefaultButton( QMessageBox::Close );
+		dlg.exec();
+		
+		if( dlg.clickedButton () == saveAsBtn )
+			save (f, true); // yay recursion!
+	}
 }
 
 // ============================================================================

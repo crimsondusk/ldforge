@@ -86,6 +86,8 @@ public:
 		return *this;
 	}
 	
+	LDOpenFile& operator<<( vector<LDObject*> objs );
+	
 	it begin () { return PROP_NAME (objs).begin (); }
 	c_it begin () const { return PROP_NAME (objs).begin (); }
 	it end () { return PROP_NAME (objs).end (); }
