@@ -66,18 +66,6 @@ void bbox::calcObject (LDObject* obj) {
 		}
 		break;
 	
-	case LDObject::Radial:
-		{
-			LDRadial* rad = static_cast<LDRadial*> (obj);
-			vector<LDObject*> objs = rad->decompose (true);
-			
-			for (LDObject* obj : objs) {
-				calcObject (obj);
-				delete obj;
-			}
-		}
-		break;
-	
 	default:
 		break;
 	}

@@ -672,43 +672,6 @@ LDObject* parseLine( str line )
 					
 					return obj;
 				}
-				
-				if( tokens[2] == "RADIAL" )
-				{
-					CHECK_TOKEN_COUNT (20)
-					CHECK_TOKEN_NUMBERS (4, 19)
-					
-					LDRadial::Type radtype = LDRadial::NumTypes;
-					
-					for( int i = 0; i < LDRadial::NumTypes; ++i )
-					{
-						str radname = LDRadial::radialTypeName( (LDRadial::Type) i );
-						if( radname.toUpper().remove( ' ' ) == tokens[3] )
-						{
-							radtype = (LDRadial::Type) i;
-							break;
-						}
-					}
-					
-					if ( radtype == LDRadial::NumTypes)
-						return new LDGibberish (line, fmt ("Unknown radial type %1", tokens[3]));
-					
-					LDRadial* obj = new LDRadial;
-					
-					obj->setType( radtype );
-					obj->setColor( tokens[4].toLong() );
-					obj->setSegments( tokens[5].toLong() );
-					obj->setDivisions( tokens[6].toLong() );
-					obj->setNumber( tokens[7].toLong() );
-					obj->setPosition( parseVertex( tokens, 8 )); // 8 - 10
-					
-					matrix transform;
-					for( short i = 0; i < 9; ++i )
-						transform[i] = tokens[i + 11].toDouble(); // 11 - 19
-					
-					obj->setTransform( transform );
-					return obj;
-				}
 			}
 			
 			// Just a regular comment:

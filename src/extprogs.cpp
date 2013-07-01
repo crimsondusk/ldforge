@@ -131,12 +131,6 @@ void writeObjects (vector<LDObject*>& objects, File& f) {
 			writeObjects (objs, f);
 			for (LDObject* obj : objs)
 				delete obj;
-		} else if (obj->getType () == LDObject::Radial) {
-			vector<LDObject*> objs = static_cast<LDRadial*> (obj)->decompose (true);
-			
-			writeObjects (objs, f);
-			for (LDObject* obj : objs)
-				delete obj;
 		} else
 			f.write (obj->raw () + "\r\n");
 	}

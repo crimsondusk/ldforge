@@ -134,43 +134,6 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			break;
 		}
 	
-	case LDObject::Radial:
-		coordCount = 3;
-		
-		lb_radType = new QLabel ("Type:");
-		lb_radResolution = new QLabel ("Resolution:");
-		lb_radSegments = new QLabel ("Segments:");
-		lb_radRingNum = new QLabel ("Ring number:");
-		
-		rb_radType = new RadioBox ("Type", {}, 0, Qt::Vertical);
-		
-		for (int i = 0; i < LDRadial::NumTypes; ++i) {
-			if (i % (LDRadial::NumTypes / 2) == 0)
-				rb_radType->rowBreak ();
-			
-			rb_radType->addButton (LDRadial::radialTypeName ((LDRadial::Type) i));
-		}
-		
-		connect (rb_radType, SIGNAL (buttonPressed (int)), this, SLOT (slot_radialTypeChanged (int)));
-		
-		cb_radHiRes = new QCheckBox ("Hi-Res");
-		
-		sb_radSegments = new QSpinBox;
-		sb_radSegments->setMinimum (1);
-		
-		sb_radRingNum = new QSpinBox;
-		sb_radRingNum->setEnabled (false);
-		
-		if (obj) {
-			LDRadial* rad = static_cast<LDRadial*> (obj);
-			
-			rb_radType->setValue (rad->type ());
-			sb_radSegments->setValue (rad->segments ());
-			cb_radHiRes->setChecked ((rad->divisions () == hires) ? Qt::Checked : Qt::Unchecked);
-			sb_radRingNum->setValue (rad->number ());
-		}
-		break;
-	
 	default:
 		critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, g_saObjTypeNames[type]));
 		return;
@@ -223,15 +186,6 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	
 	case LDObject::BFC:
 		layout->addWidget (rb_bfcType, 0, 1);
-		break;
-	
-	case LDObject::Radial:
-		layout->addWidget (rb_radType, 1, 1, 3, 2);
-		layout->addWidget (cb_radHiRes, 1, 3);
-		layout->addWidget (lb_radSegments, 2, 3);
-		layout->addWidget (sb_radSegments, 2, 4);
-		layout->addWidget (lb_radRingNum, 3, 3);
-		layout->addWidget (sb_radRingNum, 3, 4);
 		break;
 	
 	case LDObject::Subfile:
@@ -317,14 +271,6 @@ void AddObjectDialog::slot_colorButtonClicked () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void AddObjectDialog::slot_radialTypeChanged (int dType) {
-	LDRadial::Type eType = (LDRadial::Type) dType;
-	sb_radRingNum->setEnabled (eType == LDRadial::Ring || eType == LDRadial::Cone);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void AddObjectDialog::slot_subfileTypeChanged () {
 	str name = currentSubfileName ();
 	
@@ -362,7 +308,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 		return;
 	
 	matrix transform = g_identity;
-	if (type == LDObject::Subfile || type == LDObject::Radial) {
+	if( type == LDObject::Subfile ) {
 		vector<str> matrixstrvals = container_cast<QStringList, vector<str>> (str (dlg.le_matrix->text ()).split (" "));
 		
 		if (matrixstrvals.size () == 9) {
@@ -413,21 +359,6 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			
 			for (const Axis ax : g_Axes)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value ();
-		}
-		break;
-	
-	case LDObject::Radial:
-		{
-			LDRadial* rad = initObj<LDRadial> (obj);
-			
-			for (const Axis ax : g_Axes)
-				rad->setCoordinate (ax, dlg.dsb_coords[ax]->value ());
-			
-			rad->setDivisions (dlg.cb_radHiRes->isChecked () ? hires : lores);
-			rad->setSegments (min<short> (dlg.sb_radSegments->value (), rad->divisions ()));
-			rad->setType ((LDRadial::Type) dlg.rb_radType->value ());
-			rad->setNumber (dlg.sb_radRingNum->value ());
-			rad->setTransform (transform);
 		}
 		break;
 	

@@ -107,8 +107,6 @@ static void doInline (bool deep) {
 		
 		if (obj->getType() == LDObject::Subfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, true);
-		else if (obj->getType() == LDObject::Radial)
-			objs = static_cast<LDRadial*> (obj)->decompose (true);
 		else
 			continue;
 		
@@ -135,50 +133,6 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 	"down to polygons only.", CTRL_SHIFT (I))
 {
 	doInline (true);
-}
-
-// =======================================================================================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =======================================================================================================================================
-MAKE_ACTION (radialConvert, "Radials to Subfiles", "radial-convert", "Convert radials into primitives.", (0)) {
-	vector<str> fails;
-	vector<LDObject*> sel = g_win->sel ();
-	
-	for (LDObject* obj : sel) {
-		if (obj->getType() != LDObject::Radial)
-			continue;
-		
-		LDRadial* rad = static_cast<LDRadial*> (obj);
-		str name = rad->makeFileName ();
-		
-		LDOpenFile* file = getFile (name);
-		if (file == null) {
-			fails << name;
-			continue;
-		}
-		
-		// Create the replacement primitive.
-		LDSubfile* prim = new LDSubfile;
-		prim->setPosition (rad->position ()); // inherit position
-		prim->setTransform (rad->transform ()); // inherit matrix
-		prim->setColor (rad->color ()); // inherit color
-		prim->setFileInfo (file);
-		
-		// Replace the radial with the primitive.
-		rad->replace (prim);
-	}
-	
-	// If it was not possible to replace everything, inform the user.
-	if (fails.size() > 0) {
-		str errmsg = fmt ("Couldn't replace %lu radials as replacement subfiles could not be loaded:<br />", (ulong)fails.size ());
-		
-		for (str& fail : fails) 
-			errmsg += fmt ("* %1<br />", fail);
-		
-		critical (errmsg);
-	}
-	
-	g_win->fullRefresh ();
 }
 
 // ===============================================================================================

@@ -26,7 +26,6 @@
 
 char const* g_saObjTypeNames[] = {
 	"subfile",
-	"radial",
 	"quadrilateral",
 	"triangle",
 	"line",
@@ -42,7 +41,6 @@ char const* g_saObjTypeNames[] = {
 // Should probably get rid of this array sometime
 char const* g_saObjTypeIcons[] = {
 	"subfile",
-	"radial",
 	"quad",
 	"triangle",
 	"line",
@@ -477,10 +475,6 @@ void LDSubfile::move (vertex vect) {
 	setPosition (position () + vect);
 }
 
-void LDRadial::move (vertex vect) {
-	setPosition (position () + vect);
-}
-
 void LDLine::move (vertex vect) {
 	for (short i = 0; i < 2; ++i)
 		setVertex (i, getVertex (i) + vect);
@@ -504,59 +498,6 @@ void LDCondLine::move (vertex vect) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static char const* g_saRadialTypeNames[] = {
-	"Circle",
-	"Cylinder",
-	"Disc",
-	"Disc Negative",
-	"Ring",
-	"Cone",
-	null
-};
-
-char const* LDRadial::radialTypeName () {
-	return g_saRadialTypeNames[type ()];
-}
-
-char const* LDRadial::radialTypeName (const LDRadial::Type typeval) {
-	return g_saRadialTypeNames[typeval];
-}
-
-vector<LDObject*> LDRadial::decompose( bool applyTransform )
-{
-	return vector<LDObject*>();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-str LDRadial::raw () {
-	return fmt ("0 !LDFORGE RADIAL %1 %2 %3 %4 %5 %6 %7",
-		str (radialTypeName ()).toUpper ().remove (' '),
-		color (), segments (), divisions (), number (),
-		position ().stringRep (false), transform ().stringRep());
-}
-
-char const* g_radialNameRoots[] = {
-	"edge",
-	"cyli",
-	"disc",
-	"ndis",
-	"ring",
-	"con",
-	null
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-str LDRadial::makeFileName () {
-	return "";
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 #define CHECK_FOR_OBJ(N) \
 	if (type == LDObject::N) \
 		return new LD##N;
@@ -565,7 +506,6 @@ LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (BFC)
 	CHECK_FOR_OBJ (Line)
 	CHECK_FOR_OBJ (CondLine)
-	CHECK_FOR_OBJ (Radial)
 	CHECK_FOR_OBJ (Subfile)
 	CHECK_FOR_OBJ (Triangle)
 	CHECK_FOR_OBJ (Quad)
@@ -604,37 +544,30 @@ void LDQuad::invert () {
 	setVertex (3, tmp);
 }
 
-static void invertSubfile (LDObject* obj) {
-	// Subfiles and radials are inverted when they're prefixed with
+void LDSubfile::invert () {
+	// Subfiles are inverted when they're prefixed with
 	// a BFC INVERTNEXT statement. Thus we need to toggle this status.
 	// For flat primitives it's sufficient that the determinant is
 	// flipped but I don't have a method for checking flatness yet.
 	// Food for thought...
 	
-	ulong idx = obj->getIndex (g_curfile);
+	ulong idx = getIndex( g_curfile );
 	
 	if (idx > 0) {
-		LDBFC* bfc = dynamic_cast<LDBFC*> (obj->prev ());
+		LDBFC* bfc = dynamic_cast<LDBFC*>( prev() );
 		
-		if (bfc && bfc->type == LDBFC::InvertNext) {
-			// Object is prefixed with an invertnext, thus remove it.
-			g_curfile->forgetObject (bfc);
+		if( bfc && bfc->type == LDBFC::InvertNext )
+		{
+			// This is prefixed with an invertnext, thus remove it.
+			g_curfile->forgetObject( bfc );
 			delete bfc;
 			return;
 		}
 	}
 	
 	// Not inverted, thus prefix it with a new invertnext.
-	LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-	g_curfile->insertObj (idx, bfc);
-}
-
-void LDSubfile::invert () {
-	invertSubfile (this);
-}
-
-void LDRadial::invert () {
-	invertSubfile (this);
+	LDBFC* bfc = new LDBFC( LDBFC::InvertNext );
+	g_curfile->insertObj( idx, bfc );
 }
 
 static void invertLine (LDObject* line) {

@@ -56,14 +56,6 @@ public:
 	QTreeWidget* tw_subfileList;
 	QLineEdit* le_subfileName;
 	QLabel* lb_subfileName;
-	
-	// Radial stuff
-	QCheckBox* cb_radHiRes;
-	RadioBox* rb_radType;
-	QSpinBox* sb_radSegments, *sb_radRingNum;
-	QLabel* lb_radType, *lb_radResolution, *lb_radSegments,
-		*lb_radRingNum;
-	
 	QLineEdit* le_matrix;
 	
 private:
@@ -74,7 +66,6 @@ private:
 	
 private slots:
 	void slot_colorButtonClicked ();
-	void slot_radialTypeChanged (int type);
 	void slot_subfileTypeChanged ();
 };
 

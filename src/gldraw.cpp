@@ -751,28 +751,6 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		}
 		break;
 	
-	case LDObject::Radial:
-		{
-			LDRadial* rad = static_cast<LDRadial*> (obj);
-			vector<LDObject*> objs = rad->decompose (true);
-			
-			bool oldinvert = g_glInvert;
-			if (rad->transform ().determinant () < 0)
-				g_glInvert = !g_glInvert;
-			
-			LDObject* prev = rad->prev ();
-			if (prev && prev->getType () == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
-				g_glInvert = !g_glInvert;
-			
-			for (LDObject* obj : objs) {
-				compileList (obj, list);
-				delete obj;
-			}
-			
-			g_glInvert = oldinvert;
-		}
-		break;
-	
 #if 0
 	TODO: find a proper way to draw vertices without having them be affected by zoom.
 	case LDObject::Vertex:
@@ -1282,15 +1260,11 @@ static vector<vertex> getVertices (LDObject* obj) {
 	if (obj->vertices () >= 2)
 		for (int i = 0; i < obj->vertices (); ++i)
 			verts << obj->getVertex (i);
-	else if (obj->getType () == LDObject::Subfile || obj->getType () == LDObject::Radial) {
-		vector<LDObject*> objs;
+	else if( obj->getType() == LDObject::Subfile )
+	{
+		vector<LDObject*> objs = static_cast<LDSubfile*>( obj )->inlineContents( true, true );
 		
-		if (obj->getType () == LDObject::Subfile)
-			objs = static_cast<LDSubfile*> (obj)->inlineContents (true, true);
-		else
-			objs = static_cast<LDRadial*> (obj)->decompose (true);
-		
-		for (LDObject* obj : objs) {
+		for( LDObject* obj : objs ) {
 			verts << getVertices (obj);
 			delete obj;
 		}
@@ -1302,7 +1276,8 @@ static vector<vertex> getVertices (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void GLRenderer::compileObject (LDObject* obj) {
+void GLRenderer::compileObject( LDObject* obj )
+{
 	deleteLists (obj);
 	
 	for (const GL::ListType listType : g_glListTypes) {

@@ -93,7 +93,6 @@ public:
 	// Object type codes. Codes are sorted in order of significance.
 	enum Type {
 		Subfile,		// Object represents a sub-file reference
-		Radial,			// Object represents a generic radial
 		Quad,			// Object represents a quadrilateral
 		Triangle,		// Object represents a triangle
 		Line,			// Object represents a line
@@ -387,58 +386,6 @@ public:
 	LDVertex () {}
 	
 	vertex pos;
-};
-
-// =============================================================================
-// LDRadial
-// 
-// The generic radial primitive (radial for short) is another LDforge-specific
-// extension which represents an arbitrary circular primitive. Radials can appear
-// as circles, cylinders, rings, cones, discs and disc negatives; the point is to
-// allow part authors to add radial primitives to parts without much hassle about
-// non-existant primitive parts.
-// =============================================================================
-class LDRadial : public LDObject, public LDMatrixObject {
-public:
-	enum Type {
-		Circle,
-		Cylinder,
-		Disc,
-		DiscNeg,
-		Ring,
-		Cone,
-		NumTypes
-	};
-	
-	PROPERTY (LDRadial::Type, type, setType)
-	PROPERTY (short, divisions, setDivisions)
-	PROPERTY (short, segments, setSegments)
-	PROPERTY (short, number, setNumber)
-	
-public:
-	LDOBJ (Radial)
-	LDOBJ_VERTICES (0)
-	LDOBJ_COLORED
-	LDOBJ_SCEMANTIC
-	LDOBJ_HAS_MATRIX
-	
-	LDRadial () { setLinkPointer (this); }
-	LDRadial (LDRadial::Type radType, vertex pos, matrix transform, short divs, short segs, short ringNum) :
-		LDMatrixObject (transform, pos), PROP_NAME (type) (radType), PROP_NAME (divisions) (divs),
-		PROP_NAME (segments) (segs), PROP_NAME (number) (ringNum)
-	{
-		setLinkPointer (this);
-	}
-	
-	// Returns a set of objects that provide the equivalent of this radial.
-	// Note: objects are heap-allocated.
-	vector<LDObject*> decompose (bool applyTransform);
-	
-	// Compose a file name for this radial.
-	str makeFileName ();
-	
-	char const* radialTypeName ();
-	static char const* radialTypeName (const LDRadial::Type type);
 };
 
 // =============================================================================
