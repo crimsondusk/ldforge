@@ -46,11 +46,11 @@
 #define RELEASE
 #endif // BUILD_ID
 
-#define BUILD_INTERNAL	0
-#define BUILD_ALPHA		1
-#define BUILD_BETA		2
-#define BUILD_RC			3
-#define BUILD_RELEASE		4
+#define BUILD_INTERNAL 0
+#define BUILD_ALPHA    1
+#define BUILD_BETA     2
+#define BUILD_RC       3
+#define BUILD_RELEASE  4
 
 #ifndef RELEASE
 # define devf(...) doDevf (__func__, __VA_ARGS__);
@@ -59,6 +59,7 @@
 #endif // RELEASE
 
 #define elif else if
+#define G_TR QObject::tr
 
 extern File g_file_stdout;
 extern File g_file_stderr;

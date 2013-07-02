@@ -32,12 +32,11 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 	icon->setPixmap (getIcon ("ldforge"));
 	
 	// Heading - application label and copyright information
-	QLabel* title = new QLabel (fmt ("<b>" APPNAME " %1</b><br />"
-		"Copyright (C) 2013 Santeri Piippo",
-		qchars (fullVersionString ())));
+	QLabel* title = new QLabel( fmt( tr( "<b>" APPNAME " %1</b><br />"
+		"Copyright (C) 2013 Santeri Piippo" ), fullVersionString ()));
 	
 	// Body text
-	QLabel* info = new QLabel (
+	QLabel* info = new QLabel (tr (
 		"<p>This software is intended for usage as a parts<br />"
 		"authoring tool for the <a href=\"http://ldraw.org/\">LDraw</a> parts library.</p>"
 		
@@ -53,10 +52,10 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent,
 		"The application icon is derived from <a href=\"http://en.wikipedia.org/wiki/File:Anvil,_labelled_en.svg\">this image</a>. The<br />"
 		"linked image (retrieved 22 May 2013) was released<br />"
 		"into the public domain.</p>"
-	);
+	));
 	
 	// Rest in peace, James.
-	QLabel* memorial = new QLabel ("In living memory of James Jessiman.");
+	QLabel* memorial = new QLabel( tr( "In living memory of James Jessiman." ));
 	
 	QDialogButtonBox* buttons = new QDialogButtonBox (QDialogButtonBox::Close);
 	QPushButton* helpButton = new QPushButton;

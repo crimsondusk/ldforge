@@ -626,7 +626,8 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 		colnum++;
 	
 	if (colnum >= 512) {
-		critical ("Out of unused colors! What are you doing?!");
+		//: Auto-colorer error message
+		critical( QObject::tr( "Out of unused colors! What are you doing?!" ));
 		return;
 	}
 	

@@ -80,14 +80,16 @@ static bool parseLDConfigTag (StringParser& pars, char const* tag, str& val) {
 void parseLDConfig () {
 	File* f = openLDrawFile ("LDConfig.ldr", false);
 	
-	if (!*f) {
-		critical (fmt ("Unable to open LDConfig.ldr for parsing! (%1)", strerror (errno)));
+	if ( !f )
+	{
+		critical( fmt( QObject::tr( "Unable to open LDConfig.ldr for parsing! (%1)" ), strerror( errno )));
 		delete f;
 		return;
 	}
 	
 	// Read in the lines
-	for (str line : *f) {
+	for( str line : *f )
+	{
 		if (line.length () == 0 || line[0] != '0')
 			continue; // empty or illogical
 		

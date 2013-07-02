@@ -31,6 +31,8 @@ static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
 vector<Primitive> g_primitives;
 
+static const str g_Other = QObject::tr( "Other" );
+
 static void populateCategories ();
 static void loadPrimitiveCatgories ();
 
@@ -166,13 +168,12 @@ static void populateCategories () {
 	for (PrimitiveCategory& cat : g_PrimitiveCategories)
 		cat.prims.clear ();
 	
-	PrimitiveCategory* unmatched = findCategory ("Other");
+	PrimitiveCategory* unmatched = findCategory( g_Other );
 	
 	if (!unmatched) {
 		// Shouldn't happen.. but catch it anyway.
-		print ("No `Other` category found! Creating one...\n");
 		PrimitiveCategory cat;
-		cat.setName ("Other");
+		cat.setName( g_Other );
 		unmatched = &(g_PrimitiveCategories << cat);
 	}
 	
@@ -227,7 +228,7 @@ static void loadPrimitiveCatgories () {
 		f.open (":/data/primitive-categories.cfg", File::Read);
 	
 	if (!f)
-		critical ("Failed to open primitive categories!");
+		critical( QObject::tr( "Failed to open primitive categories!" ));
 	
 	if (f) {
 		PrimitiveCategory cat;
@@ -268,7 +269,7 @@ static void loadPrimitiveCatgories () {
 	
 	// Add a category for unmatched primitives
 	PrimitiveCategory cat;
-	cat.setName ("Other");
+	cat.setName( g_Other );
 	g_PrimitiveCategories << cat;
 }
 
@@ -398,6 +399,7 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 
 str primitiveTypeName( PrimitiveType type )
 {
+	// Not translated as primitives are in English.
 	return type == Circle   ? "Circle" :
 	       type == Cylinder ? "Cylinder" :
 	       type == Disc     ? "Disc" :

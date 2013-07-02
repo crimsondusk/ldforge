@@ -1016,7 +1016,7 @@ void ForgeWindow::primitiveLoaderEnd () {
 	connect (hidetimer, SIGNAL (timeout ()), m_primLoaderWidget, SLOT (hide ()));
 	hidetimer->setSingleShot (true);
 	hidetimer->start (1500);
-	m_primLoaderBar->setFormat ("Done");
+	m_primLoaderBar->setFormat( tr( "Done" ));
 }
 
 // =============================================================================
@@ -1027,8 +1027,8 @@ void ForgeWindow::save( LDOpenFile* f, bool saveAs )
 	str path = f->name ();
 	
 	if (path.length () == 0 || saveAs) {
-		path = QFileDialog::getSaveFileName (g_win, "Save As",
-			g_curfile->name (), "LDraw files (*.dat *.ldr)");
+		path = QFileDialog::getSaveFileName (g_win, tr( "Save As" ),
+			g_curfile->name (), tr( "LDraw files (*.dat *.ldr)" ));
 		
 		if (path.length () == 0) {
 			// User didn't give a file name. This happens if the user cancelled
@@ -1048,14 +1048,14 @@ void ForgeWindow::save( LDOpenFile* f, bool saveAs )
 	{
 		setlocale( LC_ALL, "C" );
 		
-		str message = fmt ("Failed to save to %1\nReason: %2", path, strerror (errno));
+		str message = fmt( tr( "Failed to save to %1: %2" ), path, strerror (errno));
 		
 		// Tell the user the save failed, and give the option for saving as with it.
-		QMessageBox dlg( QMessageBox::Critical, "Save Failure", message,
+		QMessageBox dlg( QMessageBox::Critical, tr( "Save Failure" ), message,
 			QMessageBox::Close, g_win );
 		
 		// Add a save-as button
-		QPushButton* saveAsBtn = new QPushButton( "Save As" );
+		QPushButton* saveAsBtn = new QPushButton( tr( "Save As" ));
 		saveAsBtn->setIcon( getIcon( "file-save-as" ));
 		dlg.addButton( saveAsBtn, QMessageBox::ActionRole );
 		dlg.setDefaultButton( QMessageBox::Close );
@@ -1090,7 +1090,7 @@ bool confirm (str title, str msg) {
 
 // =============================================================================
 void critical (str msg) {
-	QMessageBox::critical (g_win, "Error", msg,
+	QMessageBox::critical (g_win, QObject::tr( "Error" ), msg,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 

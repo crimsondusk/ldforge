@@ -59,7 +59,16 @@ cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
 cfg (bool, gl_wireframe, false);
 
-const char* g_CameraNames[7] = { "Top", "Front", "Left", "Bottom", "Back", "Right", "Free" };
+// argh
+const char* g_CameraNames[7] = {
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Top" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Front" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Left" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Bottom" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Back" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Right" ),
+	QT_TRANSLATE_NOOP( "GLRenderer",  "Free" )
+};
 
 const GL::Camera g_Cameras[7] = {
 	GL::Top,
@@ -104,7 +113,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	
 	// Init camera icons
 	for (const GL::Camera cam : g_Cameras) {
-		str iconname = fmt ("camera-%1", str (g_CameraNames[cam]).toLower ());
+		str iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower ());
 		
 		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
@@ -495,7 +504,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		}
 		
 		// Paint the coordinates onto the screen.
-		str text = fmt ("X: %1, Y: %2, Z: %3", m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
+		str text = fmt( tr( "X: %1, Y: %2, Z: %3" ), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z] );
 		
 		QFontMetrics metrics = QFontMetrics (font ());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
@@ -586,12 +595,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
 		}
 		
+		str fmtstr = tr( "%1 Camera" );
+		
 		// Draw a label for the current camera in the top left corner
 		{
 			const ushort margin = 4;
 			
 			str label;
-			label = fmt ("%1 Camera", g_CameraNames[camera ()]);
+			label = fmt( fmtstr, tr( g_CameraNames[camera ()] ));
 			paint.setPen (m_darkbg ? Qt::white : Qt::black);
 			paint.drawText (QPoint (margin, margin + metrics.ascent ()), label);
 		}
@@ -608,7 +619,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				ushort x0 = m_pos.x (),
 					y0 = m_pos.y ();
 				
-				str label = fmt ("%1 Camera", g_CameraNames[m_toolTipCamera]);
+				str label = fmt( fmtstr, tr( g_CameraNames[m_toolTipCamera] ));
 				
 				const ushort textWidth = metrics.width (label),
 					textHeight = metrics.height (),
@@ -1374,7 +1385,7 @@ bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, i
 	
 	if( img->isNull() )
 	{
-		critical ("Failed to load overlay image!");
+		critical( tr( "Failed to load overlay image!" ));
 		delete img;
 		return false;
 	}

@@ -28,15 +28,6 @@
 config* g_configPointers[MAX_CONFIG];
 static ushort g_cfgPointerCursor = 0;
 
-static const char* g_ConfigTypeNames[] = {
-	"None",
-	"Integer",
-	"String",
-	"Float",
-	"Boolean",
-	"Key sequence",
-};
-
 // =============================================================================
 // Load the configuration from file
 bool config::load () {
@@ -143,7 +134,8 @@ bool config::save () {
 	print ("writing cfg to %1\n", filepath ());
 	
 	if (!f) {
-		critical (fmt ("Cannot save configuration, cannot open %1 for writing\n", filepath ()));
+		critical( fmt( QObject::tr( "Cannot save configuration, cannot open %1 for writing: %2\n" ),
+			filepath(), strerror( errno )));
 		return false;
 	}
 	

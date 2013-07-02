@@ -354,7 +354,6 @@ LDOpenFile* openDATFile( str path, bool search )
 	ulong numWarnings;
 	bool ok;
 	vector<LDObject*> objs = loadFileContents( f, &numWarnings, &ok );
-	print( "ok: %1\n", ok );
 	
 	if( !ok )
 	{
@@ -411,7 +410,7 @@ bool LDOpenFile::safeToClose()
 			}
 			
 			if( !save () ) {
-				message = fmt( "Failed to save %1: %2\nDo you still want to close?",
+				message = fmt( QObject::tr( "Failed to save %1: %2\nDo you still want to close?" ),
 					name(), strerror( errno ));
 				
 				if( QMessageBox::critical( g_win, "Save Failure", message,
@@ -529,7 +528,7 @@ void openMainFile( str path )
 		{
 			// Tell the user loading failed.
 			setlocale( LC_ALL, "C" );
-			critical( fmt( "Failed to open %1: %2", path, strerror( errno )));
+			critical( fmt( QObject::tr( "Failed to open %1: %2" ), path, strerror( errno )));
 		}
 		
 		g_loadingMainFile = false;

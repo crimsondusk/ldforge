@@ -18,6 +18,7 @@
 
 #include <qboxlayout.h>
 #include <qmessagebox.h>
+#include <QGridLayout>
 #include "historyDialog.h"
 #include "history.h"
 #include "colors.h"
