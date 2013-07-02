@@ -38,6 +38,7 @@ cfg( str, io_recentfiles, "" );
 
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
+static bool g_aborted = false;
 
 // =============================================================================
 namespace LDPaths
@@ -207,7 +208,8 @@ File* openLDrawFile (str relpath, bool subdirs) {
 // =============================================================================
 void FileLoader::work()
 {
-	m_progress = 0;
+	setDone( false );
+	setProgress( 0 );
 	abortflag = false;
 	
 	for( str line : *PROP_NAME( file )) {
@@ -257,6 +259,7 @@ void FileLoader::work()
 vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	vector<str> lines;
 	vector<LDObject*> objs;
+	g_aborted = false;
 	
 	if( numWarnings )
 		*numWarnings = 0;
@@ -296,7 +299,10 @@ vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 		
 		// Show the prompt. If the user hits cancel, tell the loader to abort.
 		if( !dlg->exec() )
+		{
 			loader->abortflag = true;
+			g_aborted = true;
+		}
 	} else
 		loader->work();
 	
@@ -347,16 +353,22 @@ LDOpenFile* openDATFile( str path, bool search )
 	
 	ulong numWarnings;
 	bool ok;
-	vector<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
+	vector<LDObject*> objs = loadFileContents( f, &numWarnings, &ok );
+	print( "ok: %1\n", ok );
 	
 	if( !ok )
 	{
-		g_curfile = oldLoad;
+		if( g_loadingMainFile )
+		{
+			g_curfile = oldLoad;
+			g_win->R()->setFile( oldLoad );
+		}
+		
 		return null;
 	}
 	
-	for (LDObject* obj : objs)
-		load->addObject (obj);
+	for( LDObject* obj : objs )
+		load->addObject( obj );
 	
 	delete f;
 	g_loadedFiles << load;
@@ -513,9 +525,12 @@ void openMainFile( str path )
 		// closed everything prior.
 		newFile ();
 		
-		// Tell the user loading failed.
-		setlocale( LC_ALL, "C" );
-		critical( fmt( "Failed to open %1: %2", path, strerror( errno )));
+		if( !g_aborted )
+		{
+			// Tell the user loading failed.
+			setlocale( LC_ALL, "C" );
+			critical( fmt( "Failed to open %1: %2", path, strerror( errno )));
+		}
 		
 		g_loadingMainFile = false;
 		return;
