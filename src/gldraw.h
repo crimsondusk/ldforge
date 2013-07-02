@@ -57,8 +57,8 @@ class GLRenderer : public QGLWidget {
 	
 	PROPERTY (bool, drawOnly, setDrawOnly)
 	PROPERTY (double, zoom, setZoom)
-	PROPERTY (LDOpenFile*, file, setFile)
 	READ_PROPERTY (bool, picking, setPicking)
+	DECLARE_PROPERTY (LDOpenFile*, file, setFile)
 	DECLARE_PROPERTY (EditMode, editMode, setEditMode)
 	
 public:

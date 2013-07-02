@@ -532,7 +532,6 @@ void openMainFile( str path )
 	g_win->updateTitle();
 	g_win->R()->setFile( file );
 	g_win->R()->resetAngles();
-	g_win->R()->overlaysFromObjects();
 	
 	// Add it to the recent files list.
 	addRecentFile( path );

@@ -1195,6 +1195,19 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	update ();
 }
 
+READ_ACCESSOR( LDOpenFile*, GLRenderer::file )
+{
+	return m_file;
+}
+
+SET_ACCESSOR( LDOpenFile*, GLRenderer::setFile )
+{
+	m_file = val;
+	
+	if( val != null )
+		overlaysFromObjects();
+}
+
 // =============================================================================
 void GLRenderer::endDraw (bool accept) {
 	(void) accept;
