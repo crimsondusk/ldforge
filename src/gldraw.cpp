@@ -1405,6 +1405,8 @@ void GLRenderer::setupOverlay () {
 		uint32 pixel = img->pixel (i, j);
 		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
 	}
+	
+	updateOverlayObjects();
 }
 
 void GLRenderer::clearOverlay () {
@@ -1414,6 +1416,8 @@ void GLRenderer::clearOverlay () {
 	overlayMeta& info = m_overlays[camera ()];
 	delete info.img;
 	info.img = null;
+	
+	updateOverlayObjects();
 }
 
 void GLRenderer::setDepthValue (double depth) {
@@ -1563,4 +1567,126 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	LDObject* obj = g_win->sel ()[0];
 	AddObjectDialog::staticDialog (obj->getType (), obj);
 	ev->accept ();
+}
+
+LDOverlay* GLRenderer::findOverlayObject( GLRenderer::Camera cam )
+{
+	LDOverlay* ovlobj = null;
+	
+	for( LDObject* obj : *file() )
+	{
+		if( obj->getType() == LDObject::Overlay && static_cast<LDOverlay*>( obj )->camera() == cam )
+		{
+			ovlobj = static_cast<LDOverlay*>( obj );
+			break;
+		}
+	}
+	
+	return ovlobj;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Read in overlays from the current file and update overlay info accordingly.
+// =============================================================================
+void GLRenderer::overlaysFromObjects()
+{
+	for( Camera cam : g_Cameras )
+	{
+		if( cam == Free )
+			continue;
+		
+		overlayMeta& meta = m_overlays[cam];
+		LDOverlay* ovlobj = findOverlayObject( cam );
+		
+		if( !ovlobj && meta.img )
+		{
+			delete meta.img;
+			meta.img = null;
+		}
+		elif( ovlobj && !meta.img )
+		{
+			
+		}
+	}
+}
+
+// =============================================================================
+void GLRenderer::updateOverlayObjects()
+{
+	for( Camera cam : g_Cameras )
+	{
+		if( cam == Free )
+			continue;
+		
+		overlayMeta& meta = m_overlays[cam];
+		LDOverlay* ovlobj = findOverlayObject( cam );
+		
+		if( !meta.img && ovlobj )
+		{
+			// If this is the last overlay image, we need to remove the empty space after it as well.
+			LDObject* nextobj = ovlobj->next();
+			if( nextobj && nextobj->getType() == LDObject::Empty )
+			{
+				m_file->forgetObject( nextobj );
+				delete nextobj;
+			}
+			
+			// If the overlay object was there and the overlay itself is
+			// not, remove the object.
+			m_file->forgetObject( ovlobj );
+			delete ovlobj;
+		}
+		else if( meta.img && !ovlobj )
+		{
+			// Inverse case: image is there but the overlay object is
+			// not, thus create the object.
+			ovlobj = new LDOverlay;
+			
+			// Find a suitable position to place this object. We want to place
+			// this into the header, which is everything up to the first scemantic
+			// object. If we find another overlay object, place this object after
+			// the last one found. Otherwise, place it before the first schemantic
+			// object and put an empty object after it (though don't do this if
+			// there was no schemantic elements at all)
+			ulong i, lastOverlay = -1u;
+			bool found = false;
+			
+			for( i = 0; i < file()->numObjs(); ++i )
+			{
+				LDObject* obj = file()->obj( i );
+				if( obj->isScemantic() )
+				{
+					found = true;
+					break;
+				}
+				
+				if( obj->getType() == LDObject::Overlay )
+					lastOverlay = i;
+			}
+			
+			if( lastOverlay != -1u )
+				file()->insertObj( lastOverlay + 1, ovlobj );
+			else
+			{
+				file()->insertObj( i, ovlobj );
+				
+				if( found )
+					file()->insertObj( i + 1, new LDEmpty );
+			}
+		}
+		
+		if( meta.img && ovlobj )
+		{
+			ovlobj->setCamera( cam );
+			ovlobj->setFilename( meta.fname );
+			ovlobj->setX( meta.ox );
+			ovlobj->setY( meta.oy );
+			ovlobj->setWidth( meta.lw );
+			ovlobj->setHeight( meta.lh );
+		}
+	}
+	
+	if( g_win->R() == this )
+		g_win->refresh();
 }

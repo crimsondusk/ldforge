@@ -32,6 +32,7 @@ char const* g_saObjTypeNames[] = {
 	"condline",
 	"vertex",
 	"bfc",
+	"overlay",
 	"comment",
 	"unknown",
 	"empty",
@@ -47,6 +48,7 @@ char const* g_saObjTypeIcons[] = {
 	"condline",
 	"vertex",
 	"bfc",
+	"overlay",
 	"comment",
 	"error",
 	"empty",
@@ -513,6 +515,7 @@ LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (BFC)
 	CHECK_FOR_OBJ (Gibberish)
 	CHECK_FOR_OBJ (Vertex)
+	CHECK_FOR_OBJ (Overlay)
 	return null;
 }
 
@@ -609,6 +612,15 @@ LDObject* LDObject::fromID (int id) {
 	return null;
 }
 
+// =============================================================================
+str LDOverlay::raw()
+{
+	return fmt( "0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
+		filename(), camera(), x(), y(), width(), height() );
+}
+
+void LDOverlay::move( vertex vect ) { Q_UNUSED( vect ) }
+void LDOverlay::invert() {}
 
 // =============================================================================
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {

@@ -672,6 +672,20 @@ LDObject* parseLine( str line )
 					
 					return obj;
 				}
+				elif( tokens[2] == "OVERLAY" )
+				{
+					CHECK_TOKEN_COUNT( 8 );
+					CHECK_TOKEN_NUMBERS( 4, 7 )
+					
+					LDOverlay* obj = new LDOverlay;
+					obj->setFilename( tokens[2] );
+					obj->setCamera( tokens[3].toLong() );
+					obj->setX( tokens[4].toLong() );
+					obj->setY( tokens[5].toLong() );
+					obj->setWidth( tokens[6].toLong() );
+					obj->setHeight( tokens[7].toLong() );
+					return obj;
+				}
 			}
 			
 			// Just a regular comment:
@@ -699,7 +713,7 @@ LDObject* parseLine( str line )
 			
 			LDSubfile* obj = new LDSubfile;
 			obj->setColor( tokens[1].toLong() );
-			obj->setPosition( parseVertex(tokens, 2 )); // 2 - 4
+			obj->setPosition( parseVertex( tokens, 2 )); // 2 - 4
 			
 			matrix transform;
 			for( short i = 0; i < 9; ++i )

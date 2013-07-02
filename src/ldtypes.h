@@ -92,18 +92,19 @@ class LDObject {
 public:
 	// Object type codes. Codes are sorted in order of significance.
 	enum Type {
-		Subfile,		// Object represents a sub-file reference
-		Quad,			// Object represents a quadrilateral
-		Triangle,		// Object represents a triangle
-		Line,			// Object represents a line
-		CondLine,		// Object represents a conditional line
-		Vertex,			// Object is a vertex, LDForge extension object
-		BFC,			// Object represents a BFC statement
-		Comment,		// Object represents a comment
-		Gibberish,		// Object is the result of failed parsing
-		Empty,			// Object represents an empty line
-		Unidentified,	// Object is an uninitialized (SHOULD NEVER HAPPEN)
-		NumTypes		// Amount of object types
+		Subfile,        // Object represents a sub-file reference
+		Quad,           // Object represents a quadrilateral
+		Triangle,       // Object represents a triangle
+		Line,           // Object represents a line
+		CondLine,       // Object represents a conditional line
+		Vertex,         // Object is a vertex, LDForge extension object
+		BFC,            // Object represents a BFC statement
+		Overlay,        // Object contains meta-info about an overlay image.
+		Comment,        // Object represents a comment
+		Gibberish,      // Object is the result of failed parsing
+		Empty,          // Object represents an empty line
+		Unidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
+		NumTypes        // Amount of object types
 	};
 	
 	LDObject ();
@@ -386,6 +387,28 @@ public:
 	LDVertex () {}
 	
 	vertex pos;
+};
+
+// =============================================================================
+// LDOverlay
+// 
+// Overlay image meta, stored in the header of parts so as to preserve overlay
+// information.
+// =============================================================================
+class LDOverlay : public LDObject
+{
+public:
+	LDOBJ( Overlay )
+	LDOBJ_VERTICES( 0 )
+	LDOBJ_UNCOLORED
+	LDOBJ_NON_SCEMANTIC
+	LDOBJ_NO_MATRIX
+	PROPERTY( int, camera, setCamera )
+	PROPERTY( int, x, setX )
+	PROPERTY( int, y, setY )
+	PROPERTY( int, width, setWidth )
+	PROPERTY( int, height, setHeight )
+	PROPERTY( str, filename, setFilename )
 };
 
 // =============================================================================

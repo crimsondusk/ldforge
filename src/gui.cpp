@@ -661,6 +661,14 @@ void ForgeWindow::buildObjList () {
 			descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
 		break;
 		
+		case LDObject::Overlay:
+			{
+				LDOverlay* ovl = static_cast<LDOverlay*>( obj );
+				descr = fmt( "[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
+					basename( ovl->filename() ), ovl->x(), ovl->y(), ovl->width(), ovl->height() );
+			}
+			break;
+		
 		default:
 			descr = g_saObjTypeNames[obj->getType ()];
 			break;

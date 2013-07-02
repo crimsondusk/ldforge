@@ -58,6 +58,8 @@
 # define devf(...)
 #endif // RELEASE
 
+#define elif else if
+
 extern File g_file_stdout;
 extern File g_file_stderr;
 
