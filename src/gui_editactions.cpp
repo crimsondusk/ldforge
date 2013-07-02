@@ -412,13 +412,13 @@ static void doRotate (const short l, const short m, const short n) {
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
-		} else if (obj->hasMatrix ()) {
+		} elif (obj->hasMatrix ()) {
 			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 			vertex v = mo->position ();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
 			mo->setTransform (mo->transform () * transform);
-		} else if (obj->getType () == LDObject::Vertex) {
+		} elif (obj->getType () == LDObject::Vertex) {
 			LDVertex* vert = static_cast<LDVertex*> (obj);
 			vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);

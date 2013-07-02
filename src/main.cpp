@@ -50,7 +50,7 @@ void doPrint (File& f, initlist<StringFormatArg> args) {
 void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 	if (fp == stdout)
 		doPrint (g_file_stdout, args);
-	else if (fp == stderr)
+	elif (fp == stderr)
 		doPrint (g_file_stderr, args);
 	
 	fatal ("unknown FILE* argument");

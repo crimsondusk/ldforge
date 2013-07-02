@@ -686,7 +686,7 @@ void ForgeWindow::buildObjList () {
 		if (obj->getType() == LDObject::Gibberish) {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
-		} else if (lv_colorize && obj->isColored () &&
+		} elif (lv_colorize && obj->isColored () &&
 			obj->color () != maincolor && obj->color () != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this

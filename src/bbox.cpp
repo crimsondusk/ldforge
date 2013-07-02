@@ -108,7 +108,7 @@ double bbox::size () const {
 	if (fXScale > fYScale) {
 		if (fXScale > fZScale)
 			fSize = fXScale;
-	} else if (fYScale > fZScale)
+	} elif (fYScale > fZScale)
 		fSize = fYScale;
 	
 	if (abs (fSize) >= 2.0f)

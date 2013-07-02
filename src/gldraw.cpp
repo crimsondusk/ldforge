@@ -958,7 +958,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 		m_panX += 0.03f * dx * (zoom () / 7.5f);
 		m_panY -= 0.03f * dy * (zoom () / 7.5f);
 		m_panning = true;
-	} else if (left && !m_rangepick && camera () == Free) {
+	} elif (left && !m_rangepick && camera () == Free) {
 		m_rotX = m_rotX + (dy);
 		m_rotY = m_rotY + (dx);
 		
@@ -1273,7 +1273,7 @@ static vector<vertex> getVertices (LDObject* obj) {
 	if (obj->vertices () >= 2)
 		for (int i = 0; i < obj->vertices (); ++i)
 			verts << obj->getVertex (i);
-	else if( obj->getType() == LDObject::Subfile )
+	elif( obj->getType() == LDObject::Subfile )
 	{
 		vector<LDObject*> objs = static_cast<LDSubfile*>( obj )->inlineContents( true, true );
 		
@@ -1390,7 +1390,7 @@ bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, i
 	
 	if( info.lw == 0 )
 		info.lw = ( info.lh * img->width() ) / img->height();
-	else if( info.lh == 0 )
+	elif( info.lh == 0 )
 		info.lh = ( info.lw * img->height() ) / img->width();
 	
 	const Axis x2d = cameraAxis( false ),
@@ -1643,7 +1643,7 @@ void GLRenderer::updateOverlayObjects()
 			m_file->forgetObject( ovlobj );
 			delete ovlobj;
 		}
-		else if( meta.img && !ovlobj )
+		elif( meta.img && !ovlobj )
 		{
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.

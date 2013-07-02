@@ -205,7 +205,7 @@ void LDObject::swap (LDObject* other) {
 	for (LDObject*& obj : *g_curfile) {
 		if (obj == this)
 			obj = other;
-		else if (obj == other)
+		elif (obj == other)
 			obj = this;
 	}
 }

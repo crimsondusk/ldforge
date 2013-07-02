@@ -103,7 +103,7 @@ bool config::load () {
 			
 			if (valstring.toUpper () == "TRUE" || valstring == "1")
 				val = true;
-			else if (valstring.toUpper () == "FALSE" || valstring == "0")
+			elif (valstring.toUpper () == "FALSE" || valstring == "0")
 				val = false;
 			break;
 		}

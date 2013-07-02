@@ -406,7 +406,7 @@ void RotationPointDialog::radioBoxChanged () {
 // =============================================================================
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	progressBar = new QProgressBar;
-	progressText = new QLabel ("Parsing...");
+	progressText = new QLabel( "Parsing..." );
 	setNumLines (0);
 	m_progress = 0;
 	
@@ -431,7 +431,8 @@ SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines) {
 }
 
 void OpenProgressDialog::updateValues () {
-	progressBar->setValue (progress ());
+	progressText->setText( fmt( "Parsing... %1 / %2", progress(), numLines() ));
+	progressBar->setValue( progress() );
 }
 
 void OpenProgressDialog::updateProgress (int progress) {

@@ -251,7 +251,7 @@ static void loadPrimitiveCatgories () {
 				PrimitiveCategory::Type type = PrimitiveCategory::Filename;
 				if (cmd == "f") {
 					type = PrimitiveCategory::Filename;
-				} else if (cmd == "t") {
+				} elif (cmd == "t") {
 					type = PrimitiveCategory::Title;
 				} else
 					continue;

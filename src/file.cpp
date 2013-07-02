@@ -351,7 +351,7 @@ LDOpenFile* openDATFile( str path, bool search )
 	
 	if( !ok )
 	{
-		load = oldLoad;
+		g_curfile = oldLoad;
 		return null;
 	}
 	
