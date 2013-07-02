@@ -45,9 +45,6 @@ struct overlayMeta {
 	QImage* img;
 };
 
-// Alias for short namespaces
-typedef GLRenderer GL;
-
 // =============================================================================
 // GLRenderer
 // 
@@ -91,7 +88,7 @@ public:
 	void           setBackground       ();
 	void           setCamera           (const Camera cam);
 	void           setDepthValue       (double depth);
-	void           setupOverlay        ();
+	bool           setupOverlay        ( GLRenderer::Camera cam, str file, int x, int y, int w, int h );
 	void           updateOverlayObjects();
 	void           zoomNotch           (bool inward);
 	void           zoomToFit           ();
@@ -151,7 +148,7 @@ private:
 	void           compileVertex        (const vertex& vrt);                     // Compile a single vertex to a list
 	vertex         coordconv2_3         (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2         (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	LDOverlay*     findOverlayObject    ( GL::Camera cam );
+	LDOverlay*     findOverlayObject    ( Camera cam );
 	void           updateRectVerts      ();
 	void           pick                 (uint mouseX, uint mouseY);              // Perform object selection
 	void           setObjectColor       (LDObject* obj, const ListType list);    // Set the color to an object list
@@ -159,6 +156,9 @@ private:
 private slots:
 	void           slot_toolTipTimer    ();
 };
+
+// Alias for short namespaces
+typedef GLRenderer GL;
 
 static const GLRenderer::ListType g_glListTypes[] = {
 	GL::NormalList,

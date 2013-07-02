@@ -1354,59 +1354,54 @@ Axis GLRenderer::cameraAxis (bool y) {
 }
 
 // =============================================================================
-void GLRenderer::setupOverlay () {
-	if (camera () == Free)
-		return;
+bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, int h )
+{
+	QImage* img = new QImage( file );
+	overlayMeta& info = getOverlay( cam );
 	
-	OverlayDialog dlg;
-	
-	if (!dlg.exec ())
-		return;
-	
-	QImage* img = new QImage (dlg.fpath ());
-	overlayMeta& info = getOverlay (camera ());
-	
-	if (img->isNull ()) {
+	if( img->isNull() )
+	{
 		critical ("Failed to load overlay image!");
 		delete img;
-		return;
+		return false;
 	}
 	
 	delete info.img; // delete the old image
 	
-	info.fname = dlg.fpath ();
-	info.lw = dlg.lwidth ();
-	info.lh = dlg.lheight ();
-	info.ox = dlg.ofsx ();
-	info.oy = dlg.ofsy ();
+	info.fname = file;
+	info.lw = w;
+	info.lh = h;
+	info.ox = x;
+	info.oy = y;
 	info.img = img;
 	
-	if (info.lw == 0)
-		info.lw = (info.lh * img->width ()) / img->height ();
-	else if (info.lh == 0)
-		info.lh = (info.lw * img->height ()) / img->width ();
+	if( info.lw == 0 )
+		info.lw = ( info.lh * img->width() ) / img->height();
+	else if( info.lh == 0 )
+		info.lh = ( info.lw * img->height() ) / img->width();
 	
-	const Axis x2d = cameraAxis (false),
-		y2d = cameraAxis (true);
+	const Axis x2d = cameraAxis( false ),
+		y2d = cameraAxis( true );
 	
 	double negXFac = g_staticCameras[m_camera].negX ? -1 : 1,
 		negYFac = g_staticCameras[m_camera].negY ? -1 : 1;
 	
 	info.v0 = info.v1 = g_origin;
-	info.v0[x2d] = -(info.ox * info.lw * negXFac) / img->width ();
-	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height ();
+	info.v0[x2d] = -( info.ox * info.lw * negXFac ) / img->width();
+	info.v0[y2d] = ( info.oy * info.lh * negYFac ) / img->height();
 	info.v1[x2d] = info.v0[x2d] + info.lw;
 	info.v1[y2d] = info.v0[y2d] + info.lh;
-	info.fname = dlg.fpath ();
 	
 	// Set alpha of all pixels to 0.5
-	for (long i = 0; i < img->width (); ++i)
-	for (long j = 0; j < img->height (); ++j) {
-		uint32 pixel = img->pixel (i, j);
-		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
+	for( long i = 0; i < img->width(); ++i )
+	for( long j = 0; j < img->height(); ++j )
+	{
+		uint32 pixel = img->pixel( i, j );
+		img->setPixel( i, j, 0x80000000 | ( pixel & 0x00FFFFFF ));
 	}
 	
 	updateOverlayObjects();
+	return true;
 }
 
 void GLRenderer::clearOverlay () {
@@ -1604,10 +1599,8 @@ void GLRenderer::overlaysFromObjects()
 			delete meta.img;
 			meta.img = null;
 		}
-		elif( ovlobj && !meta.img )
-		{
-			
-		}
+		elif( ovlobj && ( !meta.img || meta.fname != ovlobj->filename() ))
+			setupOverlay( cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height() );
 	}
 }
 

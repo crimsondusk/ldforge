@@ -532,6 +532,7 @@ void openMainFile( str path )
 	g_win->updateTitle();
 	g_win->R()->setFile( file );
 	g_win->R()->resetAngles();
+	g_win->R()->overlaysFromObjects();
 	
 	// Add it to the recent files list.
 	addRecentFile( path );
@@ -674,16 +675,16 @@ LDObject* parseLine( str line )
 				}
 				elif( tokens[2] == "OVERLAY" )
 				{
-					CHECK_TOKEN_COUNT( 8 );
-					CHECK_TOKEN_NUMBERS( 4, 7 )
+					CHECK_TOKEN_COUNT( 9 );
+					CHECK_TOKEN_NUMBERS( 5, 8 )
 					
 					LDOverlay* obj = new LDOverlay;
-					obj->setFilename( tokens[2] );
-					obj->setCamera( tokens[3].toLong() );
-					obj->setX( tokens[4].toLong() );
-					obj->setY( tokens[5].toLong() );
-					obj->setWidth( tokens[6].toLong() );
-					obj->setHeight( tokens[7].toLong() );
+					obj->setFilename( tokens[3] );
+					obj->setCamera( tokens[4].toLong() );
+					obj->setX( tokens[5].toLong() );
+					obj->setY( tokens[6].toLong() );
+					obj->setWidth( tokens[7].toLong() );
+					obj->setHeight( tokens[8].toLong() );
 					return obj;
 				}
 			}

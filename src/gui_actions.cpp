@@ -35,6 +35,7 @@
 #include "dialogs.h"
 #include "primitives.h"
 #include "ui_newpart.h"
+#include "widgets.h"
 
 extern_cfg (bool, gl_wireframe);
 
@@ -424,8 +425,15 @@ MAKE_ACTION (wireframe, "Wireframe", "wireframe", "Toggle wireframe view", (0)) 
 	g_win->R ()->refresh ();
 }
 
-MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", (0)) {
-	g_win->R ()->setupOverlay ();
+MAKE_ACTION( setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", 0 )
+{
+	OverlayDialog dlg;
+	
+	if (!dlg.exec ())
+		return;
+	
+	g_win->R ()->setupOverlay( (GL::Camera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
+		dlg.ofsy(), dlg.width(), dlg.height() );
 }
 
 MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
