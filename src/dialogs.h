@@ -65,24 +65,6 @@ private slots:
 };
 
 // =============================================================================
-// SetContentsDialog
-//
-// Performs the Set Contents dialog on the given LDObject. Object's contents
-// are exposed to the user and is reinterpreted if the user accepts the new
-// contents.
-// =============================================================================
-class SetContentsDialog : public QDialog {
-public:
-	explicit SetContentsDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	str text () const;
-	void setObject (LDObject* obj);
-	
-private:
-	QLabel* lb_contents, *lb_errorIcon, *lb_error;
-	QLineEdit* le_contents;
-};
-
-// =============================================================================
 class LDrawPathDialog : public QDialog {
 	Q_OBJECT
 	

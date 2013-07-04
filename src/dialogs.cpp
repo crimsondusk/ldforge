@@ -153,51 +153,6 @@ void OverlayDialog::slot_dimensionsChanged () {
 	dbb_buttons->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-SetContentsDialog::SetContentsDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	lb_error = new QLabel;
-	lb_errorIcon = new QLabel;
-	lb_contents = new QLabel ("LDraw code:", parent);
-	
-	le_contents = new QLineEdit (parent);
-	le_contents->setWhatsThis ("The LDraw code of this object. The code written "
-		"here is expected to be valid LDraw code, invalid code here results "
-		"the object being turned into an error object. Please do refer to the "
-		"<a href=\"http://www.ldraw.org/article/218.html\">official file format "
-		"standard</a> for further information.");
-	le_contents->setMinimumWidth (384);
-	
-	QHBoxLayout* bottomRow = new QHBoxLayout;
-	bottomRow->addWidget (lb_errorIcon);
-	bottomRow->addWidget (lb_error);
-	bottomRow->addWidget (makeButtonBox (*this));
-	
-	QVBoxLayout* layout = new QVBoxLayout (this);
-	layout->addWidget (lb_contents);
-	layout->addWidget (le_contents);
-	layout->addLayout (bottomRow);
-	
-	setWindowIcon (getIcon ("set-contents"));
-}
-
-void SetContentsDialog::setObject (LDObject* obj) {
-	le_contents->setText (obj->raw ());
-	
-	if (obj->getType() == LDObject::Gibberish) {
-		lb_error->setText (fmt ("<span style=\"color: #900\">%1</span>",
-			static_cast<LDGibberish*> (obj)->reason));
-		
-		QPixmap errorPixmap = getIcon ("error").scaledToHeight (16);
-		lb_errorIcon->setPixmap (errorPixmap);
-	}
-}
-
-str SetContentsDialog::text () const {
-	return le_contents->text ();
-}
-
 // =================================================================================================
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
 	: QDialog (parent, f), m_validDefault (validDefault)
