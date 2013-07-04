@@ -84,6 +84,9 @@ MessageManager& MessageManager::operator<<( str line )
 
 void MessageManager::tick()
 {
+	if( m_lines.size() == 0 )
+		return;
+	
 	bool changed = false;
 	
 	for( uint i = 0; i < m_lines.size(); ++i )
