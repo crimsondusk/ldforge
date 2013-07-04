@@ -1200,7 +1200,6 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	case Select:
 		unsetCursor ();
 		setContextMenuPolicy (Qt::DefaultContextMenu);
-		log( "Changed to Select mode." );
 		break;
 	
 	case Draw:
@@ -1220,7 +1219,6 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 		g_win->sel ().clear ();
 		g_win->updateSelection ();
 		m_drawedVerts.clear ();
-		log( "Changed to Draw mode." );
 		break;
 	}
 	
