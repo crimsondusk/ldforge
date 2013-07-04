@@ -23,6 +23,7 @@
 #include "common.h"
 #include "types.h"
 
+class QRadioButton;
 class QCheckBox;
 class QProgressBar;
 class QGroupBox;
@@ -35,33 +36,32 @@ class RadioBox;
 class CheckBoxGroup;
 class QLabel;
 class QAbstractButton;
+class Ui_OverlayUI;
 
-class OverlayDialog : public QDialog {
+class OverlayDialog : public QDialog
+{
 	Q_OBJECT
-	
+
 public:
-	explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	explicit OverlayDialog( QWidget* parent = null, Qt::WindowFlags f = 0 );
+	virtual ~OverlayDialog();
 	
-	str			fpath		() const;
-	ushort		ofsx		() const;
-	ushort		ofsy		() const;
-	double		lwidth		() const;
-	double		lheight		() const;
-	int			 camera		() const;
-	
+	str         fpath() const;
+	ushort      ofsx() const;
+	ushort      ofsy() const;
+	double      lwidth() const;
+	double      lheight() const;
+	int         camera() const;
+
 private:
-	RadioBox* rb_camera;
-	QPushButton* btn_fpath;
-	QLineEdit* le_fpath;
-	QSpinBox* sb_ofsx, *sb_ofsy;
-	QDoubleSpinBox* dsb_lwidth, *dsb_lheight;
-	QDialogButtonBox* dbb_buttons;
-	
+	Ui_OverlayUI* ui;
+	vector<pair<QRadioButton*, int>> m_cameraArgs;
+
 private slots:
-	void slot_fpath ();
-	void slot_help ();
-	void slot_dimensionsChanged ();
-	void fillDefaults (int newcam);
+	void slot_fpath();
+	void slot_help();
+	void slot_dimensionsChanged();
+	void fillDefaults( int newcam );
 };
 
 // =============================================================================

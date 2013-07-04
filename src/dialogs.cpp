@@ -35,122 +35,112 @@
 #include "docs.h"
 #include "file.h"
 #include "dialogs.h"
+#include "ui_overlay.h"
 
 extern_cfg (str, io_ldpath);
 
 // =============================================================================
-OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	rb_camera = new RadioBox ("Camera", {}, 0, Qt::Horizontal, this);
+OverlayDialog::OverlayDialog( QWidget* parent, Qt::WindowFlags f ) : QDialog( parent, f )
+{
+	ui = new Ui_OverlayUI;
+	ui->setupUi( this );
 	
-	for (int i = 0; i < 6; ++i) {
-		if (i == 3)
-			rb_camera->rowBreak ();
-		
-		rb_camera->addButton (g_CameraNames[i]);
+	m_cameraArgs = {
+		{ ui->top,    GL::Top },
+		{ ui->bottom, GL::Bottom },
+		{ ui->front,  GL::Front },
+		{ ui->back,   GL::Back },
+		{ ui->left,   GL::Left },
+		{ ui->right,  GL::Right }
+	};
+	
+	GL::Camera cam = g_win->R()->camera();
+	
+	if( cam == GL::Free )
+		cam = GL::Top;
+	
+	connect( ui->width, SIGNAL( valueChanged( double )), this, SLOT( slot_dimensionsChanged() ));
+	connect( ui->height, SIGNAL( valueChanged( double )), this, SLOT( slot_dimensionsChanged() ));
+	connect( ui->buttonBox, SIGNAL( helpRequested() ), this, SLOT( slot_help() ));
+	connect( ui->fileSearchButton, SIGNAL( clicked( bool )), this, SLOT( slot_fpath() ));
+	
+	slot_dimensionsChanged();
+	fillDefaults( cam );
+}
+
+OverlayDialog::~OverlayDialog()
+{
+	delete ui;
+}
+
+void OverlayDialog::fillDefaults( int newcam )
+{
+	overlayMeta& info = g_win->R()->getOverlay( newcam );
+	
+	radioDefault<int>( newcam, m_cameraArgs );
+	
+	if( info.img != null )
+	{
+		ui->filename->setText( info.fname );
+		ui->originX->setValue( info.ox );
+		ui->originY->setValue( info.oy );
+		ui->width->setValue( info.lw );
+		ui->height->setValue( info.lh );
 	}
-	
-	GL::Camera cam = g_win->R ()->camera ();
-	if (cam != GL::Free)
-		rb_camera->setValue ((int) cam);
-	
-	QGroupBox* gb_image = new QGroupBox ("Image", this);
-	
-	QLabel* lb_fpath = new QLabel ("File:");
-	le_fpath = new QLineEdit;
-	le_fpath->setFocus ();
-	
-	QLabel* lb_ofs = new QLabel ("Origin:");
-	btn_fpath = new QPushButton;
-	btn_fpath->setIcon (getIcon ("folder"));
-	connect (btn_fpath, SIGNAL (clicked ()), this, SLOT (slot_fpath ()));
-	
-	sb_ofsx = new QSpinBox;
-	sb_ofsy = new QSpinBox;
-	sb_ofsx->setRange (0, 10000);
-	sb_ofsy->setRange (0, 10000);
-	sb_ofsx->setSuffix (" px");
-	sb_ofsy->setSuffix (" px");
-	
-	QLabel* lb_dimens = new QLabel ("Dimensions:");
-	dsb_lwidth = new QDoubleSpinBox;
-	dsb_lheight = new QDoubleSpinBox;
-	dsb_lwidth->setRange (0.0f, 10000.0f);
-	dsb_lheight->setRange (0.0f, 10000.0f);
-	dsb_lwidth->setSuffix (" LDU");
-	dsb_lheight->setSuffix (" LDU");
-	dsb_lwidth->setSpecialValueText ("Automatic");
-	dsb_lheight->setSpecialValueText ("Automatic");
-	
-	dbb_buttons = makeButtonBox (*this);
-	dbb_buttons->addButton (QDialogButtonBox::Help);
-	connect (dbb_buttons, SIGNAL (helpRequested ()), this, SLOT (slot_help()));
-	
-	QHBoxLayout* fpathlayout = new QHBoxLayout;
-	fpathlayout->addWidget (lb_fpath);
-	fpathlayout->addWidget (le_fpath);
-	fpathlayout->addWidget (btn_fpath);
-	
-	QGridLayout* metalayout = new QGridLayout;
-	metalayout->addWidget (lb_ofs,			0, 0);
-	metalayout->addWidget (sb_ofsx,		0, 1);
-	metalayout->addWidget (sb_ofsy,		0, 2);
-	metalayout->addWidget (lb_dimens,		1, 0);
-	metalayout->addWidget (dsb_lwidth,	1, 1);
-	metalayout->addWidget (dsb_lheight,	1, 2);
-	
-	QVBoxLayout* imagelayout = new QVBoxLayout (gb_image);
-	imagelayout->addLayout (fpathlayout);
-	imagelayout->addLayout (metalayout);
-	
-	QVBoxLayout* layout = new QVBoxLayout (this);
-	layout->addWidget (rb_camera);
-	layout->addWidget (gb_image);
-	layout->addWidget (dbb_buttons);
-	
-	connect (dsb_lwidth, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
-	connect (dsb_lheight, SIGNAL (valueChanged (double)), this, SLOT (slot_dimensionsChanged ()));
-	connect (rb_camera, SIGNAL (valueChanged (int)), this, SLOT (fillDefaults (int)));
-	
-	slot_dimensionsChanged ();
-	fillDefaults (cam);
+	else
+	{
+		ui->filename->setText( "" );
+		ui->originX->setValue( 0 );
+		ui->originY->setValue( 0 );
+		ui->width->setValue( 0.0f );
+		ui->height->setValue( 0.0f );
+	}
 }
 
-void OverlayDialog::fillDefaults (int newcam) {
-	overlayMeta& info = g_win->R ()->getOverlay (newcam);
-	
-	if (info.img != null) {
-		le_fpath->setText (info.fname);
-		sb_ofsx->setValue (info.ox);
-		sb_ofsy->setValue (info.oy);
-		dsb_lwidth->setValue (info.lw);
-		dsb_lheight->setValue (info.lh);
-	} else {
-		le_fpath->setText ("");
-		sb_ofsx->setValue (0);
-		sb_ofsy->setValue (0);
-		dsb_lwidth->setValue (0.0f);
-		dsb_lheight->setValue (0.0f);
-	} 
+str OverlayDialog::fpath() const
+{
+	return ui->filename->text();
 }
 
-str		OverlayDialog::fpath		() const { return le_fpath->text (); }
-ushort	OverlayDialog::ofsx		() const { return sb_ofsx->value (); }
-ushort	OverlayDialog::ofsy		() const { return sb_ofsy->value (); }
-double	OverlayDialog::lwidth		() const { return dsb_lwidth->value (); }
-double	OverlayDialog::lheight		() const { return dsb_lheight->value (); }
-int		OverlayDialog::camera		() const { return rb_camera->value (); }
-
-void OverlayDialog::slot_fpath () {
-	le_fpath->setText (QFileDialog::getOpenFileName (null, "Overlay image"));
+ushort OverlayDialog::ofsx() const
+{
+	return ui->originX->value();
 }
 
-void OverlayDialog::slot_help () {
-	showDocumentation (g_docs_overlays);
+ushort OverlayDialog::ofsy() const
+{
+	return ui->originY->value();
 }
 
-void OverlayDialog::slot_dimensionsChanged () {
-	bool enable = (dsb_lwidth->value () != 0) || (dsb_lheight->value () != 0);
-	dbb_buttons->button (QDialogButtonBox::Ok)->setEnabled (enable);
+double OverlayDialog::lwidth() const
+{
+	return ui->width->value();
+}
+
+double OverlayDialog::lheight() const
+{
+	return ui->height->value();
+}
+
+int OverlayDialog::camera() const
+{
+	return radioSwitch<int>( GL::Top, m_cameraArgs );
+}
+
+void OverlayDialog::slot_fpath()
+{
+	ui->filename->setText( QFileDialog::getOpenFileName( null, "Overlay image" ));
+}
+
+void OverlayDialog::slot_help()
+{
+	showDocumentation( g_docs_overlays );
+}
+
+void OverlayDialog::slot_dimensionsChanged()
+{
+	bool enable = ( ui->width->value() != 0 ) || (  ui->height->value() != 0 );
+	ui->buttonBox->button( QDialogButtonBox::Ok )->setEnabled( enable );
 }
 
 // =================================================================================================

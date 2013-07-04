@@ -22,6 +22,7 @@
 #include <QMainWindow>
 #include <QAction>
 #include <QListWidget>
+#include <QRadioButton>
 #include "config.h"
 #include "ldtypes.h"
 
@@ -175,6 +176,10 @@ private slots:
 };
 
 // -----------------------------------------------------------------------------
+// Pointer to the instance of ForgeWindow.
+extern ForgeWindow* g_win;
+
+// -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (str iconName);
 vector<quickColor> parseQuickColorMeta ();
@@ -188,9 +193,36 @@ QDialogButtonBox* makeButtonBox (QDialog& dlg);
 CheckBoxGroup* makeAxesBox ();
 QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 
+// =============================================================================
 // -----------------------------------------------------------------------------
-// Pointer to the instance of ForgeWindow.
-extern ForgeWindow* g_win;
+// Takes in pairs of radio buttons and respective values and returns the value of
+// the first found radio button that was checked.
+// =============================================================================
+template<class T> T radioSwitch( const T& defval, vector<pair<QRadioButton*, T>> haystack )
+{
+	for( pair<QRadioButton*, const T&> i : haystack )
+		if( i.first->isChecked() )
+			return i.second;
+	
+	return defval;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Takes in pairs of radio buttons and respective values and checks the first
+// found radio button to have the given value.
+// =============================================================================
+template<class T> void radioDefault( const T& expr, vector<pair<QRadioButton*, T>> haystack )
+{
+	for( pair<QRadioButton*, const T&> i : haystack )
+	{
+		if( i.second == expr )
+		{
+			i.first->setChecked( true );
+			return;
+		}
+	}
+}
 
 // =============================================================================
 // ActionAdder

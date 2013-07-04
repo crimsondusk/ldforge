@@ -419,7 +419,6 @@ MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/
 	g_win->fullRefresh ();
 }
 
-// =========================================================================================================================================
 MAKE_ACTION (wireframe, "Wireframe", "wireframe", "Toggle wireframe view", (0)) {
 	gl_wireframe = !gl_wireframe;
 	g_win->R ()->refresh ();
@@ -433,7 +432,7 @@ MAKE_ACTION( setOverlay, "Set Overlay Image", "overlay", "Set an overlay image",
 		return;
 	
 	g_win->R ()->setupOverlay( (GL::Camera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
-		dlg.ofsy(), dlg.width(), dlg.height() );
+		dlg.ofsy(), dlg.lwidth(), dlg.lheight() );
 }
 
 MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
