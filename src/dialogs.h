@@ -64,28 +64,6 @@ private slots:
 	void fillDefaults (int newcam);
 };
 
-class ReplaceCoordsDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit ReplaceCoordsDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	
-	vector<int> axes () const;
-	double searchValue () const;
-	double replacementValue () const;
-	bool any () const;
-	bool rel () const;
-	
-private:
-	CheckBoxGroup* cbg_axes;
-	QLabel* lb_search, *lb_replacement;
-	QDoubleSpinBox* dsb_search, *dsb_replacement;
-	QCheckBox* cb_any, *cb_rel;
-	
-private slots:
-	void anyChanged (int state);
-};
-
 // =============================================================================
 // SetContentsDialog
 //

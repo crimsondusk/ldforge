@@ -153,65 +153,6 @@ void OverlayDialog::slot_dimensionsChanged () {
 	dbb_buttons->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
-ReplaceCoordsDialog::ReplaceCoordsDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	cbg_axes = makeAxesBox ();
-	
-	lb_search = new QLabel ("Search:");
-	lb_replacement = new QLabel ("Replacement:");
-	
-	dsb_search = new QDoubleSpinBox;
-	dsb_search->setRange (-10000.0f, 10000.0f);
-	dsb_search->setDecimals (6);
-	
-	dsb_replacement = new QDoubleSpinBox;
-	dsb_replacement->setRange (-10000.0f, 10000.0f);
-	dsb_replacement->setDecimals (6);
-	
-	cb_any = new QCheckBox ("Any");
-	cb_rel = new QCheckBox ("Relative");
-	
-	connect (cb_any, SIGNAL (stateChanged (int)), this, SLOT (anyChanged (int)));
-	
-	QGridLayout* valueLayout = new QGridLayout;
-	valueLayout->setColumnStretch (1, 1);
-	valueLayout->addWidget (lb_search, 0, 0);
-	valueLayout->addWidget (dsb_search, 0, 1);
-	valueLayout->addWidget (cb_any, 0, 2);
-	valueLayout->addWidget (lb_replacement, 1, 0);
-	valueLayout->addWidget (dsb_replacement, 1, 1);
-	valueLayout->addWidget (cb_rel, 1, 2);
-	
-	QVBoxLayout* layout = new QVBoxLayout;
-	layout->addWidget (cbg_axes);
-	layout->addLayout (valueLayout);
-	layout->addWidget (makeButtonBox (*this));
-	setLayout (layout);
-}
-
-double ReplaceCoordsDialog::searchValue () const {
-	return dsb_search->value ();
-}
-
-double ReplaceCoordsDialog::replacementValue () const {
-	return dsb_replacement->value ();
-}
-
-vector<int> ReplaceCoordsDialog::axes () const {
-	return cbg_axes->checkedValues ();
-}
-
-void ReplaceCoordsDialog::anyChanged (int state) {
-	dsb_search->setEnabled (state != Qt::Checked);
-}
-
-bool ReplaceCoordsDialog::any () const {
-	return cb_any->isChecked ();
-}
-
-bool ReplaceCoordsDialog::rel () const {
-	return cb_rel->isChecked ();
-}
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================

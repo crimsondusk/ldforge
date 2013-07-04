@@ -31,6 +31,7 @@
 #include "gldraw.h"
 #include "dialogs.h"
 #include "colors.h"
+#include "ui_replcoords.h"
 
 vector<str> g_Clipboard;
 
@@ -532,37 +533,51 @@ MAKE_ACTION (isecalc, "Isecalc", "isecalc", "Compute intersection between object
 }
 
 // =============================================================================
-MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
-	ReplaceCoordsDialog dlg;
-	
-	if (!dlg.exec ())
+MAKE_ACTION( replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL( R ))
+{
+	QDialog* dlg = new QDialog( g_win );
+	Ui::ReplaceCoordsUI ui;
+	ui.setupUi( dlg );
+
+	if( !dlg->exec() )
 		return;
+
+	const double search = ui.search->value(),
+		replacement = ui.replacement->value();
+	const bool any = ui.any->isChecked(),
+		rel = ui.relative->isChecked();
 	
-	const double search = dlg.searchValue (),
-		replacement = dlg.replacementValue ();
-	const bool any = dlg.any (),
-		rel = dlg.rel ();
+	vector<Axis> sel;
+	int num = 0;
 	
-	vector<int> sel = dlg.axes ();
+	if( ui.x->isChecked() ) sel << X;
+	if( ui.y->isChecked() ) sel << Y;
+	if( ui.z->isChecked() ) sel << Z;
 	
-	for (LDObject* obj : g_win->sel ())
-	for (short i = 0; i < obj->vertices (); ++i) {
-		vertex v = obj->getVertex (i);
-		for (int ax : sel) {
-			double& coord = v[(Axis) ax];
+	for( LDObject * obj : g_win->sel() )
+	for( short i = 0; i < obj->vertices(); ++i )
+	{
+		vertex v = obj->getVertex( i );
+		
+		for( Axis ax : sel )
+		{
+			double& coord = v[ax];
 			
-			if (any || coord == search) {
-				if (!rel)
+			if( any || coord == search )
+			{
+				if( !rel )
 					coord = 0;
 				
 				coord += replacement;
+				num++;
 			}
 		}
 		
-		obj->setVertex (i, v);
+		obj->setVertex( i, v );
 	}
 	
-	g_win->fullRefresh ();
+	log( ForgeWindow::tr( "Altered %1 values" ), num );
+	g_win->fullRefresh();
 }
 
 // =================================================================================================
