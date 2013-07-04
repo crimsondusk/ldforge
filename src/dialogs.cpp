@@ -36,6 +36,7 @@
 #include "file.h"
 #include "dialogs.h"
 #include "ui_overlay.h"
+#include "ui_ldrawpath.h"
 
 extern_cfg (str, io_ldpath);
 
@@ -144,94 +145,85 @@ void OverlayDialog::slot_dimensionsChanged()
 }
 
 // =================================================================================================
-LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f)
-	: QDialog (parent, f), m_validDefault (validDefault)
+LDrawPathDialog::LDrawPathDialog( const bool validDefault, QWidget* parent, Qt::WindowFlags f )
+	: QDialog( parent, f ), m_validDefault( validDefault )
 {
-	QLabel* lb_description = null;
-	lb_resolution = new QLabel ("---");
+	ui = new Ui_LDPathUI;
+	ui->setupUi( this );
+	ui->status->setText( "---" );
 	
-	if (validDefault == false)
-		lb_description = new QLabel ("Please input your LDraw directory");
-	
-	QLabel* lb_path = new QLabel ("LDraw path:");
-	le_path = new QLineEdit;
-	btn_findPath = new QPushButton;
-	btn_findPath->setIcon (getIcon ("folder"));
-	
-	btn_cancel = new QPushButton;
-	
-	if (validDefault == false) {
-		btn_cancel->setText ("Exit");
-		btn_cancel->setIcon (getIcon ("exit"));
-	} else {
-		btn_cancel->setText ("Cancel");
-		btn_cancel->setIcon (getIcon ("cancel"));
+	if( validDefault )
+		ui->heading->hide();
+	else
+	{
+		cancelButton()->setText( "Exit" );
+		cancelButton()->setIcon( getIcon( "exit" ));
 	}
 	
-	dbb_buttons = new QDialogButtonBox (QDialogButtonBox::Ok);
-	dbb_buttons->addButton (btn_cancel, QDialogButtonBox::RejectRole);
-	okButton ()->setEnabled (false);
+	okButton()->setEnabled( false );
 	
-	QHBoxLayout* inputLayout = new QHBoxLayout;
-	inputLayout->addWidget (lb_path);
-	inputLayout->addWidget (le_path);
-	inputLayout->addWidget (btn_findPath);
+	connect( ui->path, SIGNAL( textEdited( QString ) ), this, SLOT( slot_tryConfigure() ) );
+	connect( ui->searchButton, SIGNAL( clicked() ), this, SLOT( slot_findPath() ) );
+	connect( ui->buttonBox, SIGNAL( rejected() ), this, validDefault ? SLOT( reject() ) : SLOT( slot_exit() ));
 	
-	QVBoxLayout* mainLayout = new QVBoxLayout;
+	setPath( io_ldpath );
 	
-	if (validDefault == false)
-		mainLayout->addWidget (lb_description);
-	
-	mainLayout->addLayout (inputLayout);
-	mainLayout->addWidget (lb_resolution);
-	mainLayout->addWidget (dbb_buttons);
-	setLayout (mainLayout);
-	
-	connect (le_path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure ()));
-	connect (btn_findPath, SIGNAL (clicked ()), this, SLOT (slot_findPath ()));
-	connect (dbb_buttons, SIGNAL (accepted ()), this, SLOT (accept ()));
-	connect (dbb_buttons, SIGNAL (rejected ()), this, (validDefault) ? SLOT (reject ()) : SLOT (slot_exit ()));
-	
-	setPath (io_ldpath);
-	if (validDefault)
-		slot_tryConfigure ();
+	if( validDefault )
+		slot_tryConfigure();
 }
 
-QPushButton* LDrawPathDialog::okButton () {
-	return dbb_buttons->button (QDialogButtonBox::Ok);
+LDrawPathDialog::~LDrawPathDialog()
+{
+	delete ui;
 }
 
-void LDrawPathDialog::setPath (str path) {
-	le_path->setText (path);
+QPushButton* LDrawPathDialog::okButton()
+{
+	return ui->buttonBox->button( QDialogButtonBox::Ok );
 }
 
-str LDrawPathDialog::filename () const {
-	return le_path->text ();
+QPushButton* LDrawPathDialog::cancelButton()
+{
+	return ui->buttonBox->button( QDialogButtonBox::Cancel );
 }
 
-void LDrawPathDialog::slot_findPath () {
-	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
-	
-	if (newpath.length () > 0 && newpath != filename ()) {
-		setPath (newpath);
-		slot_tryConfigure ();
+void LDrawPathDialog::setPath( str path )
+{
+	ui->path->setText( path );
+}
+
+str LDrawPathDialog::filename() const
+{
+	return ui->path->text();
+}
+
+void LDrawPathDialog::slot_findPath()
+{
+	str newpath = QFileDialog::getExistingDirectory( this, "Find LDraw Path" );
+
+	if( newpath.length() > 0 && newpath != filename() )
+	{
+		setPath( newpath );
+		slot_tryConfigure();
 	}
 }
 
-void LDrawPathDialog::slot_exit () {
-	exit (1);
+void LDrawPathDialog::slot_exit()
+{
+	exit( 1 );
 }
 
-void LDrawPathDialog::slot_tryConfigure () {
-	if (LDPaths::tryConfigure (filename ()) == false) {
-		lb_resolution->setText (fmt ("<span style=\"color:red; font-weight: bold;\">%1</span>",
-			LDPaths::getError()));
-		okButton ()->setEnabled (false);
+void LDrawPathDialog::slot_tryConfigure()
+{
+	if( LDPaths::tryConfigure( filename() ) == false )
+	{
+		ui->status->setText( fmt( "<span style=\"color:#700; \">%1</span>", LDPaths::getError() ) );
+		okButton()->setEnabled( false );
 		return;
 	}
 	
-	lb_resolution->setText ("<span style=\"color: #7A0; font-weight: bold;\">OK!</span>");
-	okButton ()->setEnabled (true);
+	ui->status->setText( "<span style=\"color: #270; \">OK!</span>" );
+	okButton()->setEnabled( true );
 }
 
 // =============================================================================

@@ -37,6 +37,7 @@ class CheckBoxGroup;
 class QLabel;
 class QAbstractButton;
 class Ui_OverlayUI;
+class Ui_LDPathUI;
 
 class OverlayDialog : public QDialog
 {
@@ -65,29 +66,27 @@ private slots:
 };
 
 // =============================================================================
-class LDrawPathDialog : public QDialog {
+class LDrawPathDialog : public QDialog
+{
 	Q_OBJECT
 	
 public:
-	explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
-	str filename () const;
-	void setPath (str path);
+	explicit LDrawPathDialog( const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0 );
+	virtual ~LDrawPathDialog();
+	str filename() const;
+	void setPath( str path );
 	
 private:
-	Q_DISABLE_COPY (LDrawPathDialog)
-	
-	QLabel* lb_resolution;
-	QLineEdit* le_path;
-	QPushButton* btn_findPath, *btn_cancel;
-	QDialogButtonBox* dbb_buttons;
+	Q_DISABLE_COPY( LDrawPathDialog )
 	const bool m_validDefault;
-	
-	QPushButton* okButton ();
+	Ui_LDPathUI* ui;
+	QPushButton* okButton();
+	QPushButton* cancelButton();
 	
 private slots:
-	void slot_findPath ();
-	void slot_tryConfigure ();
-	void slot_exit ();
+	void slot_findPath();
+	void slot_tryConfigure();
+	void slot_exit();
 };
 
 // =============================================================================
