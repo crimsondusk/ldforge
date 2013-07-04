@@ -649,13 +649,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	// Message log
 	if( msglog() )
 	{
-		MessageManager* m = msglog();
 		int y = 0;
 		const int margin = 2;
 		QColor col = Qt::black;
 		paint.setPen( QPen() );
 		
-		for( const MessageManager::Line& line : *m )
+		for( const MessageManager::Line& line : *msglog())
 		{
 			col.setAlphaF( line.alpha );
 			paint.setPen( QPen( col ));

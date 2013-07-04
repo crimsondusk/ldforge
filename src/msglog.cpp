@@ -71,9 +71,9 @@ void MessageManager::addLine( str line )
 	
 	m_lines << Line( line );
 	
-	// Force a tick, we added a new message and it should
-	// show up immediately.
-	tick();
+	// Update the renderer view
+	if( renderer() )
+		renderer()->update();
 }
 
 MessageManager& MessageManager::operator<<( str line )
@@ -96,7 +96,7 @@ void MessageManager::tick()
 		changed |= lineChanged;
 	}
 	
-	if( changed )
+	if( changed && renderer() )
 		renderer()->update();
 }
 

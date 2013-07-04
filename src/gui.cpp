@@ -1022,6 +1022,7 @@ void ForgeWindow::primitiveLoaderEnd () {
 	hidetimer->setSingleShot (true);
 	hidetimer->start (1500);
 	m_primLoaderBar->setFormat( tr( "Done" ));
+	log( tr( "Primitives scanned: %1 primitives listed" ), m_primLoaderBar->value() );
 }
 
 // =============================================================================
