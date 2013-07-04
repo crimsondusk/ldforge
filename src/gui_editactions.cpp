@@ -226,6 +226,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 // =============================================================================
 MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.", CTRL_SHIFT (B)) {
 	vector<LDObject*> objs = g_win->sel ();
+	int num = 0;
 	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != LDObject::Quad && obj->getType() != LDObject::Triangle)
@@ -258,8 +259,11 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			g_curfile->insertObj (idx, lines[i]);
 			g_win->R ()->compileObject (lines[i]);
 		}
+		
+		num += numLines;
 	}
 	
+	log( ForgeWindow::tr( "Added %1 border lines" ), num );
 	g_win->refresh ();
 }
 
@@ -269,6 +273,8 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 	"Adds vertex objects to the corners of the given polygons", (0))
 {
+	int num = 0;
+	
 	for (LDObject* obj : g_win->sel ()) {
 		if (obj->vertices () < 2)
 			continue;
@@ -281,9 +287,11 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 			
 			g_curfile->insertObj (++idx, vert);
 			g_win->R ()->compileObject (vert);
+			++num;
 		}
 	}
 	
+	log( ForgeWindow::tr( "Added %1 vertices" ), num );
 	g_win->refresh ();
 }
 
@@ -465,6 +473,7 @@ MAKE_ACTION (rotpoint, "Set Rotation Point", "rotpoint", "Configure the rotation
 // =============================================================================
 MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
 	setlocale (LC_ALL, "C");
+	int num = 0;
 	
 	for (LDObject* obj : g_win->sel ())
 	for (short i = 0; i < obj->vertices (); ++i) {
@@ -478,8 +487,10 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 		}
 		
 		obj->setVertex (i, v);
+		num += 3;
 	}
 	
+	log( ForgeWindow::tr( "Rounded %1 coordinates" ), num );
 	g_win->fullRefresh ();
 }
 
@@ -599,14 +610,18 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 // ================================================================================================
 MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional lines down to normal lines.", (0)) {
 	vector<LDObject*> sel = g_win->sel ();
+	int num = 0;
+	
 	for (LDObject* obj : sel) {
 		if (obj->getType () != LDObject::CondLine)
 			continue;
 		
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote ();
 		g_win->R ()->compileObject (repl);
+		++num;
 	}
 	
+	log( ForgeWindow::tr( "Demoted %1 conditional lines" ), num );
 	g_win->refresh ();
 }
 
@@ -627,7 +642,7 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 	
 	if (colnum >= 512) {
 		//: Auto-colorer error message
-		critical( QObject::tr( "Out of unused colors! What are you doing?!" ));
+		critical( ForgeWindow::tr( "Out of unused colors! What are you doing?!" ));
 		return;
 	}
 	
@@ -638,6 +653,8 @@ MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given ob
 		obj->setColor (colnum);
 		g_win->R ()->compileObject (obj);
 	}
+	
+	log( ForgeWindow::tr( "Auto-colored: new color is [%1] %2" ), colnum, getColor( colnum )->name );
 	
 	g_win->refresh ();
 }
