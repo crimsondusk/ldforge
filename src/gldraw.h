@@ -71,7 +71,7 @@ public:
 	~GLRenderer ();
 	
 	Camera         camera              () const { return m_camera; }
-	Axis           cameraAxis          (bool y);
+	Axis           cameraAxis          ( bool y, Camera camid = (Camera) -1 );
 	const char*    cameraName          () const;
 	void           clearOverlay        ();
 	void           compileObject       (LDObject* obj);

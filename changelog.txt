@@ -22,6 +22,7 @@
 	the no-response policy could be a bad thing.
 - Color selector is now twice as wide for easier color selection.
 - Fixed: Recent files should behave coherently now.
+- Fixed: Overlays could only be defined for the current camera, changing the camera in the prompt didn't work.
 - Fixed: text editing did not trigger checks while setting LDraw path, removed the Configure
 	button from the LDraw path config dialog, it's no longer needed.
 - Fixed: Coordinates weren't drawn properly on a bright background (was always drawn in bright colors..).

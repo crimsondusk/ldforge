@@ -1391,8 +1391,11 @@ void GLRenderer::deleteLists (LDObject* obj) {
 }
 
 // =============================================================================
-Axis GLRenderer::cameraAxis (bool y) {
-	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+Axis GLRenderer::cameraAxis (bool y, GL::Camera camid) {
+	if( camid == (GL::Camera) -1 )
+		camid = m_camera;
+	
+	const staticCameraMeta* cam = &g_staticCameras[camid];
 	return (y) ? cam->axisY : cam->axisX;
 }
 
@@ -1423,11 +1426,11 @@ bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, i
 	elif( info.lh == 0 )
 		info.lh = ( info.lw * img->height() ) / img->width();
 	
-	const Axis x2d = cameraAxis( false ),
-		y2d = cameraAxis( true );
+	const Axis x2d = cameraAxis( false, cam ),
+		y2d = cameraAxis( true, cam );
 	
-	double negXFac = g_staticCameras[m_camera].negX ? -1 : 1,
-		negYFac = g_staticCameras[m_camera].negY ? -1 : 1;
+	double negXFac = g_staticCameras[cam].negX ? -1 : 1,
+		negYFac = g_staticCameras[cam].negY ? -1 : 1;
 	
 	info.v0 = info.v1 = g_origin;
 	info.v0[x2d] = -( info.ox * info.lw * negXFac ) / img->width();
