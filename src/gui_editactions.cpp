@@ -32,6 +32,7 @@
 #include "dialogs.h"
 #include "colors.h"
 #include "ui_replcoords.h"
+#include "ui_editraw.h"
 
 vector<str> g_Clipboard;
 
@@ -169,27 +170,38 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw code of this object.", KEY (F9)) {
-	if (g_win->sel ().size() != 1)
+MAKE_ACTION( setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw code of this object.", KEY( F9 ))
+{
+	if( g_win->sel().size() != 1 )
 		return;
 	
-	LDObject* obj = g_win->sel ()[0];
+	LDObject* obj = g_win->sel()[0];
+	QDialog* dlg = new QDialog;
+	Ui::EditRawUI ui;
 	
-	SetContentsDialog dlg;
-	dlg.setObject (obj);
-	if (!dlg.exec ())
+	ui.setupUi( dlg );
+	ui.code->setText( obj->raw() );
+	
+	if( obj->getType() == LDObject::Gibberish )
+		ui.errorDescription->setText( static_cast<LDGibberish*>( obj )->reason );
+	else
+	{
+		ui.errorDescription->hide();
+		ui.errorIcon->hide();
+	}
+	
+	if( !dlg->exec() )
 		return;
 	
 	LDObject* oldobj = obj;
 	
 	// Reinterpret it from the text of the input field
-	obj = parseLine (dlg.text ());
-	
-	oldobj->replace (obj);
+	obj = parseLine( ui.code->text() );
+	oldobj->replace( obj );
 	
 	// Refresh
-	g_win->R ()->compileObject (obj);
-	g_win->refresh ();
+	g_win->R()->compileObject( obj );
+	g_win->refresh();
 }
 
 // =============================================================================
