@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>85</height>
+    <height>87</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -22,7 +22,11 @@
     </widget>
    </item>
    <item>
-    <widget class="QLineEdit" name="code"/>
+    <widget class="QLineEdit" name="code">
+     <property name="whatsThis">
+      <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;The LDraw code of this object. The code written here is expected to be valid LDraw code, invalid code here results the object being turned into an error object. Please do refer to the &lt;a href=&quot;http://www.ldraw.org/article/218.html&quot;&gt;&lt;span style=&quot; text-decoration: underline; color:#0057ae;&quot;&gt;official file format standard&lt;/span&gt;&lt;/a&gt; for further information.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+     </property>
+    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
