@@ -248,11 +248,15 @@ enum LogType {
 	LOG_Dev,
 };
 
-// logf - universal access to the message log. Defined here so that I don't have
-// to include gui.h here and recompile everything every time that file changes.
-// logf is defined in main.cpp
-void logf (const char* fmtstr, ...) FORMAT_PRINTF (1, 2);
-void logf (LogType type, const char* fmtstr, ...) FORMAT_PRINTF (2, 3);
+// log() - universal access to the message log. Defined here so that I don't have
+// to include msglog.h here and recompile everything every time that file changes.
+void DoLog( std::initializer_list<StringFormatArg> args );
+#ifndef IN_IDE_PARSER
+# define log(...) DoLog({ __VA_ARGS__ });
+#else
+void log( const char* fmtstr, ... );
+#endif
+
 // -----------------------------------------------------------------------------
 // Vertex at (0, 0, 0)
 extern const vertex g_origin;

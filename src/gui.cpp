@@ -45,6 +45,7 @@
 #include "history.h"
 #include "widgets.h"
 #include "addObjectDialog.h"
+#include "msglog.h"
 #include "config.h"
 
 actionmeta g_actionMeta[MAX_ACTIONS];
@@ -78,6 +79,10 @@ ForgeWindow::ForgeWindow () {
 	m_objList->setAlternatingRowColors (true);
 	connect (m_objList, SIGNAL (itemSelectionChanged ()), this, SLOT (slot_selectionChanged ()));
 	connect (m_objList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
+	
+	m_msglog = new MessageManager;
+	m_msglog->setRenderer( R() );
+	m_renderer->setMessageLog( m_msglog );
 	
 	m_splitter = new QSplitter;
 	m_splitter->addWidget (m_renderer);
@@ -562,7 +567,7 @@ void ForgeWindow::slot_action () {
 	}
 	
 	if (!meta) {
-		logf (LOG_Warning, "unknown signal sender %p!\n", qAct);
+		log ("Warning: unknown signal sender %p!\n", qAct);
 		return;
 	}
 	
@@ -1043,6 +1048,8 @@ void ForgeWindow::save( LDOpenFile* f, bool saveAs )
 		
 		if( f == g_curfile )
 			g_win->updateTitle ();
+		
+		log( "Saved to %1.", path );
 	}
 	else
 	{
@@ -1064,6 +1071,11 @@ void ForgeWindow::save( LDOpenFile* f, bool saveAs )
 		if( dlg.clickedButton () == saveAsBtn )
 			save (f, true); // yay recursion!
 	}
+}
+
+void ForgeWindow::addMessage( str msg )
+{
+	m_msglog->addLine( msg );
 }
 
 // ============================================================================
@@ -1092,19 +1104,6 @@ bool confirm (str title, str msg) {
 void critical (str msg) {
 	QMessageBox::critical (g_win, QObject::tr( "Error" ), msg,
 		(QMessageBox::Close), QMessageBox::Close);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// Print to message log
-// TODO: I don't think that the message log being a widget in the window
-// is a very good idea... maybe this should log into the renderer? Or into
-// another dialog that can be popped up?
-void ForgeWindow::logVA (LogType type, const char* fmtstr, va_list va) {
-	(void) type;
-	(void) fmtstr;
-	(void) va;
 }
 
 // =============================================================================

@@ -23,6 +23,7 @@
 #include "common.h"
 #include "ldtypes.h"
 
+class MessageManager;
 class QDialogButtonBox;
 class RadioBox;
 class QDoubleSpinBox;
@@ -55,8 +56,9 @@ struct overlayMeta {
 class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
-	PROPERTY (bool, drawOnly, setDrawOnly)
-	PROPERTY (double, zoom, setZoom)
+	PROPERTY( bool, drawOnly, setDrawOnly )
+	PROPERTY( double, zoom, setZoom )
+	PROPERTY( MessageManager*, msglog, setMessageLog )
 	READ_PROPERTY (bool, picking, setPicking)
 	DECLARE_PROPERTY (LDOpenFile*, file, setFile)
 	DECLARE_PROPERTY (EditMode, editMode, setEditMode)

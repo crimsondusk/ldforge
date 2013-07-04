@@ -223,12 +223,10 @@ void FileLoader::work()
 		// Check for parse errors and warn about tthem
 		if( obj->getType () == LDObject::Gibberish )
 		{
-/*
-			logf( LOG_Warning, "Couldn't parse line #%lu: %s\n",
-				m_progress + 1, qchars (static_cast<LDGibberish*> (obj)->reason ));
+			log( "Couldn't parse line #%lu: %s\n",
+				m_progress + 1, static_cast<LDGibberish*> (obj)->reason );
 			
-			logf (LOG_Warning, "- Line was: %s\n", qchars (line));
-*/
+			log( "- Line was: %s\n", line );
 			
 			if( m_warningsPointer )
 				( *m_warningsPointer )++;

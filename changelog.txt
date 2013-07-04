@@ -9,6 +9,8 @@
 	it's not cached (prims.cfg in configuration directory) or on user demand. Primitives can be categorised
 	with the use of a regex-based configuration file, with a valid default which should cater to most users.
 - Added an export to file action, moved it + insert from to File menu
+- Added the message log - instead of being a separate text widget as originally planned, messages are
+	drawn into the viewport. Messages expire after 5 seconds.
 - Parts are now zoomed to fit properly, making the initial view of the part clearer.
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
 - Objects can now be edited by double-clicking on them.

@@ -25,6 +25,7 @@
 #include "config.h"
 #include "ldtypes.h"
 
+class MessageManager;
 class ForgeWindow;
 class color;
 class QSplitter;
@@ -130,6 +131,7 @@ public:
 	}
 	void setStatusBarText (str text);
 	void addActionMeta (actionmeta& meta);
+	void addMessage( str msg );
 	
 public slots:
 	void primitiveLoaderStart (ulong max);
@@ -138,17 +140,12 @@ public slots:
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
-	void logVA (LogType eType, const char* fmtstr, va_list va);
-	
-	friend void logf (const char* fmtstr, ...);
-	friend void logf (LogType type, const char* fmtstr, ...);
 	
 private:
 	GLRenderer* m_renderer;
 	ObjectList* m_objList;
 	QMenu* m_recentFilesMenu;
 	QSplitter* m_splitter;
-	str m_msglogHTML;
 	QToolBar* m_colorToolBar;
 	QProgressBar* m_primLoaderBar;
 	QWidget* m_primLoaderWidget;
@@ -157,6 +154,7 @@ private:
 	vector<quickColor> m_colorMeta;
 	vector<QToolButton*> m_colorButtons;
 	vector<QAction*> m_recentFiles;
+	MessageManager* m_msglog;
 	
 	void createMenuActions ();
 	void createMenus ();

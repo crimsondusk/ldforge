@@ -85,23 +85,6 @@ int main (int argc, char* argv[]) {
 	return app.exec ();
 }
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void logf (const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (LOG_Normal, fmtstr, va);
-	va_end (va);
-}
-
-void logf (LogType type, const char* fmtstr, ...) {
-	va_list va;
-	va_start (va, fmtstr);
-	g_win->logVA (type, fmtstr, va);
-	va_end (va);
-}
-
 void doDevf (const char* func, const char* fmtstr, ...) {
 	va_list va;
 	

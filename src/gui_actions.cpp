@@ -440,7 +440,6 @@ MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the ov
 	g_win->R ()->clearOverlay ();
 }
 
-// =========================================================================================================================================
 MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the camera view.", CTRL (1)) {
 	g_win->R ()->setEditMode (Select);
 }
@@ -449,7 +448,6 @@ MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera v
 	g_win->R ()->setEditMode (Draw);
 }
 
-// =========================================================================================================================================
 MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coordinate of the current camera.", (0)) {
 	if (g_win->R ()->camera () == GL::Free)
 		return;

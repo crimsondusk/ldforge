@@ -35,6 +35,7 @@
 #include "history.h"
 #include "dialogs.h"
 #include "addObjectDialog.h"
+#include "msglog.h"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];
@@ -102,6 +103,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	setFile (null);
 	setDrawOnly (false);
 	resetAngles ();
+	setMessageLog( null );
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -604,7 +606,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			str label;
 			label = fmt( fmtstr, tr( g_CameraNames[camera ()] ));
 			paint.setPen (m_darkbg ? Qt::white : Qt::black);
-			paint.drawText (QPoint (margin, margin + metrics.ascent ()), label);
+			paint.drawText( QPoint( margin, height() - ( margin + metrics.descent() )), label );
 		}
 		
 		// Tool tips
@@ -641,6 +643,24 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				paint.setBrush (Qt::black);
 				paint.drawText (QPoint (x0 + margin, y0 + margin + metrics.ascent ()), label);
 			}
+		}
+	}
+	
+	// Message log
+	if( msglog() )
+	{
+		MessageManager* m = msglog();
+		int y = 0;
+		const int margin = 2;
+		QColor col = Qt::black;
+		paint.setPen( QPen() );
+		
+		for( const MessageManager::Line& line : *m )
+		{
+			col.setAlphaF( line.alpha );
+			paint.setPen( QPen( col ));
+			paint.drawText( QPoint( margin, y + margin + metrics.ascent() ), line.text );
+			y += metrics.height();
 		}
 	}
 	
@@ -1180,6 +1200,7 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	case Select:
 		unsetCursor ();
 		setContextMenuPolicy (Qt::DefaultContextMenu);
+		log( "Changed to Select mode." );
 		break;
 	
 	case Draw:
@@ -1199,6 +1220,7 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 		g_win->sel ().clear ();
 		g_win->updateSelection ();
 		m_drawedVerts.clear ();
+		log( "Changed to Draw mode." );
 		break;
 	}
 	

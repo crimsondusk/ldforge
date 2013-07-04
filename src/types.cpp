@@ -275,6 +275,11 @@ StringFormatArg::StringFormatArg (const floatconfig& v) {
 	m_val.number (v.value);
 }
 
+StringFormatArg::StringFormatArg( const void* v )
+{
+	m_val.sprintf( "%p", v );
+}
+
 // =============================================================================
 File::File () {
 	// Make a null file
