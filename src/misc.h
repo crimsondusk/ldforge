@@ -60,6 +60,13 @@ inline const gridinfo& currentGrid () {
 }
 
 // =============================================================================
+enum RotationPoint
+{
+	ObjectOrigin,
+	WorldOrigin,
+	CustomPoint
+};
+
 vertex rotPoint (const vector<LDObject*>& objs);
 void configRotationPoint ();
 

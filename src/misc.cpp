@@ -24,6 +24,7 @@
 #include "gui.h"
 #include "bbox.h"
 #include "dialogs.h"
+#include "ui_rotpoint.h"
 
 // Prime number table.
 const ushort g_primes[NUM_PRIMES] = {
@@ -208,37 +209,70 @@ void simplify (short& numer, short& denom) {
 }
 
 // =============================================================================
-vertex rotPoint (const vector<LDObject*>& objs) {
-	if (edit_rotpoint == 1)
-		return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
-	
+vertex rotPoint( const vector<LDObject*>& objs )
+{
 	bbox box;
 	
-	// Calculate center vertex
-	for (LDObject* obj : objs) {
-		if (obj->hasMatrix ())
-			box << dynamic_cast<LDMatrixObject*> (obj)->position ();
-		else
-			box << obj;
+	switch( edit_rotpoint )
+	{
+	case ObjectOrigin:
+		// Calculate center vertex
+		for( LDObject * obj : objs )
+		{
+			if( obj->hasMatrix() )
+				box << dynamic_cast<LDMatrixObject*>( obj )->position();
+			else
+				box << obj;
+		}
+		
+		return box.center ();
+	
+	case WorldOrigin:
+		return g_origin;
+	
+	case CustomPoint:
+		return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
 	}
 	
-	return box.center ();
+	return vertex();
 }
 
-void configRotationPoint () {
-	RotationPointDialog dlg;
-	dlg.setCustom (edit_rotpoint);
-	dlg.setCustomPos (vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z));
+void configRotationPoint()
+{
+	QDialog* dlg = new QDialog;
+	Ui::RotPointUI ui;
+	ui.setupUi( dlg );
 	
-	if (!dlg.exec ())
+	switch( edit_rotpoint )
+	{
+	case ObjectOrigin:
+		ui.objectPoint->setChecked( true );
+		break;
+	
+	case WorldOrigin:
+		ui.worldPoint->setChecked( true );
+		break;
+	
+	case CustomPoint:
+		ui.customPoint->setChecked( true );
+		break;
+	}
+	
+	ui.customX->setValue( edit_rotpoint_x );
+	ui.customY->setValue( edit_rotpoint_y );
+	ui.customZ->setValue( edit_rotpoint_z );
+	
+	if (!dlg->exec ())
 		return;
 	
-	edit_rotpoint = dlg.custom ();
+	edit_rotpoint =
+		( ui.objectPoint->isChecked() ) ? ObjectOrigin :
+		( ui.worldPoint->isChecked() )  ? WorldOrigin :
+		                                  CustomPoint;
 	
-	vertex pos = dlg.customPos ();
-	edit_rotpoint_x = pos[X];
-	edit_rotpoint_y = pos[Y];
-	edit_rotpoint_z = pos[Z];
+	edit_rotpoint_x = ui.customX->value();
+	edit_rotpoint_y = ui.customY->value();
+	edit_rotpoint_z = ui.customZ->value();
 }
 
 str join (initlist<StringFormatArg> vals, str delim) {

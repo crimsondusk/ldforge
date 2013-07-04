@@ -109,27 +109,6 @@ private slots:
 };
 
 // =============================================================================
-class RotationPointDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit RotationPointDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	
-	vertex customPos () const;
-	bool custom () const;
-	void setCustom (bool custom);
-	void setCustomPos (const vertex& pos);
-	
-private:
-	QDoubleSpinBox* dsb_customX, *dsb_customY, *dsb_customZ;
-	RadioBox* rb_rotpoint;
-	QGroupBox* gb_customPos;
-	
-private slots:
-	void radioBoxChanged ();
-};
-
-// =============================================================================
 class OpenProgressDialog : public QDialog {
 	Q_OBJECT
 	READ_PROPERTY (ulong, progress, setProgress)
