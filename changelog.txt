@@ -20,6 +20,7 @@
 - Improved external program fault handling: don't try to replace/append the output in case of failure, catch non-zero exit codes.
 - Added a progress box for file loading to respond to desktops while loading files. With large files
 	the no-response policy could be a bad thing.
+- Color selector is now twice as wide for easier color selection.
 - Fixed: Recent files should behave coherently now.
 - Fixed: text editing did not trigger checks while setting LDraw path, removed the Configure
 	button from the LDraw path config dialog, it's no longer needed.

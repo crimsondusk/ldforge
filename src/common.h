@@ -134,6 +134,16 @@ private: \
 public: \
 	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); }
 
+// Property whose set accessor is a public slot
+// TODO: make this replace PROPERTY
+#define SLOT_PROPERTY( T, GET, SET ) \
+private: \
+	T PROP_NAME( GET ); \
+public: \
+	READ_ACCESSOR( T, GET ) { return PROP_NAME (GET); } \
+public slots: \
+	SET_ACCESSOR( T, SET ) { PROP_NAME (GET) = val; }
+
 #ifdef null
 #undef null
 #endif // null

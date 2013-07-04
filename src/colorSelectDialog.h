@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -22,27 +22,33 @@
 #include <QDialog>
 #include "common.h"
 
-class QLabel;
-class QGraphicsView;
+class color;
+class Ui_ColorSelUI;
 class QGraphicsScene;
-class ColorSelectDialog : public QDialog {
+
+class ColorSelector : public QDialog
+{
 	Q_OBJECT
+	READ_PROPERTY( color*, sel, setSelection )
 	
 public:
-	explicit ColorSelectDialog (short defval = -1, QWidget* parent = null);
-	static bool staticDialog (short& val, short defval = -1, QWidget* parent = null);
+	explicit ColorSelector( short defval = -1, QWidget* parent = null );
+	virtual ~ColorSelector();
+	static bool getColor( short& val, short defval = -1, QWidget* parent = null );
 	
-	QGraphicsScene* gs_scene;
-	QGraphicsView* gv_view;
-	QLabel* lb_colorInfo;
-	short selColor;
+protected:
+	void mousePressEvent( QMouseEvent* event );
+	void resizeEvent( QResizeEvent* ev );
 	
 private:
-	void drawScene ();
-	void drawColorInfo ();
+	Ui_ColorSelUI* ui;
+	QGraphicsScene* m_scene;
+	bool m_firstResize;
 	
-private slots:
-	void mousePressEvent (QMouseEvent* event);
+	int numRows() const;
+	int viewportWidth() const;
+	void drawScene();
+	void drawColorInfo();
 };
 
 #endif // COLORSELECTOR_H

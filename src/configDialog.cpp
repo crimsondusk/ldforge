@@ -449,7 +449,7 @@ void ConfigDialog::slot_setColor () {
 	short dDefault = entry ? entry->col->index : -1;
 	short dValue;
 	
-	if (ColorSelectDialog::staticDialog (dValue, dDefault, this) == false)
+	if (ColorSelector::getColor (dValue, dDefault, this) == false)
 		return;
 	
 	if (entry)

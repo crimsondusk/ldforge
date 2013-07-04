@@ -264,7 +264,7 @@ str AddObjectDialog::currentSubfileName () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void AddObjectDialog::slot_colorButtonClicked () {
-	ColorSelectDialog::staticDialog (colnum, colnum, this);
+	ColorSelector::getColor (colnum, colnum, this);
 	setButtonBackground (pb_color, colnum);
 }
 

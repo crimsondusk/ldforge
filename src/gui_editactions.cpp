@@ -208,7 +208,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 	defcol = g_win->getSelectedColor ();
 	
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelectDialog::staticDialog (colnum, defcol, g_win)) {
+	if (ColorSelector::getColor (colnum, defcol, g_win)) {
 		for (LDObject* obj : objs) {
 			if (obj->isColored () == false)
 				continue;
