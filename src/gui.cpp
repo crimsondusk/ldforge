@@ -483,7 +483,7 @@ void ForgeWindow::updateToolBars () {
 	m_colorToolBar->clear ();
 	
 	for (quickColor& entry : m_colorMeta) {
-		if (entry.bSeparator)
+		if (entry.isSeparator)
 			m_colorToolBar->addSeparator ();
 		else {
 			QToolButton* colorButton = new QToolButton;

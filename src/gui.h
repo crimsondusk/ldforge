@@ -78,7 +78,7 @@ extern actionmeta g_actionMeta[256];
 typedef struct {
 	color* col;
 	QToolButton* btn;
-	bool bSeparator;
+	bool isSeparator;
 } quickColor;
 
 // =============================================================================
