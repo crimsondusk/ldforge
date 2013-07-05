@@ -1,3 +1,5 @@
 build
 ldforge.kdev4
 src/ui_*.h
+Makefile
+ldforge
