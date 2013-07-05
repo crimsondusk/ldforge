@@ -24,6 +24,7 @@
 #include <QGroupBox>
 #include <QDoubleSpinBox>
 #include <QLineEdit>
+#include <QCheckBox>
 
 #include "common.h"
 #include "configDialog.h"
@@ -203,11 +204,13 @@ extern_cfg( str, prog_rectifier );
 extern_cfg( str, prog_intersector );
 extern_cfg( str, prog_coverer );
 extern_cfg( str, prog_isecalc );
+extern_cfg( str, prog_edger2 );
 extern_cfg( bool, prog_ytruder_wine );
 extern_cfg( bool, prog_rectifier_wine );
 extern_cfg( bool, prog_intersector_wine );
 extern_cfg( bool, prog_coverer_wine );
 extern_cfg( bool, prog_isecalc_wine );
+extern_cfg( bool, prog_edger2_wine );
 
 static const struct extProgInfo
 {
@@ -221,15 +224,16 @@ static const struct extProgInfo
 #endif // _WIN32
 } g_extProgInfo[] = {
 #ifndef _WIN32
-# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null, &prog_##LOWNAME##_wine, null },
+# define EXTPROG( NAME, LOWNAME ) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null, &prog_##LOWNAME##_wine, null },
 #else
-# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null },
+# define EXTPROG( NAME, LOWNAME ) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null },
 #endif
 	EXTPROG( Ytruder, ytruder )
 	EXTPROG( Rectifier, rectifier )
 	EXTPROG( Intersector, intersector )
 	EXTPROG( Isecalc, isecalc )
 	EXTPROG( Coverer, coverer )
+	EXTPROG( Edger2, edger2 )
 #undef EXTPROG
 };
 

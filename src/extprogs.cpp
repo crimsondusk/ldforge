@@ -597,14 +597,48 @@ void runIsecalc () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION( edger2, "Edger 2", "edger2", "Compute edgelines", 0 ) {
-	QDialog* form = new QDialog;
-	Ui::Edger2Dialog ui;
-	ui.setupUi( form );
+MAKE_ACTION( edger2, "Edger 2", "edger2", "Compute edgelines", 0 )
+{
+	setlocale (LC_ALL, "C");
 	
-exec:
-	if( !form->exec() )
+	if( !checkProgPath( prog_edger2, Edger2 ))
 		return;
 	
+	QDialog* dlg = new QDialog;
+	Ui::Edger2Dialog ui;
+	ui.setupUi( dlg );
 	
+	if( !dlg->exec() )
+		return;
+	
+	QTemporaryFile in, out;
+	str inName, outName;
+	
+	if( !mkTempFile( in, inName ) || !mkTempFile( out, outName ))
+		return;
+	
+	int unmatched = ui.unmatched->currentIndex();
+	
+	str argv = join({
+		fmt( "-p %1", ui.precision->value() ),
+		fmt( "-af %1", ui.flatAngle->value() ),
+		fmt( "-ac %1", ui.condAngle->value() ),
+		fmt( "-ae %1", ui.edgeAngle->value() ),
+		ui.delLines->isChecked()     ? "-de" : "",
+		ui.delCondLines->isChecked() ? "-dc" : "",
+		ui.colored->isChecked()      ? "-c" : "",
+		ui.bfc->isChecked()          ? "-b" : "",
+		ui.convex->isChecked()       ? "-cx" : "",
+		ui.concave->isChecked()      ? "-cv" : "",
+		unmatched == 0 ? "-u+" : ( unmatched == 2 ? "-u-" : "" ),
+		inName,
+		outName,
+	});
+	
+	writeSelection( inName );
+	
+	if( !runUtilityProcess( Edger2, prog_edger2, argv ))
+		return;
+	
+	insertOutput( outName, true, {} );
 }
