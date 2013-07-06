@@ -42,7 +42,7 @@ void History::undo()
 	g_fullRefresh = false;
 	
 	// Iterate the list in reverse and undo all actions
-	for( const AbstractHistoryEntry * change : c_rev<AbstractHistoryEntry*> ( set ))
+	for( const AbstractHistoryEntry* change : c_rev<AbstractHistoryEntry*>( set ))
 		change->undo();
 	
 	setPos( pos() - 1 );
@@ -107,6 +107,8 @@ void History::close()
 	
 	setOpened( false );
 	
+	log( "size: %1", m_currentArchive.size() );
+	
 	if( m_currentArchive.size() == 0 )
 		return;
 	
@@ -126,7 +128,7 @@ void History::add( AbstractHistoryEntry* entry )
 		delete entry;
 		return;
 	}
-
+	
 	entry->setParent( this );
 	m_currentArchive << entry;
 }

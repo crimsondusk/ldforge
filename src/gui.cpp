@@ -545,11 +545,12 @@ void ForgeWindow::updateTitle () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-EXTERN_ACTION (undo);
-EXTERN_ACTION (redo);
+EXTERN_ACTION( undo );
+EXTERN_ACTION( redo );
+EXTERN_ACTION( open );
 void ForgeWindow::slot_action () {
 	// Open the history so we can record the edits done during this action.
-	if (sender () != ACTION (undo) && sender () != ACTION (redo))
+	if( sender() != ACTION( undo ) && sender() != ACTION( redo ) && sender() != ACTION( open ))
 		g_curfile->openHistory ();
 	
 	// Get the action that triggered this slot.
