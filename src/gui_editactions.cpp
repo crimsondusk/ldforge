@@ -33,6 +33,7 @@
 #include "colors.h"
 #include "ui_replcoords.h"
 #include "ui_editraw.h"
+#include "ui_flip.h"
 
 vector<str> g_Clipboard;
 
@@ -617,46 +618,34 @@ MAKE_ACTION( replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 	g_win->fullRefresh();
 }
 
-// =================================================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =================================================================================================
-class FlipDialog : public QDialog {
-public:
-	explicit FlipDialog (QWidget* parent = 0, Qt::WindowFlags f = 0) : QDialog (parent, f) {
-		cbg_axes = makeAxesBox ();
-		
-		QVBoxLayout* layout = new QVBoxLayout;
-		layout->addWidget (cbg_axes);
-		layout->addWidget (makeButtonBox (*this));
-		setLayout (layout);
-	}
-	
-	vector<int> axes () { return cbg_axes->checkedValues (); }
-	
-private:
-	CheckBoxGroup* cbg_axes;
-};
-
 // ================================================================================================
-MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
-	FlipDialog dlg;
+MAKE_ACTION( flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT( F ))
+{
+	QDialog* dlg = new QDialog;
+	Ui::FlipUI ui;
+	ui.setupUi( dlg );
 	
-	if (!dlg.exec ())
+	if( !dlg->exec() )
 		return;
 	
-	vector<int> sel = dlg.axes ();
+	vector<Axis> sel;
+	if( ui.x->isChecked() ) sel << X;
+	if( ui.y->isChecked() ) sel << Y;
+	if( ui.z->isChecked() ) sel << Z;
 	
-	for (LDObject* obj : g_win->sel ())
-	for (short i = 0; i < obj->vertices (); ++i) {
+	for( LDObject* obj : g_win->sel() )
+	for( short i = 0; i < obj->vertices(); ++i )
+	{
 		vertex v = obj->getVertex (i);
 		
-		for (int ax : sel)
-			v[(Axis) ax] *= -1;
+		for( Axis ax : sel )
+			v[ax] *= -1;
 		
 		obj->setVertex (i, v);
+		g_win->R()->compileObject( obj );
 	}
 	
-	g_win->fullRefresh ();
+	g_win->refresh();
 }
 
 // ================================================================================================
