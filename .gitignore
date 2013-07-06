@@ -4,3 +4,4 @@ src/ui_*.h
 Makefile
 ldforge
 *.dat
+debug_lastOutput

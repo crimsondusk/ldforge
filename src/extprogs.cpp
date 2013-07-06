@@ -35,6 +35,7 @@
 #include "history.h"
 #include "labeledwidget.h"
 
+#include "ui_ytruder.h"
 #include "ui_intersector.h"
 #include "ui_rectifier.h"
 #include "ui_coverer.h"
@@ -284,36 +285,25 @@ void runYtruder () {
 	if (!checkProgPath (prog_ytruder, Ytruder))
 		return;
 	
-	QDialog dlg;
+	QDialog* dlg = new QDialog;
+	Ui::YtruderUI ui;
+	ui.setupUi( dlg );
 	
-	RadioBox* rb_mode = new RadioBox ("Extrusion mode", {"Distance", "Symmetry", "Projection", "Radial"}, 0, Qt::Horizontal);
-	RadioBox* rb_axis = new RadioBox ("Axis", {"X", "Y", "Z"}, 0, Qt::Horizontal);
-	LabeledWidget<QDoubleSpinBox>* dsb_depth = new LabeledWidget<QDoubleSpinBox> ("Plane depth"),
-		*dsb_condAngle = new LabeledWidget<QDoubleSpinBox> ("Conditional line threshold");
-	
-	rb_axis->setValue (Y);
-	dsb_depth->w ()->setMinimum (-10000.0);
-	dsb_depth->w ()->setMaximum (10000.0);
-	dsb_depth->w ()->setDecimals (3);
-	dsb_condAngle->w ()->setValue (30.0f);
-	
-	QVBoxLayout* layout = new QVBoxLayout (&dlg);
-	layout->addWidget (rb_mode);
-	layout->addWidget (rb_axis);
-	layout->addWidget (dsb_depth);
-	layout->addWidget (dsb_condAngle);
-	layout->addWidget (makeButtonBox (dlg));
-	
-	dlg.setWindowIcon (getIcon ("extrude"));
-	
-	if (!dlg.exec ())
+	if (!dlg->exec ())
 		return;
 	
 	// Read the user's choices
-	const enum modetype { Distance, Symmetry, Projection, Radial } mode = (modetype) rb_mode->value ();
-	const Axis axis = (Axis) rb_axis->value ();
-	const double depth = dsb_depth->w ()->value (),
-		condAngle = dsb_condAngle->w ()->value ();
+	const enum { Distance, Symmetry, Projection, Radial } mode =
+		ui.mode_distance->isChecked()   ? Distance :
+		ui.mode_symmetry->isChecked()   ? Symmetry :
+		ui.mode_projection->isChecked() ? Projection : Radial;
+	
+	const Axis axis =
+		ui.axis_x->isChecked() ? X :
+		ui.axis_y->isChecked() ? Y : Z;
+	
+	const double depth = ui.planeDepth->value(),
+		condAngle = ui.condAngle->value();
 	
 	QTemporaryFile indat, outdat;
 	str inDATName, outDATName;
