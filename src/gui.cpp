@@ -190,7 +190,9 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("settings");
 	addMenuAction ("setLDrawPath");
 	menu->addSeparator ();
+#ifndef RELEASE
 	addMenuAction ("testpic");
+#endif
 	addMenuAction ("reloadPrimitives");
 	menu->addSeparator ();
 	addMenuAction ("exit");
@@ -580,19 +582,24 @@ void ForgeWindow::slot_action () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::deleteSelection () {
-	if (m_sel.size () == 0)
-		return;
+int ForgeWindow::deleteSelection()
+{
+	if( m_sel.size() == 0 )
+		return 0;
 	
 	vector<LDObject*> selCopy = m_sel;
+	int num = 0;
 	
 	// Delete the objects that were being selected
-	for (LDObject* obj : selCopy) {
-		g_curfile->forgetObject (obj);
+	for( LDObject * obj : selCopy )
+	{
+		g_curfile->forgetObject( obj );
+		++num;
 		delete obj;
 	}
 	
-	refresh ();
+	refresh();
+	return num;
 }
 
 // =============================================================================

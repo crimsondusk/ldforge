@@ -41,30 +41,39 @@ cfg (bool, edit_schemanticinline, false);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void copyToClipboard () {
+static int copyToClipboard () {
 	vector<LDObject*> objs = g_win->sel ();
+	int num = 0;
 	
 	// Clear the clipboard first.
 	g_Clipboard.clear ();
 	
 	// Now, copy the contents into the clipboard.
 	for (LDObject* obj : objs)
+	{
 		g_Clipboard << obj->raw ();
+		++num;
+	}
+	
+	return num;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
-	copyToClipboard ();
+	int num = copyToClipboard ();
 	g_win->deleteSelection ();
+	
+	log( ForgeWindow::tr( "%1 objects cut" ), num );
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", CTRL (C)) {
-	copyToClipboard ();
+	int num = copyToClipboard ();
+	log( ForgeWindow::tr( "%1 objects copied" ), num );
 }
 
 // =============================================================================
@@ -73,14 +82,17 @@ MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", C
 MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	ulong idx = g_win->getInsertionPoint ();
 	g_win->sel ().clear ();
+	int num = 0;
 	
 	for (str line : g_Clipboard) {
 		LDObject* pasted = parseLine (line);
 		g_curfile->insertObj (idx++, pasted);
 		g_win->sel () << pasted;
 		g_win->R ()->compileObject (pasted);
+		++num;
 	}
 	
+	log( ForgeWindow::tr( "%1 objects pasted" ), num );
 	g_win->refresh ();
 	g_win->scrollToSelection ();
 }
@@ -89,7 +101,8 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
-	g_win->deleteSelection ();
+	int num = g_win->deleteSelection ();
+	log( ForgeWindow::tr( "%1 objects deleted" ), num );
 }
 
 // =============================================================================
@@ -142,6 +155,7 @@ MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selec
 // ===============================================================================================
 MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
 	vector<LDObject*> objs = g_win->sel ();
+	int num = 0;
 	
 	for (LDObject* obj : objs) {
 		if (obj->getType() != LDObject::Quad)
@@ -162,7 +176,11 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		
 		// Delete this quad now, it has been split.
 		delete obj;
+		
+		num++;
 	}
+	
+	log( "%1 quadrilaterals split", num );
 	
 	g_win->fullRefresh ();
 }
@@ -476,7 +494,6 @@ MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z a
 	doRotate (0, 0, -1);
 }
 
-// =========================================================================================================================================
 MAKE_ACTION (rotpoint, "Set Rotation Point", "rotpoint", "Configure the rotation point.", (0)) {
 	configRotationPoint ();
 }
@@ -493,7 +510,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 		vertex v = obj->getVertex (i);
 		
 		for (const Axis ax : g_Axes) {
-			// HACK: :p
+			// HACK: .. should find a better way to do this
 			char valstr[64];
 			sprintf (valstr, "%.3f", v[ax]);
 			v[ax] = atof (valstr);
@@ -511,13 +528,21 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everything selected to main and edge colors", (0)) {
+	int num = 0;
+	
 	for (LDObject* obj : g_win->sel ()) {
 		if (obj->isColored () == false)
 			continue;
 		
-		obj->setColor ((obj->getType () == LDObject::Line || obj->getType () == LDObject::CondLine) ? edgecolor : maincolor);
+		int col = maincolor;
+		if( obj->getType() == LDObject::Line || obj->getType() == LDObject::CondLine )
+			col = edgecolor;
+		
+		obj->setColor( col );
+		num++;
 	}
 	
+	log( ForgeWindow::tr( "%1 objects uncolored" ), num );
 	g_win->fullRefresh ();
 }
 

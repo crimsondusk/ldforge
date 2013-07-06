@@ -122,7 +122,7 @@ public:
 	void scrollToSelection ();
 	void spawnContextMenu (const QPoint pos);
 	void deleteObjVector (vector< LDObject* > objs);
-	void deleteSelection ();
+	int deleteSelection ();
 	void deleteByColor (const short int colnum);
 	void save( LDOpenFile* f, bool saveAs );
 	GLRenderer* R () { return m_renderer; }

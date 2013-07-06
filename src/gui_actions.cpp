@@ -460,6 +460,10 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 		g_win->R ()->setDepthValue (depth);
 }
 
+#ifndef RELEASE
+// This is a test to draw a dummy axle. Meant to be used as a primitive gallery,
+// but I can't figure how to generate these pictures properly. Multi-threading
+// these is an immense pain.
 MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	LDOpenFile* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
@@ -498,6 +502,7 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	delete[] imgdata;
 	rend->deleteLater ();
 }
+#endif
 
 MAKE_ACTION (reloadPrimitives, "Scan Primitives", "", "", (0)) {
 	PrimitiveLister::start ();
