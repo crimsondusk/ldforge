@@ -316,22 +316,21 @@ double radialPoint( int i, int divs, double ( *func )( double ))
 vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num )
 {
 	vector<LDObject*> objs;
+	vector<int> condLineSegs;
 	
 	for( int i = 0; i < segs; ++i )
 	{
-		double x = radialPoint( i, divs, cos ),
-			nextX = radialPoint( i + 1, divs, cos ),
-			prevX = radialPoint(( i + 15 ) % 16, divs, cos ),
-			z = radialPoint( i, divs, sin ),
-			nextZ = radialPoint( i + 1, divs, sin ),
-			prevZ = radialPoint(( i + 15 ) % 16, divs, sin );
+		double x0 = radialPoint( i, divs, cos ),
+			x1 = radialPoint( i + 1, divs, cos ),
+			z0 = radialPoint( i, divs, sin ),
+			z1 = radialPoint( i + 1, divs, sin );
 		
 		switch( type )
 		{
 		case Circle:
 		{
-			vertex v0( x, 0.0f, z ),
-				   v1( nextX, 0.0f, nextZ );
+			vertex v0( x0, 0.0f, z0 ),
+				   v1( x1, 0.0f, z1 );
 			
 			LDLine* line = new LDLine;
 			line->setVertex( 0, v0 );
@@ -350,25 +349,25 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			
 			if( type == Cylinder )
 			{
-				x2 = nextX;
-				x3 = x;
-				z2 = nextZ;
-				z3 = z;
+				x2 = x1;
+				x3 = x0;
+				z2 = z1;
+				z3 = z0;
 				
 				y0 = y1 = 0.0f;
 				y2 = y3 = 1.0f;
 			}
 			else
 			{
-				x2 = nextX * ( num + 1 );
-				x3 = x * ( num + 1 );
-				z2 = nextZ * ( num + 1 );
-				z3 = z * ( num + 1 );
+				x2 = x1 * ( num + 1 );
+				x3 = x0 * ( num + 1 );
+				z2 = z1 * ( num + 1 );
+				z3 = z0 * ( num + 1 );
 				
-				x *= num;
-				nextX *= num;
-				z *= num;
-				nextZ *= num;
+				x0 *= num;
+				x1 *= num;
+				z0 *= num;
+				z1 *= num;
 				
 				if( type == Ring )
 					y0 = y1 = y2 = y3 = 0.0f;
@@ -379,10 +378,10 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 				}
 			}
 			
-			vertex v0( x, y0, z ),
-				   v1( nextX, y1, nextZ ),
-				   v2( x2, y2, z2 ),
-				   v3( x3, y3, z3 );
+			vertex v0( x0, y0, z0 ),
+				v1( x1, y1, z1 ),
+				v2( x2, y2, z2 ),
+				v3( x3, y3, z3 );
 			
 			LDQuad* quad = new LDQuad;
 			quad->setColor( maincolor );
@@ -390,21 +389,14 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			quad->setVertex( 1, v1 );
 			quad->setVertex( 2, v2 );
 			quad->setVertex( 3, v3 );
+			
+			if( type == Cylinder )
+				quad->invert();
+			
 			objs << quad;
 			
-			LDCondLine* cond = null;
-			if( type == Cylinder )
-			{
-				cond = new LDCondLine;
-				cond->setColor( edgecolor );
-				cond->setVertex( 0, v0 );
-				cond->setVertex( 1, v3 );
-				cond->setVertex( 2, vertex( nextX, 0.0f, nextZ ));
-				cond->setVertex( 3, vertex( prevX, 0.0f, prevZ ));
-			}
-			
-			if( cond )
-				objs << cond;
+			if( type == Cylinder || type == Cone )
+				condLineSegs << i;
 		}
 		break;
 		
@@ -417,12 +409,12 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 				x2 = z2 = 0.0f;
 			else
 			{
-				x2 = ( x >= 0.0f ) ? 1.0f : -1.0f;
-				z2 = ( z >= 0.0f ) ? 1.0f : -1.0f;
+				x2 = ( x0 >= 0.0f ) ? 1.0f : -1.0f;
+				z2 = ( z0 >= 0.0f ) ? 1.0f : -1.0f;
 			}
 			
-			vertex v0( x, 0.0f, z ),
-				   v1( nextX, 0.0f, nextZ ),
+			vertex v0( x0, 0.0f, z0 ),
+				   v1( x1, 0.0f, z1 ),
 				   v2( x2, 0.0f, z2 );
 			
 			// Disc negatives need to go the other way around, otherwise
@@ -439,6 +431,37 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 		default:
 			break;
 		}
+	}
+	
+	// If this is not a full circle, we need a conditional line at the other
+	// end, too.
+	if( segs < divs && condLineSegs.size() != 0 )
+		condLineSegs << segs;
+	
+	for( int i : condLineSegs )
+	{
+		vertex v0( radialPoint( i, divs, cos ), 0.0f, radialPoint( i, divs, sin )),
+			v1,
+			v2( radialPoint( i + 1, divs, cos ), 0.0f, radialPoint( i + 1, divs, sin )),
+			v3( radialPoint( i - 1, divs, cos ), 0.0f, radialPoint( i - 1, divs, sin ));
+		
+		if( type == Cylinder )
+			v1 = vertex( v0[X], 1.0f, v0[Z] );
+		elif( type == Cone )
+		{
+			v1 = vertex( v0[X] * ( num + 1 ), 0.0f, v0[Z] * ( num + 1 ));
+			v0[X] *= num;
+			v0[Y] = 1.0f;
+			v0[Z] *= num;
+		}
+		
+		LDCondLine* line = new LDCondLine;
+		line->setColor( edgecolor );
+		line->setVertex( 0, v0 );
+		line->setVertex( 1, v1 );
+		line->setVertex( 2, v2 );
+		line->setVertex( 3, v3 );
+		objs << line;
 	}
 	
 	return objs;
