@@ -138,6 +138,7 @@ public slots:
 	void primitiveLoaderStart (ulong max);
 	void primitiveLoaderUpdate (ulong prog);
 	void primitiveLoaderEnd ();
+	void clearSelection();
 	
 protected:
 	void closeEvent (QCloseEvent* ev);

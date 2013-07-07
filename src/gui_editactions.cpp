@@ -127,13 +127,16 @@ static void doInline (bool deep) {
 		
 		// Merge in the inlined objects
 		for (LDObject* inlineobj : objs) {
-			// This object is now inlined so it has no parent anymore.
-			inlineobj->setParent (null);
-			g_curfile->insertObj (idx++, inlineobj);
+			str line = inlineobj->raw();
+			delete inlineobj;
+			
+			LDObject* newobj = parseLine( line );
+			g_curfile->insertObj( idx++, newobj );
+			g_win->sel() << newobj;
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		g_curfile->forgetObject (obj);
+		g_curfile->forgetObject( obj );
 		delete obj;
 	}
 	

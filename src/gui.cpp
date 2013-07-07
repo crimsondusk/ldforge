@@ -820,6 +820,9 @@ void ForgeWindow::updateSelection () {
 	
 	m_objList->clearSelection ();
 	for (LDObject* obj : m_sel) {
+		if( obj->qObjListEntry == null )
+			continue;
+		
 		obj->qObjListEntry->setSelected (true);
 		obj->setSelected (true);
 	}
@@ -1173,6 +1176,11 @@ void ForgeWindow::addActionMeta (actionmeta& meta) {
 	
 	assert (g_metacursor < MAX_ACTIONS);
 	g_actionMeta[g_metacursor++] = meta;
+}
+
+void ForgeWindow::clearSelection()
+{
+	m_sel.clear();
 }
 
 QImage imageFromScreencap (uchar* data, ushort w, ushort h) {
