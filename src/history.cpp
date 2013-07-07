@@ -30,6 +30,7 @@ bool g_fullRefresh = false;
 
 History::History()
 {
+	setOpened( false );
 	setPos( -1 );
 }
 
