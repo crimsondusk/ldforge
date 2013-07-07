@@ -308,31 +308,36 @@ bool primitiveLoaderBusy()
 	return g_primListerMutex;
 }
 
+double radialPoint( int i, int divs, double ( *func )( double ))
+{
+	return ( *func )(( i * 2 * pi ) / divs );
+}
+
 vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num )
 {
 	vector<LDObject*> objs;
 	
 	for( int i = 0; i < segs; ++i )
 	{
-		double x0 = cos( ( i * 2 * pi ) / divs ),
-			x1 = cos( ( ( i + 1 ) * 2 * pi ) / divs ),
-			z0 = sin( ( i * 2 * pi ) / divs ),
-			z1 = sin( ( ( i + 1 ) * 2 * pi ) / divs );
-		
-		LDObject* obj = null;
+		double x = radialPoint( i, divs, cos ),
+			nextX = radialPoint( i + 1, divs, cos ),
+			prevX = radialPoint(( i + 15 ) % 16, divs, cos ),
+			z = radialPoint( i, divs, sin ),
+			nextZ = radialPoint( i + 1, divs, sin ),
+			prevZ = radialPoint(( i + 15 ) % 16, divs, sin );
 		
 		switch( type )
 		{
 		case Circle:
 		{
-			vertex v0( x0, 0.0f, z0 ),
-				   v1( x1, 0.0f, z1 );
+			vertex v0( x, 0.0f, z ),
+				   v1( nextX, 0.0f, nextZ );
 			
 			LDLine* line = new LDLine;
 			line->setVertex( 0, v0 );
 			line->setVertex( 1, v1 );
 			line->setColor( edgecolor );
-			obj = line;
+			objs << line;
 		}
 		break;
 		
@@ -345,25 +350,25 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			
 			if( type == Cylinder )
 			{
-				x2 = x1;
-				x3 = x0;
-				z2 = z1;
-				z3 = z0;
+				x2 = nextX;
+				x3 = x;
+				z2 = nextZ;
+				z3 = z;
 				
 				y0 = y1 = 0.0f;
 				y2 = y3 = 1.0f;
 			}
 			else
 			{
-				x2 = x1 * ( num + 1 );
-				x3 = x0 * ( num + 1 );
-				z2 = z1 * ( num + 1 );
-				z3 = z0 * ( num + 1 );
+				x2 = nextX * ( num + 1 );
+				x3 = x * ( num + 1 );
+				z2 = nextZ * ( num + 1 );
+				z3 = z * ( num + 1 );
 				
-				x0 *= num;
-				x1 *= num;
-				z0 *= num;
-				z1 *= num;
+				x *= num;
+				nextX *= num;
+				z *= num;
+				nextZ *= num;
 				
 				if( type == Ring )
 					y0 = y1 = y2 = y3 = 0.0f;
@@ -374,8 +379,8 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 				}
 			}
 			
-			vertex v0( x0, y0, z0 ),
-				   v1( x1, y1, z1 ),
+			vertex v0( x, y0, z ),
+				   v1( nextX, y1, nextZ ),
 				   v2( x2, y2, z2 ),
 				   v3( x3, y3, z3 );
 			
@@ -385,7 +390,21 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			quad->setVertex( 1, v1 );
 			quad->setVertex( 2, v2 );
 			quad->setVertex( 3, v3 );
-			obj = quad;
+			objs << quad;
+			
+			LDCondLine* cond = null;
+			if( type == Cylinder )
+			{
+				cond = new LDCondLine;
+				cond->setColor( edgecolor );
+				cond->setVertex( 0, v0 );
+				cond->setVertex( 1, v3 );
+				cond->setVertex( 2, vertex( nextX, 0.0f, nextZ ));
+				cond->setVertex( 3, vertex( prevX, 0.0f, prevZ ));
+			}
+			
+			if( cond )
+				objs << cond;
 		}
 		break;
 		
@@ -398,12 +417,12 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 				x2 = z2 = 0.0f;
 			else
 			{
-				x2 = ( x0 >= 0.0f ) ? 1.0f : -1.0f;
-				z2 = ( z0 >= 0.0f ) ? 1.0f : -1.0f;
+				x2 = ( x >= 0.0f ) ? 1.0f : -1.0f;
+				z2 = ( z >= 0.0f ) ? 1.0f : -1.0f;
 			}
 			
-			vertex v0( x0, 0.0f, z0 ),
-				   v1( x1, 0.0f, z1 ),
+			vertex v0( x, 0.0f, z ),
+				   v1( nextX, 0.0f, nextZ ),
 				   v2( x2, 0.0f, z2 );
 			
 			// Disc negatives need to go the other way around, otherwise
@@ -413,16 +432,13 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			seg->setVertex( type == Disc ? 0 : 2, v0 );
 			seg->setVertex( 1, v1 );
 			seg->setVertex( type == Disc ? 2 : 0, v2 );
-			obj = seg;
+			objs << seg;
 		}
 		break;
 		
 		default:
 			break;
 		}
-		
-		if( obj )
-			objs << obj;
 	}
 	
 	return objs;
@@ -435,8 +451,7 @@ str primitiveTypeName( PrimitiveType type )
 	       type == Cylinder ? "Cylinder" :
 	       type == Disc     ? "Disc" :
 	       type == DiscNeg  ? "Disc Negative" :
-	       type == Ring     ? "Ring" :
-	       "Cone";
+	       type == Ring     ? "Ring" : "Cone";
 }
 
 static const str g_radialNameRoots[] =

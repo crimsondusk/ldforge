@@ -289,6 +289,7 @@ double atof( str val )
 	// between locales (i.e. fails to read decimals properly). That is
 	// quite undesired...
 	setlocale( LC_NUMERIC, "C" );
+	
 	char* buf = new char[val.length()];
 	char* bufptr = &buf[0];
 	

@@ -242,10 +242,14 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void AddObjectDialog::setButtonBackground (QPushButton* button, short color) {
+void AddObjectDialog::setButtonBackground (QPushButton* button, short colnum) {
+	color* col = getColor ( colnum );
+	
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
-	button->setStyleSheet (fmt ("background-color: %1", getColor (color)->hexcode));
+	
+	if( col )
+		button->setStyleSheet (fmt ("background-color: %1", col->hexcode));
 }
 
 // =============================================================================

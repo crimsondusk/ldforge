@@ -115,5 +115,7 @@ MessageManager::c_it MessageManager::end() const
 
 void DoLog( std::initializer_list<StringFormatArg> args )
 {
-	g_win->addMessage( DoFormat( args ));
+	const str msg = DoFormat( args );
+	g_win->addMessage( msg );
+	print( "%1\n", msg );
 }
