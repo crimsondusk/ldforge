@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -19,7 +19,7 @@
 #include <errno.h>
 #include <time.h>
 #include <QDir>
-#include <qtextstream.h>
+#include <QTextStream>
 #include "common.h"
 #include "config.h"
 #include "misc.h"
@@ -30,77 +30,86 @@ static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
 // Load the configuration from file
-bool config::load () {
-	print ("config::load: Loading configuration file...\n");
-	print ("config::load: Path to configuration is %1\n", filepath ());
+bool config::load()
+{
+	print( "config::load: Loading configuration file...\n" );
+	print( "config::load: Path to configuration is %1\n", filepath() );
 	
 	// Locale must be disabled for atof
-	setlocale (LC_NUMERIC, "C");
+	setlocale( LC_NUMERIC, "C" );
 	
-	File f (filepath (), File::Read);
-	if (!f)
+	File f( filepath(), File::Read );
+	int ln = 0;
+	
+	if( !f )
 		return false;
 	
-	size_t ln = 0;
-	
 	// Read the values.
-	for (str line : f) {
+	for( str line : f )
+	{
 		ln++;
 		
-		if (line.isEmpty () || line[0] == '#')
+		if( line.isEmpty() || line[0] == '#' )
 			continue; // Empty line or comment.
 		
 		// Find the equals sign.
-		int equals = line.indexOf ('=');
-		if (equals == -1) {
-			fprint (stderr, "couldn't find `=` sign in entry `%1`\n", line);
+		int equals = line.indexOf( '=' );
+		
+		if( equals == -1 )
+		{
+			fprint( stderr, "couldn't find `=` sign in entry `%1`\n", line );
 			continue;
 		}
 		
-		str entry = line.left (equals);
-		str valstring = line.right (line.length () - equals - 1);
+		str entry = line.left( equals );
+		str valstring = line.right( line.length() - equals - 1 );
 		
 		// Find the config entry for this.
 		config* cfg = null;
-		for (config* i : g_configPointers) {
-			if (!i)
+		
+		for( config* i : g_configPointers )
+		{
+			if( !i )
 				break;
 			
-			if (entry == i->name)
+			if( entry == i->name )
 				cfg = i;
 		}
 		
-		if (!cfg) {
-			fprint (stderr, "unknown config `%1`\n", entry);
+		if( !cfg )
+		{
+			fprint( stderr, "unknown config `%1`\n", entry );
 			continue;
 		}
 		
-		switch (cfg->getType()) {
-		case CONFIG_int:
-			static_cast<intconfig*> (cfg)->value = valstring.toInt ();
-			break;
-		
-		case CONFIG_str:
-			static_cast<strconfig*> (cfg)->value = valstring;
-			break;
-		
-		case CONFIG_float:
-			static_cast<floatconfig*> (cfg)->value = valstring.toFloat ();
-			break;
-		
-		case CONFIG_bool:
+		switch( cfg->getType() )
 		{
-			bool& val = static_cast<boolconfig*> (cfg)->value;
+		case Type_int:
+			static_cast<intconfig*>( cfg )->value = valstring.toInt();
+			break;
+		
+		case Type_str:
+			static_cast<strconfig*>( cfg )->value = valstring;
+			break;
+		
+		case Type_float:
+			static_cast<floatconfig*>( cfg )->value = valstring.toFloat();
+			break;
+		
+		case Type_bool:
+		{
+			bool& val = static_cast<boolconfig*>( cfg )->value;
 			
-			if (valstring.toUpper () == "TRUE" || valstring == "1")
+			if( valstring.toUpper() == "TRUE" || valstring == "1" )
 				val = true;
-			elif (valstring.toUpper () == "FALSE" || valstring == "0")
+			elif( valstring.toUpper() == "FALSE" || valstring == "0" )
 				val = false;
+			
 			break;
 		}
 		
-		case CONFIG_keyseq:
-			static_cast<keyseqconfig*> (cfg)->value = keyseq::fromString (valstring);
+		case Type_keyseq:
+			static_cast<keyseqconfig*>( cfg )->value = keyseq::fromString( valstring );
 			break;
 		
 		default:
@@ -108,66 +117,74 @@ bool config::load () {
 		}
 	}
 	
-	f.close ();
+	f.close();
 	return true;
 }
 
-extern_cfg (str, io_ldpath);
+extern_cfg( str, io_ldpath );
 
 // =============================================================================
 // Save the configuration to disk
-bool config::save () {
+bool config::save()
+{
 	// The function will write floats, disable the locale now so that they
 	// are written properly.
-	setlocale (LC_NUMERIC, "C");
+	setlocale( LC_NUMERIC, "C" );
 	
 	// If the directory doesn't exist, create it now.
-	if (QDir (dirpath ()).exists () == false) {
-		fprint (stderr, "Creating config path %1...\n", dirpath ());
-		if (!QDir ().mkpath (dirpath ())) {
-			critical ("Failed to create the configuration directory. Configuration cannot be saved!\n");
+	if( QDir( dirpath() ).exists() == false )
+	{
+		fprint( stderr, "Creating config path %1...\n", dirpath() );
+		
+		if( !QDir().mkpath( dirpath() ))
+		{
+			critical( "Failed to create the configuration directory. Configuration cannot be saved!\n" );
 			return false;
 		}
 	}
 	
-	File f (filepath (), File::Write);
-	print ("writing cfg to %1\n", filepath ());
+	File f( filepath(), File::Write );
+	print( "writing cfg to %1\n", filepath() );
 	
-	if (!f) {
+	if( !f )
+	{
 		critical( fmt( QObject::tr( "Cannot save configuration, cannot open %1 for writing: %2\n" ),
-			filepath(), strerror( errno )));
+			filepath(), strerror( errno )) );
 		return false;
 	}
 	
-	fprint (f, "# Configuration file for " APPNAME "\n");
+	fprint( f, "# Configuration file for " APPNAME "\n" );
 	
-	for (config* cfg : g_configPointers) {
-		if (!cfg)
+	for( config * cfg : g_configPointers )
+	{
+		if( !cfg )
 			break;
 		
-		if (cfg->isDefault ())
+		if( cfg->isDefault() )
 			continue;
 		
 		str valstring;
-		switch (cfg->getType ()) {
-		case CONFIG_int:
-			valstring = fmt ("%1", static_cast<intconfig*> (cfg)->value);
+		
+		switch( cfg->getType() )
+		{
+		case Type_int:
+			valstring = fmt( "%1", static_cast<intconfig*>( cfg )->value );
 			break;
 		
-		case CONFIG_str:
-			valstring = static_cast<strconfig*> (cfg)->value;
+		case Type_str:
+			valstring = static_cast<strconfig*>( cfg )->value;
 			break;
 		
-		case CONFIG_float:
-			valstring = fmt ("%1", static_cast<floatconfig*> (cfg)->value);
+		case Type_float:
+			valstring = fmt( "%1", static_cast<floatconfig*>( cfg )->value );
 			break;
 		
-		case CONFIG_bool:
-			valstring = (static_cast<boolconfig*> (cfg)->value) ? "true" : "false";
+		case Type_bool:
+			valstring = ( static_cast<boolconfig*>( cfg )->value ) ? "true" : "false";
 			break;
 		
-		case CONFIG_keyseq:
-			valstring = static_cast<keyseqconfig*> (cfg)->value.toString ();
+		case Type_keyseq:
+			valstring = static_cast<keyseqconfig*>( cfg )->value.toString();
 			break;
 		
 		default:
@@ -175,44 +192,49 @@ bool config::save () {
 		}
 		
 		// Write the entry now.
-		fprint (f, "%1=%2\n", cfg->name, valstring);
+		fprint( f, "%1=%2\n", cfg->name, valstring );
 	}
 	
-	f.close ();
+	f.close();
 	return true;
 }
 
 // =============================================================================
-void config::reset () {
-	for (config* cfg : g_configPointers) {
-		if (!cfg)
+void config::reset()
+{
+	for( config * cfg : g_configPointers )
+	{
+		if( !cfg )
 			break;
 		
-		cfg->resetValue ();
+		cfg->resetValue();
 	}
 }
 
 // =============================================================================
-str config::filepath () {
-	str path = fmt ("%1%2.cfg", dirpath (),
-		str (APPNAME).toLower ());
+str config::filepath()
+{
+	str path = fmt( "%1%2.cfg", dirpath(),
+		str( APPNAME ).toLower() );
 	return path;
 }
 
 // =============================================================================
-str config::dirpath () {
+str config::dirpath()
+{
 #ifndef _WIN32
-	return fmt ("%1" DIRSLASH ".%2" DIRSLASH,
-		QDir::homePath (), str (APPNAME).toLower ());
+	return fmt( "%1" DIRSLASH ".%2" DIRSLASH,
+				QDir::homePath(), str( APPNAME ).toLower() );
 #else
-	return fmt ("%1" DIRSLASH APPNAME DIRSLASH, QDir::homePath ());
+	return fmt( "%1" DIRSLASH APPNAME DIRSLASH, QDir::homePath() );
 #endif // _WIN32
 }
 
-void addConfig (config* ptr) {
-	if (g_cfgPointerCursor == 0)
-		memset (g_configPointers, 0, sizeof g_configPointers);
+void addConfig( config* ptr )
+{
+	if( g_cfgPointerCursor == 0 )
+		memset( g_configPointers, 0, sizeof g_configPointers );
 	
-	assert (g_cfgPointerCursor < MAX_CONFIG);
+	assert( g_cfgPointerCursor < MAX_CONFIG );
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }
