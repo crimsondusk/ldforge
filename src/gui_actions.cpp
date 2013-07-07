@@ -38,6 +38,7 @@
 #include "widgets.h"
 
 extern_cfg (bool, gl_wireframe);
+extern_cfg( bool, gl_colorbfc );
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -506,4 +507,11 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 
 MAKE_ACTION (reloadPrimitives, "Scan Primitives", "", "", (0)) {
 	PrimitiveLister::start ();
+}
+
+MAKE_ACTION( colorbfc, "BFC Red/Green View", "bfc-view", "", SHIFT( B ))
+{
+	gl_colorbfc = !gl_colorbfc;
+	ACTION( colorbfc )->setChecked( gl_colorbfc );
+	g_win->R ()->refresh();
 }

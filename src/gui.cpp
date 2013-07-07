@@ -61,6 +61,7 @@ extern_cfg (bool, gl_axes);
 extern_cfg (str, gl_maincolor);
 extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (bool, gl_wireframe);
+extern_cfg (bool, gl_colorbfc);
 
 const char* g_modeActionNames[] = {
 	"modeSelect",
@@ -148,6 +149,9 @@ void ForgeWindow::createMenuActions () {
 	findAction ("wireframe")->setCheckable (true);
 	findAction ("wireframe")->setChecked (gl_wireframe);
 	
+	findAction ("colorbfc")->setCheckable (true);
+	findAction ("colorbfc")->setChecked (gl_colorbfc);
+	
 	updateEditModeActions ();
 	
 	// things not implemented yet
@@ -202,6 +206,7 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("resetView");
 	addMenuAction ("axes");
 	addMenuAction ("wireframe");
+	addMenuAction ("colorbfc");
 	menu->addSeparator ();
 	addMenuAction ("setOverlay");
 	addMenuAction ("clearOverlay");
@@ -406,6 +411,7 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("View");
 	addToolBarAction ("axes");
 	addToolBarAction ("wireframe");
+	addToolBarAction ("colorbfc");
 	
 	// ==========================================
 	// Color toolbar

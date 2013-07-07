@@ -15,6 +15,7 @@
 - Replace coords: allow replacing all coords regardless of original value, plus relative moving (offset)
 - Objects can now be edited by double-clicking on them.
 - When drawing, drawn vertices now display coordinate labels.
+- Added an action to quickly toggle BFC red/green view.
 - Changed default keys for Y-axis moving from PgUp/PgDown to Home and End ala MLCAD.
 - [Linux] External programs can now be launched with Wine.
 - Improved external program fault handling: don't try to replace/append the output in case of failure, catch non-zero exit codes.
