@@ -297,7 +297,7 @@ void ConfigDialog::updateQuickColorList( quickColor* sel )
 		}
 		else
 		{
-			color* col = entry.col;
+			LDColor* col = entry.col;
 			
 			if( col == null )
 			{

@@ -23,22 +23,22 @@
 #include "gui.h"
 #include <qcolor.h>
 
-static color* g_LDColors[MAX_COLORS];
+static LDColor* g_LDColors[MAX_COLORS];
 
 void initColors()
 {
 	print( "%1: initializing color information.\n", __func__ );
 	
-	color* col;
+	LDColor* col;
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
-	col = new color;
+	col = new LDColor;
 	col->hexcode = "#AAAAAA";
 	col->faceColor = col->hexcode;
 	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
 	
-	col = new color;
+	col = new LDColor;
 	col->hexcode = "#000000";
 	col->edgeColor = col->faceColor = Qt::black;
 	g_LDColors[edgecolor] = col;
@@ -49,7 +49,7 @@ void initColors()
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-color* getColor( short colnum )
+LDColor* getColor( short colnum )
 {
 	// Check bounds
 	if( colnum < 0 || colnum >= MAX_COLORS )
@@ -143,7 +143,7 @@ void parseLDConfig()
 		if( parseLDConfigTag( pars, "ALPHA", valuestr ))
 			alpha = clamp<short> ( valuestr.toShort(), 0, 255 );
 		
-		color* col = new color;
+		LDColor* col = new LDColor;
 		col->name = name;
 		col->faceColor = faceColor;
 		col->edgeColor = edgeColor;

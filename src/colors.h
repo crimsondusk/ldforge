@@ -24,7 +24,7 @@
 
 #define MAX_COLORS 512
 
-class color
+class LDColor
 {
 public:
 	str name, hexcode;
@@ -37,6 +37,6 @@ void parseLDConfig();
 uchar luma( QColor& col );
 
 // Safely gets a color with the given number or null if no such color.
-color* getColor( short colnum );
+LDColor* getColor( short colnum );
 
 #endif // COLORS_H

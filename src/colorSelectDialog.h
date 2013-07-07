@@ -22,14 +22,14 @@
 #include <QDialog>
 #include "common.h"
 
-class color;
+class LDColor;
 class Ui_ColorSelUI;
 class QGraphicsScene;
 
 class ColorSelector : public QDialog
 {
 	Q_OBJECT
-	READ_PROPERTY( color*, sel, setSelection )
+	READ_PROPERTY( LDColor*, sel, setSelection )
 	
 public:
 	explicit ColorSelector( short defval = -1, QWidget* parent = null );

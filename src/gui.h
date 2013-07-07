@@ -28,7 +28,7 @@
 
 class MessageManager;
 class ForgeWindow;
-class color;
+class LDColor;
 class QSplitter;
 class QToolButton;
 class QDialogButtonBox;
@@ -77,7 +77,7 @@ extern actionmeta g_actionMeta[256];
 
 // =============================================================================
 typedef struct {
-	color* col;
+	LDColor* col;
 	QToolButton* btn;
 	bool isSeparator;
 } quickColor;
@@ -188,7 +188,7 @@ bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
 QAction* findAction (str name);
-QIcon makeColorIcon (color* colinfo, const ushort size);
+QIcon makeColorIcon (LDColor* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 QDialogButtonBox* makeButtonBox (QDialog& dlg);
 CheckBoxGroup* makeAxesBox ();

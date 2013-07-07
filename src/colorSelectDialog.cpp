@@ -93,7 +93,7 @@ void ColorSelector::drawScene()
 	
 	for( short i = 0; i < MAX_COLORS; ++i )
 	{
-		color* info = ::getColor( i );
+		LDColor* info = ::getColor( i );
 		
 		if( !info )
 			continue;
@@ -189,7 +189,7 @@ void ColorSelector::mousePressEvent( QMouseEvent* event )
 	ulong y = (( ulong ) scenepos.y() - ( g_squareSize / 2 )) / g_squareSize;
 	ulong idx = ( y * g_numColumns ) + x;
 	
-	color* col = ::getColor( idx );
+	LDColor* col = ::getColor( idx );
 	
 	if( !col )
 		return;

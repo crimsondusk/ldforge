@@ -425,7 +425,7 @@ vector<quickColor> parseQuickColorMeta () {
 		if (colorname == "|") {
 			meta << quickColor ({null, null, true});
 		} else {
-			color* col = getColor (colorname.toLong ());
+			LDColor* col = getColor (colorname.toLong ());
 			assert (col != null);
 			meta << quickColor ({col, null, false});
 		}
@@ -672,7 +672,7 @@ void ForgeWindow::buildObjList () {
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			color* col = getColor (obj->color ());
+			LDColor* col = getColor (obj->color ());
 			if (col)
 				item->setForeground (col->faceColor);
 		}
@@ -758,7 +758,7 @@ void ForgeWindow::slot_recentFile () {
 void ForgeWindow::slot_quickColor () {
 	g_curfile->openHistory ();
 	QToolButton* button = static_cast<QToolButton*> (sender ());
-	color* col = null;
+	LDColor* col = null;
 	
 	for (quickColor entry : m_colorMeta) {
 		if (entry.btn == button) {
@@ -1102,7 +1102,7 @@ QAction* findAction (str name) {
 }
 
 // =============================================================================
-QIcon makeColorIcon (color* colinfo, const ushort size) {
+QIcon makeColorIcon (LDColor* colinfo, const ushort size) {
 	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
@@ -1138,7 +1138,7 @@ void makeColorSelector (QComboBox* box) {
 	box->clear ();
 	ulong row = 0;
 	for (const auto& pair : counts) {
-		color* col = getColor (pair.first);
+		LDColor* col = getColor (pair.first);
 		assert (col != null);
 		
 		QIcon ico = makeColorIcon (col, 16);
