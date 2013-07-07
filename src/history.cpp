@@ -107,8 +107,6 @@ void History::close()
 	
 	setOpened( false );
 	
-	log( "size: %1", m_currentArchive.size() );
-	
 	if( m_currentArchive.size() == 0 )
 		return;
 	

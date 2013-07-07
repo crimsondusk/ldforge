@@ -212,7 +212,6 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("clearOverlay");
 	menu->addSeparator ();
 	addMenuAction ("screencap");
-	addMenuAction ("showHistory");
 	
 	// Insert menu
 	initMenu ("&Insert");

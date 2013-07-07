@@ -24,7 +24,6 @@
 #include "common.h"
 #include "file.h"
 #include "colorSelectDialog.h"
-#include "historyDialog.h"
 #include "misc.h"
 #include "widgets.h"
 #include "extprogs.h"
@@ -353,11 +352,6 @@ MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
 
 MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
 	g_curfile->redo ();
-}
-
-MAKE_ACTION (showHistory, "Edit History", "history", "Show the history dialog.", (0)) {
-	HistoryDialog dlg;
-	dlg.exec ();
 }
 
 // =============================================================================
