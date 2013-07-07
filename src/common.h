@@ -259,7 +259,7 @@ enum LogType {
 };
 
 // log() - universal access to the message log. Defined here so that I don't have
-// to include msglog.h here and recompile everything every time that file changes.
+// to include messagelog.h here and recompile everything every time that file changes.
 void DoLog( std::initializer_list<StringFormatArg> args );
 #ifndef IN_IDE_PARSER
 # define log(...) DoLog({ __VA_ARGS__ });

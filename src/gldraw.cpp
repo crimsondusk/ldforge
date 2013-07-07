@@ -35,7 +35,7 @@
 #include "history.h"
 #include "dialogs.h"
 #include "addObjectDialog.h"
-#include "msglog.h"
+#include "messagelog.h"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];

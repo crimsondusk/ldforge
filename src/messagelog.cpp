@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "msglog.h"
+#include "messagelog.h"
 #include "gldraw.h"
 #include "gui.h"
 #include <QTimer>

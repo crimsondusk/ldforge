@@ -45,7 +45,7 @@
 #include "history.h"
 #include "widgets.h"
 #include "addObjectDialog.h"
-#include "msglog.h"
+#include "messagelog.h"
 #include "config.h"
 
 actionmeta g_actionMeta[MAX_ACTIONS];

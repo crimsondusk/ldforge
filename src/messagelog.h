@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MSGLOG_H
-#define MSGLOG_H
+#ifndef MESSAGELOG_H
+#define MESSAGELOG_H
 
 #include <QObject>
 #include <QDate>
@@ -61,4 +61,4 @@ private slots:
 	void tick();
 };
 
-#endif // MSGLOG_H
+#endif // MESSAGELOG_H
