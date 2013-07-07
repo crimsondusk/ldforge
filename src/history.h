@@ -23,10 +23,10 @@
 #include "ldtypes.h"
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
-	virtual ~N##History (); \
-	virtual void undo () const; \
-	virtual void redo () const; \
-	virtual History::Type type () { return History::N; }
+	virtual ~N##History(); \
+	virtual void undo() const; \
+	virtual void redo() const; \
+	virtual History::Type type() { return History::N; }
 
 class AbstractHistoryEntry;
 
@@ -42,9 +42,9 @@ public:
 	enum Type {
 		Del,
 		Edit,
-		ListMove,
 		Add,
 		Move,
+		Swap,
 	};
 	
 	History ();
@@ -124,20 +124,6 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class ListMoveHistory : public AbstractHistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (ListMove)
-	
-	vector<ulong> idxs;
-	long dest;
-	
-	ListMoveHistory (vector<ulong> idxs, long dest) :
-		idxs (idxs), dest (dest) {}
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 class AddHistory : public AbstractHistoryEntry {
 public:
 	enum Type {
@@ -168,6 +154,15 @@ public:
 	
 	MoveHistory (vector<ulong> indices, vertex dest) :
 		indices (indices), dest (dest) {}
+};
+
+class SwapHistory : public AbstractHistoryEntry
+{
+public:
+	IMPLEMENT_HISTORY_TYPE( Swap )
+	ulong a, b;
+	
+	SwapHistory( ulong a, ulong b ) : a( a ), b( b ) {}
 };
 
 #endif // HISTORY_H

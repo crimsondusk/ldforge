@@ -194,6 +194,8 @@ void LDObject::swap( LDObject* other )
 		elif( obj == other )
 			obj = this;
 	}
+	
+	g_curfile->addToHistory( new SwapHistory( id(), other->id() ));
 }
 
 LDLine::LDLine( vertex v1, vertex v2 )

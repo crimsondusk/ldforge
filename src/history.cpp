@@ -192,3 +192,17 @@ void EditHistory::redo() const
 }
 
 EditHistory::~EditHistory() {}
+
+// =============================================================================
+
+void SwapHistory::undo() const
+{
+	LDObject::fromID( a )->swap( LDObject::fromID( b ));
+}
+
+void SwapHistory::redo() const
+{
+	undo(); // :v
+}
+
+SwapHistory::~SwapHistory() {}
