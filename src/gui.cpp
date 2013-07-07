@@ -245,26 +245,6 @@ void ForgeWindow::createMenus () {
 	menu->addSeparator ();
 	addMenuAction ("setDrawDepth");
 	
-	initMenu ("&Tools");
-	addMenuAction ("setColor");
-	addMenuAction ("autoColor");
-	addMenuAction ("uncolorize");
-	menu->addSeparator ();
-	addMenuAction ("invert");
-	addMenuAction ("inlineContents");
-	addMenuAction ("deepInline");
-	addMenuAction ("makePrimitive");
-	menu->addSeparator ();
-	addMenuAction ("splitQuads");
-	addMenuAction ("setContents");
-	addMenuAction ("makeBorders");
-	addMenuAction ("makeCornerVerts");
-	addMenuAction ("roundCoords");
-	addMenuAction ("visibility");
-	addMenuAction ("replaceCoords");
-	addMenuAction ("flip");
-	addMenuAction ("demote");
-	
 	// Move menu
 	initMenu ("&Move");
 	addMenuAction ("moveUp");
@@ -288,6 +268,26 @@ void ForgeWindow::createMenus () {
 	addMenuAction ("rotateZPos");
 	addMenuAction ("rotateZNeg");
 	addMenuAction ("rotpoint");
+	
+	initMenu ("&Tools");
+	addMenuAction ("setColor");
+	addMenuAction ("autoColor");
+	addMenuAction ("uncolorize");
+	menu->addSeparator ();
+	addMenuAction ("invert");
+	addMenuAction ("inlineContents");
+	addMenuAction ("deepInline");
+	addMenuAction ("makePrimitive");
+	menu->addSeparator ();
+	addMenuAction ("splitQuads");
+	addMenuAction ("setContents");
+	addMenuAction ("makeBorders");
+	addMenuAction ("makeCornerVerts");
+	addMenuAction ("roundCoords");
+	addMenuAction ("visibility");
+	addMenuAction ("replaceCoords");
+	addMenuAction ("flip");
+	addMenuAction ("demote");
 	
 	initMenu ("E&xternal Programs");
 	addMenuAction ("ytruder");
@@ -370,6 +370,7 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("copy");
 	addToolBarAction ("paste");
 	addToolBarAction ("del");
+	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	initSingleToolBar ("Select");
@@ -377,34 +378,11 @@ void ForgeWindow::createToolbars () {
 	addToolBarAction ("selectByColor");
 	addToolBarAction ("selectByType");
 	
-	addToolBarBreak (Qt::TopToolBarArea);
-	
-	// ==========================================
-	initSingleToolBar ("Move");
-	addToolBarAction ("moveUp");
-	addToolBarAction ("moveDown");
-	addToolBarAction ("moveXPos");
-	addToolBarAction ("moveXNeg");
-	addToolBarAction ("moveYPos");
-	addToolBarAction ("moveYNeg");
-	addToolBarAction ("moveZPos");
-	addToolBarAction ("moveZNeg");
-	
-	// ==========================================
-	initSingleToolBar ("Rotate");
-	addToolBarAction ("rotateXPos");
-	addToolBarAction ("rotateXNeg");
-	addToolBarAction ("rotateYPos");
-	addToolBarAction ("rotateYNeg");
-	addToolBarAction ("rotateZPos");
-	addToolBarAction ("rotateZNeg");
-	
 	// ==========================================
 	initSingleToolBar ("Grids");
 	addToolBarAction ("gridCoarse");
 	addToolBarAction ("gridMedium");
 	addToolBarAction ("gridFine");
-	addToolBarBreak (Qt::TopToolBarArea);
 	
 	// ==========================================
 	initSingleToolBar ("View");
@@ -421,27 +399,12 @@ void ForgeWindow::createToolbars () {
 	initSingleToolBar ("Tools");
 	addToolBarAction ("setColor");
 	addToolBarAction ("autoColor");
-	addToolBarAction ("uncolorize");
-	addToolBarAction ("invert");
-	addToolBarAction ("inlineContents");
-	addToolBarAction ("deepInline");
-	addToolBarAction ("makePrimitive");
 	addToolBarAction ("splitQuads");
 	addToolBarAction ("setContents");
 	addToolBarAction ("makeBorders");
-	addToolBarAction ("makeCornerVerts");
-	addToolBarAction ("roundCoords");
-	addToolBarAction ("screencap");
-	addToolBarAction ("visibility");
 	addToolBarAction ("replaceCoords");
-	addToolBarAction ("flip");
-	
-	initSingleToolBar ("External Programs");
-	addToolBarAction ("ytruder");
-	addToolBarAction ("rectifier");
-	addToolBarAction ("intersector");
-	addToolBarAction ("isecalc");
-	addToolBarAction ("coverer");
+	addToolBarAction ("roundCoords");
+	addToolBarAction ("visibility");
 	
 	// ==========================================
 	g_ToolBarArea = Qt::LeftToolBarArea;

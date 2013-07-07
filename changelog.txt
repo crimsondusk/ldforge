@@ -17,6 +17,8 @@
 - When drawing, drawn vertices now display coordinate labels.
 - Added an action to quickly toggle BFC red/green view.
 - Changed default keys for Y-axis moving from PgUp/PgDown to Home and End ala MLCAD.
+- Cleaned up the toolbars, removed clutter by removing most of the not-so-often-used items, though of course
+	the functionality is still available through menus and keyboard shortcuts.
 - [Linux] External programs can now be launched with Wine.
 - Improved external program fault handling: don't try to replace/append the output in case of failure, catch non-zero exit codes.
 - Added a progress box for file loading to respond to desktops while loading files. With large files
