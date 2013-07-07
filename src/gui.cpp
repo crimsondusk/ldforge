@@ -651,7 +651,7 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		default:
-			descr = g_saObjTypeNames[obj->getType ()];
+			descr = obj->typeName();
 			break;
 		}
 		
@@ -661,7 +661,7 @@ void ForgeWindow::buildObjList () {
 		}
 		
 		QListWidgetItem* item = new QListWidgetItem (descr);
-		item->setIcon (getIcon (g_saObjTypeIcons[obj->getType ()]));
+		item->setIcon( getIcon( obj->typeName() ));
 		
 		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == LDObject::Gibberish) {

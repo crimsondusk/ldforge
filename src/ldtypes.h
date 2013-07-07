@@ -34,18 +34,19 @@
 	virtual void move (vertex vVector); \
 	virtual void invert ();
 
-#define LDOBJ_VERTICES(V) virtual short vertices () const { return V; }
-#define LDOBJ_SETCOLORED(V) virtual bool isColored () const { return V; }
-#define LDOBJ_COLORED LDOBJ_SETCOLORED (true)
-#define LDOBJ_UNCOLORED LDOBJ_SETCOLORED (false)
+#define LDOBJ_NAME( N )        virtual str typeName() const { return #N; }
+#define LDOBJ_VERTICES( V )    virtual short vertices() const { return V; }
+#define LDOBJ_SETCOLORED( V )  virtual bool isColored() const { return V; }
+#define LDOBJ_COLORED          LDOBJ_SETCOLORED( true )
+#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED( false )
 
-#define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic () const
-#define LDOBJ_SCEMANTIC LDOBJ_CUSTOM_SCEMANTIC { return true; }
-#define LDOBJ_NON_SCEMANTIC LDOBJ_CUSTOM_SCEMANTIC { return false; }
+#define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic() const
+#define LDOBJ_SCEMANTIC        LDOBJ_CUSTOM_SCEMANTIC { return true; }
+#define LDOBJ_NON_SCEMANTIC    LDOBJ_CUSTOM_SCEMANTIC { return false; }
 
-#define LDOBJ_SETMATRIX(V) virtual bool hasMatrix () const { return V; }
-#define LDOBJ_HAS_MATRIX LDOBJ_SETMATRIX (true)
-#define LDOBJ_NO_MATRIX LDOBJ_SETMATRIX (false)
+#define LDOBJ_SETMATRIX(V)     virtual bool hasMatrix() const { return V; }
+#define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX( true )
+#define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX( false )
 
 class QListWidgetItem;
 class LDSubfile;
@@ -153,6 +154,10 @@ public:
 	// Does this object have meaning in the part model?
 	virtual bool isScemantic () const { return false; }
 	
+	// Type name of this object
+	virtual str typeName() const { return "unknown"; }
+	static str typeName( LDObject::Type type );
+	
 	// Returns a sample object by the given value
 	static LDObject* getDefault (const LDObject::Type type);
 	
@@ -190,6 +195,7 @@ private:
 class LDGibberish : public LDObject {
 public:
 	LDOBJ (Gibberish)
+	LDOBJ_NAME( error )
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
@@ -228,6 +234,7 @@ public:
 class LDComment : public LDObject {
 public:
 	LDOBJ (Comment)
+	LDOBJ_NAME( comment )
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
@@ -250,6 +257,7 @@ public:
 	enum Type { CertifyCCW, CCW, CertifyCW, CW, NoCertify, InvertNext, NumStatements };
 	
 	LDOBJ (BFC)
+	LDOBJ_NAME( bfc )
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
@@ -274,6 +282,7 @@ class LDSubfile : public LDObject, public LDMatrixObject {
 	
 public:
 	LDOBJ (Subfile)
+	LDOBJ_NAME( subfile )
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
@@ -298,6 +307,7 @@ public:
 class LDLine : public LDObject {
 public:
 	LDOBJ (Line)
+	LDOBJ_NAME( line )
 	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
@@ -316,6 +326,7 @@ public:
 class LDCondLine : public LDLine {
 public:
 	LDOBJ (CondLine)
+	LDOBJ_NAME( condline )
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
@@ -335,6 +346,7 @@ public:
 class LDTriangle : public LDObject {
 public:
 	LDOBJ (Triangle)
+	LDOBJ_NAME( triangle )
 	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
@@ -357,6 +369,7 @@ public:
 class LDQuad : public LDObject {
 public:
 	LDOBJ (Quad)
+	LDOBJ_NAME( quad )
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
@@ -379,6 +392,7 @@ public:
 class LDVertex : public LDObject {
 public:
 	LDOBJ (Vertex)
+	LDOBJ_NAME( vertex )
 	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
 	LDOBJ_NON_SCEMANTIC
@@ -399,6 +413,7 @@ class LDOverlay : public LDObject
 {
 public:
 	LDOBJ( Overlay )
+	LDOBJ_NAME( overlay )
 	LDOBJ_VERTICES( 0 )
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
@@ -410,13 +425,5 @@ public:
 	PROPERTY( int, height, setHeight )
 	PROPERTY( str, filename, setFilename )
 };
-
-// =============================================================================
-// Object type names. Pass the return value of getType as the index to get a
-// string representation of the object's type.
-extern const char* g_saObjTypeNames[];
-
-// Icons for these types
-extern const char* g_saObjTypeIcons[];
 
 #endif // LDTYPES_H

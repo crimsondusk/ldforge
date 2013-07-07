@@ -54,6 +54,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	setlocale (LC_ALL, "C");
 	
 	short coordCount = 0;
+	str typeName = LDObject::typeName( type );
 	
 	switch (type) {
 	case LDObject::Comment:
@@ -135,11 +136,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		}
 	
 	default:
-		critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, g_saObjTypeNames[type]));
+		critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
 		return;
 	}
 	
-	QPixmap icon = getIcon (fmt ("add-%1", g_saObjTypeIcons[type]));
+	QPixmap icon = getIcon (fmt ("add-%1", typeName));
 	LDObject* defaults = LDObject::getDefault (type);
 	
 	lb_typeIcon = new QLabel;
@@ -230,10 +231,9 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
 	}
 	
-	layout->addWidget (makeButtonBox (*this), 5, 0, 1, 4);
-	setLayout (layout);
-	setWindowTitle (fmt (APPNAME ": New %1",
-		g_saObjTypeNames[type]));
+	layout->addWidget( makeButtonBox( *this ), 5, 0, 1, 4 );
+	setLayout( layout );
+	setWindowTitle( fmt( tr( "Edit %1" ), typeName ));
 	
 	setWindowIcon (icon);
 	delete defaults;

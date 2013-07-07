@@ -24,37 +24,6 @@
 #include "history.h"
 #include "gldraw.h"
 
-char const* g_saObjTypeNames[] = {
-	"subfile",
-	"quadrilateral",
-	"triangle",
-	"line",
-	"condline",
-	"vertex",
-	"bfc",
-	"overlay",
-	"comment",
-	"unknown",
-	"empty",
-	"unidentified",
-};
-
-// Should probably get rid of this array sometime
-char const* g_saObjTypeIcons[] = {
-	"subfile",
-	"quad",
-	"triangle",
-	"line",
-	"condline",
-	"vertex",
-	"bfc",
-	"overlay",
-	"comment",
-	"error",
-	"empty",
-	"error",
-};
-
 // List of all LDObjects
 vector<LDObject*> g_LDObjects;
 
@@ -388,6 +357,14 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool bUp) {
 		g_win->R ()->compileObject (obj);
 }
 
+str LDObject::typeName( LDObject::Type type )
+{
+	LDObject* obj = LDObject::getDefault( type );
+	str name = obj->typeName();
+	delete obj;
+	return name;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -412,7 +389,7 @@ str LDObject::objectListContents (const vector<LDObject*>& objs) {
 		if (!firstDetails)
 			text += ", ";
 		
-		str noun = fmt ("%1%2", g_saObjTypeNames[objType], plural (objCount));
+		str noun = fmt ("%1%2", typeName( objType ), plural( objCount ));
 		
 		// Plural of "vertex" is "vertices". Stupid English.
 		if (objType == LDObject::Vertex && objCount != 1)
