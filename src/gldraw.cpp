@@ -1605,8 +1605,10 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	if (g_win->sel ().size () == 0)
 		return;
 	
-	LDObject* obj = g_win->sel ()[0];
+	file()->openHistory();
+	LDObject* obj = g_win->sel()[0];
 	AddObjectDialog::staticDialog (obj->getType (), obj);
+	file()->closeHistory();
 	ev->accept ();
 }
 
