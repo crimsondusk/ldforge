@@ -116,7 +116,7 @@ void ColorSelector::drawScene()
 		numtext->setDefaultTextColor(( luma( col ) < 80 ) ? Qt::white : Qt::black );
 		numtext->setPos( x, y );
 		
-		if( i == sel()->index )
+		if( sel() && i == sel()->index )
 		{
 			auto curspic = m_scene->addPixmap( getIcon( "colorcursor" ));
 			curspic->setPos( x, y );
