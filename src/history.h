@@ -24,9 +24,9 @@
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
 	virtual ~N##History(); \
-	virtual void undo() const; \
-	virtual void redo() const; \
-	virtual History::Type type() { return History::N; }
+	virtual void undo() const override; \
+	virtual void redo() const override; \
+	virtual History::Type getType() const override { return History::N; }
 
 class AbstractHistoryEntry;
 
@@ -82,7 +82,7 @@ public:
 	virtual void undo () const {}
 	virtual void redo () const {}
 	virtual ~AbstractHistoryEntry () {}
-	virtual History::Type type () { return (History::Type) 0; }
+	virtual History::Type getType () const { return (History::Type) 0; }
 };
 
 // =============================================================================

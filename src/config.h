@@ -132,7 +132,7 @@ void addConfig( config* ptr );
 	{ \
 		return value; \
 	} \
-	config::Type getType() const \
+	config::Type getType() const override \
 	{ \
 		return config::Type_##T; \
 	} \

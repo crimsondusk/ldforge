@@ -24,7 +24,7 @@
 
 #define LDOBJ(T) \
 	virtual ~LD##T () {} \
-	virtual LDObject::Type getType () const { \
+	virtual LDObject::Type getType () const override { \
 		return LDObject::T; \
 	} \
 	virtual str raw (); \
@@ -34,17 +34,17 @@
 	virtual void move (vertex vVector); \
 	virtual void invert ();
 
-#define LDOBJ_NAME( N )        virtual str typeName() const { return #N; }
-#define LDOBJ_VERTICES( V )    virtual short vertices() const { return V; }
-#define LDOBJ_SETCOLORED( V )  virtual bool isColored() const { return V; }
+#define LDOBJ_NAME( N )        virtual str typeName() const override { return #N; }
+#define LDOBJ_VERTICES( V )    virtual short vertices() const override { return V; }
+#define LDOBJ_SETCOLORED( V )  virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED( true )
 #define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED( false )
 
-#define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic() const
+#define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic() const override
 #define LDOBJ_SCEMANTIC        LDOBJ_CUSTOM_SCEMANTIC { return true; }
 #define LDOBJ_NON_SCEMANTIC    LDOBJ_CUSTOM_SCEMANTIC { return false; }
 
-#define LDOBJ_SETMATRIX(V)     virtual bool hasMatrix() const { return V; }
+#define LDOBJ_SETMATRIX(V)     virtual bool hasMatrix() const override { return V; }
 #define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX( true )
 #define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX( false )
 

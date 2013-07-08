@@ -115,7 +115,7 @@ private:
 	void updateOutput();
 
 private slots:
-	virtual void keyPressEvent( QKeyEvent* ev );
+	virtual void keyPressEvent( QKeyEvent* ev ) override;
 };
 
 #endif // CONFIGDIALOG_H
