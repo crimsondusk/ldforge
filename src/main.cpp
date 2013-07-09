@@ -52,8 +52,8 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 		doPrint (g_file_stdout, args);
 	elif (fp == stderr)
 		doPrint (g_file_stderr, args);
-	
-	fatal ("unknown FILE* argument");
+	else
+		fatal ("unknown FILE* argument");
 }
 
 // =============================================================================

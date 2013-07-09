@@ -626,10 +626,10 @@ LDObject* parseLine( str line )
 		return new LDEmpty;
 	}
 	
-	if( tokens[0].length() != 1 )
-		return new LDGibberish (line, "Illogical line code");
+	if( tokens[0].length() != 1 || tokens[0][0].isDigit() == false )
+		return new LDGibberish( line, "Illogical line code" );
 	
-	int num = tokens[0][0].toAscii() - '0';
+	int num = tokens[0][0].digitValue();
 	switch( num )
 	{
 	case 0:

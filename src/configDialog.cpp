@@ -645,7 +645,10 @@ void ConfigDialog::staticDialog()
 		for( const extProgInfo & info : g_extProgInfo )
 		{
 			*info.path = info.input->text();
+			
+#ifndef _WIN32
 			*info.wine = info.wineBox->isChecked();
+#endif // _WIN32
 		}
 		
 		// Save the config

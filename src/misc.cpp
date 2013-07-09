@@ -294,7 +294,7 @@ double atof( str val )
 	char* bufptr = &buf[0];
 	
 	for( qchar& c : val )
-		*bufptr++ = c.toAscii();
+		*bufptr++ = c.toLatin1();
 	*bufptr = '\0';
 	
 	double fval = atof( buf );
