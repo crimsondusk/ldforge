@@ -18,9 +18,8 @@
 
 #include <QMessageBox>
 #include <QFileDialog>
-#include <qprogressbar.h>
 #include <QDir>
-#include <QThread>
+#include <QApplication>
 
 #include <stdlib.h>
 #include "common.h"
@@ -45,16 +44,13 @@ namespace LDPaths
 {
 	static str pathError;
 	
-	struct
-	{
+	struct {
 		str LDConfigPath;
 		str partsPath, primsPath;
 	} pathInfo;
 	
-	void initPaths ()
-	{
-		if( !tryConfigure ( io_ldpath ))
-		{
+	void initPaths() {
+		if( !tryConfigure( io_ldpath )) {
 			LDrawPathDialog dlg (false);
 			
 			if( !dlg.exec () )
@@ -64,12 +60,10 @@ namespace LDPaths
 		}
 	}
 	
-	bool tryConfigure( str path )
-	{
+	bool tryConfigure( str path ) {
 		QDir dir;
 		
-		if( !dir.cd( path ))
-		{
+		if( !dir.cd( path )) {
 			pathError = "Directory does not exist.";
 			return false;
 		}
@@ -77,7 +71,7 @@ namespace LDPaths
 		QStringList mustHave = { "LDConfig.ldr", "parts", "p" };
 		QStringList contents = dir.entryList( mustHave );
 		
-		if (contents.size () != mustHave.size ()) {
+		if( contents.size() != mustHave.size() ) {
 			pathError = "Not an LDraw directory! Must<br />have LDConfig.ldr, parts/ and p/.";
 			return false;
 		}
@@ -155,6 +149,7 @@ str basename (str path) {
 File* openLDrawFile (str relpath, bool subdirs) {
 	print( "%1: Try to open %2\n", __func__, relpath );
 	File* f = new File;
+	str fullPath;
 	
 	// LDraw models use Windows-style path separators. If we're not on Windows,
 	// replace the path separator now before opening any files.
@@ -162,43 +157,34 @@ File* openLDrawFile (str relpath, bool subdirs) {
 	relpath.replace( "\\", "/" );
 #endif // WIN32
 	
-	if( g_curfile )
-	{
+	if( g_curfile ) {
 		// First, try find the file in the current model's file path. We want a file
 		// in the immediate vicinity of the current model to override stock LDraw stuff.
 		str partpath = fmt ("%1" DIRSLASH "%2", dirname (g_curfile->name ()), relpath);
 		
-		if (f->open (partpath, File::Read))
-			return f;
-	}
+		if (f->open (partpath, File::Read)) {
+			return f; }}
 	
 	if (f->open (relpath, File::Read))
 		return f;
 	
-	str fullPath;
-	if( io_ldpath.value.length() > 0 )
-	{
-		// Try with just the LDraw path first
-		fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
-		
-		if( f->open( fullPath, File::Read ))
-			return f;
-		
-		if( subdirs )
-		{
-			// Look in sub-directories: parts and p
-			for( auto subdir : initlist<const str>({ "parts", "p" }))
-			{
-				fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3",
-					io_ldpath, subdir, relpath);
-				
-				if (f->open (fullPath, File::Read))
-					return f;
-			}
-		}
-	}
+	// Try with just the LDraw path first
+	fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
+	
+	if( f->open( fullPath, File::Read ))
+		return f;
+	
+	if( subdirs ) {
+		// Look in sub-directories: parts and p
+		for( auto subdir : initlist<const str>({ "parts", "p" })) {
+			fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3",
+				io_ldpath, subdir, relpath);
+			
+			if (f->open (fullPath, File::Read))
+				return f; }}
 	
 	// Did not find the file.
+	print( "could not find %1\n", relpath );
 	delete f;
 	return null;
 }
@@ -206,13 +192,46 @@ File* openLDrawFile (str relpath, bool subdirs) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void FileLoader::work()
-{
+void FileLoader::start() {
 	setDone( false );
 	setProgress( 0 );
 	abortflag = false;
 	
-	for( str line : *PROP_NAME( file )) {
+	if( concurrent() ) {
+		// Show a progress dialog if we're loading the main file here and move
+		// the actual work to a separate thread as this can be a rather intensive
+		// operation and if we don't respond quickly enough, the program can be
+		// deemed inresponsive.. which is a bad thing.
+		dlg = new OpenProgressDialog (g_win);
+		dlg->setNumLines( lines().size() );
+		dlg->setModal( true );
+		dlg->show();
+		
+		// Connect the loader in so we can show updates
+		connect( this, SIGNAL( workDone() ), dlg, SLOT( accept() )); }
+	else
+		dlg = null;
+	
+	work( 0 );
+}
+
+void FileLoader::work( ulong i ) {
+	print( "%1: %2\n", this, i );
+	
+	if( abortflag ) {
+		// We were flagged for abortion, so abort.
+		for( LDObject* obj : m_objs )
+			delete obj;
+		
+		m_objs.clear();
+		abortflag = false;
+		return;
+	}
+	
+	ulong max = i + 300;
+	for( ; i < max && i < lines().size(); ++i ) {
+		str line = lines()[i];
+		
 		// Trim the trailing newline
 		qchar c;
 		while(( c = line[line.length () - 1] ) == '\n' || c == '\r' )
@@ -221,32 +240,29 @@ void FileLoader::work()
 		LDObject* obj = parseLine( line );
 		
 		// Check for parse errors and warn about tthem
-		if( obj->getType () == LDObject::Gibberish )
-		{
+		if( obj->getType () == LDObject::Gibberish ) {
 			log( "Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDGibberish*> (obj)->reason );
-			log( "- Line was: %1", line );
 			
-			if( m_warningsPointer )
-				( *m_warningsPointer )++;
-		}
+			if( m_warningsPointer ) {
+				( *m_warningsPointer )++; }}
 		
 		m_objs << obj;
-		m_progress++;
-		emit progressUpdate( m_progress );
+		setProgress( i );
 		
-		if( abortflag )
-		{
-			// We were flagged for abortion, so abort.
-			for( LDObject* obj : m_objs )
-				delete obj;
-			
-			m_objs.clear();
-			return;
-		}
+		if( concurrent() )
+			dlg->updateProgress( i );
 	}
 	
-	emit workDone();
-	m_done = true;
+	if( i >= lines().size() - 1 ) {
+		emit workDone();
+		setDone( true ); }
+	
+	if( !done() ) {
+		if( concurrent() )
+			QMetaObject::invokeMethod( this, "work", Qt::QueuedConnection, Q_ARG( ulong, i + 1 ));
+		else
+			work( i + 1 );
+	}
 }
 
 // =============================================================================
@@ -260,56 +276,25 @@ vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	if( numWarnings )
 		*numWarnings = 0;
 	
-	FileLoader* loader = new FileLoader;
-	loader->setFile( f );
-	loader->setWarningsPointer( numWarnings );
-	
 	// Calculate the amount of lines
-	ulong numLines = 0;
 	for( str line : *f )
-		numLines++;
-	
+		lines << line;
 	f->rewind();
 	
-	if (g_loadingMainFile)
-	{
-		// Show a progress dialog if we're loading the main file here and move
-		// the actual work to a separate thread as this can be a rather intensive
-		// operation and if we don't respond quickly enough, the program can be
-		// deemed inresponsive.. which is a bad thing.
-		
-		// Init the thread and move the loader into it
-		QThread* loaderThread = new QThread;
-		QObject::connect( loaderThread, SIGNAL( started() ), loader, SLOT( work() ));
-		QObject::connect( loaderThread, SIGNAL( finished() ), loader, SLOT( deleteLater() ));
-		loader->moveToThread (loaderThread);
-		loaderThread->start ();
-		
-		// Now create a progress prompt for the operation
-		OpenProgressDialog* dlg = new OpenProgressDialog (g_win);
-		dlg->setNumLines( numLines );
-		
-		// Connect the loader in so we can show updates
-		QObject::connect( loader, SIGNAL( progressUpdate( int )), dlg, SLOT( updateProgress( int )));
-		QObject::connect( loader, SIGNAL( workDone() ), dlg, SLOT( accept() ));
-		
-		// Show the prompt. If the user hits cancel, tell the loader to abort.
-		if( !dlg->exec() )
-		{
-			loader->abortflag = true;
-			g_aborted = true;
-		}
-	} else
-		loader->work();
+	FileLoader* loader = new FileLoader;
+	loader->setWarningsPointer( numWarnings );
+	loader->setLines( lines );
+	loader->setConcurrent( g_loadingMainFile );
+	loader->start();
+	
+	while( loader->done() == false )
+		qApp->processEvents();
 	
 	// If we wanted the success value, supply that now
 	if( ok )
 		*ok = loader->done();
 	
-	// If the loader was done, return the objects it generated
-	if( loader->done() )
-		objs = loader->objs();
-	
+	objs = loader->objs();
 	return objs;
 }
 
@@ -327,12 +312,9 @@ LDOpenFile* openDATFile( str path, bool search )
 	else {
 		f = new File( path, File::Read );
 		
-		if( !*f )
-		{
+		if( !*f ) {
 			delete f;
-			f = null;
-		}
-	}
+			return null; }}
 	
 	if( !f )
 		return null;
@@ -786,14 +768,14 @@ LDObject* parseLine( str line )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* getFile( str fname )
+LDOpenFile* getFile( str filename )
 {
 	// Try find the file in the list of loaded files
-	LDOpenFile* load = findLoadedFile( fname );
+	LDOpenFile* load = findLoadedFile( filename );
 	
 	// If it's not loaded, try open it
 	if( !load )
-		load = openDATFile( fname, true );
+		load = openDATFile( filename, true );
 	
 	return load;
 }

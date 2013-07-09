@@ -38,6 +38,7 @@ class QLabel;
 class QAbstractButton;
 class Ui_OverlayUI;
 class Ui_LDPathUI;
+class Ui_OpenProgressUI;
 
 class OverlayDialog : public QDialog
 {
@@ -90,20 +91,21 @@ private slots:
 };
 
 // =============================================================================
-class OpenProgressDialog : public QDialog {
+class OpenProgressDialog : public QDialog
+{
 	Q_OBJECT
-	READ_PROPERTY (ulong, progress, setProgress)
-	DECLARE_PROPERTY (ulong, numLines, setNumLines)
+	READ_PROPERTY( ulong, progress, setProgress )
+	DECLARE_PROPERTY( ulong, numLines, setNumLines )
 	
 public:
-	explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	explicit OpenProgressDialog( QWidget* parent = null, Qt::WindowFlags f = 0 );
+	virtual ~OpenProgressDialog();
 	
 public slots:
 	void updateProgress (int progress);
 	
 private:
-	QProgressBar* progressBar;
-	QLabel* progressText;
+	Ui_OpenProgressUI* ui;
 	
 	void updateValues ();
 };

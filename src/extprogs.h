@@ -21,7 +21,8 @@
 
 #include <qobject.h>
 
-enum extprog {
+enum extprog
+{
 	Isecalc,
 	Intersector,
 	Coverer,

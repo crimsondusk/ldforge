@@ -37,6 +37,7 @@
 #include "dialogs.h"
 #include "ui_overlay.h"
 #include "ui_ldrawpath.h"
+#include "ui_openprogress.h"
 
 extern_cfg (str, io_ldpath);
 
@@ -229,38 +230,41 @@ void LDrawPathDialog::slot_tryConfigure()
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
-	progressBar = new QProgressBar;
-	progressText = new QLabel( "Parsing..." );
-	setNumLines (0);
+OpenProgressDialog::OpenProgressDialog( QWidget* parent, Qt::WindowFlags f ) : QDialog( parent, f )
+{
+	ui = new Ui_OpenProgressUI;
+	ui->setupUi( this );
+	ui->progressText->setText( "Parsing..." );
+	
+	setNumLines( 0 );
 	m_progress = 0;
-	
-	QDialogButtonBox* dbb_buttons = new QDialogButtonBox;
-	dbb_buttons->addButton (QDialogButtonBox::Cancel);
-	connect (dbb_buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
-	
-	QVBoxLayout* layout = new QVBoxLayout (this);
-	layout->addWidget (progressText);
-	layout->addWidget (progressBar);
-	layout->addWidget (dbb_buttons);
 }
 
-READ_ACCESSOR (ulong, OpenProgressDialog::numLines) {
+OpenProgressDialog::~OpenProgressDialog()
+{
+	delete ui;
+}
+
+READ_ACCESSOR( ulong, OpenProgressDialog::numLines )
+{
 	return m_numLines;
 }
 
-SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines) {
+SET_ACCESSOR( ulong, OpenProgressDialog::setNumLines )
+{
 	m_numLines = val;
-	progressBar->setRange (0, numLines ());
-	updateValues ();
+	ui->progressBar->setRange (0, numLines ());
+	updateValues();
 }
 
-void OpenProgressDialog::updateValues () {
-	progressText->setText( fmt( "Parsing... %1 / %2", progress(), numLines() ));
-	progressBar->setValue( progress() );
+void OpenProgressDialog::updateValues()
+{
+	ui->progressText->setText( fmt( "Parsing... %1 / %2", progress(), numLines() ));
+	ui->progressBar->setValue( progress() );
 }
 
-void OpenProgressDialog::updateProgress (int progress) {
+void OpenProgressDialog::updateProgress( int progress )
+{
 	m_progress = progress;
 	updateValues ();
 }

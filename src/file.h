@@ -88,58 +88,58 @@ public:
 	
 	LDOpenFile& operator<<( vector<LDObject*> objs );
 	
-	it begin () { return PROP_NAME (objs).begin (); }
-	c_it begin () const { return PROP_NAME (objs).begin (); }
-	it end () { return PROP_NAME (objs).end (); }
-	c_it end () const { return PROP_NAME (objs).end (); }
+	it begin () { return PROP_NAME( objs ).begin(); }
+	c_it begin () const { return PROP_NAME( objs ).begin(); }
+	it end () { return PROP_NAME( objs ).end(); }
+	c_it end () const { return PROP_NAME( objs ).end(); }
 	
 	static void closeUnused ();
 	
-	void openHistory () { m_history.open (); }
-	void closeHistory () { m_history.close (); }
-	void undo () { m_history.undo (); }
-	void redo () { m_history.redo (); }
-	void clearHistory () { m_history.clear (); }
-	void addToHistory (AbstractHistoryEntry* entry) { m_history << entry; }
+	void openHistory() { m_history.open (); }
+	void closeHistory() { m_history.close (); }
+	void undo() { m_history.undo (); }
+	void redo() { m_history.redo (); }
+	void clearHistory() { m_history.clear (); }
+	void addToHistory( AbstractHistoryEntry* entry ) { m_history << entry; }
 };
 
 // Close all current loaded files and start off blank.
-void newFile ();
+void newFile();
 
 // Opens the given file as the main file. Everything is closed first.
-void openMainFile (str zPath);
+void openMainFile( str path );
 
 // Finds an OpenFile by name or null if not open
-LDOpenFile* findLoadedFile (str name);
+LDOpenFile* findLoadedFile( str name );
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDOpenFile* openDATFile (str path, bool search);
+LDOpenFile* openDATFile( str path, bool search );
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
-File* openLDrawFile (str relpath, bool subdirs);
+File* openLDrawFile( str relpath, bool subdirs );
 
 // Close all open files, whether user-opened or subfile caches.
-void closeAll ();
+void closeAll();
 
 // Parses a string line containing an LDraw object and returns the object parsed.
-LDObject* parseLine (str line);
+LDObject* parseLine( str line );
 
 // Retrieves the pointer to - or loads - the given subfile.
-LDOpenFile* getFile (str zFile);
+LDOpenFile* getFile( str filename );
 
 // Re-caches all subfiles.
-void reloadAllSubfiles ();
+void reloadAllSubfiles();
 
 // Is it safe to close all files?
-bool safeToCloseAll ();
+bool safeToCloseAll();
 
-vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
+vector<LDObject*> loadFileContents( File* f, ulong* numWarnings, bool* ok = null );
 
 extern vector<LDOpenFile*> g_loadedFiles;
 
-str basename (str path);
-str dirname (str path);
+str basename( str path );
+str dirname( str path );
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -151,22 +151,26 @@ str dirname (str path);
 // =============================================================================
 class FileLoader : public QObject {
 	Q_OBJECT
-	
-	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
-	READ_PROPERTY (bool, done, setDone)
-	READ_PROPERTY (ulong, progress, setProgress)
-	PROPERTY (File*, file, setFile)
-	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
+	READ_PROPERTY( vector<LDObject*>, objs, setObjects )
+	READ_PROPERTY( bool, done, setDone )
+	READ_PROPERTY( ulong, progress, setProgress )
+	PROPERTY( vector<str>, lines, setLines )
+	PROPERTY( ulong*, warningsPointer, setWarningsPointer )
+	PROPERTY( bool, concurrent, setConcurrent )
 	
 public:
 	bool abortflag;
+	void start();
 	
-public slots:
-	void work ();
+private:
+	OpenProgressDialog* dlg;
+	
+private slots:
+	void work( ulong i );
 	
 signals:
-	void progressUpdate (int progress);
-	void workDone ();
+	void progressUpdate( int progress );
+	void workDone();
 };
 
 #endif // FILE_H
