@@ -19,6 +19,7 @@
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QBoxLayout>
+#include <QClipboard>
 
 #include "gui.h"
 #include "common.h"
@@ -34,8 +35,6 @@
 #include "ui_editraw.h"
 #include "ui_flip.h"
 
-vector<str> g_Clipboard;
-
 cfg (bool, edit_schemanticinline, false);
 
 // =============================================================================
@@ -46,14 +45,16 @@ static int copyToClipboard () {
 	int num = 0;
 	
 	// Clear the clipboard first.
-	g_Clipboard.clear ();
+	qApp->clipboard()->clear();
 	
 	// Now, copy the contents into the clipboard.
-	for (LDObject* obj : objs)
-	{
-		g_Clipboard << obj->raw ();
+	str data;
+	for (LDObject* obj : objs) {
+		data += ( obj->raw () + "\n" );
 		++num;
 	}
+	
+	qApp->clipboard()->setText( data );
 	
 	return num;
 }
@@ -80,11 +81,13 @@ MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", C
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
+	const str clipboardText = qApp->clipboard()->text();
 	ulong idx = g_win->getInsertionPoint ();
 	g_win->sel ().clear ();
 	int num = 0;
 	
-	for (str line : g_Clipboard) {
+	for( str line : clipboardText.split( "\n", QString::SkipEmptyParts ))
+	{
 		LDObject* pasted = parseLine (line);
 		g_curfile->insertObj (idx++, pasted);
 		g_win->sel () << pasted;

@@ -16,6 +16,8 @@
 - Objects can now be edited by double-clicking on them.
 - When drawing, drawn vertices now display coordinate labels.
 - Added an action to quickly toggle BFC red/green view.
+- Objects are now copied to the system clipboard as LDraw code, rather than to an internal clipboard not
+	accessible outside of LDForge.
 - Changed default keys for Y-axis moving from PgUp/PgDown to Home and End ala MLCAD.
 - Cleaned up the toolbars, removed clutter by removing most of the not-so-often-used items, though of course
 	the functionality is still available through menus and keyboard shortcuts.
