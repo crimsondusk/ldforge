@@ -50,7 +50,10 @@ static int copyToClipboard () {
 	// Now, copy the contents into the clipboard.
 	str data;
 	for (LDObject* obj : objs) {
-		data += ( obj->raw () + "\n" );
+		if( data.length() > 0 )
+			data += "\n";
+		
+		data += obj->raw ();
 		++num;
 	}
 	
@@ -86,7 +89,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	g_win->sel ().clear ();
 	int num = 0;
 	
-	for( str line : clipboardText.split( "\n", QString::SkipEmptyParts ))
+	for( str line : clipboardText.split( "\n" ))
 	{
 		LDObject* pasted = parseLine (line);
 		g_curfile->insertObj (idx++, pasted);
