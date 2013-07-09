@@ -195,9 +195,11 @@ File* openLDrawFile (str relpath, bool subdirs) {
 void FileLoader::start() {
 	setDone( false );
 	setProgress( 0 );
-	abortflag = false;
+	setAborted( false );
 	
 	if( concurrent() ) {
+		g_aborted = false;
+		
 		// Show a progress dialog if we're loading the main file here and move
 		// the actual work to a separate thread as this can be a rather intensive
 		// operation and if we don't respond quickly enough, the program can be
@@ -208,23 +210,22 @@ void FileLoader::start() {
 		dlg->show();
 		
 		// Connect the loader in so we can show updates
-		connect( this, SIGNAL( workDone() ), dlg, SLOT( accept() )); }
-	else
+		connect( this, SIGNAL( workDone() ), dlg, SLOT( accept() ));
+		connect( dlg, SIGNAL( rejected() ), this, SLOT( abort() ));
+	} else
 		dlg = null;
 	
 	work( 0 );
 }
 
 void FileLoader::work( ulong i ) {
-	print( "%1: %2\n", this, i );
-	
-	if( abortflag ) {
+	if( aborted() ) {
 		// We were flagged for abortion, so abort.
 		for( LDObject* obj : m_objs )
 			delete obj;
 		
 		m_objs.clear();
-		abortflag = false;
+		setDone( true );
 		return;
 	}
 	
@@ -265,13 +266,19 @@ void FileLoader::work( ulong i ) {
 	}
 }
 
+void FileLoader::abort() {
+	setAborted( true );
+	
+	if( concurrent() )
+		g_aborted = true;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	vector<str> lines;
 	vector<LDObject*> objs;
-	g_aborted = false;
 	
 	if( numWarnings )
 		*numWarnings = 0;
@@ -292,7 +299,7 @@ vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	
 	// If we wanted the success value, supply that now
 	if( ok )
-		*ok = loader->done();
+		*ok = !loader->aborted();
 	
 	objs = loader->objs();
 	return objs;

@@ -154,13 +154,14 @@ class FileLoader : public QObject {
 	READ_PROPERTY( vector<LDObject*>, objs, setObjects )
 	READ_PROPERTY( bool, done, setDone )
 	READ_PROPERTY( ulong, progress, setProgress )
+	READ_PROPERTY( bool, aborted, setAborted )
 	PROPERTY( vector<str>, lines, setLines )
 	PROPERTY( ulong*, warningsPointer, setWarningsPointer )
 	PROPERTY( bool, concurrent, setConcurrent )
 	
-public:
-	bool abortflag;
+public slots:
 	void start();
+	void abort();
 	
 private:
 	OpenProgressDialog* dlg;
