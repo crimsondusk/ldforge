@@ -42,7 +42,6 @@ extern_cfg (bool, lv_colorize);
 extern_cfg (bool, gl_colorbfc);
 extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (int, gl_linethickness);
-extern_cfg (int, gui_toolbar_iconsize);
 extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
@@ -92,7 +91,6 @@ void ConfigDialog::initMainTab () {
 	
 	// Sliders
 	ui->lineThickness->setValue( gl_linethickness );
-	ui->iconSize->setValue(( gui_toolbar_iconsize - 12 ) / 4 );
 	
 	// Checkboxes
 	ui->colorizeObjects->setChecked( lv_colorize );
@@ -630,7 +628,6 @@ void ConfigDialog::staticDialog()
 		gl_blackedges = dlg.getUI()->blackEdges->isChecked();
 		gl_maincolor_alpha = ( ( double )dlg.getUI()->mainColorAlpha->value() ) / 10.0f;
 		gl_linethickness = dlg.getUI()->lineThickness->value();
-		gui_toolbar_iconsize = ( dlg.getUI()->iconSize->value() * 4 ) + 12;
 		
 		// Manage the quick color toolbar
 		g_win->setQuickColorMeta( dlg.quickColorMeta );

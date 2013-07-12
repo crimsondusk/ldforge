@@ -54,7 +54,6 @@ static ushort g_metacursor = 0;
 static bool g_bSelectionLocked = false;
 
 cfg (bool, lv_colorize, true);
-cfg (int, gui_toolbar_iconsize, 24);
 cfg (str, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
@@ -438,7 +437,7 @@ vector<quickColor> parseQuickColorMeta () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateToolBars () {
-	const QSize iconsize (gui_toolbar_iconsize, gui_toolbar_iconsize);
+	const QSize iconsize (22, 22);
 	
 	for (QToolBar* bar : m_toolBars)
 		bar->setIconSize (iconsize);
@@ -457,7 +456,7 @@ void ForgeWindow::updateToolBars () {
 			m_colorToolBar->addSeparator ();
 		else {
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.col, gui_toolbar_iconsize));
+			colorButton->setIcon (makeColorIcon (entry.col, 22));
 			colorButton->setIconSize (iconsize);
 			colorButton->setToolTip (entry.col->name);
 			
