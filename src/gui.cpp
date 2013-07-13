@@ -1007,13 +1007,12 @@ void ForgeWindow::primitiveLoaderEnd () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ForgeWindow::save( LDOpenFile* f, bool saveAs )
-{
+void ForgeWindow::save (LDOpenFile* f, bool saveAs) {
 	str path = f->name ();
 	
 	if (path.length () == 0 || saveAs) {
-		path = QFileDialog::getSaveFileName (g_win, tr( "Save As" ),
-			g_curfile->name (), tr( "LDraw files (*.dat *.ldr)" ));
+		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
+			g_curfile->name (), tr ("LDraw files (*.dat *.ldr)"));
 		
 		if (path.length () == 0) {
 			// User didn't give a file name. This happens if the user cancelled
@@ -1022,33 +1021,33 @@ void ForgeWindow::save( LDOpenFile* f, bool saveAs )
 		}
 	}
 	
-	if( f->save( path ))
-	{
+	if (f->save (path)) {
 		f->setName (path);
 		
-		if( f == g_curfile )
+		if (f == g_curfile)
 			g_win->updateTitle ();
 		
-		log( "Saved to %1.", path );
-	}
-	else
-	{
-		setlocale( LC_ALL, "C" );
+		log ("Saved to %1.", path);
 		
-		str message = fmt( tr( "Failed to save to %1: %2" ), path, strerror (errno));
+		// Add it to recent files
+		addRecentFile (path);
+	} else {
+		setlocale (LC_ALL, "C");
+		
+		str message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
 		
 		// Tell the user the save failed, and give the option for saving as with it.
-		QMessageBox dlg( QMessageBox::Critical, tr( "Save Failure" ), message,
-			QMessageBox::Close, g_win );
+		QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message,
+						 QMessageBox::Close, g_win);
 		
 		// Add a save-as button
-		QPushButton* saveAsBtn = new QPushButton( tr( "Save As" ));
-		saveAsBtn->setIcon( getIcon( "file-save-as" ));
-		dlg.addButton( saveAsBtn, QMessageBox::ActionRole );
-		dlg.setDefaultButton( QMessageBox::Close );
+		QPushButton* saveAsBtn = new QPushButton (tr ("Save As"));
+		saveAsBtn->setIcon (getIcon ("file-save-as"));
+		dlg.addButton (saveAsBtn, QMessageBox::ActionRole);
+		dlg.setDefaultButton (QMessageBox::Close);
 		dlg.exec();
 		
-		if( dlg.clickedButton () == saveAsBtn )
+		if (dlg.clickedButton () == saveAsBtn)
 			save (f, true); // yay recursion!
 	}
 }

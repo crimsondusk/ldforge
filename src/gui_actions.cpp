@@ -38,23 +38,23 @@
 #include "widgets.h"
 
 extern_cfg (bool, gl_wireframe);
-extern_cfg( bool, gl_colorbfc );
+extern_cfg (bool, gl_colorbfc);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
-	if (safeToCloseAll () == false)
+	if (safeToCloseAll() == false)
 		return;
 	
-	QDialog* dlg = new QDialog( g_win );
+	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	if (dlg->exec () == false)
+	if (dlg->exec() == false)
 		return;
 	
-	newFile ();
+	newFile();
 	
 	const LDBFC::Type BFCType =
 		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
@@ -66,16 +66,16 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 		ui.rb_license_nonca->isChecked() ? NonCALicense :
 		                                   "";
 	
-	*g_curfile << new LDComment( ui.le_title->text() );
-	*g_curfile << new LDComment( "Name: <untitled>.dat" );
-	*g_curfile << new LDComment( fmt( "Author: %1", ui.le_author->text() ));
-	*g_curfile << new LDComment( fmt( "!LDRAW_ORG Unofficial_Part" ));
+	*g_curfile << new LDComment (ui.le_title->text());
+	*g_curfile << new LDComment ("Name: <untitled>.dat" );
+	*g_curfile << new LDComment (fmt ("Author: %1", ui.le_author->text()));
+	*g_curfile << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
-	if( license != "" )
-		*g_curfile << new LDComment( license );
+	if (license != "")
+		*g_curfile << new LDComment (license);
 	
 	*g_curfile << new LDEmpty;
-	*g_curfile << new LDBFC( BFCType );
+	*g_curfile << new LDBFC (BFCType);
 	*g_curfile << new LDEmpty;
 	
 	g_win->fullRefresh();
@@ -85,44 +85,44 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) {
-	if (safeToCloseAll () == false)
+	if (safeToCloseAll() == false)
 		return;
 	
 	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
-	if (name.length () == 0)
+	if (name.length() == 0)
 		return;
 	
-	closeAll ();
+	closeAll();
 	openMainFile (name);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION( save, "&Save", "file-save", "Save the part model.", CTRL( S ))
+MAKE_ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S))
 {
-	g_win->save( g_curfile, false );
+	g_win->save (g_curfile, false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION( saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT( S ))
+MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S))
 {
-	g_win->save( g_curfile, true );
+	g_win->save (g_curfile, true);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME ".", (0)) {
-	ConfigDialog::staticDialog ();
+	ConfigDialog::staticDialog();
 }
 
 MAKE_ACTION (setLDrawPath, "Set LDraw Path", "settings", "Change the LDraw directory path.", (0)) {
 	LDrawPathDialog dlg (true);
-	dlg.exec ();
+	dlg.exec();
 }
 
 // =============================================================================
@@ -167,17 +167,17 @@ MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) 
 	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
-MAKE_ACTION( makePrimitive, "Make a Primitive", "radial", "Generate a new circular primitive.", 0 )
+MAKE_ACTION (makePrimitive, "Make a Primitive", "radial", "Generate a new circular primitive.", 0)
 {
 	generatePrimitive();
 }
 
 MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {
-	if (g_win->sel ().size () != 1)
+	if (g_win->sel().size() != 1)
 		return;
 	
-	LDObject* obj = g_win->sel ()[0];
-	AddObjectDialog::staticDialog (obj->getType (), obj);
+	LDObject* obj = g_win->sel()[0];
+	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
 
 MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME " help manual.", KEY (F1)) {
@@ -191,7 +191,7 @@ MAKE_ACTION (about, "About " APPNAME, "ldforge",
 	"Shows information about " APPNAME ".", (0))
 {
 	AboutDialog dlg;
-	dlg.exec ();
+	dlg.exec();
 }
 
 MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", (0)) {
@@ -202,39 +202,39 @@ MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", (0)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
-	g_win->sel ().clear ();
+	g_win->sel().clear();
 	
-	for (LDObject* obj : g_curfile->objs ())
-		g_win->sel () << obj;
+	for (LDObject* obj : g_curfile->objs())
+		g_win->sel() << obj;
 	
-	g_win->updateSelection ();
+	g_win->updateSelection();
 }
 
 // =============================================================================
 MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 	"Select all objects by the given color.", CTRL_SHIFT (A))
 {
-	short colnum = g_win->getSelectedColor ();
+	short colnum = g_win->getSelectedColor();
 	
 	if (colnum == -1)
 		return; // no consensus on color
 	
-	g_win->sel ().clear ();
-	for (LDObject* obj : g_curfile->objs ())
-		if (obj->color () == colnum)
-			g_win->sel () << obj;
+	g_win->sel().clear();
+	for (LDObject* obj : g_curfile->objs())
+		if (obj->color() == colnum)
+			g_win->sel() << obj;
 	
-	g_win->updateSelection ();
+	g_win->updateSelection();
 }
 
 // =============================================================================
 MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	"Select all objects by the given type.", (0))
 {
-	if (g_win->sel ().size () == 0)
+	if (g_win->sel().size() == 0)
 		return;
 	
-	LDObject::Type type = g_win->uniformSelectedType ();
+	LDObject::Type type = g_win->uniformSelectedType();
 	
 	if (type == LDObject::Unidentified)
 		return;
@@ -244,25 +244,25 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	str refName;
 	
 	if (type == LDObject::Subfile) {
-		refName = static_cast<LDSubfile*> (g_win->sel ()[0])->fileInfo ()->name ();
+		refName = static_cast<LDSubfile*> (g_win->sel()[0])->fileInfo()->name();
 		
-		for (LDObject* obj : g_win->sel ())
-			if (static_cast<LDSubfile*> (obj)->fileInfo ()->name () != refName)
+		for (LDObject* obj : g_win->sel())
+			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 	
-	g_win->sel ().clear ();
-	for (LDObject* obj : g_curfile->objs ()) {
+	g_win->sel().clear();
+	for (LDObject* obj : g_curfile->objs()) {
 		if (obj->getType() != type)
 			continue;
 		
-		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo ()->name () != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 			continue;
 		
-		g_win->sel () << obj;
+		g_win->sel() << obj;
 	}
 	
-	g_win->updateSelection ();
+	g_win->updateSelection();
 }
 
 // =============================================================================
@@ -270,35 +270,35 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 // =============================================================================
 MAKE_ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", (0)) {
 	grid = Grid::Coarse;
-	g_win->updateGridToolBar ();
+	g_win->updateGridToolBar();
 }
 
 MAKE_ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", (0)) {
 	grid = Grid::Medium;
-	g_win->updateGridToolBar ();
+	g_win->updateGridToolBar();
 }
 
 MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", (0)) {
 	grid = Grid::Fine;
-	g_win->updateGridToolBar ();
+	g_win->updateGridToolBar();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
-	g_win->R ()->resetAngles ();
-	g_win->R ()->update ();
+	g_win->R()->resetAngles();
+	g_win->R()->update();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data from a file.", (0)) {
-	str fname = QFileDialog::getOpenFileName ();
-	ulong idx = g_win->getInsertionPoint ();
+	str fname = QFileDialog::getOpenFileName();
+	ulong idx = g_win->getInsertionPoint();
 	
-	if (!fname.length ())
+	if (!fname.length())
 		return;
 	
 	File f (fname, File::Read);
@@ -309,28 +309,28 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 	
 	vector<LDObject*> objs = loadFileContents (&f, null);
 	
-	g_win->sel ().clear ();
+	g_win->sel().clear();
 	
 	for (LDObject* obj : objs) {
 		g_curfile->insertObj (idx, obj);
-		g_win->sel () << obj;
+		g_win->sel() << obj;
 		
 		idx++;
 	}
 	
-	g_win->fullRefresh ();
-	g_win->scrollToSelection ();
+	g_win->fullRefresh();
+	g_win->scrollToSelection();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selection to file", (0)) {
-	if (g_win->sel ().size () == 0)
+	if (g_win->sel().size() == 0)
 		return;
 	
-	str fname = QFileDialog::getSaveFileName ();
-	if (fname.length () == 0)
+	str fname = QFileDialog::getSaveFileName();
+	if (fname.length() == 0)
 		return;
 	
 	QFile file (fname);
@@ -339,10 +339,10 @@ MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selectio
 		return;
 	}
 	
-	for (LDObject* obj : g_win->sel ()) {
-		str contents = obj->raw ();
-		QByteArray data = contents.toUtf8 ();
-		file.write (data, data.size ());
+	for (LDObject* obj : g_win->sel()) {
+		str contents = obj->raw();
+		QByteArray data = contents.toUtf8();
+		file.write (data, data.size());
 		file.write ("\r\n", 2);
 	}
 }
@@ -351,7 +351,7 @@ MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selectio
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to insert.", (0)) {
-	ulong idx = g_win->getInsertionPoint ();
+	ulong idx = g_win->getInsertionPoint();
 	
 	QDialog* const dlg = new QDialog;
 	QVBoxLayout* const layout = new QVBoxLayout;
@@ -362,24 +362,24 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	layout->addWidget (bbx_buttons);
 	dlg->setLayout (layout);
 	dlg->setWindowTitle (APPNAME ": Insert Raw");
-	dlg->connect (bbx_buttons, SIGNAL (accepted ()), dlg, SLOT (accept ()));
-	dlg->connect (bbx_buttons, SIGNAL (rejected ()), dlg, SLOT (reject ()));
+	dlg->connect (bbx_buttons, SIGNAL (accepted()), dlg, SLOT (accept()));
+	dlg->connect (bbx_buttons, SIGNAL (rejected()), dlg, SLOT (reject()));
 	
-	if (dlg->exec () == false)
+	if (dlg->exec() == false)
 		return;
 	
-	g_win->sel ().clear ();
+	g_win->sel().clear();
 	
-	for (str line : str (te_edit->toPlainText ()).split ("\n")) {
+	for (str line : str (te_edit->toPlainText()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
 		g_curfile->insertObj (idx, obj);
-		g_win->sel () << obj;
+		g_win->sel() << obj;
 		idx++;
 	}
 	
-	g_win->fullRefresh ();
-	g_win->scrollToSelection ();
+	g_win->fullRefresh();
+	g_win->scrollToSelection();
 }
 
 // =========================================================================================================================================
@@ -387,18 +387,18 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	setlocale (LC_ALL, "C");
 	
 	ushort w, h;
-	uchar* imgdata = g_win->R ()->screencap (w, h);
+	uchar* imgdata = g_win->R()->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
-	str root = basename (g_curfile->name ());
+	str root = basename (g_curfile->name());
 	if (root.right (4) == ".dat")
 		root.chop (4);
 	
-	str defaultname = (root.length () > 0) ? fmt ("%1.png", root) : "";
+	str defaultname = (root.length() > 0) ? fmt ("%1.png", root) : "";
 	str fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 		"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 	
-	if (fname.length () > 0 && !img.save (fname))
+	if (fname.length() > 0 && !img.save (fname))
 		critical (fmt ("Couldn't open %1 for writing to save screencap: %2", fname, strerror (errno)));
 	
 	delete[] imgdata;
@@ -409,56 +409,56 @@ extern_cfg (bool, gl_axes);
 MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
 	gl_axes = !gl_axes;
 	ACTION (axes)->setChecked (gl_axes);
-	g_win->R ()->update ();
+	g_win->R()->update();
 }
 
 // =========================================================================================================================================
 MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/hiding on objects.", (0)) {
-	for (LDObject* obj : g_win->sel ())
-		obj->setHidden (!obj->hidden ());
+	for (LDObject* obj : g_win->sel())
+		obj->setHidden (!obj->hidden());
 	
-	g_win->fullRefresh ();
+	g_win->fullRefresh();
 }
 
 MAKE_ACTION (wireframe, "Wireframe", "wireframe", "Toggle wireframe view", (0)) {
 	gl_wireframe = !gl_wireframe;
-	g_win->R ()->refresh ();
+	g_win->R()->refresh();
 }
 
-MAKE_ACTION( setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", 0 )
+MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", 0)
 {
 	OverlayDialog dlg;
 	
-	if (!dlg.exec ())
+	if (!dlg.exec())
 		return;
 	
-	g_win->R ()->setupOverlay( (GL::Camera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
+	g_win->R()->setupOverlay ((GL::Camera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
 		dlg.ofsy(), dlg.lwidth(), dlg.lheight() );
 }
 
 MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
-	g_win->R ()->clearOverlay ();
+	g_win->R()->clearOverlay();
 }
 
 MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the camera view.", CTRL (1)) {
-	g_win->R ()->setEditMode (Select);
+	g_win->R()->setEditMode (Select);
 }
 
 MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera view.", CTRL (2)) {
-	g_win->R ()->setEditMode (Draw);
+	g_win->R()->setEditMode (Draw);
 }
 
 MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coordinate of the current camera.", (0)) {
-	if (g_win->R ()->camera () == GL::Free)
+	if (g_win->R()->camera() == GL::Free)
 		return;
 	
 	bool ok;
 	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
-		fmt ("Depth value for %1 Camera:", g_win->R ()->cameraName ()),
-		g_win->R ()->depthValue (), -10000.0f, 10000.0f, 3, &ok);
+		fmt ("Depth value for %1 Camera:", g_win->R()->cameraName()),
+		g_win->R()->depthValue(), -10000.0f, 10000.0f, 3, &ok);
 	
 	if (ok)
-		g_win->R ()->setDepthValue (depth);
+		g_win->R()->setDepthValue (depth);
 }
 
 #ifndef RELEASE
@@ -479,17 +479,17 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 	GLRenderer* rend = new GLRenderer;
 	rend->resize (64, 64);
 	rend->setAttribute (Qt::WA_DontShowOnScreen);
-	rend->show ();
+	rend->show();
 	rend->setFile (file);
 	rend->setDrawOnly (true);
-	rend->compileAllObjects ();
-	rend->initGLData ();
-	rend->drawGLScene ();
+	rend->compileAllObjects();
+	rend->initGLData();
+	rend->drawGLScene();
 	
 	uchar* imgdata = rend->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
-	if (img.isNull ()) {
+	if (img.isNull()) {
 		critical ("Failed to create the image!\n");
 	} else {
 		QLabel* label = new QLabel;
@@ -497,21 +497,21 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 		label->setPixmap (QPixmap::fromImage (img));
 		QVBoxLayout* layout = new QVBoxLayout (dlg);
 		layout->addWidget (label);
-		dlg->exec ();
+		dlg->exec();
 	}
 	
 	delete[] imgdata;
-	rend->deleteLater ();
+	rend->deleteLater();
 }
 #endif
 
 MAKE_ACTION (reloadPrimitives, "Scan Primitives", "", "", (0)) {
-	PrimitiveLister::start ();
+	PrimitiveLister::start();
 }
 
-MAKE_ACTION( colorbfc, "BFC Red/Green View", "bfc-view", "", SHIFT( B ))
+MAKE_ACTION (colorbfc, "BFC Red/Green View", "bfc-view", "", SHIFT (B))
 {
 	gl_colorbfc = !gl_colorbfc;
-	ACTION( colorbfc )->setChecked( gl_colorbfc );
-	g_win->R ()->refresh();
+	ACTION (colorbfc)->setChecked (gl_colorbfc);
+	g_win->R()->refresh();
 }
