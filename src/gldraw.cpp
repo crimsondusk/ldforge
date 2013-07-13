@@ -1305,7 +1305,7 @@ static vector<vertex> getVertices (LDObject* obj) {
 	if (obj->vertices() >= 2) {
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
-	} elif( obj->getType() == LDObject::Subfile ) {
+	} elif (obj->getType() == LDObject::Subfile) {
 		vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
 		
 		for(LDObject* obj : objs) {
@@ -1389,7 +1389,7 @@ void GLRenderer::deleteLists (LDObject* obj) {
 
 // =============================================================================
 Axis GLRenderer::cameraAxis (bool y, GL::Camera camid) {
-	if( camid == (GL::Camera) -1 )
+	if (camid == (GL::Camera) -1)
 		camid = m_camera;
 	
 	const staticCameraMeta* cam = &g_staticCameras[camid];
@@ -1397,14 +1397,12 @@ Axis GLRenderer::cameraAxis (bool y, GL::Camera camid) {
 }
 
 // =============================================================================
-bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, int h )
-{
-	QImage* img = new QImage( file );
-	overlayMeta& info = getOverlay( cam );
+bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, int h) {
+	QImage* img = new QImage (file);
+	overlayMeta& info = getOverlay (cam);
 	
-	if( img->isNull() )
-	{
-		critical( tr( "Failed to load overlay image!" ));
+	if (img->isNull()) {
+		critical (tr ("Failed to load overlay image!"));
 		delete img;
 		return false;
 	}
@@ -1418,31 +1416,30 @@ bool GLRenderer::setupOverlay ( GL::Camera cam, str file, int x, int y, int w, i
 	info.oy = y;
 	info.img = img;
 	
-	if( info.lw == 0 )
-		info.lw = ( info.lh * img->width() ) / img->height();
-	elif( info.lh == 0 )
-		info.lh = ( info.lw * img->height() ) / img->width();
+	if (info.lw == 0)
+		info.lw = (info.lh * img->width()) / img->height();
+	elif (info.lh == 0)
+		info.lh = (info.lw * img->height()) / img->width();
 	
-	const Axis x2d = cameraAxis( false, cam ),
-		y2d = cameraAxis( true, cam );
-	
+	const Axis x2d = cameraAxis (false, cam),
+		y2d = cameraAxis (true, cam);
+
 	double negXFac = g_staticCameras[cam].negX ? -1 : 1,
 		negYFac = g_staticCameras[cam].negY ? -1 : 1;
-	
+
 	info.v0 = info.v1 = g_origin;
-	info.v0[x2d] = -( info.ox * info.lw * negXFac ) / img->width();
-	info.v0[y2d] = ( info.oy * info.lh * negYFac ) / img->height();
+	info.v0[x2d] = - (info.ox * info.lw * negXFac) / img->width();
+	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height();
 	info.v1[x2d] = info.v0[x2d] + info.lw;
 	info.v1[y2d] = info.v0[y2d] + info.lh;
-	
+
 	// Set alpha of all pixels to 0.5
-	for( long i = 0; i < img->width(); ++i )
-	for( long j = 0; j < img->height(); ++j )
-	{
-		uint32 pixel = img->pixel( i, j );
-		img->setPixel( i, j, 0x80000000 | ( pixel & 0x00FFFFFF ));
+	for (long i = 0; i < img->width(); ++i)
+	for (long j = 0; j < img->height(); ++j) {
+		uint32 pixel = img->pixel (i, j);
+		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
 	}
-	
+
 	updateOverlayObjects();
 	return true;
 }
@@ -1609,15 +1606,12 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	ev->accept();
 }
 
-LDOverlayObject* GLRenderer::findOverlayObject( GLRenderer::Camera cam )
-{
+LDOverlayObject* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
 	LDOverlayObject* ovlobj = null;
 	
-	for( LDObject* obj : *file() )
-	{
-		if( obj->getType() == LDObject::Overlay && static_cast<LDOverlayObject*>( obj )->camera() == cam )
-		{
-			ovlobj = static_cast<LDOverlayObject*>( obj );
+	for (LDObject * obj : *file()) {
+		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlayObject*> (obj)->camera() == cam) {
+			ovlobj = static_cast<LDOverlayObject*> (obj);
 			break;
 		}
 	}
@@ -1631,52 +1625,44 @@ LDOverlayObject* GLRenderer::findOverlayObject( GLRenderer::Camera cam )
 // =============================================================================
 void GLRenderer::overlaysFromObjects()
 {
-	for( Camera cam : g_Cameras )
-	{
-		if( cam == Free )
+	for (Camera cam : g_Cameras) {
+		if (cam == Free)
 			continue;
 		
 		overlayMeta& meta = m_overlays[cam];
-		LDOverlayObject* ovlobj = findOverlayObject( cam );
+		LDOverlayObject* ovlobj = findOverlayObject (cam);
 		
-		if( !ovlobj && meta.img )
-		{
+		if (!ovlobj && meta.img) {
 			delete meta.img;
 			meta.img = null;
-		}
-		elif( ovlobj && ( !meta.img || meta.fname != ovlobj->filename() ))
-			setupOverlay( cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height() );
+		} elif (ovlobj && (!meta.img || meta.fname != ovlobj->filename()))
+			setupOverlay (cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height());
 	}
 }
 
 // =============================================================================
-void GLRenderer::updateOverlayObjects()
-{
-	for( Camera cam : g_Cameras )
-	{
-		if( cam == Free )
+void GLRenderer::updateOverlayObjects() {
+	for (Camera cam : g_Cameras) {
+		if (cam == Free)
 			continue;
 		
 		overlayMeta& meta = m_overlays[cam];
-		LDOverlayObject* ovlobj = findOverlayObject( cam );
+		LDOverlayObject* ovlobj = findOverlayObject (cam);
 		
-		if( !meta.img && ovlobj )
-		{
+		if (!meta.img && ovlobj) {
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
-			if( nextobj && nextobj->getType() == LDObject::Empty )
-			{
-				m_file->forgetObject( nextobj );
+			
+			if (nextobj && nextobj->getType() == LDObject::Empty) {
+				m_file->forgetObject (nextobj);
 				delete nextobj;
 			}
 			
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
-			m_file->forgetObject( ovlobj );
+			m_file->forgetObject (ovlobj);
 			delete ovlobj;
-		}
-		elif( meta.img && !ovlobj )
-		{
+		} elif (meta.img && !ovlobj) {
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
 			ovlobj = new LDOverlayObject;
@@ -1690,41 +1676,38 @@ void GLRenderer::updateOverlayObjects()
 			ulong i, lastOverlay = -1u;
 			bool found = false;
 			
-			for( i = 0; i < file()->numObjs(); ++i )
-			{
-				LDObject* obj = file()->obj( i );
-				if( obj->isScemantic() )
-				{
+			for (i = 0; i < file()->numObjs(); ++i) {
+				LDObject* obj = file()->obj (i);
+				
+				if (obj->isScemantic()) {
 					found = true;
 					break;
 				}
 				
-				if( obj->getType() == LDObject::Overlay )
+				if (obj->getType() == LDObject::Overlay)
 					lastOverlay = i;
 			}
 			
-			if( lastOverlay != -1u )
-				file()->insertObj( lastOverlay + 1, ovlobj );
-			else
-			{
-				file()->insertObj( i, ovlobj );
+			if (lastOverlay != -1u)
+				file()->insertObj (lastOverlay + 1, ovlobj);
+			else {
+				file()->insertObj (i, ovlobj);
 				
-				if( found )
-					file()->insertObj( i + 1, new LDEmptyObject );
+				if (found)
+					file()->insertObj (i + 1, new LDEmptyObject);
 			}
 		}
 		
-		if( meta.img && ovlobj )
-		{
-			ovlobj->setCamera( cam );
-			ovlobj->setFilename( meta.fname );
-			ovlobj->setX( meta.ox );
-			ovlobj->setY( meta.oy );
-			ovlobj->setWidth( meta.lw );
-			ovlobj->setHeight( meta.lh );
+		if (meta.img && ovlobj) {
+			ovlobj->setCamera (cam);
+			ovlobj->setFilename (meta.fname);
+			ovlobj->setX (meta.ox);
+			ovlobj->setY (meta.oy);
+			ovlobj->setWidth (meta.lw);
+			ovlobj->setHeight (meta.lh);
 		}
 	}
 	
-	if( g_win->R() == this )
+	if (g_win->R() == this)
 		g_win->refresh();
 }

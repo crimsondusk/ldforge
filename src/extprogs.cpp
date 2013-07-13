@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -79,14 +79,14 @@ const char* g_extProgNames[] = {
 
 // =============================================================================
 static bool checkProgPath (str path, const extprog prog) {
-	if (path.length () > 0)
+	if (path.length() > 0)
 		return true;
 	
 	const char* name = g_extProgNames[prog];
 	
-	critical (fmt ("Couldn't run %1 as no path has "
+	critical (fmt (QObject::tr ("Couldn't run %1 as no path has "
 		"been defined for it. Use the configuration dialog's External Programs "
-		"tab to define a path for %1.", name));
+		"tab to define a path for %1."), name));
 	return false;
 }
 
@@ -107,7 +107,7 @@ static str processErrorString (QProcess& proc) {
 		return "Unknown error";
 	
 	case QProcess::Timedout:
-		return fmt( "Timed out (30 seconds)" );
+		return fmt ("Timed out (30 seconds)");
 	}
 	
 	return "";
@@ -115,72 +115,59 @@ static str processErrorString (QProcess& proc) {
 
 // =============================================================================
 static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
-	if (!tmp.open ())
+	if (!tmp.open())
 		return false;
 	
-	fname = tmp.fileName ();
-	tmp.close ();
+	fname = tmp.fileName();
+	tmp.close();
 	return true;
 }
 
 // =============================================================================
 void writeObjects (vector<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
-		if (obj->getType () == LDObject::Subfile) {
+		if (obj->getType() == LDObject::Subfile) {
 			vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
 			
 			writeObjects (objs, f);
+			
 			for (LDObject* obj : objs)
 				delete obj;
 		} else
-			f.write (obj->raw () + "\r\n");
+			f.write (obj->raw() + "\r\n");
 	}
 }
 
 void writeObjects (vector<LDObject*>& objects, str fname) {
 	// Write the input file
 	File f (fname, File::Write);
+	
 	if (!f) {
 		critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
 		return;
 	}
 	
 	writeObjects (objects, f);
-	f.close ();
+	f.close();
 }
 
 // =============================================================================
 void writeSelection (str fname) {
-	writeObjects (g_win->sel (), fname);
+	writeObjects (g_win->sel(), fname);
 }
 
 // =============================================================================
 void writeColorGroup (const short colnum, str fname) {
 	vector<LDObject*> objects;
-	for (LDObject*& obj : *g_curfile) {
-		if (obj->isColored () == false || obj->color () != colnum)
+	
+	for (LDObject* obj : *g_curfile) {
+		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 		
 		objects << obj;
 	}
 	
 	writeObjects (objects, fname);
-}
-
-void waitForProcess( QProcess* proc ) {
-	proc->waitForFinished();
-	
-#if 0
-	int msecs = 30000;
-	int msectic = 10;
-	
-	for (int i = 0; i < msecs / msectic; ++i) {
-		if (proc->waitForFinished (msectic))
-			return;
-		
-		
-	}
-#endif // 0
 }
 
 // =============================================================================
@@ -199,7 +186,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	print ("cmdline: %1 %2\n", path, argv.join (" "));
 	
 	// Temporary files for stdin and stdout
-	if( !mkTempFile( input, inputname ) || !mkTempFile( output, outputname ))
+	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
 		return false;
 	
 	QProcess proc;
@@ -215,15 +202,15 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	stdinfp.write ("\n");
 	
 	// Wait while it runs
-	waitForProcess( &proc );
+	proc.waitForFinished();
 	
 #ifndef RELEASE
-	print ("%1", str (proc.readAllStandardOutput ()));
+	print ("%1", str (proc.readAllStandardOutput()));
 #endif // RELEASE
 	
 	str err = "";
 	
-	if ( proc.exitStatus() != QProcess::NormalExit )
+	if (proc.exitStatus() != QProcess::NormalExit)
 		err = processErrorString (proc);
 	
 	// Check the return code
@@ -246,6 +233,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 	
 	// Read the output file
 	File f (fname, File::Read);
+	
 	if (!f) {
 		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
@@ -255,31 +243,32 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)
-		g_win->deleteSelection ();
+		g_win->deleteSelection();
 	
 	for (const short colnum : colorsToReplace)
 		g_win->deleteByColor (colnum);
 	
 	// Insert the new objects
-	g_win->sel ().clear ();
-	for (LDObject* obj : objs) {
-		if (!obj->isScemantic ()) {
+	g_win->sel().clear();
+	
+	for (LDObject * obj : objs) {
+		if (!obj->isScemantic()) {
 			delete obj;
 			continue;
 		}
 		
 		g_curfile->addObject (obj);
-		g_win->sel () << obj;
+		g_win->sel() << obj;
 	}
 	
-	g_win->fullRefresh ();
+	g_win->fullRefresh();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Interface for Ytruder
-void runYtruder () {
+void runYtruder() {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_ytruder, Ytruder))
@@ -287,9 +276,9 @@ void runYtruder () {
 	
 	QDialog* dlg = new QDialog;
 	Ui::YtruderUI ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	if (!dlg->exec ())
+	if (!dlg->exec())
 		return;
 	
 	// Read the user's choices
@@ -313,7 +302,7 @@ void runYtruder () {
 		return;
 	
 	// Compose the command-line arguments
-	str argv = join ({
+	str argv = join ( {
 		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
 		depth,
@@ -335,7 +324,7 @@ void runYtruder () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Rectifier interface
-void runRectifier () {
+void runRectifier() {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_rectifier, Rectifier))
@@ -345,7 +334,7 @@ void runRectifier () {
 	Ui::RectifierUI ui;
 	ui.setupUi (dlg);
 	
-	if (!dlg->exec ())
+	if (!dlg->exec())
 		return;
 	
 	QTemporaryFile indat, outdat;
@@ -356,13 +345,13 @@ void runRectifier () {
 		return;
 	
 	// Compose arguments
-	str argv = join ({
-		(!ui.cb_condense->isChecked ()) ? "-q" : "",
-		(!ui.cb_subst->isChecked ()) ? "-r" : "",
-		(ui.cb_condlineCheck->isChecked ()) ? "-a" : "",
-		(ui.cb_colorize->isChecked ()) ? "-c" : "",
+	str argv = join ( {
+		(!ui.cb_condense->isChecked()) ? "-q" : "",
+		(!ui.cb_subst->isChecked()) ? "-r" : "",
+		(ui.cb_condlineCheck->isChecked()) ? "-a" : "",
+		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		"-t",
-		ui.dsb_coplthres->value (),
+		ui.dsb_coplthres->value(),
 		inDATName,
 		outDATName
 	});
@@ -377,7 +366,7 @@ void runRectifier () {
 
 LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
 	LabeledWidget<QComboBox>* widget = new LabeledWidget<QComboBox> (label, new QComboBox);
-	makeColorSelector (widget->w ());
+	makeColorSelector (widget->w());
 	return widget;
 }
 
@@ -385,7 +374,7 @@ LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Intersector interface
-void runIntersector () {
+void runIntersector() {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_intersector, Intersector))
@@ -393,24 +382,23 @@ void runIntersector () {
 	
 	QDialog* dlg = new QDialog;
 	Ui::IntersectorUI ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	makeColorSelector( ui.cmb_incol );
-	makeColorSelector( ui.cmb_cutcol );
-	ui.cb_repeat->setWhatsThis( "If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
-		" cutter group with the input group. Both groups are cut by the intersection." );
-	ui.cb_edges->setWhatsThis( "Makes " APPNAME " try run Isecalc to create edgelines for the intersection." );
+	makeColorSelector (ui.cmb_incol);
+	makeColorSelector (ui.cmb_cutcol);
+	ui.cb_repeat->setWhatsThis ("If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
+		" cutter group with the input group. Both groups are cut by the intersection.");
+	ui.cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 	
 	short inCol, cutCol;
-	const bool repeatInverse = ui.cb_repeat->isChecked ();
+	const bool repeatInverse = ui.cb_repeat->isChecked();
 	
-	for( ;; )
-	{
-		if (!dlg->exec ())
+	for (;;) {
+		if (!dlg->exec())
 			return;
 		
-		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex ()).toInt ();
-		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex ()).toInt ();
+		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex()).toInt();
+		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex()).toInt();
 		
 		if (inCol == cutCol) {
 			critical ("Cannot use the same color group for both input and cutter!");
@@ -430,17 +418,16 @@ void runIntersector () {
 	str inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
 	
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (cutdat, cutDATName) ||
-		!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
-		!mkTempFile (edgesdat, edgesDATName))
-	{
+			!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
+			!mkTempFile (edgesdat, edgesDATName)) {
 		return;
 	}
 	
-	str parms = join ({
-		(ui.cb_colorize->isChecked ()) ? "-c" : "",
-		(ui.cb_nocondense->isChecked ()) ? "-t" : "",
+	str parms = join ( {
+		(ui.cb_colorize->isChecked()) ? "-c" : "",
+		(ui.cb_nocondense->isChecked()) ? "-t" : "",
 		"-s",
-		ui.dsb_prescale->value ()
+		ui.dsb_prescale->value()
 	});
 	
 	str argv_normal = join ({
@@ -468,7 +455,7 @@ void runIntersector () {
 	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
 	
-	if (ui.cb_edges->isChecked () && runUtilityProcess (Isecalc, prog_isecalc,
+	if (ui.cb_edges->isChecked() && runUtilityProcess (Isecalc, prog_isecalc,
 		join ({inDATName, cutDATName, edgesDATName})))
 	{
 		insertOutput (edgesDATName, false, {});
@@ -478,7 +465,7 @@ void runIntersector () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void runCoverer () {
+void runCoverer() {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_coverer, Coverer))
@@ -486,23 +473,23 @@ void runCoverer () {
 	
 	QDialog* dlg = new QDialog;
 	Ui::CovererUI ui;
-	ui.setupUi( dlg );
-	makeColorSelector( ui.cmb_col1 );
-	makeColorSelector( ui.cmb_col2 );
+	ui.setupUi (dlg);
+	makeColorSelector (ui.cmb_col1);
+	makeColorSelector (ui.cmb_col2);
 	
 	short in1Col, in2Col;
+	
 	for (;;) {
-		if (!dlg->exec ())
+		if (!dlg->exec())
 			return;
 		
-		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex ()).toInt ();
-		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex ()).toInt ();
+		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt();
+		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt();
 		
 		if (in1Col == in2Col) {
 			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
-		
 		break;
 	}
 	
@@ -512,11 +499,11 @@ void runCoverer () {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ({
-		(ui.cb_oldsweep->isChecked () ? "-s" : ""),
-		(ui.cb_reverse->isChecked () ? "-r" : ""),
-		(ui.dsb_segsplit->value () != 0 ? fmt ("-l %1", ui.dsb_segsplit->value ()) : ""),
-		(ui.sb_bias->value () != 0 ? fmt ("-s %1", ui.sb_bias->value ()) : ""),
+	str argv = join ( {
+		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
+		(ui.cb_reverse->isChecked() ? "-r" : ""),
+		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
+		(ui.sb_bias->value() != 0 ? fmt ("-s %1", ui.sb_bias->value()) : ""),
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -534,7 +521,7 @@ void runCoverer () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void runIsecalc () {
+void runIsecalc() {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_isecalc, Isecalc))
@@ -542,21 +529,20 @@ void runIsecalc () {
 	
 	Ui::IsecalcUI ui;
 	QDialog* dlg = new QDialog;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	makeColorSelector( ui.cmb_col1 );
-	makeColorSelector( ui.cmb_col2 );
+	makeColorSelector (ui.cmb_col1);
+	makeColorSelector (ui.cmb_col2);
 	
 	short in1Col, in2Col;
 	
 	// Run the dialog and validate input
-	for( ;; )
-	{
-		if (!dlg->exec ())
+	for (;;) {
+		if (!dlg->exec())
 			return;
 		
-		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex ()).toInt (),
-			in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex ()).toInt ();
+		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt(),
+		in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex()).toInt();
 		
 		if (in1Col == in2Col) {
 			critical ("Cannot use the same color group for both input and cutter!");
@@ -572,7 +558,7 @@ void runIsecalc () {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ({
+	str argv = join ( {
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -587,48 +573,47 @@ void runIsecalc () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION( edger2, "Edger 2", "edger2", "Compute edgelines", 0 )
-{
+MAKE_ACTION (edger2, "Edger 2", "edger2", "Compute edgelines", 0) {
 	setlocale (LC_ALL, "C");
 	
-	if( !checkProgPath( prog_edger2, Edger2 ))
+	if (!checkProgPath (prog_edger2, Edger2))
 		return;
 	
 	QDialog* dlg = new QDialog;
 	Ui::Edger2Dialog ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	if( !dlg->exec() )
+	if (!dlg->exec())
 		return;
 	
 	QTemporaryFile in, out;
 	str inName, outName;
 	
-	if( !mkTempFile( in, inName ) || !mkTempFile( out, outName ))
+	if (!mkTempFile (in, inName) || !mkTempFile (out, outName))
 		return;
 	
 	int unmatched = ui.unmatched->currentIndex();
 	
-	str argv = join({
-		fmt( "-p %1", ui.precision->value() ),
-		fmt( "-af %1", ui.flatAngle->value() ),
-		fmt( "-ac %1", ui.condAngle->value() ),
-		fmt( "-ae %1", ui.edgeAngle->value() ),
+	str argv = join ( {
+		fmt ("-p %1", ui.precision->value()),
+		fmt ("-af %1", ui.flatAngle->value()),
+		fmt ("-ac %1", ui.condAngle->value()),
+		fmt ("-ae %1", ui.edgeAngle->value()),
 		ui.delLines->isChecked()     ? "-de" : "",
 		ui.delCondLines->isChecked() ? "-dc" : "",
 		ui.colored->isChecked()      ? "-c" : "",
 		ui.bfc->isChecked()          ? "-b" : "",
 		ui.convex->isChecked()       ? "-cx" : "",
 		ui.concave->isChecked()      ? "-cv" : "",
-		unmatched == 0 ? "-u+" : ( unmatched == 2 ? "-u-" : "" ),
+		unmatched == 0 ? "-u+" : (unmatched == 2 ? "-u-" : ""),
 		inName,
 		outName,
 	});
 	
-	writeSelection( inName );
+	writeSelection (inName);
 	
-	if( !runUtilityProcess( Edger2, prog_edger2, argv ))
+	if (!runUtilityProcess (Edger2, prog_edger2, argv))
 		return;
 	
-	insertOutput( outName, true, {} );
+	insertOutput (outName, true, {});
 }
