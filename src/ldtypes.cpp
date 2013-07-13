@@ -83,15 +83,14 @@ void LDObject::setVertexCoord (int i, Axis ax, double value) {
 	setVertex (i, v);
 }
 
-LDGibberish::LDGibberish() {}
-LDGibberish::LDGibberish (str contents, str reason) : contents (contents), reason (reason) {}
+LDErrorObject::LDErrorObject() {}
 
 // =============================================================================
-str LDComment::raw() {
+str LDCommentObject::raw() {
 	return fmt ("0 %1", text);
 }
 
-str LDSubfile::raw() {
+str LDSubfileObject::raw() {
 	str val = fmt ("1 %1 %2 ", color(), position());
 	val += transform().stringRep();
 	val += ' ';
@@ -99,7 +98,7 @@ str LDSubfile::raw() {
 	return val;
 }
 
-str LDLine::raw() {
+str LDLineObject::raw() {
 	str val = fmt ("2 %1", color());
 	
 	for (ushort i = 0; i < 2; ++i)
@@ -108,7 +107,7 @@ str LDLine::raw() {
 	return val;
 }
 
-str LDTriangle::raw() {
+str LDTriangleObject::raw() {
 	str val = fmt ("3 %1", color());
 	
 	for (ushort i = 0; i < 3; ++i)
@@ -117,7 +116,7 @@ str LDTriangle::raw() {
 	return val;
 }
 
-str LDQuad::raw() {
+str LDQuadObject::raw() {
 	str val = fmt ("4 %1", color());
 	
 	for (ushort i = 0; i < 4; ++i)
@@ -126,7 +125,7 @@ str LDQuad::raw() {
 	return val;
 }
 
-str LDCondLine::raw() {
+str LDCondLineObject::raw() {
 	str val = fmt ("5 %1", color());
 	
 	// Add the coordinates
@@ -136,22 +135,22 @@ str LDCondLine::raw() {
 	return val;
 }
 
-str LDGibberish::raw() {
+str LDErrorObject::raw() {
 	return contents;
 }
 
-str LDVertex::raw() {
+str LDVertexObject::raw() {
 	return fmt ("0 !LDFORGE VERTEX %1 %2", color(), pos);
 }
 
-str LDEmpty::raw() {
+str LDEmptyObject::raw() {
 	return "";
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-const char* LDBFC::statements[] = {
+const char* LDBFCObject::statements[] = {
 	"CERTIFY CCW",
 	"CCW",
 	"CERTIFY CW",
@@ -160,28 +159,28 @@ const char* LDBFC::statements[] = {
 	"INVERTNEXT",
 };
 
-str LDBFC::raw() {
-	return fmt ("0 BFC %1", LDBFC::statements[type]);
+str LDBFCObject::raw() {
+	return fmt ("0 BFC %1", LDBFCObject::statements[type]);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDTriangle*> LDQuad::splitToTriangles() {
+vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 	// Create the two triangles based on this quadrilateral:
 	// 0---3       0---3    3
 	// |   |       |  /    /|
 	// |   |  ==>  | /    / |
 	// |   |       |/    /  |
 	// 1---2       1    1---2
-	LDTriangle* tri1 = new LDTriangle (getVertex (0), getVertex (1), getVertex (3));
-	LDTriangle* tri2 = new LDTriangle (getVertex (1), getVertex (2), getVertex (3));
+	LDTriangleObject* tri1 = new LDTriangleObject (getVertex (0), getVertex (1), getVertex (3));
+	LDTriangleObject* tri2 = new LDTriangleObject (getVertex (1), getVertex (2), getVertex (3));
 	
 	// The triangles also inherit the quad's color
 	tri1->setColor (color());
 	tri2->setColor (color());
 	
-	vector<LDTriangle*> triangles;
+	vector<LDTriangleObject*> triangles;
 	triangles << tri1;
 	triangles << tri2;
 	return triangles;
@@ -215,7 +214,7 @@ void LDObject::swap (LDObject* other) {
 	g_curfile->addToHistory (new SwapHistory (id(), other->id()));
 }
 
-LDLine::LDLine (vertex v1, vertex v2) {
+LDLineObject::LDLineObject (vertex v1, vertex v2) {
 	setVertex (0, v1);
 	setVertex (1, v2);
 }
@@ -255,7 +254,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 
 	case LDObject::Subfile:
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 			matrix newMatrix = transform * ref->transform();
 			vertex newpos = ref->position();
 			
@@ -276,7 +275,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
+vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
 	vector<LDObject*> objs, objcache;
 
 	// If we have this cached, just clone that
@@ -296,7 +295,7 @@ vector<LDObject*> LDSubfile::inlineContents (bool deep, bool cache) {
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
 			if (deep && obj->getType() == LDObject::Subfile) {
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 				
 				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
@@ -461,35 +460,35 @@ LDObject* LDObject::prev() const {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::move (vertex vect)    { (void) vect; }
-void LDEmpty::move (vertex vect)     { (void) vect; }
-void LDBFC::move (vertex vect)       { (void) vect; }
-void LDComment::move (vertex vect)   { (void) vect; }
-void LDGibberish::move (vertex vect) { (void) vect; }
+void LDEmptyObject::move (vertex vect)     { (void) vect; }
+void LDBFCObject::move (vertex vect)       { (void) vect; }
+void LDCommentObject::move (vertex vect)   { (void) vect; }
+void LDErrorObject::move (vertex vect) { (void) vect; }
 
-void LDVertex::move (vertex vect) {
+void LDVertexObject::move (vertex vect) {
 	pos += vect;
 }
 
-void LDSubfile::move (vertex vect) {
+void LDSubfileObject::move (vertex vect) {
 	setPosition (position() + vect);
 }
 
-void LDLine::move (vertex vect) {
+void LDLineObject::move (vertex vect) {
 	for (short i = 0; i < 2; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
-void LDTriangle::move (vertex vect) {
+void LDTriangleObject::move (vertex vect) {
 	for (short i = 0; i < 3; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
-void LDQuad::move (vertex vect) {
+void LDQuadObject::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
-void LDCondLine::move (vertex vect) {
+void LDCondLineObject::move (vertex vect) {
 	for (short i = 0; i < 4; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
@@ -499,7 +498,7 @@ void LDCondLine::move (vertex vect) {
 // =============================================================================
 #define CHECK_FOR_OBJ(N) \
 	if( type == LDObject::N ) \
-		return new LD##N;
+		return new LD##N##Object;
 
 LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (Comment)
@@ -511,7 +510,7 @@ LDObject* LDObject::getDefault (const LDObject::Type type) {
 	CHECK_FOR_OBJ (Quad)
 	CHECK_FOR_OBJ (Empty)
 	CHECK_FOR_OBJ (BFC)
-	CHECK_FOR_OBJ (Gibberish)
+	CHECK_FOR_OBJ (Error)
 	CHECK_FOR_OBJ (Vertex)
 	CHECK_FOR_OBJ (Overlay)
 	return null;
@@ -521,12 +520,12 @@ LDObject* LDObject::getDefault (const LDObject::Type type) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::invert() {}
-void LDBFC::invert() {}
-void LDEmpty::invert() {}
-void LDComment::invert() {}
-void LDGibberish::invert() {}
+void LDBFCObject::invert() {}
+void LDEmptyObject::invert() {}
+void LDCommentObject::invert() {}
+void LDErrorObject::invert() {}
 
-void LDTriangle::invert() {
+void LDTriangleObject::invert() {
 	// Triangle goes 0 -> 1 -> 2, reversed: 0 -> 2 -> 1.
 	// Thus, we swap 1 and 2.
 	vertex tmp = getVertex (1);
@@ -536,7 +535,7 @@ void LDTriangle::invert() {
 	return;
 }
 
-void LDQuad::invert() {
+void LDQuadObject::invert() {
 	// Quad: 0 -> 1 -> 2 -> 3
 	// rev:  0 -> 3 -> 2 -> 1
 	// Thus, we swap 1 and 3.
@@ -545,7 +544,7 @@ void LDQuad::invert() {
 	setVertex (3, tmp);
 }
 
-void LDSubfile::invert() {
+void LDSubfileObject::invert() {
 	// Subfiles are inverted when they're prefixed with
 	// a BFC INVERTNEXT statement. Thus we need to toggle this status.
 	// For flat primitives it's sufficient that the determinant is
@@ -555,9 +554,9 @@ void LDSubfile::invert() {
 	ulong idx = getIndex (g_curfile);
 	
 	if (idx > 0) {
-		LDBFC* bfc = dynamic_cast<LDBFC*> (prev());
+		LDBFCObject* bfc = dynamic_cast<LDBFCObject*> (prev());
 		
-		if (bfc && bfc->type == LDBFC::InvertNext) {
+		if (bfc && bfc->type == LDBFCObject::InvertNext) {
 			// This is prefixed with an invertnext, thus remove it.
 			g_curfile->forgetObject (bfc);
 			delete bfc;
@@ -566,7 +565,7 @@ void LDSubfile::invert() {
 	}
 	
 	// Not inverted, thus prefix it with a new invertnext.
-	LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
+	LDBFCObject* bfc = new LDBFCObject (LDBFCObject::InvertNext);
 	g_curfile->insertObj (idx, bfc);
 }
 
@@ -578,19 +577,19 @@ static void invertLine (LDObject* line) {
 	line->setVertex (1, tmp);
 }
 
-void LDLine::invert() {
+void LDLineObject::invert() {
 	invertLine (this);
 }
 
-void LDCondLine::invert() {
+void LDCondLineObject::invert() {
 	invertLine (this);
 }
 
-void LDVertex::invert() {}
+void LDVertexObject::invert() {}
 
 // =============================================================================
-LDLine* LDCondLine::demote() {
-	LDLine* repl = new LDLine;
+LDLineObject* LDCondLineObject::demote() {
+	LDLineObject* repl = new LDLineObject;
 	
 	for (int i = 0; i < repl->vertices(); ++i)
 		repl->setVertex (i, getVertex (i));
@@ -610,16 +609,16 @@ LDObject* LDObject::fromID (int id) {
 }
 
 // =============================================================================
-str LDOverlay::raw() {
+str LDOverlayObject::raw() {
 	return fmt ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
 		filename(), camera(), x(), y(), width(), height());
 }
 
-void LDOverlay::move (vertex vect) {
+void LDOverlayObject::move (vertex vect) {
 	Q_UNUSED (vect)
 }
 
-void LDOverlay::invert() {}
+void LDOverlayObject::invert() {}
 
 // =============================================================================
 // Hook the set accessors of certain properties to this changeProperty function.

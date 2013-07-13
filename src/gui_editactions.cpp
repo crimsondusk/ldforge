@@ -126,7 +126,7 @@ static void doInline (bool deep) {
 		vector<LDObject*> objs;
 		
 		if (obj->getType() == LDObject::Subfile)
-			objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, true);
+			objs = static_cast<LDSubfileObject*> (obj)->inlineContents (deep, true);
 		else
 			continue;
 		
@@ -175,7 +175,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		if (index == -1)
 			return;
 		
-		vector<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles();
+		vector<LDTriangleObject*> triangles = static_cast<LDQuadObject*> (obj)->splitToTriangles();
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
@@ -206,8 +206,8 @@ MAKE_ACTION (setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw cod
 	ui.setupUi (dlg);
 	ui.code->setText (obj->raw());
 	
-	if (obj->getType() == LDObject::Gibberish)
-		ui.errorDescription->setText (static_cast<LDGibberish*> (obj)->reason);
+	if (obj->getType() == LDObject::Error)
+		ui.errorDescription->setText (static_cast<LDErrorObject*> (obj)->reason);
 	else {
 		ui.errorDescription->hide();
 		ui.errorIcon->hide();
@@ -269,23 +269,23 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 			continue;
 		
 		short numLines;
-		LDLine* lines[4];
+		LDLineObject* lines[4];
 		
 		if (obj->getType() == LDObject::Quad) {
 			numLines = 4;
 			
-			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
-			lines[1] = new LDLine (quad->getVertex (1), quad->getVertex (2));
-			lines[2] = new LDLine (quad->getVertex (2), quad->getVertex (3));
-			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
+			LDQuadObject* quad = static_cast<LDQuadObject*> (obj);
+			lines[0] = new LDLineObject (quad->getVertex (0), quad->getVertex (1));
+			lines[1] = new LDLineObject (quad->getVertex (1), quad->getVertex (2));
+			lines[2] = new LDLineObject (quad->getVertex (2), quad->getVertex (3));
+			lines[3] = new LDLineObject (quad->getVertex (3), quad->getVertex (0));
 		} else {
 			numLines = 3;
 			
-			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
-			lines[1] = new LDLine (tri->getVertex (1), tri->getVertex (2));
-			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
+			LDTriangleObject* tri = static_cast<LDTriangleObject*> (obj);
+			lines[0] = new LDLineObject (tri->getVertex (0), tri->getVertex (1));
+			lines[1] = new LDLineObject (tri->getVertex (1), tri->getVertex (2));
+			lines[2] = new LDLineObject (tri->getVertex (2), tri->getVertex (0));
 		}
 		
 		for (short i = 0; i < numLines; ++i) {
@@ -318,7 +318,7 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 		ulong idx = obj->getIndex (g_curfile);
 		
 		for (short i = 0; i < obj->vertices(); ++i) {
-			LDVertex* vert = new LDVertex;
+			LDVertexObject* vert = new LDVertexObject;
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());
 			
@@ -459,7 +459,7 @@ static void doRotate (const short l, const short m, const short n) {
 			mo->setPosition (v);
 			mo->setTransform (mo->transform() * transform);
 		} elif (obj->getType() == LDObject::Vertex) {
-			LDVertex* vert = static_cast<LDVertex*> (obj);
+			LDVertexObject* vert = static_cast<LDVertexObject*> (obj);
 			vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
@@ -652,7 +652,7 @@ MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional l
 		if (obj->getType() != LDObject::CondLine)
 			continue;
 		
-		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
+		LDLineObject* repl = static_cast<LDCondLineObject*> (obj)->demote();
 		g_win->R()->compileObject (repl);
 		++num;
 	}

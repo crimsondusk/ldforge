@@ -332,7 +332,7 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			vertex v0( x0, 0.0f, z0 ),
 				   v1( x1, 0.0f, z1 );
 			
-			LDLine* line = new LDLine;
+			LDLineObject* line = new LDLineObject;
 			line->setVertex( 0, v0 );
 			line->setVertex( 1, v1 );
 			line->setColor( edgecolor );
@@ -383,7 +383,7 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 				v2( x2, y2, z2 ),
 				v3( x3, y3, z3 );
 			
-			LDQuad* quad = new LDQuad;
+			LDQuadObject* quad = new LDQuadObject;
 			quad->setColor( maincolor );
 			quad->setVertex( 0, v0 );
 			quad->setVertex( 1, v1 );
@@ -419,7 +419,7 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			
 			// Disc negatives need to go the other way around, otherwise
 			// they'll end up upside-down.
-			LDTriangle* seg = new LDTriangle;
+			LDTriangleObject* seg = new LDTriangleObject;
 			seg->setColor( maincolor );
 			seg->setVertex( type == Disc ? 0 : 2, v0 );
 			seg->setVertex( 1, v1 );
@@ -455,7 +455,7 @@ vector<LDObject*> makePrimitive( PrimitiveType type, int segs, int divs, int num
 			v0[Z] *= num;
 		}
 		
-		LDCondLine* line = new LDCondLine;
+		LDCondLineObject* line = new LDCondLineObject;
 		line->setColor( edgecolor );
 		line->setVertex( 0, v0 );
 		line->setVertex( 1, v1 );
@@ -524,13 +524,12 @@ str radialFileName( PrimitiveType type, int segs, int divs, int num )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void generatePrimitive()
-{
-	QDialog* dlg = new QDialog( g_win );
+void generatePrimitive() {
+	QDialog* dlg = new QDialog (g_win);
 	Ui::MakePrimUI ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	if( !dlg->exec() )
+	if (!dlg->exec())
 		return;
 	
 	int segs = ui.sb_segs->value();
@@ -544,32 +543,32 @@ void generatePrimitive()
 		ui.rb_ring->isChecked()     ? Ring : Cone;
 	
 	// Make the description
-	str frac = ftoa( ( ( float ) segs ) / divs );
-	str name = radialFileName( type, segs, divs, num );
+	str frac = ftoa (((float) segs) / divs);
+	str name = radialFileName (type, segs, divs, num);
 	str descr;
 	
 	// Ensure that there's decimals, even if they're 0.
-	if( frac.indexOf( "." ) == -1 )
+	if (frac.indexOf (".") == -1)
 		frac += ".0";
 	
-	if( type == Ring || type == Cone )
-		descr = fmt( "%1 %2 x %3", primitiveTypeName( type ), num, frac );
+	if (type == Ring || type == Cone)
+		descr = fmt ("%1 %2 x %3", primitiveTypeName (type), num, frac);
 	else
-		descr = fmt( "%1 %2", primitiveTypeName( type ), frac );
+		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
 	
 	LDOpenFile* f = new LDOpenFile;
 	f->setName( QFileDialog::getSaveFileName( null, QObject::tr( "Save Primitive" ), name ));
 	
-	*f << new LDComment( descr );
-	*f << new LDComment( fmt( "Name: %1", name ));
-	*f << new LDComment( fmt( "Author: LDForge" ));
-	*f << new LDComment( fmt( "!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "" ));
-	*f << new LDComment( CALicense );
-	*f << new LDEmpty;
-	*f << new LDBFC( LDBFC::CertifyCCW );
-	*f << new LDEmpty;
-	*f << makePrimitive( type, segs, divs, num );
+	*f << new LDCommentObject (descr);
+	*f << new LDCommentObject (fmt ("Name: %1", name));
+	*f << new LDCommentObject (fmt ("Author: LDForge"));
+	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : ""));
+	*f << new LDCommentObject (CALicense);
+	*f << new LDEmptyObject;
+	*f << new LDBFCObject (LDBFCObject::CertifyCCW);
+	*f << new LDEmptyObject;
+	*f << makePrimitive (type, segs, divs, num);
 	
-	g_win->save( f, false );
+	g_win->save (f, false);
 	delete f;
 }

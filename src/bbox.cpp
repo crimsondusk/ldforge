@@ -61,7 +61,7 @@ void bbox::calcObject( LDObject* obj )
 
 	case LDObject::Subfile:
 		{
-			LDSubfile* ref = static_cast<LDSubfile*>( obj );
+			LDSubfileObject* ref = static_cast<LDSubfileObject*>( obj );
 			vector<LDObject*> objs = ref->inlineContents( true, true );
 			
 			for( LDObject * obj : objs )

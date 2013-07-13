@@ -241,8 +241,8 @@ void FileLoader::work( ulong i ) {
 		LDObject* obj = parseLine( line );
 		
 		// Check for parse errors and warn about tthem
-		if( obj->getType () == LDObject::Gibberish ) {
-			log( "Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDGibberish*> (obj)->reason );
+		if( obj->getType () == LDObject::Error ) {
+			log( "Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDErrorObject*> (obj)->reason );
 			
 			if( m_warningsPointer ) {
 				( *m_warningsPointer )++; }}
@@ -553,11 +553,11 @@ bool LDOpenFile::save( str savepath )
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open. If it's saved into a directory
 	// called "s" or "48", prepend that into the name.
-	LDComment* fpathComment = null;
+	LDCommentObject* fpathComment = null;
 	LDObject* first = object( 1 );
 	if( !implicit() && first != null && first->getType() == LDObject::Comment )
 	{
-		fpathComment = static_cast<LDComment*>( first );
+		fpathComment = static_cast<LDCommentObject*>( first );
 		
 		if( fpathComment->text.left( 6 ) == "Name: " ) {
 			str newname;
@@ -591,14 +591,14 @@ bool LDOpenFile::save( str savepath )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define CHECK_TOKEN_COUNT( N ) \
-	if( tokens.size() != N ) \
-		return new LDGibberish( line, "Bad amount of tokens" );
+#define CHECK_TOKEN_COUNT(N) \
+	if (tokens.size() != N) \
+		return new LDErrorObject (line, "Bad amount of tokens");
 
 #define CHECK_TOKEN_NUMBERS( MIN, MAX ) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDGibberish (line, fmt ("Token #%1 was `%2`, expected a number", \
+			return new LDErrorObject (line, fmt ("Token #%1 was `%2`, expected a number", \
 				(i + 1), tokens[i]));
 
 static vertex parseVertex( QStringList& s, const ushort n )
@@ -614,7 +614,7 @@ static vertex parseVertex( QStringList& s, const ushort n )
 // -----------------------------------------------------------------------------
 // This is the LDraw code parser function. It takes in a string containing LDraw
 // code and returns the object parsed from it. parseLine never returns null,
-// the object will be LDGibberish if it could not be parsed properly.
+// the object will be LDError if it could not be parsed properly.
 // =============================================================================
 LDObject* parseLine( str line )
 {
@@ -623,14 +623,14 @@ LDObject* parseLine( str line )
 	if( tokens.size() <= 0 )
 	{
 		// Line was empty, or only consisted of whitespace
-		return new LDEmpty;
+		return new LDEmptyObject;
 	}
 	
 	if( tokens[0].length() != 1 || tokens[0][0].isDigit() == false )
-		return new LDGibberish( line, "Illogical line code" );
+		return new LDErrorObject( line, "Illogical line code" );
 	
 	int num = tokens[0][0].digitValue();
-	switch( num )
+	switch (num)
 	{
 	case 0:
 		{
@@ -643,40 +643,37 @@ LDObject* parseLine( str line )
 			
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC") {
-				for (short i = 0; i < LDBFC::NumStatements; ++i)
-					if (comm == fmt ("BFC %1", LDBFC::statements [i]))
-						return new LDBFC ((LDBFC::Type) i);
+				for (short i = 0; i < LDBFCObject::NumStatements; ++i)
+					if (comm == fmt ("BFC %1", LDBFCObject::statements [i]))
+						return new LDBFCObject ((LDBFCObject::Type) i);
 				
 				// MLCAD is notorious for stuffing these statements in parts it
 				// creates. The above block only handles valid statements, so we
 				// need to handle MLCAD-style invertnext separately.
 				if (comm == "BFC CERTIFY INVERTNEXT")
-					return new LDBFC (LDBFC::InvertNext);
+					return new LDBFCObject (LDBFCObject::InvertNext);
 			}
 			
-			if( tokens.size() > 2 && tokens[1] == "!LDFORGE" )
+			if (tokens.size() > 2 && tokens[1] == "!LDFORGE")
 			{
 				// Handle LDForge-specific types, they're embedded into comments too
-				if( tokens[2] == "VERTEX" )
-				{
+				if (tokens[2] == "VERTEX") {
 					// Vertex (0 !LDFORGE VERTEX)
 					CHECK_TOKEN_COUNT (7)
 					CHECK_TOKEN_NUMBERS (3, 6)
 					
-					LDVertex* obj = new LDVertex;
+					LDVertexObject* obj = new LDVertexObject;
 					obj->setColor (tokens[3].toLong ());
 					
 					for (const Axis ax : g_Axes)
 						obj->pos[ax] = tokens[4 + ax].toDouble (); // 4 - 6
 					
 					return obj;
-				}
-				elif( tokens[2] == "OVERLAY" )
-				{
-					CHECK_TOKEN_COUNT( 9 );
-					CHECK_TOKEN_NUMBERS( 5, 8 )
+				} elif (tokens[2] == "OVERLAY") {
+					CHECK_TOKEN_COUNT (9);
+					CHECK_TOKEN_NUMBERS (5, 8)
 					
-					LDOverlay* obj = new LDOverlay;
+					LDOverlayObject* obj = new LDOverlayObject;
 					obj->setFilename( tokens[3] );
 					obj->setCamera( tokens[4].toLong() );
 					obj->setX( tokens[5].toLong() );
@@ -688,7 +685,7 @@ LDObject* parseLine( str line )
 			}
 			
 			// Just a regular comment:
-			LDComment* obj = new LDComment;
+			LDCommentObject* obj = new LDCommentObject;
 			obj->text = comm;
 			return obj;
 		}
@@ -708,9 +705,9 @@ LDObject* parseLine( str line )
 			
 			// If we cannot open the file, mark it an error
 			if( !load )
-				return new LDGibberish( line, "Could not open referred file" );
+				return new LDErrorObject( line, "Could not open referred file" );
 			
-			LDSubfile* obj = new LDSubfile;
+			LDSubfileObject* obj = new LDSubfileObject;
 			obj->setColor( tokens[1].toLong() );
 			obj->setPosition( parseVertex( tokens, 2 )); // 2 - 4
 			
@@ -729,7 +726,7 @@ LDObject* parseLine( str line )
 			CHECK_TOKEN_NUMBERS( 1, 7 )
 			
 			// Line
-			LDLine* obj = new LDLine;
+			LDLineObject* obj = new LDLineObject;
 			obj->setColor( tokens[1].toLong() );
 			for( short i = 0; i < 2; ++i )
 				obj->setVertex( i, parseVertex( tokens, 2 + ( i * 3 ))); // 2 - 7
@@ -742,7 +739,7 @@ LDObject* parseLine( str line )
 			CHECK_TOKEN_NUMBERS( 1, 10 )
 			
 			// Triangle
-			LDTriangle* obj = new LDTriangle;
+			LDTriangleObject* obj = new LDTriangleObject;
 			obj->setColor( tokens[1].toLong() );
 			
 			for( short i = 0; i < 3; ++i )
@@ -754,21 +751,21 @@ LDObject* parseLine( str line )
 	case 4:
 	case 5:
 		{
-			CHECK_TOKEN_COUNT( 14 )
-			CHECK_TOKEN_NUMBERS( 1, 13 )
+			CHECK_TOKEN_COUNT (14)
+			CHECK_TOKEN_NUMBERS (1, 13)
 			
 			// Quadrilateral / Conditional line
-			LDObject* obj = ( num == 4 ) ? ( (LDObject*) new LDQuad ) : ( (LDObject*) new LDCondLine );
+			LDObject* obj = (num == 4) ? ((LDObject*) new LDQuadObject ) : ((LDObject*) new LDCondLineObject);
 			obj->setColor( tokens[1].toLong() );
 			
-			for( short i = 0; i < 4; ++i )
+			for (short i = 0; i < 4; ++i)
 				obj->setVertex( i, parseVertex( tokens, 2 + ( i * 3 ))); // 2 - 13
 			
 			return obj;
 		}
 	
 	default: // Strange line we couldn't parse
-		return new LDGibberish( line, "Unknown line code number" );
+		return new LDErrorObject (line, "Unknown line code number");
 	}
 }
 
@@ -802,19 +799,19 @@ void reloadAllSubfiles () {
 	{
 		if( obj->getType() == LDObject::Subfile )
 		{
-			LDSubfile* ref = static_cast<LDSubfile*>( obj );
+			LDSubfileObject* ref = static_cast<LDSubfileObject*>( obj );
 			LDOpenFile* fileInfo = getFile( ref->fileInfo()->name() );
 			
 			if (fileInfo)
 				ref->setFileInfo( fileInfo );
 			else
-				ref->replace( new LDGibberish( ref->raw(), "Could not open referred file" ));
+				ref->replace( new LDErrorObject( ref->raw(), "Could not open referred file" ));
 		}
 		
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
-		if( obj->getType() == LDObject::Gibberish )
-			obj->replace( parseLine( static_cast<LDGibberish*>( obj )->contents ));
+		if( obj->getType() == LDObject::Error )
+			obj->replace( parseLine( static_cast<LDErrorObject*>( obj )->contents ));
 	}
 	
 	// Close all files left unused
@@ -891,7 +888,7 @@ static vector<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
 		if( obj->getType() != LDObject::Subfile )
 			continue;
 		
-		LDSubfile* ref = static_cast<LDSubfile*>( obj );
+		LDSubfileObject* ref = static_cast<LDSubfileObject*>( obj );
 		filesUsed << ref->fileInfo();
 		filesUsed << getFilesUsed( ref->fileInfo() );
 	}

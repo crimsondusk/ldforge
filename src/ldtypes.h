@@ -23,13 +23,14 @@
 #include "types.h"
 
 #define LDOBJ(T) \
-	virtual ~LD##T() {} \
+public: \
+	virtual ~LD##T##Object() {} \
 	virtual LDObject::Type getType() const override { \
 		return LDObject::T; \
 	} \
 	virtual str raw(); \
-	virtual LD##T* clone() { \
-		return new LD##T (*this); \
+	virtual LD##T##Object* clone() { \
+		return new LD##T##Object (*this); \
 	} \
 	virtual void move (vertex vVector); \
 	virtual void invert();
@@ -49,7 +50,7 @@
 #define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX( false )
 
 class QListWidgetItem;
-class LDSubfile;
+class LDSubfileObject;
 
 // =============================================================================
 // LDObject
@@ -78,7 +79,7 @@ public:
 		BFC,            // Object represents a BFC statement
 		Overlay,        // Object contains meta-info about an overlay image.
 		Comment,        // Object represents a comment
-		Gibberish,      // Object is the result of failed parsing
+		Error,          // Object is the result of failed parsing
 		Empty,          // Object represents an empty line
 		Unidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
 		NumTypes        // Amount of object types
@@ -163,24 +164,24 @@ public:
 };
 
 // =============================================================================
-// LDGibberish
+// LDErrorObject
 //
 // Represents a line in the LDraw file that could not be properly parsed. It is
 // represented by a (!) ERROR in the code view. It exists for the purpose of
 // allowing garbage lines be debugged and corrected within LDForge. The member
 // zContent contains the contents of the unparsable line.
 // =============================================================================
-class LDGibberish : public LDObject {
-public:
-	LDOBJ (Gibberish)
+class LDErrorObject : public LDObject {
+	LDOBJ (Error)
 	LDOBJ_NAME (error)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDGibberish();
-	LDGibberish (str _zContent, str _zReason);
+public:
+	LDErrorObject();
+	LDErrorObject (str contents, str reason) : contents (contents), reason (reason) {}
 
 	// Content of this unknown line
 	str contents;
@@ -190,12 +191,11 @@ public:
 };
 
 // =============================================================================
-// LDEmptyLine
+// LDEmptyObject
 //
 // Represents an empty line in the LDraw code file.
 // =============================================================================
-class LDEmpty : public LDObject {
-public:
+class LDEmptyObject : public LDObject {
 	LDOBJ (Empty)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -204,13 +204,12 @@ public:
 };
 
 // =============================================================================
-// LDComment
+// LDCommentObject
 //
 // Represents a code-0 comment in the LDraw code file. Member text contains
 // the text of the comment.
 // =============================================================================
-class LDComment : public LDObject {
-public:
+class LDCommentObject : public LDObject {
 	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
@@ -218,31 +217,41 @@ public:
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDComment() {}
-	LDComment (str text) : text (text) {}
+public:
+	LDCommentObject() {}
+	LDCommentObject (str text) : text (text) {}
 
 	str text; // The text of this comment
 };
 
 // =============================================================================
-// LDBFC
+// LDBFCObject
 //
 // Represents a 0 BFC statement in the LDraw code. eStatement contains the type
 // of this statement.
 // =============================================================================
-class LDBFC : public LDObject {
+class LDBFCObject : public LDObject {
 public:
-	enum Type { CertifyCCW, CCW, CertifyCW, CW, NoCertify, InvertNext, NumStatements };
-
+	enum Type {
+		CertifyCCW,
+		CCW,
+		CertifyCW,
+		CW,
+		NoCertify,
+		InvertNext,
+		NumStatements
+	};
+	
 	LDOBJ (BFC)
 	LDOBJ_NAME (bfc)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
 	LDOBJ_NO_MATRIX
-
-	LDBFC() {}
-	LDBFC (const LDBFC::Type type) : type (type) {}
+	
+public:
+	LDBFCObject() {}
+	LDBFCObject (const LDBFCObject::Type type) : type (type) {}
 
 	// Statement strings
 	static const char* statements[];
@@ -251,22 +260,21 @@ public:
 };
 
 // =============================================================================
-// LDSubfile
+// LDSubfileObject
 //
 // Represents a single code-1 subfile reference.
 // =============================================================================
-class LDSubfile : public LDObject, public LDMatrixObject {
-	PROPERTY (LDOpenFile*, fileInfo, setFileInfo)
-
-public:
+class LDSubfileObject : public LDObject, public LDMatrixObject {
 	LDOBJ (Subfile)
 	LDOBJ_NAME (subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
+	PROPERTY (LDOpenFile*, fileInfo, setFileInfo)
 
-	LDSubfile() {
+public:
+	LDSubfileObject() {
 		setLinkPointer (this);
 	}
 
@@ -276,14 +284,13 @@ public:
 };
 
 // =============================================================================
-// LDLine
+// LDLineObject
 //
 // Represents a single code-2 line in the LDraw code file. v0 and v1 are the end
 // points of the line. The line is colored with dColor unless uncolored mode is
 // set.
 // =============================================================================
-class LDLine : public LDObject {
-public:
+class LDLineObject : public LDObject {
 	LDOBJ (Line)
 	LDOBJ_NAME (line)
 	LDOBJ_VERTICES (2)
@@ -291,18 +298,18 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDLine() {}
-	LDLine (vertex v1, vertex v2);
+public:
+	LDLineObject() {}
+	LDLineObject (vertex v1, vertex v2);
 };
 
 // =============================================================================
-// LDCondLine
+// LDCondLineObject
 //
 // Represents a single code-5 conditional line. The end-points v0 and v1 are
 // inherited from LDLine, c0 and c1 are the control points of this line.
 // =============================================================================
-class LDCondLine : public LDLine {
-public:
+class LDCondLineObject : public LDLineObject {
 	LDOBJ (CondLine)
 	LDOBJ_NAME (condline)
 	LDOBJ_VERTICES (4)
@@ -310,19 +317,19 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDCondLine() {}
-	LDLine* demote();
+public:
+	LDCondLineObject() {}
+	LDLineObject* demote();
 };
 
 // =============================================================================
-// LDTriangle
+// LDTriangleObject
 //
 // Represents a single code-3 triangle in the LDraw code file. Vertices v0, v1
 // and v2 contain the end-points of this triangle. dColor is the color the
 // triangle is colored with.
 // =============================================================================
-class LDTriangle : public LDObject {
-public:
+class LDTriangleObject : public LDObject {
 	LDOBJ (Triangle)
 	LDOBJ_NAME (triangle)
 	LDOBJ_VERTICES (3)
@@ -330,8 +337,9 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDTriangle() {}
-	LDTriangle (vertex v0, vertex v1, vertex v2) {
+public:
+	LDTriangleObject() {}
+	LDTriangleObject (vertex v0, vertex v1, vertex v2) {
 		setVertex (0, v0);
 		setVertex (1, v1);
 		setVertex (2, v2);
@@ -339,12 +347,12 @@ public:
 };
 
 // =============================================================================
-// LDQuad
+// LDQuadObject
 //
 // Represents a single code-4 quadrilateral. v0, v1, v2 and v3 are the end points
 // of the quad, dColor is the color used for the quad.
 // =============================================================================
-class LDQuad : public LDObject {
+class LDQuadObject : public LDObject {
 public:
 	LDOBJ (Quad)
 	LDOBJ_NAME (quad)
@@ -353,21 +361,21 @@ public:
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDQuad() {}
+	LDQuadObject() {}
 
 	// Split this quad into two triangles (note: heap-allocated)
-	vector<LDTriangle*> splitToTriangles();
+	vector<LDTriangleObject*> splitToTriangles();
 };
 
 // =============================================================================
-// LDVertex
+// LDVertexObject
 //
 // The vertex is an LDForce-specific extension which represents a single
 // vertex which can be used as a parameter to tools or to store coordinates
 // with. Vertices are a part authoring tool and they should not appear in
 // finished parts.
 // =============================================================================
-class LDVertex : public LDObject {
+class LDVertexObject : public LDObject {
 public:
 	LDOBJ (Vertex)
 	LDOBJ_NAME (vertex)
@@ -376,19 +384,18 @@ public:
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDVertex() {}
+	LDVertexObject() {}
 
 	vertex pos;
 };
 
 // =============================================================================
-// LDOverlay
+// LDOverlayObject
 //
 // Overlay image meta, stored in the header of parts so as to preserve overlay
 // information.
 // =============================================================================
-class LDOverlay : public LDObject {
-public:
+class LDOverlayObject : public LDObject {
 	LDOBJ (Overlay)
 	LDOBJ_NAME (overlay)
 	LDOBJ_VERTICES (0)

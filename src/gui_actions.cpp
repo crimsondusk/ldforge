@@ -56,27 +56,27 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 	
 	newFile();
 	
-	const LDBFC::Type BFCType =
-		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
-		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW :
-		                             LDBFC::NoCertify;
+	const LDBFCObject::Type BFCType =
+		ui.rb_bfc_ccw->isChecked() ? LDBFCObject::CertifyCCW :
+		ui.rb_bfc_cw->isChecked()  ? LDBFCObject::CertifyCW :
+		                             LDBFCObject::NoCertify;
 	
 	const str license =
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense :
 		                                   "";
 	
-	*g_curfile << new LDComment (ui.le_title->text());
-	*g_curfile << new LDComment ("Name: <untitled>.dat" );
-	*g_curfile << new LDComment (fmt ("Author: %1", ui.le_author->text()));
-	*g_curfile << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
+	*g_curfile << new LDCommentObject (ui.le_title->text());
+	*g_curfile << new LDCommentObject ("Name: <untitled>.dat" );
+	*g_curfile << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
+	*g_curfile << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != "")
-		*g_curfile << new LDComment (license);
+		*g_curfile << new LDCommentObject (license);
 	
-	*g_curfile << new LDEmpty;
-	*g_curfile << new LDBFC (BFCType);
-	*g_curfile << new LDEmpty;
+	*g_curfile << new LDEmptyObject;
+	*g_curfile << new LDBFCObject (BFCType);
+	*g_curfile << new LDEmptyObject;
 	
 	g_win->fullRefresh();
 }
@@ -244,10 +244,10 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	str refName;
 	
 	if (type == LDObject::Subfile) {
-		refName = static_cast<LDSubfile*> (g_win->sel()[0])->fileInfo()->name();
+		refName = static_cast<LDSubfileObject*> (g_win->sel()[0])->fileInfo()->name();
 		
 		for (LDObject* obj : g_win->sel())
-			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+			if (static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 	
@@ -256,7 +256,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 		if (obj->getType() != type)
 			continue;
 		
-		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
 			continue;
 		
 		g_win->sel() << obj;

@@ -499,7 +499,7 @@ void ForgeWindow::updateTitle () {
 			g_curfile->obj (0)->getType () == LDObject::Comment)
 		{
 			// Append title
-			LDComment* comm = static_cast<LDComment*> (g_curfile->obj (0));
+			LDCommentObject* comm = static_cast<LDCommentObject*> (g_curfile->obj (0));
 			title += fmt (": %1", comm->text);
 		}
 		
@@ -593,7 +593,7 @@ void ForgeWindow::buildObjList () {
 		
 		switch (obj->getType ()) {
 		case LDObject::Comment:
-			descr = static_cast<LDComment*> (obj)->text;
+			descr = static_cast<LDCommentObject*> (obj)->text;
 			
 			// Remove leading whitespace
 			while (descr[0] == ' ')
@@ -615,17 +615,17 @@ void ForgeWindow::buildObjList () {
 			}
 			break;
 		
-		case LDObject::Gibberish:
-			descr = fmt ("ERROR: %1", static_cast<LDGibberish*> (obj)->contents);
+		case LDObject::Error:
+			descr = fmt ("ERROR: %1", obj->raw());
 			break;
 		
 		case LDObject::Vertex:
-			descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
+			descr = static_cast<LDVertexObject*> (obj)->pos.stringRep (true);
 			break;
 		
 		case LDObject::Subfile:
 			{
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 				
 				descr = fmt ("%1 %2, (", ref->fileInfo ()->name (),
 					ref->position ().stringRep (true));
@@ -639,12 +639,12 @@ void ForgeWindow::buildObjList () {
 			break;
 		
 		case LDObject::BFC:
-			descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
+			descr = LDBFCObject::statements[static_cast<LDBFCObject*> (obj)->type];
 		break;
 		
 		case LDObject::Overlay:
 			{
-				LDOverlay* ovl = static_cast<LDOverlay*>( obj );
+				LDOverlayObject* ovl = static_cast<LDOverlayObject*>( obj );
 				descr = fmt( "[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
 					basename( ovl->filename() ), ovl->x(), ovl->y(), ovl->width(), ovl->height() );
 			}
@@ -664,7 +664,7 @@ void ForgeWindow::buildObjList () {
 		item->setIcon( getIcon( obj->typeName() ));
 		
 		// Color gibberish orange on red so it stands out.
-		if (obj->getType() == LDObject::Gibberish) {
+		if (obj->getType() == LDObject::Error) {
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		} elif (lv_colorize && obj->isColored () &&
