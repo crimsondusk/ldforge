@@ -23,6 +23,7 @@
 #include "gui.h"
 #include "history.h"
 #include "gldraw.h"
+#include "colors.h"
 
 // List of all LDObjects
 vector<LDObject*> g_LDObjects;

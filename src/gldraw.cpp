@@ -28,7 +28,6 @@
 #include "config.h"
 #include "file.h"
 #include "gldraw.h"
-#include "bbox.h"
 #include "colors.h"
 #include "gui.h"
 #include "misc.h"

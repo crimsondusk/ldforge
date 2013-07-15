@@ -26,7 +26,6 @@
 #include "config.h"
 #include "file.h"
 #include "misc.h"
-#include "bbox.h"
 #include "gui.h"
 #include "history.h"
 #include "dialogs.h"
@@ -450,7 +449,6 @@ void newFile () {
 	g_loadedFiles << f;
 	setCurrentFile (f);
 	
-	g_BBox.reset();
 	g_win->R()->setFile (f);
 	g_win->fullRefresh();
 	g_win->updateTitle();
@@ -514,9 +512,6 @@ void openMainFile (str path) {
 	
 	file->setImplicit (false);
 	setCurrentFile (file);
-	
-	// Recalculate the bounding box
-	g_BBox.calculate();
 	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh();
@@ -811,9 +806,6 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 	if (obj->getType() == LDObject::Vertex)
 		PROP_NAME (vertices) << obj;
 	
-	if (this == currentFile())
-		g_BBox.calcObject (obj);
-	
 	return numObjs() - 1;
 }
 
@@ -823,9 +815,6 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
 	m_history.add (new AddHistory (pos, obj));
 	m_objs.insert (pos, obj);
-	
-	if (this == currentFile())
-		g_BBox.calcObject (obj);
 }
 
 // =============================================================================
@@ -835,10 +824,6 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 	ulong idx = obj->getIndex (this);
 	m_history.add (new DelHistory (idx, obj));
 	m_objs.erase (idx);
-	
-	// Update the bounding box
-	if (this == currentFile())
-		g_BBox.calculate ();
 }
 
 // =============================================================================

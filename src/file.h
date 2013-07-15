@@ -164,6 +164,8 @@ str dirname (str path);
 LDOpenFile* currentFile();
 void setCurrentFile (LDOpenFile* f);
 
+extern vector<LDOpenFile*> g_loadedFiles; // Vector of all currently opened files.
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================

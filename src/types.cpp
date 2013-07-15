@@ -24,6 +24,8 @@
 #include "common.h"
 #include "types.h"
 #include "misc.h"
+#include "ldtypes.h"
+#include "file.h"
 
 str DoFormat( vector<StringFormatArg> args )
 {
@@ -486,14 +488,14 @@ bool File::iterator::operator!= ( File::iterator& other )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bbox::bbox() {
+LDBoundingBox::LDBoundingBox() {
 	reset();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::calculate() {
+void LDBoundingBox::calculate() {
 	reset();
 	
 	if (!currentFile())
@@ -506,7 +508,7 @@ void bbox::calculate() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::calcObject (LDObject* obj) {
+void LDBoundingBox::calcObject (LDObject* obj) {
 	switch (obj->getType()) {
 	case LDObject::Line:
 	case LDObject::Triangle:
@@ -533,10 +535,20 @@ void bbox::calcObject (LDObject* obj) {
 	}
 }
 
+LDBoundingBox& LDBoundingBox::operator<< (const vertex& v) {
+	calcVertex (v);
+	return *this;
+}
+
+LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj) {
+	calcObject (obj);
+	return *this;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::calcVertex (const vertex& v) {
+void LDBoundingBox::calcVertex (const vertex& v) {
 	for (const Axis ax : g_Axes) {
 		if (v[ax] < m_v0[ax])
 			m_v0[ax] = v[ax];
@@ -551,7 +563,7 @@ void bbox::calcVertex (const vertex& v) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void bbox::reset() {
+void LDBoundingBox::reset() {
 	m_v0[X] = m_v0[Y] = m_v0[Z] = 0x7FFFFFFF;
 	m_v1[X] = m_v1[Y] = m_v1[Z] = 0xFFFFFFFF;
 	
@@ -561,7 +573,7 @@ void bbox::reset() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-double bbox::size() const {
+double LDBoundingBox::size() const {
 	double xscale = (m_v0[X] - m_v1[X]);
 	double yscale = (m_v0[Y] - m_v1[Y]);
 	double zscale = (m_v0[Z] - m_v1[Z]);
@@ -580,7 +592,7 @@ double bbox::size() const {
 }
 
 // =============================================================================
-vertex bbox::center() const {
+vertex LDBoundingBox::center() const {
 	return vertex (
 		(m_v0[X] + m_v1[X]) / 2,
 		(m_v0[Y] + m_v1[Y]) / 2,

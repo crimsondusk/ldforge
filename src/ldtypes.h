@@ -51,6 +51,7 @@ public: \
 
 class QListWidgetItem;
 class LDSubfileObject;
+class LDOpenFile;
 
 // =============================================================================
 // LDObject
@@ -409,5 +410,11 @@ class LDOverlayObject : public LDObject {
 	PROPERTY (int, height, setHeight)
 	PROPERTY (str, filename, setFilename)
 };
+
+// Other common LDraw stuff
+static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
+	NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
+static const short lores = 16;
+static const short hires = 48;
 
 #endif // LDTYPES_H

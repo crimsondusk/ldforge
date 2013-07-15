@@ -25,6 +25,7 @@
 #include "primitives.h"
 #include "ui_makeprim.h"
 #include "misc.h"
+#include "colors.h"
 
 vector<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;

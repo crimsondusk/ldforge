@@ -23,7 +23,6 @@
 #include <QTextStream>
 #include "gui.h"
 #include "file.h"
-#include "bbox.h"
 #include "misc.h"
 #include "config.h"
 #include "colors.h"
@@ -32,10 +31,10 @@
 
 vector<LDOpenFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
-bbox g_BBox;
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);
 File g_file_stderr (stderr, File::Write);
+static str g_versionString, g_fullVersionString;
 
 const vertex g_origin (0.0f, 0.0f, 0.0f);
 const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
@@ -94,12 +93,16 @@ void doDevf (const char* func, const char* fmtstr, ...) {
 	va_end (va);
 }
 
-str versionString () {
+const char* versionString () {
+	if (g_versionString.length() == 0) {
 #if VERSION_PATCH == 0
-	return fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
+		g_versionString = fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
 #else
-	return fmt ("%1.%2.%3", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+		g_versionString = fmt ("%1.%2.%3", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
 #endif // VERSION_PATCH
+	}
+	
+	return g_versionString.toStdString().c_str();
 }
 
 const char* versionMoniker () {
@@ -116,8 +119,11 @@ const char* versionMoniker () {
 #endif // BUILD_ID
 }
 
-str fullVersionString () {
-	return fmt ("v%1%2", versionString (), versionMoniker ());
+const char* fullVersionString () {
+	if (g_fullVersionString.length() == 0)
+		g_fullVersionString = fmt ("v%1%2", versionString (), versionMoniker ());
+	
+	return g_fullVersionString.toStdString().c_str();
 }
 
 static void bombBox (str msg) {
@@ -145,7 +151,7 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 	errmsg += ".";
 #endif
 	
-	printf ("%s\n", qchars (errmsg));
+	printf ("%s\n", errmsg.toStdString().c_str());
 	
 #if BUILD_ID == BUILD_INTERNAL
 	if (g_win)

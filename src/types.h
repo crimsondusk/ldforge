@@ -24,8 +24,7 @@
 #include <vector>
 #include "common.h"
 
-// Null pointer
-static const std::nullptr_t null = nullptr;
+class LDObject;
 
 typedef QChar qchar;
 typedef QString str;
@@ -62,7 +61,7 @@ static const Axis g_Axes[3] = { X, Y, Z };
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // matrix
-// 
+//
 // A mathematical 3 x 3 matrix
 // =============================================================================
 class matrix {
@@ -401,14 +400,6 @@ private:
 	str m_val;
 };
 
-// Formatter function
-str DoFormat (vector<StringFormatArg> args);
-#ifndef IN_IDE_PARSER
-#define fmt(...) DoFormat ({__VA_ARGS__})
-#else
-str fmt (const char* fmtstr, ...);
-#endif
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -467,18 +458,18 @@ private:
 };
 
 // =============================================================================
-// bbox
+// LDBoundingBox
 //
 // The bounding box is the box that encompasses a given set of objects.
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
-class bbox {
+class LDBoundingBox {
 	READ_PROPERTY (bool, empty, setEmpty)
 	READ_PROPERTY (vertex, v0, setV0)
 	READ_PROPERTY (vertex, v1, setV1)
 	
 public:
-	bbox();
+	LDBoundingBox();
 	void reset();
 	void calculate();
 	double size() const;
@@ -486,15 +477,39 @@ public:
 	void calcVertex (const vertex& v);
 	vertex center() const;
 	
-	bbox& operator<< (LDObject* obj) {
-		calcObject (obj);
-		return *this;
-	}
-	
-	bbox& operator<< (const vertex& v) {
-		calcVertex (v);
-		return *this;
-	}
+	LDBoundingBox& operator<< (LDObject* obj);
+	LDBoundingBox& operator<< (const vertex& v);
 };
+
+// Formatter function
+str DoFormat (vector<StringFormatArg> args);
+
+// printf replacement
+void doPrint (File& f, initlist<StringFormatArg> args);
+void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
+
+// log() - universal access to the message log. Defined here so that I don't have
+// to include messagelog.h here and recompile everything every time that file changes.
+void DoLog( std::initializer_list<StringFormatArg> args );
+
+// Macros to access these functions
+# ifndef IN_IDE_PARSER
+#define fmt(...) DoFormat ({__VA_ARGS__})
+# define print(...) doPrint (g_file_stdout, {__VA_ARGS__})
+# define fprint(F, ...) doPrint (F, {__VA_ARGS__})
+# define log(...) DoLog({ __VA_ARGS__ });
+#else
+str fmt (const char* fmtstr, ...);
+void print (const char* fmtstr, ...);
+void fprint (File& f, const char* fmtstr, ...);
+void log( const char* fmtstr, ... );
+#endif
+
+extern File g_file_stdout;
+extern File g_file_stderr;
+extern const vertex g_origin; // Vertex at (0, 0, 0)
+extern const matrix g_identity; // Identity matrix
+
+static const double pi = 3.14159265358979323846f;
 
 #endif // TYPES_H

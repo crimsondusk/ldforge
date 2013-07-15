@@ -22,7 +22,6 @@
 #include "common.h"
 #include "misc.h"
 #include "gui.h"
-#include "bbox.h"
 #include "dialogs.h"
 #include "ui_rotpoint.h"
 
@@ -211,7 +210,7 @@ void simplify (short& numer, short& denom) {
 // =============================================================================
 vertex rotPoint( const vector<LDObject*>& objs )
 {
-	bbox box;
+	LDBoundingBox box;
 	
 	switch( edit_rotpoint )
 	{

@@ -33,7 +33,6 @@
 #include <QMutex>
 
 #include "config.h"
-#include "types.h"
 
 #define APPNAME "LDForge"
 #define VERSION_MAJOR 0
@@ -59,17 +58,16 @@
 #endif // RELEASE
 
 #define elif else if
-#define G_TR QObject::tr
-
-extern File g_file_stdout;
-extern File g_file_stderr;
 
 void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
-str versionString ();
+const char* versionString ();
 const char* versionMoniker ();
-str fullVersionString ();
+const char* fullVersionString ();
+
+// Null pointer
+static const std::nullptr_t null = nullptr;
 
 #ifdef __GNUC__
 # define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
@@ -154,21 +152,13 @@ public slots: \
 #define FUNCNAME __func__
 #endif // __GNUC__
 
-// printf replacement
-#ifndef IN_IDE_PARSER
-#define print(...) doPrint (g_file_stdout, {__VA_ARGS__})
-#define fprint(F, ...) doPrint (F, {__VA_ARGS__})
-#else
-void print (const char* fmtstr, ...);
-void fprint (File& f, const char* fmtstr, ...);
-#endif
-void doPrint (File& f, initlist<StringFormatArg> args);
-void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
-
 // Replace assert with a version that shows a GUI dialog if possible
 #ifdef assert
 #undef assert
 #endif // assert
+
+class QString;
+typedef QString str;
 
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
 void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
@@ -179,65 +169,9 @@ void fatalError (const char* file, const ulong line, const char* funcname, str e
 #define fatal(MSG) \
 	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
 
-// Main and edge color identifiers
-static const short maincolor = 16;
-static const short edgecolor = 24;
-
-static const short lores = 16;
-static const short hires = 48;
-
-static const bool yup = true;
-static const bool nope = false;
-
-static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
-	NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
-
-class ForgeWindow;
-class LDObject;
-class bbox;
-class LDOpenFile;
-class QApplication;
-
-// -----------------------------------------------------------------------------
-// Plural expression
-template<class T> static inline const char* plural (T n) {
-	return (n != 1) ? "s" : "";
-}
-
-// -----------------------------------------------------------------------------
-// Templated clamp
-template<class T> static inline T clamp (T a, T min, T max) {
-	return (a > max) ? max : (a < min) ? min : a;
-}
-
-// Templated minimum
-template<class T> static inline T min (T a, T b) {
-	return (a < b) ? a : b;
-}
-
-// Templated maximum
-template<class T> static inline T max (T a, T b) {
-	return (a > b) ? a : b;
-}
-
-// Templated absolute value
-template<class T> static inline T abs (T a) {
-	return (a >= 0) ? a : -a;
-}
-
-// Quick QString to const char* conversion
-static inline const char* qchars (const QString& qstr) {
-	return qstr.toStdString ().c_str ();
-}
-
-static const double pi = 3.14159265358979323846f;
-
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
 # error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
-
-// Current function name
-static const char* __func__ = "";
 
 # ifndef va_start
 #  define va_start(va, arg)
@@ -247,44 +181,8 @@ static const char* __func__ = "";
 #  define va_end(va)
 # endif // va_end
 
+static const char* __func__ = ""; // Current function name
 typedef void FILE; // :|
 #endif // IN_IDE_PARSER
-
-// -----------------------------------------------------------------------------
-enum LogType {
-	LOG_Normal,
-	LOG_Warning,
-	LOG_Error,
-	LOG_Dev,
-};
-
-// log() - universal access to the message log. Defined here so that I don't have
-// to include messagelog.h here and recompile everything every time that file changes.
-void DoLog( std::initializer_list<StringFormatArg> args );
-#ifndef IN_IDE_PARSER
-# define log(...) DoLog({ __VA_ARGS__ });
-#else
-void log( const char* fmtstr, ... );
-#endif
-
-// -----------------------------------------------------------------------------
-// Vertex at (0, 0, 0)
-extern const vertex g_origin;
-
-// -----------------------------------------------------------------------------
-// Pointer to the bounding box.
-extern bbox g_BBox;
-
-// -----------------------------------------------------------------------------
-// Vector of all currently opened files.
-extern vector<LDOpenFile*> g_loadedFiles;
-
-// -----------------------------------------------------------------------------
-// Pointer to the main application.
-extern const QApplication* g_app;
-
-// -----------------------------------------------------------------------------
-// Identity matrix
-extern const matrix g_identity;
 
 #endif // COMMON_H
