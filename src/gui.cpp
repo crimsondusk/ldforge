@@ -61,6 +61,9 @@ extern_cfg (float, gl_maincolor_alpha);
 extern_cfg (bool, gl_wireframe);
 extern_cfg (bool, gl_colorbfc);
 
+#define act(N) extern_cfg (keyseq, key_##N);
+#include "actions.h"
+
 const char* g_modeActionNames[] = {
 	"modeSelect",
 	"modeDraw",
@@ -114,9 +117,10 @@ ForgeWindow::ForgeWindow() {
 	
 	connect (qApp, SIGNAL (aboutToQuit()), this, SLOT (slot_lastSecondCleanup()));
 	
-	// Connect all actions
+	// Connect all actions and set shortcuts
 #define act(N) \
-	connect (ui->action##N, SIGNAL (triggered()), this, SLOT (slot_action()));
+	connect (ui->action##N, SIGNAL (triggered()), this, SLOT (slot_action())); \
+	ui->action##N->setShortcut (key_##N);
 #include "actions.h"
 }
 

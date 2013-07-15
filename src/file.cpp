@@ -939,12 +939,12 @@ public:
 	
 private:
 	LDOpenFile* m_curfile;
-} g_currentFile;
+} g_currentFileShell;
 
 LDOpenFile* currentFile() {
-	return g_currentFile.currentFile();
+	return g_currentFileShell.currentFile();
 }
 
 void setCurrentFile (LDOpenFile* f) {
-	g_currentFile.setCurrentFile (f);
+	g_currentFileShell.setCurrentFile (f);
 }
