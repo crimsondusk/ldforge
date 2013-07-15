@@ -1287,11 +1287,11 @@ void GLRenderer::endDraw (bool accept) {
 	}
 	
 	if (obj) {
-		file()->openHistory();
+		g_win->beginAction (null);
 		file()->addObject (obj);
 		compileObject (obj);
 		g_win->fullRefresh();
-		file()->closeHistory();
+		g_win->endAction();
 	}
 	
 	m_drawedVerts.clear();
@@ -1598,10 +1598,10 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	if (g_win->sel().size() == 0)
 		return;
 	
-	file()->openHistory();
+	g_win->beginAction (null);
 	LDObject* obj = g_win->sel()[0];
 	AddObjectDialog::staticDialog (obj->getType(), obj);
-	file()->closeHistory();
+	g_win->endAction();
 	ev->accept();
 }
 

@@ -119,6 +119,9 @@ public:
 	void addMessage (str msg);
 	Ui_LDForgeUI* interface() const;
 	
+	void beginAction(QAction* act);
+	void endAction();
+	
 #define act(N) QAction* action##N();
 #include "actions.h"
 	
@@ -171,7 +174,6 @@ bool confirm (str msg);
 void critical (str msg);
 QIcon makeColorIcon (LDColor* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
-QDialogButtonBox* makeButtonBox (QDialog& dlg);
 CheckBoxGroup* makeAxesBox();
 QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 

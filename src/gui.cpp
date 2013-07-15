@@ -127,16 +127,9 @@ void ForgeWindow::slot_action() {
 }
 
 void ForgeWindow::invokeAction (QAction* act, void (*func) ()) {
-	// Open the history so we can record the edits done during this action.
-	if (act != ACTION (Undo) && act != ACTION (Redo) && act != ACTION (Open))
-		currentFile()->openHistory();
-	
-	// Invoke the function
+	beginAction (act);
 	(*func) ();
-	
-	// Close the history now.
-	currentFile()->closeHistory();
-	updateFileListItem (currentFile());
+	endAction();
 }
 
 // =============================================================================
@@ -816,14 +809,6 @@ void makeColorSelector (QComboBox* box) {
 	}
 }
 
-// =============================================================================
-QDialogButtonBox* makeButtonBox (QDialog& dlg) {
-	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
-	QWidget::connect (bbx_buttons, SIGNAL (accepted()), &dlg, SLOT (accept()));
-	QWidget::connect (bbx_buttons, SIGNAL (rejected()), &dlg, SLOT (reject()));
-	return bbx_buttons;
-}
-
 CheckBoxGroup* makeAxesBox() {
 	CheckBoxGroup* cbg_axes = new CheckBoxGroup ("Axes", Qt::Horizontal);
 	cbg_axes->addCheckBox ("X", X);
@@ -874,6 +859,18 @@ void ForgeWindow::updateFileListItem (LDOpenFile* f) {
 	
 	f->listItem()->setText (name);
 	f->listItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+}
+
+void ForgeWindow::beginAction (QAction* act) {
+	// Open the history so we can record the edits done during this action.
+	if (act != ACTION (Undo) && act != ACTION (Redo) && act != ACTION (Open))
+		currentFile()->openHistory();
+}
+
+void ForgeWindow::endAction() {
+	// Close the history now.
+	currentFile()->closeHistory();
+	updateFileListItem (currentFile());
 }
 
 QImage imageFromScreencap (uchar* data, ushort w, ushort h) {

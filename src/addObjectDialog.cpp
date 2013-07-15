@@ -48,9 +48,7 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
-	QDialog (parent)
-{
+AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) : QDialog (parent) {
 	setlocale (LC_ALL, "C");
 	
 	short coordCount = 0;
@@ -102,7 +100,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				;
 			
 			tw_subfileList = new QTreeWidget ();
-			tw_subfileList->setHeaderLabel ("Primitives");
+			tw_subfileList->setHeaderLabel (tr ("Primitives"));
 			
 			for (PrimitiveCategory& cat : g_PrimitiveCategories) {
 				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
@@ -231,9 +229,12 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
 	}
 	
-	layout->addWidget( makeButtonBox( *this ), 5, 0, 1, 4 );
-	setLayout( layout );
-	setWindowTitle( fmt( tr( "Edit %1" ), typeName ));
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QWidget::connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
+	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
+	setLayout (layout);
+	setWindowTitle (fmt (tr ("Edit %1"), typeName));
 	
 	setWindowIcon (icon);
 	delete defaults;
