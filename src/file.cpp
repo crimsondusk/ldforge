@@ -531,6 +531,11 @@ void openMainFile (str path) {
 	
 	file->setImplicit (false);
 	
+	// If we have an anonymous, unchanged file open as the only open file
+	// (aside of the one we just opened), close it now.
+	if (g_loadedFiles.size() == 2 && g_loadedFiles[0]->name() == "" && !g_loadedFiles[0]->hasUnsavedChanges())
+		delete g_loadedFiles[0];
+	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh();
 	g_win->updateTitle();
