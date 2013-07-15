@@ -1203,8 +1203,9 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 		break;
 	
 	case Draw:
+		// Cannot draw into the free camera - use top instead.
 		if (m_camera == Free)
-			return; // Cannot draw with the free camera
+			setCamera (Top);
 		
 		// Disable the context menu - we need the right mouse button
 		// for removing vertices.

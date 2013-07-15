@@ -5,6 +5,7 @@
 	of currently open files.
 		- Added close, close all and save all actions.
 - Color icon border now reflects the color's edge color.
+- Changing to draw mode while in free camera now causes the camera to be changed to top.
 
 =================================================
 == Changes in version 0.2-alpha
