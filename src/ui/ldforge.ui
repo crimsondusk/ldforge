@@ -1,0 +1,1229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>LDForgeUI</class>
+ <widget class="QMainWindow" name="LDForgeUI">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>900</width>
+    <height>600</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string/>
+  </property>
+  <property name="windowIcon">
+   <iconset resource="../../ldforge.qrc">
+    <normaloff>:/icons/ldforge.png</normaloff>:/icons/ldforge.png</iconset>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout">
+    <item>
+     <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4,2">
+      <item>
+       <widget class="QListWidget" name="fileList">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QFrame" name="rendererFrame">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+        <property name="frameShape">
+         <enum>QFrame::StyledPanel</enum>
+        </property>
+        <property name="frameShadow">
+         <enum>QFrame::Raised</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QListWidget" name="objectList">
+        <property name="sizePolicy">
+         <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+          <horstretch>0</horstretch>
+          <verstretch>0</verstretch>
+         </sizepolicy>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>900</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>File</string>
+    </property>
+    <widget class="QMenu" name="menuOpenRecent">
+     <property name="title">
+      <string>Open Recent...</string>
+     </property>
+     <property name="icon">
+      <iconset resource="../../ldforge.qrc">
+       <normaloff>:/icons/open-recent.png</normaloff>:/icons/open-recent.png</iconset>
+     </property>
+    </widget>
+    <addaction name="actionNew"/>
+    <addaction name="actionOpen"/>
+    <addaction name="menuOpenRecent"/>
+    <addaction name="actionSave"/>
+    <addaction name="actionSaveAs"/>
+    <addaction name="separator"/>
+    <addaction name="actionInsertFrom"/>
+    <addaction name="actionExportTo"/>
+    <addaction name="separator"/>
+    <addaction name="actionSettings"/>
+    <addaction name="actionSetLDrawPath"/>
+    <addaction name="actionScanPrimitives"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit"/>
+   </widget>
+   <widget class="QMenu" name="menuView">
+    <property name="title">
+     <string>View</string>
+    </property>
+    <addaction name="actionResetView"/>
+    <addaction name="actionAxes"/>
+    <addaction name="actionWireframe"/>
+    <addaction name="actionBFCView"/>
+    <addaction name="separator"/>
+    <addaction name="actionSetOverlay"/>
+    <addaction name="actionClearOverlay"/>
+    <addaction name="separator"/>
+    <addaction name="actionScreenshot"/>
+   </widget>
+   <widget class="QMenu" name="menuInsert">
+    <property name="title">
+     <string>Insert</string>
+    </property>
+    <addaction name="actionInsertRaw"/>
+    <addaction name="separator"/>
+    <addaction name="actionNewSubfile"/>
+    <addaction name="actionNewLine"/>
+    <addaction name="actionNewTriangle"/>
+    <addaction name="actionNewQuad"/>
+    <addaction name="actionNewCLine"/>
+    <addaction name="actionNewComment"/>
+    <addaction name="actionNewBFC"/>
+    <addaction name="actionNewVertex"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>Edit</string>
+    </property>
+    <addaction name="actionUndo"/>
+    <addaction name="actionRedo"/>
+    <addaction name="separator"/>
+    <addaction name="actionEdit"/>
+    <addaction name="separator"/>
+    <addaction name="actionCut"/>
+    <addaction name="actionCopy"/>
+    <addaction name="actionPaste"/>
+    <addaction name="actionDelete"/>
+    <addaction name="separator"/>
+    <addaction name="actionSelectAll"/>
+    <addaction name="actionSelectByColor"/>
+    <addaction name="actionSelectByType"/>
+    <addaction name="separator"/>
+    <addaction name="actionModeSelect"/>
+    <addaction name="actionModeDraw"/>
+    <addaction name="separator"/>
+    <addaction name="actionSetDrawDepth"/>
+   </widget>
+   <widget class="QMenu" name="menuTools">
+    <property name="title">
+     <string>Tools</string>
+    </property>
+    <addaction name="actionSetColor"/>
+    <addaction name="actionAutocolor"/>
+    <addaction name="actionUncolorize"/>
+    <addaction name="separator"/>
+    <addaction name="actionInvert"/>
+    <addaction name="actionInline"/>
+    <addaction name="actionInlineDeep"/>
+    <addaction name="actionMakePrimitive"/>
+    <addaction name="separator"/>
+    <addaction name="actionSplitQuads"/>
+    <addaction name="actionEditRaw"/>
+    <addaction name="actionBorders"/>
+    <addaction name="actionCornerVerts"/>
+    <addaction name="actionRoundCoordinates"/>
+    <addaction name="actionVisibility"/>
+    <addaction name="actionReplaceCoords"/>
+    <addaction name="actionFlip"/>
+    <addaction name="actionDemote"/>
+   </widget>
+   <widget class="QMenu" name="menuExternal_Tools">
+    <property name="title">
+     <string>External Tools</string>
+    </property>
+    <addaction name="actionYtruder"/>
+    <addaction name="actionRectifier"/>
+    <addaction name="actionIntersector"/>
+    <addaction name="actionIsecalc"/>
+    <addaction name="actionCoverer"/>
+    <addaction name="actionEdger2"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>Help</string>
+    </property>
+    <addaction name="actionHelp"/>
+    <addaction name="separator"/>
+    <addaction name="actionAbout"/>
+    <addaction name="actionAboutQt"/>
+   </widget>
+   <widget class="QMenu" name="menuMov">
+    <property name="title">
+     <string>Move</string>
+    </property>
+    <widget class="QMenu" name="menuGrids">
+     <property name="title">
+      <string>Grids</string>
+     </property>
+     <addaction name="actionGridCoarse"/>
+     <addaction name="actionGridMedium"/>
+     <addaction name="actionGridFine"/>
+    </widget>
+    <widget class="QMenu" name="menuMove_Objects">
+     <property name="title">
+      <string>Move Objects</string>
+     </property>
+     <addaction name="actionMoveXNeg"/>
+     <addaction name="actionMoveXPos"/>
+     <addaction name="actionMoveYNeg"/>
+     <addaction name="actionMoveYPos"/>
+     <addaction name="actionMoveZNeg"/>
+     <addaction name="actionMoveZPos"/>
+    </widget>
+    <widget class="QMenu" name="menuObject_List">
+     <property name="title">
+      <string>Object List</string>
+     </property>
+     <addaction name="actionMoveUp"/>
+     <addaction name="actionMoveDown"/>
+    </widget>
+    <widget class="QMenu" name="menuRotate">
+     <property name="title">
+      <string>Rotate</string>
+     </property>
+     <addaction name="actionRotateXNeg"/>
+     <addaction name="actionRotateXPos"/>
+     <addaction name="actionRotateYNeg"/>
+     <addaction name="actionRotateYPos"/>
+     <addaction name="actionRotateZNeg"/>
+     <addaction name="actionRotateZPos"/>
+    </widget>
+    <addaction name="menuGrids"/>
+    <addaction name="menuMove_Objects"/>
+    <addaction name="menuRotate"/>
+    <addaction name="menuObject_List"/>
+    <addaction name="separator"/>
+    <addaction name="actionRotationPoint"/>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuView"/>
+   <addaction name="menuInsert"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuMov"/>
+   <addaction name="menuTools"/>
+   <addaction name="menuExternal_Tools"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <widget class="QToolBar" name="toolBar">
+   <property name="windowTitle">
+    <string>toolBar</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNew"/>
+   <addaction name="actionOpen"/>
+   <addaction name="actionSave"/>
+   <addaction name="actionSaveAs"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_2">
+   <property name="windowTitle">
+    <string>toolBar_2</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionNewSubfile"/>
+   <addaction name="actionNewLine"/>
+   <addaction name="actionNewTriangle"/>
+   <addaction name="actionNewQuad"/>
+   <addaction name="actionNewCLine"/>
+   <addaction name="actionNewComment"/>
+   <addaction name="actionNewBFC"/>
+   <addaction name="actionNewVertex"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_3">
+   <property name="windowTitle">
+    <string>toolBar_3</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionUndo"/>
+   <addaction name="actionRedo"/>
+   <addaction name="actionCut"/>
+   <addaction name="actionCopy"/>
+   <addaction name="actionPaste"/>
+   <addaction name="actionDelete"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_4">
+   <property name="windowTitle">
+    <string>toolBar_4</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>true</bool>
+   </attribute>
+   <addaction name="actionSelectAll"/>
+   <addaction name="actionSelectByColor"/>
+   <addaction name="actionSelectByType"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_5">
+   <property name="windowTitle">
+    <string>toolBar_5</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionGridCoarse"/>
+   <addaction name="actionGridMedium"/>
+   <addaction name="actionGridFine"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_6">
+   <property name="windowTitle">
+    <string>toolBar_6</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionAxes"/>
+   <addaction name="actionWireframe"/>
+   <addaction name="actionBFCView"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_7">
+   <property name="windowTitle">
+    <string>toolBar_7</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>TopToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionSetColor"/>
+   <addaction name="actionAutocolor"/>
+   <addaction name="actionUncolorize"/>
+   <addaction name="actionInvert"/>
+   <addaction name="actionSplitQuads"/>
+   <addaction name="actionEditRaw"/>
+   <addaction name="actionBorders"/>
+   <addaction name="actionReplaceCoords"/>
+   <addaction name="actionRoundCoordinates"/>
+   <addaction name="actionVisibility"/>
+  </widget>
+  <widget class="QToolBar" name="toolBar_8">
+   <property name="windowTitle">
+    <string>toolBar_8</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>LeftToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+   <addaction name="actionModeSelect"/>
+   <addaction name="actionModeDraw"/>
+  </widget>
+  <widget class="QToolBar" name="colorToolbar">
+   <property name="windowTitle">
+    <string>toolBar_9</string>
+   </property>
+   <attribute name="toolBarArea">
+    <enum>RightToolBarArea</enum>
+   </attribute>
+   <attribute name="toolBarBreak">
+    <bool>false</bool>
+   </attribute>
+  </widget>
+  <action name="actionNew">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/brick.png</normaloff>:/icons/brick.png</iconset>
+   </property>
+   <property name="text">
+    <string>New</string>
+   </property>
+   <property name="statusTip">
+    <string>Create a new part model.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
+   </property>
+  </action>
+  <action name="actionOpen">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-open.png</normaloff>:/icons/file-open.png</iconset>
+   </property>
+   <property name="text">
+    <string>Open</string>
+   </property>
+   <property name="statusTip">
+    <string>Load a part model from a file.</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-save.png</normaloff>:/icons/file-save.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save</string>
+   </property>
+   <property name="statusTip">
+    <string>Save the part model.</string>
+   </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
+  </action>
+  <action name="actionSaveAs">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-save-as.png</normaloff>:/icons/file-save-as.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save As..</string>
+   </property>
+   <property name="whatsThis">
+    <string>Save the part model to a specific file.</string>
+   </property>
+  </action>
+  <action name="actionInsertFrom">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-import.png</normaloff>:/icons/file-import.png</iconset>
+   </property>
+   <property name="text">
+    <string>Insert From..</string>
+   </property>
+  </action>
+  <action name="actionExportTo">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-export.png</normaloff>:/icons/file-export.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export To..</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Settings</string>
+   </property>
+   <property name="statusTip">
+    <string>Edit the settings of LDForge.</string>
+   </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
+  </action>
+  <action name="actionSetLDrawPath">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/settings.png</normaloff>:/icons/settings.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set LDraw Path</string>
+   </property>
+   <property name="statusTip">
+    <string>Change the LDraw directory path.</string>
+   </property>
+  </action>
+  <action name="actionScanPrimitives">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/radial.png</normaloff>:/icons/radial.png</iconset>
+   </property>
+   <property name="text">
+    <string>Scan Primitives</string>
+   </property>
+   <property name="statusTip">
+    <string>Scan the primitives folder for primitive info. Use this if you add new primitives.</string>
+   </property>
+  </action>
+  <action name="actionExit">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/exit.png</normaloff>:/icons/exit.png</iconset>
+   </property>
+   <property name="text">
+    <string>Exit</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionResetView">
+   <property name="text">
+    <string>Reset View</string>
+   </property>
+  </action>
+  <action name="actionAxes">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/axes.png</normaloff>:/icons/axes.png</iconset>
+   </property>
+   <property name="text">
+    <string>Draw Axes</string>
+   </property>
+  </action>
+  <action name="actionWireframe">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/wireframe.png</normaloff>:/icons/wireframe.png</iconset>
+   </property>
+   <property name="text">
+    <string>Wireframe</string>
+   </property>
+  </action>
+  <action name="actionBFCView">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/bfc-view.png</normaloff>:/icons/bfc-view.png</iconset>
+   </property>
+   <property name="text">
+    <string>BFC Red/Green View</string>
+   </property>
+  </action>
+  <action name="actionSetOverlay">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/overlay.png</normaloff>:/icons/overlay.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set Overlay Image</string>
+   </property>
+  </action>
+  <action name="actionClearOverlay">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/overlay-clear.png</normaloff>:/icons/overlay-clear.png</iconset>
+   </property>
+   <property name="text">
+    <string>Clear Overlay Image</string>
+   </property>
+  </action>
+  <action name="actionScreenshot">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/screencap.png</normaloff>:/icons/screencap.png</iconset>
+   </property>
+   <property name="text">
+    <string>Screenshot</string>
+   </property>
+  </action>
+  <action name="actionInsertRaw">
+   <property name="text">
+    <string>LDraw Code..</string>
+   </property>
+  </action>
+  <action name="actionNewLine">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-line.png</normaloff>:/icons/add-line.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Line</string>
+   </property>
+  </action>
+  <action name="actionNewSubfile">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-subfile.png</normaloff>:/icons/add-subfile.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Subfile Reference</string>
+   </property>
+  </action>
+  <action name="actionNewTriangle">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-triangle.png</normaloff>:/icons/add-triangle.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Triangle</string>
+   </property>
+  </action>
+  <action name="actionNewQuad">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-quad.png</normaloff>:/icons/add-quad.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Quadrilateral</string>
+   </property>
+  </action>
+  <action name="actionNewCLine">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-condline.png</normaloff>:/icons/add-condline.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Conditional Line</string>
+   </property>
+  </action>
+  <action name="actionNewComment">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-comment.png</normaloff>:/icons/add-comment.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Comment</string>
+   </property>
+  </action>
+  <action name="actionNewBFC">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-bfc.png</normaloff>:/icons/add-bfc.png</iconset>
+   </property>
+   <property name="text">
+    <string>New BFC Statement</string>
+   </property>
+  </action>
+  <action name="actionNewVertex">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/add-vertex.png</normaloff>:/icons/add-vertex.png</iconset>
+   </property>
+   <property name="text">
+    <string>New Vertex</string>
+   </property>
+  </action>
+  <action name="actionUndo">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/undo.png</normaloff>:/icons/undo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Undo</string>
+   </property>
+   <property name="statusTip">
+    <string>Undo a step.</string>
+   </property>
+  </action>
+  <action name="actionRedo">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/redo.png</normaloff>:/icons/redo.png</iconset>
+   </property>
+   <property name="text">
+    <string>Redo</string>
+   </property>
+   <property name="statusTip">
+    <string>Redo a step.</string>
+   </property>
+  </action>
+  <action name="actionCut">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/cut.png</normaloff>:/icons/cut.png</iconset>
+   </property>
+   <property name="text">
+    <string>Cut</string>
+   </property>
+   <property name="statusTip">
+    <string>Cut the current selection to clipboard.</string>
+   </property>
+  </action>
+  <action name="actionCopy">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/copy.png</normaloff>:/icons/copy.png</iconset>
+   </property>
+   <property name="text">
+    <string>Copy</string>
+   </property>
+   <property name="statusTip">
+    <string>Copy the current selection to clipboard.</string>
+   </property>
+   <property name="whatsThis">
+    <string/>
+   </property>
+  </action>
+  <action name="actionPaste">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/paste.png</normaloff>:/icons/paste.png</iconset>
+   </property>
+   <property name="text">
+    <string>Paste</string>
+   </property>
+   <property name="statusTip">
+    <string>Paste clipboard contents.</string>
+   </property>
+  </action>
+  <action name="actionDelete">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/delete.png</normaloff>:/icons/delete.png</iconset>
+   </property>
+   <property name="text">
+    <string>Delete</string>
+   </property>
+   <property name="statusTip">
+    <string>Delete the selection</string>
+   </property>
+  </action>
+  <action name="actionSelectAll">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/select-all.png</normaloff>:/icons/select-all.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select All</string>
+   </property>
+  </action>
+  <action name="actionSelectByColor">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/select-color.png</normaloff>:/icons/select-color.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select by Color</string>
+   </property>
+  </action>
+  <action name="actionSelectByType">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/select-type.png</normaloff>:/icons/select-type.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select by Type</string>
+   </property>
+  </action>
+  <action name="actionModeSelect">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/mode-select.png</normaloff>:/icons/mode-select.png</iconset>
+   </property>
+   <property name="text">
+    <string>Select Mode</string>
+   </property>
+  </action>
+  <action name="actionModeDraw">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/mode-draw.png</normaloff>:/icons/mode-draw.png</iconset>
+   </property>
+   <property name="text">
+    <string>Draw Mode</string>
+   </property>
+  </action>
+  <action name="actionSetDrawDepth">
+   <property name="text">
+    <string>Set Draw Depth</string>
+   </property>
+  </action>
+  <action name="actionSetColor">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/palette.png</normaloff>:/icons/palette.png</iconset>
+   </property>
+   <property name="text">
+    <string>Set Color</string>
+   </property>
+   <property name="statusTip">
+    <string>Set the color on given objects.</string>
+   </property>
+  </action>
+  <action name="actionAutocolor">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/autocolor.png</normaloff>:/icons/autocolor.png</iconset>
+   </property>
+   <property name="text">
+    <string>Auto-color</string>
+   </property>
+   <property name="statusTip">
+    <string>Set the color of the given object to the first found unused color.</string>
+   </property>
+  </action>
+  <action name="actionUncolorize">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/uncolorize.png</normaloff>:/icons/uncolorize.png</iconset>
+   </property>
+   <property name="text">
+    <string>Uncolorize</string>
+   </property>
+   <property name="statusTip">
+    <string>Reduce colors of everything selected to main and edge colors</string>
+   </property>
+  </action>
+  <action name="actionInline">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/inline.png</normaloff>:/icons/inline.png</iconset>
+   </property>
+   <property name="text">
+    <string>Inline</string>
+   </property>
+   <property name="statusTip">
+    <string>Inline selected subfiles.</string>
+   </property>
+  </action>
+  <action name="actionInlineDeep">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/inline-deep.png</normaloff>:/icons/inline-deep.png</iconset>
+   </property>
+   <property name="text">
+    <string>Deep Inline</string>
+   </property>
+   <property name="statusTip">
+    <string>Recursively inline selected subfiles down to polygons only.</string>
+   </property>
+  </action>
+  <action name="actionInvert">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/invert.png</normaloff>:/icons/invert.png</iconset>
+   </property>
+   <property name="text">
+    <string>Invert</string>
+   </property>
+  </action>
+  <action name="actionMakePrimitive">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/radial.png</normaloff>:/icons/radial.png</iconset>
+   </property>
+   <property name="text">
+    <string>Generate Primitive</string>
+   </property>
+  </action>
+  <action name="actionSplitQuads">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/quad-split.png</normaloff>:/icons/quad-split.png</iconset>
+   </property>
+   <property name="text">
+    <string>Split Quads</string>
+   </property>
+   <property name="statusTip">
+    <string>Split quads into triangles.</string>
+   </property>
+  </action>
+  <action name="actionEditRaw">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/set-contents.png</normaloff>:/icons/set-contents.png</iconset>
+   </property>
+   <property name="text">
+    <string>Edit LDraw Code</string>
+   </property>
+   <property name="statusTip">
+    <string>Edit the LDraw code of this object.</string>
+   </property>
+  </action>
+  <action name="actionBorders">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/make-borders.png</normaloff>:/icons/make-borders.png</iconset>
+   </property>
+   <property name="text">
+    <string>Make Borders</string>
+   </property>
+   <property name="statusTip">
+    <string>Add borders around given polygons.</string>
+   </property>
+  </action>
+  <action name="actionCornerVerts">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/corner-verts.png</normaloff>:/icons/corner-verts.png</iconset>
+   </property>
+   <property name="text">
+    <string>Make Corner Vertices</string>
+   </property>
+   <property name="statusTip">
+    <string>Adds vertex objects to the corners of the given polygons</string>
+   </property>
+  </action>
+  <action name="actionRoundCoordinates">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/round-coords.png</normaloff>:/icons/round-coords.png</iconset>
+   </property>
+   <property name="text">
+    <string>Round Coordinates</string>
+   </property>
+   <property name="statusTip">
+    <string>Round coordinates down to 3/4 decimals</string>
+   </property>
+  </action>
+  <action name="actionVisibility">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/visibility.png</normaloff>:/icons/visibility.png</iconset>
+   </property>
+   <property name="text">
+    <string>Toggle Visibility</string>
+   </property>
+   <property name="statusTip">
+    <string>Toggles visibility/hiding on objects.</string>
+   </property>
+  </action>
+  <action name="actionReplaceCoords">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/replace-coords.png</normaloff>:/icons/replace-coords.png</iconset>
+   </property>
+   <property name="text">
+    <string>Replace Coordinates</string>
+   </property>
+   <property name="statusTip">
+    <string>Find and replace coordinate values.</string>
+   </property>
+  </action>
+  <action name="actionFlip">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/flip.png</normaloff>:/icons/flip.png</iconset>
+   </property>
+   <property name="text">
+    <string>Flip</string>
+   </property>
+   <property name="statusTip">
+    <string>Flip coordinates.</string>
+   </property>
+  </action>
+  <action name="actionDemote">
+   <property name="text">
+    <string>Demote Conditional Lines</string>
+   </property>
+   <property name="statusTip">
+    <string>Demote conditional lines down to normal lines.</string>
+   </property>
+  </action>
+  <action name="actionYtruder">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/ytruder.png</normaloff>:/icons/ytruder.png</iconset>
+   </property>
+   <property name="text">
+    <string>Ytruder</string>
+   </property>
+   <property name="statusTip">
+    <string>Extrude selected lines to a given plane</string>
+   </property>
+  </action>
+  <action name="actionRectifier">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/rectifier.png</normaloff>:/icons/rectifier.png</iconset>
+   </property>
+   <property name="text">
+    <string>Rectifier</string>
+   </property>
+   <property name="statusTip">
+    <string>Optimizes quads into rect primitives.</string>
+   </property>
+  </action>
+  <action name="actionIntersector">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/intersector.png</normaloff>:/icons/intersector.png</iconset>
+   </property>
+   <property name="text">
+    <string>Intersector</string>
+   </property>
+   <property name="statusTip">
+    <string>Perform clipping between two input groups.</string>
+   </property>
+  </action>
+  <action name="actionIsecalc">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/isecalc.png</normaloff>:/icons/isecalc.png</iconset>
+   </property>
+   <property name="text">
+    <string>Isecalc</string>
+   </property>
+   <property name="statusTip">
+    <string>Compute intersection edgelines between two input groups.</string>
+   </property>
+  </action>
+  <action name="actionCoverer">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/coverer.png</normaloff>:/icons/coverer.png</iconset>
+   </property>
+   <property name="text">
+    <string>Coverer</string>
+   </property>
+   <property name="statusTip">
+    <string>Fill the space between two line shapes</string>
+   </property>
+  </action>
+  <action name="actionEdger2">
+   <property name="text">
+    <string>Edger 2</string>
+   </property>
+  </action>
+  <action name="actionHelp">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/help.png</normaloff>:/icons/help.png</iconset>
+   </property>
+   <property name="text">
+    <string>Help</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/ldforge.png</normaloff>:/icons/ldforge.png</iconset>
+   </property>
+   <property name="text">
+    <string>About LDForge</string>
+   </property>
+  </action>
+  <action name="actionAboutQt">
+   <property name="text">
+    <string>About Qt</string>
+   </property>
+  </action>
+  <action name="actionGridCoarse">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/grid-coarse.png</normaloff>:/icons/grid-coarse.png</iconset>
+   </property>
+   <property name="text">
+    <string>Coarse Grid</string>
+   </property>
+  </action>
+  <action name="actionGridMedium">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/grid-medium.png</normaloff>:/icons/grid-medium.png</iconset>
+   </property>
+   <property name="text">
+    <string>Medium Grid</string>
+   </property>
+  </action>
+  <action name="actionGridFine">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/grid-fine.png</normaloff>:/icons/grid-fine.png</iconset>
+   </property>
+   <property name="text">
+    <string>Fine Grid</string>
+   </property>
+  </action>
+  <action name="actionEdit">
+   <property name="text">
+    <string>Edit Selected Object</string>
+   </property>
+  </action>
+  <action name="actionMoveUp">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/arrow-up.png</normaloff>:/icons/arrow-up.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move Up</string>
+   </property>
+  </action>
+  <action name="actionMoveDown">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/arrow-down.png</normaloff>:/icons/arrow-down.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move Down</string>
+   </property>
+  </action>
+  <action name="actionMoveXNeg">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-x-neg.png</normaloff>:/icons/move-x-neg.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move -X</string>
+   </property>
+  </action>
+  <action name="actionMoveXPos">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-x-pos.png</normaloff>:/icons/move-x-pos.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move +X</string>
+   </property>
+  </action>
+  <action name="actionMoveYNeg">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-y-neg.png</normaloff>:/icons/move-y-neg.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move -Y</string>
+   </property>
+  </action>
+  <action name="actionMoveYPos">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-y-pos.png</normaloff>:/icons/move-y-pos.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move +Y</string>
+   </property>
+  </action>
+  <action name="actionMoveZNeg">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-z-neg.png</normaloff>:/icons/move-z-neg.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move -Z</string>
+   </property>
+  </action>
+  <action name="actionMoveZPos">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/move-z-pos.png</normaloff>:/icons/move-z-pos.png</iconset>
+   </property>
+   <property name="text">
+    <string>Move +Z</string>
+   </property>
+  </action>
+  <action name="actionRotateXNeg">
+   <property name="text">
+    <string>Rotate -X</string>
+   </property>
+  </action>
+  <action name="actionRotateXPos">
+   <property name="text">
+    <string>Rotate +X</string>
+   </property>
+  </action>
+  <action name="actionRotateYNeg">
+   <property name="text">
+    <string>Rotate -Y</string>
+   </property>
+  </action>
+  <action name="actionRotateYPos">
+   <property name="text">
+    <string>Rotate +Y</string>
+   </property>
+  </action>
+  <action name="actionRotateZNeg">
+   <property name="text">
+    <string>Rotate -Z</string>
+   </property>
+  </action>
+  <action name="actionRotateZPos">
+   <property name="text">
+    <string>Rotate +Z</string>
+   </property>
+  </action>
+  <action name="actionRotationPoint">
+   <property name="text">
+    <string>Set Rotation Point</string>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../ldforge.qrc"/>
+ </resources>
+ <connections/>
+</ui>

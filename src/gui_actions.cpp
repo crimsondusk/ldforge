@@ -43,7 +43,7 @@ extern_cfg (bool, gl_colorbfc);
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
+DEFINE_ACTION (New, CTRL (N)) {
 	if (safeToCloseAll() == false)
 		return;
 	
@@ -84,7 +84,7 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL (O)) {
+DEFINE_ACTION (Open, CTRL (O)) {
 	if (safeToCloseAll() == false)
 		return;
 	
@@ -100,27 +100,25 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S))
-{
+DEFINE_ACTION (Save, CTRL (S)) {
 	g_win->save (currentFile(), false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S))
-{
+DEFINE_ACTION (SaveAs, CTRL_SHIFT (S)) {
 	g_win->save (currentFile(), true);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (settings, "Settin&gs", "settings", "Edit the settings of " APPNAME ".", (0)) {
+DEFINE_ACTION (Settings, 0) {
 	ConfigDialog::staticDialog();
 }
 
-MAKE_ACTION (setLDrawPath, "Set LDraw Path", "settings", "Change the LDraw directory path.", (0)) {
+DEFINE_ACTION (SetLDrawPath, 0) {
 	LDrawPathDialog dlg (true);
 	dlg.exec();
 }
@@ -128,51 +126,50 @@ MAKE_ACTION (setLDrawPath, "Set LDraw Path", "settings", "Change the LDraw direc
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (exit, "&Exit", "exit", "Close " APPNAME ".", CTRL (Q)) {
+DEFINE_ACTION (Exit, CTRL (Q)) {
 	exit (0);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (newSubfile, "New Subfile", "add-subfile", "Creates a new subfile reference.", 0) {
+DEFINE_ACTION (NewSubfile, 0) {
 	AddObjectDialog::staticDialog (LDObject::Subfile, null);
 }
 
-MAKE_ACTION (newLine, "New Line",  "add-line", "Creates a new line.", 0) {
+DEFINE_ACTION (NewLine, 0) {
 	AddObjectDialog::staticDialog (LDObject::Line, null);
 }
 
-MAKE_ACTION (newTriangle, "New Triangle", "add-triangle", "Creates a new triangle.", 0) {
+DEFINE_ACTION (NewTriangle, 0) {
 	AddObjectDialog::staticDialog (LDObject::Triangle, null);
 }
 
-MAKE_ACTION (newQuad, "New Quadrilateral", "add-quad", "Creates a new quadrilateral.", 0) {
+DEFINE_ACTION (NewQuad, 0) {
 	AddObjectDialog::staticDialog (LDObject::Quad, null);
 }
 
-MAKE_ACTION (newCondLine, "New Conditional Line", "add-condline", "Creates a new conditional line.", 0) {
+DEFINE_ACTION (NewCLine, 0) {
 	AddObjectDialog::staticDialog (LDObject::CondLine, null);
 }
 
-MAKE_ACTION (newComment, "New Comment", "add-comment", "Creates a new comment.", 0) {
+DEFINE_ACTION (NewComment, 0) {
 	AddObjectDialog::staticDialog (LDObject::Comment, null);
 }
 
-MAKE_ACTION (newBFC, "New BFC Statement", "add-bfc", "Creates a new BFC statement.", 0) {
+DEFINE_ACTION (NewBFC, 0) {
 	AddObjectDialog::staticDialog (LDObject::BFC, null);
 }
 
-MAKE_ACTION (newVertex, "New Vertex", "add-vertex", "Creates a new vertex.", 0) {
+DEFINE_ACTION (NewVertex, 0) {
 	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
-MAKE_ACTION (makePrimitive, "Make a Primitive", "radial", "Generate a new circular primitive.", 0)
-{
+DEFINE_ACTION (MakePrimitive, 0) {
 	generatePrimitive();
 }
 
-MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) {
+DEFINE_ACTION (Edit, 0) {
 	if (g_win->sel().size() != 1)
 		return;
 	
@@ -180,28 +177,25 @@ MAKE_ACTION (editObject, "Edit Object", "edit-object", "Edits this object.", 0) 
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
 
-MAKE_ACTION (help, "Help", "help", "Shows the " APPNAME " help manual.", KEY (F1)) {
+DEFINE_ACTION (Help, KEY (F1)) {
 	
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (about, "About " APPNAME, "ldforge",
-	"Shows information about " APPNAME ".", (0))
-{
-	AboutDialog dlg;
-	dlg.exec();
+DEFINE_ACTION (About, 0) {
+	AboutDialog().exec();
 }
 
-MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", (0)) {
+DEFINE_ACTION (AboutQt, 0) {
 	QMessageBox::aboutQt (g_win);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
+DEFINE_ACTION (SelectAll, CTRL (A)) {
 	g_win->sel().clear();
 	
 	for (LDObject* obj : currentFile()->objs())
@@ -211,9 +205,7 @@ MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL
 }
 
 // =============================================================================
-MAKE_ACTION (selectByColor, "Select by Color", "select-color",
-	"Select all objects by the given color.", CTRL_SHIFT (A))
-{
+DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 	short colnum = g_win->getSelectedColor();
 	
 	if (colnum == -1)
@@ -228,9 +220,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 }
 
 // =============================================================================
-MAKE_ACTION (selectByType, "Select by Type", "select-type",
-	"Select all objects by the given type.", (0))
-{
+DEFINE_ACTION (SelectByType, 0) {
 	if (g_win->sel().size() == 0)
 		return;
 	
@@ -268,17 +258,17 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (gridCoarse, "Coarse Grid", "grid-coarse", "Set the grid to Coarse", (0)) {
+DEFINE_ACTION (GridCoarse, 0) {
 	grid = Grid::Coarse;
 	g_win->updateGridToolBar();
 }
 
-MAKE_ACTION (gridMedium, "Medium Grid", "grid-medium", "Set the grid to Medium", (0)) {
+DEFINE_ACTION (GridMedium, 0) {
 	grid = Grid::Medium;
 	g_win->updateGridToolBar();
 }
 
-MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", (0)) {
+DEFINE_ACTION (GridFine, 0) {
 	grid = Grid::Fine;
 	g_win->updateGridToolBar();
 }
@@ -286,7 +276,7 @@ MAKE_ACTION (gridFine, "Fine Grid", "grid-fine", "Set the grid to Fine", (0)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and zoom", CTRL (0)) {
+DEFINE_ACTION (ResetView, CTRL (0)) {
 	g_win->R()->resetAngles();
 	g_win->R()->update();
 }
@@ -294,7 +284,7 @@ MAKE_ACTION (resetView, "Reset View", "reset-view", "Reset view angles, pan and 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data from a file.", (0)) {
+DEFINE_ACTION (InsertFrom, 0) {
 	str fname = QFileDialog::getOpenFileName();
 	ulong idx = g_win->getInsertionPoint();
 	
@@ -325,7 +315,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selection to file", (0)) {
+DEFINE_ACTION (ExportTo, 0) {
 	if (g_win->sel().size() == 0)
 		return;
 	
@@ -350,7 +340,7 @@ MAKE_ACTION (exportTo, "Export To File", "file-export", "Export current selectio
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to insert.", (0)) {
+DEFINE_ACTION (InsertRaw, 0) {
 	ulong idx = g_win->getInsertionPoint();
 	
 	QDialog* const dlg = new QDialog;
@@ -382,8 +372,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	g_win->scrollToSelection();
 }
 
-// =========================================================================================================================================
-MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the model", (0)) {
+DEFINE_ACTION (Screenshot, 0) {
 	setlocale (LC_ALL, "C");
 	
 	ushort w, h;
@@ -404,28 +393,28 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	delete[] imgdata;
 }
 
-// =========================================================================================================================================
+// =============================================================================
 extern_cfg (bool, gl_axes);
-MAKE_ACTION (axes, "Draw Axes", "axes", "Toggles drawing of axes", (0)) {
+DEFINE_ACTION (Axes, 0) {
 	gl_axes = !gl_axes;
-	ACTION (axes)->setChecked (gl_axes);
+	ACTION (Axes)->setChecked (gl_axes);
 	g_win->R()->update();
 }
 
-// =========================================================================================================================================
-MAKE_ACTION (visibility, "Toggle Visibility", "visibility", "Toggles visibility/hiding on objects.", (0)) {
+// =============================================================================
+DEFINE_ACTION (Visibility, 0) {
 	for (LDObject* obj : g_win->sel())
 		obj->setHidden (!obj->hidden());
 	
 	g_win->fullRefresh();
 }
 
-MAKE_ACTION (wireframe, "Wireframe", "wireframe", "Toggle wireframe view", (0)) {
+DEFINE_ACTION (Wireframe, 0) {
 	gl_wireframe = !gl_wireframe;
 	g_win->R()->refresh();
 }
 
-MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image", 0)
+DEFINE_ACTION (SetOverlay,  0)
 {
 	OverlayDialog dlg;
 	
@@ -436,19 +425,19 @@ MAKE_ACTION (setOverlay, "Set Overlay Image", "overlay", "Set an overlay image",
 		dlg.ofsy(), dlg.lwidth(), dlg.lheight() );
 }
 
-MAKE_ACTION (clearOverlay, "Clear Overlay Image", "overlay-clear", "Clear the overlay image.", (0)) {
+DEFINE_ACTION (ClearOverlay, 0) {
 	g_win->R()->clearOverlay();
 }
 
-MAKE_ACTION (modeSelect, "Select Mode", "mode-select", "Select objects from the camera view.", CTRL (1)) {
+DEFINE_ACTION (ModeSelect, CTRL (1)) {
 	g_win->R()->setEditMode (Select);
 }
 
-MAKE_ACTION (modeDraw, "Draw Mode", "mode-draw", "Draw objects into the camera view.", CTRL (2)) {
+DEFINE_ACTION (ModeDraw, CTRL (2)) {
 	g_win->R()->setEditMode (Draw);
 }
 
-MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coordinate of the current camera.", (0)) {
+DEFINE_ACTION (SetDrawDepth, 0) {
 	if (g_win->R()->camera() == GL::Free)
 		return;
 	
@@ -461,11 +450,11 @@ MAKE_ACTION (setDrawDepth, "Set Depth Value", "depth-value", "Set the depth coor
 		g_win->R()->setDepthValue (depth);
 }
 
-#ifndef RELEASE
+#if 0
 // This is a test to draw a dummy axle. Meant to be used as a primitive gallery,
 // but I can't figure how to generate these pictures properly. Multi-threading
 // these is an immense pain.
-MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
+DEFINE_ACTION (testpic, "Test picture", "", "", (0)) {
 	LDOpenFile* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 	
@@ -505,13 +494,12 @@ MAKE_ACTION (testpic, "Test picture", "", "", (0)) {
 }
 #endif
 
-MAKE_ACTION (reloadPrimitives, "Scan Primitives", "", "", (0)) {
+DEFINE_ACTION (ScanPrimitives, 0) {
 	PrimitiveLister::start();
 }
 
-MAKE_ACTION (colorbfc, "BFC Red/Green View", "bfc-view", "", SHIFT (B))
-{
+DEFINE_ACTION (BFCView, SHIFT (B)) {
 	gl_colorbfc = !gl_colorbfc;
-	ACTION (colorbfc)->setChecked (gl_colorbfc);
+	ACTION (BFCView)->setChecked (gl_colorbfc);
 	g_win->R()->refresh();
 }

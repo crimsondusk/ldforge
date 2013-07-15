@@ -573,7 +573,7 @@ void runIsecalc() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (edger2, "Edger 2", "edger2", "Compute edgelines", 0) {
+DEFINE_ACTION (Edger2, 0) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_edger2, Edger2))

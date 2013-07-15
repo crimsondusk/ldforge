@@ -65,7 +65,7 @@ static int copyToClipboard() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL (X)) {
+DEFINE_ACTION (Cut, CTRL (X)) {
 	int num = copyToClipboard();
 	g_win->deleteSelection();
 	log (ForgeWindow::tr ("%1 objects cut"), num);
@@ -74,7 +74,7 @@ MAKE_ACTION (cut, "Cut", "cut", "Cut the current selection to clipboard.", CTRL 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", CTRL (C)) {
+DEFINE_ACTION (Copy, CTRL (C)) {
 	int num = copyToClipboard();
 	log (ForgeWindow::tr ("%1 objects copied"), num);
 }
@@ -82,7 +82,7 @@ MAKE_ACTION (copy, "Copy", "copy", "Copy the current selection to clipboard.", C
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
+DEFINE_ACTION (Paste, CTRL (V)) {
 	const str clipboardText = qApp->clipboard()->text();
 	ulong idx = g_win->getInsertionPoint();
 	g_win->sel().clear();
@@ -104,7 +104,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (del, "Delete", "delete", "Delete the selection", KEY (Delete)) {
+DEFINE_ACTION (Delete, KEY (Delete)) {
 	int num = g_win->deleteSelection();
 	log (ForgeWindow::tr ("%1 objects deleted"), num);
 }
@@ -148,20 +148,18 @@ static void doInline (bool deep) {
 	g_win->fullRefresh();
 }
 
-MAKE_ACTION (inlineContents, "Inline", "inline", "Inline selected subfiles.", CTRL (I)) {
+DEFINE_ACTION (Inline, CTRL (I)) {
 	doInline (false);
 }
 
-MAKE_ACTION (deepInline, "Deep Inline", "inline-deep", "Recursively inline selected subfiles "
-	"down to polygons only.", CTRL_SHIFT (I))
-{
+DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I)) {
 	doInline (true);
 }
 
 // ===============================================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // ===============================================================================================
-MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangles.", (0)) {
+DEFINE_ACTION (SplitQuads, 0) {
 	vector<LDObject*> objs = g_win->sel();
 	int num = 0;
 	
@@ -195,7 +193,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw code of this object.", KEY (F9)) {
+DEFINE_ACTION (EditRaw, KEY (F9)) {
 	if (g_win->sel().size() != 1)
 		return;
 	
@@ -230,7 +228,7 @@ MAKE_ACTION (setContents, "Edit LDraw Code", "set-contents", "Edit the LDraw cod
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects.", KEY (C)) {
+DEFINE_ACTION (SetColor, KEY (C)) {
 	if (g_win->sel().size() <= 0)
 		return;
 	
@@ -260,7 +258,7 @@ MAKE_ACTION (setColor, "Set Color", "palette", "Set the color on given objects."
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around given polygons.", CTRL_SHIFT (B)) {
+DEFINE_ACTION (Borders, CTRL_SHIFT (B)) {
 	vector<LDObject*> objs = g_win->sel();
 	int num = 0;
 	
@@ -306,9 +304,7 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
-	"Adds vertex objects to the corners of the given polygons", (0))
-{
+DEFINE_ACTION (CornerVerts, 0) {
 	int num = 0;
 	
 	for (LDObject* obj : g_win->sel()) {
@@ -341,22 +337,22 @@ static void doMoveSelection (const bool up) {
 	g_win->buildObjList();
 }
 
-MAKE_ACTION (moveUp, "Move Up", "arrow-up", "Move the current selection up.", KEY (PageUp)) {
+DEFINE_ACTION (MoveUp, KEY (PageUp)) {
 	doMoveSelection (true);
 }
 
-MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection down.", KEY (PageDown)) {
+DEFINE_ACTION (MoveDown, KEY (PageDown)) {
 	doMoveSelection (false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
+DEFINE_ACTION (Undo, CTRL (Z)) {
 	currentFile()->undo();
 }
 
-MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
+DEFINE_ACTION (Redo, CTRL_SHIFT (Z)) {
 	currentFile()->redo();
 }
 
@@ -377,32 +373,32 @@ void doMoveObjects (vertex vect) {
 	g_win->refresh();
 }
 
-MAKE_ACTION (moveXNeg, "Move -X", "move-x-neg", "Move selected objects negative on the X axis.", KEY (Left)) {
-	doMoveObjects ( { -1, 0, 0});
+DEFINE_ACTION (MoveXNeg, KEY (Left)) {
+	doMoveObjects ({ -1, 0, 0});
 }
 
-MAKE_ACTION (moveYNeg, "Move -Y", "move-y-neg", "Move selected objects negative on the Y axis.", KEY (Home)) {
-	doMoveObjects ( {0, -1, 0});
+DEFINE_ACTION (MoveYNeg, KEY (Home)) {
+	doMoveObjects ({0, -1, 0});
 }
 
-MAKE_ACTION (moveZNeg, "Move -Z", "move-z-neg", "Move selected objects negative on the Z axis.", KEY (Down)) {
-	doMoveObjects ( {0, 0, -1});
+DEFINE_ACTION (MoveZNeg, KEY (Down)) {
+	doMoveObjects ({0, 0, -1});
 }
 
-MAKE_ACTION (moveXPos, "Move +X", "move-x-pos", "Move selected objects positive on the X axis.", KEY (Right)) {
-	doMoveObjects ( {1, 0, 0});
+DEFINE_ACTION (MoveXPos, KEY (Right)) {
+	doMoveObjects ({1, 0, 0});
 }
 
-MAKE_ACTION (moveYPos, "Move +Y", "move-y-pos", "Move selected objects positive on the Y axis.", KEY (End)) {
-	doMoveObjects ( {0, 1, 0});
+DEFINE_ACTION (MoveYPos, KEY (End)) {
+	doMoveObjects ({0, 1, 0});
 }
 
-MAKE_ACTION (moveZPos, "Move +Z", "move-z-pos", "Move selected objects positive on the Z axis.", KEY (Up)) {
-	doMoveObjects ( {0, 0, 1});
+DEFINE_ACTION (MoveZPos, KEY (Up)) {
+	doMoveObjects ({0, 0, 1});
 }
 
 // =============================================================================
-MAKE_ACTION (invert, "Invert", "invert", "Reverse the winding of given objects.", CTRL_SHIFT (W)) {
+DEFINE_ACTION (Invert, CTRL_SHIFT (W)) {
 	vector<LDObject*> sel = g_win->sel();
 	
 	for (LDObject* obj : sel) {
@@ -471,38 +467,21 @@ static void doRotate (const short l, const short m, const short n) {
 	g_win->refresh();
 }
 
-MAKE_ACTION (rotateXPos, "Rotate +X", "rotate-x-pos", "Rotate objects around X axis", CTRL (Right)) {
-	doRotate (1, 0, 0);
-}
+DEFINE_ACTION (RotateXPos, CTRL (Right)) { doRotate (1, 0, 0); }
+DEFINE_ACTION (RotateYPos, CTRL (End))   { doRotate (0, 1, 0); }
+DEFINE_ACTION (RotateZPos, CTRL (Up))    { doRotate (0, 0, 1); }
+DEFINE_ACTION (RotateXNeg, CTRL (Left))  { doRotate (-1, 0, 0); }
+DEFINE_ACTION (RotateYNeg, CTRL (Home))  { doRotate (0, -1, 0); }
+DEFINE_ACTION (RotateZNeg, CTRL (Down))  { doRotate (0, 0, -1); }
 
-MAKE_ACTION (rotateYPos, "Rotate +Y", "rotate-y-pos", "Rotate objects around Y axis", CTRL (End)) {
-	doRotate (0, 1, 0);
-}
-
-MAKE_ACTION (rotateZPos, "Rotate +Z", "rotate-z-pos", "Rotate objects around Z axis", CTRL (Up)) {
-	doRotate (0, 0, 1);
-}
-
-MAKE_ACTION (rotateXNeg, "Rotate -X", "rotate-x-neg", "Rotate objects around X axis", CTRL (Left)) {
-	doRotate (-1, 0, 0);
-}
-
-MAKE_ACTION (rotateYNeg, "Rotate -Y", "rotate-y-neg", "Rotate objects around Y axis", CTRL (Home)) {
-	doRotate (0, -1, 0);
-}
-
-MAKE_ACTION (rotateZNeg, "Rotate -Z", "rotate-z-neg", "Rotate objects around Z axis", CTRL (Down)) {
-	doRotate (0, 0, -1);
-}
-
-MAKE_ACTION (rotpoint, "Set Rotation Point", "rotpoint", "Configure the rotation point.", (0)) {
+DEFINE_ACTION (RotationPoint, (0)) {
 	configRotationPoint();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinates down to 3/4 decimals", (0)) {
+DEFINE_ACTION (RoundCoordinates, 0) {
 	setlocale (LC_ALL, "C");
 	int num = 0;
 	
@@ -528,7 +507,7 @@ MAKE_ACTION (roundCoords, "Round Coordinates", "round-coords", "Round coordinate
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everything selected to main and edge colors", (0)) {
+DEFINE_ACTION (Uncolorize, 0) {
 	int num = 0;
 	
 	for (LDObject* obj : g_win->sel()) {
@@ -551,28 +530,28 @@ MAKE_ACTION (uncolorize, "Uncolorize", "uncolorize", "Reduce colors of everythin
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-MAKE_ACTION (ytruder, "Ytruder", "ytruder", "Extrude selected lines to a given plane", (0)) {
+DEFINE_ACTION (Ytruder, 0) {
 	runYtruder();
 }
 
-MAKE_ACTION (rectifier, "Rectifier", "rectifier", "Optimizes quads into rect primitives.", (0)) {
+DEFINE_ACTION (Rectifier, 0) {
 	runRectifier();
 }
 
-MAKE_ACTION (intersector, "Intersector", "intersector", "Perform clipping between two input groups.", (0)) {
+DEFINE_ACTION (Intersector, 0) {
 	runIntersector();
 }
 
-MAKE_ACTION (coverer, "Coverer", "coverer", "Fill the space between two line shapes", (0)) {
+DEFINE_ACTION (Coverer, 0) {
 	runCoverer();
 }
 
-MAKE_ACTION (isecalc, "Isecalc", "isecalc", "Compute intersection between objects", (0)) {
+DEFINE_ACTION (Isecalc, 0) {
 	runIsecalc();
 }
 
 // =============================================================================
-MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and replace coordinate values", CTRL (R)) {
+DEFINE_ACTION (ReplaceCoords, CTRL (R)) {
 	QDialog* dlg = new QDialog (g_win);
 	Ui::ReplaceCoordsUI ui;
 	ui.setupUi (dlg);
@@ -616,7 +595,7 @@ MAKE_ACTION (replaceCoords, "Replace Coordinates", "replace-coords", "Find and r
 }
 
 // ================================================================================================
-MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
+DEFINE_ACTION (Flip, CTRL_SHIFT (F)) {
 	QDialog* dlg = new QDialog;
 	Ui::FlipUI ui;
 	ui.setupUi (dlg);
@@ -644,7 +623,7 @@ MAKE_ACTION (flip, "Flip", "flip", "Flip coordinates", CTRL_SHIFT (F)) {
 }
 
 // ================================================================================================
-MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional lines down to normal lines.", (0)) {
+DEFINE_ACTION (Demote, 0) {
 	vector<LDObject*> sel = g_win->sel();
 	int num = 0;
 	
@@ -670,13 +649,13 @@ static bool isColorUsed (short colnum) {
 	return false;
 }
 
-MAKE_ACTION (autoColor, "Autocolor", "autocolor", "Set the color of the given object to the first found unused color.", (0)) {
+DEFINE_ACTION (Autocolor, 0) {
 	short colnum = 0;
 	
-	while (colnum < 512 && (getColor (colnum) == null || isColorUsed (colnum)))
+	while (colnum < MAX_COLORS && (getColor (colnum) == null || isColorUsed (colnum)))
 		colnum++;
 	
-	if (colnum >= 512) {
+	if (colnum >= MAX_COLORS) {
 		//: Auto-colorer error message
 		critical (ForgeWindow::tr ("Out of unused colors! What are you doing?!"));
 		return;

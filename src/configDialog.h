@@ -29,22 +29,12 @@ class QDoubleSpinBox;
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem
 {
+	PROPERTY (keyseqconfig*, keyConfig, setKeyConfig)
+	PROPERTY (QAction*, action, setAction)
+	
 public:
 	explicit ShortcutListItem( QListWidget* view = null, int type = Type ) :
 		QListWidgetItem( view, type ) {}
-	
-	actionmeta* getActionInfo() const
-	{
-		return m_info;
-	}
-	
-	void setActionInfo( actionmeta* info )
-	{
-		m_info = info;
-	}
-	
-private:
-	actionmeta* m_info;
 };
 
 // =============================================================================
@@ -53,11 +43,11 @@ class ConfigDialog : public QDialog
 	Q_OBJECT
 	
 public:
-	ConfigDialog( ForgeWindow* parent );
+	ConfigDialog (ForgeWindow* parent);
 	virtual ~ConfigDialog();
 	static void staticDialog();
 	const Ui_ConfigUI* getUI() const;
-	float getGridValue( int i, int j ) const;
+	float getGridValue (int i, int j) const;
 	
 	vector<quickColor> quickColorMeta;
 	QDoubleSpinBox* dsb_gridData[3][4];
@@ -73,10 +63,11 @@ private:
 	void initQuickColorTab();
 	void initGridTab();
 	void initExtProgTab();
+	void addShortcut (keyseqconfig& cfg, QAction* act, ulong& i);
 	void setButtonBackground( QPushButton* button, str value );
 	void pickColor( strconfig& cfg, QPushButton* button );
 	void updateQuickColorList( quickColor* sel = null );
-	void setShortcutText( QListWidgetItem* qItem, actionmeta meta );
+	void setShortcutText (ShortcutListItem* item);
 	int getItemRow( QListWidgetItem* item, vector<QListWidgetItem*>& haystack );
 	str makeColorToolBarString();
 	QListWidgetItem* getSelectedQuickColor();
@@ -105,7 +96,7 @@ class KeySequenceDialog : public QDialog
 
 public:
 	explicit KeySequenceDialog( QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0 );
-	static bool staticDialog( actionmeta& meta, QWidget* parent = null );
+	static bool staticDialog( keyseqconfig* cfg, QWidget* parent = null );
 
 	QLabel* lb_output;
 	QDialogButtonBox* bbx_buttons;

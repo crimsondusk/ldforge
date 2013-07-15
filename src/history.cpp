@@ -23,9 +23,6 @@
 #include "gui.h"
 #include "gldraw.h"
 
-EXTERN_ACTION (undo)
-EXTERN_ACTION (redo)
-
 bool g_fullRefresh = false;
 
 History::History() {
@@ -84,8 +81,8 @@ void History::clear() {
 }
 
 void History::updateActions() const {
-	ACTION (undo)->setEnabled (pos() != -1);
-	ACTION (redo)->setEnabled (pos() < (long) m_changesets.size() - 1);
+	ACTION (Undo)->setEnabled (pos() != -1);
+	ACTION (Redo)->setEnabled (pos() < (long) m_changesets.size() - 1);
 }
 
 void History::open() {

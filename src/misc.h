@@ -48,7 +48,6 @@ str join (initlist<StringFormatArg> vals, str delim = " ");
 typedef struct {
 	const char* const name;
 	floatconfig* const confs[4];
-	QAction** const actionptr;
 } gridinfo;
 
 extern_cfg (int, grid);

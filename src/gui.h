@@ -29,13 +29,13 @@
 class MessageManager;
 class ForgeWindow;
 class LDColor;
-class QSplitter;
 class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
 class CheckBoxGroup;
 class QComboBox;
 class QProgressBar;
+class Ui_LDForgeUI;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -44,30 +44,13 @@ class QProgressBar;
 	connect (bbx_buttons, SIGNAL (rejected ()), this, SLOT (reject ())); \
 
 // =============================================================================
-// Metadata for actions
-typedef struct {
-	QAction** qAct;
-	keyseqconfig* conf;
-	const char* name, *sDisplayName, *sIconName, *sDescription;
-	void (*handler) ();
-} actionmeta;
-
-#define MAX_ACTIONS 256
-extern actionmeta g_actionMeta[256];
-
-// =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-#define MAKE_ACTION(NAME, DISPLAYNAME, ICONNAME, DESCR, DEFSHORTCUT) \
-	QAction* ACTION (NAME); \
+#define DEFINE_ACTION(NAME, DEFSHORTCUT) \
 	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
-	static void actionHandler_##NAME (); \
-	static ActionAdder ActionAdderInstance_##NAME (&ACTION(NAME), DISPLAYNAME, \
-		ICONNAME, DESCR, &key_##NAME, actionHandler_##NAME, #NAME); \
-	static void actionHandler_##NAME ()
+	void actiondef_##NAME ()
 
-#define EXTERN_ACTION(NAME) extern QAction* ACTION (NAME);
-#define ACTION(N) LDForgeAction_##N
+#define ACTION(N) g_win->action##N()
 
 // Convenience macros for key sequences.
 #define KEY(N) (Qt::Key_##N)
@@ -124,57 +107,54 @@ public:
 	void deleteObjVector (vector< LDObject* > objs);
 	int deleteSelection ();
 	void deleteByColor (const short int colnum);
-	void save( LDOpenFile* f, bool saveAs );
+	void save (LDOpenFile* f, bool saveAs);
 	GLRenderer* R () { return m_renderer; }
 	vector<LDObject*>& sel () { return m_sel; }
 	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {
 		m_colorMeta = quickColorMeta;
 	}
 	void setStatusBarText (str text);
-	void addActionMeta (actionmeta& meta);
-	void addMessage( str msg );
+	void addMessage (str msg);
+	Ui_LDForgeUI* interface() const;
+	
+#define act(N) QAction* action##N();
+#include "actions.h"
 	
 public slots:
 	void primitiveLoaderStart (ulong max);
 	void primitiveLoaderUpdate (ulong prog);
 	void primitiveLoaderEnd ();
 	void clearSelection();
+	void slot_action();
 	
 protected:
 	void closeEvent (QCloseEvent* ev);
 	
 private:
 	GLRenderer* m_renderer;
-	ObjectList* m_objList;
-	QMenu* m_recentFilesMenu;
-	QSplitter* m_splitter;
-	QToolBar* m_colorToolBar;
 	QProgressBar* m_primLoaderBar;
 	QWidget* m_primLoaderWidget;
-	vector<QToolBar*> m_toolBars;
 	vector<LDObject*> m_sel;
 	vector<quickColor> m_colorMeta;
 	vector<QToolButton*> m_colorButtons;
 	vector<QAction*> m_recentFiles;
 	MessageManager* m_msglog;
+	Ui_LDForgeUI* ui;
 	
-	void createMenuActions ();
-	void createMenus ();
-	void createToolbars ();
-	void initSingleToolBar (const char* name);
-	void addToolBarAction (const char* name);
+	void invokeAction (QAction* act, void (*func) ());
 	
-	QMenu* initMenu (const char* name);
-	void addMenuAction (const char* name);
 
 private slots:
 	void slot_selectionChanged ();
-	void slot_action ();
 	void slot_recentFile ();
 	void slot_quickColor ();
 	void slot_lastSecondCleanup ();
 	void slot_editObject (QListWidgetItem* listitem);
 };
+
+#define INVOKE_ACTION(N) actiondef_##N();
+#define act(N) void actiondef_##N();
+#include "actions.h"
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.
@@ -187,7 +167,6 @@ vector<quickColor> parseQuickColorMeta ();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
-QAction* findAction (str name);
 QIcon makeColorIcon (LDColor* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 QDialogButtonBox* makeButtonBox (QDialog& dlg);
@@ -199,10 +178,9 @@ QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
 // =============================================================================
-template<class T> T radioSwitch( const T& defval, vector<pair<QRadioButton*, T>> haystack )
-{
-	for( pair<QRadioButton*, const T&> i : haystack )
-		if( i.first->isChecked() )
+template<class T> T radioSwitch (const T& defval, vector<pair<QRadioButton*, T>> haystack) {
+	for (pair<QRadioButton*, const T&> i : haystack)
+		if (i.first->isChecked())
 			return i.second;
 	
 	return defval;
@@ -213,34 +191,13 @@ template<class T> T radioSwitch( const T& defval, vector<pair<QRadioButton*, T>>
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
 // =============================================================================
-template<class T> void radioDefault( const T& expr, vector<pair<QRadioButton*, T>> haystack )
-{
-	for( pair<QRadioButton*, const T&> i : haystack )
-	{
-		if( i.second == expr )
-		{
-			i.first->setChecked( true );
+template<class T> void radioDefault (const T& expr, vector<pair<QRadioButton*, T>> haystack) {
+	for (pair<QRadioButton*, const T&> i : haystack) {
+		if (i.second == expr) {
+			i.first->setChecked (true);
 			return;
 		}
 	}
 }
-
-// =============================================================================
-// ActionAdder
-//
-// The MAKE_ACTION macro expands into - among other stuff - into an instance
-// of this. This class' constructor creates meta for the newly defined action
-// and stores it in g_actionMeta. Don't use this directly!
-// =============================================================================
-class ActionAdder {
-public:
-	ActionAdder (QAction** act, const char* displayName, const char* iconName,
-		const char* description, keyseqconfig* conf, void (*const handler) (),
-		const char* name)
-	{
-		actionmeta meta = {act, conf, name, displayName, iconName, description, handler};
-		g_win->addActionMeta (meta);
-	}
-};
 
 #endif // GUI_H

@@ -1622,8 +1622,7 @@ LDOverlayObject* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
 // -----------------------------------------------------------------------------
 // Read in overlays from the current file and update overlay info accordingly.
 // =============================================================================
-void GLRenderer::overlaysFromObjects()
-{
+void GLRenderer::overlaysFromObjects() {
 	for (Camera cam : g_Cameras) {
 		if (cam == Free)
 			continue;

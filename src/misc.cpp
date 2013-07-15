@@ -84,9 +84,6 @@ const ushort g_primes[NUM_PRIMES] = {
 // =============================================================================
 // Grid stuff
 cfg (int, grid, Grid::Medium);
-EXTERN_ACTION (gridCoarse)
-EXTERN_ACTION (gridMedium)
-EXTERN_ACTION (gridFine)
 
 cfg (float, grid_coarse_x,			5.0f);
 cfg (float, grid_coarse_y,			5.0f);
@@ -106,9 +103,9 @@ cfg (float, edit_rotpoint_y, 0.0f);
 cfg (float, edit_rotpoint_z, 0.0f);
 
 const gridinfo g_GridInfo[3] = {
-	{ "Coarse",	{ &grid_coarse_x,	&grid_coarse_y,	&grid_coarse_z,	&grid_coarse_angle	}, &ACTION (gridCoarse) },
-	{ "Medium",	{ &grid_medium_x,	&grid_medium_y,		&grid_medium_z,		&grid_medium_angle	}, &ACTION (gridMedium) },
-	{ "Fine",		{ &grid_fine_x,	&grid_fine_y,		&grid_fine_z,		&grid_fine_angle	}, &ACTION (gridFine) }
+	{ "Coarse", { &grid_coarse_x, &grid_coarse_y, &grid_coarse_z, &grid_coarse_angle }},
+	{ "Medium", { &grid_medium_x, &grid_medium_y, &grid_medium_z, &grid_medium_angle }},
+	{ "Fine",   { &grid_fine_x,   &grid_fine_y,   &grid_fine_z,   &grid_fine_angle   }}
 };
 
 // =============================================================================
