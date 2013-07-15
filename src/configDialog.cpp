@@ -123,10 +123,10 @@ void ConfigDialog::initShortcutsTab () {
 
 void ConfigDialog::addShortcut (keyseqconfig& cfg, QAction* act, ulong& i) {
 	ShortcutListItem* item = new ShortcutListItem;
-	setShortcutText (item);
 	item->setIcon (act->icon());
 	item->setKeyConfig (&cfg);
 	item->setAction (act);
+	setShortcutText (item);
 	
 	// If the action doesn't have a valid icon, use an empty one
 	// so that the list is kept aligned.
@@ -561,8 +561,7 @@ void ConfigDialog::slot_setExtProgPath() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::setShortcutText( ShortcutListItem* item )
-{
+void ConfigDialog::setShortcutText( ShortcutListItem* item ) {
 	QAction* act = item->action();
 	str label = act->iconText();
 	str keybind = item->keyConfig()->value.toString();
