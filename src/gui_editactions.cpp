@@ -89,7 +89,7 @@ DEFINE_ACTION (Paste, CTRL (V)) {
 	
 	for (str line : clipboardText.split ("\n")) {
 		LDObject* pasted = parseLine (line);
-		currentFile()->insertObj (idx++, pasted);
+		LDOpenFile::current()->insertObj (idx++, pasted);
 		g_win->sel() << pasted;
 		g_win->R()->compileObject (pasted);
 		++num;
@@ -117,7 +117,7 @@ static void doInline (bool deep) {
 	for (LDObject* obj : sel) {
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
-		long idx = obj->getIndex (currentFile());
+		long idx = obj->getIndex();
 		
 		if (idx == -1)
 			continue;
@@ -135,12 +135,12 @@ static void doInline (bool deep) {
 			delete inlineobj;
 		
 			LDObject* newobj = parseLine (line);
-			currentFile()->insertObj (idx++, newobj);
+			LDOpenFile::current()->insertObj (idx++, newobj);
 			g_win->sel() << newobj;
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		currentFile()->forgetObject (obj);
+		LDOpenFile::current()->forgetObject (obj);
 		delete obj;
 	}
 	
@@ -167,7 +167,7 @@ DEFINE_ACTION (SplitQuads, 0) {
 			continue;
 		
 		// Find the index of this quad
-		long index = obj->getIndex (currentFile());
+		long index = obj->getIndex();
 		
 		if (index == -1)
 			return;
@@ -176,8 +176,8 @@ DEFINE_ACTION (SplitQuads, 0) {
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		currentFile()->setObject (index, triangles[0]);
-		currentFile()->insertObj (index + 1, triangles[1]);
+		LDOpenFile::current()->setObject (index, triangles[0]);
+		LDOpenFile::current()->insertObj (index + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
@@ -286,10 +286,10 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B)) {
 		}
 		
 		for (short i = 0; i < numLines; ++i) {
-			ulong idx = obj->getIndex (currentFile()) + i + 1;
+			ulong idx = obj->getIndex() + i + 1;
 			
 			lines[i]->setColor (edgecolor);
-			currentFile()->insertObj (idx, lines[i]);
+			LDOpenFile::current()->insertObj (idx, lines[i]);
 			g_win->R()->compileObject (lines[i]);
 		}
 		
@@ -310,14 +310,14 @@ DEFINE_ACTION (CornerVerts, 0) {
 		if (obj->vertices() < 2)
 			continue;
 		
-		ulong idx = obj->getIndex (currentFile());
+		ulong idx = obj->getIndex();
 		
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertexObject* vert = new LDVertexObject;
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());
 			
-			currentFile()->insertObj (++idx, vert);
+			LDOpenFile::current()->insertObj (++idx, vert);
 			g_win->R()->compileObject (vert);
 			++num;
 		}
@@ -348,11 +348,11 @@ DEFINE_ACTION (MoveDown, KEY (PageDown)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Undo, CTRL (Z)) {
-	currentFile()->undo();
+	LDOpenFile::current()->undo();
 }
 
 DEFINE_ACTION (Redo, CTRL_SHIFT (Z)) {
-	currentFile()->redo();
+	LDOpenFile::current()->redo();
 }
 
 // =============================================================================
@@ -618,7 +618,7 @@ DEFINE_ACTION (Demote, 0) {
 
 // =================================================================================================
 static bool isColorUsed (short colnum) {
-	for (LDObject* obj : currentFile()->objs())
+	for (LDObject* obj : LDOpenFile::current()->objs())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
 	

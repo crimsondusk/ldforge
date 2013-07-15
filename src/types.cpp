@@ -498,10 +498,10 @@ LDBoundingBox::LDBoundingBox() {
 void LDBoundingBox::calculate() {
 	reset();
 	
-	if (!currentFile())
+	if (!LDOpenFile::current())
 		return;
 	
-	for (LDObject* obj : currentFile()->objs())
+	for (LDObject* obj : LDOpenFile::current()->objs())
 		calcObject (obj);
 }
 

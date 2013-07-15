@@ -24,6 +24,8 @@
 #include "history.h"
 #include <QObject>
 
+#define curfile LDOpenFile::current()
+
 class History;
 class OpenProgressDialog;
 
@@ -98,8 +100,6 @@ public:
 		return PROP_NAME (objs).end();
 	}
 	
-	static void closeUnused();
-	
 	void openHistory() {
 		m_history.open();
 	}
@@ -123,6 +123,13 @@ public:
 	void addToHistory (AbstractHistoryEntry* entry) {
 		m_history << entry;
 	}
+	
+	static void closeUnused();
+	static LDOpenFile* current();
+	static void setCurrent (LDOpenFile* f);
+	
+private:
+	static LDOpenFile* m_curfile;
 };
 
 // Close all current loaded files and start off blank.
@@ -163,8 +170,6 @@ extern vector<LDOpenFile*> g_loadedFiles;
 void addRecentFile (str path);
 str basename (str path);
 str dirname (str path);
-LDOpenFile* currentFile();
-void setCurrentFile (LDOpenFile* f);
 
 extern vector<LDOpenFile*> g_loadedFiles; // Vector of all currently opened files.
 
@@ -200,7 +205,5 @@ signals:
 	void progressUpdate (int progress);
 	void workDone();
 };
-
-void changeCurrentFile (LDOpenFile* f);
 
 #endif // FILE_H

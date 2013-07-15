@@ -118,6 +118,7 @@ public:
 	void setStatusBarText (str text);
 	void addMessage (str msg);
 	Ui_LDForgeUI* interface() const;
+	void refreshObjectList();
 	
 	void beginAction(QAction* act);
 	void endAction();
@@ -131,6 +132,7 @@ public slots:
 	void primitiveLoaderEnd();
 	void clearSelection();
 	void slot_action();
+	void changeCurrentFile();
 	
 protected:
 	void closeEvent (QCloseEvent* ev);

@@ -32,15 +32,16 @@ vector<LDObject*> g_LDObjects;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // LDObject constructors
-LDObject::LDObject() {
-	qObjListEntry = null;
-	setParent (null);
-	m_hidden = false;
-	m_selected = false;
-	m_glinit = false;
-	
+LDObject::LDObject () :
+	m_hidden (false),
+	m_selected (false),
+	m_parent (null),
+	m_file (null),
+	qObjListEntry (null),
+	m_glinit (false)
+{
 	// Determine ID
-	int id = 1; // 0 is invalid
+	qint32 id = 1; // 0 is invalid
 	
 	for (LDObject* obj : g_LDObjects)
 		if (obj->id() >= id)
@@ -191,11 +192,11 @@ vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::replace (LDObject* other) {
-	long idx = getIndex (currentFile());
+	long idx = getIndex();
 	assert (idx != -1);
 	
 	// Replace the instance of the old object with the new object
-	currentFile()->setObject (idx, other);
+	LDOpenFile::current()->setObject (idx, other);
 	
 	// Remove the old object
 	delete this;
@@ -205,14 +206,14 @@ void LDObject::replace (LDObject* other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : *currentFile()) {
+	for (LDObject*& obj : *LDOpenFile::current()) {
 		if (obj == this)
 			obj = other;
 		elif (obj == other)
 			obj = this;
 	}
 
-	currentFile()->addToHistory (new SwapHistory (id(), other->id()));
+	LDOpenFile::current()->addToHistory (new SwapHistory (id(), other->id()));
 }
 
 LDLineObject::LDLineObject (vertex v1, vertex v2) {
@@ -332,9 +333,13 @@ vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-long LDObject::getIndex (LDOpenFile* file) const {
-	for (ulong i = 0; i < file->numObjs(); ++i)
-		if (file->obj (i) == this)
+long LDObject::getIndex() const {
+#ifndef RELEASE
+	assert (file() != null);
+#endif
+	
+	for (ulong i = 0; i < file()->numObjs(); ++i)
+		if (file()->obj (i) == this)
 			return i;
 	
 	return -1;
@@ -353,10 +358,10 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
 		
-		const long idx = obj->getIndex (currentFile()),
+		const long idx = obj->getIndex(),
 			target = idx + (up ? -1 : 1);
 		
-		if ((up && idx == 0) || (!up && idx == (long) (currentFile()->objs().size() - 1))) {
+		if ((up && idx == 0) || (!up && idx == (long) (LDOpenFile::current()->objs().size() - 1))) {
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
@@ -365,9 +370,9 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 		}
 		
 		objsToCompile << obj;
-		objsToCompile << currentFile()->obj (target);
+		objsToCompile << LDOpenFile::current()->obj (target);
 		
-		obj->swap (currentFile()->obj (target));
+		obj->swap (LDOpenFile::current()->obj (target));
 	}
 	
 	objsToCompile.makeUnique();
@@ -437,24 +442,24 @@ LDObject* LDObject::topLevelParent() {
 
 // =============================================================================
 LDObject* LDObject::next() const {
-	long idx = getIndex (currentFile());
+	long idx = getIndex();
 	assert (idx != -1);
 	
-	if (idx == (long) currentFile()->numObjs() - 1)
+	if (idx == (long) LDOpenFile::current()->numObjs() - 1)
 		return null;
 	
-	return currentFile()->obj (idx + 1);
+	return LDOpenFile::current()->obj (idx + 1);
 }
 
 // =============================================================================
 LDObject* LDObject::prev() const {
-	long idx = getIndex (currentFile());
+	long idx = getIndex();
 	assert (idx != -1);
 	
 	if (idx == 0)
 		return null;
 	
-	return currentFile()->obj (idx - 1);
+	return LDOpenFile::current()->obj (idx - 1);
 }
 
 // =============================================================================
@@ -552,14 +557,14 @@ void LDSubfileObject::invert() {
 	// flipped but I don't have a method for checking flatness yet.
 	// Food for thought...
 	
-	ulong idx = getIndex (currentFile());
+	ulong idx = getIndex();
 	
 	if (idx > 0) {
 		LDBFCObject* bfc = dynamic_cast<LDBFCObject*> (prev());
 		
 		if (bfc && bfc->type == LDBFCObject::InvertNext) {
 			// This is prefixed with an invertnext, thus remove it.
-			currentFile()->forgetObject (bfc);
+			LDOpenFile::current()->forgetObject (bfc);
 			delete bfc;
 			return;
 		}
@@ -567,7 +572,7 @@ void LDSubfileObject::invert() {
 	
 	// Not inverted, thus prefix it with a new invertnext.
 	LDBFCObject* bfc = new LDBFCObject (LDBFCObject::InvertNext);
-	currentFile()->insertObj (idx, bfc);
+	LDOpenFile::current()->insertObj (idx, bfc);
 }
 
 static void invertLine (LDObject* line) {
@@ -628,12 +633,12 @@ void LDOverlayObject::invert() {}
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
 	long idx;
 	
-	if ((idx = obj->getIndex (currentFile())) != -1) {
+	if (obj->file() && (idx = obj->getIndex()) != -1) {
 		str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();
 		
-		currentFile()->addToHistory (new EditHistory (idx, before, after));
+		LDOpenFile::current()->addToHistory (new EditHistory (idx, before, after));
 	} else
 		*ptr = val;
 }

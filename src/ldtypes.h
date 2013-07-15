@@ -65,7 +65,8 @@ class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
-	READ_PROPERTY (int, id, setID)
+	PROPERTY (LDOpenFile*, file, setFile)
+	READ_PROPERTY (qint32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 
 public:
@@ -89,18 +90,18 @@ public:
 	LDObject();
 	virtual ~LDObject();
 	
-	virtual LDObject* clone() {return 0;}      // Creates a new LDObject identical to this one.
-	long getIndex (LDOpenFile* file) const;     // Index (i.e. line number) of this object
-	virtual LDObject::Type getType() const;    // Type enumerator of this object
+	virtual LDObject* clone() {return 0;}       // Creates a new LDObject identical to this one.
+	long getIndex () const;                     // Index (i.e. line number) of this object
+	virtual LDObject::Type getType() const;     // Type enumerator of this object
 	const vertex& getVertex (int i) const;      // Get a vertex by index
-	virtual bool hasMatrix() const;            // Does this object have a matrix and position? (see LDMatrixObject)
-	virtual void invert();                     // Inverts this object (winding is reversed)
-	virtual bool isColored() const;            // Is this object colored?
-	virtual bool isScemantic() const;          // Does this object have meaning in the part model?
+	virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
+	virtual void invert();                      // Inverts this object (winding is reversed)
+	virtual bool isColored() const;             // Is this object colored?
+	virtual bool isScemantic() const;           // Does this object have meaning in the part model?
 	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement vector
-	LDObject* next() const;                    // Object after this in the current file
-	LDObject* prev() const;                    // Object prior to this in the current file
-	virtual str raw() { return ""; }           // This object as LDraw code
+	LDObject* next() const;                     // Object after this in the current file
+	LDObject* prev() const;                     // Object prior to this in the current file
+	virtual str raw() { return ""; }            // This object as LDraw code
 	void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
 	void setVertex (int i, const vertex& vert); // Set a vertex to the given value
 	void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex

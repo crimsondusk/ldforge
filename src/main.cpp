@@ -60,7 +60,7 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 int main (int argc, char* argv[]) {
 	const QApplication app (argc, argv);
 	g_app = &app;
-	setCurrentFile (null);
+	LDOpenFile::setCurrent (null);
 	
 	// Load or create the configuration
 	if (!config::load ()) {

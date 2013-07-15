@@ -66,17 +66,18 @@ DEFINE_ACTION (New, CTRL (N)) {
 		ui.rb_license_nonca->isChecked() ? NonCALicense :
 		                                   "";
 	
-	*currentFile() << new LDCommentObject (ui.le_title->text());
-	*currentFile() << new LDCommentObject ("Name: <untitled>.dat" );
-	*currentFile() << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
-	*currentFile() << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
+	LDOpenFile* f = LDOpenFile::current();
+	*f << new LDCommentObject (ui.le_title->text());
+	*f << new LDCommentObject ("Name: <untitled>.dat" );
+	*f << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
+	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != "")
-		*currentFile() << new LDCommentObject (license);
+		*f << new LDCommentObject (license);
 	
-	*currentFile() << new LDEmptyObject;
-	*currentFile() << new LDBFCObject (BFCType);
-	*currentFile() << new LDEmptyObject;
+	*f << new LDEmptyObject;
+	*f << new LDBFCObject (BFCType);
+	*f << new LDEmptyObject;
 	
 	g_win->fullRefresh();
 }
@@ -85,15 +86,11 @@ DEFINE_ACTION (New, CTRL (N)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Open, CTRL (O)) {
-	if (safeToCloseAll() == false)
-		return;
-	
 	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
 	if (name.length() == 0)
 		return;
 	
-	closeAll();
 	openMainFile (name);
 }
 
@@ -101,14 +98,14 @@ DEFINE_ACTION (Open, CTRL (O)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Save, CTRL (S)) {
-	g_win->save (currentFile(), false);
+	g_win->save (LDOpenFile::current(), false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S)) {
-	g_win->save (currentFile(), true);
+	g_win->save (LDOpenFile::current(), true);
 }
 
 // =============================================================================
@@ -198,7 +195,7 @@ DEFINE_ACTION (AboutQt, 0) {
 DEFINE_ACTION (SelectAll, CTRL (A)) {
 	g_win->sel().clear();
 	
-	for (LDObject* obj : currentFile()->objs())
+	for (LDObject* obj : LDOpenFile::current()->objs())
 		g_win->sel() << obj;
 	
 	g_win->updateSelection();
@@ -212,7 +209,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 		return; // no consensus on color
 	
 	g_win->sel().clear();
-	for (LDObject* obj : currentFile()->objs())
+	for (LDObject* obj : LDOpenFile::current()->objs())
 		if (obj->color() == colnum)
 			g_win->sel() << obj;
 	
@@ -242,7 +239,7 @@ DEFINE_ACTION (SelectByType, 0) {
 	}
 	
 	g_win->sel().clear();
-	for (LDObject* obj : currentFile()->objs()) {
+	for (LDObject* obj : LDOpenFile::current()->objs()) {
 		if (obj->getType() != type)
 			continue;
 		
@@ -302,7 +299,7 @@ DEFINE_ACTION (InsertFrom, 0) {
 	g_win->sel().clear();
 	
 	for (LDObject* obj : objs) {
-		currentFile()->insertObj (idx, obj);
+		LDOpenFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		
 		idx++;
@@ -363,7 +360,7 @@ DEFINE_ACTION (InsertRaw, 0) {
 	for (str line : str (te_edit->toPlainText()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
-		currentFile()->insertObj (idx, obj);
+		LDOpenFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		idx++;
 	}
@@ -379,7 +376,7 @@ DEFINE_ACTION (Screenshot, 0) {
 	uchar* imgdata = g_win->R()->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
-	str root = basename (currentFile()->name());
+	str root = basename (LDOpenFile::current()->name());
 	if (root.right (4) == ".dat")
 		root.chop (4);
 	
