@@ -24,23 +24,29 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
-
 #include "common.h"
 #include "config.h"
 #include "misc.h"
-#include "extprogs.h"
 #include "gui.h"
 #include "file.h"
 #include "widgets.h"
 #include "history.h"
 #include "labeledwidget.h"
-
 #include "ui_ytruder.h"
 #include "ui_intersector.h"
 #include "ui_rectifier.h"
 #include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
+
+enum extprog {
+	Isecalc,
+	Intersector,
+	Coverer,
+	Ytruder,
+	Rectifier,
+	Edger2,
+};
 
 // =============================================================================
 cfg (str, prog_isecalc, "");
@@ -268,7 +274,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Interface for Ytruder
-void runYtruder() {
+DEFINE_ACTION (Ytruder, 0) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_ytruder, Ytruder))
@@ -324,7 +330,7 @@ void runYtruder() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Rectifier interface
-void runRectifier() {
+DEFINE_ACTION (Rectifier, 0){
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_rectifier, Rectifier))
@@ -374,7 +380,7 @@ LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Intersector interface
-void runIntersector() {
+DEFINE_ACTION (Intersector, 0) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_intersector, Intersector))
@@ -465,7 +471,7 @@ void runIntersector() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void runCoverer() {
+DEFINE_ACTION (Coverer, 0) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_coverer, Coverer))
@@ -521,7 +527,7 @@ void runCoverer() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void runIsecalc() {
+DEFINE_ACTION (Isecalc, 0) {
 	setlocale (LC_ALL, "C");
 	
 	if (!checkProgPath (prog_isecalc, Isecalc))

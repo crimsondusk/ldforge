@@ -27,7 +27,6 @@
 #include "colorSelectDialog.h"
 #include "misc.h"
 #include "widgets.h"
-#include "extprogs.h"
 #include "gldraw.h"
 #include "dialogs.h"
 #include "colors.h"
@@ -525,29 +524,6 @@ DEFINE_ACTION (Uncolorize, 0) {
 	
 	log (ForgeWindow::tr ("%1 objects uncolored"), num);
 	g_win->fullRefresh();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-DEFINE_ACTION (Ytruder, 0) {
-	runYtruder();
-}
-
-DEFINE_ACTION (Rectifier, 0) {
-	runRectifier();
-}
-
-DEFINE_ACTION (Intersector, 0) {
-	runIntersector();
-}
-
-DEFINE_ACTION (Coverer, 0) {
-	runCoverer();
-}
-
-DEFINE_ACTION (Isecalc, 0) {
-	runIsecalc();
 }
 
 // =============================================================================
