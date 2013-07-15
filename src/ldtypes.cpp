@@ -190,11 +190,11 @@ vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::replace (LDObject* other) {
-	long idx = getIndex (g_curfile);
+	long idx = getIndex (currentFile());
 	assert (idx != -1);
 	
 	// Replace the instance of the old object with the new object
-	g_curfile->setObject (idx, other);
+	currentFile()->setObject (idx, other);
 	
 	// Remove the old object
 	delete this;
@@ -204,14 +204,14 @@ void LDObject::replace (LDObject* other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : *g_curfile) {
+	for (LDObject*& obj : *currentFile()) {
 		if (obj == this)
 			obj = other;
 		elif (obj == other)
 			obj = this;
 	}
 
-	g_curfile->addToHistory (new SwapHistory (id(), other->id()));
+	currentFile()->addToHistory (new SwapHistory (id(), other->id()));
 }
 
 LDLineObject::LDLineObject (vertex v1, vertex v2) {
@@ -352,10 +352,10 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
 		
-		const long idx = obj->getIndex (g_curfile),
+		const long idx = obj->getIndex (currentFile()),
 			target = idx + (up ? -1 : 1);
 		
-		if ((up && idx == 0) || (!up && idx == (long) (g_curfile->objs().size() - 1))) {
+		if ((up && idx == 0) || (!up && idx == (long) (currentFile()->objs().size() - 1))) {
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
@@ -364,9 +364,9 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 		}
 		
 		objsToCompile << obj;
-		objsToCompile << g_curfile->obj (target);
+		objsToCompile << currentFile()->obj (target);
 		
-		obj->swap (g_curfile->obj (target));
+		obj->swap (currentFile()->obj (target));
 	}
 	
 	objsToCompile.makeUnique();
@@ -436,24 +436,24 @@ LDObject* LDObject::topLevelParent() {
 
 // =============================================================================
 LDObject* LDObject::next() const {
-	long idx = getIndex (g_curfile);
+	long idx = getIndex (currentFile());
 	assert (idx != -1);
 	
-	if (idx == (long) g_curfile->numObjs() - 1)
+	if (idx == (long) currentFile()->numObjs() - 1)
 		return null;
 	
-	return g_curfile->obj (idx + 1);
+	return currentFile()->obj (idx + 1);
 }
 
 // =============================================================================
 LDObject* LDObject::prev() const {
-	long idx = getIndex (g_curfile);
+	long idx = getIndex (currentFile());
 	assert (idx != -1);
 	
 	if (idx == 0)
 		return null;
 	
-	return g_curfile->obj (idx - 1);
+	return currentFile()->obj (idx - 1);
 }
 
 // =============================================================================
@@ -551,14 +551,14 @@ void LDSubfileObject::invert() {
 	// flipped but I don't have a method for checking flatness yet.
 	// Food for thought...
 	
-	ulong idx = getIndex (g_curfile);
+	ulong idx = getIndex (currentFile());
 	
 	if (idx > 0) {
 		LDBFCObject* bfc = dynamic_cast<LDBFCObject*> (prev());
 		
 		if (bfc && bfc->type == LDBFCObject::InvertNext) {
 			// This is prefixed with an invertnext, thus remove it.
-			g_curfile->forgetObject (bfc);
+			currentFile()->forgetObject (bfc);
 			delete bfc;
 			return;
 		}
@@ -566,7 +566,7 @@ void LDSubfileObject::invert() {
 	
 	// Not inverted, thus prefix it with a new invertnext.
 	LDBFCObject* bfc = new LDBFCObject (LDBFCObject::InvertNext);
-	g_curfile->insertObj (idx, bfc);
+	currentFile()->insertObj (idx, bfc);
 }
 
 static void invertLine (LDObject* line) {
@@ -627,12 +627,12 @@ void LDOverlayObject::invert() {}
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
 	long idx;
 	
-	if ((idx = obj->getIndex (g_curfile)) != -1) {
+	if ((idx = obj->getIndex (currentFile())) != -1) {
 		str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();
 		
-		g_curfile->addToHistory (new EditHistory (idx, before, after));
+		currentFile()->addToHistory (new EditHistory (idx, before, after));
 	} else
 		*ptr = val;
 }

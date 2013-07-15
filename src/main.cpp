@@ -31,7 +31,6 @@
 #include "primitives.h"
 
 vector<LDOpenFile*> g_loadedFiles;
-LDOpenFile* g_curfile = null;
 ForgeWindow* g_win = null; 
 bbox g_BBox;
 const QApplication* g_app = null;
@@ -62,7 +61,7 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 int main (int argc, char* argv[]) {
 	const QApplication app (argc, argv);
 	g_app = &app;
-	g_curfile = null;
+	setCurrentFile (null);
 	
 	// Load or create the configuration
 	if (!config::load ()) {

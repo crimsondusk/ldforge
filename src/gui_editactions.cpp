@@ -90,7 +90,7 @@ MAKE_ACTION (paste, "Paste", "paste", "Paste clipboard contents.", CTRL (V)) {
 	
 	for (str line : clipboardText.split ("\n")) {
 		LDObject* pasted = parseLine (line);
-		g_curfile->insertObj (idx++, pasted);
+		currentFile()->insertObj (idx++, pasted);
 		g_win->sel() << pasted;
 		g_win->R()->compileObject (pasted);
 		++num;
@@ -118,7 +118,7 @@ static void doInline (bool deep) {
 	for (LDObject* obj : sel) {
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
-		long idx = obj->getIndex (g_curfile);
+		long idx = obj->getIndex (currentFile());
 		
 		if (idx == -1)
 			continue;
@@ -136,12 +136,12 @@ static void doInline (bool deep) {
 			delete inlineobj;
 		
 			LDObject* newobj = parseLine (line);
-			g_curfile->insertObj (idx++, newobj);
+			currentFile()->insertObj (idx++, newobj);
 			g_win->sel() << newobj;
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		g_curfile->forgetObject (obj);
+		currentFile()->forgetObject (obj);
 		delete obj;
 	}
 	
@@ -170,7 +170,7 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 			continue;
 		
 		// Find the index of this quad
-		long index = obj->getIndex (g_curfile);
+		long index = obj->getIndex (currentFile());
 		
 		if (index == -1)
 			return;
@@ -179,8 +179,8 @@ MAKE_ACTION (splitQuads, "Split Quads", "quad-split", "Split quads into triangle
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		g_curfile->setObject (index, triangles[0]);
-		g_curfile->insertObj (index + 1, triangles[1]);
+		currentFile()->setObject (index, triangles[0]);
+		currentFile()->insertObj (index + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
@@ -289,10 +289,10 @@ MAKE_ACTION (makeBorders, "Make Borders", "make-borders", "Add borders around gi
 		}
 		
 		for (short i = 0; i < numLines; ++i) {
-			ulong idx = obj->getIndex (g_curfile) + i + 1;
+			ulong idx = obj->getIndex (currentFile()) + i + 1;
 			
 			lines[i]->setColor (edgecolor);
-			g_curfile->insertObj (idx, lines[i]);
+			currentFile()->insertObj (idx, lines[i]);
 			g_win->R()->compileObject (lines[i]);
 		}
 		
@@ -315,14 +315,14 @@ MAKE_ACTION (makeCornerVerts, "Make Corner Vertices", "corner-verts",
 		if (obj->vertices() < 2)
 			continue;
 		
-		ulong idx = obj->getIndex (g_curfile);
+		ulong idx = obj->getIndex (currentFile());
 		
 		for (short i = 0; i < obj->vertices(); ++i) {
 			LDVertexObject* vert = new LDVertexObject;
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());
 			
-			g_curfile->insertObj (++idx, vert);
+			currentFile()->insertObj (++idx, vert);
 			g_win->R()->compileObject (vert);
 			++num;
 		}
@@ -353,11 +353,11 @@ MAKE_ACTION (moveDown, "Move Down", "arrow-down", "Move the current selection do
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 MAKE_ACTION (undo, "Undo", "undo", "Undo a step.", CTRL (Z)) {
-	g_curfile->undo();
+	currentFile()->undo();
 }
 
 MAKE_ACTION (redo, "Redo", "redo", "Redo a step.", CTRL_SHIFT (Z)) {
-	g_curfile->redo();
+	currentFile()->redo();
 }
 
 // =============================================================================
@@ -663,7 +663,7 @@ MAKE_ACTION (demote, "Demote conditional lines", "demote", "Demote conditional l
 
 // =================================================================================================
 static bool isColorUsed (short colnum) {
-	for (LDObject* obj : g_curfile->objs())
+	for (LDObject* obj : currentFile()->objs())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
 	

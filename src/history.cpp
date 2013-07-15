@@ -164,14 +164,14 @@ DelHistory::~DelHistory() {}
 
 // =============================================================================
 void EditHistory::undo() const {
-	LDObject* obj = g_curfile->object (index());
+	LDObject* obj = currentFile()->object (index());
 	LDObject* newobj = parseLine (oldCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);
 }
 
 void EditHistory::redo() const {
-	LDObject* obj = g_curfile->object (index());
+	LDObject* obj = currentFile()->object (index());
 	LDObject* newobj = parseLine (newCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);

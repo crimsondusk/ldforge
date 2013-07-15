@@ -397,7 +397,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	if (newObject) {
 		ulong idx = g_win->getInsertionPoint ();
-		g_curfile->insertObj (idx, obj);
+		currentFile()->insertObj (idx, obj);
 	}
 	
 	g_win->fullRefresh ();

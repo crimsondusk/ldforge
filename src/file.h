@@ -46,7 +46,8 @@ namespace LDPaths {
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
 // =============================================================================
-class LDOpenFile {
+class LDOpenFile : public QObject {
+	Q_OBJECT
 	PROPERTY (str, name, setName)
 	PROPERTY (bool, implicit, setImplicit)
 	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
@@ -62,27 +63,14 @@ public:
 	LDOpenFile();
 	~LDOpenFile();
 	
-	// Saves this file to disk.
-	bool save (str zPath = "");
-	
-	// Perform safety checks. Do this before closing any files!
-	bool safeToClose();
-	
-	// Adds an object to this file at the end of the file.
-	ulong addObject (LDObject* obj);
-	
-	// Deletes the given object from the object chain.
-	void forgetObject (LDObject* obj);
-	
-	LDObject* object (ulong pos) const;
-	LDObject* obj (ulong pos) const {
-		return object (pos);
-	}
-	
+	ulong addObject (LDObject* obj);     // Adds an object to this file at the end of the file.
+	void forgetObject (LDObject* obj);   // Deletes the given object from the object chain.
 	void insertObj (const ulong pos, LDObject* obj);
-	ulong numObjs() const {
-		return m_objs.size();
-	}
+	ulong numObjs() const;
+	LDObject* object (ulong pos) const;
+	LDObject* obj (ulong pos) const;
+	bool save (str path = "");           // Saves this file to disk.
+	bool safeToClose();                  // Perform safety checks. Do this before closing any files!
 	void setObject (ulong idx, LDObject* obj);
 
 	LDOpenFile& operator<< (LDObject* obj) {
@@ -173,6 +161,8 @@ extern vector<LDOpenFile*> g_loadedFiles;
 void addRecentFile (str path);
 str basename (str path);
 str dirname (str path);
+LDOpenFile* currentFile();
+void setCurrentFile (LDOpenFile* f);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -207,5 +197,6 @@ signals:
 	void workDone();
 };
 
+void changeCurrentFile (LDOpenFile* f);
+
 #endif // FILE_H
-// kate: indent-mode cstyle; indent-width 4; replace-tabs off; tab-width 4; 

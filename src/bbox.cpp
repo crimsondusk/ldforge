@@ -36,10 +36,10 @@ void bbox::calculate()
 {
 	reset();
 	
-	if( !g_curfile )
+	if( !currentFile() )
 		return;
 	
-	for( LDObject* obj : g_curfile->objs() )
+	for( LDObject* obj : currentFile()->objs() )
 		calcObject( obj );
 }
 

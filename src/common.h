@@ -272,10 +272,6 @@ void log( const char* fmtstr, ... );
 extern const vertex g_origin;
 
 // -----------------------------------------------------------------------------
-// Pointer to the OpenFile which is currently being edited by the user.
-extern LDOpenFile* g_curfile;
-
-// -----------------------------------------------------------------------------
 // Pointer to the bounding box.
 extern bbox g_BBox;
 

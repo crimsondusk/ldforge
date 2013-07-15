@@ -66,17 +66,17 @@ MAKE_ACTION (newFile, "&New", "brick", "Create a new part model.", CTRL (N)) {
 		ui.rb_license_nonca->isChecked() ? NonCALicense :
 		                                   "";
 	
-	*g_curfile << new LDCommentObject (ui.le_title->text());
-	*g_curfile << new LDCommentObject ("Name: <untitled>.dat" );
-	*g_curfile << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
-	*g_curfile << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
+	*currentFile() << new LDCommentObject (ui.le_title->text());
+	*currentFile() << new LDCommentObject ("Name: <untitled>.dat" );
+	*currentFile() << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
+	*currentFile() << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != "")
-		*g_curfile << new LDCommentObject (license);
+		*currentFile() << new LDCommentObject (license);
 	
-	*g_curfile << new LDEmptyObject;
-	*g_curfile << new LDBFCObject (BFCType);
-	*g_curfile << new LDEmptyObject;
+	*currentFile() << new LDEmptyObject;
+	*currentFile() << new LDBFCObject (BFCType);
+	*currentFile() << new LDEmptyObject;
 	
 	g_win->fullRefresh();
 }
@@ -102,7 +102,7 @@ MAKE_ACTION (open, "&Open", "file-open", "Load a part model from a file.", CTRL 
 // =============================================================================
 MAKE_ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S))
 {
-	g_win->save (g_curfile, false);
+	g_win->save (currentFile(), false);
 }
 
 // =============================================================================
@@ -110,7 +110,7 @@ MAKE_ACTION (save, "&Save", "file-save", "Save the part model.", CTRL (S))
 // =============================================================================
 MAKE_ACTION (saveAs, "Save &As", "file-save-as", "Save the part model to a specific file.", CTRL_SHIFT (S))
 {
-	g_win->save (g_curfile, true);
+	g_win->save (currentFile(), true);
 }
 
 // =============================================================================
@@ -204,7 +204,7 @@ MAKE_ACTION (aboutQt, "About Qt", "qt", "Shows information about Qt.", (0)) {
 MAKE_ACTION (selectAll, "Select All", "select-all", "Selects all objects.", CTRL (A)) {
 	g_win->sel().clear();
 	
-	for (LDObject* obj : g_curfile->objs())
+	for (LDObject* obj : currentFile()->objs())
 		g_win->sel() << obj;
 	
 	g_win->updateSelection();
@@ -220,7 +220,7 @@ MAKE_ACTION (selectByColor, "Select by Color", "select-color",
 		return; // no consensus on color
 	
 	g_win->sel().clear();
-	for (LDObject* obj : g_curfile->objs())
+	for (LDObject* obj : currentFile()->objs())
 		if (obj->color() == colnum)
 			g_win->sel() << obj;
 	
@@ -252,7 +252,7 @@ MAKE_ACTION (selectByType, "Select by Type", "select-type",
 	}
 	
 	g_win->sel().clear();
-	for (LDObject* obj : g_curfile->objs()) {
+	for (LDObject* obj : currentFile()->objs()) {
 		if (obj->getType() != type)
 			continue;
 		
@@ -312,7 +312,7 @@ MAKE_ACTION (insertFrom, "Insert from File", "file-import", "Insert LDraw data f
 	g_win->sel().clear();
 	
 	for (LDObject* obj : objs) {
-		g_curfile->insertObj (idx, obj);
+		currentFile()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		
 		idx++;
@@ -373,7 +373,7 @@ MAKE_ACTION (insertRaw, "Insert Raw", "insert-raw", "Type in LDraw code to inser
 	for (str line : str (te_edit->toPlainText()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
-		g_curfile->insertObj (idx, obj);
+		currentFile()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		idx++;
 	}
@@ -390,7 +390,7 @@ MAKE_ACTION (screencap, "Screencap Part", "screencap", "Save a picture of the mo
 	uchar* imgdata = g_win->R()->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
-	str root = basename (g_curfile->name());
+	str root = basename (currentFile()->name());
 	if (root.right (4) == ".dat")
 		root.chop (4);
 	

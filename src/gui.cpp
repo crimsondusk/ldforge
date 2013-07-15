@@ -489,21 +489,21 @@ void ForgeWindow::updateTitle () {
 	str title = fmt (APPNAME " %1", fullVersionString());
 	
 	// Append our current file if we have one
-	if (g_curfile) {
-		if (g_curfile->name ().length () > 0)
-			title += fmt (": %1", basename (g_curfile->name ()));
+	if (currentFile()) {
+		if (currentFile()->name ().length () > 0)
+			title += fmt (": %1", basename (currentFile()->name ()));
 		else
 			title += fmt (": <anonymous>");
 		
-		if (g_curfile->numObjs () > 0 &&
-			g_curfile->obj (0)->getType () == LDObject::Comment)
+		if (currentFile()->numObjs () > 0 &&
+			currentFile()->obj (0)->getType () == LDObject::Comment)
 		{
 			// Append title
-			LDCommentObject* comm = static_cast<LDCommentObject*> (g_curfile->obj (0));
+			LDCommentObject* comm = static_cast<LDCommentObject*> (currentFile()->obj (0));
 			title += fmt (": %1", comm->text);
 		}
 		
-		if (g_curfile->history ().pos () != g_curfile->savePos ())
+		if (currentFile()->history ().pos () != currentFile()->savePos ())
 			title += '*';
 	}
 	
@@ -519,7 +519,7 @@ EXTERN_ACTION( open );
 void ForgeWindow::slot_action () {
 	// Open the history so we can record the edits done during this action.
 	if( sender() != ACTION( undo ) && sender() != ACTION( redo ) && sender() != ACTION( open ))
-		g_curfile->openHistory ();
+		currentFile()->openHistory ();
 	
 	// Get the action that triggered this slot.
 	QAction* qAct = static_cast<QAction*> (sender ());
@@ -545,7 +545,7 @@ void ForgeWindow::slot_action () {
 	// We have the meta, now call the handler.
 	(*meta->handler) ();
 	
-	g_curfile->closeHistory ();
+	currentFile()->closeHistory ();
 }
 
 // =============================================================================
@@ -562,7 +562,7 @@ int ForgeWindow::deleteSelection()
 	// Delete the objects that were being selected
 	for( LDObject * obj : selCopy )
 	{
-		g_curfile->forgetObject( obj );
+		currentFile()->forgetObject( obj );
 		++num;
 		delete obj;
 	}
@@ -575,7 +575,7 @@ int ForgeWindow::deleteSelection()
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::buildObjList () {
-	if (!g_curfile)
+	if (!currentFile())
 		return;
 	
 	// Lock the selection while we do this so that refreshing the object list
@@ -588,7 +588,7 @@ void ForgeWindow::buildObjList () {
 	
 	m_objList->clear ();
 	
-	for (LDObject* obj : g_curfile->objs ()) {
+	for (LDObject* obj : currentFile()->objs ()) {
 		str descr;
 		
 		switch (obj->getType ()) {
@@ -701,7 +701,7 @@ void ForgeWindow::scrollToSelection () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_selectionChanged () {
-	if (g_bSelectionLocked == true || g_curfile == null)
+	if (g_bSelectionLocked == true || currentFile() == null)
 		return;
 	
 	/*
@@ -724,7 +724,7 @@ void ForgeWindow::slot_selectionChanged () {
 	m_sel.clear ();	
 	const QList<QListWidgetItem*> items = m_objList->selectedItems ();
 	
-	for (LDObject* obj : g_curfile->objs ())
+	for (LDObject* obj : currentFile()->objs ())
 	for (QListWidgetItem* item : items) {
 		if (item == obj->qObjListEntry) {
 			m_sel << obj;
@@ -756,7 +756,7 @@ void ForgeWindow::slot_recentFile () {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_quickColor () {
-	g_curfile->openHistory ();
+	currentFile()->openHistory ();
 	QToolButton* button = static_cast<QToolButton*> (sender ());
 	LDColor* col = null;
 	
@@ -780,7 +780,7 @@ void ForgeWindow::slot_quickColor () {
 	}
 	
 	fullRefresh ();
-	g_curfile->closeHistory ();
+	currentFile()->closeHistory ();
 }
 
 // =============================================================================
@@ -789,11 +789,11 @@ void ForgeWindow::slot_quickColor () {
 ulong ForgeWindow::getInsertionPoint () {
 	if (m_sel.size () > 0) {
 		// If we have a selection, put the item after it.
-		return (m_sel[m_sel.size() - 1]->getIndex (g_curfile)) + 1;
+		return (m_sel[m_sel.size() - 1]->getIndex (currentFile())) + 1;
 	}
 	
 	// Otherwise place the object at the end.
-	return g_curfile->numObjs ();
+	return currentFile()->numObjs ();
 }
 
 // =============================================================================
@@ -815,7 +815,7 @@ void ForgeWindow::refresh () {
 void ForgeWindow::updateSelection () {
 	g_bSelectionLocked = true;
 	
-	for (LDObject* obj : g_curfile->objs ())
+	for (LDObject* obj : currentFile()->objs ())
 		obj->setSelected (false);
 	
 	m_objList->clearSelection ();
@@ -937,7 +937,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 // =============================================================================
 void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 	for (LDObject* obj : objs) {
-		g_curfile->forgetObject (obj);
+		currentFile()->forgetObject (obj);
 		delete obj;
 	}
 }
@@ -945,7 +945,7 @@ void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 // =============================================================================
 void ForgeWindow::deleteByColor (const short colnum) {
 	vector<LDObject*> objs;
-	for (LDObject* obj : g_curfile->objs ()) {
+	for (LDObject* obj : currentFile()->objs ()) {
 		if (!obj->isColored () || obj->color () != colnum)
 			continue;
 		
@@ -974,7 +974,7 @@ void ForgeWindow::updateEditModeActions () {
 
 void ForgeWindow::slot_editObject (QListWidgetItem* listitem) {
 	LDObject* obj = null;
-	for (LDObject* it : *g_curfile) {
+	for (LDObject* it : *currentFile()) {
 		if (it->qObjListEntry == listitem) {
 			obj = it;
 			break;
@@ -1012,7 +1012,7 @@ void ForgeWindow::save (LDOpenFile* f, bool saveAs) {
 	
 	if (path.length () == 0 || saveAs) {
 		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
-			g_curfile->name (), tr ("LDraw files (*.dat *.ldr)"));
+			currentFile()->name (), tr ("LDraw files (*.dat *.ldr)"));
 		
 		if (path.length () == 0) {
 			// User didn't give a file name. This happens if the user cancelled
@@ -1024,7 +1024,7 @@ void ForgeWindow::save (LDOpenFile* f, bool saveAs) {
 	if (f->save (path)) {
 		f->setName (path);
 		
-		if (f == g_curfile)
+		if (f == currentFile())
 			g_win->updateTitle ();
 		
 		log ("Saved to %1.", path);
@@ -1124,7 +1124,7 @@ QIcon makeColorIcon (LDColor* colinfo, const ushort size) {
 void makeColorSelector (QComboBox* box) {
 	std::map<short, ulong> counts;
 	
-	for (LDObject* obj : g_curfile->objs ()) {
+	for (LDObject* obj : currentFile()->objs ()) {
 		if (!obj->isColored ())
 			continue;
 		
