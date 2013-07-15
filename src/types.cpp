@@ -25,8 +25,6 @@
 #include "types.h"
 #include "misc.h"
 
-const File nullfile;
-
 str DoFormat( vector<StringFormatArg> args )
 {
 	assert( args.size() >= 1 );
@@ -483,4 +481,108 @@ bool File::iterator::operator== ( File::iterator& other )
 bool File::iterator::operator!= ( File::iterator& other )
 {
 	return !operator== ( other );
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+bbox::bbox() {
+	reset();
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::calculate() {
+	reset();
+	
+	if (!currentFile())
+		return;
+	
+	for (LDObject* obj : currentFile()->objs())
+		calcObject (obj);
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::calcObject (LDObject* obj) {
+	switch (obj->getType()) {
+	case LDObject::Line:
+	case LDObject::Triangle:
+	case LDObject::Quad:
+	case LDObject::CondLine:
+		for (short i = 0; i < obj->vertices(); ++i)
+			calcVertex (obj->getVertex (i));
+		
+		break;
+
+	case LDObject::Subfile: {
+		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+		vector<LDObject*> objs = ref->inlineContents (true, true);
+	
+		for (LDObject* obj : objs) {
+			calcObject (obj);
+			delete obj;
+		}
+	}
+	break;
+	
+	default:
+		break;
+	}
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::calcVertex (const vertex& v) {
+	for (const Axis ax : g_Axes) {
+		if (v[ax] < m_v0[ax])
+			m_v0[ax] = v[ax];
+		
+		if (v[ax] > m_v1[ax])
+			m_v1[ax] = v[ax];
+	}
+	
+	m_empty = false;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+void bbox::reset() {
+	m_v0[X] = m_v0[Y] = m_v0[Z] = 0x7FFFFFFF;
+	m_v1[X] = m_v1[Y] = m_v1[Z] = 0xFFFFFFFF;
+	
+	m_empty = true;
+}
+
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
+double bbox::size() const {
+	double xscale = (m_v0[X] - m_v1[X]);
+	double yscale = (m_v0[Y] - m_v1[Y]);
+	double zscale = (m_v0[Z] - m_v1[Z]);
+	double size = zscale;
+	
+	if (xscale > yscale) {
+		if (xscale > zscale)
+			size = xscale;
+	} elif (yscale > zscale)
+		size = yscale;
+	
+	if (abs (size) >= 2.0f)
+		return abs (size / 2);
+	
+	return 1.0f;
+}
+
+// =============================================================================
+vertex bbox::center() const {
+	return vertex (
+		(m_v0[X] + m_v1[X]) / 2,
+		(m_v0[Y] + m_v1[Y]) / 2,
+		(m_v0[Z] + m_v1[Z]) / 2);
 }

@@ -466,7 +466,35 @@ private:
 	iterator     m_endIterator;
 };
 
-// Null-file, equivalent to a null FILE*
-extern const File nullfile;
+// =============================================================================
+// bbox
+//
+// The bounding box is the box that encompasses a given set of objects.
+// v0 is the minimum vertex, v1 is the maximum vertex.
+// =============================================================================
+class bbox {
+	READ_PROPERTY (bool, empty, setEmpty)
+	READ_PROPERTY (vertex, v0, setV0)
+	READ_PROPERTY (vertex, v1, setV1)
+	
+public:
+	bbox();
+	void reset();
+	void calculate();
+	double size() const;
+	void calcObject (LDObject* obj);
+	void calcVertex (const vertex& v);
+	vertex center() const;
+	
+	bbox& operator<< (LDObject* obj) {
+		calcObject (obj);
+		return *this;
+	}
+	
+	bbox& operator<< (const vertex& v) {
+		calcVertex (v);
+		return *this;
+	}
+};
 
 #endif // TYPES_H
