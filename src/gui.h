@@ -40,15 +40,15 @@ class Ui_LDForgeUI;
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
 	bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
-	connect (bbx_buttons, SIGNAL (accepted ()), this, SLOT (accept ())); \
-	connect (bbx_buttons, SIGNAL (rejected ()), this, SLOT (reject ())); \
+	connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept())); \
+	connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject())); \
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define DEFINE_ACTION(NAME, DEFSHORTCUT) \
 	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
-	void actiondef_##NAME ()
+	void actiondef_##NAME()
 
 #define ACTION(N) g_win->action##N()
 
@@ -88,28 +88,30 @@ class ForgeWindow : public QMainWindow {
 	Q_OBJECT
 	
 public:
-	ForgeWindow ();
-	void buildObjList ();
-	void updateTitle ();
-	void fullRefresh ();
-	void refresh ();
-	ulong getInsertionPoint ();
-	void updateToolBars ();
-	void updateRecentFilesMenu ();
-	void updateSelection ();
-	void updateGridToolBar ();
-	void updateEditModeActions ();
+	ForgeWindow();
+	void buildObjList();
+	void updateTitle();
+	void fullRefresh();
+	void refresh();
+	ulong getInsertionPoint();
+	void updateToolBars();
+	void updateRecentFilesMenu();
+	void updateSelection();
+	void updateGridToolBar();
+	void updateEditModeActions();
+	void updateFileList();
+	void updateFileListItem (LDOpenFile* f);
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
-	LDObject::Type uniformSelectedType ();
-	void scrollToSelection ();
+	LDObject::Type uniformSelectedType();
+	void scrollToSelection();
 	void spawnContextMenu (const QPoint pos);
 	void deleteObjVector (vector< LDObject* > objs);
-	int deleteSelection ();
+	int deleteSelection();
 	void deleteByColor (const short int colnum);
 	void save (LDOpenFile* f, bool saveAs);
-	GLRenderer* R () { return m_renderer; }
-	vector<LDObject*>& sel () { return m_sel; }
+	GLRenderer* R() { return m_renderer; }
+	vector<LDObject*>& sel() { return m_sel; }
 	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {
 		m_colorMeta = quickColorMeta;
 	}
@@ -123,7 +125,7 @@ public:
 public slots:
 	void primitiveLoaderStart (ulong max);
 	void primitiveLoaderUpdate (ulong prog);
-	void primitiveLoaderEnd ();
+	void primitiveLoaderEnd();
 	void clearSelection();
 	void slot_action();
 	
@@ -141,14 +143,14 @@ private:
 	MessageManager* m_msglog;
 	Ui_LDForgeUI* ui;
 	
-	void invokeAction (QAction* act, void (*func) ());
+	void invokeAction (QAction* act, void (*func)());
 	
 
 private slots:
-	void slot_selectionChanged ();
-	void slot_recentFile ();
-	void slot_quickColor ();
-	void slot_lastSecondCleanup ();
+	void slot_selectionChanged();
+	void slot_recentFile();
+	void slot_quickColor();
+	void slot_lastSecondCleanup();
 	void slot_editObject (QListWidgetItem* listitem);
 };
 
@@ -163,14 +165,14 @@ extern ForgeWindow* g_win;
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (str iconName);
-vector<quickColor> parseQuickColorMeta ();
+vector<quickColor> parseQuickColorMeta();
 bool confirm (str title, str msg);
 bool confirm (str msg);
 void critical (str msg);
 QIcon makeColorIcon (LDColor* colinfo, const ushort size);
 void makeColorSelector (QComboBox* box);
 QDialogButtonBox* makeButtonBox (QDialog& dlg);
-CheckBoxGroup* makeAxesBox ();
+CheckBoxGroup* makeAxesBox();
 QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 
 // =============================================================================

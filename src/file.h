@@ -48,13 +48,14 @@ namespace LDPaths {
 // =============================================================================
 class LDOpenFile : public QObject {
 	Q_OBJECT
-	PROPERTY (str, name, setName)
-	PROPERTY (bool, implicit, setImplicit)
 	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
-	PROPERTY (vector<LDObject*>, cache, setCache)
-	PROPERTY (long, savePos, setSavePos)
 	READ_PROPERTY (History, history, setHistory)
 	READ_PROPERTY (vector<LDObject*>, vertices, setVertices)
+	PROPERTY (str, name, setName)
+	PROPERTY (bool, implicit, setImplicit)
+	PROPERTY (vector<LDObject*>, cache, setCache)
+	PROPERTY (long, savePos, setSavePos)
+	DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
 	
 public:
 	typedef vector<LDObject*>::it it;
@@ -63,14 +64,15 @@ public:
 	LDOpenFile();
 	~LDOpenFile();
 	
-	ulong addObject (LDObject* obj);     // Adds an object to this file at the end of the file.
-	void forgetObject (LDObject* obj);   // Deletes the given object from the object chain.
+	ulong addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
+	void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
+	bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
 	void insertObj (const ulong pos, LDObject* obj);
 	ulong numObjs() const;
 	LDObject* object (ulong pos) const;
 	LDObject* obj (ulong pos) const;
-	bool save (str path = "");           // Saves this file to disk.
-	bool safeToClose();                  // Perform safety checks. Do this before closing any files!
+	bool save (str path = "");                       // Saves this file to disk.
+	bool safeToClose();                              // Perform safety checks. Do this before closing any files!
 	void setObject (ulong idx, LDObject* obj);
 
 	LDOpenFile& operator<< (LDObject* obj) {

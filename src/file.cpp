@@ -38,6 +38,8 @@ static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
 static bool g_aborted = false;
 
+DEFINE_PROPERTY (QListWidgetItem*, LDOpenFile, listItem, setListItem)
+
 // =============================================================================
 namespace LDPaths {
 	static str pathError;
@@ -92,6 +94,7 @@ namespace LDPaths {
 LDOpenFile::LDOpenFile() {
 	setImplicit (true);
 	setSavePos (-1);
+	setListItem (null);
 	m_history.setFile (this);
 }
 
@@ -374,7 +377,7 @@ bool LDOpenFile::safeToClose() {
 	setlocale (LC_ALL, "C");
 	
 	// If we have unsaved changes, warn and give the option of saving.
-	if (!implicit() && history().pos() != savePos()) {
+	if (hasUnsavedChanges()) {
 		str message = fmt ("There are unsaved changes to %1. Should it be saved?",
 						   (name().length() > 0) ? name() : "<anonymous>");
 		
@@ -916,6 +919,10 @@ LDOpenFile& LDOpenFile::operator<< (vector<LDObject*> objs) {
 	return *this;
 }
 
+bool LDOpenFile::hasUnsavedChanges() const {
+	return !implicit() && history().pos() != savePos();
+}
+
 // =============================================================================
 class {
 public:
@@ -925,6 +932,9 @@ public:
 	
 	void setCurrentFile (LDOpenFile* f) {
 		m_curfile = f;
+		
+		if (g_win)
+			g_win->updateFileList();
 	}
 	
 private:

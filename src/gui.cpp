@@ -136,6 +136,7 @@ void ForgeWindow::invokeAction (QAction* act, void (*func) ()) {
 	
 	// Close the history now.
 	currentFile()->closeHistory();
+	updateFileListItem (currentFile());
 }
 
 // =============================================================================
@@ -845,6 +846,35 @@ Ui_LDForgeUI* ForgeWindow::interface() const {
 
 #define act(N) QAction* ForgeWindow::action##N() { return ui->action##N; }
 #include "actions.h"
+
+void ForgeWindow::updateFileList() {
+	ui->fileList->clear();
+	
+	for (LDOpenFile* f : g_loadedFiles) {
+		if (f->implicit())
+			continue;
+		
+		ui->fileList->addItem ("");
+		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
+		f->setListItem (item);
+		
+		updateFileListItem (f);
+	}
+}
+
+void ForgeWindow::updateFileListItem (LDOpenFile* f) {
+	str name;
+	if (f->name() == "")
+		name = "<anonymous>";
+	else
+		name = basename (f->name());
+	
+	if (f == currentFile())
+		ui->fileList->setCurrentItem (f->listItem());
+	
+	f->listItem()->setText (name);
+	f->listItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+}
 
 QImage imageFromScreencap (uchar* data, ushort w, ushort h) {
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
