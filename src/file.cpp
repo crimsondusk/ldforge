@@ -448,27 +448,21 @@ void closeAll() {
 	// Remove all loaded files and the objects they contain
 	for (LDOpenFile* file : g_loadedFiles)
 		delete file;
-	
-	// Clear the array
-	g_loadedFiles.clear();
-	LDOpenFile::setCurrent (null);
-	
-	g_win->R()->setFile (null);
-	g_win->fullRefresh();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void newFile () {
-	closeAll();
-	
 	// Create a new anonymous file and set it to our current
 	LDOpenFile* f = new LDOpenFile;
 	f->setName ("");
 	f->setImplicit (false);
 	g_loadedFiles << f;
 	LDOpenFile::setCurrent (f);
+	
+	if (g_loadedFiles.size() == 2)
+		LDOpenFile::closeInitialFile (0);
 	
 	g_win->R()->setFile (f);
 	g_win->fullRefresh();
@@ -533,8 +527,8 @@ void openMainFile (str path) {
 	
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
-	if (g_loadedFiles.size() == 2 && g_loadedFiles[0]->name() == "" && !g_loadedFiles[0]->hasUnsavedChanges())
-		delete g_loadedFiles[0];
+	if (g_loadedFiles.size() == 2)
+		LDOpenFile::closeInitialFile (0);
 	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh();
@@ -965,4 +959,9 @@ void LDOpenFile::setCurrent (LDOpenFile* f) {
 	
 	if (g_win && f)
 		g_win->updateFileListItem (f);
+}
+
+void LDOpenFile::closeInitialFile (ulong idx) {
+	if (g_loadedFiles.size() > idx && g_loadedFiles[idx]->name() == "" && !g_loadedFiles[idx]->hasUnsavedChanges())
+		delete g_loadedFiles[idx];
 }

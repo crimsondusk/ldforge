@@ -127,6 +127,7 @@ public:
 	static void closeUnused();
 	static LDOpenFile* current();
 	static void setCurrent (LDOpenFile* f);
+	static void closeInitialFile (ulong idx);
 	
 private:
 	static LDOpenFile* m_curfile;

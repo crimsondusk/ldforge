@@ -3,6 +3,7 @@
 =================================================
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
+		- Added close, close all and save all actions.
 - Color icon border now reflects the color's edge color.
 
 =================================================

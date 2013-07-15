@@ -451,7 +451,7 @@ void ForgeWindow::slot_recentFile() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::slot_quickColor() {
-	LDOpenFile::current()->openHistory();
+	beginAction (null);
 	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 	
@@ -475,7 +475,7 @@ void ForgeWindow::slot_quickColor() {
 	}
 	
 	fullRefresh();
-	LDOpenFile::current()->closeHistory();
+	endAction();
 }
 
 // =============================================================================
@@ -897,7 +897,7 @@ void ForgeWindow::changeCurrentFile() {
 		}
 	}
 	
-	if (!f)
+	if (!f || f == LDOpenFile::current())
 		return;
 	
 	clearSelection();

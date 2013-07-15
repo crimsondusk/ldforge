@@ -269,6 +269,9 @@
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="actionSaveAs"/>
+   <addaction name="actionSaveAll"/>
+   <addaction name="actionClose"/>
+   <addaction name="actionCloseAll"/>
   </widget>
   <widget class="QToolBar" name="toolBar_2">
    <property name="windowTitle">

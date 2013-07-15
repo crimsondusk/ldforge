@@ -58,13 +58,11 @@ DEFINE_ACTION (New, CTRL (N)) {
 	
 	const LDBFCObject::Type BFCType =
 		ui.rb_bfc_ccw->isChecked() ? LDBFCObject::CertifyCCW :
-		ui.rb_bfc_cw->isChecked()  ? LDBFCObject::CertifyCW :
-		                             LDBFCObject::NoCertify;
+		ui.rb_bfc_cw->isChecked()  ? LDBFCObject::CertifyCW : LDBFCObject::NoCertify;
 	
 	const str license =
 		ui.rb_license_ca->isChecked()    ? CALicense :
-		ui.rb_license_nonca->isChecked() ? NonCALicense :
-		                                   "";
+		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
 	LDOpenFile* f = LDOpenFile::current();
 	*f << new LDCommentObject (ui.le_title->text());
