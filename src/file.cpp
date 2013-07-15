@@ -102,6 +102,8 @@ LDOpenFile::LDOpenFile() {
 
 // =============================================================================
 LDOpenFile::~LDOpenFile() {
+	ulong i;
+	
 	// Clear everything from the model
 	for (LDObject* obj : m_objs)
 		delete obj;
@@ -109,6 +111,29 @@ LDOpenFile::~LDOpenFile() {
 	// Clear the cache as well
 	for (LDObject* obj : m_cache)
 		delete obj;
+	
+	// Remove this file from the list of files
+	for (i = 0; i < g_loadedFiles.size(); ++i) {
+		if (g_loadedFiles[i] == this) {
+			g_loadedFiles.erase (i);
+			break;
+		}
+	}
+	
+	// If we just closed the current file, we need to set the current
+	// file as something else.
+	if (this == LDOpenFile::current()) {
+		if (i > 0)
+			i--;
+		
+		// If we closed the last file, create a blank one.
+		if (g_loadedFiles.size() < i + 1)
+			newFile();
+		else
+			LDOpenFile::setCurrent (g_loadedFiles[i]);
+	}
+	
+	g_win->updateFileList();
 }
 
 // =============================================================================
@@ -565,6 +590,7 @@ bool LDOpenFile::save (str savepath) {
 	setSavePos (history().pos());
 	setName (savepath);
 	
+	g_win->updateFileListItem (this);
 	g_win->updateTitle();
 	return true;
 }
