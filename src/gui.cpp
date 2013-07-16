@@ -183,16 +183,7 @@ vector<LDQuickColor> quickColorsFromConfig() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-<<<<<<< HEAD
-void ForgeWindow::updateToolBars () {
-	const QSize iconsize (22, 22);
-	
-	for (QToolBar* bar : m_toolBars)
-		bar->setIconSize (iconsize);
-	
-=======
 void ForgeWindow::updateToolBars() {
->>>>>>> master
 	// Update the quick color toolbar.
 	for (QToolButton* btn : m_colorButtons)
 		delete btn;
