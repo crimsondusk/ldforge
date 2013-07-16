@@ -83,7 +83,6 @@ void ColorSelector::drawScene() {
 	ui->viewport->setSceneRect (sceneRect);
 	
 	const double penWidth = 1.0f;
-	QPen pen (Qt::black, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	
 	// Draw the color rectangles.
 	m_scene->clear();
@@ -106,9 +105,10 @@ void ColorSelector::drawScene() {
 			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
+		QPen pen (info->edgeColor, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		m_scene->addRect (x, y, w, w, pen, col);
 		QGraphicsTextItem* numtext = m_scene->addText (fmt ("%1", i));
-		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
+		numtext->setDefaultTextColor ((luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 		
 		if (sel() && i == sel()->index) {
