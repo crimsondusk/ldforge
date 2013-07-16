@@ -49,7 +49,7 @@ public:
 	const Ui_ConfigUI* getUI() const;
 	float getGridValue (int i, int j) const;
 	
-	vector<quickColor> quickColorMeta;
+	vector<LDQuickColor> quickColors;
 	QDoubleSpinBox* dsb_gridData[3][4];
 
 private:
@@ -66,10 +66,10 @@ private:
 	void addShortcut (keyseqconfig& cfg, QAction* act, ulong& i);
 	void setButtonBackground( QPushButton* button, str value );
 	void pickColor( strconfig& cfg, QPushButton* button );
-	void updateQuickColorList( quickColor* sel = null );
+	void updateQuickColorList( LDQuickColor* sel = null );
 	void setShortcutText (ShortcutListItem* item);
 	int getItemRow( QListWidgetItem* item, vector<QListWidgetItem*>& haystack );
-	str makeColorToolBarString();
+	str quickColorString();
 	QListWidgetItem* getSelectedQuickColor();
 	QList<ShortcutListItem*> getShortcutSelection();
 

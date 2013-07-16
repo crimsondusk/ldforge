@@ -32,7 +32,6 @@ class LDColor;
 class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
-class CheckBoxGroup;
 class QComboBox;
 class QProgressBar;
 class Ui_LDForgeUI;
@@ -59,11 +58,11 @@ class Ui_LDForgeUI;
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
 
 // =============================================================================
-typedef struct {
+struct LDQuickColor {
 	LDColor* col;
 	QToolButton* btn;
 	bool isSeparator;
-} quickColor;
+};
 
 // =============================================================================
 // ObjectList
@@ -112,14 +111,11 @@ public:
 	void save (LDOpenFile* f, bool saveAs);
 	GLRenderer* R() { return m_renderer; }
 	vector<LDObject*>& sel() { return m_sel; }
-	void setQuickColorMeta (vector<quickColor>& quickColorMeta) {
-		m_colorMeta = quickColorMeta;
-	}
+	void setQuickColors (vector<LDQuickColor>& colors) { m_quickColors = colors; }
 	void setStatusBarText (str text);
 	void addMessage (str msg);
 	Ui_LDForgeUI* interface() const;
 	void refreshObjectList();
-	
 	void beginAction(QAction* act);
 	void endAction();
 	
@@ -142,7 +138,7 @@ private:
 	QProgressBar* m_primLoaderBar;
 	QWidget* m_primLoaderWidget;
 	vector<LDObject*> m_sel;
-	vector<quickColor> m_colorMeta;
+	vector<LDQuickColor> m_quickColors;
 	vector<QToolButton*> m_colorButtons;
 	vector<QAction*> m_recentFiles;
 	MessageManager* m_msglog;
@@ -169,14 +165,13 @@ extern ForgeWindow* g_win;
 
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
-QPixmap getIcon (str iconName);
-vector<quickColor> parseQuickColorMeta();
-bool confirm (str title, str msg);
-bool confirm (str msg);
-void critical (str msg);
-QIcon makeColorIcon (LDColor* colinfo, const ushort size);
-void makeColorSelector (QComboBox* box);
-CheckBoxGroup* makeAxesBox();
+QPixmap getIcon (str iconName); // Get an icon from the resource dir
+vector<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
+bool confirm (str title, str msg); // Generic confirm prompt
+bool confirm (str msg); // Generic confirm prompt
+void critical (str msg); // Generic error prompt
+QIcon makeColorIcon (LDColor* colinfo, const ushort size); // Makes an icon for the given color
+void makeColorSelector (QComboBox* box); // Fills the given combo-box with color information
 QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 
 // =============================================================================

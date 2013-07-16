@@ -83,29 +83,4 @@ private slots:
 	void slot_buttonReleased (int btn);
 };
 
-// =============================================================================
-// CheckBoxGroup
-// =============================================================================
-class CheckBoxGroup : public QGroupBox {
-	Q_OBJECT
-	
-public:
-	CheckBoxGroup (const char* label, Qt::Orientation orient = Qt::Horizontal, QWidget* parent = null);
-	
-	void			addCheckBox		(const char* label, int key, bool checked = false);
-	vector<int>	checkedValues		() const;
-	QCheckBox*		getCheckBox		(int key);
-	bool			buttonChecked		(int key);
-	
-signals:
-	void selectionChanged	();
-	
-private:
-	QBoxLayout* m_layout;
-	std::map<int, QCheckBox*> m_vals;
-	
-private slots:
-	void buttonChanged		();
-};
-
 #endif // WIDGETS_H

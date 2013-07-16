@@ -33,7 +33,6 @@ class QPushButton;
 class QLineEdit;
 class QSpinBox;
 class RadioBox;
-class CheckBoxGroup;
 class QLabel;
 class QAbstractButton;
 class Ui_OverlayUI;
