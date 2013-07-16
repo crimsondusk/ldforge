@@ -32,94 +32,88 @@
 static const int g_numColumns = 16;
 static const short g_squareSize = 32;
 
-extern_cfg( str, gl_maincolor );
-extern_cfg( float, gl_maincolor_alpha );
+extern_cfg (str, gl_maincolor);
+extern_cfg (float, gl_maincolor_alpha);
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ColorSelector::ColorSelector( short defval, QWidget* parent ) : QDialog( parent )
-{
+ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent) {
 	// Remove the default color if it's invalid
-	if( !::getColor( defval ))
+	if (!::getColor (defval))
 		defval = -1;
-	
+
 	m_firstResize = true;
 	ui = new Ui_ColorSelUI;
-	ui->setupUi( this );
-	
+	ui->setupUi (this);
+
 	m_scene = new QGraphicsScene;
-	ui->viewport->setScene( m_scene );
-	setSelection( ::getColor( defval ));
-	
+	ui->viewport->setScene (m_scene);
+	setSelection (::getColor (defval));
+
 	// not really an icon but eh
-	m_scene->setBackgroundBrush( getIcon( "checkerboard" ));
-	
+	m_scene->setBackgroundBrush (getIcon ("checkerboard"));
+
 	drawScene();
-	
+
 	int width = viewportWidth();
-	ui->viewport->setMinimumWidth( width );
-	ui->viewport->setMaximumWidth( width );
-	
+	ui->viewport->setMinimumWidth (width);
+	ui->viewport->setMaximumWidth (width);
+
 	drawColorInfo();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ColorSelector::~ColorSelector()
-{
+ColorSelector::~ColorSelector() {
 	delete ui;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ColorSelector::drawScene()
-{
+void ColorSelector::drawScene() {
 	const int numCols = g_numColumns;
 	const int square = g_squareSize;
-	const int g_maxHeight = ( numRows() * square );
-	QRect sceneRect( 0, 0, viewportWidth(), g_maxHeight );
+	const int g_maxHeight = (numRows() * square);
+	QRect sceneRect (0, 0, viewportWidth(), g_maxHeight);
 	
-	m_scene->setSceneRect( sceneRect );
-	ui->viewport->setSceneRect( sceneRect );
+	m_scene->setSceneRect (sceneRect);
+	ui->viewport->setSceneRect (sceneRect);
 	
 	const double penWidth = 1.0f;
-	QPen pen( Qt::black, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin );
+	QPen pen (Qt::black, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	
 	// Draw the color rectangles.
 	m_scene->clear();
 	
-	for( short i = 0; i < MAX_COLORS; ++i )
-	{
-		LDColor* info = ::getColor( i );
+	for (short i = 0; i < MAX_COLORS; ++i) {
+		LDColor* info = ::getColor (i);
 		
-		if( !info )
+		if (!info)
 			continue;
 		
-		const double x = ( i % numCols ) * square;
-		const double y = ( i / numCols ) * square;
-		const double w = square - ( penWidth / 2 );
+		const double x = (i % numCols) * square;
+		const double y = (i / numCols) * square;
+		const double w = square - (penWidth / 2);
 		
 		QColor col = info->faceColor;
 		
-		if( i == maincolor )
-		{
+		if (i == maincolor) {
 			// Use the user preferences for main color here
-			col = QColor( gl_maincolor );
-			col.setAlpha( gl_maincolor_alpha * 255.0f );
+			col = QColor (gl_maincolor);
+			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
 		
-		m_scene->addRect( x, y, w, w, pen, col );
-		QGraphicsTextItem* numtext = m_scene->addText( fmt( "%1", i ));
-		numtext->setDefaultTextColor(( luma( col ) < 80 ) ? Qt::white : Qt::black );
-		numtext->setPos( x, y );
+		m_scene->addRect (x, y, w, w, pen, col);
+		QGraphicsTextItem* numtext = m_scene->addText (fmt ("%1", i));
+		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
+		numtext->setPos (x, y);
 		
-		if( sel() && i == sel()->index )
-		{
-			auto curspic = m_scene->addPixmap( getIcon( "colorcursor" ));
-			curspic->setPos( x, y );
+		if (sel() && i == sel()->index) {
+			auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
+			curspic->setPos (x, y);
 		}
 	}
 }
@@ -127,49 +121,42 @@ void ColorSelector::drawScene()
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-int ColorSelector::numRows() const
-{
-	return ( MAX_COLORS / g_numColumns );
+int ColorSelector::numRows() const {
+	return (MAX_COLORS / g_numColumns);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-int ColorSelector::viewportWidth() const
-{
+int ColorSelector::viewportWidth() const {
 	return g_numColumns * g_squareSize + 21;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ColorSelector::drawColorInfo()
-{
-	if( !sel() )
-	{
-		ui->colorLabel->setText( "---" );
+void ColorSelector::drawColorInfo() {
+	if (!sel()) {
+		ui->colorLabel->setText ("---");
 		return;
 	}
 	
-	ui->colorLabel->setText( fmt( "%1 - %2", sel()->index, sel()->name ));
+	ui->colorLabel->setText (fmt ("%1 - %2", sel()->index, sel()->name));
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ColorSelector::resizeEvent( QResizeEvent* ev )
-{
+void ColorSelector::resizeEvent (QResizeEvent* ev) {
 	// If this is the first resize, check if we need to scroll down to see the
 	// currently selected color. We cannot do this in the constructor because the
 	// height is not set properly there.
-	if( m_firstResize )
-	{
-		int visibleColors = ( ui->viewport->height() / g_squareSize ) * g_numColumns;
+	if (m_firstResize) {
+		int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
 		
-		if( sel() && sel()->index >= visibleColors )
-		{
-			int y = ( sel()->index / g_numColumns ) * g_squareSize;
-			ui->viewport->verticalScrollBar()->setValue( y );
+		if (sel() && sel()->index >= visibleColors) {
+			int y = (sel()->index / g_numColumns) * g_squareSize;
+			ui->viewport->verticalScrollBar()->setValue (y);
 		}
 		
 		m_firstResize = false;
@@ -181,20 +168,19 @@ void ColorSelector::resizeEvent( QResizeEvent* ev )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ColorSelector::mousePressEvent( QMouseEvent* event )
-{
-	QPointF scenepos = ui->viewport->mapToScene( event->pos() );
+void ColorSelector::mousePressEvent (QMouseEvent* event) {
+	QPointF scenepos = ui->viewport->mapToScene (event->pos());
 	
-	ulong x = (( ulong ) scenepos.x() - ( g_squareSize / 2 )) / g_squareSize;
-	ulong y = (( ulong ) scenepos.y() - ( g_squareSize / 2 )) / g_squareSize;
-	ulong idx = ( y * g_numColumns ) + x;
+	ulong x = ( (ulong) scenepos.x() - (g_squareSize / 2)) / g_squareSize;
+	ulong y = ( (ulong) scenepos.y() - (g_squareSize / 2)) / g_squareSize;
+	ulong idx = (y * g_numColumns) + x;
 	
-	LDColor* col = ::getColor( idx );
+	LDColor* col = ::getColor (idx);
 	
-	if( !col )
+	if (!col)
 		return;
 	
-	setSelection( col );
+	setSelection (col);
 	drawScene();
 	drawColorInfo();
 }
@@ -202,12 +188,10 @@ void ColorSelector::mousePressEvent( QMouseEvent* event )
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool ColorSelector::getColor( short& val, short int defval, QWidget* parent )
-{
-	ColorSelector dlg( defval, parent );
+bool ColorSelector::getColor (short& val, short int defval, QWidget* parent) {
+	ColorSelector dlg (defval, parent);
 	
-	if( dlg.exec() && dlg.sel() != null )
-	{
+	if (dlg.exec() && dlg.sel() != null) {
 		val = dlg.sel()->index;
 		return true;
 	}
