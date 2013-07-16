@@ -841,8 +841,10 @@ void ForgeWindow::updateFileList() {
 	ui->fileList->clear();
 	
 	for (LDOpenFile* f : g_loadedFiles) {
+		/*
 		if (f->implicit())
 			continue;
+		*/
 		
 		ui->fileList->addItem ("");
 		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
@@ -869,6 +871,9 @@ void ForgeWindow::updateFileListItem (LDOpenFile* f) {
 	
 	if (f == LDOpenFile::current())
 		ui->fileList->setCurrentItem (f->listItem());
+	
+	if (f->implicit())
+		f->listItem()->setForeground (QColor (96, 96, 96));
 	
 	f->listItem()->setText (name);
 	f->listItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());

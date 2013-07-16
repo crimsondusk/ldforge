@@ -102,7 +102,7 @@ LDOpenFile::LDOpenFile() {
 
 // =============================================================================
 LDOpenFile::~LDOpenFile() {
-	ulong i;
+	ulong currentIndex = 0;
 	
 	// Clear everything from the model
 	for (LDObject* obj : m_objs)
@@ -113,8 +113,9 @@ LDOpenFile::~LDOpenFile() {
 		delete obj;
 	
 	// Remove this file from the list of files
-	for (i = 0; i < g_loadedFiles.size(); ++i) {
+	for (ulong i = 0; i < g_loadedFiles.size(); ++i) {
 		if (g_loadedFiles[i] == this) {
+			currentIndex = i;
 			g_loadedFiles.erase (i);
 			break;
 		}
@@ -123,11 +124,15 @@ LDOpenFile::~LDOpenFile() {
 	// If we just closed the current file, we need to set the current
 	// file as something else.
 	if (this == LDOpenFile::current()) {
+		ulong i = currentIndex;
 		if (i > 0)
 			i--;
 		
+		while (i != -1u && g_loadedFiles[i]->implicit())
+			--i;
+		
 		// If we closed the last file, create a blank one.
-		if (g_loadedFiles.size() < i + 1)
+		if (i == -1u)
 			newFile();
 		else
 			LDOpenFile::setCurrent (g_loadedFiles[i]);
