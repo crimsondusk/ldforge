@@ -90,7 +90,7 @@ ForgeWindow::ForgeWindow() {
 	m_msglog = new MessageManager;
 	m_msglog->setRenderer (R());
 	m_renderer->setMessageLog (m_msglog);
-	m_colorMeta = parseQuickColorMeta();
+	m_quickColors = quickColorsFromConfig();
 	slot_selectionChanged();
 	setStatusBar (new QStatusBar);
 	
@@ -164,20 +164,20 @@ void ForgeWindow::updateRecentFilesMenu() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<quickColor> parseQuickColorMeta() {
-	vector<quickColor> meta;
+vector<LDQuickColor> quickColorsFromConfig() {
+	vector<LDQuickColor> colors;
 	
 	for (str colorname : gui_colortoolbar.value.split (":")) {
 		if (colorname == "|") {
-			meta << quickColor ({null, null, true});
+			colors << LDQuickColor ({null, null, true});
 		} else {
 			LDColor* col = getColor (colorname.toLong());
 			assert (col != null);
-			meta << quickColor ({col, null, false});
+			colors << LDQuickColor ({col, null, false});
 		}
 	}
 	
-	return meta;
+	return colors;
 }
 
 // =============================================================================
@@ -202,12 +202,12 @@ void ForgeWindow::updateToolBars() {
 	// Clear the toolbar - we deleted the buttons but there's still separators
 	ui->colorToolbar->clear();
 	
-	for (quickColor& entry : m_colorMeta) {
+	for (LDQuickColor& entry : m_quickColors) {
 		if (entry.isSeparator)
 			ui->colorToolbar->addSeparator();
 		else {
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.col, gui_toolbar_iconsize));
+			colorButton->setIcon (makeColorIcon (entry.col, 22));
 			colorButton->setIconSize (QSize (22, 22));
 			colorButton->setToolTip (entry.col->name);
 			
@@ -463,7 +463,7 @@ void ForgeWindow::slot_quickColor() {
 	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 	
-	for (quickColor entry : m_colorMeta) {
+	for (LDQuickColor entry : m_quickColors) {
 		if (entry.btn == button) {
 			col = entry.col;
 			break;
@@ -820,14 +820,6 @@ void makeColorSelector (QComboBox* box) {
 		
 		++row;
 	}
-}
-
-CheckBoxGroup* makeAxesBox() {
-	CheckBoxGroup* cbg_axes = new CheckBoxGroup ("Axes", Qt::Horizontal);
-	cbg_axes->addCheckBox ("X", X);
-	cbg_axes->addCheckBox ("Y", Y);
-	cbg_axes->addCheckBox ("Z", Z);
-	return cbg_axes;
 }
 
 void ForgeWindow::setStatusBarText (str text) {
