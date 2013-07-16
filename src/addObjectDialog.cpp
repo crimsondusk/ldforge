@@ -48,9 +48,7 @@ public:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
-	QDialog (parent)
-{
+AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) : QDialog (parent) {
 	setlocale (LC_ALL, "C");
 	
 	short coordCount = 0;
@@ -60,7 +58,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	case LDObject::Comment:
 		le_comment = new QLineEdit;
 		if (obj)
-			le_comment->setText (static_cast<LDComment*> (obj)->text);
+			le_comment->setText (static_cast<LDCommentObject*> (obj)->text);
 		
 		le_comment->setMinimumWidth (384);
 		break;
@@ -85,11 +83,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	case LDObject::BFC:
 		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
-		for (int i = 0; i < LDBFC::NumStatements; ++i)
-			rb_bfcType->addButton (LDBFC::statements[i]);
+		for (int i = 0; i < LDBFCObject::NumStatements; ++i)
+			rb_bfcType->addButton (LDBFCObject::statements[i]);
 		
 		if (obj)
-			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->type);
+			rb_bfcType->setValue ((int) static_cast<LDBFCObject*> (obj)->type);
 		break;
 	
 	case LDObject::Subfile:
@@ -102,7 +100,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				;
 			
 			tw_subfileList = new QTreeWidget ();
-			tw_subfileList->setHeaderLabel ("Primitives");
+			tw_subfileList->setHeaderLabel (tr ("Primitives"));
 			
 			for (PrimitiveCategory& cat : g_PrimitiveCategories) {
 				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
@@ -116,7 +114,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 					
 					// If this primitive is the one the current object points to,
 					// select it by default
-					if (obj && static_cast<LDSubfile*> (obj)->fileInfo ()->name () == prim.name)
+					if (obj && static_cast<LDSubfileObject*> (obj)->fileInfo ()->name () == prim.name)
 						tw_subfileList->setCurrentItem (item);
 				}
 				
@@ -129,7 +127,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			le_subfileName->setFocus ();
 			
 			if (obj) {
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 				le_subfileName->setText (ref->fileInfo ()->name ());
 			}
 			break;
@@ -231,9 +229,12 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
 	}
 	
-	layout->addWidget( makeButtonBox( *this ), 5, 0, 1, 4 );
-	setLayout( layout );
-	setWindowTitle( fmt( tr( "Edit %1" ), typeName ));
+	QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	QWidget::connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept()));
+	QWidget::connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
+	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
+	setLayout (layout);
+	setWindowTitle (fmt (tr ("Edit %1"), typeName));
 	
 	setWindowIcon (icon);
 	delete defaults;
@@ -296,7 +297,7 @@ template<class T> T* initObj (LDObject*& obj) {
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	setlocale (LC_ALL, "C");
 	
-	if (obj && obj->getType () == LDObject::Gibberish)
+	if (obj && obj->getType () == LDObject::Error)
 		return;
 	
 	if (type == LDObject::Empty)
@@ -329,7 +330,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	switch (type) {
 	case LDObject::Comment:
 		{
-			LDComment* comm = initObj<LDComment> (obj);
+			LDCommentObject* comm = initObj<LDCommentObject> (obj);
 			comm->text = dlg.le_comment->text ();
 		}
 		break;
@@ -352,14 +353,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	case LDObject::BFC:
 		{
-			LDBFC* bfc = initObj<LDBFC> (obj);
-			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value ();
+			LDBFCObject* bfc = initObj<LDBFCObject> (obj);
+			bfc->type = (LDBFCObject::Type) dlg.rb_bfcType->value ();
 		}
 		break;
 	
 	case LDObject::Vertex:
 		{
-			LDVertex* vert = initObj<LDVertex> (obj);
+			LDVertexObject* vert = initObj<LDVertexObject> (obj);
 			
 			for (const Axis ax : g_Axes)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value ();
@@ -378,7 +379,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 				return;
 			}
 			
-			LDSubfile* ref = initObj<LDSubfile> (obj);
+			LDSubfileObject* ref = initObj<LDSubfileObject> (obj);
 			
 			for (const Axis ax : g_Axes)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value ());
@@ -397,7 +398,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	if (newObject) {
 		ulong idx = g_win->getInsertionPoint ();
-		g_curfile->insertObj (idx, obj);
+		LDOpenFile::current()->insertObj (idx, obj);
 	}
 	
 	g_win->fullRefresh ();

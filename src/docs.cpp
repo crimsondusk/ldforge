@@ -21,6 +21,7 @@
 #include <QDialogButtonBox>
 #include <QBoxLayout>
 #include "common.h"
+#include "types.h"
 
 class DocumentViewer : public QDialog {
 public:

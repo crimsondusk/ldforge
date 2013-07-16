@@ -1,5 +1,14 @@
 =================================================
-== Changes since version 1.0
+== Changes in version 0.2.999-internal
+=================================================
+- Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
+	of currently open files.
+		- Added close, close all and save all actions.
+- Color icon border now reflects the color's edge color.
+- Changing to draw mode while in free camera now causes the camera to be changed to top.
+
+=================================================
+== Changes in version 0.2-alpha
 =================================================
 
 - Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.

@@ -24,8 +24,7 @@
 
 #define MAX_COLORS 512
 
-class LDColor
-{
+class LDColor {
 public:
 	str name, hexcode;
 	QColor faceColor, edgeColor;
@@ -34,9 +33,13 @@ public:
 
 void initColors();
 void parseLDConfig();
-uchar luma( QColor& col );
+uchar luma (QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
-LDColor* getColor( short colnum );
+LDColor* getColor (short colnum);
+
+// Main and edge color identifiers
+static const short maincolor = 16;
+static const short edgecolor = 24;
 
 #endif // COLORS_H

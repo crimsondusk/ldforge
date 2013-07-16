@@ -46,6 +46,9 @@ extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
 
+#define act(N) extern_cfg (keyseq, key_##N);
+#include "actions.h"
+
 #define INIT_CHECKBOX(BOX, CFG) \
 	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
 
@@ -104,31 +107,31 @@ void ConfigDialog::initMainTab () {
 // =============================================================================
 void ConfigDialog::initShortcutsTab () {
 	ulong i = 0;
-	for( actionmeta& info : g_actionMeta ) {
-		if( info.qAct == null )
-			break;
-		
-		QAction* const act = *info.qAct;
-		
-		ShortcutListItem* item = new ShortcutListItem;
-		setShortcutText( item, info );
-		item->setIcon( act->icon() );
-		item->setActionInfo( &info );
-		
-		// If the action doesn't have a valid icon, use an empty one
-		// so that the list is kept aligned.
-		if( act->icon().isNull() )
-			item->setIcon( getIcon( "empty" ));
-		
-		ui->shortcutsList->insertItem( i++, item );
-	}
+	
+#define act(N) addShortcut (key_##N, ACTION(N), i);
+#include "actions.h"
 	
 	ui->shortcutsList->setSortingEnabled( true );
 	ui->shortcutsList->sortItems();
-
+	
 	connect( ui->shortcut_set, SIGNAL( clicked() ), this, SLOT( slot_setShortcut() ));
 	connect( ui->shortcut_reset, SIGNAL( clicked() ), this, SLOT( slot_resetShortcut() ));
 	connect( ui->shortcut_clear, SIGNAL( clicked() ), this, SLOT( slot_clearShortcut() ));
+}
+
+void ConfigDialog::addShortcut (keyseqconfig& cfg, QAction* act, ulong& i) {
+	ShortcutListItem* item = new ShortcutListItem;
+	item->setIcon (act->icon());
+	item->setKeyConfig (&cfg);
+	item->setAction (act);
+	setShortcutText (item);
+	
+	// If the action doesn't have a valid icon, use an empty one
+	// so that the list is kept aligned.
+	if (act->icon().isNull())
+		item->setIcon (getIcon ("empty"));
+	
+	ui->shortcutsList->insertItem (i++, item);
 }
 
 // =============================================================================
@@ -502,8 +505,8 @@ void ConfigDialog::slot_setShortcut()
 	
 	ShortcutListItem* item = sel[0];
 	
-	if( KeySequenceDialog::staticDialog( *( item->getActionInfo() ), this ))
-		setShortcutText( item, *( item->getActionInfo() ));
+	if (KeySequenceDialog::staticDialog (item->keyConfig(), this))
+		setShortcutText (item);
 }
 
 // =============================================================================
@@ -511,50 +514,34 @@ void ConfigDialog::slot_resetShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
 	
-	for( ShortcutListItem * item : sel )
-	{
-		actionmeta* info = item->getActionInfo();
-		keyseqconfig* conf = info->conf;
-		
-		conf->reset();
-		( *info->qAct )->setShortcut( *conf );
-		
-		setShortcutText( item, *info );
+	for (ShortcutListItem* item : sel) {
+		item->keyConfig()->reset();
+		setShortcutText (item);
 	}
 }
 
 // =============================================================================
-void ConfigDialog::slot_clearShortcut()
-{
+void ConfigDialog::slot_clearShortcut() {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
-	QKeySequence dummy;
 	
-	for( ShortcutListItem * item : sel )
-	{
-		actionmeta* info = item->getActionInfo();
-		keyseqconfig* conf = info->conf;
-		conf->value = dummy;
-		
-		( *info->qAct )->setShortcut( *conf );
-		setShortcutText( item, *info );
+	for (ShortcutListItem* item : sel) {
+		item->keyConfig()->value = QKeySequence();
+		setShortcutText (item);
 	}
 }
 
 // =============================================================================
-void ConfigDialog::slot_setExtProgPath()
-{
+void ConfigDialog::slot_setExtProgPath() {
 	const extProgInfo* info = null;
 	
-	for( const extProgInfo & it : g_extProgInfo )
-	{
-		if( it.setPathButton == sender() )
-		{
+	for (const extProgInfo& it : g_extProgInfo) {
+		if (it.setPathButton == sender()) {
 			info = &it;
 			break;
 		}
 	}
 	
-	assert( info != null );
+	assert (info != null);
 	
 	str filter;
 #ifdef _WIN32
@@ -572,13 +559,12 @@ void ConfigDialog::slot_setExtProgPath()
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::setShortcutText( QListWidgetItem* item, actionmeta meta )
-{
-	QAction* const act = *meta.qAct;
+void ConfigDialog::setShortcutText( ShortcutListItem* item ) {
+	QAction* act = item->action();
 	str label = act->iconText();
-	str keybind = act->shortcut().toString();
+	str keybind = item->keyConfig()->value.toString();
 	
-	item->setText( fmt( "%1 (%2)", label, keybind ));
+	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
 // =============================================================================
@@ -638,6 +624,10 @@ void ConfigDialog::staticDialog()
 			for( int j = 0; j < 4; ++j )
 				g_GridInfo[i].confs[j]->value = dlg.getGridValue( i, j );
 		
+		// Apply key shortcuts
+#define act(N) ACTION(N)->setShortcut (key_##N);
+#include "actions.h"
+		
 		// Ext program settings
 		for( const extProgInfo & info : g_extProgInfo )
 		{
@@ -688,15 +678,13 @@ KeySequenceDialog::KeySequenceDialog( QKeySequence seq, QWidget* parent, Qt::Win
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool KeySequenceDialog::staticDialog( actionmeta& meta, QWidget* parent )
-{
-	KeySequenceDialog dlg( *meta.conf, parent );
+bool KeySequenceDialog::staticDialog (keyseqconfig* cfg, QWidget* parent) {
+	KeySequenceDialog dlg (cfg->value, parent);
 	
-	if( dlg.exec() == false )
+	if (dlg.exec() == false)
 		return false;
 	
-	*meta.conf = dlg.seq;
-	( *meta.qAct )->setShortcut( *meta.conf );
+	cfg->value = dlg.seq;
 	return true;
 }
 

@@ -21,6 +21,7 @@
 
 #include <QDialog>
 #include "common.h"
+#include "types.h"
 
 class QPushButton;
 
