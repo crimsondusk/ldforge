@@ -1232,6 +1232,10 @@
    </property>
   </action>
   <action name="actionSaveAll">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-save-all.png</normaloff>:/icons/file-save-all.png</iconset>
+   </property>
    <property name="text">
     <string>Save All</string>
    </property>
