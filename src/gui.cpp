@@ -184,13 +184,7 @@ vector<LDQuickColor> quickColorsFromConfig() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateToolBars() {
-	// Update the quick color toolbar.
-	for (QToolButton* btn : m_colorButtons)
-		delete btn;
-	
 	m_colorButtons.clear();
-	
-	// Clear the toolbar - we deleted the buttons but there's still separators
 	ui->colorToolbar->clear();
 	
 	for (LDQuickColor& entry : m_quickColors) {
