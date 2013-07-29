@@ -102,8 +102,6 @@ LDOpenFile::LDOpenFile() {
 
 // =============================================================================
 LDOpenFile::~LDOpenFile() {
-	ulong currentIndex = 0;
-	
 	// Clear everything from the model
 	for (LDObject* obj : m_objs)
 		delete obj;
@@ -115,7 +113,6 @@ LDOpenFile::~LDOpenFile() {
 	// Remove this file from the list of files
 	for (ulong i = 0; i < g_loadedFiles.size(); ++i) {
 		if (g_loadedFiles[i] == this) {
-			currentIndex = i;
 			g_loadedFiles.erase (i);
 			break;
 		}
@@ -123,19 +120,12 @@ LDOpenFile::~LDOpenFile() {
 	
 	// If we just closed the current file, we need to set the current
 	// file as something else.
-	if (this == LDOpenFile::current()) {
-		ulong i = currentIndex;
-		if (i > 0)
-			i--;
-		
-		while (i != -1u && g_loadedFiles[i]->implicit())
-			--i;
-		
+	if( this == LDOpenFile::current() ) {
 		// If we closed the last file, create a blank one.
-		if (i == -1u)
+		if( g_loadedFiles.size() == 0 )
 			newFile();
 		else
-			LDOpenFile::setCurrent (g_loadedFiles[i]);
+			LDOpenFile::setCurrent( g_loadedFiles[0] );
 	}
 	
 	g_win->updateFileList();
@@ -447,11 +437,9 @@ bool LDOpenFile::safeToClose() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void closeAll() {
-	if (!g_loadedFiles.size())
-		return;
-	
 	// Remove all loaded files and the objects they contain
-	for (LDOpenFile* file : g_loadedFiles)
+	vector<LDOpenFile*> files = g_loadedFiles;
+	for( LDOpenFile* file : files )
 		delete file;
 }
 
