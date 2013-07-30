@@ -1185,7 +1185,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	glEnable (GL_DITHER);
 	
 	setBackground();
-	update();
+	repaint();
 }
 
 // =============================================================================

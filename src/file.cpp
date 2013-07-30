@@ -454,8 +454,7 @@ void newFile () {
 	g_loadedFiles << f;
 	LDOpenFile::setCurrent (f);
 	
-	if (g_loadedFiles.size() == 2)
-		LDOpenFile::closeInitialFile (0);
+	LDOpenFile::closeInitialFile();
 	
 	g_win->R()->setFile (f);
 	g_win->fullRefresh();
@@ -520,8 +519,7 @@ void openMainFile (str path) {
 	
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
-	if (g_loadedFiles.size() == 2)
-		LDOpenFile::closeInitialFile (0);
+	LDOpenFile::closeInitialFile();
 	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh();
@@ -954,7 +952,14 @@ void LDOpenFile::setCurrent (LDOpenFile* f) {
 		g_win->updateFileListItem (f);
 }
 
-void LDOpenFile::closeInitialFile (ulong idx) {
-	if (g_loadedFiles.size() > idx && g_loadedFiles[idx]->name() == "" && !g_loadedFiles[idx]->hasUnsavedChanges())
-		delete g_loadedFiles[idx];
+// =============================================================================
+// This little beauty closes the initial file that was open at first when opening
+// a new file over it.
+void LDOpenFile::closeInitialFile() {
+	if (g_loadedFiles.size() == 2 &&
+		g_loadedFiles[0]->name() == "" &&
+		!g_loadedFiles[0]->hasUnsavedChanges())
+	{
+		delete g_loadedFiles[0];
+	}
 }
