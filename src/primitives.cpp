@@ -518,10 +518,18 @@ void generatePrimitive() {
 	if (frac.indexOf (".") == -1)
 		frac += ".0";
 	
-	if (type == Ring || type == Cone)
-		descr = fmt ("%1 %2 x %3", primitiveTypeName (type), num, frac);
-	else
+	if (type == Ring || type == Cone) {
+		str spacing =
+			( num < 10  ) ? "  " :
+			( num < 100 ) ? " "  : "";
+		
+		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
+	} else
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
+	
+	// Prepend "Hi-Res" if 48/ primitive.
+	if( divs == hires )
+		descr.insert( 0, "Hi-Res " );
 	
 	LDOpenFile* f = new LDOpenFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
