@@ -22,7 +22,9 @@
 #include "common.h"
 #include "types.h"
 #include <QRegExp>
+#include <QDialog>
 
+class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive {
 	str name, title;
@@ -93,6 +95,18 @@ enum PrimitiveType
 };
 
 // =============================================================================
+class PrimitivePrompt : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit PrimitivePrompt( QWidget* parent = null, Qt::WindowFlags f = 0 );
+	virtual ~PrimitivePrompt();
+	Ui_MakePrimUI* ui;
+	
+public slots:
+	void hiResToggled( bool on );
+};
+
 void generatePrimitive();
 
 #endif // PRIMITIVES_H

@@ -492,22 +492,20 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void generatePrimitive() {
-	QDialog* dlg = new QDialog (g_win);
-	Ui::MakePrimUI ui;
-	ui.setupUi (dlg);
+	PrimitivePrompt* dlg = new PrimitivePrompt( g_win );
 	
 	if (!dlg->exec())
 		return;
 	
-	int segs = ui.sb_segs->value();
-	int divs = ui.cb_hires->isChecked() ? hires : lores;
-	int num = ui.sb_ringnum->value();
+	int segs = dlg->ui->sb_segs->value();
+	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
+	int num = dlg->ui->sb_ringnum->value();
 	PrimitiveType type =
-		ui.rb_circle->isChecked()   ? Circle :
-		ui.rb_cylinder->isChecked() ? Cylinder :
-		ui.rb_disc->isChecked()     ? Disc :
-		ui.rb_ndisc->isChecked()    ? DiscNeg :
-		ui.rb_ring->isChecked()     ? Ring : Cone;
+		dlg->ui->rb_circle->isChecked()   ? Circle :
+		dlg->ui->rb_cylinder->isChecked() ? Cylinder :
+		dlg->ui->rb_disc->isChecked()     ? Disc :
+		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
+		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
 	
 	// Make the description
 	str frac = ftoa ( ( (float) segs) / divs);
@@ -546,4 +544,25 @@ void generatePrimitive() {
 	
 	g_win->save (f, false);
 	delete f;
+}
+
+PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f)
+{
+	ui = new Ui_MakePrimUI;
+	ui->setupUi( this );
+	connect( ui->cb_hires, SIGNAL( toggled(bool) ), this, SLOT( hiResToggled( bool )));
+}
+
+PrimitivePrompt::~PrimitivePrompt() {
+	delete ui;
+}
+
+void PrimitivePrompt::hiResToggled( bool on ) {
+	ui->sb_segs->setMaximum( on ? hires : lores );
+	
+	// If the current value is 16 and we switch to hi-res, default the
+	// spinbox to 48.
+	if( on && ui->sb_segs->value() == lores )
+		ui->sb_segs->setValue( hires );
 }
