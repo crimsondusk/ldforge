@@ -37,7 +37,7 @@ class History {
 	READ_PROPERTY (bool, opened, setOpened)
 	
 public:
-	typedef vector<AbstractHistoryEntry*> list;
+	typedef List<AbstractHistoryEntry*> list;
 	
 	enum Type {
 		Del,
@@ -69,7 +69,7 @@ public:
 	
 private:
 	list m_currentArchive;
-	vector<list> m_changesets;
+	List<list> m_changesets;
 };
 
 // =============================================================================
@@ -149,10 +149,10 @@ class MoveHistory : public AbstractHistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Move)
 	
-	vector<ulong> indices;
+	List<ulong> indices;
 	vertex dest;
 	
-	MoveHistory (vector<ulong> indices, vertex dest) :
+	MoveHistory (List<ulong> indices, vertex dest) :
 		indices (indices), dest (dest) {}
 };
 

@@ -26,7 +26,7 @@
 #include "colors.h"
 
 // List of all LDObjects
-vector<LDObject*> g_LDObjects;
+List<LDObject*> g_LDObjects;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -168,7 +168,7 @@ str LDBFCObject::raw() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
+List<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 	// Create the two triangles based on this quadrilateral:
 	// 0---3       0---3    3
 	// |   |       |  /    /|
@@ -182,7 +182,7 @@ vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 	tri1->setColor (color());
 	tri2->setColor (color());
 	
-	vector<LDTriangleObject*> triangles;
+	List<LDTriangleObject*> triangles;
 	triangles << tri1;
 	triangles << tri2;
 	return triangles;
@@ -277,8 +277,8 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
-	vector<LDObject*> objs, objcache;
+List<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
+	List<LDObject*> objs, objcache;
 
 	// If we have this cached, just clone that
 	if (deep && fileInfo()->cache().size()) {
@@ -299,7 +299,7 @@ vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
 			if (deep && obj->getType() == LDObject::Subfile) {
 				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 				
-				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
+				List<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
 				for (LDObject* otherobj : otherobjs) {
 					// Cache this object, if desired
@@ -348,12 +348,12 @@ long LDObject::getIndex() const {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
+void LDObject::moveObjects (List<LDObject*> objs, const bool up) {
 	// If we move down, we need to iterate the array in reverse order.
 	const long start = up ? 0 : (objs.size() - 1);
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
-	vector<LDObject*> objsToCompile;
+	List<LDObject*> objsToCompile;
 	
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
@@ -393,7 +393,7 @@ str LDObject::typeName (LDObject::Type type) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str LDObject::objectListContents (const vector<LDObject*>& objs) {
+str LDObject::objectListContents (const List<LDObject*>& objs) {
 	bool firstDetails = true;
 	str text = "";
 	

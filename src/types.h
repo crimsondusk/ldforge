@@ -21,15 +21,15 @@
 
 #include <QString>
 #include <QObject>
-#include <vector>
+#include <deque>
 #include "common.h"
 
 class LDObject;
 
 typedef QChar qchar;
 typedef QString str;
-template<class T> class ConstVectorReverser;
-template<class T> using c_rev = ConstVectorReverser<T>;
+template<class T> class ConstListReverser;
+template<class T> using c_rev = ConstListReverser<T>;
 class strconfig;
 class intconfig;
 class floatconfig;
@@ -134,19 +134,19 @@ private:
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// vector
+// List
 // 
-// Array class that wraps around std::vector
+// Array class that wraps around std::deque
 // =============================================================================
-template<class T> class vector {
+template<class T> class List {
 public:
-	typedef typename std::vector<T>::iterator it;
-	typedef typename std::vector<T>::const_iterator c_it;
-	typedef typename std::vector<T>::reverse_iterator r_it;
-	typedef typename std::vector<T>::const_reverse_iterator cr_it;
+	typedef typename std::deque<T>::iterator it;
+	typedef typename std::deque<T>::const_iterator c_it;
+	typedef typename std::deque<T>::reverse_iterator r_it;
+	typedef typename std::deque<T>::const_reverse_iterator cr_it;
 	
-	vector () {}
-	vector (initlist<T> vals) {
+	List () {}
+	List (initlist<T> vals) {
 		m_vect = vals;
 	}
 	
@@ -192,7 +192,7 @@ public:
 		return m_vect[m_vect.size () - 1];
 	}
 	
-	void push_back (const vector<T>& vals) {
+	void push_back (const List<T>& vals) {
 		for (const T& val : vals)
 			push_back (val);
 	}
@@ -210,7 +210,7 @@ public:
 		return push_back (value);
 	}
 	
-	void operator<< (const vector<T>& vals) {
+	void operator<< (const List<T>& vals) {
 		push_back (vals);
 	}
 	
@@ -218,8 +218,8 @@ public:
 		return pop (value);
 	}
 	
-	vector<T> reverse () const {
-		vector<T> rev;
+	List<T> reverse () const {
+		List<T> rev;
 		
 		for (const T& val : c_rev<T> (*this))
 			rev << val;
@@ -236,7 +236,7 @@ public:
 	}
 	
 	void makeUnique () {
-		// Remove duplicate entries. For this to be effective, the vector must be
+		// Remove duplicate entries. For this to be effective, the List must be
 		// sorted first.
 		sort ();
 		it pos = std::unique (begin (), end ());
@@ -278,21 +278,21 @@ public:
 	}
 	
 private:
-	std::vector<T> m_vect;
+	std::deque<T> m_vect;
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// VectorReverser (aka rev)
+// ListReverser (aka rev)
 // 
-// Helper class used to reverse-iterate vectors in range-for-loops.
+// Helper class used to reverse-iterate Lists in range-for-loops.
 // =============================================================================
-template<class T> class VectorReverser {
+template<class T> class ListReverser {
 public:
-	typedef typename vector<T>::r_it it;
+	typedef typename List<T>::r_it it;
 	
-	VectorReverser (vector<T>& vect) {
+	ListReverser (List<T>& vect) {
 		m_vect = &vect;
 	}
 	
@@ -305,21 +305,21 @@ public:
 	}
 	
 private:
-	vector<T>* m_vect;
+	List<T>* m_vect;
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// ConstVectorReverser (aka c_rev)
+// ConstListReverser (aka c_rev)
 // 
-// Like VectorReverser, except works on const vectors.
+// Like ListReverser, except works on const Lists.
 // =============================================================================
-template<class T> class ConstVectorReverser {
+template<class T> class ConstListReverser {
 public:
-	typedef typename vector<T>::cr_it it;
+	typedef typename List<T>::cr_it it;
 	
-	ConstVectorReverser (const vector<T>& vect) {
+	ConstListReverser (const List<T>& vect) {
 		m_vect = &vect;
 	}
 	
@@ -332,11 +332,11 @@ public:
 	}
 	
 private:
-	const vector<T>* m_vect;
+	const List<T>* m_vect;
 };
 
-template<class T> using rev = VectorReverser<T>;
-template<class T> using c_rev = ConstVectorReverser<T>;
+template<class T> using rev = ListReverser<T>;
+template<class T> using c_rev = ConstListReverser<T>;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -377,7 +377,7 @@ public:
 	StringFormatArg (const floatconfig& v);
 	StringFormatArg (const void* v);
 	
-	template<class T> StringFormatArg (const vector<T>& v) {
+	template<class T> StringFormatArg (const List<T>& v) {
 		m_val = "{ ";
 		
 		uint i = 0;
@@ -482,7 +482,7 @@ public:
 };
 
 // Formatter function
-str DoFormat (vector<StringFormatArg> args);
+str DoFormat (List<StringFormatArg> args);
 
 // printf replacement
 void doPrint (File& f, initlist<StringFormatArg> args);

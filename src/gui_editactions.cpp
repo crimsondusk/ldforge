@@ -40,7 +40,7 @@ cfg (bool, edit_schemanticinline, false);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static int copyToClipboard() {
-	vector<LDObject*> objs = g_win->sel();
+	List<LDObject*> objs = g_win->sel();
 	int num = 0;
 	
 	// Clear the clipboard first.
@@ -112,7 +112,7 @@ DEFINE_ACTION (Delete, KEY (Delete)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doInline (bool deep) {
-	vector<LDObject*> sel = g_win->sel();
+	List<LDObject*> sel = g_win->sel();
 	
 	for (LDObject* obj : sel) {
 		// Get the index of the subfile so we know where to insert the
@@ -122,7 +122,7 @@ static void doInline (bool deep) {
 		if (idx == -1)
 			continue;
 		
-		vector<LDObject*> objs;
+		List<LDObject*> objs;
 		
 		if (obj->getType() == LDObject::Subfile)
 			objs = static_cast<LDSubfileObject*> (obj)->inlineContents (deep, true);
@@ -159,7 +159,7 @@ DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // ===============================================================================================
 DEFINE_ACTION (SplitQuads, 0) {
-	vector<LDObject*> objs = g_win->sel();
+	List<LDObject*> objs = g_win->sel();
 	int num = 0;
 	
 	for (LDObject* obj : objs) {
@@ -172,7 +172,7 @@ DEFINE_ACTION (SplitQuads, 0) {
 		if (index == -1)
 			return;
 		
-		vector<LDTriangleObject*> triangles = static_cast<LDQuadObject*> (obj)->splitToTriangles();
+		List<LDTriangleObject*> triangles = static_cast<LDQuadObject*> (obj)->splitToTriangles();
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
@@ -234,7 +234,7 @@ DEFINE_ACTION (SetColor, KEY (C)) {
 	short colnum;
 	short defcol = -1;
 	
-	vector<LDObject*> objs = g_win->sel();
+	List<LDObject*> objs = g_win->sel();
 	
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
@@ -258,7 +258,7 @@ DEFINE_ACTION (SetColor, KEY (C)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Borders, CTRL_SHIFT (B)) {
-	vector<LDObject*> objs = g_win->sel();
+	List<LDObject*> objs = g_win->sel();
 	int num = 0;
 	
 	for (LDObject* obj : objs) {
@@ -331,7 +331,7 @@ DEFINE_ACTION (CornerVerts, 0) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static void doMoveSelection (const bool up) {
-	vector<LDObject*> objs = g_win->sel();
+	List<LDObject*> objs = g_win->sel();
 	LDObject::moveObjects (objs, up);
 	g_win->buildObjList();
 }
@@ -398,7 +398,7 @@ DEFINE_ACTION (MoveZPos, KEY (Up)) {
 
 // =============================================================================
 DEFINE_ACTION (Invert, CTRL_SHIFT (W)) {
-	vector<LDObject*> sel = g_win->sel();
+	List<LDObject*> sel = g_win->sel();
 	
 	for (LDObject* obj : sel) {
 		obj->invert();
@@ -416,8 +416,8 @@ static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& trans
 }
 
 static void doRotate (const short l, const short m, const short n) {
-	vector<LDObject*> sel = g_win->sel();
-	vector<vertex*> queue;
+	List<LDObject*> sel = g_win->sel();
+	List<vertex*> queue;
 	const vertex rotpoint = rotPoint (sel);
 	const double angle = (pi * currentGrid().confs[Grid::Angle]->value) / 180;
 	
@@ -540,7 +540,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R)) {
 	const bool any = ui.any->isChecked(),
 		rel = ui.relative->isChecked();
 	
-	vector<Axis> sel;
+	List<Axis> sel;
 	int num = 0;
 	
 	if (ui.x->isChecked()) sel << X;
@@ -579,7 +579,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F)) {
 	if (!dlg->exec())
 		return;
 	
-	vector<Axis> sel;
+	List<Axis> sel;
 	if (ui.x->isChecked()) sel << X;
 	if (ui.y->isChecked()) sel << Y;
 	if (ui.z->isChecked()) sel << Z;
@@ -600,7 +600,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F)) {
 
 // ================================================================================================
 DEFINE_ACTION (Demote, 0) {
-	vector<LDObject*> sel = g_win->sel();
+	List<LDObject*> sel = g_win->sel();
 	int num = 0;
 	
 	for (LDObject* obj : sel) {

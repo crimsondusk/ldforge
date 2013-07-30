@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <vector>
 #include <stdint.h>
 #include <stdarg.h>
 #include <QString>

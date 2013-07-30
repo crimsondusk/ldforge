@@ -27,7 +27,7 @@
 #include "ldtypes.h"
 #include "file.h"
 
-str DoFormat( vector<StringFormatArg> args )
+str DoFormat( List<StringFormatArg> args )
 {
 	assert( args.size() >= 1 );
 	str text = args[0].value();
@@ -521,7 +521,7 @@ void LDBoundingBox::calcObject (LDObject* obj) {
 
 	case LDObject::Subfile: {
 		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-		vector<LDObject*> objs = ref->inlineContents (true, true);
+		List<LDObject*> objs = ref->inlineContents (true, true);
 	
 		for (LDObject* obj : objs) {
 			calcObject (obj);

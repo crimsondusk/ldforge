@@ -50,18 +50,18 @@ namespace LDPaths {
 // =============================================================================
 class LDOpenFile : public QObject {
 	Q_OBJECT
-	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
+	READ_PROPERTY (List<LDObject*>, objs, setObjects)
 	READ_PROPERTY (History, history, setHistory)
-	READ_PROPERTY (vector<LDObject*>, vertices, setVertices)
+	READ_PROPERTY (List<LDObject*>, vertices, setVertices)
 	PROPERTY (str, name, setName)
 	PROPERTY (bool, implicit, setImplicit)
-	PROPERTY (vector<LDObject*>, cache, setCache)
+	PROPERTY (List<LDObject*>, cache, setCache)
 	PROPERTY (long, savePos, setSavePos)
 	DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
 	
 public:
-	typedef vector<LDObject*>::it it;
-	typedef vector<LDObject*>::c_it c_it;
+	typedef List<LDObject*>::it it;
+	typedef List<LDObject*>::c_it c_it;
 	
 	LDOpenFile();
 	~LDOpenFile();
@@ -82,7 +82,7 @@ public:
 		return *this;
 	}
 	
-	LDOpenFile& operator<< (vector<LDObject*> objs);
+	LDOpenFile& operator<< (List<LDObject*> objs);
 	
 	it begin() {
 		return PROP_NAME (objs).begin();
@@ -164,15 +164,15 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
+List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
 
-extern vector<LDOpenFile*> g_loadedFiles;
+extern List<LDOpenFile*> g_loadedFiles;
 
 void addRecentFile (str path);
 str basename (str path);
 str dirname (str path);
 
-extern vector<LDOpenFile*> g_loadedFiles; // Vector of all currently opened files.
+extern List<LDOpenFile*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -184,11 +184,11 @@ extern vector<LDOpenFile*> g_loadedFiles; // Vector of all currently opened file
 // =============================================================================
 class FileLoader : public QObject {
 	Q_OBJECT
-	READ_PROPERTY (vector<LDObject*>, objs, setObjects)
+	READ_PROPERTY (List<LDObject*>, objs, setObjects)
 	READ_PROPERTY (bool, done, setDone)
 	READ_PROPERTY (ulong, progress, setProgress)
 	READ_PROPERTY (bool, aborted, setAborted)
-	PROPERTY (vector<str>, lines, setLines)
+	PROPERTY (List<str>, lines, setLines)
 	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
 	PROPERTY (bool, concurrent, setConcurrent)
 	

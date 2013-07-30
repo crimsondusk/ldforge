@@ -130,10 +130,10 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
-void writeObjects (vector<LDObject*>& objects, File& f) {
+void writeObjects (List<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
 		if (obj->getType() == LDObject::Subfile) {
-			vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
+			List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
 			
 			writeObjects (objs, f);
 			
@@ -144,7 +144,7 @@ void writeObjects (vector<LDObject*>& objects, File& f) {
 	}
 }
 
-void writeObjects (vector<LDObject*>& objects, str fname) {
+void writeObjects (List<LDObject*>& objects, str fname) {
 	// Write the input file
 	File f (fname, File::Write);
 	
@@ -164,7 +164,7 @@ void writeSelection (str fname) {
 
 // =============================================================================
 void writeColorGroup (const short colnum, str fname) {
-	vector<LDObject*> objects;
+	List<LDObject*> objects;
 	
 	for (LDObject* obj : *LDOpenFile::current()) {
 		if (obj->isColored() == false || obj->color() != colnum)
@@ -232,7 +232,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 }
 
 // ================================================================================================
-static void insertOutput (str fname, bool replace, vector<short> colorsToReplace) {
+static void insertOutput (str fname, bool replace, List<short> colorsToReplace) {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
 #endif // RELEASE
@@ -245,7 +245,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		return;
 	}
 	
-	vector<LDObject*> objs = loadFileContents (&f, null);
+	List<LDObject*> objs = loadFileContents (&f, null);
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)

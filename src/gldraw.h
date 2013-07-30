@@ -133,13 +133,13 @@ private:
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
 	ushort m_width, m_height;
-	vector<vertex> m_drawedVerts;
+	List<vertex> m_drawedVerts;
 	bool m_rectdraw;
 	vertex m_rectverts[4];
 	QColor m_bgcolor;
 	double m_depthValues[6];
 	overlayMeta m_overlays[6];
-	vector<vertex> m_knownVerts;
+	List<vertex> m_knownVerts;
 	bool m_panning;
 	
 	void           addDrawnVertex       (vertex m_hoverpos);

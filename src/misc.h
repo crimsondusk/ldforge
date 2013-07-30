@@ -66,7 +66,7 @@ enum RotationPoint
 	CustomPoint
 };
 
-vertex rotPoint (const vector<LDObject*>& objs);
+vertex rotPoint (const List<LDObject*>& objs);
 void configRotationPoint ();
 
 template<class T, class R> R container_cast (const T& a) {
@@ -128,7 +128,7 @@ public:
 	}
 	
 private:
-	vector<str> m_tokens;
+	List<str> m_tokens;
 	short m_pos;
 };
 

@@ -304,9 +304,9 @@ void FileLoader::abort() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
-	vector<str> lines;
-	vector<LDObject*> objs;
+List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
+	List<str> lines;
+	List<LDObject*> objs;
 	
 	if (numWarnings)
 		*numWarnings = 0;
@@ -362,7 +362,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	
 	ulong numWarnings;
 	bool ok;
-	vector<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
+	List<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
 	
 	if (!ok)
 		return null;
@@ -438,7 +438,7 @@ bool LDOpenFile::safeToClose() {
 // =============================================================================
 void closeAll() {
 	// Remove all loaded files and the objects they contain
-	vector<LDOpenFile*> files = g_loadedFiles;
+	List<LDOpenFile*> files = g_loadedFiles;
 	for( LDOpenFile* file : files )
 		delete file;
 }
@@ -867,8 +867,8 @@ void LDOpenFile::setObject (ulong idx, LDObject* obj) {
 	m_objs[idx] = obj;
 }
 
-static vector<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
-	vector<LDOpenFile*> filesUsed;
+static List<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
+	List<LDOpenFile*> filesUsed;
 	
 	for (LDObject* obj : *node) {
 		if (obj->getType() != LDObject::Subfile)
@@ -885,7 +885,7 @@ static vector<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
 // =============================================================================
 // Find out which files are unused and close them.
 void LDOpenFile::closeUnused () {
-	vector<LDOpenFile*> filesUsed = getFilesUsed (LDOpenFile::current());
+	List<LDOpenFile*> filesUsed = getFilesUsed (LDOpenFile::current());
 	
 	// Anything that's explicitly opened must not be closed
 	for (LDOpenFile* file : g_loadedFiles)
@@ -929,7 +929,7 @@ ulong LDOpenFile::numObjs() const {
 	return m_objs.size();
 }
 
-LDOpenFile& LDOpenFile::operator<< (vector<LDObject*> objs) {
+LDOpenFile& LDOpenFile::operator<< (List<LDObject*> objs) {
 	for (LDObject* obj : objs)
 		addObject (obj);
 	

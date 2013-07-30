@@ -314,7 +314,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	matrix transform = g_identity;
 	if( type == LDObject::Subfile ) {
-		vector<str> matrixstrvals = container_cast<QStringList, vector<str>> (str (dlg.le_matrix->text ()).split (" "));
+		List<str> matrixstrvals = container_cast<QStringList, List<str>> (str (dlg.le_matrix->text ()).split (" "));
 		
 		if (matrixstrvals.size () == 9) {
 			double matrixvals[9];

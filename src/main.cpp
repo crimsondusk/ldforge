@@ -29,7 +29,7 @@
 #include "types.h"
 #include "primitives.h"
 
-vector<LDOpenFile*> g_loadedFiles;
+List<LDOpenFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);

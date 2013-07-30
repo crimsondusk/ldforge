@@ -43,12 +43,12 @@ public:
 		Type type;
 	};
 	
-	typedef vector<RegexEntry>::it it;
-	typedef vector<RegexEntry>::c_it c_it;
+	typedef List<RegexEntry>::it it;
+	typedef List<RegexEntry>::c_it c_it;
 	
-	vector<RegexEntry> regexes;
-	vector<Primitive> prims;
-	static vector<Primitive> uncat;
+	List<RegexEntry> regexes;
+	List<Primitive> prims;
+	static List<Primitive> uncat;
 };
 
 // =============================================================================
@@ -74,10 +74,10 @@ signals:
 	void update (ulong i);
 	
 private:
-	vector<Primitive> m_prims;
+	List<Primitive> m_prims;
 };
 
-extern vector<PrimitiveCategory> g_PrimitiveCategories;
+extern List<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives ();
 bool primitiveLoaderBusy ();

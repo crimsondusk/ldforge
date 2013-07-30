@@ -222,7 +222,7 @@ void GLRenderer::setBackground() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static vector<short> g_warnedColors;
+static List<short> g_warnedColors;
 void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	QColor qcol;
 	
@@ -762,7 +762,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 	case LDObject::Subfile:
 		{
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			vector<LDObject*> objs = ref->inlineContents (true, true);
+			List<LDObject*> objs = ref->inlineContents (true, true);
 			
 			bool oldinvert = g_glInvert;
 			
@@ -1067,7 +1067,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
-		vector<LDObject*> oldsel = g_win->sel();
+		List<LDObject*> oldsel = g_win->sel();
 		g_win->sel().clear();
 		
 		for (LDObject* obj : oldsel) {
@@ -1245,7 +1245,7 @@ void GLRenderer::endDraw (bool accept) {
 	(void) accept;
 	
 	// Clean the selection and create the object
-	vector<vertex>& verts = m_drawedVerts;
+	List<vertex>& verts = m_drawedVerts;
 	LDObject* obj = null;
 	
 	if (m_rectdraw) {
@@ -1299,14 +1299,14 @@ void GLRenderer::endDraw (bool accept) {
 	m_rectdraw = false;
 }
 
-static vector<vertex> getVertices (LDObject* obj) {
-	vector<vertex> verts;
+static List<vertex> getVertices (LDObject* obj) {
+	List<vertex> verts;
 	
 	if (obj->vertices() >= 2) {
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile) {
-		vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
+		List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
 		
 		for(LDObject* obj : objs) {
 			verts << getVertices (obj);
@@ -1337,7 +1337,7 @@ void GLRenderer::compileObject (LDObject* obj) {
 	}
 	
 	// Mark in known vertices of this object
-	vector<vertex> verts = getVertices (obj);
+	List<vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
 	m_knownVerts.makeUnique();
 	

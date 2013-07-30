@@ -39,7 +39,7 @@ class RadioBox : public QGroupBox {
 	Q_OBJECT
 	
 public:
-	typedef vector<QRadioButton*>::it it;
+	typedef List<QRadioButton*>::it it;
 	
 	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
 	explicit RadioBox () { init (Qt::Vertical); }
@@ -68,8 +68,8 @@ signals:
 	void valueChanged (int val);
 
 private:
-	vector<QRadioButton*> m_objects;
-	vector<QBoxLayout*> m_layouts;
+	List<QRadioButton*> m_objects;
+	List<QBoxLayout*> m_layouts;
 	QBoxLayout* m_coreLayout;
 	QBoxLayout* m_currentLayout;
 	bool m_vert;

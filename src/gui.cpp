@@ -151,7 +151,7 @@ void ForgeWindow::updateRecentFilesMenu() {
 		delete recent;
 	m_recentFiles.clear();
 	
-	vector<str> files = container_cast<QStringList, vector<str>> (io_recentfiles.value.split ("@"));
+	List<str> files = container_cast<QStringList, List<str>> (io_recentfiles.value.split ("@"));
 	for (str file : c_rev<str> (files)) {
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 		
@@ -164,8 +164,8 @@ void ForgeWindow::updateRecentFilesMenu() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDQuickColor> quickColorsFromConfig() {
-	vector<LDQuickColor> colors;
+List<LDQuickColor> quickColorsFromConfig() {
+	List<LDQuickColor> colors;
 	
 	for (str colorname : gui_colortoolbar.value.split (":")) {
 		if (colorname == "|") {
@@ -253,7 +253,7 @@ int ForgeWindow::deleteSelection()
 	if( m_sel.size() == 0 )
 		return 0;
 	
-	vector<LDObject*> selCopy = m_sel;
+	List<LDObject*> selCopy = m_sel;
 	int num = 0;
 	
 	// Delete the objects that were being selected
@@ -406,7 +406,7 @@ void ForgeWindow::slot_selectionChanged() {
 	if (m_renderer->picking())
 		return;
 	
-	vector<LDObject*> priorSelection = m_sel;
+	List<LDObject*> priorSelection = m_sel;
 	
 	// Get the objects from the object list selection
 	m_sel.clear();
@@ -622,7 +622,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 }
 
 // =============================================================================
-void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
+void ForgeWindow::deleteObjVector (List<LDObject*> objs) {
 	for (LDObject* obj : objs) {
 		LDOpenFile::current()->forgetObject (obj);
 		delete obj;
@@ -631,7 +631,7 @@ void ForgeWindow::deleteObjVector (vector<LDObject*> objs) {
 
 // =============================================================================
 void ForgeWindow::deleteByColor (const short colnum) {
-	vector<LDObject*> objs;
+	List<LDObject*> objs;
 	for (LDObject* obj : LDOpenFile::current()->objs()) {
 		if (!obj->isColored() || obj->color() != colnum)
 			continue;

@@ -27,10 +27,10 @@
 #include "misc.h"
 #include "colors.h"
 
-vector<PrimitiveCategory> g_PrimitiveCategories;
+List<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
-vector<Primitive> g_primitives;
+List<Primitive> g_primitives;
 
 static const str g_Other = QObject::tr ("Other");
 
@@ -71,7 +71,7 @@ void loadPrimitives() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void recursiveGetFilenames (QDir dir, vector<str>& fnames) {
+static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 	QFileInfoList flist = dir.entryInfoList();
 	
 	for (const QFileInfo & info : flist) {
@@ -95,7 +95,7 @@ void PrimitiveLister::work() {
 	QDir dir (LDPaths::prims());
 	ulong baselen = dir.absolutePath().length();
 	ulong i = 0;
-	vector<str> fnames;
+	List<str> fnames;
 	
 	assert (dir.exists());
 	recursiveGetFilenames (dir, fnames);
@@ -183,6 +183,7 @@ static void populateCategories() {
 
 	for (Primitive& prim : g_primitives) {
 		bool matched = false;
+		prim.cat = null;
 		
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
@@ -291,9 +292,9 @@ static double radialPoint (int i, int divs, double (*func) (double)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
-	vector<LDObject*> objs;
-	vector<int> condLineSegs;
+List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
+	List<LDObject*> objs;
+	List<int> condLineSegs;
 	
 	for (int i = 0; i < segs; ++i) {
 		double x0 = radialPoint (i, divs, cos),

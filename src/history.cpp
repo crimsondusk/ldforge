@@ -73,7 +73,7 @@ void History::redo() {
 }
 
 void History::clear() {
-	for (vector<AbstractHistoryEntry*> set : m_changesets)
+	for (List<AbstractHistoryEntry*> set : m_changesets)
 		for (AbstractHistoryEntry * change : set)
 			delete change;
 	

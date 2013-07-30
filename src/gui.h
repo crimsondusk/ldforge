@@ -105,13 +105,13 @@ public:
 	LDObject::Type uniformSelectedType();
 	void scrollToSelection();
 	void spawnContextMenu (const QPoint pos);
-	void deleteObjVector (vector< LDObject* > objs);
+	void deleteObjVector (List< LDObject* > objs);
 	int deleteSelection();
 	void deleteByColor (const short int colnum);
 	void save (LDOpenFile* f, bool saveAs);
 	GLRenderer* R() { return m_renderer; }
-	vector<LDObject*>& sel() { return m_sel; }
-	void setQuickColors (vector<LDQuickColor>& colors) { m_quickColors = colors; }
+	List<LDObject*>& sel() { return m_sel; }
+	void setQuickColors (List<LDQuickColor>& colors) { m_quickColors = colors; }
 	void setStatusBarText (str text);
 	void addMessage (str msg);
 	Ui_LDForgeUI* interface() const;
@@ -137,10 +137,10 @@ private:
 	GLRenderer* m_renderer;
 	QProgressBar* m_primLoaderBar;
 	QWidget* m_primLoaderWidget;
-	vector<LDObject*> m_sel;
-	vector<LDQuickColor> m_quickColors;
-	vector<QToolButton*> m_colorButtons;
-	vector<QAction*> m_recentFiles;
+	List<LDObject*> m_sel;
+	List<LDQuickColor> m_quickColors;
+	List<QToolButton*> m_colorButtons;
+	List<QAction*> m_recentFiles;
 	MessageManager* m_msglog;
 	Ui_LDForgeUI* ui;
 	
@@ -166,7 +166,7 @@ extern ForgeWindow* g_win;
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (str iconName); // Get an icon from the resource dir
-vector<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
+List<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
 bool confirm (str title, str msg); // Generic confirm prompt
 bool confirm (str msg); // Generic confirm prompt
 void critical (str msg); // Generic error prompt
@@ -179,7 +179,7 @@ QImage imageFromScreencap (uchar* data, ushort w, ushort h);
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
 // =============================================================================
-template<class T> T radioSwitch (const T& defval, vector<pair<QRadioButton*, T>> haystack) {
+template<class T> T radioSwitch (const T& defval, List<pair<QRadioButton*, T>> haystack) {
 	for (pair<QRadioButton*, const T&> i : haystack)
 		if (i.first->isChecked())
 			return i.second;
@@ -192,7 +192,7 @@ template<class T> T radioSwitch (const T& defval, vector<pair<QRadioButton*, T>>
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
 // =============================================================================
-template<class T> void radioDefault (const T& expr, vector<pair<QRadioButton*, T>> haystack) {
+template<class T> void radioDefault (const T& expr, List<pair<QRadioButton*, T>> haystack) {
 	for (pair<QRadioButton*, const T&> i : haystack) {
 		if (i.second == expr) {
 			i.first->setChecked (true);

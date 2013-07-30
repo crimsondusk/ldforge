@@ -56,7 +56,7 @@ public:
 
 private:
 	Ui_OverlayUI* ui;
-	vector<pair<QRadioButton*, int>> m_cameraArgs;
+	List<pair<QRadioButton*, int>> m_cameraArgs;
 
 private slots:
 	void slot_fpath();

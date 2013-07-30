@@ -429,7 +429,7 @@ void ConfigDialog::setButtonBackground (QPushButton* button, str value) {
 }
 
 // =============================================================================
-int ConfigDialog::getItemRow (QListWidgetItem* item, vector<QListWidgetItem*>& haystack) {
+int ConfigDialog::getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack) {
 	int i = 0;
 	
 	for (QListWidgetItem* it : haystack) {

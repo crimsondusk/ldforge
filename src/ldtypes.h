@@ -98,7 +98,7 @@ public:
 	virtual void invert();                      // Inverts this object (winding is reversed)
 	virtual bool isColored() const;             // Is this object colored?
 	virtual bool isScemantic() const;           // Does this object have meaning in the part model?
-	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement vector
+	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
 	LDObject* next() const;                     // Object after this in the current file
 	LDObject* prev() const;                     // Object prior to this in the current file
 	virtual str raw() { return ""; }            // This object as LDraw code
@@ -112,8 +112,8 @@ public:
 	
 	static str typeName (LDObject::Type type); // Get type name by enumerator
 	static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-	static void moveObjects (vector<LDObject*> objs, const bool up); // TODO: move this to LDOpenFile?
-	static str objectListContents (const vector<LDObject*>& objs); // Get a description of a list of LDObjects
+	static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDOpenFile?
+	static str objectListContents (const List<LDObject*>& objs); // Get a description of a list of LDObjects
 	static LDObject* fromID (int id);
 	
 	// TODO: make these private!
@@ -282,7 +282,7 @@ public:
 
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	vector<LDObject*> inlineContents (bool deep, bool cache);
+	List<LDObject*> inlineContents (bool deep, bool cache);
 };
 
 // =============================================================================
@@ -366,7 +366,7 @@ public:
 	LDQuadObject() {}
 
 	// Split this quad into two triangles (note: heap-allocated)
-	vector<LDTriangleObject*> splitToTriangles();
+	List<LDTriangleObject*> splitToTriangles();
 };
 
 // =============================================================================

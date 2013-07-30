@@ -324,7 +324,7 @@ DEFINE_ACTION (InsertFrom, 0) {
 		return;
 	}
 	
-	vector<LDObject*> objs = loadFileContents (&f, null);
+	List<LDObject*> objs = loadFileContents (&f, null);
 	
 	g_win->sel().clear();
 	

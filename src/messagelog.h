@@ -43,8 +43,8 @@ public:
 		QDateTime expiry;
 	};
 	
-	typedef vector<Line>::it it;
-	typedef vector<Line>::c_it c_it;
+	typedef List<Line>::it it;
+	typedef List<Line>::c_it c_it;
 	
 	explicit MessageManager( QObject* parent = 0 );
 	void addLine( str line );
@@ -54,7 +54,7 @@ public:
 	MessageManager& operator<<( str line );
 	
 private:
-	vector<Line> m_lines;
+	List<Line> m_lines;
 	QTimer* m_ticker;
 	
 private slots:

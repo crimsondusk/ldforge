@@ -205,7 +205,7 @@ void simplify (short& numer, short& denom) {
 }
 
 // =============================================================================
-vertex rotPoint( const vector<LDObject*>& objs )
+vertex rotPoint( const List<LDObject*>& objs )
 {
 	LDBoundingBox box;
 	
@@ -302,7 +302,7 @@ double atof( str val )
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 StringParser::StringParser (str inText, char sep) {
-	m_tokens = container_cast<QStringList, vector<str>> (inText.split (sep, QString::SkipEmptyParts));
+	m_tokens = container_cast<QStringList, List<str>> (inText.split (sep, QString::SkipEmptyParts));
 	m_pos = -1;
 }
 
