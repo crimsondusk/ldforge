@@ -26,14 +26,24 @@
 
 class GLRenderer;
 class QTimer;
-class MessageManager : public QObject
-{
+
+/* The message manager is an object which keeps track of messages that appear
+ * on the renderer's screen. Each line is contained in a separate object which
+ * contains the text, expiry time and alpha. The message manager is doubly
+ * linked to its corresponding renderer.
+ *
+ * Message manager calls its tick() function regularly to update the messages,
+ * where each line's expiry is checked for. Lines begin to fade out when nearing
+ * their expiry. If the message manager's lines change, the renderer undergoes
+ * repainting.
+ */
+class MessageManager : public QObject {
 	Q_OBJECT
 	PROPERTY( GLRenderer*, renderer, setRenderer )
 	
 public:
-	class Line
-	{
+	// Single line of the message log.
+	class Line {
 	public:
 		Line( str text );
 		bool update( bool& changed );
