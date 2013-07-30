@@ -26,36 +26,40 @@ static const unsigned int g_maxMessages = 5;
 static const int g_expiry = 5;
 static const int g_fadeTime = 500; // msecs
 
-MessageManager::MessageManager( QObject* parent ) : QObject( parent )
+// =============================================================================
+// -----------------------------------------------------------------------------
+MessageManager::MessageManager( QObject* parent ) :
+	QObject( parent )
 {
 	m_ticker = new QTimer;
 	m_ticker->start( 100 );
 	connect( m_ticker, SIGNAL( timeout() ), this, SLOT( tick() ));
 }
 
-MessageManager::Line::Line( str text ) : text( text ), alpha( 1.0f )
-{
-	// Init expiry
-	expiry = QDateTime::currentDateTime().addSecs( g_expiry );
-}
+// =============================================================================
+// -----------------------------------------------------------------------------
+MessageManager::Line::Line( str text ) :
+	text( text ),
+	alpha( 1.0f ),
+	expiry( QDateTime::currentDateTime().addSecs( g_expiry )) {}
 
 // =============================================================================
 // Check this line's expiry and update alpha accordingly. Returns true if the
-// line is still around, false if it expired.
-bool MessageManager::Line::update( bool& changed )
-{
+// line is to still stick around, false if it expired. 'changed' is updated to
+// whether the line has somehow changed since the last update.
+bool MessageManager::Line::update( bool& changed ) {
 	changed = false;
 	
 	QDateTime now = QDateTime::currentDateTime();
-	if( now >= expiry )
-	{
+	if( now >= expiry ) {
+		// Message line has expired
 		changed = true;
 		return false;
 	}
 	
 	int msec = now.msecsTo( expiry );
-	if( msec <= g_fadeTime )
-	{
+	if( msec <= g_fadeTime ) {
+		// Message line has not expired but is fading out
 		alpha = ( (float) msec ) / g_fadeTime;
 		changed = true;
 	}
@@ -63,8 +67,10 @@ bool MessageManager::Line::update( bool& changed )
 	return true;
 }
 
-void MessageManager::addLine( str line )
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Add a line to the message manager.
+void MessageManager::addLine( str line ) {
 	// If there's too many entries, pop the excess out
 	while( m_lines.size() >= g_maxMessages )
 		m_lines.erase( 0 );
@@ -76,21 +82,25 @@ void MessageManager::addLine( str line )
 		renderer()->update();
 }
 
-MessageManager& MessageManager::operator<<( str line )
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Shortcut
+MessageManager& MessageManager::operator<<( str line ) {
 	addLine( line );
 	return *this;
 }
 
-void MessageManager::tick()
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+// Ticks the message manager. All lines are ticked and the renderer scene is
+// redrawn if something changed.
+void MessageManager::tick() {
 	if( m_lines.size() == 0 )
 		return;
 	
 	bool changed = false;
 	
-	for( uint i = 0; i < m_lines.size(); ++i )
-	{
+	for( uint i = 0; i < m_lines.size(); ++i ) {
 		bool lineChanged;
 		
 		if( !m_lines[i].update( lineChanged ))
@@ -103,19 +113,27 @@ void MessageManager::tick()
 		renderer()->update();
 }
 
-MessageManager::c_it MessageManager::begin() const
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+// C++11-for loop support
+MessageManager::c_it MessageManager::begin() const {
 	return m_lines.begin();
 }
 
-MessageManager::c_it MessageManager::end() const
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+MessageManager::c_it MessageManager::end() const {
 	return m_lines.end();
 }
 
-void DoLog( std::initializer_list<StringFormatArg> args )
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+// log() interface - format the argument list and add the resulting string to
+// the main message manager.
+void DoLog( std::initializer_list<StringFormatArg> args ) {
 	const str msg = DoFormat( args );
 	g_win->addMessage( msg );
+	
+	// Also print it to stdout
 	print( "%1\n", msg );
 }
