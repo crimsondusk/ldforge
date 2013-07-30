@@ -408,7 +408,7 @@ private:
 // A file interface with simple interface and support for range-for-loops.
 // =============================================================================
 class File {
-public:
+private:
 	// Iterator class to enable range-for-loop support. Rough hack.. don't use directly!
 	class iterator {
 	public:
@@ -424,7 +424,8 @@ public:
 		str m_text;
 		bool m_gotdata = false;
 	};
-	
+
+public:
 	enum OpenType {
 		Read,
 		Write,
