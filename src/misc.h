@@ -103,35 +103,6 @@ template<class T> void dataswap (T& a, T& b) {
 	b = c;
 }
 
-// =============================================================================
-// StringParser
-//
-// String parsing utility
-// =============================================================================
-class StringParser {
-public:
-	StringParser (str inText, char sep);
-	
-	bool atEnd ();
-	bool atBeginning ();
-	bool next (str& val);
-	bool peekNext (str& val);
-	bool getToken (str& val, const ushort pos);
-	bool findToken (short& result, char const* needle, short args);
-	size_t size ();
-	void rewind ();
-	void seek (short amount, bool rel);
-	bool tokenCompare (short inPos, const char* sOther);
-	
-	str operator[] (const size_t idx) {
-		return m_tokens[idx];
-	}
-	
-private:
-	List<str> m_tokens;
-	short m_pos;
-};
-
 // -----------------------------------------------------------------------------
 // Plural expression
 template<class T> static inline const char* plural (T n) {

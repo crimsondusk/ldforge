@@ -21,12 +21,12 @@
 #include "file.h"
 #include "misc.h"
 #include "gui.h"
-#include <qcolor.h>
+#include "ldconfig.h"
+#include <QColor>
 
 static LDColor* g_LDColors[MAX_COLORS];
 
-void initColors()
-{
+void initColors() {
 	print( "%1: initializing color information.\n", __func__ );
 	
 	LDColor* col;
@@ -47,10 +47,8 @@ void initColors()
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-LDColor* getColor( short colnum )
-{
+// -----------------------------------------------------------------------------
+LDColor* getColor( short colnum ) {
 	// Check bounds
 	if( colnum < 0 || colnum >= MAX_COLORS )
 		return null;
@@ -59,99 +57,18 @@ LDColor* getColor( short colnum )
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
+void setColor( short colnum, LDColor* col ) {
+	if( colnum < 0 || colnum >= MAX_COLORS )
+		return;
+	
+	g_LDColors[colnum] = col;
+}
+
+// =============================================================================
 uchar luma( QColor& col )
 {
 	return ( 0.2126f * col.red()) +
 	       ( 0.7152f * col.green()) +
 	       ( 0.0722f * col.blue() );
-}
-
-// =============================================================================
-// Helper function for parseLDConfig
-static bool parseLDConfigTag( StringParser& pars, char const* tag, str& val )
-{
-	short pos;
-
-	// Try find the token and get its position
-	if( !pars.findToken( pos, tag, 1 ))
-		return false;
-
-	// Get the token after it and store it into val
-	return pars.getToken( val, pos + 1 );
-}
-
-// =============================================================================
-void parseLDConfig()
-{
-	File* f = openLDrawFile( "LDConfig.ldr", false );
-	
-	if( !f )
-	{
-		critical( fmt( QObject::tr( "Unable to open LDConfig.ldr for parsing! (%1)" ), strerror( errno )) );
-		delete f;
-		return;
-	}
-	
-	// Read in the lines
-	for( str line : *f )
-	{
-		if( line.length() == 0 || line[0] != '0' )
-			continue; // empty or illogical
-		
-		line.remove( '\r' );
-		line.remove( '\n' );
-		
-		// Parse the line
-		StringParser pars( line, ' ' );
-		
-		short code = 0, alpha = 255;
-		str name, facename, edgename, valuestr;
-		
-		// Check 0 !COLOUR, parse the name
-		if( !pars.tokenCompare( 0, "0" ) || !pars.tokenCompare( 1, "!COLOUR" ) || !pars.getToken( name, 2 ))
-			continue;
-		
-		// Replace underscores in the name with spaces for readability
-		name.replace( "_", " " );
-		
-		// Get the CODE tag
-		if( !parseLDConfigTag( pars, "CODE", valuestr ))
-			continue;
-		
-		if( !isNumber( valuestr ))
-			continue; // not a number
-		
-		// Ensure that the code is within [0 - 511]
-		bool ok;
-		code = valuestr.toShort( &ok );
-		
-		if( !ok || code < 0 || code >= 512 )
-			continue;
-		
-		// VALUE and EDGE tags
-		if( !parseLDConfigTag( pars, "VALUE", facename ) || !parseLDConfigTag( pars, "EDGE", edgename ))
-			continue;
-		
-		// Ensure that our colors are correct
-		QColor faceColor( facename ),
-			edgeColor( edgename );
-		
-		if( !faceColor.isValid() || !edgeColor.isValid() )
-			continue;
-		
-		// Parse alpha if given.
-		if( parseLDConfigTag( pars, "ALPHA", valuestr ))
-			alpha = clamp<short> ( valuestr.toShort(), 0, 255 );
-		
-		LDColor* col = new LDColor;
-		col->name = name;
-		col->faceColor = faceColor;
-		col->edgeColor = edgeColor;
-		col->hexcode = facename;
-		col->faceColor.setAlpha( alpha );
-		col->index = code;
-		g_LDColors[code] = col;
-	}
-	
-	delete f;
 }
