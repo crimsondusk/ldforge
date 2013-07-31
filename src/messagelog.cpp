@@ -137,3 +137,5 @@ void DoLog( std::initializer_list<StringFormatArg> args ) {
 	// Also print it to stdout
 	print( "%1\n", msg );
 }
+
+#include "build/moc_messagelog.cpp"

@@ -134,3 +134,5 @@ RadioBox::it RadioBox::begin() {
 RadioBox::it RadioBox::end() {
 	return m_objects.end ();
 }
+
+#include "build/moc_widgets.cpp"

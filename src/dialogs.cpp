@@ -268,3 +268,5 @@ void OpenProgressDialog::updateProgress( int progress )
 	m_progress = progress;
 	updateValues ();
 }
+
+#include "build/moc_dialogs.cpp"

@@ -660,3 +660,5 @@ void KeySequenceDialog::keyPressEvent (QKeyEvent* ev) {
 	seq = ev->key() + ev->modifiers();
 	updateOutput();
 }
+
+#include "build/moc_configDialog.cpp"

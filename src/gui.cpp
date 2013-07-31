@@ -916,3 +916,5 @@ QImage imageFromScreencap (uchar* data, ushort w, ushort h) {
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	return QImage (data, w, h, QImage::Format_ARGB32).rgbSwapped().mirrored();
 }
+
+#include "build/moc_gui.cpp"

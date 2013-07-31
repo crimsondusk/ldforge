@@ -963,3 +963,5 @@ void LDFile::closeInitialFile() {
 		delete g_loadedFiles[0];
 	}
 }
+
+#include "build/moc_file.cpp"

@@ -566,3 +566,5 @@ void PrimitivePrompt::hiResToggled( bool on ) {
 	if( on && ui->sb_segs->value() == lores )
 		ui->sb_segs->setValue( hires );
 }
+
+#include "build/moc_primitives.cpp"

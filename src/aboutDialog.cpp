@@ -43,3 +43,5 @@ void AboutDialog::slot_mail()
 {
 	QDesktopServices::openUrl( QUrl( "mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge" ));
 }
+
+#include "build/moc_aboutDialog.cpp"
