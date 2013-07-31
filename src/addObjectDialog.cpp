@@ -373,7 +373,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 			if (name.length () == 0)
 				return; // no subfile filename
 			
-			LDOpenFile* file = getFile (name);
+			LDFile* file = getFile (name);
 			if (!file) {
 				critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
 				return;
@@ -398,7 +398,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	if (newObject) {
 		ulong idx = g_win->getInsertionPoint ();
-		LDOpenFile::current()->insertObj (idx, obj);
+		LDFile::current()->insertObj (idx, obj);
 	}
 	
 	g_win->fullRefresh ();

@@ -1227,12 +1227,12 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	update();
 }
 
-READ_ACCESSOR( LDOpenFile*, GLRenderer::file )
+READ_ACCESSOR( LDFile*, GLRenderer::file )
 {
 	return m_file;
 }
 
-SET_ACCESSOR( LDOpenFile*, GLRenderer::setFile )
+SET_ACCESSOR( LDFile*, GLRenderer::setFile )
 {
 	m_file = val;
 	

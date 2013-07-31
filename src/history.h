@@ -33,7 +33,7 @@ class AbstractHistoryEntry;
 // =============================================================================
 class History {
 	PROPERTY (long, pos, setPos)
-	PROPERTY (LDOpenFile*, file, setFile)
+	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (bool, opened, setOpened)
 	
 public:

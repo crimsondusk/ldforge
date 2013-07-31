@@ -196,7 +196,7 @@ void LDObject::replace (LDObject* other) {
 	assert (idx != -1);
 	
 	// Replace the instance of the old object with the new object
-	LDOpenFile::current()->setObject (idx, other);
+	LDFile::current()->setObject (idx, other);
 	
 	// Remove the old object
 	delete this;
@@ -206,14 +206,14 @@ void LDObject::replace (LDObject* other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : *LDOpenFile::current()) {
+	for (LDObject*& obj : *LDFile::current()) {
 		if (obj == this)
 			obj = other;
 		elif (obj == other)
 			obj = this;
 	}
 
-	LDOpenFile::current()->addToHistory (new SwapHistory (id(), other->id()));
+	LDFile::current()->addToHistory (new SwapHistory (id(), other->id()));
 }
 
 LDLineObject::LDLineObject (vertex v1, vertex v2) {
@@ -361,7 +361,7 @@ void LDObject::moveObjects (List<LDObject*> objs, const bool up) {
 		const long idx = obj->getIndex(),
 			target = idx + (up ? -1 : 1);
 		
-		if ((up && idx == 0) || (!up && idx == (long) (LDOpenFile::current()->objs().size() - 1))) {
+		if ((up && idx == 0) || (!up && idx == (long) (LDFile::current()->objs().size() - 1))) {
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
@@ -370,9 +370,9 @@ void LDObject::moveObjects (List<LDObject*> objs, const bool up) {
 		}
 		
 		objsToCompile << obj;
-		objsToCompile << LDOpenFile::current()->obj (target);
+		objsToCompile << LDFile::current()->obj (target);
 		
-		obj->swap (LDOpenFile::current()->obj (target));
+		obj->swap (LDFile::current()->obj (target));
 	}
 	
 	objsToCompile.makeUnique();
@@ -445,10 +445,10 @@ LDObject* LDObject::next() const {
 	long idx = getIndex();
 	assert (idx != -1);
 	
-	if (idx == (long) LDOpenFile::current()->numObjs() - 1)
+	if (idx == (long) LDFile::current()->numObjs() - 1)
 		return null;
 	
-	return LDOpenFile::current()->obj (idx + 1);
+	return LDFile::current()->obj (idx + 1);
 }
 
 // =============================================================================
@@ -459,7 +459,7 @@ LDObject* LDObject::prev() const {
 	if (idx == 0)
 		return null;
 	
-	return LDOpenFile::current()->obj (idx - 1);
+	return LDFile::current()->obj (idx - 1);
 }
 
 // =============================================================================
@@ -564,7 +564,7 @@ void LDSubfileObject::invert() {
 		
 		if (bfc && bfc->type == LDBFCObject::InvertNext) {
 			// This is prefixed with an invertnext, thus remove it.
-			LDOpenFile::current()->forgetObject (bfc);
+			LDFile::current()->forgetObject (bfc);
 			delete bfc;
 			return;
 		}
@@ -572,7 +572,7 @@ void LDSubfileObject::invert() {
 	
 	// Not inverted, thus prefix it with a new invertnext.
 	LDBFCObject* bfc = new LDBFCObject (LDBFCObject::InvertNext);
-	LDOpenFile::current()->insertObj (idx, bfc);
+	LDFile::current()->insertObj (idx, bfc);
 }
 
 static void invertLine (LDObject* line) {
@@ -638,7 +638,7 @@ template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
 		*ptr = val;
 		str after = obj->raw();
 		
-		LDOpenFile::current()->addToHistory (new EditHistory (idx, before, after));
+		LDFile::current()->addToHistory (new EditHistory (idx, before, after));
 	} else
 		*ptr = val;
 }

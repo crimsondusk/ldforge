@@ -166,7 +166,7 @@ void writeSelection (str fname) {
 void writeColorGroup (const short colnum, str fname) {
 	List<LDObject*> objects;
 	
-	for (LDObject* obj : *LDOpenFile::current()) {
+	for (LDObject* obj : *LDFile::current()) {
 		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 		
@@ -263,7 +263,7 @@ static void insertOutput (str fname, bool replace, List<short> colorsToReplace) 
 			continue;
 		}
 		
-		LDOpenFile::current()->addObject (obj);
+		LDFile::current()->addObject (obj);
 		g_win->sel() << obj;
 	}
 	

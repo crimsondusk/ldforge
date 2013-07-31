@@ -89,7 +89,7 @@ DEFINE_ACTION (Paste, CTRL (V)) {
 	
 	for (str line : clipboardText.split ("\n")) {
 		LDObject* pasted = parseLine (line);
-		LDOpenFile::current()->insertObj (idx++, pasted);
+		LDFile::current()->insertObj (idx++, pasted);
 		g_win->sel() << pasted;
 		g_win->R()->compileObject (pasted);
 		++num;
@@ -135,12 +135,12 @@ static void doInline (bool deep) {
 			delete inlineobj;
 		
 			LDObject* newobj = parseLine (line);
-			LDOpenFile::current()->insertObj (idx++, newobj);
+			LDFile::current()->insertObj (idx++, newobj);
 			g_win->sel() << newobj;
 		}
 		
 		// Delete the subfile now as it's been inlined.
-		LDOpenFile::current()->forgetObject (obj);
+		LDFile::current()->forgetObject (obj);
 		delete obj;
 	}
 	
@@ -176,8 +176,8 @@ DEFINE_ACTION (SplitQuads, 0) {
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		LDOpenFile::current()->setObject (index, triangles[0]);
-		LDOpenFile::current()->insertObj (index + 1, triangles[1]);
+		LDFile::current()->setObject (index, triangles[0]);
+		LDFile::current()->insertObj (index + 1, triangles[1]);
 		
 		// Delete this quad now, it has been split.
 		delete obj;
@@ -289,7 +289,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B)) {
 			ulong idx = obj->getIndex() + i + 1;
 			
 			lines[i]->setColor (edgecolor);
-			LDOpenFile::current()->insertObj (idx, lines[i]);
+			LDFile::current()->insertObj (idx, lines[i]);
 			g_win->R()->compileObject (lines[i]);
 		}
 		
@@ -317,7 +317,7 @@ DEFINE_ACTION (CornerVerts, 0) {
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());
 			
-			LDOpenFile::current()->insertObj (++idx, vert);
+			LDFile::current()->insertObj (++idx, vert);
 			g_win->R()->compileObject (vert);
 			++num;
 		}
@@ -348,11 +348,11 @@ DEFINE_ACTION (MoveDown, KEY (PageDown)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Undo, CTRL (Z)) {
-	LDOpenFile::current()->undo();
+	LDFile::current()->undo();
 }
 
 DEFINE_ACTION (Redo, CTRL_SHIFT (Z)) {
-	LDOpenFile::current()->redo();
+	LDFile::current()->redo();
 }
 
 // =============================================================================
@@ -618,7 +618,7 @@ DEFINE_ACTION (Demote, 0) {
 
 // =================================================================================================
 static bool isColorUsed (short colnum) {
-	for (LDObject* obj : LDOpenFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objs())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
 	

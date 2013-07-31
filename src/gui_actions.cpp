@@ -64,7 +64,7 @@ DEFINE_ACTION (New, CTRL (N)) {
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
-	LDOpenFile* f = LDOpenFile::current();
+	LDFile* f = LDFile::current();
 	*f << new LDCommentObject (ui.le_title->text());
 	*f << new LDCommentObject ("Name: <untitled>.dat" );
 	*f << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
@@ -96,21 +96,21 @@ DEFINE_ACTION (Open, CTRL (O)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Save, CTRL (S)) {
-	g_win->save (LDOpenFile::current(), false);
+	g_win->save (LDFile::current(), false);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S)) {
-	g_win->save (LDOpenFile::current(), true);
+	g_win->save (LDFile::current(), true);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (SaveAll, CTRL (L)) {
-	for (LDOpenFile* file : g_loadedFiles) {
+	for (LDFile* file : g_loadedFiles) {
 		if (file->implicit())
 			continue;
 		
@@ -122,10 +122,10 @@ DEFINE_ACTION (SaveAll, CTRL (L)) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (Close, CTRL (W)) {
-	if (!LDOpenFile::current()->safeToClose())
+	if (!LDFile::current()->safeToClose())
 		return;
 	
-	delete LDOpenFile::current();
+	delete LDFile::current();
 }
 
 // =============================================================================
@@ -225,7 +225,7 @@ DEFINE_ACTION (AboutQt, 0) {
 DEFINE_ACTION (SelectAll, CTRL (A)) {
 	g_win->sel().clear();
 	
-	for (LDObject* obj : LDOpenFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objs())
 		g_win->sel() << obj;
 	
 	g_win->updateSelection();
@@ -239,7 +239,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 		return; // no consensus on color
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDOpenFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objs())
 		if (obj->color() == colnum)
 			g_win->sel() << obj;
 	
@@ -269,7 +269,7 @@ DEFINE_ACTION (SelectByType, 0) {
 	}
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDOpenFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objs()) {
 		if (obj->getType() != type)
 			continue;
 		
@@ -329,7 +329,7 @@ DEFINE_ACTION (InsertFrom, 0) {
 	g_win->sel().clear();
 	
 	for (LDObject* obj : objs) {
-		LDOpenFile::current()->insertObj (idx, obj);
+		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		
 		idx++;
@@ -390,7 +390,7 @@ DEFINE_ACTION (InsertRaw, 0) {
 	for (str line : str (te_edit->toPlainText()).split ("\n")) {
 		LDObject* obj = parseLine (line);
 		
-		LDOpenFile::current()->insertObj (idx, obj);
+		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
 		idx++;
 	}
@@ -406,7 +406,7 @@ DEFINE_ACTION (Screenshot, 0) {
 	uchar* imgdata = g_win->R()->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 	
-	str root = basename (LDOpenFile::current()->name());
+	str root = basename (LDFile::current()->name());
 	if (root.right (4) == ".dat")
 		root.chop (4);
 	
@@ -482,7 +482,7 @@ DEFINE_ACTION (SetDrawDepth, 0) {
 // but I can't figure how to generate these pictures properly. Multi-threading
 // these is an immense pain.
 DEFINE_ACTION (testpic, "Test picture", "", "", (0)) {
-	LDOpenFile* file = getFile ("axle.dat");
+	LDFile* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 	
 	if (!file) {

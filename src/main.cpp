@@ -29,7 +29,7 @@
 #include "types.h"
 #include "primitives.h"
 
-List<LDOpenFile*> g_loadedFiles;
+List<LDFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);
@@ -60,7 +60,7 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 int main (int argc, char* argv[]) {
 	const QApplication app (argc, argv);
 	g_app = &app;
-	LDOpenFile::setCurrent (null);
+	LDFile::setCurrent (null);
 	
 	// Load or create the configuration
 	if (!config::load ()) {

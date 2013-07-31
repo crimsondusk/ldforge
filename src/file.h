@@ -24,7 +24,7 @@
 #include "history.h"
 #include <QObject>
 
-#define curfile LDOpenFile::current()
+#define curfile LDFile::current()
 
 class History;
 class OpenProgressDialog;
@@ -40,15 +40,15 @@ namespace LDPaths {
 }
 
 // =============================================================================
-// LDOpenFile
+// LDFile
 //
-// The LDOpenFile class stores a file opened in LDForge either as a editable file
+// The LDFile class stores a file opened in LDForge either as a editable file
 // for the user or for subfile caching. Its methods handle file input and output.
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
 // =============================================================================
-class LDOpenFile : public QObject {
+class LDFile : public QObject {
 	Q_OBJECT
 	READ_PROPERTY (List<LDObject*>, objs, setObjects)
 	READ_PROPERTY (History, history, setHistory)
@@ -63,8 +63,8 @@ public:
 	typedef List<LDObject*>::it it;
 	typedef List<LDObject*>::c_it c_it;
 	
-	LDOpenFile();
-	~LDOpenFile();
+	LDFile();
+	~LDFile();
 	
 	ulong addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
 	void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
@@ -77,12 +77,12 @@ public:
 	bool safeToClose();                              // Perform safety checks. Do this before closing any files!
 	void setObject (ulong idx, LDObject* obj);
 
-	LDOpenFile& operator<< (LDObject* obj) {
+	LDFile& operator<< (LDObject* obj) {
 		addObject (obj);
 		return *this;
 	}
 	
-	LDOpenFile& operator<< (List<LDObject*> objs);
+	LDFile& operator<< (List<LDObject*> objs);
 	
 	it begin() {
 		return PROP_NAME (objs).begin();
@@ -125,12 +125,12 @@ public:
 	}
 	
 	static void closeUnused();
-	static LDOpenFile* current();
-	static void setCurrent (LDOpenFile* f);
+	static LDFile* current();
+	static void setCurrent (LDFile* f);
 	static void closeInitialFile();
 	
 private:
-	static LDOpenFile* m_curfile;
+	static LDFile* m_curfile;
 };
 
 // Close all current loaded files and start off blank.
@@ -140,11 +140,11 @@ void newFile();
 void openMainFile (str path);
 
 // Finds an OpenFile by name or null if not open
-LDOpenFile* findLoadedFile (str name);
+LDFile* findLoadedFile (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDOpenFile* openDATFile (str path, bool search);
+LDFile* openDATFile (str path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 File* openLDrawFile (str relpath, bool subdirs);
@@ -156,7 +156,7 @@ void closeAll();
 LDObject* parseLine (str line);
 
 // Retrieves the pointer to - or loads - the given subfile.
-LDOpenFile* getFile (str filename);
+LDFile* getFile (str filename);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles();
@@ -166,13 +166,13 @@ bool safeToCloseAll();
 
 List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
 
-extern List<LDOpenFile*> g_loadedFiles;
+extern List<LDFile*> g_loadedFiles;
 
 void addRecentFile (str path);
 str basename (str path);
 str dirname (str path);
 
-extern List<LDOpenFile*> g_loadedFiles; // Vector of all currently opened files.
+extern List<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

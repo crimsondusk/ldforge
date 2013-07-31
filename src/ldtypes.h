@@ -51,7 +51,7 @@ public: \
 
 class QListWidgetItem;
 class LDSubfileObject;
-class LDOpenFile;
+class LDFile;
 
 // =============================================================================
 // LDObject
@@ -65,7 +65,7 @@ class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
-	PROPERTY (LDOpenFile*, file, setFile)
+	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (qint32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 
@@ -112,7 +112,7 @@ public:
 	
 	static str typeName (LDObject::Type type); // Get type name by enumerator
 	static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-	static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDOpenFile?
+	static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDFile?
 	static str objectListContents (const List<LDObject*>& objs); // Get a description of a list of LDObjects
 	static LDObject* fromID (int id);
 	
@@ -273,7 +273,7 @@ class LDSubfileObject : public LDObject, public LDMatrixObject {
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (LDOpenFile*, fileInfo, setFileInfo)
+	PROPERTY (LDFile*, fileInfo, setFileInfo)
 
 public:
 	LDSubfileObject() {

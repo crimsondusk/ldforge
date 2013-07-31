@@ -529,7 +529,7 @@ void generatePrimitive() {
 	if( divs == hires )
 		descr.insert( 0, "Hi-Res " );
 	
-	LDOpenFile* f = new LDOpenFile;
+	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
 	
 	*f << new LDCommentObject (descr);

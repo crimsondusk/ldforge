@@ -29,7 +29,7 @@ class RadioBox;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
-class LDOpenFile;
+class LDFile;
 class QTimer;
 
 enum EditMode {
@@ -60,7 +60,7 @@ class GLRenderer : public QGLWidget {
 	PROPERTY( double, zoom, setZoom )
 	PROPERTY( MessageManager*, msglog, setMessageLog )
 	READ_PROPERTY (bool, picking, setPicking)
-	DECLARE_PROPERTY (LDOpenFile*, file, setFile)
+	DECLARE_PROPERTY (LDFile*, file, setFile)
 	DECLARE_PROPERTY (EditMode, editMode, setEditMode)
 	
 public:

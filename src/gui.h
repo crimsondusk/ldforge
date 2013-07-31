@@ -99,7 +99,7 @@ public:
 	void updateGridToolBar();
 	void updateEditModeActions();
 	void updateFileList();
-	void updateFileListItem (LDOpenFile* f);
+	void updateFileListItem (LDFile* f);
 	bool isSelected (LDObject* obj);
 	short getSelectedColor();
 	LDObject::Type uniformSelectedType();
@@ -108,7 +108,7 @@ public:
 	void deleteObjVector (List< LDObject* > objs);
 	int deleteSelection();
 	void deleteByColor (const short int colnum);
-	void save (LDOpenFile* f, bool saveAs);
+	void save (LDFile* f, bool saveAs);
 	GLRenderer* R() { return m_renderer; }
 	List<LDObject*>& sel() { return m_sel; }
 	void setQuickColors (List<LDQuickColor>& colors) { m_quickColors = colors; }

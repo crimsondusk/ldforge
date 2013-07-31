@@ -38,9 +38,9 @@ static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
 static bool g_aborted = false;
 
-LDOpenFile* LDOpenFile::m_curfile = null;
+LDFile* LDFile::m_curfile = null;
 
-DEFINE_PROPERTY (QListWidgetItem*, LDOpenFile, listItem, setListItem)
+DEFINE_PROPERTY (QListWidgetItem*, LDFile, listItem, setListItem)
 
 // =============================================================================
 namespace LDPaths {
@@ -93,7 +93,7 @@ namespace LDPaths {
 }
 
 // =============================================================================
-LDOpenFile::LDOpenFile() {
+LDFile::LDFile() {
 	setImplicit (true);
 	setSavePos (-1);
 	setListItem (null);
@@ -101,7 +101,7 @@ LDOpenFile::LDOpenFile() {
 }
 
 // =============================================================================
-LDOpenFile::~LDOpenFile() {
+LDFile::~LDFile() {
 	// Clear everything from the model
 	for (LDObject* obj : m_objs)
 		delete obj;
@@ -120,20 +120,20 @@ LDOpenFile::~LDOpenFile() {
 	
 	// If we just closed the current file, we need to set the current
 	// file as something else.
-	if( this == LDOpenFile::current() ) {
+	if( this == LDFile::current() ) {
 		// If we closed the last file, create a blank one.
 		if( g_loadedFiles.size() == 0 )
 			newFile();
 		else
-			LDOpenFile::setCurrent( g_loadedFiles[0] );
+			LDFile::setCurrent( g_loadedFiles[0] );
 	}
 	
 	g_win->updateFileList();
 }
 
 // =============================================================================
-LDOpenFile* findLoadedFile (str name) {
-	for (LDOpenFile* file : g_loadedFiles)
+LDFile* findLoadedFile (str name) {
+	for (LDFile* file : g_loadedFiles)
 		if (file->name () == name)
 			return file;
 	
@@ -177,10 +177,10 @@ File* openLDrawFile (str relpath, bool subdirs) {
 	relpath.replace ("\\", "/");
 #endif // WIN32
 	
-	if (LDOpenFile::current()) {
+	if (LDFile::current()) {
 		// First, try find the file in the current model's file path. We want a file
 		// in the immediate vicinity of the current model to override stock LDraw stuff.
-		str partpath = fmt ("%1" DIRSLASH "%2", dirname (LDOpenFile::current()->name ()), relpath);
+		str partpath = fmt ("%1" DIRSLASH "%2", dirname (LDFile::current()->name ()), relpath);
 		
 		if (f->open (partpath, File::Read)) {
 			return f;
@@ -337,7 +337,7 @@ List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* openDATFile (str path, bool search) {
+LDFile* openDATFile (str path, bool search) {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
@@ -357,7 +357,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	if (!f)
 		return null;
 	
-	LDOpenFile* load = new LDOpenFile;
+	LDFile* load = new LDFile;
 	load->setName (path);
 	
 	ulong numWarnings;
@@ -374,7 +374,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 	g_loadedFiles << load;
 	
 	if (g_loadingMainFile) {
-		LDOpenFile::setCurrent (load);
+		LDFile::setCurrent (load);
 		g_win->R()->setFile (load);
 		log (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
 	}
@@ -385,7 +385,7 @@ LDOpenFile* openDATFile (str path, bool search) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool LDOpenFile::safeToClose() {
+bool LDFile::safeToClose() {
 	typedef QMessageBox msgbox;
 	setlocale (LC_ALL, "C");
 	
@@ -402,7 +402,7 @@ bool LDOpenFile::safeToClose() {
 			// If we don't have a file path yet, we have to ask the user for one.
 			if (name().length() == 0) {
 				str newpath = QFileDialog::getSaveFileName (g_win, "Save As",
-					LDOpenFile::current()->name(), "LDraw files (*.dat *.ldr)");
+					LDFile::current()->name(), "LDraw files (*.dat *.ldr)");
 				
 				if (newpath.length() == 0)
 					return false;
@@ -438,8 +438,8 @@ bool LDOpenFile::safeToClose() {
 // =============================================================================
 void closeAll() {
 	// Remove all loaded files and the objects they contain
-	List<LDOpenFile*> files = g_loadedFiles;
-	for( LDOpenFile* file : files )
+	List<LDFile*> files = g_loadedFiles;
+	for( LDFile* file : files )
 		delete file;
 }
 
@@ -448,13 +448,13 @@ void closeAll() {
 // =============================================================================
 void newFile () {
 	// Create a new anonymous file and set it to our current
-	LDOpenFile* f = new LDOpenFile;
+	LDFile* f = new LDFile;
 	f->setName ("");
 	f->setImplicit (false);
 	g_loadedFiles << f;
-	LDOpenFile::setCurrent (f);
+	LDFile::setCurrent (f);
 	
-	LDOpenFile::closeInitialFile();
+	LDFile::closeInitialFile();
 	
 	g_win->R()->setFile (f);
 	g_win->fullRefresh();
@@ -498,7 +498,7 @@ void addRecentFile (str path) {
 // =============================================================================
 void openMainFile (str path) {
 	g_loadingMainFile = true;
-	LDOpenFile* file = openDATFile (path, false);
+	LDFile* file = openDATFile (path, false);
 	
 	if (!file) {
 		// Loading failed, thus drop down to a new file since we
@@ -519,7 +519,7 @@ void openMainFile (str path) {
 	
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
-	LDOpenFile::closeInitialFile();
+	LDFile::closeInitialFile();
 	
 	// Rebuild the object tree view now.
 	g_win->fullRefresh();
@@ -531,13 +531,13 @@ void openMainFile (str path) {
 	addRecentFile (path);
 	g_loadingMainFile = false;
 	
-	LDOpenFile::setCurrent (file);
+	LDFile::setCurrent (file);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-bool LDOpenFile::save (str savepath) {
+bool LDFile::save (str savepath) {
 	if (!savepath.length())
 		savepath = name();
 	
@@ -691,7 +691,7 @@ LDObject* parseLine (str line) {
 		// not loading the main file now, but the subfile in question.
 		bool tmp = g_loadingMainFile;
 		g_loadingMainFile = false;
-		LDOpenFile* load = getFile (tokens[14]);
+		LDFile* load = getFile (tokens[14]);
 		g_loadingMainFile = tmp;
 		
 		// If we cannot open the file, mark it an error
@@ -769,9 +769,9 @@ LDObject* parseLine (str line) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-LDOpenFile* getFile (str filename) {
+LDFile* getFile (str filename) {
 	// Try find the file in the list of loaded files
-	LDOpenFile* load = findLoadedFile (filename);
+	LDFile* load = findLoadedFile (filename);
 	
 	// If it's not loaded, try open it
 	if (!load)
@@ -784,17 +784,17 @@ LDOpenFile* getFile (str filename) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void reloadAllSubfiles () {
-	if (!LDOpenFile::current())
+	if (!LDFile::current())
 		return;
 	
 	g_loadedFiles.clear();
-	g_loadedFiles << LDOpenFile::current();
+	g_loadedFiles << LDFile::current();
 	
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : LDOpenFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objs()) {
 		if (obj->getType() == LDObject::Subfile) {
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			LDOpenFile* fileInfo = getFile (ref->fileInfo()->name());
+			LDFile* fileInfo = getFile (ref->fileInfo()->name());
 			
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
@@ -809,13 +809,13 @@ void reloadAllSubfiles () {
 	}
 	
 	// Close all files left unused
-	LDOpenFile::closeUnused();
+	LDFile::closeUnused();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ulong LDOpenFile::addObject (LDObject* obj) {
+ulong LDFile::addObject (LDObject* obj) {
 	m_history.add (new AddHistory (m_objs.size(), obj));
 	m_objs << obj;
 	
@@ -829,7 +829,7 @@ ulong LDOpenFile::addObject (LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
+void LDFile::insertObj (const ulong pos, LDObject* obj) {
 	m_history.add (new AddHistory (pos, obj));
 	m_objs.insert (pos, obj);
 	obj->setFile (this);
@@ -838,7 +838,7 @@ void LDOpenFile::insertObj (const ulong pos, LDObject* obj) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDOpenFile::forgetObject (LDObject* obj) {
+void LDFile::forgetObject (LDObject* obj) {
 	ulong idx = obj->getIndex();
 	m_history.add (new DelHistory (idx, obj));
 	m_objs.erase (idx);
@@ -847,7 +847,7 @@ void LDOpenFile::forgetObject (LDObject* obj) {
 
 // =============================================================================
 bool safeToCloseAll () {
-	for (LDOpenFile* f : g_loadedFiles)
+	for (LDFile* f : g_loadedFiles)
 		if (!f->safeToClose())
 			return false;
 	
@@ -855,7 +855,7 @@ bool safeToCloseAll () {
 }
 
 // =============================================================================
-void LDOpenFile::setObject (ulong idx, LDObject* obj) {
+void LDFile::setObject (ulong idx, LDObject* obj) {
 	assert (idx < numObjs());
 	
 	// Mark this change to history
@@ -867,8 +867,8 @@ void LDOpenFile::setObject (ulong idx, LDObject* obj) {
 	m_objs[idx] = obj;
 }
 
-static List<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
-	List<LDOpenFile*> filesUsed;
+static List<LDFile*> getFilesUsed (LDFile* node) {
+	List<LDFile*> filesUsed;
 	
 	for (LDObject* obj : *node) {
 		if (obj->getType() != LDObject::Subfile)
@@ -884,11 +884,11 @@ static List<LDOpenFile*> getFilesUsed (LDOpenFile* node) {
 
 // =============================================================================
 // Find out which files are unused and close them.
-void LDOpenFile::closeUnused () {
-	List<LDOpenFile*> filesUsed = getFilesUsed (LDOpenFile::current());
+void LDFile::closeUnused () {
+	List<LDFile*> filesUsed = getFilesUsed (LDFile::current());
 	
 	// Anything that's explicitly opened must not be closed
-	for (LDOpenFile* file : g_loadedFiles)
+	for (LDFile* file : g_loadedFiles)
 		if (!file->implicit())
 			filesUsed << file;
 	
@@ -896,10 +896,10 @@ void LDOpenFile::closeUnused () {
 	filesUsed.makeUnique();
 	
 	// Close all open files that aren't in filesUsed
-	for (LDOpenFile* file : g_loadedFiles) {
+	for (LDFile* file : g_loadedFiles) {
 		bool isused = false;
 	
-	for (LDOpenFile* usedFile : filesUsed) {
+	for (LDFile* usedFile : filesUsed) {
 			if (file == usedFile) {
 				isused = true;
 				break;
@@ -914,38 +914,38 @@ void LDOpenFile::closeUnused () {
 	g_loadedFiles << filesUsed;
 }
 
-LDObject* LDOpenFile::object (ulong pos) const {
+LDObject* LDFile::object (ulong pos) const {
 	if (m_objs.size() <= pos)
 		return null;
 	
 	return m_objs[pos];
 }
 
-LDObject* LDOpenFile::obj (ulong pos) const {
+LDObject* LDFile::obj (ulong pos) const {
 	return object (pos);
 }
 
-ulong LDOpenFile::numObjs() const {
+ulong LDFile::numObjs() const {
 	return m_objs.size();
 }
 
-LDOpenFile& LDOpenFile::operator<< (List<LDObject*> objs) {
+LDFile& LDFile::operator<< (List<LDObject*> objs) {
 	for (LDObject* obj : objs)
 		addObject (obj);
 	
 	return *this;
 }
 
-bool LDOpenFile::hasUnsavedChanges() const {
+bool LDFile::hasUnsavedChanges() const {
 	return !implicit() && history().pos() != savePos();
 }
 
 // =============================================================================
-LDOpenFile* LDOpenFile::current() {
+LDFile* LDFile::current() {
 	return m_curfile;
 }
 
-void LDOpenFile::setCurrent (LDOpenFile* f) {
+void LDFile::setCurrent (LDFile* f) {
 	m_curfile = f;
 	
 	if (g_win && f)
@@ -955,7 +955,7 @@ void LDOpenFile::setCurrent (LDOpenFile* f) {
 // =============================================================================
 // This little beauty closes the initial file that was open at first when opening
 // a new file over it.
-void LDOpenFile::closeInitialFile() {
+void LDFile::closeInitialFile() {
 	if (g_loadedFiles.size() == 2 &&
 		g_loadedFiles[0]->name() == "" &&
 		!g_loadedFiles[0]->hasUnsavedChanges())
