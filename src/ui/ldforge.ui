@@ -70,7 +70,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>23</height>
+     <height>26</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -87,6 +87,7 @@
      </property>
     </widget>
     <addaction name="actionNew"/>
+    <addaction name="actionNewFile"/>
     <addaction name="actionOpen"/>
     <addaction name="menuOpenRecent"/>
     <addaction name="actionSave"/>
@@ -269,6 +270,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="actionNew"/>
+   <addaction name="actionNewFile"/>
    <addaction name="actionOpen"/>
    <addaction name="actionSave"/>
    <addaction name="actionSaveAs"/>
@@ -405,7 +407,7 @@
      <normaloff>:/icons/brick.png</normaloff>:/icons/brick.png</iconset>
    </property>
    <property name="text">
-    <string>New</string>
+    <string>New Part</string>
    </property>
    <property name="statusTip">
     <string>Create a new part model.</string>
@@ -1244,6 +1246,15 @@
   <action name="actionCloseAll">
    <property name="text">
     <string>Close All</string>
+   </property>
+  </action>
+  <action name="actionNewFile">
+   <property name="icon">
+    <iconset resource="../../ldforge.qrc">
+     <normaloff>:/icons/file-new.png</normaloff>:/icons/file-new.png</iconset>
+   </property>
+   <property name="text">
+    <string>New File</string>
    </property>
   </action>
  </widget>

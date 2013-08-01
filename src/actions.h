@@ -1,4 +1,5 @@
 act (New)
+act (NewFile)
 act (Open)
 act (Save)
 act (SaveAs)

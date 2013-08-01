@@ -849,19 +849,13 @@ void ForgeWindow::updateFileListItem (LDFile* f) {
 		return;
 	}
 	
-	str name;
-	if (f->name() == "")
-		name = "<anonymous>";
-	else
-		name = basename (f->name());
-	
 	if (f == LDFile::current())
 		ui->fileList->setCurrentItem (f->listItem());
 	
 	if (f->implicit())
 		f->listItem()->setForeground (QColor (96, 96, 96));
 	
-	f->listItem()->setText (name);
+	f->listItem()->setText (f->getShortName());
 	f->listItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 }
 
@@ -891,14 +885,7 @@ void ForgeWindow::changeCurrentFile() {
 	if (!f || f == LDFile::current())
 		return;
 	
-	clearSelection();
 	LDFile::setCurrent (f);
-	
-	log ("Changed file to %1", basename (f->name()));
-	
-	R()->setFile (f);
-	R()->update();
-	buildObjList();
 }
 
 void ForgeWindow::refreshObjectList() {

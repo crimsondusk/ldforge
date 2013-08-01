@@ -128,6 +128,7 @@ public:
 	static LDFile* current();
 	static void setCurrent (LDFile* f);
 	static void closeInitialFile();
+	str getShortName();
 	
 private:
 	static LDFile* m_curfile;

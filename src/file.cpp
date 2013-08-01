@@ -940,6 +940,13 @@ bool LDFile::hasUnsavedChanges() const {
 	return !implicit() && history().pos() != savePos();
 }
 
+str LDFile::getShortName() {
+	if( name().length() > 0 )
+		return basename( name() );
+	
+	return tr( "<anonymous>" );
+}
+
 // =============================================================================
 LDFile* LDFile::current() {
 	return m_curfile;
@@ -948,8 +955,15 @@ LDFile* LDFile::current() {
 void LDFile::setCurrent (LDFile* f) {
 	m_curfile = f;
 	
-	if (g_win && f)
-		g_win->updateFileListItem (f);
+	if( g_win && f ) {
+		g_win->clearSelection();
+		g_win->updateFileListItem( f );
+		g_win->buildObjList();
+		g_win->R()->setFile( f );
+		g_win->R()->update();
+		
+		log( "Changed file to %1", f->getShortName());
+	}
 }
 
 // =============================================================================
