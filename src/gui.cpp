@@ -465,9 +465,10 @@ void ForgeWindow::slot_quickColor() {
 			continue; // uncolored object
 		
 		obj->setColor (newColor);
+		R()->compileObject( obj );
 	}
 	
-	fullRefresh();
+	refresh();
 	endAction();
 }
 
