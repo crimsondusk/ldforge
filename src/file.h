@@ -128,6 +128,7 @@ public:
 	static LDFile* current();
 	static void setCurrent (LDFile* f);
 	static void closeInitialFile();
+	static int countExplicitFiles();
 	str getShortName();
 	
 private:

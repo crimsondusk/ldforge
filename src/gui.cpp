@@ -53,6 +53,7 @@ static bool g_bSelectionLocked = false;
 
 cfg (bool, lv_colorize, true);
 cfg (str, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
+cfg (bool, gui_implicitfiles, false);
 extern_cfg (str, io_recentfiles);
 extern_cfg (bool, gl_axes);
 extern_cfg (str, gl_maincolor);
@@ -827,11 +828,12 @@ void ForgeWindow::updateFileList() {
 	ui->fileList->clear();
 	
 	for (LDFile* f : g_loadedFiles) {
-		/*
-		if (f->implicit())
+		/* Don't list implicit files unless explicitly desired. */
+		if (f->implicit() && !gui_implicitfiles)
 			continue;
-		*/
 		
+		/* Add an item to the list for this file and store a pointer to it in
+		 * the file, so we can find files by the list item. */
 		ui->fileList->addItem ("");
 		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
 		f->setListItem (item);
@@ -842,20 +844,25 @@ void ForgeWindow::updateFileList() {
 
 void ForgeWindow::updateFileListItem (LDFile* f) {
 	if (f->listItem() == null) {
-		// We don't have a list item for this file, so the list
-		// doesn't exist yet. Create it - afterwards this will be
-		// up to date.
+		/* We don't have a list item for this file, so the list either doesn't
+		 * exist yet or is out of date. Build the list now. */
 		updateFileList();
 		return;
 	}
 	
+	/* If this is the current file, it also needs to be the selected item on
+	 * the list. */
 	if (f == LDFile::current())
 		ui->fileList->setCurrentItem (f->listItem());
 	
+	/* If we list implicit files, draw them with a shade of gray to make them
+	 * distinct. */
 	if (f->implicit())
 		f->listItem()->setForeground (QColor (96, 96, 96));
 	
 	f->listItem()->setText (f->getShortName());
+	
+	/* If the file has unsaved changes, draw a little icon next to it to mark that. */
 	f->listItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 }
 
@@ -868,13 +875,21 @@ void ForgeWindow::beginAction (QAction* act) {
 void ForgeWindow::endAction() {
 	// Close the history now.
 	LDFile::current()->closeHistory();
+	
+	/* Update the list item of the current file - we may need to draw an icon
+	 * now that marks it as having unsaved changes. */
 	updateFileListItem (LDFile::current());
 }
 
+// =============================================================================
+/* A file is selected from the list of files on the left of the screen. Find out
+ * which file was picked and change to it.
+ */
 void ForgeWindow::changeCurrentFile() {
 	LDFile* f = null;
 	QListWidgetItem* item = ui->fileList->currentItem();
 	
+	/* Find the file pointer of the item that was selected. */
 	for (LDFile* it : g_loadedFiles) {
 		if (it->listItem() == item) {
 			f = it;
@@ -882,6 +897,8 @@ void ForgeWindow::changeCurrentFile() {
 		}
 	}
 	
+	/* If we picked the same file we're currently on, we don't need to do
+	 * anything. */
 	if (!f || f == LDFile::current())
 		return;
 	

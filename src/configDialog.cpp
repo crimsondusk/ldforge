@@ -45,6 +45,7 @@ extern_cfg (int, gl_linethickness);
 extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
+extern_cfg (bool, gui_implicitfiles);
 
 #define act(N) extern_cfg (keyseq, key_##N);
 #include "actions.h"
@@ -92,7 +93,8 @@ void ConfigDialog::initMainTab() {
 	ui->colorizeObjects->setChecked (lv_colorize);
 	ui->colorBFC->setChecked (gl_colorbfc);
 	ui->blackEdges->setChecked (gl_blackedges);
-	ui->scemanticInlining->setChecked (edit_schemanticinline);
+	// ui->scemanticInlining->setChecked (edit_schemanticinline);
+	ui->implicitFiles->setChecked (gui_implicitfiles);
 }
 
 // =============================================================================
@@ -561,10 +563,11 @@ void ConfigDialog::staticDialog() {
 		// Apply configuration
 		lv_colorize = dlg.getUI()->colorizeObjects->isChecked();
 		gl_colorbfc = dlg.getUI()->colorBFC->isChecked();
-		edit_schemanticinline = dlg.getUI()->scemanticInlining->isChecked();
+		// edit_schemanticinline = dlg.getUI()->scemanticInlining->isChecked();
 		gl_blackedges = dlg.getUI()->blackEdges->isChecked();
 		gl_maincolor_alpha = ((double) dlg.getUI()->mainColorAlpha->value()) / 10.0f;
 		gl_linethickness = dlg.getUI()->lineThickness->value();
+		gui_implicitfiles = dlg.getUI()->implicitFiles->isChecked();
 		
 		// Rebuild the quick color toolbar
 		g_win->setQuickColors (dlg.quickColors);
@@ -593,6 +596,7 @@ void ConfigDialog::staticDialog() {
 		g_win->R()->setBackground();
 		g_win->fullRefresh();
 		g_win->updateToolBars();
+		g_win->updateFileList();
 	}
 }
 

@@ -899,7 +899,7 @@ void LDFile::closeUnused () {
 	for (LDFile* file : g_loadedFiles) {
 		bool isused = false;
 	
-	for (LDFile* usedFile : filesUsed) {
+		for (LDFile* usedFile : filesUsed) {
 			if (file == usedFile) {
 				isused = true;
 				break;
@@ -952,7 +952,18 @@ LDFile* LDFile::current() {
 	return m_curfile;
 }
 
+// =============================================================================
+/* Sets the given file as the current one on display. At some point in time this
+ * was an operation completely unheard of. ;)
+ *
+ * FIXME: f can be temporarily null. This probably should not be the case.
+ */
 void LDFile::setCurrent (LDFile* f) {
+	/* Implicit files were loaded for caching purposes and must never be set
+	 * current. */
+	if( f && f->implicit() )
+		return;
+	
 	m_curfile = f;
 	
 	if( g_win && f ) {
@@ -960,17 +971,28 @@ void LDFile::setCurrent (LDFile* f) {
 		g_win->updateFileListItem( f );
 		g_win->buildObjList();
 		g_win->R()->setFile( f );
-		g_win->R()->update();
+		g_win->R()->repaint();
 		
 		log( "Changed file to %1", f->getShortName());
 	}
 }
 
 // =============================================================================
+int LDFile::countExplicitFiles() {
+	int count = 0;
+	
+	for( LDFile* f : g_loadedFiles )
+		if( f->implicit() == false )
+			count++;
+	
+	return count;
+}
+
+// =============================================================================
 // This little beauty closes the initial file that was open at first when opening
 // a new file over it.
 void LDFile::closeInitialFile() {
-	if (g_loadedFiles.size() == 2 &&
+	if (countExplicitFiles() == 2 &&
 		g_loadedFiles[0]->name() == "" &&
 		!g_loadedFiles[0]->hasUnsavedChanges())
 	{
