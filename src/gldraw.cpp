@@ -92,27 +92,24 @@ const struct GLAxis {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-GLRenderer::GLRenderer (QWidget* parent) :
-	QGLWidget (parent),
-	m_picking( false ),
-	m_rangepick( false ),
-	m_camera( (GL::Camera) gl_camera.value ),
-	m_drawToolTip( false ),
-	m_editMode( Select ),
-	m_rectdraw( false ),
-	m_panning( false ),
-	m_file( null ),
-	m_toolTipTimer( new QTimer( this )),
-	m_thickBorderPen( QPen( QColor( 0, 0, 0, 208 ), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin )),
-	m_thinBorderPen( m_thickBorderPen ),
-	m_msglog( null )
-{
+GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
+	m_picking = m_rangepick = false;
+	m_camera = (GL::Camera) gl_camera.value;
+	m_drawToolTip = false;
+	m_editMode = Select;
+	m_rectdraw = false;
+	m_panning = false;
+	setFile (null);
 	setDrawOnly (false);
 	resetAngles();
+	setMessageLog( null );
 	
+	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
 	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
 	
+	m_thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
+	m_thinBorderPen = m_thickBorderPen;
 	m_thinBorderPen.setWidth (1);
 	
 	// Init camera icons
