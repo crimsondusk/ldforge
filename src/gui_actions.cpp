@@ -44,9 +44,6 @@ extern_cfg (bool, gl_colorbfc);
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 DEFINE_ACTION (New, CTRL (N)) {
-	if (safeToCloseAll() == false)
-		return;
-	
 	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
