@@ -137,6 +137,7 @@ static void doInline (bool deep) {
 			LDObject* newobj = parseLine (line);
 			LDFile::current()->insertObj (idx++, newobj);
 			g_win->sel() << newobj;
+			g_win->R()->compileObject( inlineobj );
 		}
 		
 		// Delete the subfile now as it's been inlined.
@@ -144,7 +145,7 @@ static void doInline (bool deep) {
 		delete obj;
 	}
 	
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 DEFINE_ACTION (Inline, CTRL (I)) {
@@ -179,6 +180,9 @@ DEFINE_ACTION (SplitQuads, 0) {
 		LDFile::current()->setObject (index, triangles[0]);
 		LDFile::current()->insertObj (index + 1, triangles[1]);
 		
+		for( LDTriangleObject* t : triangles )
+			g_win->R()->compileObject( t );
+		
 		// Delete this quad now, it has been split.
 		delete obj;
 		
@@ -186,7 +190,7 @@ DEFINE_ACTION (SplitQuads, 0) {
 	}
 	
 	log ("%1 quadrilaterals split", num);
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 // =============================================================================
@@ -496,11 +500,12 @@ DEFINE_ACTION (RoundCoordinates, 0) {
 		}
 		
 		obj->setVertex (i, v);
+		g_win->R()->compileObject( obj );
 		num += 3;
 	}
 	
 	log (ForgeWindow::tr ("Rounded %1 coordinates"), num);
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 // =============================================================================
@@ -519,11 +524,12 @@ DEFINE_ACTION (Uncolorize, 0) {
 			col = edgecolor;
 		
 		obj->setColor (col);
+		g_win->R()->compileObject( obj );
 		num++;
 	}
 	
 	log (ForgeWindow::tr ("%1 objects uncolored"), num);
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 // =============================================================================
@@ -564,10 +570,11 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R)) {
 		}
 		
 		obj->setVertex (i, v);
+		g_win->R()->compileObject( obj );
 	}
 	
 	log (ForgeWindow::tr ("Altered %1 values"), num);
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 // ================================================================================================

@@ -331,11 +331,12 @@ DEFINE_ACTION (InsertFrom, 0) {
 	for (LDObject* obj : objs) {
 		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
+		g_win->R()->compileObject( obj );
 		
 		idx++;
 	}
 	
-	g_win->fullRefresh();
+	g_win->refresh();
 	g_win->scrollToSelection();
 }
 
@@ -392,10 +393,11 @@ DEFINE_ACTION (InsertRaw, 0) {
 		
 		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
+		g_win->R()->compileObject( obj );
 		idx++;
 	}
 	
-	g_win->fullRefresh();
+	g_win->refresh();
 	g_win->scrollToSelection();
 }
 
@@ -433,7 +435,7 @@ DEFINE_ACTION (Visibility, 0) {
 	for (LDObject* obj : g_win->sel())
 		obj->setHidden (!obj->hidden());
 	
-	g_win->fullRefresh();
+	g_win->refresh();
 }
 
 DEFINE_ACTION (Wireframe, 0) {
