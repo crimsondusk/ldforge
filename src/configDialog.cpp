@@ -49,12 +49,6 @@ extern_cfg (bool, gl_blackedges);
 #define act(N) extern_cfg (keyseq, key_##N);
 #include "actions.h"
 
-#define INIT_CHECKBOX(BOX, CFG) \
-	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
-
-#define APPLY_CHECKBOX(BTN, CFG) \
-	CFG = BTN->checkState() == Qt::Checked;
-
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -62,33 +56,32 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	ui = new Ui_ConfigUI;
 	ui->setupUi( this );
 	
-	initMainTab ();
-	initShortcutsTab ();
-	initQuickColorTab ();
-	initGridTab ();
-	initExtProgTab ();
+	initMainTab();
+	initShortcutsTab();
+	initQuickColorTab();
+	initGridTab();
+	initExtProgTab();
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ConfigDialog::~ConfigDialog()
-{
+ConfigDialog::~ConfigDialog() {
 	delete ui;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::initMainTab () {
+void ConfigDialog::initMainTab() {
 	// Init color stuff
 	setButtonBackground (ui->backgroundColorButton, gl_bgcolor);
-	connect (ui->backgroundColorButton, SIGNAL (clicked ()),
-		this, SLOT (slot_setGLBackground ()));
+	connect (ui->backgroundColorButton, SIGNAL (clicked()),
+		this, SLOT (slot_setGLBackground()));
 	
 	setButtonBackground (ui->mainColorButton, gl_maincolor.value);
-	connect (ui->mainColorButton, SIGNAL (clicked ()),
-		this, SLOT (slot_setGLForeground ()));
+	connect (ui->mainColorButton, SIGNAL (clicked()),
+		this, SLOT (slot_setGLForeground()));
 	
 	ui->mainColorAlpha->setValue( gl_maincolor_alpha * 10.0f );
 	
@@ -105,7 +98,7 @@ void ConfigDialog::initMainTab () {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::initShortcutsTab () {
+void ConfigDialog::initShortcutsTab() {
 	ulong i = 0;
 	
 #define act(N) addShortcut (key_##N, ACTION(N), i);

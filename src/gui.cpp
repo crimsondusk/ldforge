@@ -71,11 +71,15 @@ const char* g_modeActionNames[] = {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ForgeWindow::ForgeWindow() {
+ForgeWindow::ForgeWindow() :
+	m_renderer( new GLRenderer ),
+	ui( new Ui_LDForgeUI ),
+	m_primLoaderBar( new QProgressBar ),
+	m_primLoaderWidget( new QWidget ),
+	m_msglog( new MessageManager ),
+	m_quickColors( quickColorsFromConfig() )
+{
 	g_win = this;
-	m_renderer = new GLRenderer;
-	
-	ui = new Ui_LDForgeUI;
 	ui->setupUi (this);
 	
 	// Stuff the renderer into its frame
@@ -86,17 +90,13 @@ ForgeWindow::ForgeWindow() {
 	connect (ui->objectList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
 	connect (ui->fileList, SIGNAL (currentItemChanged (QListWidgetItem*, QListWidgetItem*)), this, SLOT (changeCurrentFile()));
 	
-	// Init message log manager
-	m_msglog = new MessageManager;
+	// Init message log manager=
 	m_msglog->setRenderer (R());
-	m_renderer->setMessageLog (m_msglog);
-	m_quickColors = quickColorsFromConfig();
+	m_renderer->setMessageLog (m_msglog);=
 	slot_selectionChanged();
 	setStatusBar (new QStatusBar);
 	
 	// Init primitive loader task stuff
-	m_primLoaderBar = new QProgressBar;
-	m_primLoaderWidget = new QWidget;
 	QHBoxLayout* primLoaderLayout = new QHBoxLayout (m_primLoaderWidget);
 	primLoaderLayout->addWidget (new QLabel ("Loading primitives:"));
 	primLoaderLayout->addWidget (m_primLoaderBar);
