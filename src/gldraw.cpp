@@ -822,9 +822,9 @@ void GLRenderer::addDrawnVertex (vertex pos) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
-	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
-	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
-	const bool wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
+	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton),
+		wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton),
+		wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
 	
 	if (m_panning)
 		m_panning = false;
@@ -893,9 +893,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			QPoint pos2d = coordconv3_2 (pos3d);
 			
 			// Measure squared distance
-			double dx = abs (pos2d.x() - curspos.x());
-			double dy = abs (pos2d.y() - curspos.y());
-			double distsq = (dx * dx) + (dy * dy);
+			const double dx = abs (pos2d.x() - curspos.x()),
+				dy = abs (pos2d.y() - curspos.y()),
+				distsq = (dx * dx) + (dy * dy);
 			
 			if (distsq >= 1024.0f) // 32.0f ** 2
 				continue; // too far away
@@ -904,6 +904,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				mindist = distsq;
 				closest = pos3d;
 				valid = true;
+				
+				/* If it's only 4 pixels away, I think we found our vertex now. */
+				if (distsq <= 16.0f) // 4.0f ** 2
+					break;
 			}
 		}
 		
