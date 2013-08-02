@@ -44,7 +44,7 @@ bool config::load() {
 		return false;
 
 	// Read the values.
-for (str line : f) {
+	for (str line : f) {
 		ln++;
 
 		if (line.isEmpty() || line[0] == '#')

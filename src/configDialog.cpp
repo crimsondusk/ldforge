@@ -46,6 +46,20 @@ extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
 extern_cfg (bool, gui_implicitfiles);
+extern_cfg (str, net_downloadpath);
+
+extern_cfg (str, prog_ytruder);
+extern_cfg (str, prog_rectifier);
+extern_cfg (str, prog_intersector);
+extern_cfg (str, prog_coverer);
+extern_cfg (str, prog_isecalc);
+extern_cfg (str, prog_edger2);
+extern_cfg (bool, prog_ytruder_wine);
+extern_cfg (bool, prog_rectifier_wine);
+extern_cfg (bool, prog_intersector_wine);
+extern_cfg (bool, prog_coverer_wine);
+extern_cfg (bool, prog_isecalc_wine);
+extern_cfg (bool, prog_edger2_wine);
 
 #define act(N) extern_cfg (keyseq, key_##N);
 #include "actions.h"
@@ -62,6 +76,9 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	initQuickColorTab();
 	initGridTab();
 	initExtProgTab();
+	
+	ui->downloadPath->setText (net_downloadpath);
+	connect (ui->findDownloadPath, SIGNAL (clicked(bool)), this, SLOT (slot_findDownloadFolder()));
 }
 
 // =============================================================================
@@ -187,19 +204,6 @@ void ConfigDialog::initGridTab() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-extern_cfg (str, prog_ytruder);
-extern_cfg (str, prog_rectifier);
-extern_cfg (str, prog_intersector);
-extern_cfg (str, prog_coverer);
-extern_cfg (str, prog_isecalc);
-extern_cfg (str, prog_edger2);
-extern_cfg (bool, prog_ytruder_wine);
-extern_cfg (bool, prog_rectifier_wine);
-extern_cfg (bool, prog_intersector_wine);
-extern_cfg (bool, prog_coverer_wine);
-extern_cfg (bool, prog_isecalc_wine);
-extern_cfg (bool, prog_edger2_wine);
-
 static const struct extProgInfo {
 	const str name, iconname;
 	strconfig* const path;
@@ -516,6 +520,13 @@ void ConfigDialog::slot_setExtProgPath() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
+void ConfigDialog::slot_findDownloadFolder() {
+	str dpath = QFileDialog::getExistingDirectory();
+	ui->downloadPath->setText (dpath);
+}
+
+// =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ConfigDialog::setShortcutText (ShortcutListItem* item) {
@@ -567,6 +578,10 @@ void ConfigDialog::staticDialog() {
 		gl_maincolor_alpha = ((double) dlg.getUI()->mainColorAlpha->value()) / 10.0f;
 		gl_linethickness = dlg.getUI()->lineThickness->value();
 		gui_implicitfiles = dlg.getUI()->implicitFiles->isChecked();
+		
+		net_downloadpath = dlg.getUI()->downloadPath->text();
+		if (net_downloadpath.value.right (1) != DIRSLASH)
+			net_downloadpath += DIRSLASH;
 		
 		// Rebuild the quick color toolbar
 		g_win->setQuickColors (dlg.quickColors);

@@ -31,14 +31,35 @@
 
 PartDownloader g_PartDownloader;
 
+cfg (str, net_downloadpath, "");
+
 constexpr const char* PartDownloader::k_OfficialURL,
 	*PartDownloader::k_UnofficialURL;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloader::download() {
+	str path = getDownloadPath();
+	if (path == "" || QDir (path).exists() == false) {
+		critical (PartDownloadPrompt::tr ("You need to specify a valid path for "
+			"downloaded files in the configuration to download paths."));
+		return;
+	}
+	
 	PartDownloadPrompt* dlg = new PartDownloadPrompt;
 	dlg->exec();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+str PartDownloader::getDownloadPath() {
+	str path = net_downloadpath;
+	
+#if DIRSLASH_CHAR != '/'
+	path.replace (DIRSLASH, "/");
+#endif
+	
+	return path;
 }
 
 // =============================================================================
@@ -62,13 +83,13 @@ PartDownloadPrompt::~PartDownloadPrompt() {
 // -----------------------------------------------------------------------------
 str PartDownloadPrompt::getURL() const {
 	const Source src = getSource();
+	str dest;
 	
 	switch (src) {
-/*	case OfficialLibrary:
-		return str (PartDownloader::k_OfficialURL) + getDest();
-*/
 	case PartsTracker:
-		return str (PartDownloader::k_UnofficialURL) + getDest();
+		dest = ui->fname->text();
+		modifyDest (dest);
+		return str (PartDownloader::k_UnofficialURL) + dest;
 	
 	case CustomURL:
 		return ui->fname->text();
@@ -80,30 +101,31 @@ str PartDownloadPrompt::getURL() const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str PartDownloadPrompt::getDest() const {
-	str fname = ui->fname->text();
+void PartDownloadPrompt::modifyDest (str& dest) const {
+	dest = dest.simplified();
 	
 	if (getSource() == CustomURL)
-		fname = basename (fname);
+		dest = basename (dest);
 	
 	// Ensure .dat extension
-	if (fname.right (4) != ".dat") {
+	if (dest.right (4) != ".dat") {
 		// Remove the existing extension, if any. It may be we're here over a
 		// typo in the .dat extension.
-		if (fname.lastIndexOf (".") >= fname.length() - 4)
-			fname.chop (fname.length() - fname.lastIndexOf ("."));
+		const int dotpos = dest.lastIndexOf (".");
+		if (dotpos != -1 && dotpos >= dest.length() - 4)
+			dest.chop (dest.length() - dotpos);
 		
-		fname += ".dat";
+		dest += ".dat";
 	}
 	
 	// If the part starts with s\ or s/, then use parts/s/. Same goes with
 	// 48\ and p/48/.
-	if (fname.left (2) == "s\\" || fname.left (2) == "s/") {
-		fname.remove (0, 2);
-		fname.prepend ("parts/s/");
-	} elif (fname.left (3) == "48\\" || fname.left (3) == "48/") {
-		fname.remove (0, 3);
-		fname.prepend ("p/48/");
+	if (dest.left (2) == "s\\" || dest.left (2) == "s/") {
+		dest.remove (0, 2);
+		dest.prepend ("parts/s/");
+	} elif (dest.left (3) == "48\\" || dest.left (3) == "48/") {
+		dest.remove (0, 3);
+		dest.prepend ("p/48/");
 	}
 	
 	/* Try determine where to put this part. We have four directories:
@@ -119,27 +141,19 @@ str PartDownloadPrompt::getDest() const {
 	 * file names.
 	 */
 	{
-		str partRegex = "^[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?";
+		str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
 		str subpartRegex = partRegex + "s[0-9][0-9]+";
 		
 		partRegex += "\\.dat$";
 		subpartRegex += "\\.dat$";
 		
-		if (QRegExp (subpartRegex).exactMatch (fname))
-			fname.prepend ("parts/s/");
-		elif (QRegExp (partRegex).exactMatch (fname))
-			fname.prepend ("parts/");
-		elif (fname.left (6) != "parts/" && fname.left (2) != "p/")
-			fname.prepend ("p/");
+		if (QRegExp (subpartRegex).exactMatch (dest))
+			dest.prepend ("parts/s/");
+		elif (QRegExp (partRegex).exactMatch (dest))
+			dest.prepend ("parts/");
+		elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
+			dest.prepend ("p/");
 	}
-	
-	return fname;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-str PartDownloadPrompt::fullFilePath() const {
-	return "/home/arezey/ldraw/downloads/" + getDest(); // FIXME: hehe
 }
 
 // =============================================================================
@@ -164,22 +178,26 @@ void PartDownloadPrompt::startDownload() {
 	ui->buttonBox->setEnabled (false);
 	ui->fname->setEnabled (false);
 	ui->source->setEnabled (false);
-	downloadFile (getDest(), true);
+	
+	str dest = ui->fname->text();
+	modifyDest (dest);
+	downloadFile (dest, getURL(), true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadPrompt::downloadFile (const str& path, bool primary) {
+void PartDownloadPrompt::downloadFile (str dest, str url, bool primary) {
 	const int row = ui->progress->rowCount();
 	
 	// Don't download files repeadetly.
-	if (m_filesToDownload.find (path) != -1u)
+	if (m_filesToDownload.find (dest) != -1u)
 		return;
 	
-	print ("%1: row: %2\n", path, row);
-	PartDownloadRequest* req = new PartDownloadRequest (getURL(), path, primary, this);
+	modifyDest (dest);
+	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + dest);
+	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
 	
-	m_filesToDownload << path;
+	m_filesToDownload << dest;
 	m_requests << req;
 	ui->progress->insertRow (row);
 	req->setTableRow (row);
@@ -195,11 +213,17 @@ void PartDownloadPrompt::checkIfFinished() {
 			return;
 	
 	// Update everything now
+	reloadAllSubfiles();
 	g_win->fullRefresh();
 	g_win->R()->resetAngles();
 	
-	// Close the dialog
-	accept();
+	// Allow the prompt be closed now.
+	ui->buttonBox->disconnect (SIGNAL (accepted()));
+	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (accept()));
+	ui->buttonBox->setEnabled (true);
+	ui->progress->setEnabled (false);
+	
+	// accept();
 }
 
 // =============================================================================
@@ -209,12 +233,15 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	m_prompt (parent),
 	m_url (url),
 	m_dest (dest),
-	m_fpath (m_prompt->fullFilePath()),
+	m_fpath (PartDownloader::getDownloadPath() + dest),
 	m_nam (new QNetworkAccessManager),
 	m_firstUpdate (true),
 	m_state (Requesting),
 	m_primary (primary)
 {
+	m_fpath.replace ("\\", "/");
+	QFile::remove (m_fpath);
+	
 	// Make sure that we have a valid destination.
 	str dirpath = dirname (m_fpath);
 	
@@ -270,9 +297,8 @@ void PartDownloadRequest::updateToTable() {
 	
 	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), PartLabelColumn));
 	if (m_firstUpdate) {
-		lb = new QLabel (fmt ("<b>%1</b><br>%2", m_dest, m_url), table);
+		lb = new QLabel (fmt ("<b>%1</b>", m_dest), table);
 		table->setCellWidget (tableRow(), PartLabelColumn, lb);
-		table->setRowHeight (tableRow(), lb->height());
 	}
 	
 	// Make sure that the cell is big enough to contain the label
@@ -301,8 +327,10 @@ void PartDownloadRequest::downloadFinished() {
 	
 	f->setImplicit (!m_primary);
 	
-	// Check for any errors which stemmed from unresolved references.
-	// Try to solve these by downloading them.
+	// Iterate through this file and check for errors. If there's any that stems
+	// from unknown file references, try resolve that by downloading the reference.
+	// This is why downloading a part may end up downloading multiple files, as
+	// it resolves dependencies.
 	for (LDObject* obj : *f) {
 		if (obj->getType() != LDObject::Error)
 			continue;
@@ -311,7 +339,9 @@ void PartDownloadRequest::downloadFinished() {
 		if (err->fileRef() == "")
 			continue;
 		
-		m_prompt->downloadFile (err->fileRef(), false);
+		str dest = err->fileRef();
+		m_prompt->modifyDest (dest);
+		m_prompt->downloadFile (dest, str (PartDownloader::k_UnofficialURL) + dest, false);
 	}
 	
 	if (m_primary)

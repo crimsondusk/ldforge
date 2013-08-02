@@ -38,6 +38,7 @@ public:
 	
 	PartDownloader() {}
 	void download();
+	static str getDownloadPath();
 	void operator()() { download(); }
 } g_PartDownloader;
 
@@ -56,10 +57,10 @@ public:
 	explicit PartDownloadPrompt (QWidget* parent = null);
 	virtual ~PartDownloadPrompt();
 	str getURL() const;
-	str fullFilePath() const;
-	str getDest() const;
+	str getDest(str fname) const;
 	Source getSource() const;
-	void downloadFile (const str& path, bool primary);
+	void downloadFile (str dest, str url, bool primary);
+	void modifyDest (str& dest) const;
 	
 public slots:
 	void sourceChanged (int i);

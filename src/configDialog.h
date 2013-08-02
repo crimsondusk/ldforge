@@ -83,6 +83,7 @@ private slots:
 	void slot_moveColor();
 	void slot_clearColors();
 	void slot_setExtProgPath();
+	void slot_findDownloadFolder();
 };
 
 // =============================================================================

@@ -33,6 +33,7 @@
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
+extern_cfg (str, net_downloadpath);
 
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
@@ -182,9 +183,8 @@ File* openLDrawFile (str relpath, bool subdirs) {
 		// in the immediate vicinity of the current model to override stock LDraw stuff.
 		str partpath = fmt ("%1" DIRSLASH "%2", dirname (LDFile::current()->name()), relpath);
 		
-		if (f->open (partpath, File::Read)) {
+		if (f->open (partpath, File::Read))
 			return f;
-		}
 	}
 	
 	if (f->open (relpath, File::Read))
@@ -197,10 +197,10 @@ File* openLDrawFile (str relpath, bool subdirs) {
 		return f;
 	
 	if (subdirs) {
-		// Look in sub-directories: parts and p
-		for (auto subdir : initlist<const str> ({ "parts", "p" })) {
-			fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", io_ldpath, subdir, relpath);
-			
+		// Look in sub-directories: parts and p. Also look in net_downloadpath.
+		for (const str& topdir : initlist<str> ({ io_ldpath, net_downloadpath }))
+		for (const str& subdir : initlist<str> ({ "parts", "p" })) {
+			fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 			if (f->open (fullPath, File::Read))
 				return f;
 		}
