@@ -972,11 +972,13 @@ void LDFile::setCurrent (LDFile* f) {
 	m_curfile = f;
 	
 	if (g_win && f) {
+		// A ton of stuff needs to be updated
 		g_win->clearSelection();
 		g_win->updateFileListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();
 		g_win->R()->setFile (f);
+		g_win->R()->resetAngles();
 		g_win->R()->repaint();
 		
 		log ("Changed file to %1", f->getShortName());
