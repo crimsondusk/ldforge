@@ -16,11 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QNetworkAccessManager>
+#include <QNetworkRequest>
+#include <QNetworkReply>
+#include <QDir>
+#include <QProgressBar>
 #include "download.h"
 #include "ui_downloadfrom.h"
 #include "types.h"
 #include "gui.h"
 #include "build/moc_download.cpp"
+#include "file.h"
 
 PartDownloader g_PartDownloader;
 
@@ -39,6 +45,8 @@ void PartDownloader::download() {
 PartDownloadPrompt::PartDownloadPrompt (QWidget* parent) : QDialog (parent) {
 	ui = new Ui_DownloadFrom;
 	ui->setupUi (this);
+	ui->fname->setFocus();
+	
 	connect (ui->source, SIGNAL (currentIndexChanged (int)), this, SLOT (sourceChanged (int)));
 	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (startDownload()));
 }
@@ -51,55 +59,16 @@ PartDownloadPrompt::~PartDownloadPrompt() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str PartDownloadPrompt::getURL() {
-	str fname;
-	Source src = (Source) ui->source->currentIndex();
+str PartDownloadPrompt::getURL() const {
+	const Source src = getSource();
 	
 	switch (src) {
 	case OfficialLibrary:
 	case PartsTracker:
-		{
-			fname = ui->fname->text();
-		
-			// Ensure .dat extension
-			if (fname.right (4) != ".dat") {
-				// Remove the existing extension, if any. It may be we're here over a
-				// typo in the .dat extension.
-				if (fname.lastIndexOf (".") >= fname.length() - 4)
-					fname.chop (fname.length() - fname.lastIndexOf ("."));
-				
-				fname += ".dat";
-			}
-			
-			/* These sources have stuff only in parts/, parts/s/, p/, and p/48/. If
-			* we haven't already specified either parts/ or p/, we need to add it
-			* automatically. Part files are numbers which can be followed by:
-			* - c** (composites)
-			* - d** (formed stickers)
-			* - a lowercase alphabetic letter for variants
-			*
-			* Subfiles have an s** prefix, in which case we use parts/s/. Note that
-			* the regex starts with a '^' so it won't catch already fully given part
-			* file names.
-			*/
-			str partRegex = "^[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?";
-			str subpartRegex = partRegex + "s[0-9][0-9]+";
-			
-			partRegex += "\\.dat$";
-			subpartRegex += "\\.dat$";
-			
-			if (QRegExp (subpartRegex).exactMatch (fname))
-				fname.prepend ("parts/s/");
-			elif (QRegExp (partRegex).exactMatch (fname))
-				fname.prepend ("parts/");
-			elif (fname.left (6) != "parts/" && fname.left (2) != "p/")
-				fname.prepend ("p/");
-		}
-		
 		if (src == OfficialLibrary)
-			return str (PartDownloader::k_OfficialURL) + fname;
+			return str (PartDownloader::k_OfficialURL) + getDest();
 		
-		return str (PartDownloader::k_UnofficialURL) + fname;
+		return str (PartDownloader::k_UnofficialURL) + getDest();
 	
 	case CustomURL:
 		return ui->fname->text();
@@ -111,6 +80,66 @@ str PartDownloadPrompt::getURL() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+str PartDownloadPrompt::getDest() const {
+	str fname = ui->fname->text();
+	
+	if (getSource() == CustomURL)
+		fname = basename (fname);
+	
+	// Ensure .dat extension
+	if (fname.right (4) != ".dat") {
+		// Remove the existing extension, if any. It may be we're here over a
+		// typo in the .dat extension.
+		if (fname.lastIndexOf (".") >= fname.length() - 4)
+			fname.chop (fname.length() - fname.lastIndexOf ("."));
+		
+		fname += ".dat";
+	}
+	
+	/* Try determine where to put this part. We have four directories:
+	 * parts/, parts/s/, p/, and p/48/. If we haven't already specified
+	 * either parts/ or p/, we need to add it automatically. Part files
+	 * are numbers which can be followed by:
+	 * - c** (composites)
+	 * - d** (formed stickers)
+	 * - a lowercase alphabetic letter for variants
+	 *
+	 * Subfiles have an s** prefix, in which case we use parts/s/. Note that
+	 * the regex starts with a '^' so it won't catch already fully given part
+	 * file names.
+	 */
+	{
+		str partRegex = "^[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?";
+		str subpartRegex = partRegex + "s[0-9][0-9]+";
+		
+		partRegex += "\\.dat$";
+		subpartRegex += "\\.dat$";
+		
+		if (QRegExp (subpartRegex).exactMatch (fname))
+			fname.prepend ("parts/s/");
+		elif (QRegExp (partRegex).exactMatch (fname))
+			fname.prepend ("parts/");
+		elif (fname.left (6) != "parts/" && fname.left (2) != "p/")
+			fname.prepend ("p/");
+	}
+	
+	return fname;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+str PartDownloadPrompt::fullFilePath() const {
+	return "/home/arezey/ldraw/downloads/" + getDest(); // FIXME: hehe
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+PartDownloadPrompt::Source PartDownloadPrompt::getSource() const {
+	return (Source) ui->source->currentIndex();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadPrompt::sourceChanged (int i) {
 	if (i == CustomURL)
 		ui->fileNameLabel->setText (tr ("URL:"));
@@ -118,41 +147,102 @@ void PartDownloadPrompt::sourceChanged (int i) {
 		ui->fileNameLabel->setText (tr ("File name:"));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadPrompt::startDownload() {
 	int row = ui->progress->rowCount();
 	ui->progress->setEnabled (true);
 	ui->buttonBox->setEnabled (false);
 	ui->progress->insertRow (row);
+	ui->fname->setEnabled (false);
+	ui->source->setEnabled (false);
 	
-	PartDownloadRequest* req = new PartDownloadRequest (getURL(), this);
+	PartDownloadRequest* req = new PartDownloadRequest (getURL(), getDest(), this);
 	req->setTableRow (row);
 	req->updateToTable();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadRequest::PartDownloadRequest (str url, PartDownloadPrompt* parent) :
+PartDownloadRequest::PartDownloadRequest (str url, str dest, PartDownloadPrompt* parent) :
 	QObject (parent),
 	m_prompt (parent),
-	m_url (url) {}
+	m_url (url),
+	m_dest (dest),
+	m_fpath (m_prompt->fullFilePath()),
+	m_nam (new QNetworkAccessManager),
+	m_firstUpdate (true),
+	m_state (Requesting)
+{
+	// Make sure that we have a valid destination.
+	str dirpath = dirname (m_fpath);
+	
+	QDir dir (dirpath);
+	if (!dir.exists()) {
+		print ("Creating %1...\n", dirpath);
+		if (!dir.mkpath (dirpath))
+			critical (fmt (tr ("Couldn't create the directory %1!"), dirpath));
+	}
+	
+	m_reply = m_nam->get (QNetworkRequest (QUrl (url)));
+	connect (m_reply, SIGNAL (finished()), this, SLOT (downloadFinished()));
+	connect (m_reply, SIGNAL (readyRead()), this, SLOT (readyRead()));
+	connect (m_reply, SIGNAL (downloadProgress (qint64, qint64)), this, SLOT (downloadProgress (qint64, qint64)));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+PartDownloadRequest::~PartDownloadRequest() {
+
+}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::updateToTable() {
 	QTableWidget* table = m_prompt->ui->progress;
-	QTableWidgetItem* urlItem = table->item (tableRow(), 0),
-		*progressItem = table->item (tableRow(), 1);
+	QProgressBar* progressBar = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), ProgressColumn));
 	
-	if (!urlItem || !progressItem) {
-		urlItem = new QTableWidgetItem;
-		progressItem = new QTableWidgetItem;
-		
-		table->setItem (tableRow(), 0, urlItem);
-		table->setItem (tableRow(), 1, progressItem);
+	if (!progressBar) {
+		progressBar = new QProgressBar;
+		table->setCellWidget (tableRow(), ProgressColumn, progressBar);
 	}
 	
-	urlItem->setText (m_url);
-	progressItem->setText ("---");
+	progressBar->setRange (0, m_bytesTotal);
+	progressBar->setValue (m_bytesRead);
+	
+	if (m_firstUpdate) {
+		QLabel* lb = new QLabel (fmt ("<b>%1</b><br>%2", m_dest, m_url), table);
+		table->setCellWidget (tableRow(), PartLabelColumn, lb);
+		
+		// Make sure that the cell is big enough to contain the label
+		if (table->columnWidth (PartLabelColumn) < lb->width())
+			table->setColumnWidth (PartLabelColumn, lb->width());
+		
+		table->setRowHeight (tableRow(), lb->height());
+		m_firstUpdate = false;
+	}
+}
+
+void PartDownloadRequest::downloadFinished() {
+	m_state = Finished;
+	m_bytesRead = m_bytesTotal;
+	updateToTable();
+}
+
+void PartDownloadRequest::downloadProgress (int64 recv, int64 total) {
+	m_bytesRead = recv;
+	m_bytesTotal = total;
+	m_state = Downloading;
+	updateToTable();
+}
+
+void PartDownloadRequest::readyRead() {
+	QFile f (m_fpath);
+	if (!f.open (QIODevice::Append))
+		return;
+	
+	f.write (m_reply->readAll());
+	f.close();
 }
 
 // =============================================================================

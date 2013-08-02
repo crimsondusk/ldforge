@@ -21,6 +21,7 @@
 
 #include <QDialog>
 #include "common.h"
+#include "types.h"
 
 class Ui_DownloadFrom;
 class QNetworkAccessManager;
@@ -53,7 +54,10 @@ public:
 	
 	explicit PartDownloadPrompt (QWidget* parent = null);
 	virtual ~PartDownloadPrompt();
-	str getURL();
+	str getURL() const;
+	str fullFilePath() const;
+	str getDest() const;
+	Source getSource() const;
 	
 public slots:
 	void sourceChanged (int i);
@@ -67,17 +71,42 @@ protected:
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloadRequest : public QObject {
+	Q_OBJECT
 	PROPERTY (int, tableRow, setTableRow)
 	
 public:
-	explicit PartDownloadRequest (str url, PartDownloadPrompt* parent);
+	enum TableColumn {
+		PartLabelColumn,
+		ProgressColumn,
+	};
+	
+	enum State {
+		Requesting,
+		Downloading,
+		Finished,
+		Aborted,
+	};
+	
+	explicit PartDownloadRequest (str url, str dest, PartDownloadPrompt* parent);
+	         PartDownloadRequest (const PartDownloadRequest&) = delete;
+	virtual ~PartDownloadRequest();
 	void updateToTable();
+	
+	void operator= (const PartDownloadRequest&) = delete;
+	
+public slots:
+	void downloadFinished();
+	void readyRead();
+	void downloadProgress (qint64 recv, qint64 total);
 	
 private:
 	PartDownloadPrompt* m_prompt;
-	str m_url;
+	str m_url, m_dest, m_fpath;
 	QNetworkAccessManager* m_nam;
 	QNetworkReply* m_reply;
+	bool m_firstUpdate;
+	State m_state;
+	int64 m_bytesRead, m_bytesTotal;
 };
 
 #endif // LDFORGE_DOWNLOAD_H
