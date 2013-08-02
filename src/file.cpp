@@ -521,16 +521,12 @@ void openMainFile (str path) {
 	LDFile::closeInitialFile();
 	
 	// Rebuild the object tree view now.
+	LDFile::setCurrent (file);
 	g_win->fullRefresh();
-	g_win->updateTitle();
-	g_win->R()->setFile (file);
-	g_win->R()->resetAngles();
 	
 	// Add it to the recent files list.
 	addRecentFile (path);
 	g_loadingMainFile = false;
-	
-	LDFile::setCurrent (file);
 }
 
 // =============================================================================
@@ -979,6 +975,7 @@ void LDFile::setCurrent (LDFile* f) {
 		g_win->clearSelection();
 		g_win->updateFileListItem (f);
 		g_win->buildObjList();
+		g_win->updateTitle();
 		g_win->R()->setFile (f);
 		g_win->R()->repaint();
 		
