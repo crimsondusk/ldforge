@@ -32,6 +32,8 @@
 PartDownloader g_PartDownloader;
 
 cfg (str, net_downloadpath, "");
+cfg (bool, net_guesspaths, true);
+cfg (bool, net_autoclose, false);
 
 constexpr const char* PartDownloader::k_OfficialURL,
 	*PartDownloader::k_UnofficialURL;
@@ -104,8 +106,9 @@ str PartDownloadPrompt::getURL() const {
 void PartDownloadPrompt::modifyDest (str& dest) const {
 	dest = dest.simplified();
 	
-	if (getSource() == CustomURL)
-		dest = basename (dest);
+	// If the user doesn't want us to guess, stop right here.
+	if (net_guesspaths == false)
+		return;
 	
 	// Ensure .dat extension
 	if (dest.right (4) != ".dat") {
@@ -174,13 +177,25 @@ void PartDownloadPrompt::sourceChanged (int i) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadPrompt::startDownload() {
+	str dest = ui->fname->text();
+	setPrimaryFile (null);
+	
+	if (getSource() == CustomURL)
+		dest = basename (getURL());
+	
+	modifyDest (dest);
+	
+	if (QFile::exists (PartDownloader::getDownloadPath() + dest)) {
+		const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+		
+		if (!confirm (tr ("Overwrite?"), overwritemsg))
+			return;
+	}
+	
 	ui->progress->setEnabled (true);
 	ui->buttonBox->setEnabled (false);
 	ui->fname->setEnabled (false);
 	ui->source->setEnabled (false);
-	
-	str dest = ui->fname->text();
-	modifyDest (dest);
 	downloadFile (dest, getURL(), true);
 }
 
@@ -207,23 +222,39 @@ void PartDownloadPrompt::downloadFile (str dest, str url, bool primary) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadPrompt::checkIfFinished() {
+	bool failed = false;
+	
 	// If there is some download still working, we're not finished.
-	for (PartDownloadRequest* req : m_requests)
+	for (PartDownloadRequest* req : m_requests) {
 		if (!req->isFinished())
 			return;
+		
+		if (req->state() == PartDownloadRequest::Failed)
+			failed = true;
+	}
+	
+	for (PartDownloadRequest* req : m_requests)
+		delete req;
 	
 	// Update everything now
-	reloadAllSubfiles();
-	g_win->fullRefresh();
-	g_win->R()->resetAngles();
-	
-	// Allow the prompt be closed now.
-	ui->buttonBox->disconnect (SIGNAL (accepted()));
-	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (accept()));
-	ui->buttonBox->setEnabled (true);
-	ui->progress->setEnabled (false);
-	
-	// accept();
+	if (primaryFile()) {
+		LDFile::setCurrent (primaryFile());
+		reloadAllSubfiles();
+		g_win->fullRefresh();
+		g_win->R()->resetAngles();
+		m_requests.clear();
+		
+		if (net_autoclose && !failed) {
+			// Close automatically if desired.
+			accept();
+		} else {
+			// Allow the prompt be closed now.
+			ui->buttonBox->disconnect (SIGNAL (accepted()));
+			connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (accept()));
+			ui->buttonBox->setEnabled (true);
+			ui->progress->setEnabled (false);
+		}
+	}
 }
 
 // =============================================================================
@@ -237,11 +268,9 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	m_nam (new QNetworkAccessManager),
 	m_firstUpdate (true),
 	m_state (Requesting),
-	m_primary (primary)
+	m_primary (primary),
+	m_fp (null)
 {
-	m_fpath.replace ("\\", "/");
-	QFile::remove (m_fpath);
-	
 	// Make sure that we have a valid destination.
 	str dirpath = dirname (m_fpath);
 	
@@ -285,7 +314,6 @@ void PartDownloadRequest::updateToTable() {
 	
 	case Finished:
 	case Failed:
-	case Aborted:
 		{
 			QLabel* lb = new QLabel ((m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
 				"<b><span style=\"color: #800\">FAILED</span></b>");
@@ -311,14 +339,26 @@ void PartDownloadRequest::updateToTable() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadFinished() {
-	m_state = m_reply->error() == QNetworkReply::NoError ? Finished : Failed;
+	if (m_reply->error() != QNetworkReply::NoError)
+		m_state = Failed;
+	elif (state() != Failed)
+		m_state = Finished;
+	
 	m_bytesRead = m_bytesTotal;
 	updateToTable();
+	
+	if (m_fp) {
+		m_fp->close();
+		delete m_fp;
+		m_fp = null;
+	}
 	
 	if (m_state != Finished) {
 		m_prompt->checkIfFinished();
 		return;
 	}
+	
+	print ("state: %1\n", (int) m_state);
 	
 	// Try to load this file now.
 	LDFile* f = openDATFile (m_fpath, false);
@@ -345,7 +385,7 @@ void PartDownloadRequest::downloadFinished() {
 	}
 	
 	if (m_primary)
-		LDFile::setCurrent (f);
+		m_prompt->setPrimaryFile (f);
 	
 	m_prompt->checkIfFinished();
 }
@@ -362,12 +402,26 @@ void PartDownloadRequest::downloadProgress (int64 recv, int64 total) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::readyRead() {
-	QFile f (m_fpath);
-	if (!f.open (QIODevice::Append))
+	if (state() == Failed)
 		return;
 	
-	f.write (m_reply->readAll());
-	f.close();
+	if (m_fp == null) {
+		m_fpath.replace ("\\", "/");
+		
+		// We have already asked the user whether we can overwrite so we're good
+		// to go here.
+		m_fp = new QFile (m_fpath);
+		if (!m_fp->open (QIODevice::WriteOnly)) {
+			critical (fmt (tr ("Couldn't open %1 for writing: %2"), m_fpath, strerror (errno)));
+			m_state = Failed;
+			m_reply->abort();
+			updateToTable();
+			m_prompt->checkIfFinished();
+			return;
+		}
+	}
+	
+	m_fp->write (m_reply->readAll());
 }
 
 // =============================================================================
@@ -384,7 +438,13 @@ void PartDownloadRequest::downloadError() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool PartDownloadRequest::isFinished() const {
-	return m_state == Finished || m_state == Failed || m_state == Aborted;
+	return m_state == Finished || m_state == Failed;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+const PartDownloadRequest::State& PartDownloadRequest::state() const {
+	return m_state;
 }
 
 // =============================================================================

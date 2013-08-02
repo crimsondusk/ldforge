@@ -241,7 +241,7 @@ void FileLoader::start() {
 	work (0);
 }
 
-void FileLoader::work (ulong i) {
+void FileLoader::work (int i) {
 	if (aborted()) {
 		// We were flagged for abortion, so abort.
 		for (LDObject* obj : m_objs)
@@ -252,10 +252,10 @@ void FileLoader::work (ulong i) {
 		return;
 	}
 	
-	ulong max = i + 300;
+	int max = i + 300;
 	
-	for (; i < max && i < lines().size(); ++i) {
-		str line = lines() [i];
+	for (; i < max && i < (int) lines().size(); ++i) {
+		str line = lines()[i];
 		
 		// Trim the trailing newline
 		qchar c;
@@ -269,9 +269,8 @@ void FileLoader::work (ulong i) {
 		if (obj->getType() == LDObject::Error) {
 			log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDErrorObject*> (obj)->reason);
 			
-			if (m_warningsPointer) {
-				(*m_warningsPointer) ++;
-			}
+			if (m_warningsPointer)
+				(*m_warningsPointer)++;
 		}
 		
 		m_objs << obj;
@@ -281,9 +280,10 @@ void FileLoader::work (ulong i) {
 			dlg->updateProgress (i);
 	}
 	
-	if (i >= lines().size() - 1) {
+	if (i >= ((int) lines().size()) - 1) {
 		emit workDone();
 		setDone (true);
+		return;
 	}
 	
 	if (!done()) {
@@ -701,7 +701,7 @@ LDObject* parseLine (str line) {
 		
 		// If we cannot open the file, mark it an error
 		if (!load) {
-			LDErrorObject* obj = new LDErrorObject (line, "Could not open referred file");
+			LDErrorObject* obj = new LDErrorObject (line, fmt ("Could not open %1", tokens[14]));
 			obj->setFileRef (tokens[14]);
 			return obj;
 		}

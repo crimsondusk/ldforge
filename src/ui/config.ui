@@ -495,7 +495,7 @@ Under Linux, you can also set the programs to be launched with Wine, so you can 
      </widget>
      <widget class="QWidget" name="tab_6">
       <attribute name="title">
-       <string>Downloads</string>
+       <string>Downloading</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_7">
        <item>
@@ -522,6 +522,34 @@ Under Linux, you can also set the programs to be launched with Wine, so you can 
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="guessNetPaths">
+         <property name="whatsThis">
+          <string>&lt;p&gt;When this is set, LDForge tries to adjust and correct part paths based on the input. A full path given to the download prompt should be of form &lt;tt&gt;&quot;&amp;lt;dir&amp;gt;/&amp;lt;file&amp;gt;.dat&quot;&lt;/tt&gt; - with this set, input can be automatically completed.&lt;/p&gt;
+
+&lt;p&gt;Examples:
+&lt;ul&gt;
+&lt;li&gt;3002 -&gt; parts/3002.dat&lt;/li&gt;
+&lt;li&gt;3002.da -&gt; parts/3002.dat&lt;/li&gt;
+&lt;li&gt;3002s01 -&gt; parts/s/3002s01.dat&lt;/li&gt;
+&lt;li&gt;4-4cyli -&gt; p/4-4cyli.dat&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;</string>
+         </property>
+         <property name="text">
+          <string>Correct and guess part paths</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="autoCloseNetPrompt">
+         <property name="whatsThis">
+          <string>If this is set, LDForge will close the download prompt after everything has been downloaded. The prompt will not be closed if a download has failed.</string>
+         </property>
+         <property name="text">
+          <string>Close download prompt after completion</string>
+         </property>
+        </widget>
        </item>
        <item>
         <spacer name="verticalSpacer_5">

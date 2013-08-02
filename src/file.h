@@ -202,7 +202,7 @@ private:
 	OpenProgressDialog* dlg;
 	
 private slots:
-	void work (ulong i);
+	void work (int i);
 	
 signals:
 	void progressUpdate (int progress);

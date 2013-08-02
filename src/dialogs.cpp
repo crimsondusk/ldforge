@@ -25,7 +25,7 @@
 #include <QPushButton>
 #include <QBoxLayout>
 #include <QGridLayout>
-#include <qprogressbar.h>
+#include <QProgressBar>
 #include <QCheckBox>
 
 #include "dialogs.h"

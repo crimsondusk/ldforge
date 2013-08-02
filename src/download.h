@@ -23,6 +23,8 @@
 #include "common.h"
 #include "types.h"
 
+class LDFile;
+class QFile;
 class PartDownloadRequest;
 class Ui_DownloadFrom;
 class QNetworkAccessManager;
@@ -46,18 +48,17 @@ public:
 // -----------------------------------------------------------------------------
 class PartDownloadPrompt : public QDialog {
 	Q_OBJECT
+	PROPERTY (LDFile*, primaryFile, setPrimaryFile)
 	
 public:
 	enum Source {
-/*		OfficialLibrary,
- */		PartsTracker,
+		PartsTracker,
 		CustomURL,
 	};
 	
 	explicit PartDownloadPrompt (QWidget* parent = null);
 	virtual ~PartDownloadPrompt();
 	str getURL() const;
-	str getDest(str fname) const;
 	Source getSource() const;
 	void downloadFile (str dest, str url, bool primary);
 	void modifyDest (str& dest) const;
@@ -93,7 +94,6 @@ public:
 		Downloading,
 		Finished,
 		Failed,
-		Aborted,
 	};
 	
 	explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloadPrompt* parent);
@@ -101,6 +101,7 @@ public:
 	virtual ~PartDownloadRequest();
 	void updateToTable();
 	bool isFinished() const;
+	const State& state() const;
 	
 	void operator= (const PartDownloadRequest&) = delete;
 	
@@ -119,6 +120,7 @@ private:
 	State m_state;
 	int64 m_bytesRead, m_bytesTotal;
 	bool m_primary;
+	QFile* m_fp;
 };
 
 #endif // LDFORGE_DOWNLOAD_H

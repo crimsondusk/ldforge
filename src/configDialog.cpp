@@ -47,6 +47,8 @@ extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
 extern_cfg (bool, gui_implicitfiles);
 extern_cfg (str, net_downloadpath);
+extern_cfg (bool, net_guesspaths);
+extern_cfg (bool, net_autoclose);
 
 extern_cfg (str, prog_ytruder);
 extern_cfg (str, prog_rectifier);
@@ -78,6 +80,8 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	initExtProgTab();
 	
 	ui->downloadPath->setText (net_downloadpath);
+	ui->guessNetPaths->setChecked (net_guesspaths);
+	ui->autoCloseNetPrompt->setChecked (net_autoclose);
 	connect (ui->findDownloadPath, SIGNAL (clicked(bool)), this, SLOT (slot_findDownloadFolder()));
 }
 
@@ -578,8 +582,10 @@ void ConfigDialog::staticDialog() {
 		gl_maincolor_alpha = ((double) dlg.getUI()->mainColorAlpha->value()) / 10.0f;
 		gl_linethickness = dlg.getUI()->lineThickness->value();
 		gui_implicitfiles = dlg.getUI()->implicitFiles->isChecked();
-		
 		net_downloadpath = dlg.getUI()->downloadPath->text();
+		net_guesspaths = dlg.getUI()->guessNetPaths->isChecked();
+		net_autoclose = dlg.getUI()->autoCloseNetPrompt->isChecked();
+		
 		if (net_downloadpath.value.right (1) != DIRSLASH)
 			net_downloadpath += DIRSLASH;
 		
