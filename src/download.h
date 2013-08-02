@@ -23,6 +23,7 @@
 #include "common.h"
 #include "types.h"
 
+class PartDownloadRequest;
 class Ui_DownloadFrom;
 class QNetworkAccessManager;
 class QNetworkRequest;
@@ -58,14 +59,20 @@ public:
 	str fullFilePath() const;
 	str getDest() const;
 	Source getSource() const;
+	void downloadFile (const str& path, bool primary);
 	
 public slots:
 	void sourceChanged (int i);
 	void startDownload();
+	void checkIfFinished();
 	
 protected:
 	Ui_DownloadFrom* ui;
 	friend class PartDownloadRequest;
+	
+private:
+	List<str> m_filesToDownload;
+	List<PartDownloadRequest*> m_requests;
 };
 
 // =============================================================================
@@ -84,7 +91,7 @@ public:
 		Requesting,
 		Downloading,
 		Finished,
-		Error,
+		Failed,
 		Aborted,
 	};
 	
@@ -92,6 +99,7 @@ public:
 	         PartDownloadRequest (const PartDownloadRequest&) = delete;
 	virtual ~PartDownloadRequest();
 	void updateToTable();
+	bool isFinished() const;
 	
 	void operator= (const PartDownloadRequest&) = delete;
 	

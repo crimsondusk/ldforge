@@ -180,6 +180,7 @@ class LDErrorObject : public LDObject {
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
+	PROPERTY (str, fileRef, setFileRef)
 
 public:
 	LDErrorObject();

@@ -700,8 +700,11 @@ LDObject* parseLine (str line) {
 		g_loadingMainFile = tmp;
 		
 		// If we cannot open the file, mark it an error
-		if (!load)
-			return new LDErrorObject (line, "Could not open referred file");
+		if (!load) {
+			LDErrorObject* obj = new LDErrorObject (line, "Could not open referred file");
+			obj->setFileRef (tokens[14]);
+			return obj;
+		}
 		
 		LDSubfileObject* obj = new LDSubfileObject;
 		obj->setColor (tokens[1].toLong());

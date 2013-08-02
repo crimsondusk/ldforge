@@ -27,6 +27,7 @@
 #include "gui.h"
 #include "build/moc_download.cpp"
 #include "file.h"
+#include "gldraw.h"
 
 PartDownloader g_PartDownloader;
 
@@ -159,16 +160,46 @@ void PartDownloadPrompt::sourceChanged (int i) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadPrompt::startDownload() {
-	int row = ui->progress->rowCount();
 	ui->progress->setEnabled (true);
 	ui->buttonBox->setEnabled (false);
-	ui->progress->insertRow (row);
 	ui->fname->setEnabled (false);
 	ui->source->setEnabled (false);
+	downloadFile (getDest(), true);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void PartDownloadPrompt::downloadFile (const str& path, bool primary) {
+	const int row = ui->progress->rowCount();
 	
-	PartDownloadRequest* req = new PartDownloadRequest (getURL(), getDest(), true, this);
+	// Don't download files repeadetly.
+	if (m_filesToDownload.find (path) != -1u)
+		return;
+	
+	print ("%1: row: %2\n", path, row);
+	PartDownloadRequest* req = new PartDownloadRequest (getURL(), path, primary, this);
+	
+	m_filesToDownload << path;
+	m_requests << req;
+	ui->progress->insertRow (row);
 	req->setTableRow (row);
 	req->updateToTable();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void PartDownloadPrompt::checkIfFinished() {
+	// If there is some download still working, we're not finished.
+	for (PartDownloadRequest* req : m_requests)
+		if (!req->isFinished())
+			return;
+	
+	// Update everything now
+	g_win->fullRefresh();
+	g_win->R()->resetAngles();
+	
+	// Close the dialog
+	accept();
 }
 
 // =============================================================================
@@ -203,9 +234,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadRequest::~PartDownloadRequest() {
-
-}
+PartDownloadRequest::~PartDownloadRequest() {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -228,33 +257,71 @@ void PartDownloadRequest::updateToTable() {
 		break;
 	
 	case Finished:
-	case Error:
+	case Failed:
 	case Aborted:
-		table->setCellWidget (tableRow(), ProgressColumn, new QLabel (
-			(m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
-			                        "<b><span style=\"color: #800\">FAILED</span></b>"));
+		{
+			QLabel* lb = new QLabel ((m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
+				"<b><span style=\"color: #800\">FAILED</span></b>");
+			lb->setAlignment (Qt::AlignCenter);
+			table->setCellWidget (tableRow(), ProgressColumn, lb);
+		}
 		break;
 	}
 	
+	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), PartLabelColumn));
 	if (m_firstUpdate) {
-		QLabel* lb = new QLabel (fmt ("<b>%1</b><br>%2", m_dest, m_url), table);
+		lb = new QLabel (fmt ("<b>%1</b><br>%2", m_dest, m_url), table);
 		table->setCellWidget (tableRow(), PartLabelColumn, lb);
-		
-		// Make sure that the cell is big enough to contain the label
-		if (table->columnWidth (PartLabelColumn) < lb->width())
-			table->setColumnWidth (PartLabelColumn, lb->width());
-		
 		table->setRowHeight (tableRow(), lb->height());
-		m_firstUpdate = false;
 	}
+	
+	// Make sure that the cell is big enough to contain the label
+	if (table->columnWidth (PartLabelColumn) < lb->width())
+		table->setColumnWidth (PartLabelColumn, lb->width());
+	
+	m_firstUpdate = false;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadFinished() {
-	m_state = Finished;
+	m_state = m_reply->error() == QNetworkReply::NoError ? Finished : Failed;
 	m_bytesRead = m_bytesTotal;
 	updateToTable();
+	
+	if (m_state != Finished) {
+		m_prompt->checkIfFinished();
+		return;
+	}
+	
+	// Try to load this file now.
+	LDFile* f = openDATFile (m_fpath, false);
+	if (!f)
+		return;
+	
+	f->setImplicit (!m_primary);
+	
+	// Check for any errors which stemmed from unresolved references.
+	// Try to solve these by downloading them.
+	for (LDObject* obj : *f) {
+		if (obj->getType() != LDObject::Error)
+			continue;
+		
+		LDErrorObject* err = static_cast<LDErrorObject*> (obj);
+		if (err->fileRef() == "")
+			continue;
+		
+		m_prompt->downloadFile (err->fileRef(), false);
+	}
+	
+	if (m_primary)
+		LDFile::setCurrent (f);
+	
+	m_prompt->checkIfFinished();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadProgress (int64 recv, int64 total) {
 	m_bytesRead = recv;
 	m_bytesTotal = total;
@@ -262,6 +329,8 @@ void PartDownloadRequest::downloadProgress (int64 recv, int64 total) {
 	updateToTable();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadRequest::readyRead() {
 	QFile f (m_fpath);
 	if (!f.open (QIODevice::Append))
@@ -271,13 +340,21 @@ void PartDownloadRequest::readyRead() {
 	f.close();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadError() {
 	if (m_primary)
 		critical (m_reply->errorString());
 	
 	QFile::remove (m_fpath);
-	m_state = Error;
+	m_state = Failed;
 	updateToTable();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+bool PartDownloadRequest::isFinished() const {
+	return m_state == Finished || m_state == Failed || m_state == Aborted;
 }
 
 // =============================================================================
