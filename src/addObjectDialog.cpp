@@ -83,8 +83,13 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	case LDObject::BFC:
 		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
-		for (int i = 0; i < LDBFCObject::NumStatements; ++i)
+		for (int i = 0; i < LDBFCObject::NumStatements; ++i) {
+			// Separate these in two columns
+			if (i == LDBFCObject::NumStatements / 2)
+				rb_bfcType->rowBreak();
+			
 			rb_bfcType->addButton (LDBFCObject::statements[i]);
+		}
 		
 		if (obj)
 			rb_bfcType->setValue ((int) static_cast<LDBFCObject*> (obj)->type);

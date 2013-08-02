@@ -241,6 +241,10 @@ public:
 		CW,
 		NoCertify,
 		InvertNext,
+		Clip,
+		ClipCCW,
+		ClipCW,
+		NoClip,
 		NumStatements
 	};
 	

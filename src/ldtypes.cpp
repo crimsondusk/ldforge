@@ -159,6 +159,10 @@ const char* LDBFCObject::statements[] = {
 	"CW",
 	"NOCERTIFY",
 	"INVERTNEXT",
+	"CLIP",
+	"CLIP CCW",
+	"CLIP CW",
+	"NOCLIP",
 };
 
 str LDBFCObject::raw() {

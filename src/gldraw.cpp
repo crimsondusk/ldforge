@@ -741,6 +741,8 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		break;
 	
 	case LDObject::CondLine:
+		// Draw conditional lines with a dash pattern - however, use a full
+		// line when drawing a pick list to make selecting them easier.
 		if (list != GL::PickList) {
 			glLineStipple (1, 0x6666);
 			glEnable (GL_LINE_STIPPLE);
@@ -781,40 +783,6 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			g_glInvert = oldinvert;
 		}
 		break;
-	
-#if 0
-	TODO: find a proper way to draw vertices without having them be affected by zoom.
-	case LDObject::Vertex:
-		{
-			LDVertex* pVert = static_cast<LDVertex*> (obj);
-			LDTriangle* pPoly;
-			vertex* vPos = &(pVert->pos);
-			const double fPolyScale = max (fZoom, 1.0);
-			
-#define BIPYRAMID_COORD(N) ((((i + N) % 4) >= 2 ? 1 : -1) * 0.3f * fPolyScale)
-			
-			for (int i = 0; i < 8; ++i) {
-				pPoly = new LDTriangle;
-				pPoly->coords[0] = {vPos->x, vPos->y + ((i >= 4 ? 1 : -1) * 0.4f * fPolyScale), vPos->z};
-				pPoly->coords[1] = {
-					vPos->x + BIPYRAMID_COORD (0),
-					vPos->y,
-					vPos->z + BIPYRAMID_COORD (1)
-				};
-				
-				pPoly->coords[2] = {
-					vPos->x + BIPYRAMID_COORD (1),
-					vPos->y,
-					vPos->z + BIPYRAMID_COORD (2)
-				};
-				
-				pPoly->dColor = pVert->dColor;
-				compileOneObject (pPoly, list);
-				delete pPoly;
-			}
-		}
-		break;
-#endif // 0
 	
 	default:
 		break;

@@ -642,9 +642,19 @@ LDObject* parseLine (str line) {
 			
 			// MLCAD is notorious for stuffing these statements in parts it
 			// creates. The above block only handles valid statements, so we
-			// need to handle MLCAD-style invertnext separately.
-			if (comm == "BFC CERTIFY INVERTNEXT")
-				return new LDBFCObject (LDBFCObject::InvertNext);
+			// need to handle MLCAD-style invertnext, clip and noclip separately.
+			struct {
+				const char* a;
+				LDBFCObject::Type b;
+			} BFCData[] = {
+				{ "INVERTNEXT", LDBFCObject::InvertNext },
+				{ "NOCLIP", LDBFCObject::NoClip },
+				{ "CLIP", LDBFCObject::Clip }
+			};
+			
+			for (const auto& i : BFCData)
+				if (comm == fmt ("BFC CERTIFY %1", i.a))
+					return new LDBFCObject (i.b);
 		}
 		
 		if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {
