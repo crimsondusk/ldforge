@@ -10,8 +10,10 @@
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
 	- Added support for multiple spaces before the ring number.
-- Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction
-	from errorneous MLCAD syntax ('0 BFC CERTIFY CLIP').
+- Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
+	syntax ('0 BFC CERTIFY CLIP').
+- If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
+	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 
 =================================================
 == Changes in version 0.2-alpha
