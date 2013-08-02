@@ -47,8 +47,8 @@ class PartDownloadPrompt : public QDialog {
 	
 public:
 	enum Source {
-		OfficialLibrary,
-		PartsTracker,
+/*		OfficialLibrary,
+ */		PartsTracker,
 		CustomURL,
 	};
 	
@@ -84,10 +84,11 @@ public:
 		Requesting,
 		Downloading,
 		Finished,
+		Error,
 		Aborted,
 	};
 	
-	explicit PartDownloadRequest (str url, str dest, PartDownloadPrompt* parent);
+	explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloadPrompt* parent);
 	         PartDownloadRequest (const PartDownloadRequest&) = delete;
 	virtual ~PartDownloadRequest();
 	void updateToTable();
@@ -98,6 +99,7 @@ public slots:
 	void downloadFinished();
 	void readyRead();
 	void downloadProgress (qint64 recv, qint64 total);
+	void downloadError();
 	
 private:
 	PartDownloadPrompt* m_prompt;
@@ -107,6 +109,7 @@ private:
 	bool m_firstUpdate;
 	State m_state;
 	int64 m_bytesRead, m_bytesTotal;
+	bool m_primary;
 };
 
 #endif // LDFORGE_DOWNLOAD_H

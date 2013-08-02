@@ -53,11 +53,6 @@
        </property>
        <item>
         <property name="text">
-         <string>Official parts</string>
-        </property>
-       </item>
-       <item>
-        <property name="text">
          <string>Parts tracker</string>
         </property>
        </item>

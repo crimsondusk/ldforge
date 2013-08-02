@@ -63,11 +63,10 @@ str PartDownloadPrompt::getURL() const {
 	const Source src = getSource();
 	
 	switch (src) {
-	case OfficialLibrary:
+/*	case OfficialLibrary:
+		return str (PartDownloader::k_OfficialURL) + getDest();
+*/
 	case PartsTracker:
-		if (src == OfficialLibrary)
-			return str (PartDownloader::k_OfficialURL) + getDest();
-		
 		return str (PartDownloader::k_UnofficialURL) + getDest();
 	
 	case CustomURL:
@@ -94,6 +93,16 @@ str PartDownloadPrompt::getDest() const {
 			fname.chop (fname.length() - fname.lastIndexOf ("."));
 		
 		fname += ".dat";
+	}
+	
+	// If the part starts with s\ or s/, then use parts/s/. Same goes with
+	// 48\ and p/48/.
+	if (fname.left (2) == "s\\" || fname.left (2) == "s/") {
+		fname.remove (0, 2);
+		fname.prepend ("parts/s/");
+	} elif (fname.left (3) == "48\\" || fname.left (3) == "48/") {
+		fname.remove (0, 3);
+		fname.prepend ("p/48/");
 	}
 	
 	/* Try determine where to put this part. We have four directories:
@@ -157,14 +166,14 @@ void PartDownloadPrompt::startDownload() {
 	ui->fname->setEnabled (false);
 	ui->source->setEnabled (false);
 	
-	PartDownloadRequest* req = new PartDownloadRequest (getURL(), getDest(), this);
+	PartDownloadRequest* req = new PartDownloadRequest (getURL(), getDest(), true, this);
 	req->setTableRow (row);
 	req->updateToTable();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadRequest::PartDownloadRequest (str url, str dest, PartDownloadPrompt* parent) :
+PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartDownloadPrompt* parent) :
 	QObject (parent),
 	m_prompt (parent),
 	m_url (url),
@@ -172,7 +181,8 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, PartDownloadPrompt*
 	m_fpath (m_prompt->fullFilePath()),
 	m_nam (new QNetworkAccessManager),
 	m_firstUpdate (true),
-	m_state (Requesting)
+	m_state (Requesting),
+	m_primary (primary)
 {
 	// Make sure that we have a valid destination.
 	str dirpath = dirname (m_fpath);
@@ -188,6 +198,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, PartDownloadPrompt*
 	connect (m_reply, SIGNAL (finished()), this, SLOT (downloadFinished()));
 	connect (m_reply, SIGNAL (readyRead()), this, SLOT (readyRead()));
 	connect (m_reply, SIGNAL (downloadProgress (qint64, qint64)), this, SLOT (downloadProgress (qint64, qint64)));
+	connect (m_reply, SIGNAL (error (QNetworkReply::NetworkError)), this, SLOT (downloadError()));
 }
 
 // =============================================================================
@@ -200,15 +211,30 @@ PartDownloadRequest::~PartDownloadRequest() {
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::updateToTable() {
 	QTableWidget* table = m_prompt->ui->progress;
-	QProgressBar* progressBar = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), ProgressColumn));
+	QProgressBar* prog;
 	
-	if (!progressBar) {
-		progressBar = new QProgressBar;
-		table->setCellWidget (tableRow(), ProgressColumn, progressBar);
+	switch (m_state) {
+	case Requesting:
+	case Downloading:
+		prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), ProgressColumn));
+	
+		if (!prog) {
+			prog = new QProgressBar;
+			table->setCellWidget (tableRow(), ProgressColumn, prog);
+		}
+		
+		prog->setRange (0, m_bytesTotal);
+		prog->setValue (m_bytesRead);
+		break;
+	
+	case Finished:
+	case Error:
+	case Aborted:
+		table->setCellWidget (tableRow(), ProgressColumn, new QLabel (
+			(m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
+			                        "<b><span style=\"color: #800\">FAILED</span></b>"));
+		break;
 	}
-	
-	progressBar->setRange (0, m_bytesTotal);
-	progressBar->setValue (m_bytesRead);
 	
 	if (m_firstUpdate) {
 		QLabel* lb = new QLabel (fmt ("<b>%1</b><br>%2", m_dest, m_url), table);
@@ -243,6 +269,15 @@ void PartDownloadRequest::readyRead() {
 	
 	f.write (m_reply->readAll());
 	f.close();
+}
+
+void PartDownloadRequest::downloadError() {
+	if (m_primary)
+		critical (m_reply->errorString());
+	
+	QFile::remove (m_fpath);
+	m_state = Error;
+	updateToTable();
 }
 
 // =============================================================================
