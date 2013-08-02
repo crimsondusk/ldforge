@@ -94,6 +94,8 @@
     <addaction name="actionSaveAs"/>
     <addaction name="actionSaveAll"/>
     <addaction name="separator"/>
+    <addaction name="actionDownloadFrom"/>
+    <addaction name="separator"/>
     <addaction name="actionClose"/>
     <addaction name="actionCloseAll"/>
     <addaction name="separator"/>
@@ -1255,6 +1257,11 @@
    </property>
    <property name="text">
     <string>New File</string>
+   </property>
+  </action>
+  <action name="actionDownloadFrom">
+   <property name="text">
+    <string>Download From...</string>
    </property>
   </action>
  </widget>

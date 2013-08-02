@@ -1,6 +1,7 @@
 act (New)
 act (NewFile)
 act (Open)
+act (DownloadFrom)
 act (Save)
 act (SaveAs)
 act (SaveAll)
