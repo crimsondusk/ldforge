@@ -131,9 +131,9 @@ void ForgeWindow::slot_action() {
 #include "actions.h"
 }
 
-void ForgeWindow::invokeAction (QAction* act, void (*func) ()) {
+void ForgeWindow::invokeAction (QAction* act, void (*func)()) {
 	beginAction (act);
-	(*func) ();
+	(*func)();
 	endAction();
 }
 
@@ -251,7 +251,7 @@ void ForgeWindow::updateTitle() {
 // =============================================================================
 int ForgeWindow::deleteSelection()
 {
-	if( m_sel.size() == 0 )
+	if (m_sel.size() == 0)
 		return 0;
 	
 	List<LDObject*> selCopy = m_sel;
@@ -341,9 +341,9 @@ void ForgeWindow::buildObjList() {
 		
 		case LDObject::Overlay:
 			{
-				LDOverlayObject* ovl = static_cast<LDOverlayObject*>( obj );
-				descr = fmt( "[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
-					basename( ovl->filename() ), ovl->x(), ovl->y(), ovl->width(), ovl->height() );
+				LDOverlayObject* ovl = static_cast<LDOverlayObject*> (obj);
+				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
+					basename (ovl->filename()), ovl->x(), ovl->y(), ovl->width(), ovl->height());
 			}
 			break;
 		
@@ -358,7 +358,7 @@ void ForgeWindow::buildObjList() {
 		}
 		
 		QListWidgetItem* item = new QListWidgetItem (descr);
-		item->setIcon( getIcon( obj->typeName() ));
+		item->setIcon (getIcon (obj->typeName()));
 		
 		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == LDObject::Error) {
@@ -466,7 +466,7 @@ void ForgeWindow::slot_quickColor() {
 			continue; // uncolored object
 		
 		obj->setColor (newColor);
-		R()->compileObject( obj );
+		R()->compileObject (obj);
 	}
 	
 	refresh();
@@ -510,7 +510,7 @@ void ForgeWindow::updateSelection() {
 	
 	ui->objectList->clearSelection();
 	for (LDObject* obj : m_sel) {
-		if( obj->qObjListEntry == null )
+		if (obj->qObjListEntry == null)
 			continue;
 		
 		obj->qObjListEntry->setSelected (true);
@@ -679,7 +679,7 @@ void ForgeWindow::primitiveLoaderEnd() {
 	connect (hidetimer, SIGNAL (timeout()), m_primLoaderWidget, SLOT (hide()));
 	hidetimer->setSingleShot (true);
 	hidetimer->start (1500);
-	m_primLoaderBar->setFormat( tr( "Done" ));
+	m_primLoaderBar->setFormat (tr ("Done"));
 	log (tr ("Primitives scanned: %1 primitives listed"), m_primLoaderBar->value());
 }
 

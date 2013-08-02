@@ -37,7 +37,7 @@ bool isNumber (const str& tok);
 // Converts a float value to a string value.
 str ftoa (double num);
 
-double atof( str val );
+double atof (str val);
 
 // Simplifies the given fraction.
 void simplify (short& numer, short& denom);
@@ -54,7 +54,7 @@ extern_cfg (int, grid);
 static const short g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
-inline const gridinfo& currentGrid () {
+inline const gridinfo& currentGrid() {
 	return g_GridInfo[grid];
 }
 
@@ -67,7 +67,7 @@ enum RotationPoint
 };
 
 vertex rotPoint (const List<LDObject*>& objs);
-void configRotationPoint ();
+void configRotationPoint();
 
 template<class T, class R> R container_cast (const T& a) {
 	R b;

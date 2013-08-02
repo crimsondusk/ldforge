@@ -35,19 +35,19 @@ public: \
 	virtual void move (vertex vVector); \
 	virtual void invert();
 
-#define LDOBJ_NAME( N )        virtual str typeName() const override { return #N; }
-#define LDOBJ_VERTICES( V )    virtual short vertices() const override { return V; }
-#define LDOBJ_SETCOLORED( V )  virtual bool isColored() const override { return V; }
-#define LDOBJ_COLORED          LDOBJ_SETCOLORED( true )
-#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED( false )
+#define LDOBJ_NAME(N)          virtual str typeName() const override { return #N; }
+#define LDOBJ_VERTICES(V)      virtual short vertices() const override { return V; }
+#define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
+#define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
+#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false)
 
 #define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic() const override
 #define LDOBJ_SCEMANTIC        LDOBJ_CUSTOM_SCEMANTIC { return true; }
 #define LDOBJ_NON_SCEMANTIC    LDOBJ_CUSTOM_SCEMANTIC { return false; }
 
 #define LDOBJ_SETMATRIX(V)     virtual bool hasMatrix() const override { return V; }
-#define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX( true )
-#define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX( false )
+#define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX (true)
+#define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX (false)
 
 class QListWidgetItem;
 class LDSubfileObject;
@@ -66,7 +66,7 @@ class LDObject {
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
 	PROPERTY (LDFile*, file, setFile)
-	READ_PROPERTY (qint32, id, setID)
+	READ_PROPERTY (int32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 
 public:
@@ -91,7 +91,7 @@ public:
 	virtual ~LDObject();
 	
 	virtual LDObject* clone() {return 0;}       // Creates a new LDObject identical to this one.
-	long getIndex () const;                     // Index (i.e. line number) of this object
+	long getIndex() const;                      // Index (i.e. line number) of this object
 	virtual LDObject::Type getType() const;     // Type enumerator of this object
 	const vertex& getVertex (int i) const;      // Get a vertex by index
 	virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)

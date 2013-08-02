@@ -40,13 +40,7 @@ static const struct staticCameraMeta {
 	const char glrotate[3];
 	const Axis axisX, axisY;
 	const bool negX, negY;
-} g_staticCameras[6] = {
-	{ { 1, 0, 0 }, X, Z, false, false },
-	{ { 0, 0, 0 }, X, Y, false, true },
-	{ { 0, 1, 0 }, Z, Y, true, true },
-	{ { -1, 0, 0 }, X, Z, false, true },
-	{ { 0, 0, 0 }, X, Y, true, true },
-	{ { 0, -1, 0 }, Z, Y, false, true },
+} g_staticCameras[6] = { { { 1, 0, 0 }, X, Z, false, false }, { { 0, 0, 0 }, X, Y, false, true }, { { 0, 1, 0 }, Z, Y, true, true }, { { -1, 0, 0 }, X, Z, false, true }, { { 0, 0, 0 }, X, Y, true, true }, { { 0, -1, 0 }, Z, Y, false, true },
 };
 
 cfg (str, gl_bgcolor, "#CCCCD9");
@@ -61,13 +55,13 @@ cfg (bool, gl_wireframe, false);
 
 // argh
 const char* g_CameraNames[7] = {
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Top" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Front" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Left" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Bottom" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Back" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Right" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Free" )
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Top"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Front"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Left"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Bottom"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Back"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Right"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Free")
 };
 
 const GL::Camera g_Cameras[7] = {
@@ -83,10 +77,7 @@ const GL::Camera g_Cameras[7] = {
 const struct GLAxis {
 	const QColor col;
 	const vertex vert;
-} g_GLAxes[3] = {
-	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
-	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
-	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
+} g_GLAxes[3] = { { QColor (255, 0, 0), vertex (10000, 0, 0) }, { QColor (128, 192, 0), vertex (0, 10000, 0) }, { QColor (0, 160, 192), vertex (0, 0, 10000) },
 };
 	
 // =============================================================================
@@ -102,7 +93,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	setFile (null);
 	setDrawOnly (false);
 	resetAngles();
-	setMessageLog( null );
+	setMessageLog (null);
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -249,8 +240,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	
 	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine)
-	{
+		obj->getType() != LDObject::CondLine) {
+		
 		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
 		else
@@ -261,7 +252,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		else {
 			LDColor* col = getColor (obj->color());
 			
-			if( col )
+			if (col)
 				qcol = col->faceColor;
 		}
 		
@@ -507,7 +498,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		}
 		
 		// Paint the coordinates onto the screen.
-		str text = fmt( tr( "X: %1, Y: %2, Z: %3" ), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z] );
+		str text = fmt (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
 		
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
@@ -598,16 +589,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
 		}
 		
-		str fmtstr = tr( "%1 Camera" );
+		str fmtstr = tr ("%1 Camera");
 		
 		// Draw a label for the current camera in the top left corner
 		{
 			const ushort margin = 4;
 			
 			str label;
-			label = fmt( fmtstr, tr( g_CameraNames[camera()] ));
+			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
 			paint.setPen (m_darkbg ? Qt::white : Qt::black);
-			paint.drawText( QPoint( margin, height() - ( margin + metrics.descent() )), label );
+			paint.drawText (QPoint (margin, height() -  (margin + metrics.descent())), label);
 		}
 		
 		// Tool tips
@@ -622,7 +613,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				ushort x0 = m_pos.x(),
 					y0 = m_pos.y();
 				
-				str label = fmt( fmtstr, tr( g_CameraNames[m_toolTipCamera] ));
+				str label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
 				
 				const ushort textWidth = metrics.width (label),
 					textHeight = metrics.height(),
@@ -648,18 +639,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	}
 	
 	// Message log
-	if( msglog() )
-	{
+	if (msglog()) {
 		int y = 0;
 		const int margin = 2;
 		QColor col = Qt::black;
-		paint.setPen( QPen() );
+		paint.setPen (QPen());
 		
-		for( const MessageManager::Line& line : *msglog())
-		{
-			col.setAlphaF( line.alpha );
-			paint.setPen( QPen( col ));
-			paint.drawText( QPoint( margin, y + margin + metrics.ascent() ), line.text );
+		for (const MessageManager::Line& line : *msglog()) {
+			col.setAlphaF (line.alpha);
+			paint.setPen (QPen (col));
+			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
 			y += metrics.height();
 		}
 	}
@@ -761,8 +750,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		compileSubObject (obj, GL_QUADS);
 		break;
 	
-	case LDObject::Subfile:
-		{
+	case LDObject::Subfile: {
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 			List<LDObject*> objs = ref->inlineContents (true, true);
 			
@@ -1111,7 +1099,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = LDObject::fromID( idx );
+		LDObject* obj = LDObject::fromID (idx);
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
@@ -1199,16 +1187,14 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	update();
 }
 
-READ_ACCESSOR( LDFile*, GLRenderer::file )
-{
+READ_ACCESSOR (LDFile*, GLRenderer::file) {
 	return m_file;
 }
 
-SET_ACCESSOR( LDFile*, GLRenderer::setFile )
-{
+SET_ACCESSOR (LDFile*, GLRenderer::setFile) {
 	m_file = val;
 	
-	if( val != null )
+	if (val != null)
 		overlaysFromObjects();
 }
 

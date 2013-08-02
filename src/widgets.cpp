@@ -33,7 +33,7 @@ QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false
 }
 
 bool RadioBox::isChecked (int n) const {
-	return m_buttonGroup->checkedId () == n;
+	return m_buttonGroup->checkedId() == n;
 }
 
 void RadioBox::init (Qt::Orientation orient) {
@@ -47,7 +47,7 @@ void RadioBox::init (Qt::Orientation orient) {
 	setLayout (m_coreLayout);
 	
 	// Init the first row with a break
-	rowBreak ();
+	rowBreak();
 	
 	connect (m_buttonGroup, SIGNAL (buttonPressed (int)), this, SLOT (slot_buttonPressed (int)));
 	connect (m_buttonGroup, SIGNAL (buttonReleased (int)), this, SLOT (slot_buttonReleased (int)));
@@ -63,7 +63,7 @@ RadioBox::RadioBox (const QString& title, initlist<char const*> entries, int con
 		addButton (entry);
 }
 
-void RadioBox::rowBreak () {
+void RadioBox::rowBreak() {
 	QBoxLayout* newLayout = new QBoxLayout (m_vert ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
 	m_currentLayout = newLayout;
 	m_layouts << newLayout;
@@ -101,8 +101,8 @@ void RadioBox::setCurrentRow (uint row) {
 	m_currentLayout = m_layouts[row];
 }
 
-int RadioBox::value () const {
-	return m_buttonGroup->checkedId ();
+int RadioBox::value() const {
+	return m_buttonGroup->checkedId();
 }
 
 void RadioBox::setValue (int val) {
@@ -116,23 +116,23 @@ QRadioButton* RadioBox::operator[] (uint n) const {
 void RadioBox::slot_buttonPressed (int btn) {
 	emit buttonPressed (btn);
 	
-	m_oldId = m_buttonGroup->checkedId ();
+	m_oldId = m_buttonGroup->checkedId();
 }
 
 void RadioBox::slot_buttonReleased (int btn) {
 	emit buttonReleased (btn);
-	int newid = m_buttonGroup->checkedId ();
+	int newid = m_buttonGroup->checkedId();
 	
 	if (m_oldId != newid)
 		emit valueChanged (newid);
 }
 
 RadioBox::it RadioBox::begin() {
-	 return m_objects.begin ();
+	 return m_objects.begin();
 }
 
 RadioBox::it RadioBox::end() {
-	return m_objects.end ();
+	return m_objects.end();
 }
 
 #include "build/moc_widgets.cpp"

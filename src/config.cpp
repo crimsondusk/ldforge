@@ -30,86 +30,79 @@ static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
 // Load the configuration from file
-bool config::load()
-{
-	print( "config::load: Loading configuration file...\n" );
-	print( "config::load: Path to configuration is %1\n", filepath() );
-	
+bool config::load() {
+	print ("config::load: Loading configuration file...\n");
+	print ("config::load: Path to configuration is %1\n", filepath());
+
 	// Locale must be disabled for atof
-	setlocale( LC_NUMERIC, "C" );
-	
-	File f( filepath(), File::Read );
+	setlocale (LC_NUMERIC, "C");
+
+	File f (filepath(), File::Read);
 	int ln = 0;
-	
-	if( !f )
+
+	if (!f)
 		return false;
-	
+
 	// Read the values.
-	for( str line : f )
-	{
+for (str line : f) {
 		ln++;
-		
-		if( line.isEmpty() || line[0] == '#' )
+
+		if (line.isEmpty() || line[0] == '#')
 			continue; // Empty line or comment.
-		
+
 		// Find the equals sign.
-		int equals = line.indexOf( '=' );
+		int equals = line.indexOf ('=');
 		
-		if( equals == -1 )
-		{
-			fprint( stderr, "couldn't find `=` sign in entry `%1`\n", line );
+		if (equals == -1) {
+			fprint (stderr, "couldn't find `=` sign in entry `%1`\n", line);
 			continue;
 		}
 		
-		str entry = line.left( equals );
-		str valstring = line.right( line.length() - equals - 1 );
+		str entry = line.left (equals);
+		str valstring = line.right (line.length() - equals - 1);
 		
 		// Find the config entry for this.
 		config* cfg = null;
 		
-		for( config* i : g_configPointers )
-		{
-			if( !i )
+		for (config* i : g_configPointers) {
+			if (!i)
 				break;
 			
-			if( entry == i->name )
+			if (entry == i->name)
 				cfg = i;
 		}
 		
-		if( !cfg )
-		{
-			fprint( stderr, "unknown config `%1`\n", entry );
+		if (!cfg) {
+			fprint (stderr, "unknown config `%1`\n", entry);
 			continue;
 		}
 		
-		switch( cfg->getType() )
-		{
+		switch (cfg->getType()) {
 		case Type_int:
-			static_cast<intconfig*>( cfg )->value = valstring.toInt();
+			static_cast<intconfig*> (cfg)->value = valstring.toInt();
 			break;
 		
 		case Type_str:
-			static_cast<strconfig*>( cfg )->value = valstring;
+			static_cast<strconfig*> (cfg)->value = valstring;
 			break;
 		
 		case Type_float:
-			static_cast<floatconfig*>( cfg )->value = valstring.toFloat();
+			static_cast<floatconfig*> (cfg)->value = valstring.toFloat();
 			break;
 		
-		case Type_bool:
-		{
-			bool& val = static_cast<boolconfig*>( cfg )->value;
+		case Type_bool: {
+			bool& val = static_cast<boolconfig*> (cfg)->value;
 			
-			if( valstring.toUpper() == "TRUE" || valstring == "1" )
+			if (valstring.toUpper() == "TRUE" || valstring == "1")
 				val = true;
-			elif( valstring.toUpper() == "FALSE" || valstring == "0" )
+			elif (valstring.toUpper() == "FALSE" || valstring == "0")
 				val = false;
 			
 			break;
 		}
 		
 		case Type_keyseq:
-			static_cast<keyseqconfig*>( cfg )->value = keyseq::fromString( valstring );
+			static_cast<keyseqconfig*> (cfg)->value = keyseq::fromString (valstring);
 			break;
 		
 		default:
@@ -121,70 +114,63 @@ bool config::load()
 	return true;
 }
 
-extern_cfg( str, io_ldpath );
+extern_cfg (str, io_ldpath);
 
 // =============================================================================
 // Save the configuration to disk
-bool config::save()
-{
+bool config::save() {
 	// The function will write floats, disable the locale now so that they
 	// are written properly.
-	setlocale( LC_NUMERIC, "C" );
+	setlocale (LC_NUMERIC, "C");
 	
 	// If the directory doesn't exist, create it now.
-	if( QDir( dirpath() ).exists() == false )
-	{
-		fprint( stderr, "Creating config path %1...\n", dirpath() );
+	if (QDir (dirpath()).exists() == false) {
+		fprint (stderr, "Creating config path %1...\n", dirpath());
 		
-		if( !QDir().mkpath( dirpath() ))
-		{
-			critical( "Failed to create the configuration directory. Configuration cannot be saved!\n" );
+		if (!QDir().mkpath (dirpath())) {
+			critical ("Failed to create the configuration directory. Configuration cannot be saved!\n");
 			return false;
 		}
 	}
 	
-	File f( filepath(), File::Write );
-	print( "writing cfg to %1\n", filepath() );
+	File f (filepath(), File::Write);
+	print ("writing cfg to %1\n", filepath());
 	
-	if( !f )
-	{
-		critical( fmt( QObject::tr( "Cannot save configuration, cannot open %1 for writing: %2\n" ),
-			filepath(), strerror( errno )) );
+	if (!f) {
+		critical (fmt (QObject::tr ("Cannot save configuration, cannot open %1 for writing: %2\n"),
+			filepath(), strerror (errno)));
 		return false;
 	}
 	
-	fprint( f, "# Configuration file for " APPNAME "\n" );
+	fprint (f, "# Configuration file for " APPNAME "\n");
+	str valstring;
 	
-	for( config * cfg : g_configPointers )
-	{
-		if( !cfg )
+	for (config* cfg : g_configPointers) {
+		if (!cfg)
 			break;
 		
-		if( cfg->isDefault() )
+		if (cfg->isDefault())
 			continue;
 		
-		str valstring;
-		
-		switch( cfg->getType() )
-		{
+		switch (cfg->getType()) {
 		case Type_int:
-			valstring = fmt( "%1", static_cast<intconfig*>( cfg )->value );
+			valstring = fmt ("%1", static_cast<intconfig*> (cfg)->value);
 			break;
 		
 		case Type_str:
-			valstring = static_cast<strconfig*>( cfg )->value;
+			valstring = static_cast<strconfig*> (cfg)->value;
 			break;
 		
 		case Type_float:
-			valstring = fmt( "%1", static_cast<floatconfig*>( cfg )->value );
+			valstring = fmt ("%1", static_cast<floatconfig*> (cfg)->value);
 			break;
 		
 		case Type_bool:
-			valstring = ( static_cast<boolconfig*>( cfg )->value ) ? "true" : "false";
+			valstring = (static_cast<boolconfig*> (cfg)->value) ? "true" : "false";
 			break;
 		
 		case Type_keyseq:
-			valstring = static_cast<keyseqconfig*>( cfg )->value.toString();
+			valstring = static_cast<keyseqconfig*> (cfg)->value.toString();
 			break;
 		
 		default:
@@ -192,7 +178,7 @@ bool config::save()
 		}
 		
 		// Write the entry now.
-		fprint( f, "%1=%2\n", cfg->name, valstring );
+		fprint (f, "%1=%2\n", cfg->name, valstring);
 	}
 	
 	f.close();
@@ -200,11 +186,9 @@ bool config::save()
 }
 
 // =============================================================================
-void config::reset()
-{
-	for( config * cfg : g_configPointers )
-	{
-		if( !cfg )
+void config::reset() {
+	for (config* cfg : g_configPointers) {
+		if (!cfg)
 			break;
 		
 		cfg->resetValue();
@@ -212,29 +196,25 @@ void config::reset()
 }
 
 // =============================================================================
-str config::filepath()
-{
-	str path = fmt( "%1%2.cfg", dirpath(),
-		str( APPNAME ).toLower() );
+str config::filepath() {
+	str path = fmt ("%1%2.cfg", dirpath(), str (APPNAME).toLower());
 	return path;
 }
 
 // =============================================================================
-str config::dirpath()
-{
+str config::dirpath() {
 #ifndef _WIN32
-	return fmt( "%1" DIRSLASH ".%2" DIRSLASH,
-				QDir::homePath(), str( APPNAME ).toLower() );
+	return fmt ("%1" DIRSLASH ".%2" DIRSLASH,
+		QDir::homePath(), str (APPNAME).toLower());
 #else
-	return fmt( "%1" DIRSLASH APPNAME DIRSLASH, QDir::homePath() );
+	return fmt ("%1" DIRSLASH APPNAME DIRSLASH, QDir::homePath());
 #endif // _WIN32
 }
 
-void addConfig( config* ptr )
-{
-	if( g_cfgPointerCursor == 0 )
-		memset( g_configPointers, 0, sizeof g_configPointers );
+void addConfig (config* ptr) {
+	if (g_cfgPointerCursor == 0)
+		memset (g_configPointers, 0, sizeof g_configPointers);
 	
-	assert( g_cfgPointerCursor < MAX_CONFIG );
+	assert (g_cfgPointerCursor < MAX_CONFIG);
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }

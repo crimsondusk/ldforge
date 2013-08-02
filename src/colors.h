@@ -36,7 +36,7 @@ uchar luma (QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
 LDColor* getColor (short colnum);
-void setColor( short colnum, LDColor* col );
+void setColor (short colnum, LDColor* col);
 
 // Main and edge color identifiers
 static const short maincolor = 16;

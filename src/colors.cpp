@@ -27,9 +27,8 @@
 static LDColor* g_LDColors[MAX_COLORS];
 
 void initColors() {
-	print( "%1: initializing color information.\n", __func__ );
-	
 	LDColor* col;
+	print ("%1: initializing color information.\n", __func__);
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new LDColor;
@@ -48,9 +47,9 @@ void initColors() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDColor* getColor( short colnum ) {
+LDColor* getColor (short colnum) {
 	// Check bounds
-	if( colnum < 0 || colnum >= MAX_COLORS )
+	if (colnum < 0 || colnum >= MAX_COLORS)
 		return null;
 	
 	return g_LDColors[colnum];
@@ -58,17 +57,16 @@ LDColor* getColor( short colnum ) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void setColor( short colnum, LDColor* col ) {
-	if( colnum < 0 || colnum >= MAX_COLORS )
+void setColor (short colnum, LDColor* col) {
+	if (colnum < 0 || colnum >= MAX_COLORS)
 		return;
 	
 	g_LDColors[colnum] = col;
 }
 
 // =============================================================================
-uchar luma( QColor& col )
-{
-	return ( 0.2126f * col.red()) +
-	       ( 0.7152f * col.green()) +
-	       ( 0.0722f * col.blue() );
+uchar luma (QColor& col) {
+	return (0.2126f * col.red()) +
+	       (0.7152f * col.green()) +
+	       (0.0722f * col.blue());
 }

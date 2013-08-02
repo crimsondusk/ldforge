@@ -5,7 +5,7 @@
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * (at your option) any later version.
  *  
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -51,14 +51,14 @@ struct overlayMeta {
 // 
 // The main renderer object, draws the brick on the screen, manages the camera
 // and selection picking. The instance of GLRenderer is accessible as
-// g_win->R ()
+// g_win->R()
 // =============================================================================
 class GLRenderer : public QGLWidget {
 	Q_OBJECT
 	
-	PROPERTY( bool, drawOnly, setDrawOnly )
-	PROPERTY( double, zoom, setZoom )
-	PROPERTY( MessageManager*, msglog, setMessageLog )
+	PROPERTY (bool, drawOnly, setDrawOnly)
+	PROPERTY (double, zoom, setZoom)
+	PROPERTY (MessageManager*, msglog, setMessageLog)
 	READ_PROPERTY (bool, picking, setPicking)
 	DECLARE_PROPERTY (LDFile*, file, setFile)
 	DECLARE_PROPERTY (EditMode, editMode, setEditMode)
@@ -68,48 +68,48 @@ public:
 	enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 	
 	GLRenderer (QWidget* parent = null);
-	~GLRenderer ();
+	~GLRenderer();
 	
-	Camera         camera              () const { return m_camera; }
-	Axis           cameraAxis          ( bool y, Camera camid = (Camera) -1 );
-	const char*    cameraName          () const;
-	void           clearOverlay        ();
-	void           compileObject       (LDObject* obj);
-	void           compileAllObjects   ();
-	double         depthValue          () const;
-	void           drawGLScene         ();
-	void           endDraw             (bool accept);
-	QColor         getMainColor        ();
-	overlayMeta&   getOverlay          (int newcam);
-	void           hardRefresh         ();
-	void           initGLData          ();
-	void           overlaysFromObjects ();
-	void           refresh             ();
-	void           resetAngles         ();
-	uchar*         screencap           (ushort& w, ushort& h);
-	void           setBackground       ();
-	void           setCamera           (const Camera cam);
-	void           setDepthValue       (double depth);
-	bool           setupOverlay        ( GLRenderer::Camera cam, str file, int x, int y, int w, int h );
+	Camera         camera() const { return m_camera; }
+	Axis           cameraAxis (bool y, Camera camid = (Camera) -1);
+	const char*    cameraName() const;
+	void           clearOverlay();
+	void           compileObject (LDObject* obj);
+	void           compileAllObjects();
+	double         depthValue() const;
+	void           drawGLScene();
+	void           endDraw (bool accept);
+	QColor         getMainColor();
+	overlayMeta&   getOverlay (int newcam);
+	void           hardRefresh();
+	void           initGLData();
+	void           overlaysFromObjects();
+	void           refresh();
+	void           resetAngles();
+	uchar*         screencap (ushort& w, ushort& h);
+	void           setBackground();
+	void           setCamera (const Camera cam);
+	void           setDepthValue (double depth);
+	bool           setupOverlay (GLRenderer::Camera cam, str file, int x, int y, int w, int h);
 	void           updateOverlayObjects();
-	void           zoomNotch           (bool inward);
-	void           zoomToFit           ();
+	void           zoomNotch (bool inward);
+	void           zoomToFit();
 	
-	static void    deleteLists         (LDObject* obj);
+	static void    deleteLists (LDObject* obj);
 
 protected:
-	void           contextMenuEvent      (QContextMenuEvent* ev);
-	void           initializeGL          ();
-	void           keyPressEvent         (QKeyEvent* ev);
-	void           keyReleaseEvent       (QKeyEvent* ev);
-	void           leaveEvent            (QEvent* ev);
+	void           contextMenuEvent (QContextMenuEvent* ev);
+	void           initializeGL();
+	void           keyPressEvent (QKeyEvent* ev);
+	void           keyReleaseEvent (QKeyEvent* ev);
+	void           leaveEvent (QEvent* ev);
 	void           mouseDoubleClickEvent (QMouseEvent* ev);
-	void           mousePressEvent       (QMouseEvent* ev);
-	void           mouseMoveEvent        (QMouseEvent* ev);
-	void           mouseReleaseEvent     (QMouseEvent* ev);
-	void           paintEvent            (QPaintEvent* ev);
-	void           resizeGL              (int w, int h);
-	void           wheelEvent            (QWheelEvent* ev);
+	void           mousePressEvent (QMouseEvent* ev);
+	void           mouseMoveEvent (QMouseEvent* ev);
+	void           mouseReleaseEvent (QMouseEvent* ev);
+	void           paintEvent (QPaintEvent* ev);
+	void           resizeGL (int w, int h);
+	void           wheelEvent (QWheelEvent* ev);
 
 private:
 	// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
@@ -142,21 +142,21 @@ private:
 	List<vertex> m_knownVerts;
 	bool m_panning;
 	
-	void           addDrawnVertex       (vertex m_hoverpos);
-	void           calcCameraIcons      ();                                      // Compute geometry for camera icons
-	void           clampAngle           (double& angle) const;                   // Clamps an angle to [0, 360]
-	void           compileList          (LDObject* obj, const ListType list);    // Compile one of the lists of an object
-	void           compileSubObject     (LDObject* obj, const GLenum gltype);    // Sub-routine for object compiling
-	void           compileVertex        (const vertex& vrt);                     // Compile a single vertex to a list
-	vertex         coordconv2_3         (const QPoint& pos2d, bool snap) const;  // Convert a 2D point to a 3D point
-	QPoint         coordconv3_2         (const vertex& pos3d) const;             // Convert a 3D point to a 2D point
-	LDOverlayObject*     findOverlayObject    ( Camera cam );
-	void           updateRectVerts      ();
-	void           pick                 (uint mouseX, uint mouseY);              // Perform object selection
-	void           setObjectColor       (LDObject* obj, const ListType list);    // Set the color to an object list
+	void           addDrawnVertex (vertex m_hoverpos);
+	void           calcCameraIcons();                                      // Compute geometry for camera icons
+	void           clampAngle (double& angle) const;                       // Clamps an angle to [0, 360]
+	void           compileList (LDObject* obj, const ListType list);       // Compile one of the lists of an object
+	void           compileSubObject (LDObject* obj, const GLenum gltype);  // Sub-routine for object compiling
+	void           compileVertex (const vertex& vrt);                      // Compile a single vertex to a list
+	vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
+	QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
+	LDOverlayObject* findOverlayObject (Camera cam);
+	void           updateRectVerts();
+	void           pick (uint mouseX, uint mouseY);                        // Perform object selection
+	void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
-	void           slot_toolTipTimer    ();
+	void           slot_toolTipTimer();
 };
 
 // Alias for short namespaces

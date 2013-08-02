@@ -60,13 +60,13 @@ public:
 	
 private:
 	void setButtonBackground (QPushButton* button, short color);
-	str currentSubfileName ();
+	str currentSubfileName();
 	
 	short colnum;
 	
 private slots:
-	void slot_colorButtonClicked ();
-	void slot_subfileTypeChanged ();
+	void slot_colorButtonClicked();
+	void slot_subfileTypeChanged();
 };
 
 #endif // ZZ_ADDOBJECTDIALOG_H

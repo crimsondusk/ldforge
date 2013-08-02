@@ -35,7 +35,7 @@ public:
 		layout->addWidget (te_text);
 		layout->addWidget (bbx_buttons);
 		
-		connect (bbx_buttons, SIGNAL (rejected ()), this, SLOT (reject ()));
+		connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
 	}
 	
 	void setText (const char* text) {
@@ -64,5 +64,5 @@ const char* g_docs_overlays =
 void showDocumentation (const char* text) {
 	DocumentViewer dlg;
 	dlg.setText (text);
-	dlg.exec ();
+	dlg.exec();
 }

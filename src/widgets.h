@@ -41,8 +41,8 @@ class RadioBox : public QGroupBox {
 public:
 	typedef List<QRadioButton*>::it it;
 	
+	explicit RadioBox() { init (Qt::Vertical); }
 	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
-	explicit RadioBox () { init (Qt::Vertical); }
 	explicit RadioBox (const QString& title, QWidget* parent = null);
 	explicit RadioBox (const QString& title, initlist<char const*> entries, int const defaultId,
 		const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);

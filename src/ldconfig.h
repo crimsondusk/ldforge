@@ -30,14 +30,14 @@ class LDConfigParser {
 public:
 	LDConfigParser (str inText, char sep);
 	
-	bool atEnd ();
-	bool atBeginning ();
+	bool atEnd();
+	bool atBeginning();
 	bool next (str& val);
 	bool peekNext (str& val);
 	bool getToken (str& val, const ushort pos);
 	bool findToken (short& result, char const* needle, short args);
-	size_t size ();
-	void rewind ();
+	size_t size();
+	void rewind();
 	void seek (short amount, bool rel);
 	bool tokenCompare (short inPos, const char* sOther);
 	

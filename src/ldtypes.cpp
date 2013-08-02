@@ -32,16 +32,16 @@ List<LDObject*> g_LDObjects;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // LDObject constructors
-LDObject::LDObject () :
+LDObject::LDObject() :
 	m_hidden (false),
 	m_selected (false),
 	m_parent (null),
 	m_file (null),
 	qObjListEntry (null),
-	m_glinit (false)
-{
+	m_glinit (false) {
+	
 	// Determine ID
-	qint32 id = 1; // 0 is invalid
+	int32 id = 1; // 0 is invalid
 	
 	for (LDObject* obj : g_LDObjects)
 		if (obj->id() >= id)
@@ -507,7 +507,7 @@ void LDCondLineObject::move (vertex vect) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define CHECK_FOR_OBJ(N) \
-	if( type == LDObject::N ) \
+	if (type == LDObject::N) \
 		return new LD##N##Object;
 
 LDObject* LDObject::getDefault (const LDObject::Type type) {

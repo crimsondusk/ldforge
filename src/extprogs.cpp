@@ -308,7 +308,7 @@ DEFINE_ACTION (Ytruder, 0) {
 		return;
 	
 	// Compose the command-line arguments
-	str argv = join ( {
+	str argv = join ({
 		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
 		depth,
@@ -351,7 +351,7 @@ DEFINE_ACTION (Rectifier, 0){
 		return;
 	
 	// Compose arguments
-	str argv = join ( {
+	str argv = join ({
 		(!ui.cb_condense->isChecked()) ? "-q" : "",
 		(!ui.cb_subst->isChecked()) ? "-r" : "",
 		(ui.cb_condlineCheck->isChecked()) ? "-a" : "",
@@ -429,7 +429,7 @@ DEFINE_ACTION (Intersector, 0) {
 		return;
 	}
 	
-	str parms = join ( {
+	str parms = join ({
 		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		(ui.cb_nocondense->isChecked()) ? "-t" : "",
 		"-s",
@@ -505,7 +505,7 @@ DEFINE_ACTION (Coverer, 0) {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ( {
+	str argv = join ({
 		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
 		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
@@ -564,7 +564,7 @@ DEFINE_ACTION (Isecalc, 0) {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ( {
+	str argv = join ({
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -600,7 +600,7 @@ DEFINE_ACTION (Edger2, 0) {
 	
 	int unmatched = ui.unmatched->currentIndex();
 	
-	str argv = join ( {
+	str argv = join ({
 		fmt ("-p %1", ui.precision->value()),
 		fmt ("-af %1", ui.flatAngle->value()),
 		fmt ("-ac %1", ui.condAngle->value()),

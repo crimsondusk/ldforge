@@ -55,7 +55,7 @@ extern_cfg (bool, gui_implicitfiles);
 // =============================================================================
 ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	ui = new Ui_ConfigUI;
-	ui->setupUi( this );
+	ui->setupUi (this);
 	
 	initMainTab();
 	initShortcutsTab();
@@ -84,9 +84,8 @@ void ConfigDialog::initMainTab() {
 	connect (ui->mainColorButton, SIGNAL (clicked()),
 		this, SLOT (slot_setGLForeground()));
 	
-	ui->mainColorAlpha->setValue( gl_maincolor_alpha * 10.0f );
-	
 	// Sliders
+	ui->mainColorAlpha->setValue (gl_maincolor_alpha * 10.0f);
 	ui->lineThickness->setValue (gl_linethickness);
 	
 	// Checkboxes
@@ -106,7 +105,7 @@ void ConfigDialog::initShortcutsTab() {
 #define act(N) addShortcut (key_##N, ACTION(N), i);
 #include "actions.h"
 	
-	ui->shortcutsList->setSortingEnabled( true );
+	ui->shortcutsList->setSortingEnabled (true);
 	ui->shortcutsList->sortItems();
 	
 	connect (ui->shortcut_set, SIGNAL (clicked()), this, SLOT (slot_setShortcut()));
@@ -156,7 +155,7 @@ void ConfigDialog::initGridTab() {
 		*anglabel = new QLabel ("Angle");
 	short i = 1;
 	
-	for (QLabel * label : initlist<QLabel*> ( { xlabel, ylabel, zlabel, anglabel })) {
+	for (QLabel* label : initlist<QLabel*> ({ xlabel, ylabel, zlabel, anglabel })) {
 		label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);
 	}
@@ -264,7 +263,7 @@ void ConfigDialog::initExtProgTab() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::updateQuickColorList( LDQuickColor* sel ) {
+void ConfigDialog::updateQuickColorList (LDQuickColor* sel) {
 	for (QListWidgetItem* item : quickColorItems)
 		delete item;
 	
@@ -449,8 +448,8 @@ QList<ShortcutListItem*> ConfigDialog::getShortcutSelection()
 {
 	QList<ShortcutListItem*> out;
 	
-	for( QListWidgetItem * entry : ui->shortcutsList->selectedItems() )
-		out << static_cast<ShortcutListItem*>( entry );
+	for (QListWidgetItem* entry : ui->shortcutsList->selectedItems())
+		out << static_cast<ShortcutListItem*> (entry);
 	
 	return out;
 }

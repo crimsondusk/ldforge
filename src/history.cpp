@@ -26,8 +26,8 @@
 bool g_fullRefresh = false;
 
 History::History() :
-	m_pos( -1 ),
-	m_opened( false ) {}
+	m_pos (-1),
+	m_opened (false) {}
 
 void History::undo() {
 	if (m_changesets.size() == 0 || pos() == -1)

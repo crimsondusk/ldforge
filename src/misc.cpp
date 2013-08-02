@@ -111,7 +111,7 @@ const gridinfo g_GridInfo[3] = {
 // =============================================================================
 // Snap the given coordinate value on the current grid's given axis.
 double Grid::snap (double in, const Grid::Config axis) {
-	const double gridval = currentGrid ().confs[axis]->value;
+	const double gridval = currentGrid().confs[axis]->value;
 	const long mult = abs (in / gridval);
 	const bool neg = (in < 0);
 	double out = mult * gridval;
@@ -155,7 +155,7 @@ str ftoa (double num) {
 bool isNumber (const str& tok) {
 	bool gotDot = false;
 	
-	for (int i = 0; i < tok.length (); ++i) {
+	for (int i = 0; i < tok.length(); ++i) {
 		const qchar c = tok[i];
 		
 		// Allow leading hyphen for negatives
@@ -205,23 +205,19 @@ void simplify (short& numer, short& denom) {
 }
 
 // =============================================================================
-vertex rotPoint( const List<LDObject*>& objs )
-{
+vertex rotPoint (const List<LDObject*>& objs) {
 	LDBoundingBox box;
 	
-	switch( edit_rotpoint )
-	{
+	switch (edit_rotpoint) {
 	case ObjectOrigin:
 		// Calculate center vertex
-		for( LDObject * obj : objs )
-		{
-			if( obj->hasMatrix() )
-				box << dynamic_cast<LDMatrixObject*>( obj )->position();
+		for (LDObject * obj : objs)
+			if (obj->hasMatrix())
+				box << dynamic_cast<LDMatrixObject*>(obj)->position();
 			else
 				box << obj;
-		}
 		
-		return box.center ();
+		return box.center();
 	
 	case WorldOrigin:
 		return g_origin;
@@ -233,38 +229,36 @@ vertex rotPoint( const List<LDObject*>& objs )
 	return vertex();
 }
 
-void configRotationPoint()
-{
+void configRotationPoint() {
 	QDialog* dlg = new QDialog;
 	Ui::RotPointUI ui;
-	ui.setupUi( dlg );
+	ui.setupUi (dlg);
 	
-	switch( edit_rotpoint )
-	{
+	switch (edit_rotpoint) {
 	case ObjectOrigin:
-		ui.objectPoint->setChecked( true );
+		ui.objectPoint->setChecked (true);
 		break;
 	
 	case WorldOrigin:
-		ui.worldPoint->setChecked( true );
+		ui.worldPoint->setChecked (true);
 		break;
 	
 	case CustomPoint:
-		ui.customPoint->setChecked( true );
+		ui.customPoint->setChecked (true);
 		break;
 	}
 	
-	ui.customX->setValue( edit_rotpoint_x );
-	ui.customY->setValue( edit_rotpoint_y );
-	ui.customZ->setValue( edit_rotpoint_z );
+	ui.customX->setValue (edit_rotpoint_x);
+	ui.customY->setValue (edit_rotpoint_y);
+	ui.customZ->setValue (edit_rotpoint_z);
 	
-	if (!dlg->exec ())
+	if (!dlg->exec())
 		return;
 	
 	edit_rotpoint =
-		( ui.objectPoint->isChecked() ) ? ObjectOrigin :
-		( ui.worldPoint->isChecked() )  ? WorldOrigin :
-		                                  CustomPoint;
+		(ui.objectPoint->isChecked()) ? ObjectOrigin :
+		(ui.worldPoint->isChecked())  ? WorldOrigin :
+		                                CustomPoint;
 	
 	edit_rotpoint_x = ui.customX->value();
 	edit_rotpoint_y = ui.customY->value();
@@ -274,26 +268,25 @@ void configRotationPoint()
 str join (initlist<StringFormatArg> vals, str delim) {
 	QStringList list;
 	for (const StringFormatArg& arg : vals)
-		list << arg.value ();
+		list << arg.value();
 	
 	return list.join (delim);
 }
 
-double atof( str val )
-{
+double atof (str val) {
 	// Disable the locale while parsing the line or atof's behavior changes
 	// between locales (i.e. fails to read decimals properly). That is
 	// quite undesired...
-	setlocale( LC_NUMERIC, "C" );
+	setlocale (LC_NUMERIC, "C");
 	
 	char* buf = new char[val.length()];
 	char* bufptr = &buf[0];
 	
-	for( qchar& c : val )
+	for (qchar& c : val)
 		*bufptr++ = c.toLatin1();
 	*bufptr = '\0';
 	
-	double fval = atof( buf );
+	double fval = atof (buf);
 	delete[] buf;
 	return fval;
 }

@@ -23,25 +23,24 @@
 #include "ui_about.h"
 #include "gui.h"
 
-AboutDialog::AboutDialog( QWidget* parent, Qt::WindowFlags f ) : QDialog( parent, f )
-{
-	Ui::AboutUI ui;
-	ui.setupUi( this );
+AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f) {
 	
-	ui.versionInfo->setText( fmt( tr( "LDForge %1" ), fullVersionString() ));
+	Ui::AboutUI ui;
+	ui.setupUi (this);
+	ui.versionInfo->setText (fmt (tr ("LDForge %1"), fullVersionString()));
 	
 	QPushButton* mailButton = new QPushButton;
-	mailButton->setText( "Contact" );
-	mailButton->setIcon( getIcon( "mail" ));
-	ui.buttonBox->addButton( static_cast<QAbstractButton*>( mailButton ), QDialogButtonBox::HelpRole );
-	connect( ui.buttonBox, SIGNAL( helpRequested() ), this, SLOT( slot_mail() ));
+	mailButton->setText ("Contact");
+	mailButton->setIcon (getIcon ("mail"));
+	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
+	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
 	
-	setWindowTitle( "About " APPNAME );
+	setWindowTitle ("About " APPNAME);
 }
 
-void AboutDialog::slot_mail()
-{
-	QDesktopServices::openUrl( QUrl( "mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge" ));
+void AboutDialog::slot_mail() {
+	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge"));
 }
 
 #include "build/moc_aboutDialog.cpp"

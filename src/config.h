@@ -31,15 +31,13 @@ typedef QString str;
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
 
-#define cfg( T, NAME, DEFAULT ) T##config NAME (DEFAULT, #NAME)
-#define extern_cfg( T, NAME )   extern T##config NAME
+#define cfg(T, NAME, DEFAULT) T##config NAME (DEFAULT, #NAME)
+#define extern_cfg(T, NAME)   extern T##config NAME
 
 // =========================================================
-class config
-{
+class config {
 public:
-	enum Type
-	{
+	enum Type {
 		Type_none,
 		Type_int,
 		Type_str,
@@ -50,14 +48,12 @@ public:
 
 	const char* name;
 
-	virtual Type getType() const
-	{
+	virtual Type getType() const {
 		return Type_none;
 	}
 
 	virtual void resetValue() {}
-	virtual bool isDefault() const
-	{
+	virtual bool isDefault() const {
 		return false;
 	}
 
@@ -69,165 +65,149 @@ public:
 	static str filepath();
 };
 
-void addConfig( config* ptr );
+void addConfig (config* ptr);
 
 // =============================================================================
-#define DEFINE_UNARY_OPERATOR( T, OP ) \
-	T operator OP() \
-	{ \
+#define DEFINE_UNARY_OPERATOR(T, OP) \
+	T operator OP() { \
 		return OP value; \
 	} \
-
-#define DEFINE_BINARY_OPERATOR( T, OP ) \
-	T operator OP( const T other ) \
-	{ \
+	 
+#define DEFINE_BINARY_OPERATOR(T, OP) \
+	T operator OP (const T other) { \
 		return value OP other; \
 	} \
-
-#define DEFINE_ASSIGN_OPERATOR( T, OP ) \
-	T& operator OP( const T other ) \
-	{ \
+	 
+#define DEFINE_ASSIGN_OPERATOR(T, OP) \
+	T& operator OP (const T other) { \
 		return value OP other; \
 	} \
-
-#define DEFINE_COMPARE_OPERATOR( T, OP ) \
-	bool operator OP( const T other ) \
-	{ \
+	 
+#define DEFINE_COMPARE_OPERATOR(T, OP) \
+	bool operator OP (const T other) { \
 		return value OP other; \
 	} \
-
-#define DEFINE_CAST_OPERATOR( T ) \
-	operator T() \
-	{ \
+	 
+#define DEFINE_CAST_OPERATOR(T) \
+	operator T() { \
 		return (T) value; \
 	} \
 	 
-#define DEFINE_ALL_COMPARE_OPERATORS( T ) \
-	DEFINE_COMPARE_OPERATOR( T, == ) \
-	DEFINE_COMPARE_OPERATOR( T, != ) \
-	DEFINE_COMPARE_OPERATOR( T, > ) \
-	DEFINE_COMPARE_OPERATOR( T, < ) \
-	DEFINE_COMPARE_OPERATOR( T, >= ) \
-	DEFINE_COMPARE_OPERATOR( T, <= ) \
+#define DEFINE_ALL_COMPARE_OPERATORS(T) \
+	DEFINE_COMPARE_OPERATOR (T, ==) \
+	DEFINE_COMPARE_OPERATOR (T, !=) \
+	DEFINE_COMPARE_OPERATOR (T, >) \
+	DEFINE_COMPARE_OPERATOR (T, <) \
+	DEFINE_COMPARE_OPERATOR (T, >=) \
+	DEFINE_COMPARE_OPERATOR (T, <=) \
 	 
-#define DEFINE_INCREMENT_OPERATORS( T ) \
+#define DEFINE_INCREMENT_OPERATORS(T) \
 	T operator++() { return ++value; } \
 	T operator++(int) { return value++; } \
 	T operator--() { return --value; } \
 	T operator--(int) { return value--; }
 
-#define CONFIGTYPE( T ) \
+#define CONFIGTYPE(T) \
 	class T##config : public config
 
-#define IMPLEMENT_CONFIG( T ) \
+#define IMPLEMENT_CONFIG(T) \
 	T value, defval; \
 	\
-	T##config (T _defval, const char* _name) \
-	{ \
+	T##config (T _defval, const char* _name) { \
 		value = defval = _defval; \
 		name = _name; \
-		addConfig( this ); \
+		addConfig (this); \
 	} \
-	operator const T&() const \
-	{ \
+	operator const T&() const { \
 		return value; \
 	} \
-	config::Type getType() const override \
-	{ \
+	config::Type getType() const override { \
 		return config::Type_##T; \
 	} \
-	virtual void resetValue() \
-	{ \
+	virtual void resetValue() { \
 		value = defval; \
 	} \
-	virtual bool isDefault() const \
-	{ \
+	virtual bool isDefault() const { \
 		return value == defval; \
 	}
 
 // =============================================================================
-CONFIGTYPE( int )
-{
+CONFIGTYPE (int) {
 public:
-	IMPLEMENT_CONFIG( int )
-	DEFINE_ALL_COMPARE_OPERATORS( int )
-	DEFINE_INCREMENT_OPERATORS( int )
-	DEFINE_BINARY_OPERATOR( int, + )
-	DEFINE_BINARY_OPERATOR( int, - )
-	DEFINE_BINARY_OPERATOR( int, * )
-	DEFINE_BINARY_OPERATOR( int, / )
-	DEFINE_BINARY_OPERATOR( int, % )
-	DEFINE_BINARY_OPERATOR( int, ^ )
-	DEFINE_BINARY_OPERATOR( int, | )
-	DEFINE_BINARY_OPERATOR( int, & )
-	DEFINE_BINARY_OPERATOR( int, >> )
-	DEFINE_BINARY_OPERATOR( int, << )
-	DEFINE_UNARY_OPERATOR( int, ! )
-	DEFINE_UNARY_OPERATOR( int, ~ )
-	DEFINE_UNARY_OPERATOR( int, - )
-	DEFINE_UNARY_OPERATOR( int, + )
-	DEFINE_ASSIGN_OPERATOR( int, = )
-	DEFINE_ASSIGN_OPERATOR( int, += )
-	DEFINE_ASSIGN_OPERATOR( int, -= )
-	DEFINE_ASSIGN_OPERATOR( int, *= )
-	DEFINE_ASSIGN_OPERATOR( int, /= )
-	DEFINE_ASSIGN_OPERATOR( int, %= )
-	DEFINE_ASSIGN_OPERATOR( int, >>= )
-	DEFINE_ASSIGN_OPERATOR( int, <<= )
+	IMPLEMENT_CONFIG (int)
+	DEFINE_ALL_COMPARE_OPERATORS (int)
+	DEFINE_INCREMENT_OPERATORS (int)
+	DEFINE_BINARY_OPERATOR (int, +)
+	DEFINE_BINARY_OPERATOR (int, -)
+	DEFINE_BINARY_OPERATOR (int, *)
+	DEFINE_BINARY_OPERATOR (int, /)
+	DEFINE_BINARY_OPERATOR (int, %)
+	DEFINE_BINARY_OPERATOR (int, ^)
+	DEFINE_BINARY_OPERATOR (int, |)
+	DEFINE_BINARY_OPERATOR (int, &)
+	DEFINE_BINARY_OPERATOR (int, >>)
+	DEFINE_BINARY_OPERATOR (int, <<)
+	DEFINE_UNARY_OPERATOR (int, !)
+	DEFINE_UNARY_OPERATOR (int, ~)
+	DEFINE_UNARY_OPERATOR (int, -)
+	DEFINE_UNARY_OPERATOR (int, +)
+	DEFINE_ASSIGN_OPERATOR (int, =)
+	DEFINE_ASSIGN_OPERATOR (int, +=)
+	DEFINE_ASSIGN_OPERATOR (int, -=)
+	DEFINE_ASSIGN_OPERATOR (int, *=)
+	DEFINE_ASSIGN_OPERATOR (int, /=)
+	DEFINE_ASSIGN_OPERATOR (int, %=)
+	DEFINE_ASSIGN_OPERATOR (int, >>=)
+	DEFINE_ASSIGN_OPERATOR (int, <<=)
 };
 
 // =============================================================================
-CONFIGTYPE( str )
-{
+CONFIGTYPE (str) {
 public:
-	IMPLEMENT_CONFIG( str )
+	IMPLEMENT_CONFIG (str)
 
-	DEFINE_COMPARE_OPERATOR( str, == )
-	DEFINE_COMPARE_OPERATOR( str, != )
-	DEFINE_ASSIGN_OPERATOR( str, = )
-	DEFINE_ASSIGN_OPERATOR( str, += )
+	DEFINE_COMPARE_OPERATOR (str, ==)
+	DEFINE_COMPARE_OPERATOR (str, !=)
+	DEFINE_ASSIGN_OPERATOR (str, =)
+	DEFINE_ASSIGN_OPERATOR (str, +=)
 	
-	qchar operator[]( int n )
-	{
+	qchar operator[] (int n) {
 		return value[n];
 	}
 };
 
 // =============================================================================
-CONFIGTYPE( float )
-{
+CONFIGTYPE (float) {
 public:
-	IMPLEMENT_CONFIG( float )
-	DEFINE_ALL_COMPARE_OPERATORS( float )
-	DEFINE_INCREMENT_OPERATORS( float )
-	DEFINE_BINARY_OPERATOR( float, + )
-	DEFINE_BINARY_OPERATOR( float, - )
-	DEFINE_BINARY_OPERATOR( float, * )
-	DEFINE_UNARY_OPERATOR( float, ! )
-	DEFINE_ASSIGN_OPERATOR( float, = )
-	DEFINE_ASSIGN_OPERATOR( float, += )
-	DEFINE_ASSIGN_OPERATOR( float, -= )
-	DEFINE_ASSIGN_OPERATOR( float, *= )
+	IMPLEMENT_CONFIG (float)
+	DEFINE_ALL_COMPARE_OPERATORS (float)
+	DEFINE_INCREMENT_OPERATORS (float)
+	DEFINE_BINARY_OPERATOR (float, +)
+	DEFINE_BINARY_OPERATOR (float, -)
+	DEFINE_BINARY_OPERATOR (float, *)
+	DEFINE_UNARY_OPERATOR (float, !)
+	DEFINE_ASSIGN_OPERATOR (float, =)
+	DEFINE_ASSIGN_OPERATOR (float, +=)
+	DEFINE_ASSIGN_OPERATOR (float, -=)
+	DEFINE_ASSIGN_OPERATOR (float, *=)
 };
 
 // =============================================================================
-CONFIGTYPE( bool )
-{
+CONFIGTYPE (bool) {
 public:
-	IMPLEMENT_CONFIG( bool )
-	DEFINE_ALL_COMPARE_OPERATORS( bool )
-	DEFINE_ASSIGN_OPERATOR( bool, = )
+	IMPLEMENT_CONFIG (bool)
+	DEFINE_ALL_COMPARE_OPERATORS (bool)
+	DEFINE_ASSIGN_OPERATOR (bool, =)
 };
 
 // =============================================================================
 typedef QKeySequence keyseq;
 
-CONFIGTYPE( keyseq )
-{
+CONFIGTYPE (keyseq) {
 public:
-	IMPLEMENT_CONFIG( keyseq )
-	DEFINE_ALL_COMPARE_OPERATORS( keyseq )
-	DEFINE_ASSIGN_OPERATOR( keyseq, = )
+	IMPLEMENT_CONFIG (keyseq)
+	DEFINE_ALL_COMPARE_OPERATORS (keyseq)
+	DEFINE_ASSIGN_OPERATOR (keyseq, =)
 };
 
 #endif // CONFIG_H

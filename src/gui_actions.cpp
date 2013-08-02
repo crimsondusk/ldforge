@@ -80,7 +80,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-DEFINE_ACTION( NewFile, CTRL( N )) {
+DEFINE_ACTION (NewFile, CTRL (N)) {
 	newFile();
 }
 
@@ -335,7 +335,7 @@ DEFINE_ACTION (InsertFrom, 0) {
 	for (LDObject* obj : objs) {
 		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
-		g_win->R()->compileObject( obj );
+		g_win->R()->compileObject (obj);
 		
 		idx++;
 	}
@@ -397,7 +397,7 @@ DEFINE_ACTION (InsertRaw, 0) {
 		
 		LDFile::current()->insertObj (idx, obj);
 		g_win->sel() << obj;
-		g_win->R()->compileObject( obj );
+		g_win->R()->compileObject (obj);
 		idx++;
 	}
 	

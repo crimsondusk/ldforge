@@ -26,19 +26,18 @@ class LDColor;
 class Ui_ColorSelUI;
 class QGraphicsScene;
 
-class ColorSelector : public QDialog
-{
+class ColorSelector : public QDialog {
 	Q_OBJECT
-	READ_PROPERTY( LDColor*, sel, setSelection )
+	READ_PROPERTY (LDColor*, sel, setSelection)
 	
 public:
-	explicit ColorSelector( short defval = -1, QWidget* parent = null );
+	explicit ColorSelector (short defval = -1, QWidget* parent = null);
 	virtual ~ColorSelector();
-	static bool getColor( short& val, short defval = -1, QWidget* parent = null );
+	static bool getColor (short& val, short defval = -1, QWidget* parent = null);
 	
 protected:
-	void mousePressEvent( QMouseEvent* event );
-	void resizeEvent( QResizeEvent* ev );
+	void mousePressEvent (QMouseEvent* event);
+	void resizeEvent (QResizeEvent* ev);
 	
 private:
 	Ui_ColorSelUI* ui;

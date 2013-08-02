@@ -5,7 +5,7 @@
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
- *  (at your option) any later version.
+ * (at your option) any later version.
  *  
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -39,16 +39,14 @@ class QTextStream;
 typedef unsigned int uint;
 typedef unsigned short ushort;
 typedef unsigned long ulong;
-
-// Typedef out the _t suffices :)
-typedef int8_t int8;
-typedef int16_t int16;
-typedef int32_t int32;
-typedef int64_t int64;
-typedef uint8_t uint8;
-typedef uint16_t uint16;
-typedef uint32_t uint32;
-typedef uint64_t uint64;
+typedef qint8 int8;
+typedef qint16 int16;
+typedef qint32 int32;
+typedef qint64 int64;
+typedef quint8 uint8;
+typedef quint16 uint16;
+typedef quint32 uint32;
+typedef quint64 uint64;
 
 template<class T> using initlist = std::initializer_list<T>;
 template<class T, class R> using pair = std::pair<T, R>;
@@ -66,7 +64,7 @@ static const Axis g_Axes[3] = { X, Y, Z };
 // =============================================================================
 class matrix {
 public:
-	matrix () {}
+	matrix() {}
 	matrix (initlist<double> vals);
 	matrix (double fillval);
 	matrix (double vals[]);
@@ -98,7 +96,7 @@ private:
 // =============================================================================
 class vertex {
 public:
-	vertex () {}
+	vertex() {}
 	vertex (double x, double y, double z);
 	
 	double&			coord			(const ushort n) { return m_coords[n]; }
@@ -145,51 +143,51 @@ public:
 	typedef typename std::deque<T>::reverse_iterator r_it;
 	typedef typename std::deque<T>::const_reverse_iterator cr_it;
 	
-	List () {}
+	List() {}
 	List (initlist<T> vals) {
 		m_vect = vals;
 	}
 	
-	it begin () {
-		return m_vect.begin ();
+	it begin() {
+		return m_vect.begin();
 	}
 	
-	c_it begin () const {
-		return m_vect.cbegin ();
+	c_it begin() const {
+		return m_vect.cbegin();
 	}
 	
-	it end () {
-		return m_vect.end ();
+	it end() {
+		return m_vect.end();
 	}
 	
-	c_it end () const {
-		return m_vect.cend ();
+	c_it end() const {
+		return m_vect.cend();
 	}
 	
-	r_it rbegin () {
-		return m_vect.rbegin ();
+	r_it rbegin() {
+		return m_vect.rbegin();
 	}
 	
-	cr_it crbegin () const {
-		return m_vect.crbegin ();
+	cr_it crbegin() const {
+		return m_vect.crbegin();
 	}
 	
-	r_it rend () {
-		return m_vect.rend ();
+	r_it rend() {
+		return m_vect.rend();
 	}
 	
-	cr_it crend () const {
-		return m_vect.crend ();
+	cr_it crend() const {
+		return m_vect.crend();
 	}
 	
 	void erase (ulong pos) {
-		assert (pos < size ());
-		m_vect.erase (m_vect.begin () + pos);
+		assert (pos < size());
+		m_vect.erase (m_vect.begin() + pos);
 	}
 	
 	T& push_back (const T& value) {
 		m_vect.push_back (value);
-		return m_vect[m_vect.size () - 1];
+		return m_vect[m_vect.size() - 1];
 	}
 	
 	void push_back (const List<T>& vals) {
@@ -198,11 +196,11 @@ public:
 	}
 	
 	bool pop (T& val) {
-		if (size () == 0)
+		if (size() == 0)
 			return false;
 		
-		val = m_vect[size () - 1];
-		erase (size () - 1);
+		val = m_vect[size() - 1];
+		erase (size() - 1);
 		return true;
 	}
 	
@@ -218,7 +216,7 @@ public:
 		return pop (value);
 	}
 	
-	List<T> reverse () const {
+	List<T> reverse() const {
 		List<T> rev;
 		
 		for (const T& val : c_rev<T> (*this))
@@ -227,33 +225,33 @@ public:
 		return rev;
 	}
 	
-	void clear () {
-		m_vect.clear ();
+	void clear() {
+		m_vect.clear();
 	}
 	
 	void insert (ulong pos, const T& value) {
-		m_vect.insert (m_vect.begin () + pos, value);
+		m_vect.insert (m_vect.begin() + pos, value);
 	}
 	
-	void makeUnique () {
+	void makeUnique() {
 		// Remove duplicate entries. For this to be effective, the List must be
 		// sorted first.
-		sort ();
-		it pos = std::unique (begin (), end ());
-		resize (std::distance (begin (), pos));
+		sort();
+		it pos = std::unique (begin(), end());
+		resize (std::distance (begin(), pos));
 	}
 	
-	ulong size () const {
-		return m_vect.size ();
+	ulong size() const {
+		return m_vect.size();
 	}
 	
 	T& operator[] (ulong n) {
-		assert (n < size ());
+		assert (n < size());
 		return m_vect[n];
 	}
 	
 	const T& operator[] (ulong n) const {
-		assert (n < size ());
+		assert (n < size());
 		return m_vect[n];
 	}
 	
@@ -261,8 +259,8 @@ public:
 		m_vect.resize (size);
 	}
 	
-	void sort () {
-		std::sort (begin (), end ());
+	void sort() {
+		std::sort (begin(), end());
 	}
 	
 	ulong find (const T& needle) {
@@ -296,12 +294,12 @@ public:
 		m_vect = &vect;
 	}
 	
-	it begin () {
-		return m_vect->rbegin ();
+	it begin() {
+		return m_vect->rbegin();
 	}
 	
-	it end () {
-		return m_vect->rend ();
+	it end() {
+		return m_vect->rend();
 	}
 	
 private:
@@ -323,12 +321,12 @@ public:
 		m_vect = &vect;
 	}
 	
-	it begin () const {
-		return m_vect->crbegin ();
+	it begin() const {
+		return m_vect->crbegin();
 	}
 	
-	it end () const {
-		return m_vect->crend ();
+	it end() const {
+		return m_vect->crend();
 	}
 	
 private:
@@ -343,7 +341,7 @@ template<class T> using c_rev = ConstListReverser<T>;
 // =============================================================================
 // StringFormatArg
 // 
-// Converts a given value into a string that can be retrieved with ::value ().
+// Converts a given value into a string that can be retrieved with ::value().
 // Used as the argument type to the formatting functions, hence its name.
 // =============================================================================
 class StringFormatArg {
@@ -386,7 +384,7 @@ public:
 				m_val += ", ";
 			
 			StringFormatArg arg (it);
-			m_val += arg.value ();
+			m_val += arg.value();
 		}
 		
 		if (i)
@@ -395,7 +393,7 @@ public:
 		m_val += "}";
 	}
 	
-	str value () const { return m_val; }
+	str value() const { return m_val; }
 private:
 	str m_val;
 };
@@ -412,10 +410,10 @@ private:
 	// Iterator class to enable range-for-loop support. Rough hack.. don't use directly!
 	class iterator {
 	public:
-		iterator () : m_file (null) {} // end iterator has m_file == null
+		iterator() : m_file (null) {} // end iterator has m_file == null
 		iterator (File* f);
-		void operator++ ();
-		str  operator* ();
+		void operator++();
+		str  operator*();
 		bool operator== (iterator& other);
 		bool operator!= (iterator& other);
 	
@@ -432,25 +430,25 @@ public:
 		Append
 	};
 	
-	File ();
+	File();
 	File (str path, File::OpenType rtype);
 	File (FILE* fp, File::OpenType rtype);
-	~File ();
+	~File();
 	
-	bool         atEnd         () const;
-	iterator     begin         ();
-	void         close         ();
-	iterator&    end           ();
-	bool         flush         ();
-	bool         isNull        () const;
-	bool         readLine      (str& line);
-	void         rewind        ();
-	bool         open          (FILE* fp, OpenType rtype);
-	bool         open          (str path, OpenType rtype, FILE* fp = null);
-	void         write         (str msg);
+	bool         atEnd() const;
+	iterator     begin();
+	void         close();
+	iterator&    end();
+	bool         flush();
+	bool         isNull() const;
+	bool         readLine (str& line);
+	void         rewind();
+	bool         open (FILE* fp, OpenType rtype);
+	bool         open (str path, OpenType rtype, FILE* fp = null);
+	void         write (str msg);
 	
-	bool         operator!     () const;
-	operator bool () const;
+	bool         operator!() const;
+	operator bool() const;
 	
 private:
 	QFile*       m_file;
@@ -491,7 +489,7 @@ void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
 
 // log() - universal access to the message log. Defined here so that I don't have
 // to include messagelog.h here and recompile everything every time that file changes.
-void DoLog( std::initializer_list<StringFormatArg> args );
+void DoLog (std::initializer_list<StringFormatArg> args);
 
 // Macros to access these functions
 # ifndef IN_IDE_PARSER
@@ -503,7 +501,7 @@ void DoLog( std::initializer_list<StringFormatArg> args );
 str fmt (const char* fmtstr, ...);
 void print (const char* fmtstr, ...);
 void fprint (File& f, const char* fmtstr, ...);
-void log( const char* fmtstr, ... );
+void log (const char* fmtstr, ...);
 #endif
 
 extern File g_file_stdout;

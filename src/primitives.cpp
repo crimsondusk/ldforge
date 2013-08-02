@@ -286,7 +286,7 @@ bool primitiveLoaderBusy() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static double radialPoint (int i, int divs, double (*func) (double)) {
-	return (*func) ( (i * 2 * pi) / divs);
+	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
@@ -492,7 +492,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void generatePrimitive() {
-	PrimitivePrompt* dlg = new PrimitivePrompt( g_win );
+	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 	
 	if (!dlg->exec())
 		return;
@@ -508,7 +508,7 @@ void generatePrimitive() {
 		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
 	
 	// Make the description
-	str frac = ftoa ( ( (float) segs) / divs);
+	str frac = ftoa (((float) segs) / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
 	
@@ -518,16 +518,16 @@ void generatePrimitive() {
 	
 	if (type == Ring || type == Cone) {
 		str spacing =
-			( num < 10  ) ? "  " :
-			( num < 100 ) ? " "  : "";
+			 (num < 10 ) ? "  " :
+			 (num < 100) ? " "  : "";
 		
 		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
 	} else
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
 	
 	// Prepend "Hi-Res" if 48/ primitive.
-	if( divs == hires )
-		descr.insert( 0, "Hi-Res " );
+	if (divs == hires)
+		descr.insert (0, "Hi-Res ");
 	
 	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
@@ -547,24 +547,24 @@ void generatePrimitive() {
 }
 
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
-	QDialog (parent, f)
-{
+	QDialog (parent, f) {
+	
 	ui = new Ui_MakePrimUI;
-	ui->setupUi( this );
-	connect( ui->cb_hires, SIGNAL( toggled(bool) ), this, SLOT( hiResToggled( bool )));
+	ui->setupUi (this);
+	connect (ui->cb_hires, SIGNAL (toggled(bool)), this, SLOT (hiResToggled (bool)));
 }
 
 PrimitivePrompt::~PrimitivePrompt() {
 	delete ui;
 }
 
-void PrimitivePrompt::hiResToggled( bool on ) {
-	ui->sb_segs->setMaximum( on ? hires : lores );
+void PrimitivePrompt::hiResToggled (bool on) {
+	ui->sb_segs->setMaximum (on ? hires : lores);
 	
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
-	if( on && ui->sb_segs->value() == lores )
-		ui->sb_segs->setValue( hires );
+	if (on && ui->sb_segs->value() == lores)
+		ui->sb_segs->setValue (hires);
 }
 
 #include "build/moc_primitives.cpp"

@@ -65,14 +65,14 @@ class PrimitiveLister : public QObject {
 	Q_OBJECT
 	
 public:
-	static void start ();
+	static void start();
 	
 public slots:
-	void work ();
+	void work();
 	
 signals:
 	void starting (ulong num);
-	void workDone ();
+	void workDone();
 	void update (ulong i);
 	
 private:
@@ -81,8 +81,8 @@ private:
 
 extern List<PrimitiveCategory> g_PrimitiveCategories;
 
-void loadPrimitives ();
-bool primitiveLoaderBusy ();
+void loadPrimitives();
+bool primitiveLoaderBusy();
 
 enum PrimitiveType
 {
@@ -99,12 +99,12 @@ class PrimitivePrompt : public QDialog {
 	Q_OBJECT
 	
 public:
-	explicit PrimitivePrompt( QWidget* parent = null, Qt::WindowFlags f = 0 );
+	explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);
 	virtual ~PrimitivePrompt();
 	Ui_MakePrimUI* ui;
 	
 public slots:
-	void hiResToggled( bool on );
+	void hiResToggled (bool on);
 };
 
 void generatePrimitive();

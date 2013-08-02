@@ -61,9 +61,9 @@
 void doDevf (const char* func, const char* fmtstr, ...);
 
 // Version string identifier
-const char* versionString ();
-const char* versionMoniker ();
-const char* fullVersionString ();
+const char* versionString();
+const char* versionMoniker();
+const char* fullVersionString();
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
@@ -91,7 +91,7 @@ static const std::nullptr_t null = nullptr;
 #define PROP_NAME(GET) m_##GET
 
 #define READ_ACCESSOR(T, GET) \
-	T const& GET () const
+	T const& GET() const
 
 #define SET_ACCESSOR(T, SET) \
 	void SET (T val)
@@ -133,13 +133,13 @@ public: \
 
 // Property whose set accessor is a public slot
 // TODO: make this replace PROPERTY
-#define SLOT_PROPERTY( T, GET, SET ) \
+#define SLOT_PROPERTY (T, GET, SET) \
 private: \
-	T PROP_NAME( GET ); \
+	T PROP_NAME (GET); \
 public: \
-	READ_ACCESSOR( T, GET ) { return PROP_NAME (GET); } \
+	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); } \
 public slots: \
-	SET_ACCESSOR( T, SET ) { PROP_NAME (GET) = val; }
+	SET_ACCESSOR (T, SET) { PROP_NAME (GET) = val; }
 
 #ifdef null
 #undef null
