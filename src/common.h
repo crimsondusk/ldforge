@@ -56,6 +56,7 @@
 # define devf(...)
 #endif // RELEASE
 
+#define alias auto&
 #define elif else if
 
 void doDevf (const char* func, const char* fmtstr, ...);

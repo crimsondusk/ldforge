@@ -30,9 +30,6 @@
 #include "file.h"
 #include "gldraw.h"
 
-// TODO: Move this to common.h
-#define alias auto&
-
 PartDownloader g_PartDownloader;
 
 cfg (str, net_downloadpath, "");
