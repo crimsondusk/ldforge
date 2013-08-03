@@ -34,25 +34,15 @@ class QAbstractButton;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-extern class PartDownloader {
-public:
-	constexpr static const char* k_OfficialURL = "http://ldraw.org/library/official/",
-		*k_UnofficialURL = "http://ldraw.org/library/unofficial/";
-	
-	PartDownloader() {}
-	void download();
-	static str getDownloadPath();
-	void operator()() { download(); }
-} g_PartDownloader;
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-class PartDownloadPrompt : public QDialog {
+class PartDownloader : public QDialog {
 	Q_OBJECT
 	PROPERTY (LDFile*, primaryFile, setPrimaryFile)
 	PROPERTY (bool, aborted, setAborted)
 	
 public:
+	constexpr static const char* k_OfficialURL = "http://ldraw.org/library/official/",
+		*k_UnofficialURL = "http://ldraw.org/library/unofficial/";
+	
 	enum Source {
 		PartsTracker,
 		CustomURL,
@@ -64,13 +54,20 @@ public:
 		Close
 	};
 	
-	explicit PartDownloadPrompt (QWidget* parent = null);
-	virtual ~PartDownloadPrompt();
+	enum TableColumn {
+		PartLabelColumn,
+		ProgressColumn,
+	};
+	
+	explicit PartDownloader (QWidget* parent = null);
+	virtual ~PartDownloader();
 	str getURL() const;
+	static str getDownloadPath();
 	Source getSource() const;
 	void downloadFile (str dest, str url, bool primary);
 	void modifyDest (str& dest) const;
 	QPushButton* getButton (Button i);
+	static void k_download();
 	
 public slots:
 	void sourceChanged (int i);
@@ -94,11 +91,6 @@ class PartDownloadRequest : public QObject {
 	PROPERTY (int, tableRow, setTableRow)
 	
 public:
-	enum TableColumn {
-		PartLabelColumn,
-		ProgressColumn,
-	};
-	
 	enum State {
 		Requesting,
 		Downloading,
@@ -106,7 +98,7 @@ public:
 		Failed,
 	};
 	
-	explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloadPrompt* parent);
+	explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent);
 	         PartDownloadRequest (const PartDownloadRequest&) = delete;
 	virtual ~PartDownloadRequest();
 	void updateToTable();
@@ -122,7 +114,7 @@ public slots:
 	void abort();
 	
 private:
-	PartDownloadPrompt* m_prompt;
+	PartDownloader* m_prompt;
 	str m_url, m_dest, m_fpath;
 	QNetworkAccessManager* m_nam;
 	QNetworkReply* m_reply;

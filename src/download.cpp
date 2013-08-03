@@ -30,8 +30,6 @@
 #include "file.h"
 #include "gldraw.h"
 
-PartDownloader g_PartDownloader;
-
 cfg (str, net_downloadpath, "");
 cfg (bool, net_guesspaths, true);
 cfg (bool, net_autoclose, false);
@@ -41,15 +39,15 @@ constexpr const char* PartDownloader::k_OfficialURL,
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloader::download() {
+void PartDownloader::k_download() {
 	str path = getDownloadPath();
 	if (path == "" || QDir (path).exists() == false) {
-		critical (PartDownloadPrompt::tr ("You need to specify a valid path for "
+		critical (PartDownloader::tr ("You need to specify a valid path for "
 			"downloaded files in the configuration to download paths."));
 		return;
 	}
 	
-	PartDownloadPrompt* dlg = new PartDownloadPrompt;
+	PartDownloader* dlg = new PartDownloader;
 	dlg->exec();
 }
 
@@ -67,10 +65,11 @@ str PartDownloader::getDownloadPath() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadPrompt::PartDownloadPrompt (QWidget* parent) : QDialog (parent) {
+PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent) {
 	ui = new Ui_DownloadFrom;
 	ui->setupUi (this);
 	ui->fname->setFocus();
+	ui->progress->horizontalHeader()->setResizeMode (PartLabelColumn, QHeaderView::Stretch);
 	
 	m_downloadButton = new QPushButton (tr ("Download"));
 	ui->buttonBox->addButton (m_downloadButton, QDialogButtonBox::ActionRole);
@@ -82,13 +81,13 @@ PartDownloadPrompt::PartDownloadPrompt (QWidget* parent) : QDialog (parent) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadPrompt::~PartDownloadPrompt() {
+PartDownloader::~PartDownloader() {
 	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str PartDownloadPrompt::getURL() const {
+str PartDownloader::getURL() const {
 	const Source src = getSource();
 	str dest;
 	
@@ -96,7 +95,7 @@ str PartDownloadPrompt::getURL() const {
 	case PartsTracker:
 		dest = ui->fname->text();
 		modifyDest (dest);
-		return str (PartDownloader::k_UnofficialURL) + dest;
+		return str (k_UnofficialURL) + dest;
 	
 	case CustomURL:
 		return ui->fname->text();
@@ -108,7 +107,7 @@ str PartDownloadPrompt::getURL() const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadPrompt::modifyDest (str& dest) const {
+void PartDownloader::modifyDest (str& dest) const {
 	dest = dest.simplified();
 	
 	// If the user doesn't want us to guess, stop right here.
@@ -166,20 +165,20 @@ void PartDownloadPrompt::modifyDest (str& dest) const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadPrompt::Source PartDownloadPrompt::getSource() const {
+PartDownloader::Source PartDownloader::getSource() const {
 	return (Source) ui->source->currentIndex();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadPrompt::sourceChanged (int i) {
+void PartDownloader::sourceChanged (int i) {
 	if (i == CustomURL)
 		ui->fileNameLabel->setText (tr ("URL:"));
 	else
 		ui->fileNameLabel->setText (tr ("File name:"));
 }
 
-void PartDownloadPrompt::buttonClicked (QAbstractButton* btn) {
+void PartDownloader::buttonClicked (QAbstractButton* btn) {
 	if (btn == getButton (Close)) {
 		reject();
 	} elif (btn == getButton (Abort)) {
@@ -217,7 +216,7 @@ void PartDownloadPrompt::buttonClicked (QAbstractButton* btn) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadPrompt::downloadFile (str dest, str url, bool primary) {
+void PartDownloader::downloadFile (str dest, str url, bool primary) {
 	const int row = ui->progress->rowCount();
 	
 	// Don't download files repeadetly.
@@ -237,7 +236,7 @@ void PartDownloadPrompt::downloadFile (str dest, str url, bool primary) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadPrompt::checkIfFinished() {
+void PartDownloader::checkIfFinished() {
 	bool failed = aborted();
 	
 	// If there is some download still working, we're not finished.
@@ -274,7 +273,7 @@ void PartDownloadPrompt::checkIfFinished() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QPushButton* PartDownloadPrompt::getButton (PartDownloadPrompt::Button i) {
+QPushButton* PartDownloader::getButton (PartDownloader::Button i) {
 	typedef QDialogButtonBox QDBB;
 	alias btnbox = ui->buttonBox;
 	
@@ -294,7 +293,7 @@ QPushButton* PartDownloadPrompt::getButton (PartDownloadPrompt::Button i) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartDownloadPrompt* parent) :
+PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent) :
 	QObject (parent),
 	m_prompt (parent),
 	m_url (url),
@@ -329,17 +328,19 @@ PartDownloadRequest::~PartDownloadRequest() {}
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::updateToTable() {
+	const int labelcol = PartDownloader::PartLabelColumn,
+		progcol = PartDownloader::ProgressColumn;
 	QTableWidget* table = m_prompt->ui->progress;
 	QProgressBar* prog;
 	
 	switch (m_state) {
 	case Requesting:
 	case Downloading:
-		prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), ProgressColumn));
+		prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
 		
 		if (!prog) {
 			prog = new QProgressBar;
-			table->setCellWidget (tableRow(), ProgressColumn, prog);
+			table->setCellWidget (tableRow(), progcol, prog);
 		}
 		
 		prog->setRange (0, m_bytesTotal);
@@ -352,20 +353,20 @@ void PartDownloadRequest::updateToTable() {
 			QLabel* lb = new QLabel ((m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
 				"<b><span style=\"color: #800\">FAILED</span></b>");
 			lb->setAlignment (Qt::AlignCenter);
-			table->setCellWidget (tableRow(), ProgressColumn, lb);
+			table->setCellWidget (tableRow(), progcol, lb);
 		}
 		break;
 	}
 	
-	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), PartLabelColumn));
+	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), labelcol));
 	if (m_firstUpdate) {
 		lb = new QLabel (fmt ("<b>%1</b>", m_dest), table);
-		table->setCellWidget (tableRow(), PartLabelColumn, lb);
+		table->setCellWidget (tableRow(), labelcol, lb);
 	}
 	
 	// Make sure that the cell is big enough to contain the label
-	if (table->columnWidth (PartLabelColumn) < lb->width())
-		table->setColumnWidth (PartLabelColumn, lb->width());
+	if (table->columnWidth (labelcol) < lb->width())
+		table->setColumnWidth (labelcol, lb->width());
 	
 	m_firstUpdate = false;
 }
@@ -483,5 +484,5 @@ void PartDownloadRequest::abort() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (DownloadFrom, 0) {
-	g_PartDownloader.download();
+	PartDownloader::k_download();
 }
