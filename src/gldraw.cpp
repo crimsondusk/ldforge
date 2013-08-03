@@ -35,6 +35,10 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
+#include "build/moc_gldraw.cpp"
+
+// Static member definitions
+constexpr const int GL::k_nativeWinding;
 
 static const struct staticCameraMeta {
 	const char glrotate[3];
@@ -77,9 +81,16 @@ const GL::Camera g_Cameras[7] = {
 const struct GLAxis {
 	const QColor col;
 	const vertex vert;
-} g_GLAxes[3] = { { QColor (255, 0, 0), vertex (10000, 0, 0) }, { QColor (128, 192, 0), vertex (0, 10000, 0) }, { QColor (0, 160, 192), vertex (0, 0, 10000) },
+} g_GLAxes[3] = {
+	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
+	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
+	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
 };
-	
+
+#warning TODO: make these members
+static Winding g_currentWinding, g_fileWinding, g_cachedFileWinding;
+static bool g_invertingNext;
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -147,11 +158,13 @@ void GLRenderer::calcCameraIcons() {
 	}
 }
 
+// =============================================================================
 void GLRenderer::initGLData() {
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable (GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset (1.0f, 1.0f);
+	glFrontFace (GL_CCW);
 	
 	glEnable (GL_DEPTH_TEST);
 	glShadeModel (GL_SMOOTH);
@@ -679,8 +692,53 @@ void GLRenderer::compileAllObjects() {
 	
 	m_knownVerts.clear();
 	
-	for (LDObject* obj : file()->objs())
+	for (LDObject* obj : file()->objs()) {
+		// Keep track of the BFC changes to this file.
+		if (obj->getType() == LDObject::BFC) {
+			typedef LDBFCObject BFC;
+			BFC* bfc = static_cast<BFC*> (obj);
+			
+			switch (bfc->type) {
+			case BFC::CertifyCCW:
+			case BFC::CCW:
+			case BFC::ClipCCW:
+				g_fileWinding = g_cachedFileWinding = Winding::CCW;
+				break;
+			
+			case BFC::CW:
+			case BFC::CertifyCW:
+			case BFC::ClipCW:
+				g_fileWinding = g_cachedFileWinding = Winding::CW;
+				break;
+			
+			case BFC::NoCertify:
+			case BFC::NoClip:
+				g_fileWinding = Winding::None;
+				break;
+			
+			case BFC::Clip:
+				g_fileWinding = g_cachedFileWinding;
+				break;
+			
+			case BFC::InvertNext:
+				g_invertingNext = true;
+				continue;
+			
+			case BFC::NumStatements:
+				break;
+			}
+		}
+		
+		if (g_invertingNext)
+			g_fileWinding.invert();
+		
 		compileObject (obj);
+		
+		if (g_invertingNext) {
+			g_invertingNext = false;
+			g_fileWinding.invert();
+		}
+	}
 	
 	// Compile axes
 	glDeleteLists (m_axeslist, 1);
@@ -701,14 +759,14 @@ void GLRenderer::compileAllObjects() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static bool g_glInvert = false;
-
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	glBegin (gltype);
 	
 	const short numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
 	
-	if (g_glInvert == false)
+	// Our native winding is CCW. If this part's determined winding is not
+	// CCW, then we need to invert it.
+	if (g_fileWinding == k_nativeWinding)
 		for (short i = 0; i < numverts; ++i)
 			compileVertex (obj->m_coords[i]);
 	else
@@ -754,21 +812,24 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 			List<LDObject*> objs = ref->inlineContents (true, true);
 			
-			bool oldinvert = g_glInvert;
+			bool invert = false;
 			
+			// If the determinant is negative, the subfile is mirrored and
+			// we need to invert the subfile to cancel out the mirror-based
+			// inversion.
 			if (ref->transform().determinant() < 0)
-				g_glInvert = !g_glInvert;
+				invert = true;
 			
-			LDObject* prev = ref->prev();
-			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFCObject*> (prev)->type == LDBFCObject::InvertNext)
-				g_glInvert = !g_glInvert;
+			if (invert)
+				g_fileWinding.invert();
 			
 			for (LDObject* obj : objs) {
 				compileList (obj, list);
 				delete obj;
 			}
 			
-			g_glInvert = oldinvert;
+			if (invert)
+				g_fileWinding.invert();
 		}
 		break;
 	
@@ -1668,5 +1729,3 @@ void GLRenderer::updateOverlayObjects() {
 	if (g_win->R() == this)
 		g_win->refresh();
 }
-
-#include "build/moc_gldraw.cpp"

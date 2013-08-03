@@ -66,6 +66,7 @@ class LDObject {
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
 	PROPERTY (LDFile*, file, setFile)
+	PROPERTY (Winding, winding, setWinding)
 	READ_PROPERTY (int32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 

@@ -70,6 +70,8 @@ public:
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer();
 	
+	constexpr static const int k_nativeWinding = Winding::CCW;
+	
 	Camera         camera() const { return m_camera; }
 	Axis           cameraAxis (bool y, Camera camid = (Camera) -1);
 	const char*    cameraName() const;

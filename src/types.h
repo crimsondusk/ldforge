@@ -457,6 +457,41 @@ private:
 };
 
 // =============================================================================
+class Winding {
+public:
+	enum Type { CCW, CW, None };
+	Winding() : m_type (None) {}
+	Winding (Type type) : m_type (type) {}
+	
+	operator const Type&() const {
+		return m_type;
+	}
+	
+	Winding& operator= (const Winding& other) {
+		m_type = other;
+		return *this;
+	}
+	
+	bool operator== (const Winding& other) const {
+		return m_type == other;
+	}
+	
+	bool operator== (const Type& other) const {
+		return m_type == other;
+	}
+	
+	void invert() {
+		if (m_type == CCW)
+			m_type = CW;
+		elif (m_type == CW)
+			m_type = CCW;
+	}
+	
+private:
+	Type m_type;
+};
+
+// =============================================================================
 // LDBoundingBox
 //
 // The bounding box is the box that encompasses a given set of objects.
