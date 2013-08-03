@@ -21,6 +21,7 @@
 #include <QNetworkReply>
 #include <QDir>
 #include <QProgressBar>
+#include <QPushButton>
 #include "download.h"
 #include "ui_downloadfrom.h"
 #include "types.h"
@@ -28,6 +29,9 @@
 #include "build/moc_download.cpp"
 #include "file.h"
 #include "gldraw.h"
+
+// TODO: Move this to common.h
+#define alias auto&
 
 PartDownloader g_PartDownloader;
 
@@ -71,8 +75,12 @@ PartDownloadPrompt::PartDownloadPrompt (QWidget* parent) : QDialog (parent) {
 	ui->setupUi (this);
 	ui->fname->setFocus();
 	
+	m_downloadButton = new QPushButton (tr ("Download"));
+	ui->buttonBox->addButton (m_downloadButton, QDialogButtonBox::ActionRole);
+	ui->buttonBox->button (QDialogButtonBox::Abort)->setEnabled (false);
+	
 	connect (ui->source, SIGNAL (currentIndexChanged (int)), this, SLOT (sourceChanged (int)));
-	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (startDownload()));
+	connect (ui->buttonBox, SIGNAL (clicked (QAbstractButton*)), this, SLOT (buttonClicked (QAbstractButton*)));
 }
 
 // =============================================================================
@@ -174,29 +182,40 @@ void PartDownloadPrompt::sourceChanged (int i) {
 		ui->fileNameLabel->setText (tr ("File name:"));
 }
 
-// =============================================================================
-// -----------------------------------------------------------------------------
-void PartDownloadPrompt::startDownload() {
-	str dest = ui->fname->text();
-	setPrimaryFile (null);
-	
-	if (getSource() == CustomURL)
-		dest = basename (getURL());
-	
-	modifyDest (dest);
-	
-	if (QFile::exists (PartDownloader::getDownloadPath() + dest)) {
-		const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+void PartDownloadPrompt::buttonClicked (QAbstractButton* btn) {
+	if (btn == getButton (Close)) {
+		reject();
+	} elif (btn == getButton (Abort)) {
+		setAborted (true);
 		
-		if (!confirm (tr ("Overwrite?"), overwritemsg))
-			return;
+		for (PartDownloadRequest* req : m_requests)
+			req->abort();
+	} elif (btn == getButton (Download)) {
+		str dest = ui->fname->text();
+		setPrimaryFile (null);
+		setAborted (false);
+		
+		if (getSource() == CustomURL)
+			dest = basename (getURL());
+		
+		modifyDest (dest);
+		
+		if (QFile::exists (PartDownloader::getDownloadPath() + dest)) {
+			const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+			
+			if (!confirm (tr ("Overwrite?"), overwritemsg))
+				return;
+		}
+		
+		m_downloadButton->setEnabled (false);
+		ui->progress->setEnabled (true);
+		ui->fname->setEnabled (false);
+		ui->source->setEnabled (false);
+		downloadFile (dest, getURL(), true);
+		getButton (Close)->setEnabled (false);
+		getButton (Abort)->setEnabled (true);
+		getButton (Download)->setEnabled (false);
 	}
-	
-	ui->progress->setEnabled (true);
-	ui->buttonBox->setEnabled (false);
-	ui->fname->setEnabled (false);
-	ui->source->setEnabled (false);
-	downloadFile (dest, getURL(), true);
 }
 
 // =============================================================================
@@ -222,7 +241,7 @@ void PartDownloadPrompt::downloadFile (str dest, str url, bool primary) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadPrompt::checkIfFinished() {
-	bool failed = false;
+	bool failed = aborted();
 	
 	// If there is some download still working, we're not finished.
 	for (PartDownloadRequest* req : m_requests) {
@@ -236,25 +255,44 @@ void PartDownloadPrompt::checkIfFinished() {
 	for (PartDownloadRequest* req : m_requests)
 		delete req;
 	
+	m_requests.clear();
+	
 	// Update everything now
 	if (primaryFile()) {
 		LDFile::setCurrent (primaryFile());
 		reloadAllSubfiles();
 		g_win->fullRefresh();
 		g_win->R()->resetAngles();
-		m_requests.clear();
-		
-		if (net_autoclose && !failed) {
-			// Close automatically if desired.
-			accept();
-		} else {
-			// Allow the prompt be closed now.
-			ui->buttonBox->disconnect (SIGNAL (accepted()));
-			connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (accept()));
-			ui->buttonBox->setEnabled (true);
-			ui->progress->setEnabled (false);
-		}
 	}
+		
+	if (net_autoclose && !failed) {
+		// Close automatically if desired.
+		accept();
+	} else {
+		// Allow the prompt be closed now.
+		getButton (Abort)->setEnabled (false);
+		getButton (Close)->setEnabled (true);
+	}
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+QPushButton* PartDownloadPrompt::getButton (PartDownloadPrompt::Button i) {
+	typedef QDialogButtonBox QDBB;
+	alias btnbox = ui->buttonBox;
+	
+	switch (i) {
+	case Download:
+		return m_downloadButton;
+	
+	case Abort:
+		return qobject_cast<QPushButton*> (btnbox->button (QDBB::Abort));
+	
+	case Close:
+		return qobject_cast<QPushButton*> (btnbox->button (QDBB::Close));
+	}
+	
+	return null;
 }
 
 // =============================================================================
@@ -285,7 +323,6 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	connect (m_reply, SIGNAL (finished()), this, SLOT (downloadFinished()));
 	connect (m_reply, SIGNAL (readyRead()), this, SLOT (readyRead()));
 	connect (m_reply, SIGNAL (downloadProgress (qint64, qint64)), this, SLOT (downloadProgress (qint64, qint64)));
-	connect (m_reply, SIGNAL (error (QNetworkReply::NetworkError)), this, SLOT (downloadError()));
 }
 
 // =============================================================================
@@ -302,7 +339,7 @@ void PartDownloadRequest::updateToTable() {
 	case Requesting:
 	case Downloading:
 		prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), ProgressColumn));
-	
+		
 		if (!prog) {
 			prog = new QProgressBar;
 			table->setCellWidget (tableRow(), ProgressColumn, prog);
@@ -339,9 +376,12 @@ void PartDownloadRequest::updateToTable() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadFinished() {
-	if (m_reply->error() != QNetworkReply::NoError)
+	if (m_reply->error() != QNetworkReply::NoError) {
+		if (m_primary && !m_prompt->aborted())
+			critical (m_reply->errorString());
+		
 		m_state = Failed;
-	elif (state() != Failed)
+	} elif (state() != Failed)
 		m_state = Finished;
 	
 	m_bytesRead = m_bytesTotal;
@@ -351,14 +391,15 @@ void PartDownloadRequest::downloadFinished() {
 		m_fp->close();
 		delete m_fp;
 		m_fp = null;
+		
+		if (m_state == Failed)
+			QFile::remove (m_fpath);
 	}
 	
 	if (m_state != Finished) {
 		m_prompt->checkIfFinished();
 		return;
 	}
-	
-	print ("state: %1\n", (int) m_state);
 	
 	// Try to load this file now.
 	LDFile* f = openDATFile (m_fpath, false);
@@ -410,7 +451,7 @@ void PartDownloadRequest::readyRead() {
 		
 		// We have already asked the user whether we can overwrite so we're good
 		// to go here.
-		m_fp = new QFile (m_fpath);
+		m_fp = new QFile (m_fpath.toLocal8Bit());
 		if (!m_fp->open (QIODevice::WriteOnly)) {
 			critical (fmt (tr ("Couldn't open %1 for writing: %2"), m_fpath, strerror (errno)));
 			m_state = Failed;
@@ -426,17 +467,6 @@ void PartDownloadRequest::readyRead() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloadRequest::downloadError() {
-	if (m_primary)
-		critical (m_reply->errorString());
-	
-	QFile::remove (m_fpath);
-	m_state = Failed;
-	updateToTable();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 bool PartDownloadRequest::isFinished() const {
 	return m_state == Finished || m_state == Failed;
 }
@@ -445,6 +475,12 @@ bool PartDownloadRequest::isFinished() const {
 // -----------------------------------------------------------------------------
 const PartDownloadRequest::State& PartDownloadRequest::state() const {
 	return m_state;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void PartDownloadRequest::abort() {
+	m_reply->abort();
 }
 
 // =============================================================================

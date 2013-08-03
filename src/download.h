@@ -30,6 +30,7 @@ class Ui_DownloadFrom;
 class QNetworkAccessManager;
 class QNetworkRequest;
 class QNetworkReply;
+class QAbstractButton;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -49,11 +50,18 @@ public:
 class PartDownloadPrompt : public QDialog {
 	Q_OBJECT
 	PROPERTY (LDFile*, primaryFile, setPrimaryFile)
+	PROPERTY (bool, aborted, setAborted)
 	
 public:
 	enum Source {
 		PartsTracker,
 		CustomURL,
+	};
+	
+	enum Button {
+		Download,
+		Abort,
+		Close
 	};
 	
 	explicit PartDownloadPrompt (QWidget* parent = null);
@@ -62,11 +70,12 @@ public:
 	Source getSource() const;
 	void downloadFile (str dest, str url, bool primary);
 	void modifyDest (str& dest) const;
+	QPushButton* getButton (Button i);
 	
 public slots:
 	void sourceChanged (int i);
-	void startDownload();
 	void checkIfFinished();
+	void buttonClicked (QAbstractButton* btn);
 	
 protected:
 	Ui_DownloadFrom* ui;
@@ -75,6 +84,7 @@ protected:
 private:
 	List<str> m_filesToDownload;
 	List<PartDownloadRequest*> m_requests;
+	QPushButton* m_downloadButton;
 };
 
 // =============================================================================
@@ -109,7 +119,7 @@ public slots:
 	void downloadFinished();
 	void readyRead();
 	void downloadProgress (qint64 recv, qint64 total);
-	void downloadError();
+	void abort();
 	
 private:
 	PartDownloadPrompt* m_prompt;
