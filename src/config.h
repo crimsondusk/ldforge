@@ -24,6 +24,7 @@
 // =============================================================================
 #include <QString>
 #include <QKeySequence>
+class QSettings;
 
 typedef QChar qchar;
 typedef QString str;
@@ -31,7 +32,7 @@ typedef QString str;
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
 
-#define cfg(T, NAME, DEFAULT) T##config NAME (DEFAULT, #NAME)
+#define cfg(T, NAME, DEFAULT) T##config NAME (DEFAULT, #NAME, #DEFAULT)
 #define extern_cfg(T, NAME)   extern T##config NAME
 
 // =========================================================
@@ -46,23 +47,28 @@ public:
 		Type_keyseq,
 	};
 
+	config (const char* defstring) : m_defstring (defstring) {}
 	const char* name;
 
 	virtual Type getType() const {
 		return Type_none;
 	}
-
+	
+	str toString() const;
+	str defaultString() const;
 	virtual void resetValue() {}
-	virtual bool isDefault() const {
-		return false;
-	}
-
+	virtual void loadFromConfig (const QSettings* cfg) { (void) cfg; }
+	virtual bool isDefault() const { return false; }
+	
 	// ------------------------------------------
 	static bool load();
 	static bool save();
 	static void reset();
 	static str dirpath();
-	static str filepath();
+	static str filepath (str file);
+	
+private:
+	const char* m_defstring;
 };
 
 void addConfig (config* ptr);
@@ -113,7 +119,7 @@ void addConfig (config* ptr);
 #define IMPLEMENT_CONFIG(T) \
 	T value, defval; \
 	\
-	T##config (T _defval, const char* _name) { \
+	T##config (T _defval, const char* _name, const char* defstring) : config (defstring) { \
 		value = defval = _defval; \
 		name = _name; \
 		addConfig (this); \
@@ -129,7 +135,8 @@ void addConfig (config* ptr);
 	} \
 	virtual bool isDefault() const { \
 		return value == defval; \
-	}
+	} \
+	virtual void loadFromConfig (const QSettings* cfg) override;
 
 // =============================================================================
 CONFIGTYPE (int) {

@@ -85,6 +85,7 @@ private slots:
 	void slot_findPath();
 	void slot_tryConfigure();
 	void slot_exit();
+	void slot_accept();
 };
 
 // =============================================================================

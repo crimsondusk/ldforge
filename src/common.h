@@ -45,6 +45,9 @@
 #define BUILD_RC       3
 #define BUILD_RELEASE  4
 
+// Uncomment for portable build... maybe it's time to move to cmake?
+#define PORTABLE
+
 // =============================================
 #if (BUILD_ID != BUILD_INTERNAL)
 #define RELEASE

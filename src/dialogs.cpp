@@ -150,6 +150,7 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 	connect (ui->path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure()));
 	connect (ui->searchButton, SIGNAL (clicked()), this, SLOT (slot_findPath()));
 	connect (ui->buttonBox, SIGNAL (rejected()), this, validDefault ? SLOT (reject()) : SLOT (slot_exit()));
+	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (slot_accept()));
 	
 	setPath (io_ldpath);
 	
@@ -199,6 +200,11 @@ void LDrawPathDialog::slot_tryConfigure() {
 
 	ui->status->setText ("<span style=\"color: #270; \">OK!</span>");
 	okButton()->setEnabled (true);
+}
+
+void LDrawPathDialog::slot_accept() {
+	config::save();
+	accept();
 }
 
 // =============================================================================

@@ -58,7 +58,10 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 int main (int argc, char* argv[]) {
-	const QApplication app (argc, argv);
+	QApplication app (argc, argv);
+	app.setOrganizationName (APPNAME);
+	app.setApplicationName (APPNAME);
+	
 	g_app = &app;
 	LDFile::setCurrent (null);
 	
