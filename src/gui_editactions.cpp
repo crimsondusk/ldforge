@@ -133,11 +133,11 @@ static void doInline (bool deep) {
 		for (LDObject* inlineobj : objs) {
 			str line = inlineobj->raw();
 			delete inlineobj;
-		
+			
 			LDObject* newobj = parseLine (line);
 			LDFile::current()->insertObj (idx++, newobj);
 			g_win->sel() << newobj;
-			g_win->R()->compileObject (inlineobj);
+			g_win->R()->compileObject (newobj);
 		}
 		
 		// Delete the subfile now as it's been inlined.
