@@ -96,7 +96,7 @@ void doDevf (const char* func, const char* fmtstr, ...) {
 	va_end (va);
 }
 
-const char* versionString() {
+str versionString() {
 	if (g_versionString.length() == 0) {
 #if VERSION_PATCH == 0
 		g_versionString = fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
@@ -105,28 +105,25 @@ const char* versionString() {
 #endif // VERSION_PATCH
 	}
 	
-	return g_versionString.toStdString().c_str();
+	return g_versionString;
 }
 
-const char* versionMoniker() {
+str versionMoniker() {
 #if BUILD_ID == BUILD_INTERNAL
-	return " Internal";
+	return "Internal";
 #elif BUILD_ID == BUILD_ALPHA
-	return " Alpha";
+	return "Alpha";
 #elif BUILD_ID == BUILD_BETA
-	return " Beta";
+	return "Beta";
 #elif BUILD_ID == BUILD_RC
-	return " RC";
+	return fmt ("RC %1", RC_NUMBER);
 #else
 	return "";
 #endif // BUILD_ID
 }
 
-const char* fullVersionString() {
-	if (g_fullVersionString.length() == 0)
-		g_fullVersionString = fmt ("v%1%2", versionString(), versionMoniker());
-	
-	return g_fullVersionString.toStdString().c_str();
+str fullVersionString() {
+	return fmt ("v%1 %2", versionString(), versionMoniker());
 }
 
 static void bombBox (str msg) {

@@ -45,8 +45,11 @@
 #define BUILD_RC       3
 #define BUILD_RELEASE  4
 
+// RC Number for BUILD_RC
+#define RC_NUMBER      0
+
 // Uncomment for portable build... maybe it's time to move to cmake?
-#define PORTABLE
+// #define PORTABLE
 
 // =============================================
 #if (BUILD_ID != BUILD_INTERNAL)
@@ -63,11 +66,6 @@
 #define elif else if
 
 void doDevf (const char* func, const char* fmtstr, ...);
-
-// Version string identifier
-const char* versionString();
-const char* versionMoniker();
-const char* fullVersionString();
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
@@ -166,8 +164,13 @@ typedef QString str;
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
 void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
 
+// Version string identifier
+str versionString();
+str versionMoniker();
+str fullVersionString();
+
 #define assert(N) \
-	(N) ? ((void)(0)) : assertionFailure(__FILE__, __LINE__, FUNCNAME, #N)
+	((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
 
 #define fatal(MSG) \
 	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
