@@ -147,13 +147,17 @@ void ForgeWindow::slot_lastSecondCleanup() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void ForgeWindow::updateRecentFilesMenu() {
+	QStringList files = io_recentfiles.value.split ("@", QString::SkipEmptyParts);
+	QStringListIterator it (files);
+	
 	// First, clear any items in the recent files menu
 	for (QAction* recent : m_recentFiles)
 		delete recent;
 	m_recentFiles.clear();
 	
-	List<str> files = container_cast<QStringList, List<str>> (io_recentfiles.value.split ("@"));
-	for (str file : c_rev<str> (files)) {
+	it.toBack();
+	while (it.hasPrevious()) {
+		str file = it.previous();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 		
 		connect (recent, SIGNAL (triggered()), this, SLOT (slot_recentFile()));
