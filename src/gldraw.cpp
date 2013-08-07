@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <QContextMenuEvent>
 #include <QInputDialog>
+#include <qtooltip.h>
 #include <QTimer>
 #include <GL/glu.h>
 
@@ -40,7 +41,13 @@ static const struct staticCameraMeta {
 	const char glrotate[3];
 	const Axis axisX, axisY;
 	const bool negX, negY;
-} g_staticCameras[6] = { { { 1, 0, 0 }, X, Z, false, false }, { { 0, 0, 0 }, X, Y, false, true }, { { 0, 1, 0 }, Z, Y, true, true }, { { -1, 0, 0 }, X, Z, false, true }, { { 0, 0, 0 }, X, Y, true, true }, { { 0, -1, 0 }, Z, Y, false, true },
+} g_staticCameras[6] = {
+	{{  1,  0, 0 }, X, Z, false, false },
+	{{  0,  0, 0 }, X, Y, false,  true },
+	{{  0,  1, 0 }, Z, Y,  true,  true },
+	{{ -1,  0, 0 }, X, Z, false,  true },
+	{{  0,  0, 0 }, X, Y,  true,  true },
+	{{  0, -1, 0 }, Z, Y, false,  true },
 };
 
 cfg (str, gl_bgcolor, "#CCCCD9");
@@ -77,7 +84,10 @@ const GL::Camera g_Cameras[7] = {
 const struct GLAxis {
 	const QColor col;
 	const vertex vert;
-} g_GLAxes[3] = { { QColor (255, 0, 0), vertex (10000, 0, 0) }, { QColor (128, 192, 0), vertex (0, 10000, 0) }, { QColor (0, 160, 192), vertex (0, 0, 10000) },
+} g_GLAxes[3] = {
+	{ QColor (255,   0,   0), vertex (10000, 0, 0) },
+	{ QColor (80, 192,   0), vertex (0, 10000, 0) },
+	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
 	
 // =============================================================================
@@ -408,6 +418,9 @@ void GLRenderer::drawGLScene() {
 }
 
 // =============================================================================
+// This converts a 2D point on the screen to a 3D point in the model. If 'snap'
+// is true, the 3D point will snap to the current grid.
+// =============================================================================
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	assert (camera() != Free);
 	
@@ -431,13 +444,16 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	cy *= negYFac;
 	
 	str tmp;
-	pos3d = g_origin;
+	// Create the vertex from the coordinates
 	pos3d[axisX] = tmp.sprintf ("%.3f", cx).toDouble();
 	pos3d[axisY] = tmp.sprintf ("%.3f", cy).toDouble();
 	pos3d[3 - axisX - axisY] = depthValue();
 	return pos3d;
 }
 
+// =============================================================================
+// Inverse operation for the above - convert a 3D position to a 2D screen
+// position
 // =============================================================================
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 	GLfloat m[16];
@@ -606,34 +622,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
 				m_drawToolTip = false;
 			else {
-				QPen bord = m_thinBorderPen;
-				bord.setBrush (Qt::black);
-				
-				const ushort margin = 2;
-				ushort x0 = m_pos.x(),
-					y0 = m_pos.y();
-				
 				str label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
-				
-				const ushort textWidth = metrics.width (label),
-					textHeight = metrics.height(),
-					fullWidth = textWidth + (2 * margin),
-					fullHeight = textHeight + (2 * margin);
-				
-				QRect area (m_pos.x(), m_pos.y(), fullWidth, fullHeight);
-				
-				if (x0 + fullWidth > m_width)
-					x0 -= fullWidth;
-				
-				if (y0 + fullHeight > m_height)
-					y0 -= fullHeight;
-				
-				paint.setBrush (QColor (0, 128, 255, 208));
-				paint.setPen (bord);
-				paint.drawRect (x0, y0, fullWidth, fullHeight);
-				
-				paint.setBrush (Qt::black);
-				paint.drawText (QPoint (x0 + margin, y0 + margin + metrics.ascent()), label);
+				QToolTip::showText (m_globalpos, label);
 			}
 		}
 	}
@@ -959,10 +949,11 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	
 	// Start the tool tip timer
 	if (!m_drawToolTip)
-		m_toolTipTimer->start (1000);
+		m_toolTipTimer->start (500);
 	
 	// Update 2d position
 	m_pos = ev->pos();
+	m_globalpos = ev->globalPos();
 	
 	// Calculate 3d position of the cursor
 	m_hoverpos = (camera() != Free) ? coordconv2_3 (m_pos, true) : g_origin;
@@ -997,7 +988,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 
 // =============================================================================
 void GLRenderer::leaveEvent (QEvent* ev) {
-	Q_UNUSED (ev);
+	(void) ev;
 	m_drawToolTip = false;
 	m_toolTipTimer->stop();
 	update();

@@ -128,7 +128,7 @@ private:
 	vertex m_hoverpos;
 	double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY;
 	bool m_darkbg, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
-	QPoint m_pos, m_rangeStart;
+	QPoint m_pos, m_globalpos, m_rangeStart;
 	QPen m_thickBorderPen, m_thinBorderPen;
 	Camera m_camera, m_toolTipCamera;
 	uint m_axeslist;
