@@ -144,27 +144,34 @@ void VertexCompiler::compileVertex (
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compilePolygon (
-	LDObject* obj,
-	VertexCompiler::Array** arrays
+	LDObject* drawobj,
+	LDObject* trueobj
 ) {
-	LDObject::Type objtype = obj->getType();
+	// Note: we use the true object's color but the draw object's vertices. This
+	// is so that the index color is generated correctly - it has to reference
+	// the true object's ID, this is crucial for picking to work.
+	Array** arrays = m_objArrays[trueobj];
+	LDObject::Type objtype = drawobj->getType();
 	bool isline = (objtype == LDObject::Line || objtype == LDObject::CondLine);
-	int verts = isline ? 2 : obj->vertices();
+	int verts = isline ? 2 : drawobj->vertices();
+	
+	QColor normalColor = getObjectColor (trueobj, Normal),
+		pickColor = getObjectColor (trueobj, PickColor);
 	
 	for (int i = 0; i < verts; ++i) {
-		compileVertex (obj->getVertex (i), getObjectColor (obj, Normal),
-			arrays[isline ? EdgeArray : MainArray]);
+		compileVertex (drawobj->getVertex (i), normalColor, arrays[isline ? EdgeArray : MainArray]);
+		compileVertex (drawobj->getVertex (i), pickColor, arrays[isline ? EdgePickArray : PickArray]);
 	}
 	
 	// For non-lines, compile BFC data
 	if (!isline) {
-		QColor col = getObjectColor (obj, BFCFront);
+		QColor col = getObjectColor (trueobj, BFCFront);
 		for (int i = 0; i < verts; ++i)
-			compileVertex (obj->getVertex(i), col, arrays[BFCArray]);
+			compileVertex (drawobj->getVertex(i), col, arrays[BFCArray]);
 		
-		col = getObjectColor (obj, BFCBack);
+		col = getObjectColor (trueobj, BFCBack);
 		for (int i = verts - 1; i >= 0; --i)
-			compileVertex (obj->getVertex(i), col, arrays[BFCArray]);
+			compileVertex (drawobj->getVertex(i), col, arrays[BFCArray]);
 	}
 }
 
@@ -185,18 +192,18 @@ void VertexCompiler::compileObject (
 	
 	switch (obj->getType()) {
 	case LDObject::Triangle:
-		compilePolygon (obj, m_objArrays[obj]);
+		compilePolygon (obj, obj);
 		m_changed[MainArray] = true;
 		break;
 	
 	case LDObject::Quad:
 		for (LDTriangleObject* triangle : static_cast<LDQuadObject*> (obj)->splitToTriangles())
-			compilePolygon (triangle, m_objArrays[obj]);
+			compilePolygon (triangle, obj);
 		m_changed[MainArray] = true;
 		break;
 	
 	case LDObject::Line:
-		compilePolygon (obj, m_objArrays[obj]);
+		compilePolygon (obj, obj);
 		break;
 	
 	default:
@@ -265,8 +272,7 @@ QColor VertexCompiler::getObjectColor (
 	if (!obj->isColored())
 		return QColor();
 	
-/*
-	if (list == GL::PickList) {
+	if (colotype == PickColor) {
 		// Make the color by the object's ID if we're picking, so we can make the
 		// ID again from the color we get from the picking results. Be sure to use
 		// the top level parent's index since we want a subfile's children point
@@ -276,14 +282,12 @@ QColor VertexCompiler::getObjectColor (
 		// Calculate a color based from this index. This method caters for
 		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
 		// ATM biggest is 53588.dat with 12600 lines.
-		double r = (i / (256 * 256)) % 256,
+		int r = (i / (256 * 256)) % 256,
 			g = (i / 256) % 256,
 			b = i % 256;
 		
-		qglColor (QColor (r, g, b));
-		return;
+		return QColor (r, g, b);
 	}
-*/
 	
 	if ((colotype == BFCFront || colotype == BFCBack) &&
 		obj->getType() != LDObject::Line &&

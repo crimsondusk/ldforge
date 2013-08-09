@@ -13,12 +13,15 @@ public:
 		Normal,
 		BFCFront,
 		BFCBack,
+		PickColor,
 	};
 	
 	enum MergedArrayType {
 		MainArray,
 		EdgeArray,
 		BFCArray,
+		PickArray,
+		EdgePickArray,
 		NumArrays
 	};
 	
@@ -62,7 +65,7 @@ public:
 	QColor getObjectColor (LDObject* obj, ColorType list) const;
 	
 private:
-	void compilePolygon (LDObject* obj, Array** arrays);
+	void compilePolygon (LDObject* drawobj, LDObject* trueobj);
 	void compileVertex (vertex v, QColor col, VertexCompiler::Array* array);
 	
 	QMap<LDObject*, Array**> m_objArrays;

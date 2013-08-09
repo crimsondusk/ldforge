@@ -295,8 +295,6 @@ void GLRenderer::drawGLScene() {
 		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	const GL::ListType list = (!drawOnly() && m_picking) ? PickList : NormalList;
-	
 	// Draw the polygons
 	glEnableClientState (GL_VERTEX_ARRAY);
 	glEnableClientState (GL_COLOR_ARRAY);
@@ -309,13 +307,17 @@ void GLRenderer::drawGLScene() {
 		glDisable (GL_CULL_FACE);
 	
 	VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (
-		(gl_colorbfc) ? VertexCompiler::BFCArray : VertexCompiler::MainArray);
+		(m_picking) ? VertexCompiler::PickArray :
+		(gl_colorbfc) ? VertexCompiler::BFCArray :
+			VertexCompiler::MainArray);
 	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
 	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
 	glDrawArrays (GL_TRIANGLES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
 	
 	// Draw edge lines
-	array = g_vertexCompiler.getMergedBuffer (VertexCompiler::EdgeArray);
+	array = g_vertexCompiler.getMergedBuffer (
+		(m_picking) ? VertexCompiler::EdgePickArray :
+			VertexCompiler::EdgeArray);
 	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
 	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
 	glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
@@ -886,6 +888,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x00100) +
 			(*(pixelptr + 2) * 0x00001);
+		
 		pixelptr += 4;
 		
 		if (idx == 0xFFFFFF)
