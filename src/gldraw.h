@@ -79,7 +79,7 @@ public:
 	double         depthValue() const;
 	void           drawGLScene();
 	void           endDraw (bool accept);
-	QColor         getMainColor();
+	static QColor  getMainColor();
 	overlayMeta&   getOverlay (int newcam);
 	void           hardRefresh();
 	void           initGLData();
@@ -145,15 +145,11 @@ private:
 	void           addDrawnVertex (vertex m_hoverpos);
 	void           calcCameraIcons();                                      // Compute geometry for camera icons
 	void           clampAngle (double& angle) const;                       // Clamps an angle to [0, 360]
-	void           compileList (LDObject* obj, const ListType list);       // Compile one of the lists of an object
-	void           compileSubObject (LDObject* obj, const GLenum gltype);  // Sub-routine for object compiling
-	void           compileVertex (const vertex& vrt);                      // Compile a single vertex to a list
 	vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
 	LDOverlayObject* findOverlayObject (Camera cam);
 	void           updateRectVerts();
 	void           pick (uint mouseX, uint mouseY);                        // Perform object selection
-	void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
 	
 private slots:
 	void           slot_toolTipTimer();

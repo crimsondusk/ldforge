@@ -21,10 +21,9 @@
 #include <QMouseEvent>
 #include <QContextMenuEvent>
 #include <QInputDialog>
-#include <qtooltip.h>
+#include <QToolTip>
 #include <QTimer>
 #include <GL/glu.h>
-
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -36,6 +35,8 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
+#include "gldata.h"
+#include "build/moc_gldraw.cpp"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];
@@ -56,19 +57,18 @@ cfg (float, gl_maincolor_alpha, 1.0);
 cfg (int, gl_linethickness, 2);
 cfg (bool, gl_colorbfc, true);
 cfg (int, gl_camera, GLRenderer::Free);
-cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
 cfg (bool, gl_wireframe, false);
 
 // argh
 const char* g_CameraNames[7] = {
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Top"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Front"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Left"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Bottom"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Back"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Right"),
-	QT_TRANSLATE_NOOP ("GLRenderer",  "Free")
+	QT_TRANSLATE_NOOP ("GLRenderer", "Top"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Front"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Left"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Bottom"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Back"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Right"),
+	QT_TRANSLATE_NOOP ("GLRenderer", "Free")
 };
 
 const GL::Camera g_Cameras[7] = {
@@ -86,10 +86,13 @@ const struct GLAxis {
 	const vertex vert;
 } g_GLAxes[3] = {
 	{ QColor (255,   0,   0), vertex (10000, 0, 0) },
-	{ QColor (80, 192,   0), vertex (0, 10000, 0) },
+	{ QColor (80,  192,   0), vertex (0, 10000, 0) },
 	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
-	
+
+#warning this should be a member
+static VertexCompiler g_vertexCompiler;
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -190,7 +193,8 @@ void GLRenderer::initializeGL() {
 	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
-	compileAllObjects();
+	
+	g_vertexCompiler.compileFile();
 }
 
 // =============================================================================
@@ -223,98 +227,6 @@ void GLRenderer::setBackground() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static List<short> g_warnedColors;
-void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
-	QColor qcol;
-	
-	if (!obj->isColored())
-		return;
-	
-	if (list == GL::PickList) {
-		// Make the color by the object's ID if we're picking, so we can make the
-		// ID again from the color we get from the picking results. Be sure to use
-		// the top level parent's index since we want a subfile's children point
-		// to the subfile itself.
-		long i = obj->topLevelParent()->id();
-		
-		// Calculate a color based from this index. This method caters for
-		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
-		// ATM biggest is 53588.dat with 12600 lines.
-		double r = (i / (256 * 256)) % 256,
-			g = (i / 256) % 256,
-			b = i % 256;
-		
-		qglColor (QColor (r, g, b));
-		return;
-	}
-	
-	if ((list == BFCFrontList || list == BFCBackList) &&
-		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine) {
-		
-		if (list == GL::BFCFrontList)
-			qcol = QColor (40, 192, 0);
-		else
-			qcol = QColor (224, 0, 0);
-	} else {
-		if (obj->color() == maincolor)
-			qcol = getMainColor();
-		else {
-			LDColor* col = getColor (obj->color());
-			
-			if (col)
-				qcol = col->faceColor;
-		}
-		
-		if (obj->color() == edgecolor) {
-			qcol = luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
-			LDColor* col;
-			
-			if (!gl_blackedges && obj->parent() && (col = getColor (obj->parent()->color())))
-				qcol = col->edgeColor;
-		}
-		
-		if (qcol.isValid() == false) {
-			// The color was unknown. Use main color to make the object at least
-			// not appear pitch-black.
-			if (obj->color() != edgecolor)
-				qcol = getMainColor();
-			
-			// Warn about the unknown colors, but only once.
-			for (short i : g_warnedColors)
-				if (obj->color() == i)
-					return;
-			
-			printf ("%s: Unknown color %d!\n", __func__, obj->color());
-			g_warnedColors << obj->color();
-			return;
-		}
-	}
-	
-	long r = qcol.red(),
-		g = qcol.green(),
-		b = qcol.blue(),
-		a = qcol.alpha();
-	
-	if (obj->topLevelParent()->selected()) {
-		// Brighten it up for the select list.
-		const uchar add = 51;
-		
-		r = min (r + add, 255l);
-		g = min (g + add, 255l);
-		b = min (b + add, 255l);
-	}
-	
-	glColor4f (
-		((double) r) / 255.0f,
-		((double) g) / 255.0f,
-		((double) b) / 255.0f,
-		((double) a) / 255.0f);
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 void GLRenderer::refresh() {
 	update();
 	swapBuffers();
@@ -322,7 +234,7 @@ void GLRenderer::refresh() {
 
 // =============================================================================
 void GLRenderer::hardRefresh() {
-	compileAllObjects();
+	g_vertexCompiler.compileFile();
 	refresh();
 	
 	glLineWidth (gl_linethickness);
@@ -385,32 +297,28 @@ void GLRenderer::drawGLScene() {
 	
 	const GL::ListType list = (!drawOnly() && m_picking) ? PickList : NormalList;
 	
-	if (gl_colorbfc && !m_picking && !drawOnly()) {
-		glEnable (GL_CULL_FACE);
-		
-		for (LDObject* obj : file()->objs()) {
-			if (obj->hidden())
-				continue;
-			
-			glCullFace (GL_BACK);
-			glCallList (obj->glLists[BFCFrontList]);
-			
-			glCullFace (GL_FRONT);
-			glCallList (obj->glLists[BFCBackList]);
-		}
-		
-		glDisable (GL_CULL_FACE);
-	} else {
-		for (LDObject* obj : file()->objs()) {
-			if (obj->hidden())
-				continue;
-			
-			glCallList (obj->glLists[list]);
-		}
-	}
+	// Draw the polygons
+	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_COLOR_ARRAY);
+	glDisableClientState (GL_NORMAL_ARRAY);
 	
-	if (gl_axes && !m_picking && !drawOnly())
-		glCallList (m_axeslist);
+	if (gl_colorbfc) {
+		glEnable (GL_CULL_FACE);
+		glCullFace (GL_CCW);
+	} else
+		glDisable (GL_CULL_FACE);
+	
+	VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (
+		(gl_colorbfc) ? VertexCompiler::BFCArray : VertexCompiler::MainArray);
+	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
+	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
+	glDrawArrays (GL_TRIANGLES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+	
+	// Draw edge lines
+	array = g_vertexCompiler.getMergedBuffer (VertexCompiler::EdgeArray);
+	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
+	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
+	glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
 	
 	glPopMatrix();
 	glMatrixMode (GL_MODELVIEW);
@@ -664,114 +572,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileAllObjects() {
-	if (!file())
-		return;
-	
-	m_knownVerts.clear();
-	
-	for (LDObject* obj : file()->objs())
-		compileObject (obj);
-	
-	// Compile axes
-	glDeleteLists (m_axeslist, 1);
-	m_axeslist = glGenLists (1);
-	glNewList (m_axeslist, GL_COMPILE);
-	glBegin (GL_LINES);
-	
-	for (const GLAxis& ax : g_GLAxes) {
-		qglColor (ax.col);
-		compileVertex (ax.vert);
-		compileVertex (-ax.vert);
-	}
-	
-	glEnd();
-	glEndList();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-static bool g_glInvert = false;
-
-void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
-	glBegin (gltype);
-	
-	const short numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
-	
-	if (g_glInvert == false)
-		for (short i = 0; i < numverts; ++i)
-			compileVertex (obj->m_coords[i]);
-	else
-		for (short i = numverts - 1; i >= 0; --i)
-			compileVertex (obj->m_coords[i]);
-	
-	glEnd();
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
-	setObjectColor (obj, list);
-	
-	switch (obj->getType()) {
-	case LDObject::Line:
-		compileSubObject (obj, GL_LINES);
-		break;
-	
-	case LDObject::CondLine:
-		// Draw conditional lines with a dash pattern - however, use a full
-		// line when drawing a pick list to make selecting them easier.
-		if (list != GL::PickList) {
-			glLineStipple (1, 0x6666);
-			glEnable (GL_LINE_STIPPLE);
-		}
-		
-		compileSubObject (obj, GL_LINES);
-		
-		glDisable (GL_LINE_STIPPLE);
-		break;
-	
-	case LDObject::Triangle:
-		compileSubObject (obj, GL_TRIANGLES);
-		break;
-	
-	case LDObject::Quad:
-		compileSubObject (obj, GL_QUADS);
-		break;
-	
-	case LDObject::Subfile: {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			List<LDObject*> objs = ref->inlineContents (true, true);
-			
-			bool oldinvert = g_glInvert;
-			
-			if (ref->transform().determinant() < 0)
-				g_glInvert = !g_glInvert;
-			
-			LDObject* prev = ref->prev();
-			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFCObject*> (prev)->type == LDBFCObject::InvertNext)
-				g_glInvert = !g_glInvert;
-			
-			for (LDObject* obj : objs) {
-				compileList (obj, list);
-				delete obj;
-			}
-			
-			g_glInvert = oldinvert;
-		}
-		break;
-	
-	default:
-		break;
-	}
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-void GLRenderer::compileVertex (const vertex& vrt) {
-	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
+	g_vertexCompiler.compileFile();
 }
 
 // =============================================================================
@@ -1184,6 +985,7 @@ READ_ACCESSOR (LDFile*, GLRenderer::file) {
 
 SET_ACCESSOR (LDFile*, GLRenderer::setFile) {
 	m_file = val;
+	g_vertexCompiler.setFile (val);
 	
 	if (val != null)
 		overlaysFromObjects();
@@ -1270,26 +1072,7 @@ static List<vertex> getVertices (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObject (LDObject* obj) {
-	deleteLists (obj);
-	
-	for (const GL::ListType listType : g_glListTypes) {
-		if (drawOnly() && listType != GL::NormalList)
-			continue;
-		
-		GLuint list = glGenLists (1);
-		glNewList (list, GL_COMPILE);
-		
-		obj->glLists[listType] = list;
-		compileList (obj, listType);
-		
-		glEndList();
-	}
-	
-	// Mark in known vertices of this object
-	List<vertex> verts = getVertices (obj);
-	m_knownVerts << verts;
-	m_knownVerts.makeUnique();
-	
+	g_vertexCompiler.compileObject (obj);
 	obj->m_glinit = true;
 }
 
@@ -1659,5 +1442,3 @@ void GLRenderer::updateOverlayObjects() {
 	if (g_win->R() == this)
 		g_win->refresh();
 }
-
-#include "build/moc_gldraw.cpp"
