@@ -33,6 +33,7 @@
 #include "ui_replcoords.h"
 #include "ui_editraw.h"
 #include "ui_flip.h"
+#include "ui_addhistoryline.h"
 
 cfg (bool, edit_schemanticinline, false);
 
@@ -654,4 +655,59 @@ DEFINE_ACTION (Autocolor, 0) {
 	
 	log (ForgeWindow::tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
 	g_win->refresh();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (AddHistoryLine, 0) {
+	LDObject* obj;
+	bool ishistory = false,
+		prevIsHistory = false;
+	
+	QDialog* dlg = new QDialog;
+	Ui_AddHistoryLine* ui = new Ui_AddHistoryLine;
+	ui->setupUi (dlg);
+	ui->m_date->setDate (QDate::currentDate());
+	ui->m_comment->setFocus();
+	
+	if (!dlg->exec())
+		return;
+	
+	// Create the comment object based on input
+	str commentText = fmt ("!HISTORY %1 [%2] %3",
+		ui->m_date->date().toString("yyyy-MM-dd"),
+		ui->m_username->text(),
+		ui->m_comment->text());
+	
+	LDCommentObject* comm = new LDCommentObject (commentText);
+	
+	// Find a spot to place the new comment
+	for (
+		obj = LDFile::current()->object (0);
+		obj && obj->next() && !obj->next()->isScemantic();
+		obj = obj->next()
+	) {
+		LDCommentObject* comm = dynamic_cast<LDCommentObject*> (obj);
+		if (comm && comm->text.startsWith ("!HISTORY "))
+			ishistory = true;
+		
+		if (prevIsHistory && !ishistory) {
+			// Last line was history, this isn't, thus insert the new history
+			// line here.
+			break;
+		}
+		
+		prevIsHistory = ishistory;
+	}
+	
+	int idx = obj ? obj->getIndex() : 0;
+	LDFile::current()->insertObj (idx++, comm);
+	
+	// If we're adding a history line right before a scemantic object, pad it
+	// an empty line
+	if (obj && obj->next() && obj->next()->isScemantic())
+		LDFile::current()->insertObj (idx, new LDEmptyObject);
+	
+	g_win->buildObjList();
+	delete ui;
 }

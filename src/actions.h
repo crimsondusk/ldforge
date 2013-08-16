@@ -85,5 +85,6 @@ act (RotateYPos)
 act (RotateZNeg)
 act (RotateZPos)
 act (RotationPoint)
+act (AddHistoryLine)
 
 #undef act
