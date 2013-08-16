@@ -423,8 +423,10 @@ void PartDownloadRequest::downloadFinished() {
 		m_prompt->downloadFile (dest, str (PartDownloader::k_UnofficialURL) + dest, false);
 	}
 	
-	if (m_primary)
+	if (m_primary) {
+		addRecentFile (m_fpath);
 		m_prompt->setPrimaryFile (f);
+	}
 	
 	m_prompt->checkIfFinished();
 }
