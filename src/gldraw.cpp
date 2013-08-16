@@ -671,6 +671,9 @@ void GLRenderer::compileAllObjects() {
 	if (!file())
 		return;
 	
+	// Compiling all is a big job, use a busy cursor
+	setCursor (Qt::BusyCursor);
+	
 	m_knownVerts.clear();
 	
 	for (LDObject* obj : file()->objs())
@@ -690,6 +693,8 @@ void GLRenderer::compileAllObjects() {
 	
 	glEnd();
 	glEndList();
+	
+	setCursor (Qt::ArrowCursor);
 }
 
 // =============================================================================
