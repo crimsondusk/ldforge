@@ -639,9 +639,8 @@ void LDOverlayObject::invert() {}
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
-	long idx;
-	
 	if (obj->file()) {
+		long idx = obj->getIndex();
 		str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();

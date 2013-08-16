@@ -519,7 +519,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		
-		paint.setPen (m_darkbg ? Qt::white : Qt::black);
+		paint.setPen (getTextPen());
 		paint.drawText (m_width - textSize.width(), m_height - 16, textSize.width(),
 			textSize.height(), Qt::AlignCenter, text);
 		
@@ -607,13 +607,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		str fmtstr = tr ("%1 Camera");
 		
-		// Draw a label for the current camera in the top left corner
+		// Draw a label for the current camera in the bottom left corner
 		{
 			const ushort margin = 4;
 			
 			str label;
 			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
-			paint.setPen (m_darkbg ? Qt::white : Qt::black);
+			paint.setPen (getTextPen());
 			paint.drawText (QPoint (margin, height() -  (margin + metrics.descent())), label);
 		}
 		
@@ -632,12 +632,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 	if (msglog()) {
 		int y = 0;
 		const int margin = 2;
-		QColor col = Qt::black;
-		paint.setPen (QPen());
+		QColor penColor = getTextPen();
 		
 		for (const MessageManager::Line& line : *msglog()) {
-			col.setAlphaF (line.alpha);
-			paint.setPen (QPen (col));
+			penColor.setAlphaF (line.alpha);
+			paint.setPen (penColor);
 			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
 			y += metrics.height();
 		}
@@ -661,8 +660,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// -----------------------------------------------------------------------------
+QColor GLRenderer::getTextPen () const {
+	return m_darkbg ? Qt::white : Qt::black;
+}
+
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileAllObjects() {
 	if (!file())
 		return;

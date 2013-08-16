@@ -18,6 +18,7 @@
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
+- Fixed: The message log was still written with black text with dark backgrounds.
 
 =================================================
 == Changes in version 0.2-alpha

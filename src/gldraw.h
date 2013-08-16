@@ -154,6 +154,7 @@ private:
 	void           updateRectVerts();
 	void           pick (uint mouseX, uint mouseY);                        // Perform object selection
 	void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
+	QColor         getTextPen() const;                                     // Determine which color to draw text with
 	
 private slots:
 	void           slot_toolTipTimer();
