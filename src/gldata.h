@@ -7,6 +7,33 @@
 class QColor;
 class LDFile;
 
+/* =============================================================================
+ * -----------------------------------------------------------------------------
+ * VertexCompiler
+ *
+ * This class manages vertex arrays for the GL renderer, compiling vertices into
+ * VAO-readable triangles which can be requested with getMergedBuffer.
+ *
+ * There are 5 main array types:
+ * - the normal polygon array, for triangles
+ * - edge line array, for lines
+ * - BFC array, this is the same as the normal polygon array except that the
+ * -     polygons are listed twice, once normally and green and once reversed
+ * -     and red, this allows BFC red/green view.
+ * - Picking array, this is the samea s the normal polygon array except the
+ * -     polygons are compiled with their index color, this way the picking
+ * -     method is capable of determining which object was selected by pixel
+ * -     color.
+ * - Edge line picking array, the pick array version of the edge line array.
+ *
+ * There are also these same 5 arrays for every LDObject compiled. The main
+ * arrays are generated on demand from the ones in the current file's
+ * LDObjects and stored in cache for faster rendering.
+ *
+ * The nested Array class contains a vector-like buffer of the Vertex structs,
+ * these structs are the VAOs that get passed to the renderer.
+ */
+
 class VertexCompiler {
 public:
 	enum ColorType {
@@ -16,7 +43,7 @@ public:
 		PickColor,
 	};
 	
-	enum MergedArrayType {
+	enum ArrayType {
 		MainArray,
 		EdgeArray,
 		BFCArray,
@@ -33,8 +60,7 @@ public:
 	
 	class Array {
 	public:
-		typedef int32 SizeType;
-		typedef Vertex DataType;
+		typedef int32 Size;
 		
 		Array();
 		Array (const Array& other) = delete;
@@ -42,26 +68,26 @@ public:
 		
 		void clear();
 		void merge (Array* other);
-		void resizeToFit (SizeType newSize);
-		const SizeType& allocatedSize() const;
-		SizeType writtenSize() const;
-		const DataType* data() const;
-		void write (DataType f);
+		void resizeToFit (Size newSize);
+		const Size& allocatedSize() const;
+		Size writtenSize() const;
+		const Vertex* data() const;
+		void write (const VertexCompiler::Vertex& f);
 		Array& operator= (const Array& other) = delete;
 		
 	private:
-		DataType* m_data;
-		DataType* m_ptr;
-		SizeType m_size;
+		Vertex* m_data;
+		Vertex* m_ptr;
+		Size m_size;
 	};
 	
 	VertexCompiler();
 	~VertexCompiler();
 	void setFile (LDFile* file);
 	void compileFile();
-	void compileObject (LDObject* obj);
+	void compileObject (LDObject* obj, LDObject* topobj);
 	void forgetObject (LDObject* obj);
-	Array* getMergedBuffer (MergedArrayType type);
+	Array* getMergedBuffer (ArrayType type);
 	QColor getObjectColor (LDObject* obj, ColorType list) const;
 	
 private:
@@ -69,6 +95,7 @@ private:
 	void compileVertex (vertex v, QColor col, VertexCompiler::Array* array);
 	
 	QMap<LDObject*, Array**> m_objArrays;
+	QMap<LDFile*, Array*> m_fileCache;
 	Array* m_mainArrays[NumArrays];
 	LDFile* m_file;
 	bool m_changed[NumArrays];

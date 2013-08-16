@@ -39,7 +39,7 @@
 #include "build/moc_gldraw.cpp"
 
 static const struct staticCameraMeta {
-	const char glrotate[3];
+	const int8 glrotate[3];
 	const Axis axisX, axisY;
 	const bool negX, negY;
 } g_staticCameras[6] = {
@@ -279,7 +279,7 @@ void GLRenderer::drawGLScene() {
 			g_staticCameras[m_camera].glrotate[2]);
 		
 		// Back camera needs to be handled differently
-		if (m_camera == GLRenderer::Back) {
+		if (m_camera == GL::Back) {
 			glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
 			glRotatef (180.0f, 0.0f, 0.0f, 1.0f);
 		}
@@ -1075,7 +1075,7 @@ static List<vertex> getVertices (LDObject* obj) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::compileObject (LDObject* obj) {
-	g_vertexCompiler.compileObject (obj);
+	g_vertexCompiler.compileObject (obj, obj);
 	obj->m_glinit = true;
 }
 
