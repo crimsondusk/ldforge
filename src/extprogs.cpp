@@ -94,13 +94,15 @@ const char* g_extProgNames[] = {
 };
 
 // =============================================================================
-static bool checkProgPath (str path, const extprog prog) {
+static bool checkProgPath (const extprog prog) {
+	alias path = g_extProgPaths[prog]->value;
+	
 	if (path.length() > 0)
 		return true;
 	
 	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
 	if (dlg->exec() && !dlg->getPath().isEmpty()) {
-		*g_extProgPaths[prog] = dlg->getPath();
+		path = dlg->getPath();
 		return true;
 	}
 	
@@ -288,7 +290,7 @@ static void insertOutput (str fname, bool replace, List<short> colorsToReplace) 
 DEFINE_ACTION (Ytruder, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_ytruder, Ytruder))
+	if (!checkProgPath (Ytruder))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -344,7 +346,7 @@ DEFINE_ACTION (Ytruder, 0) {
 DEFINE_ACTION (Rectifier, 0){
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_rectifier, Rectifier))
+	if (!checkProgPath (Rectifier))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -394,7 +396,7 @@ LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
 DEFINE_ACTION (Intersector, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_intersector, Intersector))
+	if (!checkProgPath (Intersector))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -472,11 +474,12 @@ DEFINE_ACTION (Intersector, 0) {
 	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
 	
-	if (ui.cb_edges->isChecked() && runUtilityProcess (Isecalc, prog_isecalc,
-		join ({inDATName, cutDATName, edgesDATName})))
-	{
+	if (
+		ui.cb_edges->isChecked() &&
+		checkProgPath (Isecalc) &&
+		runUtilityProcess (Isecalc, prog_isecalc, join ({inDATName, cutDATName, edgesDATName}))
+	)
 		insertOutput (edgesDATName, false, {});
-	}
 }
 
 // =============================================================================
@@ -485,7 +488,7 @@ DEFINE_ACTION (Intersector, 0) {
 DEFINE_ACTION (Coverer, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_coverer, Coverer))
+	if (!checkProgPath (Coverer))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -541,7 +544,7 @@ DEFINE_ACTION (Coverer, 0) {
 DEFINE_ACTION (Isecalc, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_isecalc, Isecalc))
+	if (!checkProgPath (Isecalc))
 		return;
 	
 	Ui::IsecalcUI ui;
@@ -593,7 +596,7 @@ DEFINE_ACTION (Isecalc, 0) {
 DEFINE_ACTION (Edger2, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_edger2, Edger2))
+	if (!checkProgPath (Edger2))
 		return;
 	
 	QDialog* dlg = new QDialog;
