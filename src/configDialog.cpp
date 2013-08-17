@@ -63,6 +63,13 @@ extern_cfg (bool, prog_coverer_wine);
 extern_cfg (bool, prog_isecalc_wine);
 extern_cfg (bool, prog_edger2_wine);
 
+const char* g_extProgPathFilter =
+#ifdef _WIN32
+	"Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
+#else
+	"";
+#endif
+
 #define act(N) extern_cfg (keyseq, key_##N);
 #include "actions.h"
 
@@ -477,6 +484,7 @@ void ConfigDialog::slot_setShortcut()
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_resetShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
@@ -488,6 +496,7 @@ void ConfigDialog::slot_resetShortcut()
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_clearShortcut() {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
 	
@@ -498,6 +507,7 @@ void ConfigDialog::slot_clearShortcut() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_setExtProgPath() {
 	const extProgInfo* info = null;
 	
@@ -509,17 +519,11 @@ void ConfigDialog::slot_setExtProgPath() {
 	}
 	
 	assert (info != null);
+	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
 	
-	str filter;
-#ifdef _WIN32
-	filter = "Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
-#endif // WIN32
-	
-	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, filter);
-
-	if (fpath.length() == 0)
+	if (fpath.isEmpty())
 		return;
-
+	
 	info->input->setText (fpath);
 }
 
@@ -531,8 +535,7 @@ void ConfigDialog::slot_findDownloadFolder() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::setShortcutText (ShortcutListItem* item) {
 	QAction* act = item->action();
 	str label = act->iconText();

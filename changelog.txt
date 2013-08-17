@@ -15,6 +15,8 @@
 - Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
+- When an external program is attempted to be used without a binary path defined, one will be asked
+	with an input dialog instead of being told to go to configuration to set the path.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.

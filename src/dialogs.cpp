@@ -38,7 +38,10 @@
 #include "ui_overlay.h"
 #include "ui_ldrawpath.h"
 #include "ui_openprogress.h"
+#include "ui_extprogpath.h"
+#include "build/moc_dialogs.cpp"
 
+extern const char* g_extProgPathFilter;
 extern_cfg (str, io_ldpath);
 
 // =============================================================================
@@ -243,5 +246,30 @@ void OpenProgressDialog::updateProgress (int progress) {
 	updateValues();
 }
 
-#include "build/moc_dialogs.cpp"
-// kate: indent-mode cstyle; indent-width 4; replace-tabs off; tab-width 4; 
+ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f),
+	ui (new Ui_ExtProgPath)
+{
+	ui->setupUi (this);
+	
+	str labelText = ui->m_label->text();
+	labelText.replace ("<PROGRAM>", progName);
+	ui->m_label->setText (labelText);
+	
+	connect (ui->m_findPath, SIGNAL (clicked (bool)), this, SLOT (findPath()));
+}
+
+ExtProgPathPrompt::~ExtProgPathPrompt() {
+	delete ui;
+}
+
+void ExtProgPathPrompt::findPath() {
+	str path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
+	
+	if (!path.isEmpty())
+		ui->m_path->setText (path);
+}
+
+str ExtProgPathPrompt::getPath() const {
+	return ui->m_path->text();
+}

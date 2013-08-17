@@ -73,7 +73,7 @@ PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent) {
 	
 	m_downloadButton = new QPushButton (tr ("Download"));
 	ui->buttonBox->addButton (m_downloadButton, QDialogButtonBox::ActionRole);
-	ui->buttonBox->button (QDialogButtonBox::Abort)->setEnabled (false);
+	getButton (Abort)->setEnabled (false);
 	
 	connect (ui->source, SIGNAL (currentIndexChanged (int)), this, SLOT (sourceChanged (int)));
 	connect (ui->buttonBox, SIGNAL (clicked (QAbstractButton*)), this, SLOT (buttonClicked (QAbstractButton*)));
@@ -116,8 +116,8 @@ void PartDownloader::modifyDest (str& dest) const {
 	
 	// Ensure .dat extension
 	if (dest.right (4) != ".dat") {
-		// Remove the existing extension, if any. It may be we're here over a
-		// typo in the .dat extension.
+		/* Remove the existing extension, if any. It may be we're here over a
+		   typo in the .dat extension. */
 		const int dotpos = dest.lastIndexOf (".");
 		if (dotpos != -1 && dotpos >= dest.length() - 4)
 			dest.chop (dest.length() - dotpos);
@@ -125,8 +125,8 @@ void PartDownloader::modifyDest (str& dest) const {
 		dest += ".dat";
 	}
 	
-	// If the part starts with s\ or s/, then use parts/s/. Same goes with
-	// 48\ and p/48/.
+	/* If the part starts with s\ or s/, then use parts/s/. Same goes with
+	   48\ and p/48/. */
 	if (dest.left (2) == "s\\" || dest.left (2) == "s/") {
 		dest.remove (0, 2);
 		dest.prepend ("parts/s/");
@@ -136,31 +136,30 @@ void PartDownloader::modifyDest (str& dest) const {
 	}
 	
 	/* Try determine where to put this part. We have four directories:
-	 * parts/, parts/s/, p/, and p/48/. If we haven't already specified
-	 * either parts/ or p/, we need to add it automatically. Part files
-	 * are numbers which can be followed by:
-	 * - c** (composites)
-	 * - d** (formed stickers)
-	 * - a lowercase alphabetic letter for variants
-	 *
-	 * Subfiles have an s** prefix, in which case we use parts/s/. Note that
-	 * the regex starts with a '^' so it won't catch already fully given part
-	 * file names.
-	 */
-	{
-		str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
-		str subpartRegex = partRegex + "s[0-9][0-9]+";
-		
-		partRegex += "\\.dat$";
-		subpartRegex += "\\.dat$";
-		
-		if (QRegExp (subpartRegex).exactMatch (dest))
-			dest.prepend ("parts/s/");
-		elif (QRegExp (partRegex).exactMatch (dest))
-			dest.prepend ("parts/");
-		elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
-			dest.prepend ("p/");
-	}
+	   parts/, parts/s/, p/, and p/48/. If we haven't already specified
+	   either parts/ or p/, we need to add it automatically. Part files
+	   are numbers wit a possible u prefix for parts with unknown number
+	   which can be followed by any of:
+	   - c** (composites)
+	   - d** (formed stickers)
+	   - p** (patterns)
+	   - a lowercase alphabetic letter for variants
+	
+	   Subfiles (usually) have an s** prefix, in which case we use parts/s/.
+	   Note that the regex starts with a '^' so it won't catch already fully
+	   given part file names. */
+	str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
+	str subpartRegex = partRegex + "s[0-9][0-9]+";
+	
+	partRegex += "\\.dat$";
+	subpartRegex += "\\.dat$";
+	
+	if (QRegExp (subpartRegex).exactMatch (dest))
+		dest.prepend ("parts/s/");
+	elif (QRegExp (partRegex).exactMatch (dest))
+		dest.prepend ("parts/");
+	elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
+		dest.prepend ("p/");
 }
 
 // =============================================================================
@@ -178,6 +177,8 @@ void PartDownloader::sourceChanged (int i) {
 		ui->fileNameLabel->setText (tr ("File name:"));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloader::buttonClicked (QAbstractButton* btn) {
 	if (btn == getButton (Close)) {
 		reject();
@@ -260,7 +261,7 @@ void PartDownloader::checkIfFinished() {
 		g_win->fullRefresh();
 		g_win->R()->resetAngles();
 	}
-		
+	
 	if (net_autoclose && !failed) {
 		// Close automatically if desired.
 		accept();

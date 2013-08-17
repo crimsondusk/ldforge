@@ -38,6 +38,7 @@
 #include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
+#include "dialogs.h"
 
 enum extprog {
 	Isecalc,
@@ -55,6 +56,15 @@ cfg (str, prog_coverer, "");
 cfg (str, prog_ytruder, "");
 cfg (str, prog_rectifier, "");
 cfg (str, prog_edger2, "");
+
+strconfig* const g_extProgPaths[] = {
+	&prog_isecalc,
+	&prog_intersector,
+	&prog_coverer,
+	&prog_ytruder,
+	&prog_rectifier,
+	&prog_edger2,
+};
 
 #ifndef _WIN32
 cfg (bool, prog_isecalc_wine, false);
@@ -88,11 +98,12 @@ static bool checkProgPath (str path, const extprog prog) {
 	if (path.length() > 0)
 		return true;
 	
-	const char* name = g_extProgNames[prog];
+	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
+	if (dlg->exec() && !dlg->getPath().isEmpty()) {
+		*g_extProgPaths[prog] = dlg->getPath();
+		return true;
+	}
 	
-	critical (fmt (QObject::tr ("Couldn't run %1 as no path has "
-		"been defined for it. Use the configuration dialog's External Programs "
-		"tab to define a path for %1."), name));
 	return false;
 }
 
