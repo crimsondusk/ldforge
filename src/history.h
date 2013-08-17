@@ -33,11 +33,11 @@ class AbstractHistoryEntry;
 // =============================================================================
 class History {
 	PROPERTY (long, pos, setPos)
-	PROPERTY (LDOpenFile*, file, setFile)
+	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (bool, opened, setOpened)
 	
 public:
-	typedef vector<AbstractHistoryEntry*> list;
+	typedef List<AbstractHistoryEntry*> list;
 	
 	enum Type {
 		Del,
@@ -47,16 +47,16 @@ public:
 		Swap,
 	};
 	
-	History ();
-	void undo ();
-	void redo ();
-	void clear ();
-	void updateActions () const;
+	History();
+	void undo();
+	void redo();
+	void clear();
+	void updateActions() const;
 	
-	void open ();
-	void close ();
+	void open();
+	void close();
 	void add (AbstractHistoryEntry* entry);
-	long size () const { return m_changesets.size (); }
+	long size() const { return m_changesets.size(); }
 	
 	History& operator<< (AbstractHistoryEntry* entry) {
 		add (entry);
@@ -69,7 +69,7 @@ public:
 	
 private:
 	list m_currentArchive;
-	vector<list> m_changesets;
+	List<list> m_changesets;
 };
 
 // =============================================================================
@@ -79,10 +79,10 @@ class AbstractHistoryEntry {
 	PROPERTY (History*, parent, setParent)
 	
 public:
-	virtual void undo () const {}
-	virtual void redo () const {}
-	virtual ~AbstractHistoryEntry () {}
-	virtual History::Type getType () const { return (History::Type) 0; }
+	virtual void undo() const {}
+	virtual void redo() const {}
+	virtual ~AbstractHistoryEntry() {}
+	virtual History::Type getType() const { return (History::Type) 0; }
 };
 
 // =============================================================================
@@ -103,7 +103,9 @@ public:
 	IMPLEMENT_HISTORY_TYPE (Del)
 	
 	DelHistory (ulong idx, LDObject* obj, Type type = Other) :
-		m_index (idx), m_code (obj->raw ()), m_type (type) {}
+		m_index (idx),
+		m_code (obj->raw()),
+		m_type (type) {}
 };
 
 // =============================================================================
@@ -118,7 +120,9 @@ public:
 	IMPLEMENT_HISTORY_TYPE (Edit)
 	
 	EditHistory (ulong idx, str oldCode, str newCode) :
-		m_index (idx), m_oldCode (oldCode), m_newCode (newCode) {}
+		m_index (idx),
+		m_oldCode (oldCode),
+		m_newCode (newCode) {}
 };
 
 // =============================================================================
@@ -139,7 +143,9 @@ public:
 	IMPLEMENT_HISTORY_TYPE (Add)
 	
 	AddHistory (ulong idx, LDObject* obj, Type type = Other) :
-		m_index (idx), m_code (obj->raw ()), m_type (type) {}
+		m_index (idx),
+		m_code (obj->raw()),
+		m_type (type) {}
 };
 
 // =============================================================================
@@ -149,20 +155,22 @@ class MoveHistory : public AbstractHistoryEntry {
 public:
 	IMPLEMENT_HISTORY_TYPE (Move)
 	
-	vector<ulong> indices;
+	List<ulong> indices;
 	vertex dest;
 	
-	MoveHistory (vector<ulong> indices, vertex dest) :
-		indices (indices), dest (dest) {}
+	MoveHistory (List<ulong> indices, vertex dest) :
+		indices (indices), 
+		dest (dest) {}
 };
 
-class SwapHistory : public AbstractHistoryEntry
-{
+class SwapHistory : public AbstractHistoryEntry {
 public:
-	IMPLEMENT_HISTORY_TYPE( Swap )
+	IMPLEMENT_HISTORY_TYPE (Swap)
 	ulong a, b;
 	
-	SwapHistory( ulong a, ulong b ) : a( a ), b( b ) {}
+	SwapHistory (ulong a, ulong b) :
+		a (a),
+		b (b) {}
 };
 
 #endif // HISTORY_H

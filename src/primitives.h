@@ -22,7 +22,9 @@
 #include "common.h"
 #include "types.h"
 #include <QRegExp>
+#include <QDialog>
 
+class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive {
 	str name, title;
@@ -43,12 +45,12 @@ public:
 		Type type;
 	};
 	
-	typedef vector<RegexEntry>::it it;
-	typedef vector<RegexEntry>::c_it c_it;
+	typedef List<RegexEntry>::it it;
+	typedef List<RegexEntry>::c_it c_it;
 	
-	vector<RegexEntry> regexes;
-	vector<Primitive> prims;
-	static vector<Primitive> uncat;
+	List<RegexEntry> regexes;
+	List<Primitive> prims;
+	static List<Primitive> uncat;
 };
 
 // =============================================================================
@@ -63,24 +65,24 @@ class PrimitiveLister : public QObject {
 	Q_OBJECT
 	
 public:
-	static void start ();
+	static void start();
 	
 public slots:
-	void work ();
+	void work();
 	
 signals:
 	void starting (ulong num);
-	void workDone ();
+	void workDone();
 	void update (ulong i);
 	
 private:
-	vector<Primitive> m_prims;
+	List<Primitive> m_prims;
 };
 
-extern vector<PrimitiveCategory> g_PrimitiveCategories;
+extern List<PrimitiveCategory> g_PrimitiveCategories;
 
-void loadPrimitives ();
-bool primitiveLoaderBusy ();
+void loadPrimitives();
+bool primitiveLoaderBusy();
 
 enum PrimitiveType
 {
@@ -93,6 +95,18 @@ enum PrimitiveType
 };
 
 // =============================================================================
+class PrimitivePrompt : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);
+	virtual ~PrimitivePrompt();
+	Ui_MakePrimUI* ui;
+	
+public slots:
+	void hiResToggled (bool on);
+};
+
 void generatePrimitive();
 
 #endif // PRIMITIVES_H

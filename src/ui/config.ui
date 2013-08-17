@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>476</width>
-    <height>358</height>
+    <width>513</width>
+    <height>377</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -220,15 +220,9 @@
         </widget>
        </item>
        <item>
-        <widget class="QCheckBox" name="scemanticInlining">
-         <property name="enabled">
-          <bool>false</bool>
-         </property>
-         <property name="whatsThis">
-          <string>When inserting objects through inlining, file inserting or through external programs, all non-schemantics (those without actual meaning in the part file like comments and such) are filtered out.</string>
-         </property>
+        <widget class="QCheckBox" name="implicitFiles">
          <property name="text">
-          <string>Inline scemantic objects only</string>
+          <string>List implicitly loaded files</string>
          </property>
         </widget>
        </item>
@@ -486,6 +480,79 @@ Under Linux, you can also set the programs to be launched with Wine, so you can 
        </item>
        <item>
         <spacer name="verticalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_6">
+      <attribute name="title">
+       <string>Downloading</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <layout class="QHBoxLayout" name="horizontalLayout_2">
+         <item>
+          <widget class="QLabel" name="label_4">
+           <property name="text">
+            <string>Download path:</string>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLineEdit" name="downloadPath"/>
+         </item>
+         <item>
+          <widget class="QPushButton" name="findDownloadPath">
+           <property name="text">
+            <string/>
+           </property>
+           <property name="icon">
+            <iconset resource="../../ldforge.qrc">
+             <normaloff>:/icons/folder.png</normaloff>:/icons/folder.png</iconset>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="guessNetPaths">
+         <property name="whatsThis">
+          <string>&lt;p&gt;When this is set, LDForge tries to adjust and correct part paths based on the input. A full path given to the download prompt should be of form &lt;tt&gt;&quot;&amp;lt;dir&amp;gt;/&amp;lt;file&amp;gt;.dat&quot;&lt;/tt&gt; - with this set, input can be automatically completed.&lt;/p&gt;
+
+&lt;p&gt;Examples:
+&lt;ul&gt;
+&lt;li&gt;3002 -&gt; parts/3002.dat&lt;/li&gt;
+&lt;li&gt;3002.da -&gt; parts/3002.dat&lt;/li&gt;
+&lt;li&gt;3002s01 -&gt; parts/s/3002s01.dat&lt;/li&gt;
+&lt;li&gt;4-4cyli -&gt; p/4-4cyli.dat&lt;/li&gt;
+&lt;/ul&gt;&lt;/p&gt;</string>
+         </property>
+         <property name="text">
+          <string>Correct and guess part paths</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="autoCloseNetPrompt">
+         <property name="whatsThis">
+          <string>If this is set, LDForge will close the download prompt after everything has been downloaded. The prompt will not be closed if a download has failed.</string>
+         </property>
+         <property name="text">
+          <string>Close download prompt after completion</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="verticalSpacer_5">
          <property name="orientation">
           <enum>Qt::Vertical</enum>
          </property>

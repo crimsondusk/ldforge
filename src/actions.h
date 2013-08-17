@@ -1,5 +1,7 @@
 act (New)
+act (NewFile)
 act (Open)
+act (DownloadFrom)
 act (Save)
 act (SaveAs)
 act (SaveAll)
@@ -83,5 +85,6 @@ act (RotateYPos)
 act (RotateZNeg)
 act (RotateZPos)
 act (RotationPoint)
+act (AddHistoryLine)
 
 #undef act

@@ -25,10 +25,9 @@
 
 bool g_fullRefresh = false;
 
-History::History() {
-	setOpened (false);
-	setPos (-1);
-}
+History::History() :
+	m_pos (-1),
+	m_opened (false) {}
 
 void History::undo() {
 	if (m_changesets.size() == 0 || pos() == -1)
@@ -73,7 +72,7 @@ void History::redo() {
 }
 
 void History::clear() {
-	for (vector<AbstractHistoryEntry*> set : m_changesets)
+	for (List<AbstractHistoryEntry*> set : m_changesets)
 		for (AbstractHistoryEntry * change : set)
 			delete change;
 	
@@ -122,7 +121,7 @@ void History::add (AbstractHistoryEntry* entry) {
 
 // =============================================================================
 void AddHistory::undo() const {
-	LDOpenFile* f = parent()->file();
+	LDFile* f = parent()->file();
 	LDObject* obj = f->object (index());
 	f->forgetObject (obj);
 	delete obj;
@@ -131,7 +130,7 @@ void AddHistory::undo() const {
 }
 
 void AddHistory::redo() const {
-	LDOpenFile* f = parent()->file();
+	LDFile* f = parent()->file();
 	LDObject* obj = parseLine (code());
 	f->insertObj (index(), obj);
 	g_win->R()->compileObject (obj);
@@ -142,14 +141,14 @@ AddHistory::~AddHistory() {}
 // =============================================================================
 // heh
 void DelHistory::undo() const {
-	LDOpenFile* f = parent()->file();
+	LDFile* f = parent()->file();
 	LDObject* obj = parseLine (code());
 	f->insertObj (index(), obj);
 	g_win->R()->compileObject (obj);
 }
 
 void DelHistory::redo() const {
-	LDOpenFile* f = parent()->file();
+	LDFile* f = parent()->file();
 	LDObject* obj = f->object (index());
 	f->forgetObject (obj);
 	delete obj;
@@ -161,14 +160,14 @@ DelHistory::~DelHistory() {}
 
 // =============================================================================
 void EditHistory::undo() const {
-	LDObject* obj = LDOpenFile::current()->object (index());
+	LDObject* obj = LDFile::current()->object (index());
 	LDObject* newobj = parseLine (oldCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);
 }
 
 void EditHistory::redo() const {
-	LDObject* obj = LDOpenFile::current()->object (index());
+	LDObject* obj = LDFile::current()->object (index());
 	LDObject* newobj = parseLine (newCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);

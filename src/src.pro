@@ -10,7 +10,7 @@ RCC_DIR         = ./build/
 SOURCES         = *.cpp
 HEADERS         = *.h
 FORMS           = ui/*.ui
-QT             += opengl
+QT             += opengl network
 QMAKE_CXXFLAGS += -std=c++0x
 
 unix {

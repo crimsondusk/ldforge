@@ -35,23 +35,23 @@ public: \
 	virtual void move (vertex vVector); \
 	virtual void invert();
 
-#define LDOBJ_NAME( N )        virtual str typeName() const override { return #N; }
-#define LDOBJ_VERTICES( V )    virtual short vertices() const override { return V; }
-#define LDOBJ_SETCOLORED( V )  virtual bool isColored() const override { return V; }
-#define LDOBJ_COLORED          LDOBJ_SETCOLORED( true )
-#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED( false )
+#define LDOBJ_NAME(N)          virtual str typeName() const override { return #N; }
+#define LDOBJ_VERTICES(V)      virtual short vertices() const override { return V; }
+#define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
+#define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
+#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false)
 
 #define LDOBJ_CUSTOM_SCEMANTIC virtual bool isScemantic() const override
 #define LDOBJ_SCEMANTIC        LDOBJ_CUSTOM_SCEMANTIC { return true; }
 #define LDOBJ_NON_SCEMANTIC    LDOBJ_CUSTOM_SCEMANTIC { return false; }
 
 #define LDOBJ_SETMATRIX(V)     virtual bool hasMatrix() const override { return V; }
-#define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX( true )
-#define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX( false )
+#define LDOBJ_HAS_MATRIX       LDOBJ_SETMATRIX (true)
+#define LDOBJ_NO_MATRIX        LDOBJ_SETMATRIX (false)
 
 class QListWidgetItem;
 class LDSubfileObject;
-class LDOpenFile;
+class LDFile;
 
 // =============================================================================
 // LDObject
@@ -65,8 +65,8 @@ class LDObject {
 	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
-	PROPERTY (LDOpenFile*, file, setFile)
-	READ_PROPERTY (qint32, id, setID)
+	PROPERTY (LDFile*, file, setFile)
+	READ_PROPERTY (int32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 
 public:
@@ -91,14 +91,14 @@ public:
 	virtual ~LDObject();
 	
 	virtual LDObject* clone() {return 0;}       // Creates a new LDObject identical to this one.
-	long getIndex () const;                     // Index (i.e. line number) of this object
+	long getIndex() const;                      // Index (i.e. line number) of this object
 	virtual LDObject::Type getType() const;     // Type enumerator of this object
 	const vertex& getVertex (int i) const;      // Get a vertex by index
 	virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
 	virtual void invert();                      // Inverts this object (winding is reversed)
 	virtual bool isColored() const;             // Is this object colored?
 	virtual bool isScemantic() const;           // Does this object have meaning in the part model?
-	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement vector
+	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
 	LDObject* next() const;                     // Object after this in the current file
 	LDObject* prev() const;                     // Object prior to this in the current file
 	virtual str raw() { return ""; }            // This object as LDraw code
@@ -112,8 +112,8 @@ public:
 	
 	static str typeName (LDObject::Type type); // Get type name by enumerator
 	static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-	static void moveObjects (vector<LDObject*> objs, const bool up); // TODO: move this to LDOpenFile?
-	static str objectListContents (const vector<LDObject*>& objs); // Get a description of a list of LDObjects
+	static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDFile?
+	static str objectListContents (const List<LDObject*>& objs); // Get a description of a list of LDObjects
 	static LDObject* fromID (int id);
 	
 	// TODO: make these private!
@@ -180,6 +180,7 @@ class LDErrorObject : public LDObject {
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
+	PROPERTY (str, fileRef, setFileRef)
 
 public:
 	LDErrorObject();
@@ -241,6 +242,10 @@ public:
 		CW,
 		NoCertify,
 		InvertNext,
+		Clip,
+		ClipCCW,
+		ClipCW,
+		NoClip,
 		NumStatements
 	};
 	
@@ -273,7 +278,7 @@ class LDSubfileObject : public LDObject, public LDMatrixObject {
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (LDOpenFile*, fileInfo, setFileInfo)
+	PROPERTY (LDFile*, fileInfo, setFileInfo)
 
 public:
 	LDSubfileObject() {
@@ -282,7 +287,7 @@ public:
 
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	vector<LDObject*> inlineContents (bool deep, bool cache);
+	List<LDObject*> inlineContents (bool deep, bool cache);
 };
 
 // =============================================================================
@@ -366,7 +371,7 @@ public:
 	LDQuadObject() {}
 
 	// Split this quad into two triangles (note: heap-allocated)
-	vector<LDTriangleObject*> splitToTriangles();
+	List<LDTriangleObject*> splitToTriangles();
 };
 
 // =============================================================================

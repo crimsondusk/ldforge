@@ -39,8 +39,8 @@ public:
 	}
 	
 	explicit LabeledWidget (const char* labelstr, R* widget, QWidget* parent = null) :
-		QWidget (parent), m_widget (widget)
-	{
+		QWidget (parent), m_widget (widget) {
+		
 		commonInit (labelstr);
 	}
 	
@@ -49,8 +49,8 @@ public:
 		commonInit ("");
 	}
 	
-	R* w () const { return m_widget; }
-	operator R* () { return m_widget; }
+	R* w() const { return m_widget; }
+	operator R*() { return m_widget; }
 	
 private:
 	Q_DISABLE_COPY (LabeledWidget<R>)

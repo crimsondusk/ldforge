@@ -45,73 +45,95 @@ extern_cfg (int, gl_linethickness);
 extern_cfg (str, gui_colortoolbar);
 extern_cfg (bool, edit_schemanticinline);
 extern_cfg (bool, gl_blackedges);
+extern_cfg (bool, gui_implicitfiles);
+extern_cfg (str, net_downloadpath);
+extern_cfg (bool, net_guesspaths);
+extern_cfg (bool, net_autoclose);
+
+extern_cfg (str, prog_ytruder);
+extern_cfg (str, prog_rectifier);
+extern_cfg (str, prog_intersector);
+extern_cfg (str, prog_coverer);
+extern_cfg (str, prog_isecalc);
+extern_cfg (str, prog_edger2);
+extern_cfg (bool, prog_ytruder_wine);
+extern_cfg (bool, prog_rectifier_wine);
+extern_cfg (bool, prog_intersector_wine);
+extern_cfg (bool, prog_coverer_wine);
+extern_cfg (bool, prog_isecalc_wine);
+extern_cfg (bool, prog_edger2_wine);
+
+const char* g_extProgPathFilter =
+#ifdef _WIN32
+	"Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
+#else
+	"";
+#endif
 
 #define act(N) extern_cfg (keyseq, key_##N);
 #include "actions.h"
-
-#define INIT_CHECKBOX(BOX, CFG) \
-	BOX->setCheckState (CFG ? Qt::Checked : Qt::Unchecked);
-
-#define APPLY_CHECKBOX(BTN, CFG) \
-	CFG = BTN->checkState() == Qt::Checked;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	ui = new Ui_ConfigUI;
-	ui->setupUi( this );
+	ui->setupUi (this);
 	
-	initMainTab ();
-	initShortcutsTab ();
-	initQuickColorTab ();
-	initGridTab ();
-	initExtProgTab ();
+	initMainTab();
+	initShortcutsTab();
+	initQuickColorTab();
+	initGridTab();
+	initExtProgTab();
+	
+	ui->downloadPath->setText (net_downloadpath);
+	ui->guessNetPaths->setChecked (net_guesspaths);
+	ui->autoCloseNetPrompt->setChecked (net_autoclose);
+	connect (ui->findDownloadPath, SIGNAL (clicked(bool)), this, SLOT (slot_findDownloadFolder()));
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-ConfigDialog::~ConfigDialog()
-{
+ConfigDialog::~ConfigDialog() {
 	delete ui;
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::initMainTab () {
+void ConfigDialog::initMainTab() {
 	// Init color stuff
 	setButtonBackground (ui->backgroundColorButton, gl_bgcolor);
-	connect (ui->backgroundColorButton, SIGNAL (clicked ()),
-		this, SLOT (slot_setGLBackground ()));
+	connect (ui->backgroundColorButton, SIGNAL (clicked()),
+		this, SLOT (slot_setGLBackground()));
 	
 	setButtonBackground (ui->mainColorButton, gl_maincolor.value);
-	connect (ui->mainColorButton, SIGNAL (clicked ()),
-		this, SLOT (slot_setGLForeground ()));
-	
-	ui->mainColorAlpha->setValue( gl_maincolor_alpha * 10.0f );
+	connect (ui->mainColorButton, SIGNAL (clicked()),
+		this, SLOT (slot_setGLForeground()));
 	
 	// Sliders
+	ui->mainColorAlpha->setValue (gl_maincolor_alpha * 10.0f);
 	ui->lineThickness->setValue (gl_linethickness);
 	
 	// Checkboxes
 	ui->colorizeObjects->setChecked (lv_colorize);
 	ui->colorBFC->setChecked (gl_colorbfc);
 	ui->blackEdges->setChecked (gl_blackedges);
-	ui->scemanticInlining->setChecked (edit_schemanticinline);
+	// ui->scemanticInlining->setChecked (edit_schemanticinline);
+	ui->implicitFiles->setChecked (gui_implicitfiles);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::initShortcutsTab () {
+void ConfigDialog::initShortcutsTab() {
 	ulong i = 0;
 	
 #define act(N) addShortcut (key_##N, ACTION(N), i);
 #include "actions.h"
 	
-	ui->shortcutsList->setSortingEnabled( true );
+	ui->shortcutsList->setSortingEnabled (true);
 	ui->shortcutsList->sortItems();
 	
 	connect (ui->shortcut_set, SIGNAL (clicked()), this, SLOT (slot_setShortcut()));
@@ -161,7 +183,7 @@ void ConfigDialog::initGridTab() {
 		*anglabel = new QLabel ("Angle");
 	short i = 1;
 	
-	for (QLabel * label : initlist<QLabel*> ( { xlabel, ylabel, zlabel, anglabel })) {
+	for (QLabel* label : initlist<QLabel*> ({ xlabel, ylabel, zlabel, anglabel })) {
 		label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);
 	}
@@ -193,19 +215,6 @@ void ConfigDialog::initGridTab() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-extern_cfg (str, prog_ytruder);
-extern_cfg (str, prog_rectifier);
-extern_cfg (str, prog_intersector);
-extern_cfg (str, prog_coverer);
-extern_cfg (str, prog_isecalc);
-extern_cfg (str, prog_edger2);
-extern_cfg (bool, prog_ytruder_wine);
-extern_cfg (bool, prog_rectifier_wine);
-extern_cfg (bool, prog_intersector_wine);
-extern_cfg (bool, prog_coverer_wine);
-extern_cfg (bool, prog_isecalc_wine);
-extern_cfg (bool, prog_edger2_wine);
-
 static const struct extProgInfo {
 	const str name, iconname;
 	strconfig* const path;
@@ -269,7 +278,7 @@ void ConfigDialog::initExtProgTab() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void ConfigDialog::updateQuickColorList( LDQuickColor* sel ) {
+void ConfigDialog::updateQuickColorList (LDQuickColor* sel) {
 	for (QListWidgetItem* item : quickColorItems)
 		delete item;
 	
@@ -429,7 +438,7 @@ void ConfigDialog::setButtonBackground (QPushButton* button, str value) {
 }
 
 // =============================================================================
-int ConfigDialog::getItemRow (QListWidgetItem* item, vector<QListWidgetItem*>& haystack) {
+int ConfigDialog::getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack) {
 	int i = 0;
 	
 	for (QListWidgetItem* it : haystack) {
@@ -454,8 +463,8 @@ QList<ShortcutListItem*> ConfigDialog::getShortcutSelection()
 {
 	QList<ShortcutListItem*> out;
 	
-	for( QListWidgetItem * entry : ui->shortcutsList->selectedItems() )
-		out << static_cast<ShortcutListItem*>( entry );
+	for (QListWidgetItem* entry : ui->shortcutsList->selectedItems())
+		out << static_cast<ShortcutListItem*> (entry);
 	
 	return out;
 }
@@ -475,6 +484,7 @@ void ConfigDialog::slot_setShortcut()
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_resetShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
@@ -486,6 +496,7 @@ void ConfigDialog::slot_resetShortcut()
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_clearShortcut() {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
 	
@@ -496,6 +507,7 @@ void ConfigDialog::slot_clearShortcut() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::slot_setExtProgPath() {
 	const extProgInfo* info = null;
 	
@@ -507,23 +519,23 @@ void ConfigDialog::slot_setExtProgPath() {
 	}
 	
 	assert (info != null);
+	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
 	
-	str filter;
-#ifdef _WIN32
-	filter = "Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
-#endif // WIN32
-	
-	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, filter);
-
-	if (fpath.length() == 0)
+	if (fpath.isEmpty())
 		return;
-
+	
 	info->input->setText (fpath);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// -----------------------------------------------------------------------------
+void ConfigDialog::slot_findDownloadFolder() {
+	str dpath = QFileDialog::getExistingDirectory();
+	ui->downloadPath->setText (dpath);
+}
+
 // =============================================================================
+// -----------------------------------------------------------------------------
 void ConfigDialog::setShortcutText (ShortcutListItem* item) {
 	QAction* act = item->action();
 	str label = act->iconText();
@@ -568,10 +580,17 @@ void ConfigDialog::staticDialog() {
 		// Apply configuration
 		lv_colorize = dlg.getUI()->colorizeObjects->isChecked();
 		gl_colorbfc = dlg.getUI()->colorBFC->isChecked();
-		edit_schemanticinline = dlg.getUI()->scemanticInlining->isChecked();
+		// edit_schemanticinline = dlg.getUI()->scemanticInlining->isChecked();
 		gl_blackedges = dlg.getUI()->blackEdges->isChecked();
 		gl_maincolor_alpha = ((double) dlg.getUI()->mainColorAlpha->value()) / 10.0f;
 		gl_linethickness = dlg.getUI()->lineThickness->value();
+		gui_implicitfiles = dlg.getUI()->implicitFiles->isChecked();
+		net_downloadpath = dlg.getUI()->downloadPath->text();
+		net_guesspaths = dlg.getUI()->guessNetPaths->isChecked();
+		net_autoclose = dlg.getUI()->autoCloseNetPrompt->isChecked();
+		
+		if (net_downloadpath.value.right (1) != DIRSLASH)
+			net_downloadpath += DIRSLASH;
 		
 		// Rebuild the quick color toolbar
 		g_win->setQuickColors (dlg.quickColors);
@@ -600,6 +619,7 @@ void ConfigDialog::staticDialog() {
 		g_win->R()->setBackground();
 		g_win->fullRefresh();
 		g_win->updateToolBars();
+		g_win->updateFileList();
 	}
 }
 
@@ -660,3 +680,5 @@ void KeySequenceDialog::keyPressEvent (QKeyEvent* ev) {
 	seq = ev->key() + ev->modifiers();
 	updateOutput();
 }
+
+#include "build/moc_configDialog.cpp"

@@ -27,19 +27,17 @@ class QLabel;
 class QDoubleSpinBox;
 
 // =============================================================================
-class ShortcutListItem : public QListWidgetItem
-{
+class ShortcutListItem : public QListWidgetItem {
 	PROPERTY (keyseqconfig*, keyConfig, setKeyConfig)
 	PROPERTY (QAction*, action, setAction)
 	
 public:
-	explicit ShortcutListItem( QListWidget* view = null, int type = Type ) :
-		QListWidgetItem( view, type ) {}
+	explicit ShortcutListItem (QListWidget* view = null, int type = Type) :
+		QListWidgetItem (view, type) {}
 };
 
 // =============================================================================
-class ConfigDialog : public QDialog
-{
+class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
@@ -49,14 +47,14 @@ public:
 	const Ui_ConfigUI* getUI() const;
 	float getGridValue (int i, int j) const;
 	
-	vector<LDQuickColor> quickColors;
+	List<LDQuickColor> quickColors;
 	QDoubleSpinBox* dsb_gridData[3][4];
-
+	
 private:
 	Ui_ConfigUI* ui;
 	QLabel* lb_gridLabels[3];
 	QLabel* lb_gridIcons[3];
-	vector<QListWidgetItem*> quickColorItems;
+	List<QListWidgetItem*> quickColorItems;
 	
 	void initMainTab();
 	void initShortcutsTab();
@@ -64,15 +62,15 @@ private:
 	void initGridTab();
 	void initExtProgTab();
 	void addShortcut (keyseqconfig& cfg, QAction* act, ulong& i);
-	void setButtonBackground( QPushButton* button, str value );
-	void pickColor( strconfig& cfg, QPushButton* button );
-	void updateQuickColorList( LDQuickColor* sel = null );
+	void setButtonBackground (QPushButton* button, str value);
+	void pickColor (strconfig& cfg, QPushButton* button);
+	void updateQuickColorList (LDQuickColor* sel = null);
 	void setShortcutText (ShortcutListItem* item);
-	int getItemRow( QListWidgetItem* item, vector<QListWidgetItem*>& haystack );
+	int getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack);
 	str quickColorString();
 	QListWidgetItem* getSelectedQuickColor();
 	QList<ShortcutListItem*> getShortcutSelection();
-
+	
 private slots:
 	void slot_setGLBackground();
 	void slot_setGLForeground();
@@ -85,28 +83,28 @@ private slots:
 	void slot_moveColor();
 	void slot_clearColors();
 	void slot_setExtProgPath();
+	void slot_findDownloadFolder();
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class KeySequenceDialog : public QDialog
-{
+class KeySequenceDialog : public QDialog {
 	Q_OBJECT
 
 public:
-	explicit KeySequenceDialog( QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0 );
-	static bool staticDialog( keyseqconfig* cfg, QWidget* parent = null );
-
+	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);
+	static bool staticDialog (keyseqconfig* cfg, QWidget* parent = null);
+	
 	QLabel* lb_output;
 	QDialogButtonBox* bbx_buttons;
 	QKeySequence seq;
-
+	
 private:
 	void updateOutput();
-
+	
 private slots:
-	virtual void keyPressEvent( QKeyEvent* ev ) override;
+	virtual void keyPressEvent (QKeyEvent* ev) override;
 };
 
 #endif // CONFIGDIALOG_H

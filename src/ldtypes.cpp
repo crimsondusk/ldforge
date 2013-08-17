@@ -26,22 +26,22 @@
 #include "colors.h"
 
 // List of all LDObjects
-vector<LDObject*> g_LDObjects;
+List<LDObject*> g_LDObjects;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // LDObject constructors
-LDObject::LDObject () :
+LDObject::LDObject() :
 	m_hidden (false),
 	m_selected (false),
 	m_parent (null),
 	m_file (null),
 	qObjListEntry (null),
-	m_glinit (false)
-{
+	m_glinit (false) {
+	
 	// Determine ID
-	qint32 id = 1; // 0 is invalid
+	int32 id = 1; // 0 is invalid
 	
 	for (LDObject* obj : g_LDObjects)
 		if (obj->id() >= id)
@@ -159,6 +159,10 @@ const char* LDBFCObject::statements[] = {
 	"CW",
 	"NOCERTIFY",
 	"INVERTNEXT",
+	"CLIP",
+	"CLIP CCW",
+	"CLIP CW",
+	"NOCLIP",
 };
 
 str LDBFCObject::raw() {
@@ -168,7 +172,7 @@ str LDBFCObject::raw() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
+List<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 	// Create the two triangles based on this quadrilateral:
 	// 0---3       0---3    3
 	// |   |       |  /    /|
@@ -182,7 +186,7 @@ vector<LDTriangleObject*> LDQuadObject::splitToTriangles() {
 	tri1->setColor (color());
 	tri2->setColor (color());
 	
-	vector<LDTriangleObject*> triangles;
+	List<LDTriangleObject*> triangles;
 	triangles << tri1;
 	triangles << tri2;
 	return triangles;
@@ -196,7 +200,7 @@ void LDObject::replace (LDObject* other) {
 	assert (idx != -1);
 	
 	// Replace the instance of the old object with the new object
-	LDOpenFile::current()->setObject (idx, other);
+	file()->setObject (idx, other);
 	
 	// Remove the old object
 	delete this;
@@ -206,14 +210,14 @@ void LDObject::replace (LDObject* other) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : *LDOpenFile::current()) {
+	for (LDObject*& obj : *file()) {
 		if (obj == this)
 			obj = other;
 		elif (obj == other)
 			obj = this;
 	}
 
-	LDOpenFile::current()->addToHistory (new SwapHistory (id(), other->id()));
+	file()->addToHistory (new SwapHistory (id(), other->id()));
 }
 
 LDLineObject::LDLineObject (vertex v1, vertex v2) {
@@ -277,8 +281,8 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
-	vector<LDObject*> objs, objcache;
+List<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
+	List<LDObject*> objs, objcache;
 
 	// If we have this cached, just clone that
 	if (deep && fileInfo()->cache().size()) {
@@ -299,7 +303,7 @@ vector<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
 			if (deep && obj->getType() == LDObject::Subfile) {
 				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
 				
-				vector<LDObject*> otherobjs = ref->inlineContents (true, false);
+				List<LDObject*> otherobjs = ref->inlineContents (true, false);
 				
 				for (LDObject* otherobj : otherobjs) {
 					// Cache this object, if desired
@@ -348,12 +352,16 @@ long LDObject::getIndex() const {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
+void LDObject::moveObjects (List<LDObject*> objs, const bool up) {
+	if (objs.size() == 0)
+		return;
+	
 	// If we move down, we need to iterate the array in reverse order.
 	const long start = up ? 0 : (objs.size() - 1);
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
-	vector<LDObject*> objsToCompile;
+	List<LDObject*> objsToCompile;
+	LDFile* file = objs[0]->file();
 	
 	for (long i = start; i != end; i += incr) {
 		LDObject* obj = objs[i];
@@ -361,7 +369,7 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 		const long idx = obj->getIndex(),
 			target = idx + (up ? -1 : 1);
 		
-		if ((up && idx == 0) || (!up && idx == (long) (LDOpenFile::current()->objs().size() - 1))) {
+		if ((up && idx == 0) || (!up && idx == (long) (file->objs().size() - 1))) {
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
@@ -370,9 +378,9 @@ void LDObject::moveObjects (vector<LDObject*> objs, const bool up) {
 		}
 		
 		objsToCompile << obj;
-		objsToCompile << LDOpenFile::current()->obj (target);
+		objsToCompile << file->obj (target);
 		
-		obj->swap (LDOpenFile::current()->obj (target));
+		obj->swap (file->obj (target));
 	}
 	
 	objsToCompile.makeUnique();
@@ -393,7 +401,7 @@ str LDObject::typeName (LDObject::Type type) {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-str LDObject::objectListContents (const vector<LDObject*>& objs) {
+str LDObject::objectListContents (const List<LDObject*>& objs) {
 	bool firstDetails = true;
 	str text = "";
 	
@@ -445,10 +453,10 @@ LDObject* LDObject::next() const {
 	long idx = getIndex();
 	assert (idx != -1);
 	
-	if (idx == (long) LDOpenFile::current()->numObjs() - 1)
+	if (idx == (long) file()->numObjs() - 1)
 		return null;
 	
-	return LDOpenFile::current()->obj (idx + 1);
+	return file()->obj (idx + 1);
 }
 
 // =============================================================================
@@ -459,7 +467,7 @@ LDObject* LDObject::prev() const {
 	if (idx == 0)
 		return null;
 	
-	return LDOpenFile::current()->obj (idx - 1);
+	return file()->obj (idx - 1);
 }
 
 // =============================================================================
@@ -503,7 +511,7 @@ void LDCondLineObject::move (vertex vect) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define CHECK_FOR_OBJ(N) \
-	if( type == LDObject::N ) \
+	if (type == LDObject::N) \
 		return new LD##N##Object;
 
 LDObject* LDObject::getDefault (const LDObject::Type type) {
@@ -564,7 +572,7 @@ void LDSubfileObject::invert() {
 		
 		if (bfc && bfc->type == LDBFCObject::InvertNext) {
 			// This is prefixed with an invertnext, thus remove it.
-			LDOpenFile::current()->forgetObject (bfc);
+			file()->forgetObject (bfc);
 			delete bfc;
 			return;
 		}
@@ -572,7 +580,7 @@ void LDSubfileObject::invert() {
 	
 	// Not inverted, thus prefix it with a new invertnext.
 	LDBFCObject* bfc = new LDBFCObject (LDBFCObject::InvertNext);
-	LDOpenFile::current()->insertObj (idx, bfc);
+	file()->insertObj (idx, bfc);
 }
 
 static void invertLine (LDObject* line) {
@@ -631,14 +639,13 @@ void LDOverlayObject::invert() {}
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
-	long idx;
-	
-	if (obj->file() && (idx = obj->getIndex()) != -1) {
+	if (obj->file()) {
+		long idx = obj->getIndex();
 		str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();
 		
-		LDOpenFile::current()->addToHistory (new EditHistory (idx, before, after));
+		obj->file()->addToHistory (new EditHistory (idx, before, after));
 	} else
 		*ptr = val;
 }

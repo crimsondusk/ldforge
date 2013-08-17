@@ -27,10 +27,10 @@
 #include "misc.h"
 #include "colors.h"
 
-vector<PrimitiveCategory> g_PrimitiveCategories;
+List<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
-vector<Primitive> g_primitives;
+List<Primitive> g_primitives;
 
 static const str g_Other = QObject::tr ("Other");
 
@@ -45,7 +45,7 @@ void loadPrimitives() {
 	loadPrimitiveCatgories();
 	
 	// Try to load prims.cfg
-	File conf (config::dirpath() + "prims.cfg", File::Read);
+	File conf (config::filepath ("prims.cfg"), File::Read);
 	
 	if (!conf) {
 		// No prims.cfg, build it
@@ -71,7 +71,7 @@ void loadPrimitives() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static void recursiveGetFilenames (QDir dir, vector<str>& fnames) {
+static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 	QFileInfoList flist = dir.entryInfoList();
 	
 	for (const QFileInfo & info : flist) {
@@ -95,7 +95,7 @@ void PrimitiveLister::work() {
 	QDir dir (LDPaths::prims());
 	ulong baselen = dir.absolutePath().length();
 	ulong i = 0;
-	vector<str> fnames;
+	List<str> fnames;
 	
 	assert (dir.exists());
 	recursiveGetFilenames (dir, fnames);
@@ -124,7 +124,7 @@ void PrimitiveLister::work() {
 	}
 	
 	// Save to a config file
-	File conf (config::dirpath() + "prims.cfg", File::Write);
+	File conf (config::filepath ("prims.cfg"), File::Write);
 	
 	for (Primitive & info : m_prims)
 		fprint (conf, "%1 %2\n", info.name, info.title);
@@ -183,6 +183,7 @@ static void populateCategories() {
 
 	for (Primitive& prim : g_primitives) {
 		bool matched = false;
+		prim.cat = null;
 		
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
@@ -285,15 +286,15 @@ bool primitiveLoaderBusy() {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 static double radialPoint (int i, int divs, double (*func) (double)) {
-	return (*func) ( (i * 2 * pi) / divs);
+	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-vector<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
-	vector<LDObject*> objs;
-	vector<int> condLineSegs;
+List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
+	List<LDObject*> objs;
+	List<int> condLineSegs;
 	
 	for (int i = 0; i < segs; ++i) {
 		double x0 = radialPoint (i, divs, cos),
@@ -491,25 +492,23 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void generatePrimitive() {
-	QDialog* dlg = new QDialog (g_win);
-	Ui::MakePrimUI ui;
-	ui.setupUi (dlg);
+	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 	
 	if (!dlg->exec())
 		return;
 	
-	int segs = ui.sb_segs->value();
-	int divs = ui.cb_hires->isChecked() ? hires : lores;
-	int num = ui.sb_ringnum->value();
+	int segs = dlg->ui->sb_segs->value();
+	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
+	int num = dlg->ui->sb_ringnum->value();
 	PrimitiveType type =
-		ui.rb_circle->isChecked()   ? Circle :
-		ui.rb_cylinder->isChecked() ? Cylinder :
-		ui.rb_disc->isChecked()     ? Disc :
-		ui.rb_ndisc->isChecked()    ? DiscNeg :
-		ui.rb_ring->isChecked()     ? Ring : Cone;
+		dlg->ui->rb_circle->isChecked()   ? Circle :
+		dlg->ui->rb_cylinder->isChecked() ? Cylinder :
+		dlg->ui->rb_disc->isChecked()     ? Disc :
+		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
+		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
 	
 	// Make the description
-	str frac = ftoa ( ( (float) segs) / divs);
+	str frac = ftoa (((float) segs) / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
 	
@@ -517,12 +516,20 @@ void generatePrimitive() {
 	if (frac.indexOf (".") == -1)
 		frac += ".0";
 	
-	if (type == Ring || type == Cone)
-		descr = fmt ("%1 %2 x %3", primitiveTypeName (type), num, frac);
-	else
+	if (type == Ring || type == Cone) {
+		str spacing =
+			 (num < 10 ) ? "  " :
+			 (num < 100) ? " "  : "";
+		
+		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
+	} else
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
 	
-	LDOpenFile* f = new LDOpenFile;
+	// Prepend "Hi-Res" if 48/ primitive.
+	if (divs == hires)
+		descr.insert (0, "Hi-Res ");
+	
+	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
 	
 	*f << new LDCommentObject (descr);
@@ -538,3 +545,26 @@ void generatePrimitive() {
 	g_win->save (f, false);
 	delete f;
 }
+
+PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f) {
+	
+	ui = new Ui_MakePrimUI;
+	ui->setupUi (this);
+	connect (ui->cb_hires, SIGNAL (toggled(bool)), this, SLOT (hiResToggled (bool)));
+}
+
+PrimitivePrompt::~PrimitivePrompt() {
+	delete ui;
+}
+
+void PrimitivePrompt::hiResToggled (bool on) {
+	ui->sb_segs->setMaximum (on ? hires : lores);
+	
+	// If the current value is 16 and we switch to hi-res, default the
+	// spinbox to 48.
+	if (on && ui->sb_segs->value() == lores)
+		ui->sb_segs->setValue (hires);
+}
+
+#include "build/moc_primitives.cpp"

@@ -38,6 +38,7 @@
 #include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
+#include "dialogs.h"
 
 enum extprog {
 	Isecalc,
@@ -55,6 +56,15 @@ cfg (str, prog_coverer, "");
 cfg (str, prog_ytruder, "");
 cfg (str, prog_rectifier, "");
 cfg (str, prog_edger2, "");
+
+strconfig* const g_extProgPaths[] = {
+	&prog_isecalc,
+	&prog_intersector,
+	&prog_coverer,
+	&prog_ytruder,
+	&prog_rectifier,
+	&prog_edger2,
+};
 
 #ifndef _WIN32
 cfg (bool, prog_isecalc_wine, false);
@@ -84,15 +94,18 @@ const char* g_extProgNames[] = {
 };
 
 // =============================================================================
-static bool checkProgPath (str path, const extprog prog) {
+static bool checkProgPath (const extprog prog) {
+	alias path = g_extProgPaths[prog]->value;
+	
 	if (path.length() > 0)
 		return true;
 	
-	const char* name = g_extProgNames[prog];
+	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
+	if (dlg->exec() && !dlg->getPath().isEmpty()) {
+		path = dlg->getPath();
+		return true;
+	}
 	
-	critical (fmt (QObject::tr ("Couldn't run %1 as no path has "
-		"been defined for it. Use the configuration dialog's External Programs "
-		"tab to define a path for %1."), name));
 	return false;
 }
 
@@ -130,10 +143,10 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
-void writeObjects (vector<LDObject*>& objects, File& f) {
+void writeObjects (List<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
 		if (obj->getType() == LDObject::Subfile) {
-			vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
+			List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
 			
 			writeObjects (objs, f);
 			
@@ -144,7 +157,7 @@ void writeObjects (vector<LDObject*>& objects, File& f) {
 	}
 }
 
-void writeObjects (vector<LDObject*>& objects, str fname) {
+void writeObjects (List<LDObject*>& objects, str fname) {
 	// Write the input file
 	File f (fname, File::Write);
 	
@@ -164,9 +177,9 @@ void writeSelection (str fname) {
 
 // =============================================================================
 void writeColorGroup (const short colnum, str fname) {
-	vector<LDObject*> objects;
+	List<LDObject*> objects;
 	
-	for (LDObject* obj : *LDOpenFile::current()) {
+	for (LDObject* obj : *LDFile::current()) {
 		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 		
@@ -232,7 +245,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 }
 
 // ================================================================================================
-static void insertOutput (str fname, bool replace, vector<short> colorsToReplace) {
+static void insertOutput (str fname, bool replace, List<short> colorsToReplace) {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
 #endif // RELEASE
@@ -245,7 +258,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 		return;
 	}
 	
-	vector<LDObject*> objs = loadFileContents (&f, null);
+	List<LDObject*> objs = loadFileContents (&f, null);
 	
 	// If we replace the objects, delete the selection now.
 	if (replace)
@@ -263,7 +276,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 			continue;
 		}
 		
-		LDOpenFile::current()->addObject (obj);
+		LDFile::current()->addObject (obj);
 		g_win->sel() << obj;
 	}
 	
@@ -277,7 +290,7 @@ static void insertOutput (str fname, bool replace, vector<short> colorsToReplace
 DEFINE_ACTION (Ytruder, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_ytruder, Ytruder))
+	if (!checkProgPath (Ytruder))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -308,7 +321,7 @@ DEFINE_ACTION (Ytruder, 0) {
 		return;
 	
 	// Compose the command-line arguments
-	str argv = join ( {
+	str argv = join ({
 		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
 		depth,
@@ -333,7 +346,7 @@ DEFINE_ACTION (Ytruder, 0) {
 DEFINE_ACTION (Rectifier, 0){
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_rectifier, Rectifier))
+	if (!checkProgPath (Rectifier))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -351,7 +364,7 @@ DEFINE_ACTION (Rectifier, 0){
 		return;
 	
 	// Compose arguments
-	str argv = join ( {
+	str argv = join ({
 		(!ui.cb_condense->isChecked()) ? "-q" : "",
 		(!ui.cb_subst->isChecked()) ? "-r" : "",
 		(ui.cb_condlineCheck->isChecked()) ? "-a" : "",
@@ -383,7 +396,7 @@ LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
 DEFINE_ACTION (Intersector, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_intersector, Intersector))
+	if (!checkProgPath (Intersector))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -429,7 +442,7 @@ DEFINE_ACTION (Intersector, 0) {
 		return;
 	}
 	
-	str parms = join ( {
+	str parms = join ({
 		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		(ui.cb_nocondense->isChecked()) ? "-t" : "",
 		"-s",
@@ -461,11 +474,12 @@ DEFINE_ACTION (Intersector, 0) {
 	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
 	
-	if (ui.cb_edges->isChecked() && runUtilityProcess (Isecalc, prog_isecalc,
-		join ({inDATName, cutDATName, edgesDATName})))
-	{
+	if (
+		ui.cb_edges->isChecked() &&
+		checkProgPath (Isecalc) &&
+		runUtilityProcess (Isecalc, prog_isecalc, join ({inDATName, cutDATName, edgesDATName}))
+	)
 		insertOutput (edgesDATName, false, {});
-	}
 }
 
 // =============================================================================
@@ -474,7 +488,7 @@ DEFINE_ACTION (Intersector, 0) {
 DEFINE_ACTION (Coverer, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_coverer, Coverer))
+	if (!checkProgPath (Coverer))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -505,7 +519,7 @@ DEFINE_ACTION (Coverer, 0) {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ( {
+	str argv = join ({
 		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
 		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
@@ -530,7 +544,7 @@ DEFINE_ACTION (Coverer, 0) {
 DEFINE_ACTION (Isecalc, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_isecalc, Isecalc))
+	if (!checkProgPath (Isecalc))
 		return;
 	
 	Ui::IsecalcUI ui;
@@ -564,7 +578,7 @@ DEFINE_ACTION (Isecalc, 0) {
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 	
-	str argv = join ( {
+	str argv = join ({
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -582,7 +596,7 @@ DEFINE_ACTION (Isecalc, 0) {
 DEFINE_ACTION (Edger2, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_edger2, Edger2))
+	if (!checkProgPath (Edger2))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -600,7 +614,7 @@ DEFINE_ACTION (Edger2, 0) {
 	
 	int unmatched = ui.unmatched->currentIndex();
 	
-	str argv = join ( {
+	str argv = join ({
 		fmt ("-p %1", ui.precision->value()),
 		fmt ("-af %1", ui.flatAngle->value()),
 		fmt ("-ac %1", ui.condAngle->value()),

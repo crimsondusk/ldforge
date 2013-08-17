@@ -37,7 +37,7 @@ bool isNumber (const str& tok);
 // Converts a float value to a string value.
 str ftoa (double num);
 
-double atof( str val );
+double atof (str val);
 
 // Simplifies the given fraction.
 void simplify (short& numer, short& denom);
@@ -54,7 +54,7 @@ extern_cfg (int, grid);
 static const short g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
-inline const gridinfo& currentGrid () {
+inline const gridinfo& currentGrid() {
 	return g_GridInfo[grid];
 }
 
@@ -66,8 +66,8 @@ enum RotationPoint
 	CustomPoint
 };
 
-vertex rotPoint (const vector<LDObject*>& objs);
-void configRotationPoint ();
+vertex rotPoint (const List<LDObject*>& objs);
+void configRotationPoint();
 
 template<class T, class R> R container_cast (const T& a) {
 	R b;
@@ -102,35 +102,6 @@ template<class T> void dataswap (T& a, T& b) {
 	a = b;
 	b = c;
 }
-
-// =============================================================================
-// StringParser
-//
-// String parsing utility
-// =============================================================================
-class StringParser {
-public:
-	StringParser (str inText, char sep);
-	
-	bool atEnd ();
-	bool atBeginning ();
-	bool next (str& val);
-	bool peekNext (str& val);
-	bool getToken (str& val, const ushort pos);
-	bool findToken (short& result, char const* needle, short args);
-	size_t size ();
-	void rewind ();
-	void seek (short amount, bool rel);
-	bool tokenCompare (short inPos, const char* sOther);
-	
-	str operator[] (const size_t idx) {
-		return m_tokens[idx];
-	}
-	
-private:
-	vector<str> m_tokens;
-	short m_pos;
-};
 
 // -----------------------------------------------------------------------------
 // Plural expression

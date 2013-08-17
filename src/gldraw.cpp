@@ -21,6 +21,7 @@
 #include <QMouseEvent>
 #include <QContextMenuEvent>
 #include <QInputDialog>
+#include <qtooltip.h>
 #include <QTimer>
 #include <GL/glu.h>
 
@@ -41,12 +42,12 @@ static const struct staticCameraMeta {
 	const Axis axisX, axisY;
 	const bool negX, negY;
 } g_staticCameras[6] = {
-	{ { 1, 0, 0 }, X, Z, false, false },
-	{ { 0, 0, 0 }, X, Y, false, true },
-	{ { 0, 1, 0 }, Z, Y, true, true },
-	{ { -1, 0, 0 }, X, Z, false, true },
-	{ { 0, 0, 0 }, X, Y, true, true },
-	{ { 0, -1, 0 }, Z, Y, false, true },
+	{{  1,  0, 0 }, X, Z, false, false },
+	{{  0,  0, 0 }, X, Y, false,  true },
+	{{  0,  1, 0 }, Z, Y,  true,  true },
+	{{ -1,  0, 0 }, X, Z, false,  true },
+	{{  0,  0, 0 }, X, Y,  true,  true },
+	{{  0, -1, 0 }, Z, Y, false,  true },
 };
 
 cfg (str, gl_bgcolor, "#CCCCD9");
@@ -61,13 +62,13 @@ cfg (bool, gl_wireframe, false);
 
 // argh
 const char* g_CameraNames[7] = {
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Top" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Front" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Left" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Bottom" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Back" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Right" ),
-	QT_TRANSLATE_NOOP( "GLRenderer",  "Free" )
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Top"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Front"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Left"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Bottom"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Back"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Right"),
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Free")
 };
 
 const GL::Camera g_Cameras[7] = {
@@ -84,9 +85,9 @@ const struct GLAxis {
 	const QColor col;
 	const vertex vert;
 } g_GLAxes[3] = {
-	{ QColor (255, 0, 0), vertex (10000, 0, 0) },
-	{ QColor (128, 192, 0), vertex (0, 10000, 0) },
-	{ QColor (0, 160, 192), vertex (0, 0, 10000) },
+	{ QColor (255,   0,   0), vertex (10000, 0, 0) },
+	{ QColor (80, 192,   0), vertex (0, 10000, 0) },
+	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
 	
 // =============================================================================
@@ -102,7 +103,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	setFile (null);
 	setDrawOnly (false);
 	resetAngles();
-	setMessageLog( null );
+	setMessageLog (null);
 	
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -222,7 +223,7 @@ void GLRenderer::setBackground() {
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-static vector<short> g_warnedColors;
+static List<short> g_warnedColors;
 void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	QColor qcol;
 	
@@ -249,8 +250,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	
 	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine)
-	{
+		obj->getType() != LDObject::CondLine) {
+		
 		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
 		else
@@ -261,7 +262,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 		else {
 			LDColor* col = getColor (obj->color());
 			
-			if( col )
+			if (col)
 				qcol = col->faceColor;
 		}
 		
@@ -417,6 +418,9 @@ void GLRenderer::drawGLScene() {
 }
 
 // =============================================================================
+// This converts a 2D point on the screen to a 3D point in the model. If 'snap'
+// is true, the 3D point will snap to the current grid.
+// =============================================================================
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	assert (camera() != Free);
 	
@@ -440,13 +444,16 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	cy *= negYFac;
 	
 	str tmp;
-	pos3d = g_origin;
+	// Create the vertex from the coordinates
 	pos3d[axisX] = tmp.sprintf ("%.3f", cx).toDouble();
 	pos3d[axisY] = tmp.sprintf ("%.3f", cy).toDouble();
 	pos3d[3 - axisX - axisY] = depthValue();
 	return pos3d;
 }
 
+// =============================================================================
+// Inverse operation for the above - convert a 3D position to a 2D screen
+// position
 // =============================================================================
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 	GLfloat m[16];
@@ -507,12 +514,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		}
 		
 		// Paint the coordinates onto the screen.
-		str text = fmt( tr( "X: %1, Y: %2, Z: %3" ), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z] );
+		str text = fmt (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
 		
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		
-		paint.setPen (m_darkbg ? Qt::white : Qt::black);
+		paint.setPen (getTextPen());
 		paint.drawText (m_width - textSize.width(), m_height - 16, textSize.width(),
 			textSize.height(), Qt::AlignCenter, text);
 		
@@ -598,16 +605,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
 		}
 		
-		str fmtstr = tr( "%1 Camera" );
+		str fmtstr = tr ("%1 Camera");
 		
-		// Draw a label for the current camera in the top left corner
+		// Draw a label for the current camera in the bottom left corner
 		{
 			const ushort margin = 4;
 			
 			str label;
-			label = fmt( fmtstr, tr( g_CameraNames[camera()] ));
-			paint.setPen (m_darkbg ? Qt::white : Qt::black);
-			paint.drawText( QPoint( margin, height() - ( margin + metrics.descent() )), label );
+			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
+			paint.setPen (getTextPen());
+			paint.drawText (QPoint (margin, height() -  (margin + metrics.descent())), label);
 		}
 		
 		// Tool tips
@@ -615,51 +622,22 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 			if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
 				m_drawToolTip = false;
 			else {
-				QPen bord = m_thinBorderPen;
-				bord.setBrush (Qt::black);
-				
-				const ushort margin = 2;
-				ushort x0 = m_pos.x(),
-					y0 = m_pos.y();
-				
-				str label = fmt( fmtstr, tr( g_CameraNames[m_toolTipCamera] ));
-				
-				const ushort textWidth = metrics.width (label),
-					textHeight = metrics.height(),
-					fullWidth = textWidth + (2 * margin),
-					fullHeight = textHeight + (2 * margin);
-				
-				QRect area (m_pos.x(), m_pos.y(), fullWidth, fullHeight);
-				
-				if (x0 + fullWidth > m_width)
-					x0 -= fullWidth;
-				
-				if (y0 + fullHeight > m_height)
-					y0 -= fullHeight;
-				
-				paint.setBrush (QColor (0, 128, 255, 208));
-				paint.setPen (bord);
-				paint.drawRect (x0, y0, fullWidth, fullHeight);
-				
-				paint.setBrush (Qt::black);
-				paint.drawText (QPoint (x0 + margin, y0 + margin + metrics.ascent()), label);
+				str label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
+				QToolTip::showText (m_globalpos, label);
 			}
 		}
 	}
 	
 	// Message log
-	if( msglog() )
-	{
+	if (msglog()) {
 		int y = 0;
 		const int margin = 2;
-		QColor col = Qt::black;
-		paint.setPen( QPen() );
+		QColor penColor = getTextPen();
 		
-		for( const MessageManager::Line& line : *msglog())
-		{
-			col.setAlphaF( line.alpha );
-			paint.setPen( QPen( col ));
-			paint.drawText( QPoint( margin, y + margin + metrics.ascent() ), line.text );
+		for (const MessageManager::Line& line : *msglog()) {
+			penColor.setAlphaF (line.alpha);
+			paint.setPen (penColor);
+			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
 			y += metrics.height();
 		}
 	}
@@ -682,11 +660,19 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// -----------------------------------------------------------------------------
+QColor GLRenderer::getTextPen () const {
+	return m_darkbg ? Qt::white : Qt::black;
+}
+
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileAllObjects() {
 	if (!file())
 		return;
+	
+	// Compiling all is a big job, use a busy cursor
+	setCursor (Qt::BusyCursor);
 	
 	m_knownVerts.clear();
 	
@@ -707,6 +693,8 @@ void GLRenderer::compileAllObjects() {
 	
 	glEnd();
 	glEndList();
+	
+	setCursor (Qt::ArrowCursor);
 }
 
 // =============================================================================
@@ -741,6 +729,8 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		break;
 	
 	case LDObject::CondLine:
+		// Draw conditional lines with a dash pattern - however, use a full
+		// line when drawing a pick list to make selecting them easier.
 		if (list != GL::PickList) {
 			glLineStipple (1, 0x6666);
 			glEnable (GL_LINE_STIPPLE);
@@ -759,10 +749,9 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		compileSubObject (obj, GL_QUADS);
 		break;
 	
-	case LDObject::Subfile:
-		{
+	case LDObject::Subfile: {
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			vector<LDObject*> objs = ref->inlineContents (true, true);
+			List<LDObject*> objs = ref->inlineContents (true, true);
 			
 			bool oldinvert = g_glInvert;
 			
@@ -781,40 +770,6 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 			g_glInvert = oldinvert;
 		}
 		break;
-	
-#if 0
-	TODO: find a proper way to draw vertices without having them be affected by zoom.
-	case LDObject::Vertex:
-		{
-			LDVertex* pVert = static_cast<LDVertex*> (obj);
-			LDTriangle* pPoly;
-			vertex* vPos = &(pVert->pos);
-			const double fPolyScale = max (fZoom, 1.0);
-			
-#define BIPYRAMID_COORD(N) ((((i + N) % 4) >= 2 ? 1 : -1) * 0.3f * fPolyScale)
-			
-			for (int i = 0; i < 8; ++i) {
-				pPoly = new LDTriangle;
-				pPoly->coords[0] = {vPos->x, vPos->y + ((i >= 4 ? 1 : -1) * 0.4f * fPolyScale), vPos->z};
-				pPoly->coords[1] = {
-					vPos->x + BIPYRAMID_COORD (0),
-					vPos->y,
-					vPos->z + BIPYRAMID_COORD (1)
-				};
-				
-				pPoly->coords[2] = {
-					vPos->x + BIPYRAMID_COORD (1),
-					vPos->y,
-					vPos->z + BIPYRAMID_COORD (2)
-				};
-				
-				pPoly->dColor = pVert->dColor;
-				compileOneObject (pPoly, list);
-				delete pPoly;
-			}
-		}
-		break;
-#endif // 0
 	
 	default:
 		break;
@@ -854,9 +809,9 @@ void GLRenderer::addDrawnVertex (vertex pos) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
-	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton);
-	const bool wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton);
-	const bool wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
+	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton),
+		wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton),
+		wasMid = (m_lastButtons & Qt::MidButton) && !(ev->buttons() & Qt::MidButton);
 	
 	if (m_panning)
 		m_panning = false;
@@ -925,9 +880,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			QPoint pos2d = coordconv3_2 (pos3d);
 			
 			// Measure squared distance
-			double dx = abs (pos2d.x() - curspos.x());
-			double dy = abs (pos2d.y() - curspos.y());
-			double distsq = (dx * dx) + (dy * dy);
+			const double dx = abs (pos2d.x() - curspos.x()),
+				dy = abs (pos2d.y() - curspos.y()),
+				distsq = (dx * dx) + (dy * dy);
 			
 			if (distsq >= 1024.0f) // 32.0f ** 2
 				continue; // too far away
@@ -936,6 +891,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				mindist = distsq;
 				closest = pos3d;
 				valid = true;
+				
+				/* If it's only 4 pixels away, I think we found our vertex now. */
+				if (distsq <= 16.0f) // 4.0f ** 2
+					break;
 			}
 		}
 		
@@ -999,10 +958,11 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 	
 	// Start the tool tip timer
 	if (!m_drawToolTip)
-		m_toolTipTimer->start (1000);
+		m_toolTipTimer->start (500);
 	
 	// Update 2d position
 	m_pos = ev->pos();
+	m_globalpos = ev->globalPos();
 	
 	// Calculate 3d position of the cursor
 	m_hoverpos = (camera() != Free) ? coordconv2_3 (m_pos, true) : g_origin;
@@ -1037,7 +997,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 
 // =============================================================================
 void GLRenderer::leaveEvent (QEvent* ev) {
-	Q_UNUSED (ev);
+	(void) ev;
 	m_drawToolTip = false;
 	m_toolTipTimer->stop();
 	update();
@@ -1067,7 +1027,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick) {
-		vector<LDObject*> oldsel = g_win->sel();
+		List<LDObject*> oldsel = g_win->sel();
 		g_win->sel().clear();
 		
 		for (LDObject* obj : oldsel) {
@@ -1139,7 +1099,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 		
-		LDObject* obj = LDObject::fromID( idx );
+		LDObject* obj = LDObject::fromID (idx);
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
@@ -1185,7 +1145,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	glEnable (GL_DITHER);
 	
 	setBackground();
-	update();
+	repaint();
 }
 
 // =============================================================================
@@ -1227,16 +1187,14 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	update();
 }
 
-READ_ACCESSOR( LDOpenFile*, GLRenderer::file )
-{
+READ_ACCESSOR (LDFile*, GLRenderer::file) {
 	return m_file;
 }
 
-SET_ACCESSOR( LDOpenFile*, GLRenderer::setFile )
-{
+SET_ACCESSOR (LDFile*, GLRenderer::setFile) {
 	m_file = val;
 	
-	if( val != null )
+	if (val != null)
 		overlaysFromObjects();
 }
 
@@ -1245,7 +1203,7 @@ void GLRenderer::endDraw (bool accept) {
 	(void) accept;
 	
 	// Clean the selection and create the object
-	vector<vertex>& verts = m_drawedVerts;
+	List<vertex>& verts = m_drawedVerts;
 	LDObject* obj = null;
 	
 	if (m_rectdraw) {
@@ -1299,14 +1257,14 @@ void GLRenderer::endDraw (bool accept) {
 	m_rectdraw = false;
 }
 
-static vector<vertex> getVertices (LDObject* obj) {
-	vector<vertex> verts;
+static List<vertex> getVertices (LDObject* obj) {
+	List<vertex> verts;
 	
 	if (obj->vertices() >= 2) {
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile) {
-		vector<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
+		List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
 		
 		for(LDObject* obj : objs) {
 			verts << getVertices (obj);
@@ -1337,7 +1295,7 @@ void GLRenderer::compileObject (LDObject* obj) {
 	}
 	
 	// Mark in known vertices of this object
-	vector<vertex> verts = getVertices (obj);
+	List<vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
 	m_knownVerts.makeUnique();
 	
@@ -1710,3 +1668,5 @@ void GLRenderer::updateOverlayObjects() {
 	if (g_win->R() == this)
 		g_win->refresh();
 }
+
+#include "build/moc_gldraw.cpp"

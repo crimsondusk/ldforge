@@ -26,7 +26,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include <vector>
 #include <stdint.h>
 #include <stdarg.h>
 #include <QString>
@@ -46,6 +45,12 @@
 #define BUILD_RC       3
 #define BUILD_RELEASE  4
 
+// RC Number for BUILD_RC
+#define RC_NUMBER      0
+
+// Uncomment for portable build... maybe it's time to move to cmake?
+// #define PORTABLE
+
 // =============================================
 #if (BUILD_ID != BUILD_INTERNAL)
 #define RELEASE
@@ -57,14 +62,10 @@
 # define devf(...)
 #endif // RELEASE
 
+#define alias auto&
 #define elif else if
 
 void doDevf (const char* func, const char* fmtstr, ...);
-
-// Version string identifier
-const char* versionString ();
-const char* versionMoniker ();
-const char* fullVersionString ();
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
@@ -92,7 +93,7 @@ static const std::nullptr_t null = nullptr;
 #define PROP_NAME(GET) m_##GET
 
 #define READ_ACCESSOR(T, GET) \
-	T const& GET () const
+	T const& GET() const
 
 #define SET_ACCESSOR(T, SET) \
 	void SET (T val)
@@ -134,13 +135,13 @@ public: \
 
 // Property whose set accessor is a public slot
 // TODO: make this replace PROPERTY
-#define SLOT_PROPERTY( T, GET, SET ) \
+#define SLOT_PROPERTY (T, GET, SET) \
 private: \
-	T PROP_NAME( GET ); \
+	T PROP_NAME (GET); \
 public: \
-	READ_ACCESSOR( T, GET ) { return PROP_NAME (GET); } \
+	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); } \
 public slots: \
-	SET_ACCESSOR( T, SET ) { PROP_NAME (GET) = val; }
+	SET_ACCESSOR (T, SET) { PROP_NAME (GET) = val; }
 
 #ifdef null
 #undef null
@@ -163,8 +164,13 @@ typedef QString str;
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
 void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
 
+// Version string identifier
+str versionString();
+str versionMoniker();
+str fullVersionString();
+
 #define assert(N) \
-	(N) ? ((void)(0)) : assertionFailure(__FILE__, __LINE__, FUNCNAME, #N)
+	((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
 
 #define fatal(MSG) \
 	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)

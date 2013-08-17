@@ -29,7 +29,7 @@
 #include "types.h"
 #include "primitives.h"
 
-vector<LDOpenFile*> g_loadedFiles;
+List<LDFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);
@@ -41,8 +41,8 @@ const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 
 void doPrint (File& f, initlist<StringFormatArg> args) {
 	str msg = DoFormat (args);
-	f.write (msg.toUtf8 ());
-	f.flush ();
+	f.write (msg.toUtf8());
+	f.flush();
 }
 
 void doPrint (FILE* fp, initlist<StringFormatArg> args) {
@@ -58,29 +58,32 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args) {
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 int main (int argc, char* argv[]) {
-	const QApplication app (argc, argv);
+	QApplication app (argc, argv);
+	app.setOrganizationName (APPNAME);
+	app.setApplicationName (APPNAME);
+	
 	g_app = &app;
-	LDOpenFile::setCurrent (null);
+	LDFile::setCurrent (null);
 	
 	// Load or create the configuration
-	if (!config::load ()) {
+	if (!config::load()) {
 		print ("Creating configuration file...\n");
-		if (config::save ())
+		if (config::save())
 			print ("Configuration file successfully created.\n");
 		else
 			print ("failed to create configuration file!\n");
 	}
 	
-	LDPaths::initPaths ();
-	initColors ();
+	LDPaths::initPaths();
+	initColors();
 
 	ForgeWindow* win = new ForgeWindow;
 	
-	newFile ();
-	loadPrimitives ();
+	newFile();
+	loadPrimitives();
 	
-	win->show ();
-	return app.exec ();
+	win->show();
+	return app.exec();
 }
 
 void doDevf (const char* func, const char* fmtstr, ...) {
@@ -93,7 +96,7 @@ void doDevf (const char* func, const char* fmtstr, ...) {
 	va_end (va);
 }
 
-const char* versionString () {
+str versionString() {
 	if (g_versionString.length() == 0) {
 #if VERSION_PATCH == 0
 		g_versionString = fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
@@ -102,28 +105,25 @@ const char* versionString () {
 #endif // VERSION_PATCH
 	}
 	
-	return g_versionString.toStdString().c_str();
+	return g_versionString;
 }
 
-const char* versionMoniker () {
+str versionMoniker() {
 #if BUILD_ID == BUILD_INTERNAL
-	return " Internal";
+	return "Internal";
 #elif BUILD_ID == BUILD_ALPHA
-	return " Alpha";
+	return "Alpha";
 #elif BUILD_ID == BUILD_BETA
-	return " Beta";
+	return "Beta";
 #elif BUILD_ID == BUILD_RC
-	return " RC";
+	return fmt ("RC %1", RC_NUMBER);
 #else
 	return "";
 #endif // BUILD_ID
 }
 
-const char* fullVersionString () {
-	if (g_fullVersionString.length() == 0)
-		g_fullVersionString = fmt ("v%1%2", versionString (), versionMoniker ());
-	
-	return g_fullVersionString.toStdString().c_str();
+str fullVersionString() {
+	return fmt ("v%1 %2", versionString(), versionMoniker());
 }
 
 static void bombBox (str msg) {
@@ -138,7 +138,7 @@ static void bombBox (str msg) {
 	box.addButton (btn);
 	box.button (btn)->setText ("Damn it");
 	box.setDefaultButton (btn);
-	box.exec ();
+	box.exec();
 }
 
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr) {
@@ -155,10 +155,10 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 	
 #if BUILD_ID == BUILD_INTERNAL
 	if (g_win)
-		g_win->deleteLater ();
+		g_win->deleteLater();
 	
 	bombBox (errmsg);
-	abort ();
+	abort();
 #endif
 }
 
@@ -169,8 +169,8 @@ void fatalError (const char* file, const ulong line, const char* funcname, str m
 	print ("%1\n", errmsg);
 	
 	if (g_win)
-		g_win->deleteLater ();
+		g_win->deleteLater();
 	
 	bombBox (errmsg);
-	abort ();
+	abort();
 }
