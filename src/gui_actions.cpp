@@ -52,26 +52,26 @@ DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 	
 	newFile();
 	
-	const LDBFCObject::Type BFCType =
-		ui.rb_bfc_ccw->isChecked() ? LDBFCObject::CertifyCCW :
-		ui.rb_bfc_cw->isChecked()  ? LDBFCObject::CertifyCW : LDBFCObject::NoCertify;
+	const LDBFC::Type BFCType =
+		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
+		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 	
 	const str license =
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
 	LDFile* f = LDFile::current();
-	*f << new LDCommentObject (ui.le_title->text());
-	*f << new LDCommentObject ("Name: <untitled>.dat" );
-	*f << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
-	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
+	*f << new LDComment (ui.le_title->text());
+	*f << new LDComment ("Name: <untitled>.dat" );
+	*f << new LDComment (fmt ("Author: %1", ui.le_author->text()));
+	*f << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
 	
 	if (license != "")
-		*f << new LDCommentObject (license);
+		*f << new LDComment (license);
 	
-	*f << new LDEmptyObject;
-	*f << new LDBFCObject (BFCType);
-	*f << new LDEmptyObject;
+	*f << new LDEmpty;
+	*f << new LDBFC (BFCType);
+	*f << new LDEmpty;
 	
 	g_win->fullRefresh();
 }
@@ -180,7 +180,7 @@ DEFINE_ACTION (NewQuad, 0) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewCLine, 0) {
-	AddObjectDialog::staticDialog (LDObject::CondLine, null);
+	AddObjectDialog::staticDialog (LDObject::CndLine, null);
 }
 
 // =============================================================================
@@ -278,10 +278,10 @@ DEFINE_ACTION (SelectByType, 0) {
 	str refName;
 	
 	if (type == LDObject::Subfile) {
-		refName = static_cast<LDSubfileObject*> (g_win->sel()[0])->fileInfo()->name();
+		refName = static_cast<LDSubfile*> (g_win->sel()[0])->fileInfo()->name();
 		
 		for (LDObject* obj : g_win->sel())
-			if (static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
+			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 	
@@ -290,7 +290,7 @@ DEFINE_ACTION (SelectByType, 0) {
 		if (obj->getType() != type)
 			continue;
 		
-		if (type == LDObject::Subfile && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 			continue;
 		
 		g_win->sel() << obj;

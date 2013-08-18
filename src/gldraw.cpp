@@ -254,7 +254,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	
 	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine) {
+		obj->getType() != LDObject::CndLine) {
 		
 		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
@@ -708,7 +708,7 @@ void GLRenderer::compileAllObjects() {
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	glBegin (gltype);
 	
-	const short numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
+	const short numverts = (obj->getType() != LDObject::CndLine) ? obj->vertices() : 2;
 	
 	if (g_glInvert == false)
 		for (short i = 0; i < numverts; ++i)
@@ -730,7 +730,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		compileSubObject (obj, GL_LINES);
 		break;
 	
-	case LDObject::CondLine:
+	case LDObject::CndLine:
 		// Draw conditional lines with a dash pattern - however, use a full
 		// line when drawing a pick list to make selecting them easier.
 		if (list != GL::PickList) {
@@ -752,20 +752,20 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 		break;
 	
 	case LDObject::Subfile: {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			List<LDObject*> objs;
 			
 			objs = ref->inlineContents (
-				LDSubfileObject::DeepInline |
-				LDSubfileObject::CacheInline |
-				LDSubfileObject::RendererInline);
+				LDSubfile::DeepInline |
+				LDSubfile::CacheInline |
+				LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
 			
 			if (ref->transform().determinant() < 0)
 				g_glInvert = !g_glInvert;
 			
 			LDObject* prev = ref->prev();
-			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFCObject*> (prev)->type == LDBFCObject::InvertNext)
+			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 			
 			for (LDObject* obj : objs) {
@@ -1223,7 +1223,7 @@ void GLRenderer::endDraw (bool accept) {
 	LDObject* obj = null;
 	
 	if (m_rectdraw) {
-		LDQuadObject* quad = new LDQuadObject;
+		LDQuad* quad = new LDQuad;
 		
 		// Copy the vertices from m_rectverts
 		updateRectVerts();
@@ -1237,22 +1237,22 @@ void GLRenderer::endDraw (bool accept) {
 		switch (verts.size()) {
 		case 1:
 			// 1 vertex - add a vertex object
-			obj = new LDVertexObject;
-			static_cast<LDVertexObject*> (obj)->pos = verts[0];
+			obj = new LDVertex;
+			static_cast<LDVertex*> (obj)->pos = verts[0];
 			obj->setColor (maincolor);
 			break;
 		
 		case 2:
 			// 2 verts - make a line
-			obj = new LDLineObject (verts[0], verts[1]);
+			obj = new LDLine (verts[0], verts[1]);
 			obj->setColor (edgecolor);
 			break;
 			
 		case 3:
 		case 4:
 			obj = (verts.size() == 3) ?
-				static_cast<LDObject*> (new LDTriangleObject) :
-				static_cast<LDObject*> (new LDQuadObject);
+				static_cast<LDObject*> (new LDTriangle) :
+				static_cast<LDObject*> (new LDQuad);
 			
 			obj->setColor (maincolor);
 			for (ushort i = 0; i < obj->vertices(); ++i)
@@ -1282,8 +1282,8 @@ static List<vertex> getVertices (LDObject* obj) {
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile) {
-		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-		List<LDObject*> objs = ref->inlineContents (LDSubfileObject::DeepCacheInline);
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 		
 		for(LDObject* obj : objs) {
 			verts << getVertices (obj);
@@ -1605,12 +1605,12 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDOverlayObject* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
-	LDOverlayObject* ovlobj = null;
+LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
+	LDOverlay* ovlobj = null;
 	
 	for (LDObject * obj : *file()) {
-		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlayObject*> (obj)->camera() == cam) {
-			ovlobj = static_cast<LDOverlayObject*> (obj);
+		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->camera() == cam) {
+			ovlobj = static_cast<LDOverlay*> (obj);
 			break;
 		}
 	}
@@ -1628,7 +1628,7 @@ void GLRenderer::overlaysFromObjects() {
 			continue;
 		
 		overlayMeta& meta = m_overlays[cam];
-		LDOverlayObject* ovlobj = findOverlayObject (cam);
+		LDOverlay* ovlobj = findOverlayObject (cam);
 		
 		if (!ovlobj && meta.img) {
 			delete meta.img;
@@ -1646,7 +1646,7 @@ void GLRenderer::updateOverlayObjects() {
 			continue;
 		
 		overlayMeta& meta = m_overlays[cam];
-		LDOverlayObject* ovlobj = findOverlayObject (cam);
+		LDOverlay* ovlobj = findOverlayObject (cam);
 		
 		if (!meta.img && ovlobj) {
 			// If this is the last overlay image, we need to remove the empty space after it as well.
@@ -1664,7 +1664,7 @@ void GLRenderer::updateOverlayObjects() {
 		} elif (meta.img && !ovlobj) {
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
-			ovlobj = new LDOverlayObject;
+			ovlobj = new LDOverlay;
 			
 			// Find a suitable position to place this object. We want to place
 			// this into the header, which is everything up to the first scemantic
@@ -1693,7 +1693,7 @@ void GLRenderer::updateOverlayObjects() {
 				file()->insertObj (i, ovlobj);
 				
 				if (found)
-					file()->insertObj (i + 1, new LDEmptyObject);
+					file()->insertObj (i + 1, new LDEmpty);
 			}
 		}
 		

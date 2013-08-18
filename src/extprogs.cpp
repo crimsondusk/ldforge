@@ -151,8 +151,8 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 void writeObjects (List<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
 		if (obj->getType() == LDObject::Subfile) {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			List<LDObject*> objs = ref->inlineContents (LDSubfileObject::DeepInline);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
 			
 			writeObjects (objs, f);
 			

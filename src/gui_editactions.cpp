@@ -120,10 +120,10 @@ static void doInline (bool deep) {
 		List<LDObject*> objs;
 		
 		if (obj->getType() == LDObject::Subfile)
-			objs = static_cast<LDSubfileObject*> (obj)->inlineContents (
-				(LDSubfileObject::InlineFlags)
-				((deep) ? LDSubfileObject::DeepInline : 0) |
-				LDSubfileObject::CacheInline
+			objs = static_cast<LDSubfile*> (obj)->inlineContents (
+				(LDSubfile::InlineFlags)
+				((deep) ? LDSubfile::DeepInline : 0) |
+				LDSubfile::CacheInline
 			);
 		else
 			continue;
@@ -171,14 +171,14 @@ DEFINE_ACTION (SplitQuads, 0) {
 		if (index == -1)
 			return;
 		
-		List<LDTriangleObject*> triangles = static_cast<LDQuadObject*> (obj)->splitToTriangles();
+		List<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles();
 		
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
 		LDFile::current()->setObject (index, triangles[0]);
 		LDFile::current()->insertObj (index + 1, triangles[1]);
 		
-		for (LDTriangleObject * t : triangles)
+		for (LDTriangle * t : triangles)
 			g_win->R()->compileObject (t);
 		
 		// Delete this quad now, it has been split.
@@ -205,7 +205,7 @@ DEFINE_ACTION (EditRaw, KEY (F9)) {
 	ui.code->setText (obj->raw());
 	
 	if (obj->getType() == LDObject::Error)
-		ui.errorDescription->setText (static_cast<LDErrorObject*> (obj)->reason);
+		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
 	else {
 		ui.errorDescription->hide();
 		ui.errorIcon->hide();
@@ -265,23 +265,23 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B)) {
 			continue;
 		
 		short numLines;
-		LDLineObject* lines[4];
+		LDLine* lines[4];
 		
 		if (obj->getType() == LDObject::Quad) {
 			numLines = 4;
 			
-			LDQuadObject* quad = static_cast<LDQuadObject*> (obj);
-			lines[0] = new LDLineObject (quad->getVertex (0), quad->getVertex (1));
-			lines[1] = new LDLineObject (quad->getVertex (1), quad->getVertex (2));
-			lines[2] = new LDLineObject (quad->getVertex (2), quad->getVertex (3));
-			lines[3] = new LDLineObject (quad->getVertex (3), quad->getVertex (0));
+			LDQuad* quad = static_cast<LDQuad*> (obj);
+			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
+			lines[1] = new LDLine (quad->getVertex (1), quad->getVertex (2));
+			lines[2] = new LDLine (quad->getVertex (2), quad->getVertex (3));
+			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
 		} else {
 			numLines = 3;
 			
-			LDTriangleObject* tri = static_cast<LDTriangleObject*> (obj);
-			lines[0] = new LDLineObject (tri->getVertex (0), tri->getVertex (1));
-			lines[1] = new LDLineObject (tri->getVertex (1), tri->getVertex (2));
-			lines[2] = new LDLineObject (tri->getVertex (2), tri->getVertex (0));
+			LDTriangle* tri = static_cast<LDTriangle*> (obj);
+			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
+			lines[1] = new LDLine (tri->getVertex (1), tri->getVertex (2));
+			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
 		}
 		
 		for (short i = 0; i < numLines; ++i) {
@@ -311,7 +311,7 @@ DEFINE_ACTION (CornerVerts, 0) {
 		ulong idx = obj->getIndex();
 		
 		for (short i = 0; i < obj->vertices(); ++i) {
-			LDVertexObject* vert = new LDVertexObject;
+			LDVertex* vert = new LDVertex;
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());
 			
@@ -460,7 +460,7 @@ static void doRotate (const short l, const short m, const short n) {
 			// Transform the matrix
 			mo->setTransform (mo->transform() * transform);
 		} elif (obj->getType() == LDObject::Vertex) {
-			LDVertexObject* vert = static_cast<LDVertexObject*> (obj);
+			LDVertex* vert = static_cast<LDVertex*> (obj);
 			vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
@@ -522,7 +522,7 @@ DEFINE_ACTION (Uncolorize, 0) {
 		
 		int col = maincolor;
 		
-		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CondLine)
+		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CndLine)
 			col = edgecolor;
 		
 		obj->setColor (col);
@@ -616,10 +616,10 @@ DEFINE_ACTION (Demote, 0) {
 	int num = 0;
 	
 	for (LDObject* obj : sel) {
-		if (obj->getType() != LDObject::CondLine)
+		if (obj->getType() != LDObject::CndLine)
 			continue;
 		
-		LDLineObject* repl = static_cast<LDCondLineObject*> (obj)->demote();
+		LDLine* repl = static_cast<LDCndLine*> (obj)->demote();
 		g_win->R()->compileObject (repl);
 		++num;
 	}
@@ -686,7 +686,7 @@ DEFINE_ACTION (AddHistoryLine, 0) {
 		ui->m_username->text(),
 		ui->m_comment->text());
 	
-	LDCommentObject* comm = new LDCommentObject (commentText);
+	LDComment* comm = new LDComment (commentText);
 	
 	// Find a spot to place the new comment
 	for (
@@ -694,7 +694,7 @@ DEFINE_ACTION (AddHistoryLine, 0) {
 		obj && obj->next() && !obj->next()->isScemantic();
 		obj = obj->next()
 	) {
-		LDCommentObject* comm = dynamic_cast<LDCommentObject*> (obj);
+		LDComment* comm = dynamic_cast<LDComment*> (obj);
 		if (comm && comm->text.startsWith ("!HISTORY "))
 			ishistory = true;
 		
@@ -713,7 +713,7 @@ DEFINE_ACTION (AddHistoryLine, 0) {
 	// If we're adding a history line right before a scemantic object, pad it
 	// an empty line
 	if (obj && obj->next() && obj->next()->isScemantic())
-		LDFile::current()->insertObj (idx, new LDEmptyObject);
+		LDFile::current()->insertObj (idx, new LDEmpty);
 	
 	g_win->buildObjList();
 	delete ui;

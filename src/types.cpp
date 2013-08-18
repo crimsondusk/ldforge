@@ -515,15 +515,15 @@ void LDBoundingBox::calcObject (LDObject* obj) {
 	case LDObject::Line:
 	case LDObject::Triangle:
 	case LDObject::Quad:
-	case LDObject::CondLine:
+	case LDObject::CndLine:
 		for (short i = 0; i < obj->vertices(); ++i)
 			calcVertex (obj->getVertex (i));
 		
 		break;
 
 	case LDObject::Subfile: {
-		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-		List<LDObject*> objs = ref->inlineContents (LDSubfileObject::DeepCacheInline);
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 	
 		for (LDObject* obj : objs) {
 			calcObject (obj);

@@ -311,7 +311,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 			vertex v0 (x0, 0.0f, z0),
 				   v1 (x1, 0.0f, z1);
 			
-			LDLineObject* line = new LDLineObject;
+			LDLine* line = new LDLine;
 			line->setVertex (0, v0);
 			line->setVertex (1, v1);
 			line->setColor (edgecolor);
@@ -358,7 +358,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 					v2 (x2, y2, z2),
 					v3 (x3, y3, z3);
 				
-				LDQuadObject* quad = new LDQuadObject;
+				LDQuad* quad = new LDQuad;
 				quad->setColor (maincolor);
 				quad->setVertex (0, v0);
 				quad->setVertex (1, v1);
@@ -393,7 +393,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 				
 				// Disc negatives need to go the other way around, otherwise
 				// they'll end up upside-down.
-				LDTriangleObject* seg = new LDTriangleObject;
+				LDTriangle* seg = new LDTriangle;
 				seg->setColor (maincolor);
 				seg->setVertex (type == Disc ? 0 : 2, v0);
 				seg->setVertex (1, v1);
@@ -427,7 +427,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 			v0[Z] *= num;
 		}
 		
-		LDCondLineObject* line = new LDCondLineObject;
+		LDCndLine* line = new LDCndLine;
 		line->setColor (edgecolor);
 		line->setVertex (0, v0);
 		line->setVertex (1, v1);
@@ -524,14 +524,14 @@ void generatePrimitive() {
 	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
 	
-	*f << new LDCommentObject (descr);
-	*f << new LDCommentObject (fmt ("Name: %1", name));
-	*f << new LDCommentObject (fmt ("Author: LDForge"));
-	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : ""));
-	*f << new LDCommentObject (CALicense);
-	*f << new LDEmptyObject;
-	*f << new LDBFCObject (LDBFCObject::CertifyCCW);
-	*f << new LDEmptyObject;
+	*f << new LDComment (descr);
+	*f << new LDComment (fmt ("Name: %1", name));
+	*f << new LDComment (fmt ("Author: LDForge"));
+	*f << new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : ""));
+	*f << new LDComment (CALicense);
+	*f << new LDEmpty;
+	*f << new LDBFC (LDBFC::CertifyCCW);
+	*f << new LDEmpty;
 	*f << makePrimitive (type, segs, divs, num);
 	
 	g_win->save (f, false);

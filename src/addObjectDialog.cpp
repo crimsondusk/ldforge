@@ -60,7 +60,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	case LDObject::Comment:
 		le_comment = new QLineEdit;
 		if (obj)
-			le_comment->setText (static_cast<LDCommentObject*> (obj)->text);
+			le_comment->setText (static_cast<LDComment*> (obj)->text);
 		
 		le_comment->setMinimumWidth (384);
 		break;
@@ -74,7 +74,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::Quad:
-	case LDObject::CondLine:
+	case LDObject::CndLine:
 		coordCount = 12;
 		break;
 	
@@ -85,16 +85,16 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	case LDObject::BFC:
 		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
 		
-		for (int i = 0; i < LDBFCObject::NumStatements; ++i) {
+		for (int i = 0; i < LDBFC::NumStatements; ++i) {
 			// Separate these in two columns
-			if (i == LDBFCObject::NumStatements / 2)
+			if (i == LDBFC::NumStatements / 2)
 				rb_bfcType->rowBreak();
 			
-			rb_bfcType->addButton (LDBFCObject::statements[i]);
+			rb_bfcType->addButton (LDBFC::statements[i]);
 		}
 		
 		if (obj)
-			rb_bfcType->setValue ((int) static_cast<LDBFCObject*> (obj)->type);
+			rb_bfcType->setValue ((int) static_cast<LDBFC*> (obj)->type);
 		break;
 	
 	case LDObject::Subfile:
@@ -120,7 +120,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				
 				// If this primitive is the one the current object points to,
 				// select it by default
-				if (obj && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() == prim.name)
+				if (obj && static_cast<LDSubfile*> (obj)->fileInfo()->name() == prim.name)
 					tw_subfileList->setCurrentItem (item);
 			}
 			
@@ -133,7 +133,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		le_subfileName->setFocus();
 		
 		if (obj) {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			le_subfileName->setText (ref->fileInfo()->name());
 		}
 		break;
@@ -154,7 +154,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj != null)
 			colnum = obj->color();
 		else
-			colnum = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
+			colnum = (type == LDObject::CndLine || type == LDObject::Line) ? edgecolor : maincolor;
 		
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, colnum);
@@ -173,7 +173,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	
 	switch (type) {
 	case LDObject::Line:
-	case LDObject::CondLine:
+	case LDObject::CndLine:
 	case LDObject::Triangle:
 	case LDObject::Quad:
 		// Apply coordinates
@@ -332,7 +332,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	switch (type) {
 	case LDObject::Comment:
 		{
-			LDCommentObject* comm = initObj<LDCommentObject> (obj);
+			LDComment* comm = initObj<LDComment> (obj);
 			comm->text = dlg.le_comment->text();
 		}
 		break;
@@ -340,7 +340,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	case LDObject::Line:
 	case LDObject::Triangle:
 	case LDObject::Quad:
-	case LDObject::CondLine:
+	case LDObject::CndLine:
 		if (!obj)
 			obj = LDObject::getDefault (type);
 		
@@ -355,14 +355,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	case LDObject::BFC:
 		{
-			LDBFCObject* bfc = initObj<LDBFCObject> (obj);
-			bfc->type = (LDBFCObject::Type) dlg.rb_bfcType->value();
+			LDBFC* bfc = initObj<LDBFC> (obj);
+			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value();
 		}
 		break;
 	
 	case LDObject::Vertex:
 		{
-			LDVertexObject* vert = initObj<LDVertexObject> (obj);
+			LDVertex* vert = initObj<LDVertex> (obj);
 			
 			for (const Axis ax : g_Axes)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value();
@@ -381,7 +381,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 				return;
 			}
 			
-			LDSubfileObject* ref = initObj<LDSubfileObject> (obj);
+			LDSubfile* ref = initObj<LDSubfile> (obj);
 			
 			for (const Axis ax : g_Axes)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value());

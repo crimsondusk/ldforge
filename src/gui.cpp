@@ -238,7 +238,7 @@ void ForgeWindow::updateTitle() {
 			LDFile::current()->obj (0)->getType() == LDObject::Comment)
 		{
 			// Append title
-			LDCommentObject* comm = static_cast<LDCommentObject*> (LDFile::current()->obj (0));
+			LDComment* comm = static_cast<LDComment*> (LDFile::current()->obj (0));
 			title += fmt (": %1", comm->text);
 		}
 		
@@ -290,7 +290,7 @@ void ForgeWindow::buildObjList() {
 		
 		switch (obj->getType()) {
 		case LDObject::Comment:
-			descr = static_cast<LDCommentObject*> (obj)->text;
+			descr = static_cast<LDComment*> (obj)->text;
 			
 			// Remove leading whitespace
 			while (descr[0] == ' ')
@@ -303,7 +303,7 @@ void ForgeWindow::buildObjList() {
 		case LDObject::Line:
 		case LDObject::Triangle:
 		case LDObject::Quad:
-		case LDObject::CondLine:
+		case LDObject::CndLine:
 			for (short i = 0; i < obj->vertices(); ++i) {
 				if (i != 0)
 					descr += ", ";
@@ -317,12 +317,12 @@ void ForgeWindow::buildObjList() {
 			break;
 		
 		case LDObject::Vertex:
-			descr = static_cast<LDVertexObject*> (obj)->pos.stringRep (true);
+			descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
 			break;
 		
 		case LDObject::Subfile:
 			{
-				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				descr = fmt ("%1 %2, (", ref->fileInfo()->name(),
 					ref->position().stringRep (true));
@@ -336,12 +336,12 @@ void ForgeWindow::buildObjList() {
 			break;
 		
 		case LDObject::BFC:
-			descr = LDBFCObject::statements[static_cast<LDBFCObject*> (obj)->type];
+			descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
 			break;
 		
 		case LDObject::Overlay:
 			{
-				LDOverlayObject* ovl = static_cast<LDOverlayObject*> (obj);
+				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
 				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
 					basename (ovl->filename()), ovl->x(), ovl->y(), ovl->width(), ovl->height());
 			}

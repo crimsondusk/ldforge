@@ -412,7 +412,7 @@ void PartDownloadRequest::downloadFinished() {
 	// This is why downloading a part may end up downloading multiple files, as
 	// it resolves dependencies.
 	for (LDObject* obj : *f) {
-		LDErrorObject* err = dynamic_cast<LDErrorObject*> (obj);
+		LDError* err = dynamic_cast<LDError*> (obj);
 		if (!err || err->fileRef().isEmpty())
 			continue;
 		

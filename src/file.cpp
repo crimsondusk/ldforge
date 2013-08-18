@@ -279,7 +279,7 @@ void FileLoader::work (int i) {
 		
 		// Check for parse errors and warn about tthem
 		if (obj->getType() == LDObject::Error) {
-			log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDErrorObject*> (obj)->reason);
+			log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDError*> (obj)->reason);
 			
 			if (m_warningsPointer)
 				(*m_warningsPointer)++;
@@ -550,11 +550,11 @@ bool LDFile::save (str savepath) {
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open. If it's saved into a directory
 	// called "s" or "48", prepend that into the name.
-	LDCommentObject* fpathComment = null;
+	LDComment* fpathComment = null;
 	LDObject* first = object (1);
 	
 	if (!implicit() && first != null && first->getType() == LDObject::Comment) {
-		fpathComment = static_cast<LDCommentObject*> (first);
+		fpathComment = static_cast<LDComment*> (first);
 		
 		if (fpathComment->text.left (6) == "Name: ") {
 			str newname;
@@ -590,12 +590,12 @@ bool LDFile::save (str savepath) {
 // -----------------------------------------------------------------------------
 #define CHECK_TOKEN_COUNT(N) \
 	if (tokens.size() != N) \
-		return new LDErrorObject (line, "Bad amount of tokens");
+		return new LDError (line, "Bad amount of tokens");
 
 #define CHECK_TOKEN_NUMBERS(MIN, MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDErrorObject (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
+			return new LDError (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -618,11 +618,11 @@ LDObject* parseLine (str line) {
 	
 	if (tokens.size() <= 0) {
 		// Line was empty, or only consisted of whitespace
-		return new LDEmptyObject;
+		return new LDEmpty;
 	}
 	
 	if (tokens[0].length() != 1 || tokens[0][0].isDigit() == false)
-		return new LDErrorObject (line, "Illogical line code");
+		return new LDError (line, "Illogical line code");
 	
 	int num = tokens[0][0].digitValue();
 	
@@ -637,25 +637,25 @@ LDObject* parseLine (str line) {
 		
 		// Handle BFC statements
 		if (tokens.size() > 2 && tokens[1] == "BFC") {
-			for (short i = 0; i < LDBFCObject::NumStatements; ++i)
-				if (comm == fmt ("BFC %1", LDBFCObject::statements [i]))
-					return new LDBFCObject ((LDBFCObject::Type) i);
+			for (short i = 0; i < LDBFC::NumStatements; ++i)
+				if (comm == fmt ("BFC %1", LDBFC::statements [i]))
+					return new LDBFC ((LDBFC::Type) i);
 			
 			// MLCAD is notorious for stuffing these statements in parts it
 			// creates. The above block only handles valid statements, so we
 			// need to handle MLCAD-style invertnext, clip and noclip separately.
 			struct {
 				const char* a;
-				LDBFCObject::Type b;
+				LDBFC::Type b;
 			} BFCData[] = {
-				{ "INVERTNEXT", LDBFCObject::InvertNext },
-				{ "NOCLIP", LDBFCObject::NoClip },
-				{ "CLIP", LDBFCObject::Clip }
+				{ "INVERTNEXT", LDBFC::InvertNext },
+				{ "NOCLIP", LDBFC::NoClip },
+				{ "CLIP", LDBFC::Clip }
 			};
 			
 			for (const auto& i : BFCData)
 				if (comm == fmt ("BFC CERTIFY %1", i.a))
-					return new LDBFCObject (i.b);
+					return new LDBFC (i.b);
 		}
 		
 		if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {
@@ -665,7 +665,7 @@ LDObject* parseLine (str line) {
 				CHECK_TOKEN_COUNT (7)
 				CHECK_TOKEN_NUMBERS (3, 6)
 				
-				LDVertexObject* obj = new LDVertexObject;
+				LDVertex* obj = new LDVertex;
 				obj->setColor (tokens[3].toLong());
 				
 				for (const Axis ax : g_Axes)
@@ -676,7 +676,7 @@ LDObject* parseLine (str line) {
 				CHECK_TOKEN_COUNT (9);
 				CHECK_TOKEN_NUMBERS (5, 8)
 				
-				LDOverlayObject* obj = new LDOverlayObject;
+				LDOverlay* obj = new LDOverlay;
 				obj->setFilename (tokens[3]);
 				obj->setCamera (tokens[4].toLong());
 				obj->setX (tokens[5].toLong());
@@ -688,7 +688,7 @@ LDObject* parseLine (str line) {
 		}
 		
 		// Just a regular comment:
-		LDCommentObject* obj = new LDCommentObject;
+		LDComment* obj = new LDComment;
 		obj->text = comm;
 		return obj;
 	}
@@ -707,12 +707,12 @@ LDObject* parseLine (str line) {
 		
 		// If we cannot open the file, mark it an error
 		if (!load) {
-			LDErrorObject* obj = new LDErrorObject (line, fmt ("Could not open %1", tokens[14]));
+			LDError* obj = new LDError (line, fmt ("Could not open %1", tokens[14]));
 			obj->setFileRef (tokens[14]);
 			return obj;
 		}
 		
-		LDSubfileObject* obj = new LDSubfileObject;
+		LDSubfile* obj = new LDSubfile;
 		obj->setColor (tokens[1].toLong());
 		obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
 		
@@ -731,7 +731,7 @@ LDObject* parseLine (str line) {
 		CHECK_TOKEN_NUMBERS (1, 7)
 		
 		// Line
-		LDLineObject* obj = new LDLineObject;
+		LDLine* obj = new LDLine;
 		obj->setColor (tokens[1].toLong());
 		
 		for (short i = 0; i < 2; ++i)
@@ -745,7 +745,7 @@ LDObject* parseLine (str line) {
 		CHECK_TOKEN_NUMBERS (1, 10)
 		
 		// Triangle
-		LDTriangleObject* obj = new LDTriangleObject;
+		LDTriangle* obj = new LDTriangle;
 		obj->setColor (tokens[1].toLong());
 		
 		for (short i = 0; i < 3; ++i)
@@ -763,9 +763,9 @@ LDObject* parseLine (str line) {
 		LDObject* obj;
 		
 		if (num == 4)
-			obj = new LDQuadObject;
+			obj = new LDQuad;
 		else
-			obj = new LDCondLineObject;
+			obj = new LDCndLine;
 		
 		obj->setColor (tokens[1].toLong());
 		
@@ -776,7 +776,7 @@ LDObject* parseLine (str line) {
 	}
 	
 	default: // Strange line we couldn't parse
-		return new LDErrorObject (line, "Unknown line code number");
+		return new LDError (line, "Unknown line code number");
 	}
 }
 
@@ -805,19 +805,19 @@ void reloadAllSubfiles() {
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : LDFile::current()->objs()) {
 		if (obj->getType() == LDObject::Subfile) {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDFile* fileInfo = getFile (ref->fileInfo()->name());
 			
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDErrorObject (ref->raw(), "Could not open referred file"));
+				ref->replace (new LDError (ref->raw(), "Could not open referred file"));
 		}
 		
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
 		if (obj->getType() == LDObject::Error)
-			obj->replace (parseLine (static_cast<LDErrorObject*> (obj)->contents));
+			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
 	}
 	
 	// Close all files left unused
@@ -887,7 +887,7 @@ static List<LDFile*> getFilesUsed (LDFile* node) {
 		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
-		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		filesUsed << ref->fileInfo();
 		filesUsed << getFilesUsed (ref->fileInfo());
 	}
@@ -975,11 +975,11 @@ str LDFile::getShortName() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDFile::inlineContents (LDSubfileObject::InlineFlags flags) {
+List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags) {
 	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
-	if (gl_logostuds && (flags & LDSubfileObject::RendererInline)) {
+	if (gl_logostuds && (flags & LDSubfile::RendererInline)) {
 		if (name() == "stud.dat" && g_logoedStud)
 			return g_logoedStud->inlineContents (flags);
 		elif (name() == "stud2.dat" && g_logoedStud2)
@@ -988,8 +988,8 @@ List<LDObject*> LDFile::inlineContents (LDSubfileObject::InlineFlags flags) {
 	
 	List<LDObject*> objs, objcache;
 	
-	bool deep = flags & LDSubfileObject::DeepInline,
-		doCache = flags & LDSubfileObject::CacheInline;
+	bool deep = flags & LDSubfile::DeepInline,
+		doCache = flags & LDSubfile::CacheInline;
 	
 	// If we have this cached, just clone that
 	if (deep && cache().size()) {
@@ -1008,11 +1008,11 @@ List<LDObject*> LDFile::inlineContents (LDSubfileObject::InlineFlags flags) {
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
 			if (deep && obj->getType() == LDObject::Subfile) {
-				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				
 				// We only want to cache immediate subfiles, so shed the caching
 				// flag when recursing deeper in hierarchy.
-				List<LDObject*> otherobjs = ref->inlineContents (flags & ~(LDSubfileObject::CacheInline));
+				List<LDObject*> otherobjs = ref->inlineContents (flags & ~(LDSubfile::CacheInline));
 				
 				for (LDObject* otherobj : otherobjs) {
 					// Cache this object, if desired
