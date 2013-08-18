@@ -32,14 +32,22 @@ static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
 List<Primitive> g_primitives;
 
-static const str g_Other = QObject::tr ("Other");
+static const str g_Other = PrimitiveLister::tr ("Other");
+
+static const str g_radialNameRoots[] = {
+	"edge",
+	"cyli",
+	"disc",
+	"ndis",
+	"ring",
+	"con"
+};
 
 static void populateCategories();
 static void loadPrimitiveCatgories();
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void loadPrimitives() {
 	print ("Loading primitives...\n");
 	loadPrimitiveCatgories();
@@ -69,8 +77,7 @@ void loadPrimitives() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 	QFileInfoList flist = dir.entryInfoList();
 	
@@ -86,8 +93,7 @@ static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitiveLister::work() {
 	g_activePrimLister = this;
 	m_prims.clear();
@@ -140,8 +146,7 @@ void PrimitiveLister::work() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitiveLister::start() {
 	if (g_activePrimLister)
 		return;
@@ -157,6 +162,8 @@ void PrimitiveLister::start() {
 	listerThread->start();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 static PrimitiveCategory* findCategory (str name) {
 	for (PrimitiveCategory& cat : g_PrimitiveCategories)
 		if (cat.name() == name)
@@ -166,8 +173,7 @@ static PrimitiveCategory* findCategory (str name) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void populateCategories() {
 	for (PrimitiveCategory& cat : g_PrimitiveCategories)
 		cat.prims.clear();
@@ -222,8 +228,7 @@ static void populateCategories() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void loadPrimitiveCatgories() {
 	g_PrimitiveCategories.clear();
 	File f (config::dirpath() + "primregexps.cfg", File::Read);
@@ -278,20 +283,19 @@ static void loadPrimitiveCatgories() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 bool primitiveLoaderBusy() {
 	return g_primListerMutex;
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static double radialPoint (int i, int divs, double (*func) (double)) {
 	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
 	List<LDObject*> objs;
 	List<int> condLineSegs;
@@ -436,8 +440,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static str primitiveTypeName (PrimitiveType type) {
 	// Not translated as primitives are in English.
 	return type == Circle   ? "Circle" :
@@ -447,18 +450,8 @@ static str primitiveTypeName (PrimitiveType type) {
 		type == Ring     ? "Ring" : "Cone";
 }
 
-static const str g_radialNameRoots[] = {
-	"edge",
-	"cyli",
-	"disc",
-	"ndis",
-	"ring",
-	"con"
-};
-
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 	short numer = segs,
 		  denom = divs;
@@ -489,8 +482,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void generatePrimitive() {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 	
@@ -546,6 +538,8 @@ void generatePrimitive() {
 	delete f;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f) {
 	
@@ -554,10 +548,14 @@ PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	connect (ui->cb_hires, SIGNAL (toggled(bool)), this, SLOT (hiResToggled (bool)));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 PrimitivePrompt::~PrimitivePrompt() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitivePrompt::hiResToggled (bool on) {
 	ui->sb_segs->setMaximum (on ? hires : lores);
 	

@@ -1,30 +1,30 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include <qgridlayout.h>
-#include <qcheckbox.h>
-#include <qdialogbuttonbox.h>
-#include <qspinbox.h>
-#include <qlabel.h>
-#include <qlistwidget.h>
-#include <qtreewidget.h>
-#include <qlineedit.h>
-#include <qpushbutton.h>
+#include <QGridLayout>
+#include <QCheckBox>
+#include <QDialogButtonBox>
+#include <QSpinBox>
+#include <QLabel>
+#include <QListWidget>
+#include <QTreeWidget>
+#include <QLineEdit>
+#include <QPushButton>
 #include "gui.h"
 #include "addObjectDialog.h"
 #include "file.h"
@@ -34,7 +34,10 @@
 #include "widgets.h"
 #include "misc.h"
 #include "primitives.h"
+#include "build/moc_addObjectDialog.cpp"
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 class SubfileListItem : public QTreeWidgetItem {
 	PROPERTY (Primitive*, primInfo, setPrimInfo)
 	
@@ -46,8 +49,7 @@ public:
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) : QDialog (parent) {
 	setlocale (LC_ALL, "C");
 	
@@ -96,47 +98,45 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::Subfile:
-		{
-			coordCount = 3;
+		coordCount = 3;
+		
+		// If the primitive lister is busy writing data, we have to wait
+		// for that to happen first. This should be quite considerably rare.
+		while (primitiveLoaderBusy())
+			;
+		
+		tw_subfileList = new QTreeWidget();
+		tw_subfileList->setHeaderLabel (tr ("Primitives"));
+		
+		for (PrimitiveCategory& cat : g_PrimitiveCategories) {
+			SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
+			parentItem->setText (0, cat.name());
+			QList<QTreeWidgetItem*> subfileItems;
 			
-			// If the primitive lister is busy writing data, we have to wait
-			// for that to happen first. This should be quite considerably rare.
-			while (primitiveLoaderBusy())
-				;
-			
-			tw_subfileList = new QTreeWidget();
-			tw_subfileList->setHeaderLabel (tr ("Primitives"));
-			
-			for (PrimitiveCategory& cat : g_PrimitiveCategories) {
-				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
-				parentItem->setText (0, cat.name());
-				QList<QTreeWidgetItem*> subfileItems;
+			for (Primitive& prim : cat.prims) {
+				SubfileListItem* item = new SubfileListItem (parentItem, &prim);
+				item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
+				subfileItems << item;
 				
-				for (Primitive& prim : cat.prims) {
-					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
-					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
-					subfileItems << item;
-					
-					// If this primitive is the one the current object points to,
-					// select it by default
-					if (obj && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() == prim.name)
-						tw_subfileList->setCurrentItem (item);
-				}
-				
-				tw_subfileList->addTopLevelItem (parentItem);
+				// If this primitive is the one the current object points to,
+				// select it by default
+				if (obj && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() == prim.name)
+					tw_subfileList->setCurrentItem (item);
 			}
 			
-			connect (tw_subfileList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_subfileTypeChanged()));
-			lb_subfileName = new QLabel ("File:");
-			le_subfileName = new QLineEdit;
-			le_subfileName->setFocus();
-			
-			if (obj) {
-				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-				le_subfileName->setText (ref->fileInfo()->name());
-			}
-			break;
+			tw_subfileList->addTopLevelItem (parentItem);
 		}
+		
+		connect (tw_subfileList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_subfileTypeChanged()));
+		lb_subfileName = new QLabel ("File:");
+		le_subfileName = new QLineEdit;
+		le_subfileName->setFocus();
+		
+		if (obj) {
+			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+			le_subfileName->setText (ref->fileInfo()->name());
+		}
+		break;
 	
 	default:
 		critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
@@ -246,8 +246,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void AddObjectDialog::setButtonBackground (QPushButton* button, short colnum) {
 	LDColor* col = getColor (colnum);
 	
@@ -259,8 +258,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, short colnum) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 str AddObjectDialog::currentSubfileName() {
 	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
 	
@@ -271,16 +269,14 @@ str AddObjectDialog::currentSubfileName() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void AddObjectDialog::slot_colorButtonClicked() {
 	ColorSelector::getColor (colnum, colnum, this);
 	setButtonBackground (pb_color, colnum);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void AddObjectDialog::slot_subfileTypeChanged() {
 	str name = currentSubfileName();
 	
@@ -289,7 +285,8 @@ void AddObjectDialog::slot_subfileTypeChanged() {
 }
 
 // =============================================================================
-template<class T> T* initObj (LDObject*& obj) {
+// -----------------------------------------------------------------------------
+template<class T> static T* initObj (LDObject*& obj) {
 	if (obj == null)
 		obj = new T;
 	
@@ -297,8 +294,7 @@ template<class T> T* initObj (LDObject*& obj) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	setlocale (LC_ALL, "C");
 	
@@ -409,5 +405,3 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	g_win->fullRefresh();
 }
-
-#include "build/moc_addObjectDialog.cpp"

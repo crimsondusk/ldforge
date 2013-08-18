@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -21,7 +21,7 @@
 #include <QMouseEvent>
 #include <QContextMenuEvent>
 #include <QInputDialog>
-#include <qtooltip.h>
+#include <QToolTip>
 #include <QTimer>
 #include <GL/glu.h>
 
@@ -36,6 +36,7 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
+#include "build/moc_gldraw.cpp"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];
@@ -89,10 +90,12 @@ const struct GLAxis {
 	{ QColor (80, 192,   0), vertex (0, 10000, 0) },
 	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
-	
+
+static bool g_glInvert = false;
+static List<short> g_warnedColors;
+
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 	m_picking = m_rangepick = false;
 	m_camera = (GL::Camera) gl_camera.value;
@@ -131,6 +134,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 GLRenderer::~GLRenderer() {
 	for (int i = 0; i < 6; ++i)
 		delete m_overlays[i].img;
@@ -140,8 +144,7 @@ GLRenderer::~GLRenderer() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::calcCameraIcons() {
 	ushort i = 0;
 	
@@ -157,6 +160,8 @@ void GLRenderer::calcCameraIcons() {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::initGLData() {
 	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -172,6 +177,7 @@ void GLRenderer::initGLData() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::resetAngles() {
 	m_rotX = 30.0f;
 	m_rotY = 325.f;
@@ -180,8 +186,7 @@ void GLRenderer::resetAngles() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::initializeGL() {
 	setBackground();
 	
@@ -194,8 +199,7 @@ void GLRenderer::initializeGL() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 QColor GLRenderer::getMainColor() {
 	QColor col (gl_maincolor);
 	
@@ -206,6 +210,7 @@ QColor GLRenderer::getMainColor() {
 	return col;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setBackground() {
 	QColor col (gl_bgcolor);
@@ -221,9 +226,7 @@ void GLRenderer::setBackground() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-static List<short> g_warnedColors;
+// -----------------------------------------------------------------------------
 void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 	QColor qcol;
 	
@@ -313,14 +316,14 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::refresh() {
 	update();
 	swapBuffers();
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::hardRefresh() {
 	compileAllObjects();
 	refresh();
@@ -329,8 +332,7 @@ void GLRenderer::hardRefresh() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::resizeGL (int w, int h) {
 	m_width = w;
 	m_height = h;
@@ -344,6 +346,8 @@ void GLRenderer::resizeGL (int w, int h) {
 	glMatrixMode (GL_MODELVIEW);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::drawGLScene() {
 	if (file() == null)
 		return;
@@ -418,9 +422,10 @@ void GLRenderer::drawGLScene() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 // This converts a 2D point on the screen to a 3D point in the model. If 'snap'
 // is true, the 3D point will snap to the current grid.
-// =============================================================================
+// -----------------------------------------------------------------------------
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 	assert (camera() != Free);
 	
@@ -452,9 +457,10 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 // Inverse operation for the above - convert a 3D position to a 2D screen
 // position
-// =============================================================================
+// -----------------------------------------------------------------------------
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 	GLfloat m[16];
 	const staticCameraMeta* cam = &g_staticCameras[m_camera];
@@ -481,8 +487,7 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::paintEvent (QPaintEvent* ev) {
 	Q_UNUSED (ev)
 	
@@ -634,7 +639,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		const int margin = 2;
 		QColor penColor = getTextPen();
 		
-		for (const MessageManager::Line& line : *msglog()) {
+		for (const MessageManager::Line& line : msglog()->getLines()) {
 			penColor.setAlphaF (line.alpha);
 			paint.setPen (penColor);
 			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
@@ -698,10 +703,7 @@ void GLRenderer::compileAllObjects() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-static bool g_glInvert = false;
-
+// -----------------------------------------------------------------------------
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 	glBegin (gltype);
 	
@@ -718,8 +720,7 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 	setObjectColor (obj, list);
 	
@@ -777,15 +778,13 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileVertex (const vertex& vrt) {
 	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::clampAngle (double& angle) const {
 	while (angle < 0)
 		angle += 360.0;
@@ -793,6 +792,8 @@ void GLRenderer::clampAngle (double& angle) const {
 		angle -= 360.0;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos) {
 	// If we picked an already-existing vertex, stop drawing
 	for (vertex& vert : m_drawedVerts) {
@@ -806,8 +807,7 @@ void GLRenderer::addDrawnVertex (vertex pos) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && !(ev->buttons() & Qt::LeftButton),
 		wasRight = (m_lastButtons & Qt::RightButton) && !(ev->buttons() & Qt::RightButton),
@@ -916,8 +916,7 @@ end:
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::mousePressEvent (QMouseEvent* ev) {
 	m_totalmove = 0;
 	
@@ -974,17 +973,19 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::keyPressEvent (QKeyEvent* ev) {
 	m_keymods = ev->modifiers();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::keyReleaseEvent (QKeyEvent* ev) {
 	m_keymods = ev->modifiers();
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::wheelEvent (QWheelEvent* ev) {
 	makeCurrent();
 	
@@ -996,6 +997,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::leaveEvent (QEvent* ev) {
 	(void) ev;
 	m_drawToolTip = false;
@@ -1004,11 +1006,13 @@ void GLRenderer::leaveEvent (QEvent* ev) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::contextMenuEvent (QContextMenuEvent* ev) {
 	g_win->spawnContextMenu (ev->globalPos());
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::setCamera (const GL::Camera cam) {
 	m_camera = cam;
 	gl_camera = (int) cam;
@@ -1016,8 +1020,7 @@ void GLRenderer::setCamera (const GL::Camera cam) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::pick (uint mouseX, uint mouseY) {
 	GLint viewport[4];
 	makeCurrent();
@@ -1149,10 +1152,13 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 READ_ACCESSOR (EditMode, GLRenderer::editMode) {
 	return m_editMode;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	m_editMode = val;
 	
@@ -1187,10 +1193,14 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 	update();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 READ_ACCESSOR (LDFile*, GLRenderer::file) {
 	return m_file;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 SET_ACCESSOR (LDFile*, GLRenderer::setFile) {
 	m_file = val;
 	
@@ -1199,6 +1209,7 @@ SET_ACCESSOR (LDFile*, GLRenderer::setFile) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::endDraw (bool accept) {
 	(void) accept;
 	
@@ -1257,6 +1268,8 @@ void GLRenderer::endDraw (bool accept) {
 	m_rectdraw = false;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 static List<vertex> getVertices (LDObject* obj) {
 	List<vertex> verts;
 	
@@ -1276,8 +1289,7 @@ static List<vertex> getVertices (LDObject* obj) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileObject (LDObject* obj) {
 	deleteLists (obj);
 	
@@ -1303,6 +1315,7 @@ void GLRenderer::compileObject (LDObject* obj) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 	w = m_width;
 	h = m_height;
@@ -1319,6 +1332,7 @@ uchar* GLRenderer::screencap (ushort& w, ushort& h) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::slot_toolTipTimer() {
 	// We come here if the cursor has stayed in one place for longer than a
 	// a second. Check if we're holding it over a camera icon - if so, draw
@@ -1334,6 +1348,7 @@ void GLRenderer::slot_toolTipTimer() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::deleteLists (LDObject* obj) {
 	// Delete the lists but only if they have been initialized
 	if (!obj->m_glinit)
@@ -1346,6 +1361,7 @@ void GLRenderer::deleteLists (LDObject* obj) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 Axis GLRenderer::cameraAxis (bool y, GL::Camera camid) {
 	if (camid == (GL::Camera) -1)
 		camid = m_camera;
@@ -1355,6 +1371,7 @@ Axis GLRenderer::cameraAxis (bool y, GL::Camera camid) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, int h) {
 	QImage* img = new QImage (file);
 	overlayMeta& info = getOverlay (cam);
@@ -1381,27 +1398,29 @@ bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, in
 	
 	const Axis x2d = cameraAxis (false, cam),
 		y2d = cameraAxis (true, cam);
-
+	
 	double negXFac = g_staticCameras[cam].negX ? -1 : 1,
 		negYFac = g_staticCameras[cam].negY ? -1 : 1;
-
+	
 	info.v0 = info.v1 = g_origin;
 	info.v0[x2d] = - (info.ox * info.lw * negXFac) / img->width();
 	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height();
 	info.v1[x2d] = info.v0[x2d] + info.lw;
 	info.v1[y2d] = info.v0[y2d] + info.lh;
-
+	
 	// Set alpha of all pixels to 0.5
 	for (long i = 0; i < img->width(); ++i)
 	for (long j = 0; j < img->height(); ++j) {
 		uint32 pixel = img->pixel (i, j);
 		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
 	}
-
+	
 	updateOverlayObjects();
 	return true;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::clearOverlay() {
 	if (camera() == Free)
 		return;
@@ -1413,24 +1432,34 @@ void GLRenderer::clearOverlay() {
 	updateOverlayObjects();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::setDepthValue (double depth) {
 	assert (camera() < Free);
 	m_depthValues[camera()] = depth;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 double GLRenderer::depthValue() const {
 	assert (camera() < Free);
 	return m_depthValues[camera()];
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 const char* GLRenderer::cameraName() const {
 	return g_CameraNames[camera()];
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 overlayMeta& GLRenderer::getOverlay (int newcam) {
 	 return m_overlays[newcam];
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::zoomNotch (bool inward) {
 	if (zoom() > 15)
 		setZoom (zoom() * (inward ? 0.833f : 1.2f));
@@ -1439,6 +1468,7 @@ void GLRenderer::zoomNotch (bool inward) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::zoomToFit() {
 	if (file() == null) {
 		setZoom (30.0f);
@@ -1517,6 +1547,7 @@ void GLRenderer::zoomToFit() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::updateRectVerts() {
 	if (!m_rectdraw)
 		return;
@@ -1548,6 +1579,8 @@ void GLRenderer::updateRectVerts() {
 	m_rectverts[3][ay] = v1[ay];
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	if (!(ev->buttons() & Qt::LeftButton) || editMode() != Select)
 		return;
@@ -1564,6 +1597,8 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 	ev->accept();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDOverlayObject* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
 	LDOverlayObject* ovlobj = null;
 	
@@ -1580,7 +1615,7 @@ LDOverlayObject* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Read in overlays from the current file and update overlay info accordingly.
-// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::overlaysFromObjects() {
 	for (Camera cam : g_Cameras) {
 		if (cam == Free)
@@ -1598,6 +1633,7 @@ void GLRenderer::overlaysFromObjects() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::updateOverlayObjects() {
 	for (Camera cam : g_Cameras) {
 		if (cam == Free)
@@ -1668,5 +1704,3 @@ void GLRenderer::updateOverlayObjects() {
 	if (g_win->R() == this)
 		g_win->refresh();
 }
-
-#include "build/moc_gldraw.cpp"

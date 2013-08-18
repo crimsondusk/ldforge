@@ -1,24 +1,24 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #include <math.h>
 #include <locale.h>
-#include <qcolor.h>
+#include <QColor>
 #include "common.h"
 #include "misc.h"
 #include "gui.h"
@@ -80,8 +80,7 @@ const ushort g_primes[NUM_PRIMES] = {
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 // Grid stuff
 cfg (int, grid, Grid::Medium);
 
@@ -110,6 +109,7 @@ const gridinfo g_GridInfo[3] = {
 
 // =============================================================================
 // Snap the given coordinate value on the current grid's given axis.
+// -----------------------------------------------------------------------------
 double Grid::snap (double in, const Grid::Config axis) {
 	const double gridval = currentGrid().confs[axis]->value;
 	const long mult = abs (in / gridval);
@@ -126,9 +126,9 @@ double Grid::snap (double in, const Grid::Config axis) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 // Float to string. Removes trailing zeroes and is locale-independant.
+// TODO: Replace with QString::number()
+// -----------------------------------------------------------------------------
 str ftoa (double num) {
 	// Disable the locale first so that the decimal point will not
 	// turn into anything weird (like commas)
@@ -150,8 +150,8 @@ str ftoa (double num) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// TODO: I guess Qt must have something like this stashed somewhere?
+// -----------------------------------------------------------------------------
 bool isNumber (const str& tok) {
 	bool gotDot = false;
 	
@@ -180,8 +180,7 @@ bool isNumber (const str& tok) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void simplify (short& numer, short& denom) {
 	bool repeat;
 	
@@ -205,6 +204,7 @@ void simplify (short& numer, short& denom) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 vertex rotPoint (const List<LDObject*>& objs) {
 	LDBoundingBox box;
 	
@@ -229,6 +229,8 @@ vertex rotPoint (const List<LDObject*>& objs) {
 	return vertex();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void configRotationPoint() {
 	QDialog* dlg = new QDialog;
 	Ui::RotPointUI ui;
@@ -265,6 +267,8 @@ void configRotationPoint() {
 	edit_rotpoint_z = ui.customZ->value();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 str join (initlist<StringFormatArg> vals, str delim) {
 	QStringList list;
 	for (const StringFormatArg& arg : vals)
@@ -273,6 +277,9 @@ str join (initlist<StringFormatArg> vals, str delim) {
 	return list.join (delim);
 }
 
+// =============================================================================
+// TODO: I'm quite sure Qt has this covered as well.
+// -----------------------------------------------------------------------------
 double atof (str val) {
 	// Disable the locale while parsing the line or atof's behavior changes
 	// between locales (i.e. fails to read decimals properly). That is

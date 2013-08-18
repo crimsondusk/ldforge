@@ -26,6 +26,8 @@
 
 static LDColor* g_LDColors[MAX_COLORS];
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void initColors() {
 	LDColor* col;
 	print ("%1: initializing color information.\n", __func__);
@@ -65,7 +67,8 @@ void setColor (short colnum, LDColor* col) {
 }
 
 // =============================================================================
-uchar luma (QColor& col) {
+// -----------------------------------------------------------------------------
+int luma (QColor& col) {
 	return (0.2126f * col.red()) +
 	       (0.7152f * col.green()) +
 	       (0.0722f * col.blue());

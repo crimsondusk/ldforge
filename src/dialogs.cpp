@@ -45,6 +45,7 @@ extern const char* g_extProgPathFilter;
 extern_cfg (str, io_ldpath);
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	ui = new Ui_OverlayUI;
 	ui->setupUi (this);
@@ -72,10 +73,14 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	fillDefaults (cam);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 OverlayDialog::~OverlayDialog() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OverlayDialog::fillDefaults (int newcam) {
 	overlayMeta& info = g_win->R()->getOverlay (newcam);
 	radioDefault<int> (newcam, m_cameraArgs);
@@ -95,6 +100,8 @@ void OverlayDialog::fillDefaults (int newcam) {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 str OverlayDialog::fpath() const {
 	return ui->filename->text();
 }
@@ -132,11 +139,12 @@ void OverlayDialog::slot_dimensionsChanged() {
 	ui->buttonBox->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
-// =================================================================================================
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
-	m_validDefault (validDefault) {
-	
+	m_validDefault (validDefault)
+{
 	ui = new Ui_LDPathUI;
 	ui->setupUi (this);
 	ui->status->setText ("---");
@@ -161,6 +169,8 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 		slot_tryConfigure();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDrawPathDialog::~LDrawPathDialog() {
 	delete ui;
 }
@@ -181,6 +191,8 @@ str LDrawPathDialog::filename() const {
 	return ui->path->text();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_findPath() {
 	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 	
@@ -190,29 +202,34 @@ void LDrawPathDialog::slot_findPath() {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_exit() {
 	exit (1);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_tryConfigure() {
 	if (LDPaths::tryConfigure (filename()) == false) {
 		ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
 		return;
 	}
-
+	
 	ui->status->setText ("<span style=\"color: #270; \">OK!</span>");
 	okButton()->setEnabled (true);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_accept() {
 	config::save();
 	accept();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	ui = new Ui_OpenProgressUI;
 	ui->setupUi (this);
@@ -222,30 +239,42 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 	m_progress = 0;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 OpenProgressDialog::~OpenProgressDialog() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 READ_ACCESSOR (ulong, OpenProgressDialog::numLines) {
 	return m_numLines;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines) {
 	m_numLines = val;
 	ui->progressBar->setRange (0, numLines());
 	updateValues();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OpenProgressDialog::updateValues() {
 	ui->progressText->setText (fmt ("Parsing... %1 / %2", progress(), numLines()));
 	ui->progressBar->setValue (progress());
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OpenProgressDialog::updateProgress (int progress) {
 	m_progress = progress;
 	updateValues();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	ui (new Ui_ExtProgPath)
@@ -259,10 +288,14 @@ ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowF
 	connect (ui->m_findPath, SIGNAL (clicked (bool)), this, SLOT (findPath()));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 ExtProgPathPrompt::~ExtProgPathPrompt() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void ExtProgPathPrompt::findPath() {
 	str path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
 	
@@ -270,6 +303,8 @@ void ExtProgPathPrompt::findPath() {
 		ui->m_path->setText (path);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 str ExtProgPathPrompt::getPath() const {
 	return ui->m_path->text();
 }
