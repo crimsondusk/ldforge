@@ -509,6 +509,6 @@ extern File g_file_stderr;
 extern const vertex g_origin; // Vertex at (0, 0, 0)
 extern const matrix g_identity; // Identity matrix
 
-static const double pi = 3.14159265358979323846f;
+static const double pi = 3.14159265358979323846;
 
 #endif // TYPES_H

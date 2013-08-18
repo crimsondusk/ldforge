@@ -418,24 +418,23 @@ static void doRotate (const short l, const short m, const short n) {
 	List<LDObject*> sel = g_win->sel();
 	List<vertex*> queue;
 	const vertex rotpoint = rotPoint (sel);
-	const double angle = (pi * currentGrid().confs[Grid::Angle]->value) / 180;
-	
-	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
-	const double cosangle = cos (angle),
+	const double angle = (pi * currentGrid().confs[Grid::Angle]->value) / 180,
+		cosangle = cos (angle),
 		sinangle = sin (angle);
 	
+	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	matrix transform ({
-		(l* l * (1 - cosangle)) + cosangle,
-		(m* l * (1 - cosangle)) - (n* sinangle),
-		(n* l * (1 - cosangle)) + (m* sinangle),
+		(l * l * (1 - cosangle)) + cosangle,
+		(m * l * (1 - cosangle)) - (n * sinangle),
+		(n * l * (1 - cosangle)) + (m * sinangle),
 		
-		(l* m * (1 - cosangle)) + (n* sinangle),
-		(m* m * (1 - cosangle)) + cosangle,
-		(n* m * (1 - cosangle)) - (l* sinangle),
+		(l * m * (1 - cosangle)) + (n * sinangle),
+		(m * m * (1 - cosangle)) + cosangle,
+		(n * m * (1 - cosangle)) - (l * sinangle),
 		
-		(l* n * (1 - cosangle)) - (m* sinangle),
-		(m* n * (1 - cosangle)) + (l* sinangle),
-		(n* n * (1 - cosangle)) + cosangle
+		(l * n * (1 - cosangle)) - (m * sinangle),
+		(m * n * (1 - cosangle)) + (l * sinangle),
+		(n * n * (1 - cosangle)) + cosangle
 	});
 	
 	// Apply the above matrix to everything
@@ -448,9 +447,13 @@ static void doRotate (const short l, const short m, const short n) {
 			}
 		} elif (obj->hasMatrix()) {
 			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+			
+			// Transform the position
 			vertex v = mo->position();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
+			
+			// Transform the matrix
 			mo->setTransform (mo->transform() * transform);
 		} elif (obj->getType() == LDObject::Vertex) {
 			LDVertexObject* vert = static_cast<LDVertexObject*> (obj);

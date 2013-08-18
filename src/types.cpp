@@ -5,7 +5,7 @@
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
+ *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -227,7 +227,7 @@ str matrix::stringRep() const {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void matrix::zero() {
-	memset (&m_vals[0], 0, sizeof (double) * 9);
+	memset (&m_vals[0], 0, sizeof m_vals);
 }
 
 // =============================================================================
@@ -239,15 +239,15 @@ matrix matrix::mult (matrix other) const {
 	for (short i = 0; i < 3; ++i)
 	for (short j = 0; j < 3; ++j)
 	for (short k = 0; k < 3; ++k)
-		val[ (i * 3) + j] += m_vals[ (i * 3) + k] * other[ (k * 3) + j];
-
+		val[ (i * 3) + j] += m_vals[(i * 3) + k] * other[(k * 3) + j];
+	
 	return val;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 matrix& matrix::operator= (matrix other) {
-	memcpy (&m_vals[0], &other.m_vals[0], sizeof (double) * 9);
+	memcpy (&m_vals[0], &other.m_vals[0], sizeof m_vals);
 	return *this;
 }
 
