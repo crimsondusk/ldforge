@@ -298,7 +298,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDSubfileObject::inlineContents (int flags) {
+List<LDObject*> LDSubfileObject::inlineContents (InlineFlags flags) {
 	List<LDObject*> objs = fileInfo()->inlineContents (flags);
 	
 	// Transform the objects

@@ -130,7 +130,7 @@ public:
 	static void closeInitialFile();
 	static int countExplicitFiles();
 	str getShortName();
-	List<LDObject*> inlineContents (int flags);
+	List<LDObject*> inlineContents (LDSubfileObject::InlineFlags flags);
 	
 private:
 	static LDFile* m_curfile;

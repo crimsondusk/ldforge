@@ -281,11 +281,7 @@ class LDSubfileObject : public LDObject, public LDMatrixObject {
 	PROPERTY (LDFile*, fileInfo, setFileInfo)
 
 public:
-	LDSubfileObject() {
-		setLinkPointer (this);
-	}
-	
-	enum InlineFlags {
+	enum InlineFlag {
 		DeepInline     = (1 << 0),
 		CacheInline    = (1 << 1),
 		RendererInline = (1 << 2),
@@ -293,10 +289,18 @@ public:
 		DeepCacheInline = DeepInline | CacheInline,
 	};
 	
+	Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
+	
+	LDSubfileObject() {
+		setLinkPointer (this);
+	}
+	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	List<LDObject*> inlineContents (int flags);
+	List<LDObject*> inlineContents (InlineFlags flags);
 };
+
+Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfileObject::InlineFlags)
 
 // =============================================================================
 // LDLineObject

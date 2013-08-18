@@ -975,7 +975,7 @@ str LDFile::getShortName() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDFile::inlineContents (int flags) {
+List<LDObject*> LDFile::inlineContents (LDSubfileObject::InlineFlags flags) {
 	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
