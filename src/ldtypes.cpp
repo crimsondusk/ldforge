@@ -298,48 +298,8 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDSubfileObject::inlineContents (bool deep, bool cache) {
-	List<LDObject*> objs, objcache;
-
-	// If we have this cached, just clone that
-	if (deep && fileInfo()->cache().size()) {
-		for (LDObject* obj : fileInfo()->cache())
-			objs << obj->clone();
-	} else {
-		if (!deep)
-			cache = false;
-		
-		for (LDObject* obj : *fileInfo()) {
-			// Skip those without scemantic meaning
-			if (!obj->isScemantic())
-				continue;
-			
-			// Got another sub-file reference, inline it if we're deep-inlining. If not,
-			// just add it into the objects normally. Also, we only cache immediate
-			// subfiles and this is not one. Yay, recursion!
-			if (deep && obj->getType() == LDObject::Subfile) {
-				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-				
-				List<LDObject*> otherobjs = ref->inlineContents (true, false);
-				
-				for (LDObject* otherobj : otherobjs) {
-					// Cache this object, if desired
-					if (cache)
-						objcache << otherobj->clone();
-					
-					objs << otherobj;
-				}
-			} else {
-				if (cache)
-					objcache << obj->clone();
-				
-				objs << obj->clone();
-			}
-		}
-		
-		if (cache)
-			fileInfo()->setCache (objcache);
-	}
+List<LDObject*> LDSubfileObject::inlineContents (int flags) {
+	List<LDObject*> objs = fileInfo()->inlineContents (flags);
 	
 	// Transform the objects
 	for (LDObject* obj : objs) {

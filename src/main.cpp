@@ -28,6 +28,7 @@
 #include "colors.h"
 #include "types.h"
 #include "primitives.h"
+#include "gldraw.h"
 
 List<LDFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
@@ -60,6 +61,7 @@ int main (int argc, char* argv[]) {
 	
 	LDPaths::initPaths();
 	initColors();
+	loadLogoedStuds();
 	
 	ForgeWindow* win = new ForgeWindow;
 	

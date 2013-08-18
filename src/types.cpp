@@ -523,7 +523,7 @@ void LDBoundingBox::calcObject (LDObject* obj) {
 
 	case LDObject::Subfile: {
 		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-		List<LDObject*> objs = ref->inlineContents (true, true);
+		List<LDObject*> objs = ref->inlineContents (LDSubfileObject::DeepCacheInline);
 	
 		for (LDObject* obj : objs) {
 			calcObject (obj);

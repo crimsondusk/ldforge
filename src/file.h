@@ -130,6 +130,7 @@ public:
 	static void closeInitialFile();
 	static int countExplicitFiles();
 	str getShortName();
+	List<LDObject*> inlineContents (int flags);
 	
 private:
 	static LDFile* m_curfile;
@@ -171,6 +172,7 @@ List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
 extern List<LDFile*> g_loadedFiles;
 
 void addRecentFile (str path);
+void loadLogoedStuds();
 str basename (str path);
 str dirname (str path);
 

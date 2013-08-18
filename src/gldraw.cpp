@@ -60,6 +60,7 @@ cfg (int, gl_camera, GLRenderer::Free);
 cfg (bool, gl_blackedges, true);
 cfg (bool, gl_axes, false);
 cfg (bool, gl_wireframe, false);
+cfg (bool, gl_logostuds, false);
 
 // argh
 const char* g_CameraNames[7] = {
@@ -752,8 +753,12 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list) {
 	
 	case LDObject::Subfile: {
 			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
-			List<LDObject*> objs = ref->inlineContents (true, true);
+			List<LDObject*> objs;
 			
+			objs = ref->inlineContents (
+				LDSubfileObject::DeepInline |
+				LDSubfileObject::CacheInline |
+				LDSubfileObject::RendererInline);
 			bool oldinvert = g_glInvert;
 			
 			if (ref->transform().determinant() < 0)
@@ -1277,7 +1282,8 @@ static List<vertex> getVertices (LDObject* obj) {
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile) {
-		List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
+		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+		List<LDObject*> objs = ref->inlineContents (LDSubfileObject::DeepCacheInline);
 		
 		for(LDObject* obj : objs) {
 			verts << getVertices (obj);

@@ -120,7 +120,11 @@ static void doInline (bool deep) {
 		List<LDObject*> objs;
 		
 		if (obj->getType() == LDObject::Subfile)
-			objs = static_cast<LDSubfileObject*> (obj)->inlineContents (deep, true);
+			objs = static_cast<LDSubfileObject*> (obj)->inlineContents (
+				(LDSubfileObject::InlineFlags)
+				((deep) ? LDSubfileObject::DeepInline : 0) |
+				LDSubfileObject::CacheInline
+			);
 		else
 			continue;
 		

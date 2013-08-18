@@ -50,7 +50,7 @@ extern_cfg (bool, gui_implicitfiles);
 extern_cfg (str, net_downloadpath);
 extern_cfg (bool, net_guesspaths);
 extern_cfg (bool, net_autoclose);
-extern_cfg (bool, io_logostuds);
+extern_cfg (bool, gl_logostuds);
 
 extern_cfg (str, prog_ytruder);
 extern_cfg (str, prog_rectifier);
@@ -121,7 +121,7 @@ void ConfigDialog::initMainTab() {
 	ui->blackEdges->setChecked (gl_blackedges);
 	// ui->scemanticInlining->setChecked (edit_schemanticinline);
 	ui->implicitFiles->setChecked (gui_implicitfiles);
-	ui->m_logostuds->setChecked (io_logostuds);
+	ui->m_logostuds->setChecked (gl_logostuds);
 }
 
 // =============================================================================
@@ -591,7 +591,7 @@ void ConfigDialog::staticDialog() {
 		net_downloadpath = dlg.getUI()->downloadPath->text();
 		net_guesspaths = dlg.getUI()->guessNetPaths->isChecked();
 		net_autoclose = dlg.getUI()->autoCloseNetPrompt->isChecked();
-		io_logostuds = dlg.getUI()->m_logostuds->isChecked();
+		gl_logostuds = dlg.getUI()->m_logostuds->isChecked();
 		
 		if (net_downloadpath.value.right (1) != DIRSLASH)
 			net_downloadpath += DIRSLASH;
@@ -620,6 +620,7 @@ void ConfigDialog::staticDialog() {
 		
 		config::save();
 		reloadAllSubfiles();
+		loadLogoedStuds();
 		g_win->R()->setBackground();
 		g_win->fullRefresh();
 		g_win->updateToolBars();

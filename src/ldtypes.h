@@ -284,10 +284,18 @@ public:
 	LDSubfileObject() {
 		setLinkPointer (this);
 	}
-
+	
+	enum InlineFlags {
+		DeepInline     = (1 << 0),
+		CacheInline    = (1 << 1),
+		RendererInline = (1 << 2),
+		
+		DeepCacheInline = DeepInline | CacheInline,
+	};
+	
 	// Inlines this subfile. Note that return type is an array of heap-allocated
 	// LDObject-clones, they must be deleted one way or another.
-	List<LDObject*> inlineContents (bool deep, bool cache);
+	List<LDObject*> inlineContents (int flags);
 };
 
 // =============================================================================

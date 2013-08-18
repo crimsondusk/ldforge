@@ -34,12 +34,14 @@
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
-cfg (bool, io_logostuds, false);
 extern_cfg (str, net_downloadpath);
+extern_cfg (bool, gl_logostuds);
 
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
 static bool g_aborted = false;
+static LDFile* g_logoedStud = null;
+static LDFile* g_logoedStud2 = null;
 
 LDFile* LDFile::m_curfile = null;
 
@@ -177,26 +179,6 @@ str basename (str path) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 File* openLDrawFile (str relpath, bool subdirs) {
-	{
-		File* logofile;
-		
-		// Special exception for logoed studs:
-		// stud.dat -> stud-logo.dat
-		// stud2.dat -> stud2-logo.dat
-		// NOTE: This is probably going to change in the very near future!
-		if (
-			relpath == "stud.dat" &&
-			(logofile = openLDrawFile ("stud-logo.dat", subdirs)) != null
-		)
-			return logofile;
-		
-		if (
-			relpath == "stud2.dat" &&
-			(logofile = openLDrawFile ("stud2-logo.dat", subdirs)) != null
-		)
-			return logofile;
-	}
-	
 	print ("%1: Try to open %2\n", __func__, relpath);
 	File* f = new File;
 	str fullPath;
@@ -993,6 +975,69 @@ str LDFile::getShortName() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+List<LDObject*> LDFile::inlineContents (int flags) {
+	// Possibly substitute with logoed studs:
+	// stud.dat -> stud-logo.dat
+	// stud2.dat -> stud-logo2.dat
+	if (gl_logostuds && (flags & LDSubfileObject::RendererInline)) {
+		if (name() == "stud.dat" && g_logoedStud)
+			return g_logoedStud->inlineContents (flags);
+		elif (name() == "stud2.dat" && g_logoedStud2)
+			return g_logoedStud2->inlineContents (flags);
+	}
+	
+	List<LDObject*> objs, objcache;
+	
+	bool deep = flags & LDSubfileObject::DeepInline,
+		doCache = flags & LDSubfileObject::CacheInline;
+	
+	// If we have this cached, just clone that
+	if (deep && cache().size()) {
+		for (LDObject* obj : cache())
+			objs << obj->clone();
+	} else {
+		if (!deep)
+			doCache = false;
+		
+		for (LDObject* obj : m_objs) {
+			// Skip those without scemantic meaning
+			if (!obj->isScemantic())
+				continue;
+			
+			// Got another sub-file reference, inline it if we're deep-inlining. If not,
+			// just add it into the objects normally. Also, we only cache immediate
+			// subfiles and this is not one. Yay, recursion!
+			if (deep && obj->getType() == LDObject::Subfile) {
+				LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+				
+				// We only want to cache immediate subfiles, so shed the caching
+				// flag when recursing deeper in hierarchy.
+				List<LDObject*> otherobjs = ref->inlineContents (flags & ~(LDSubfileObject::CacheInline));
+				
+				for (LDObject* otherobj : otherobjs) {
+					// Cache this object, if desired
+					if (doCache)
+						objcache << otherobj->clone();
+					
+					objs << otherobj;
+				}
+			} else {
+				if (doCache)
+					objcache << obj->clone();
+				
+				objs << obj->clone();
+			}
+		}
+		
+		if (doCache)
+			setCache (objcache);
+	}
+	
+	return objs;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDFile* LDFile::current() {
 	return m_curfile;
 }
@@ -1048,4 +1093,16 @@ void LDFile::closeInitialFile() {
 		!g_loadedFiles[0]->hasUnsavedChanges()
 	)
 		delete g_loadedFiles[0];
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void loadLogoedStuds() {
+	print ("Loading logoed studs...\n");
+	
+	delete g_logoedStud;
+	delete g_logoedStud2;
+	
+	g_logoedStud = openDATFile ("stud-logo.dat", true);
+	g_logoedStud2 = openDATFile ("stud2-logo.dat", true);
 }
