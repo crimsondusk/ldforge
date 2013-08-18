@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>513</width>
-    <height>377</height>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -190,41 +190,73 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="colorizeObjects">
-         <property name="whatsThis">
-          <string>Makes colored objects (non-16 and 24) appear colored in the list view. A red triangle will, for instance, have its entry written in red text. This can be useful to locate colored objects.</string>
-         </property>
-         <property name="text">
-          <string>Colorize objects in list view</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="colorBFC">
-         <property name="whatsThis">
-          <string>Polygons' front sides become green and back sides red.</string>
-         </property>
-         <property name="text">
-          <string>Red/green BFC view (incomplete)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="blackEdges">
-         <property name="whatsThis">
-          <string>Makes all edgelines appear black. If this is not set, edge lines take their color as defined in LDConfig.ldr.</string>
-         </property>
-         <property name="text">
-          <string>Black edges</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="implicitFiles">
-         <property name="text">
-          <string>List implicitly loaded files</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QCheckBox" name="blackEdges">
+             <property name="whatsThis">
+              <string>Makes all edgelines appear black. If this is not set, edge lines take their color as defined in LDConfig.ldr.</string>
+             </property>
+             <property name="text">
+              <string>Black edges</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="colorBFC">
+             <property name="whatsThis">
+              <string>Polygons' front sides become green and back sides red.</string>
+             </property>
+             <property name="text">
+              <string>Red/green BFC view (incomplete)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="colorizeObjects">
+             <property name="whatsThis">
+              <string>Makes colored objects (non-16 and 24) appear colored in the list view. A red triangle will, for instance, have its entry written in red text. This can be useful to locate colored objects.</string>
+             </property>
+             <property name="text">
+              <string>Colorize objects in list view</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="implicitFiles">
+             <property name="text">
+              <string>List implicitly loaded files</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
+            <widget class="QCheckBox" name="m_logostuds">
+             <property name="text">
+              <string>Use logoed studs</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
       </layout>
      </widget>

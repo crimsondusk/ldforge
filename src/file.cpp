@@ -34,6 +34,7 @@
 
 cfg (str, io_ldpath, "");
 cfg (str, io_recentfiles, "");
+cfg (bool, io_logostuds, false);
 extern_cfg (str, net_downloadpath);
 
 static bool g_loadingMainFile = false;
@@ -176,6 +177,26 @@ str basename (str path) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 File* openLDrawFile (str relpath, bool subdirs) {
+	{
+		File* logofile;
+		
+		// Special exception for logoed studs:
+		// stud.dat -> stud-logo.dat
+		// stud2.dat -> stud2-logo.dat
+		// NOTE: This is probably going to change in the very near future!
+		if (
+			relpath == "stud.dat" &&
+			(logofile = openLDrawFile ("stud-logo.dat", subdirs)) != null
+		)
+			return logofile;
+		
+		if (
+			relpath == "stud2.dat" &&
+			(logofile = openLDrawFile ("stud2-logo.dat", subdirs)) != null
+		)
+			return logofile;
+	}
+	
 	print ("%1: Try to open %2\n", __func__, relpath);
 	File* f = new File;
 	str fullPath;
