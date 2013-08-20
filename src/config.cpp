@@ -47,7 +47,8 @@ static QSettings* getSettingsObject() {
 Config::Config (const char* name, const char* defstring) :
 	name (name), m_defstring (defstring)
 {
-	assert (getType() != None);
+	if (getType() != None)
+		fatal (fmt ("Config `%1` is of unknown type!", name));
 }
 
 // =============================================================================

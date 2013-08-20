@@ -39,6 +39,9 @@
 
 extern_cfg (Bool, gl_wireframe);
 extern_cfg (Bool, gl_colorbfc);
+extern_cfg (String, ld_defaultname);
+extern_cfg (String, ld_defaultuser);
+extern_cfg (Int, ld_defaultlicense);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -46,6 +49,32 @@ DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
+	
+	str authortext = ld_defaultname;
+	
+	if (!ld_defaultuser.value.isEmpty())
+		authortext.append (fmt (" [%1]", ld_defaultuser));
+	
+	ui.le_author->setText (authortext);
+	
+	switch (ld_defaultlicense) {
+	case 0:
+		ui.rb_license_ca->setChecked (true);
+		break;
+	
+	case 1:
+		ui.rb_license_nonca->setChecked (true);
+		break;
+	
+	case 2:
+		ui.rb_license_none->setChecked (true);
+		break;
+	
+	default:
+		QMessageBox::warning (null, "Warning",
+			fmt ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
+		break;
+	}
 	
 	if (dlg->exec() == false)
 		return;

@@ -51,7 +51,9 @@ extern_cfg (String, net_downloadpath);
 extern_cfg (Bool, net_guesspaths);
 extern_cfg (Bool, net_autoclose);
 extern_cfg (Bool, gl_logostuds);
-
+extern_cfg (String, ld_defaultname);
+extern_cfg (String, ld_defaultuser);
+extern_cfg (Int, ld_defaultlicense);
 extern_cfg (String, prog_ytruder);
 extern_cfg (String, prog_rectifier);
 extern_cfg (String, prog_intersector);
@@ -91,6 +93,10 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	ui->guessNetPaths->setChecked (net_guesspaths);
 	ui->autoCloseNetPrompt->setChecked (net_autoclose);
 	connect (ui->findDownloadPath, SIGNAL (clicked(bool)), this, SLOT (slot_findDownloadFolder()));
+	
+	ui->m_profileName->setText (ld_defaultname);
+	ui->m_profileUsername->setText (ld_defaultuser);
+	ui->m_profileLicense->setCurrentIndex (ld_defaultlicense);
 }
 
 // =============================================================================
@@ -580,18 +586,23 @@ void ConfigDialog::staticDialog() {
 	ConfigDialog dlg (g_win);
 	
 	if (dlg.exec()) {
+		const alias ui = *dlg.getUI();
+		
 		// Apply configuration
-		lv_colorize = dlg.getUI()->colorizeObjects->isChecked();
-		gl_colorbfc = dlg.getUI()->colorBFC->isChecked();
-		// edit_schemanticinline = dlg.getUI()->scemanticInlining->isChecked();
-		gl_blackedges = dlg.getUI()->blackEdges->isChecked();
-		gl_maincolor_alpha = ((double) dlg.getUI()->mainColorAlpha->value()) / 10.0f;
-		gl_linethickness = dlg.getUI()->lineThickness->value();
-		gui_implicitfiles = dlg.getUI()->implicitFiles->isChecked();
-		net_downloadpath = dlg.getUI()->downloadPath->text();
-		net_guesspaths = dlg.getUI()->guessNetPaths->isChecked();
-		net_autoclose = dlg.getUI()->autoCloseNetPrompt->isChecked();
-		gl_logostuds = dlg.getUI()->m_logostuds->isChecked();
+		lv_colorize = ui.colorizeObjects->isChecked();
+		gl_colorbfc = ui.colorBFC->isChecked();
+		// edit_schemanticinline = ui.scemanticInlining->isChecked();
+		gl_blackedges = ui.blackEdges->isChecked();
+		gl_maincolor_alpha = ((double) ui.mainColorAlpha->value()) / 10.0f;
+		gl_linethickness = ui.lineThickness->value();
+		gui_implicitfiles = ui.implicitFiles->isChecked();
+		net_downloadpath = ui.downloadPath->text();
+		net_guesspaths = ui.guessNetPaths->isChecked();
+		net_autoclose = ui.autoCloseNetPrompt->isChecked();
+		gl_logostuds = ui.m_logostuds->isChecked();
+		ld_defaultuser = ui.m_profileUsername->text();
+		ld_defaultname = ui.m_profileName->text();
+		ld_defaultlicense = ui.m_profileLicense->currentIndex();
 		
 		if (net_downloadpath.value.right (1) != DIRSLASH)
 			net_downloadpath += DIRSLASH;
