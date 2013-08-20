@@ -39,7 +39,6 @@ typedef QString str;
 class Config {
 public:
 	enum Type {
-		None,
 		Int,
 		String,
 		Float,
@@ -51,7 +50,7 @@ public:
 	const char* name;
 
 	virtual Type getType() const {
-		return None;
+		return (Type) 0;
 	}
 	
 	str toString() const;
