@@ -54,7 +54,7 @@ static bool g_bSelectionLocked = false;
 cfg (Bool, lv_colorize, true);
 cfg (String, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
 cfg (Bool, gui_implicitfiles, false);
-extern_cfg (String, io_recentfiles);
+extern_cfg (List, io_recentfiles);
 extern_cfg (Bool, gl_axes);
 extern_cfg (String, gl_maincolor);
 extern_cfg (Float, gl_maincolor_alpha);
@@ -150,22 +150,21 @@ void ForgeWindow::slot_lastSecondCleanup() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateRecentFilesMenu() {
-	QStringList files = io_recentfiles.value.split ("@", QString::SkipEmptyParts);
-	QStringListIterator it (files);
-	
 	// First, clear any items in the recent files menu
 	for (QAction* recent : m_recentFiles)
 		delete recent;
 	m_recentFiles.clear();
 	
-	it.toBack();
-	while (it.hasPrevious()) {
-		str file = it.previous();
+	QAction* first = null;
+	
+	for (const QVariant& it : io_recentfiles) {
+		str file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 		
 		connect (recent, SIGNAL (triggered()), this, SLOT (slot_recentFile()));
-		ui->menuOpenRecent->addAction (recent);
+		ui->menuOpenRecent->insertAction (first, recent);
 		m_recentFiles << recent;
+		first = recent;
 	}
 }
 

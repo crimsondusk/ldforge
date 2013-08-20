@@ -33,7 +33,7 @@
 #include "build/moc_file.cpp"
 
 cfg (String, io_ldpath, "");
-cfg (String, io_recentfiles, "");
+cfg (List, io_recentfiles, {});
 extern_cfg (String, net_downloadpath);
 extern_cfg (Bool, gl_logostuds);
 
@@ -473,7 +473,7 @@ void newFile() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void addRecentFile (str path) {
-	QStringList rfiles = io_recentfiles.value.split ('@');
+	alias rfiles = io_recentfiles.value;
 	int idx = rfiles.indexOf (path);
 	
 	// If this file already is in the list, pop it out.
@@ -491,9 +491,6 @@ void addRecentFile (str path) {
 	
 	// Add the file
 	rfiles << path;
-	
-	// Rebuild the config string
-	io_recentfiles = rfiles.join ("@");
 	
 	Config::save();
 	g_win->updateRecentFilesMenu();

@@ -102,34 +102,9 @@ void KeySequenceConfig::loadFromConfig (const QSettings* cfg) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-// TODO: make virtual
-str Config::toString() const {
-	switch (getType()) {
-	case Int:
-		return fmt ("%1", static_cast<const IntConfig*> (this)->value);
-		break;
-	
-	case String:
-		return static_cast<const StringConfig*> (this)->value;
-		break;
-	
-	case Float:
-		return fmt ("%1", static_cast<const FloatConfig*> (this)->value);
-		break;
-	
-	case Bool:
-		return (static_cast<const BoolConfig*> (this)->value) ? "true" : "false";
-		break;
-	
-	case KeySequence:
-		return static_cast<const KeySequenceConfig*> (this)->value.toString();
-		break;
-	
-	default:
-		break;
-	}
-	
-	return "";
+void ListConfig::loadFromConfig (const QSettings* cfg) {
+	QVariant val = cfg->value (name, defval);
+	value = val.toList();
 }
 
 // =============================================================================
@@ -143,7 +118,7 @@ bool Config::save() {
 		if (!cfg)
 			break;
 		
-		settings->setValue (cfg->name, cfg->toString());
+		settings->setValue (cfg->name, cfg->toVariant());
 	}
 	
 	settings->sync();

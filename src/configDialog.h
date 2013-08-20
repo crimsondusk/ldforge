@@ -41,7 +41,17 @@ class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	ConfigDialog (ForgeWindow* parent);
+	enum Tab {
+		InterfaceTab,
+		ProfileTab,
+		ShortcutsTab,
+		QuickColorsTab,
+		GridsTab,
+		ExtProgsTab,
+		DownloadTab
+	};
+	
+	explicit ConfigDialog (Tab deftab = InterfaceTab, QWidget* parent = null, Qt::WindowFlags f = 0);
 	virtual ~ConfigDialog();
 	static void staticDialog();
 	const Ui_ConfigUI* getUI() const;

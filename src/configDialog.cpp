@@ -79,7 +79,9 @@ const char* g_extProgPathFilter =
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
+ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f)
+{
 	ui = new Ui_ConfigUI;
 	ui->setupUi (this);
 	
@@ -97,6 +99,8 @@ ConfigDialog::ConfigDialog (ForgeWindow* parent) : QDialog (parent) {
 	ui->m_profileName->setText (ld_defaultname);
 	ui->m_profileUsername->setText (ld_defaultuser);
 	ui->m_profileLicense->setCurrentIndex (ld_defaultlicense);
+	
+	ui->tabs->setCurrentIndex (deftab);
 }
 
 // =============================================================================
@@ -583,7 +587,7 @@ float ConfigDialog::getGridValue (int i, int j) const {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ConfigDialog::staticDialog() {
-	ConfigDialog dlg (g_win);
+	ConfigDialog dlg (InterfaceTab, g_win);
 	
 	if (dlg.exec()) {
 		const alias ui = *dlg.getUI();

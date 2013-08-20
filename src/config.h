@@ -23,6 +23,7 @@
 
 // =============================================================================
 #include <QString>
+#include <QVariant>
 #include <QKeySequence>
 class QSettings;
 
@@ -44,6 +45,7 @@ public:
 		Float,
 		Bool,
 		KeySequence,
+		List,
 	};
 
 	Config (const char* name, const char* defstring);
@@ -53,11 +55,11 @@ public:
 		return (Type) 0;
 	}
 	
-	str toString() const;
 	str defaultString() const;
 	virtual void resetValue() {}
 	virtual void loadFromConfig (const QSettings* cfg) { (void) cfg; }
 	virtual bool isDefault() const { return false; }
+	virtual QVariant toVariant() const { return QVariant(); }
 	
 	// ------------------------------------------
 	static bool load();
@@ -84,7 +86,8 @@ private:
 	Config::Type getType() const override { return Config::NAME; } \
 	virtual void resetValue() { value = defval; } \
 	virtual bool isDefault() const { return value == defval; } \
-	virtual void loadFromConfig (const QSettings* cfg) override;
+	virtual void loadFromConfig (const QSettings* cfg) override; \
+	virtual QVariant toVariant() const { return QVariant::fromValue<T> (value); }
 	
 #define DEFINE_UNARY_OPERATOR(T, OP) \
 	T operator OP() { \
@@ -200,6 +203,32 @@ public:
 	IMPLEMENT_CONFIG (KeySequence, QKeySequence)
 	DEFINE_ALL_COMPARE_OPERATORS (QKeySequence)
 	DEFINE_ASSIGN_OPERATOR (QKeySequence, =)
+};
+
+// =============================================================================
+class ListConfig : public Config {
+public:
+	IMPLEMENT_CONFIG (List, QList<QVariant>)
+	DEFINE_ASSIGN_OPERATOR (QList<QVariant>, =)
+	
+	typedef QList<QVariant>::iterator it;
+	typedef QList<QVariant>::const_iterator c_it;
+	
+	it begin() {
+		return value.begin();
+	}
+	
+	c_it begin() const {
+		return value.constBegin();
+	}
+	
+	it end() {
+		return value.end();
+	}
+	
+	c_it end() const {
+		return value.constEnd();
+	}
 };
 
 #endif // CONFIG_H
