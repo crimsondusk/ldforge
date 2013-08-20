@@ -57,9 +57,10 @@ public:
 	
 	str defaultString() const;
 	virtual void resetValue() {}
-	virtual void loadFromConfig (const QSettings* cfg) { (void) cfg; }
+	virtual void loadFromVariant (const QVariant& val) { (void) val; }
 	virtual bool isDefault() const { return false; }
 	virtual QVariant toVariant() const { return QVariant(); }
+	virtual QVariant defaultVariant() const { return QVariant(); }
 	
 	// ------------------------------------------
 	static bool load();
@@ -84,36 +85,37 @@ private:
 	\
 	operator const T&() const { return value; } \
 	Config::Type getType() const override { return Config::NAME; } \
-	virtual void resetValue() { value = defval; } \
-	virtual bool isDefault() const { return value == defval; } \
-	virtual void loadFromConfig (const QSettings* cfg) override; \
-	virtual QVariant toVariant() const { return QVariant::fromValue<T> (value); }
-	
+	virtual void resetValue() override { value = defval; } \
+	virtual bool isDefault() const override { return value == defval; } \
+	virtual QVariant toVariant() const override { return QVariant::fromValue<T> (value); } \
+	virtual QVariant defaultVariant() const override { return QVariant::fromValue<T> (defval); } \
+	virtual void loadFromVariant (const QVariant& val) override { value = val.value<T>(); } \
+
 #define DEFINE_UNARY_OPERATOR(T, OP) \
 	T operator OP() { \
 		return OP value; \
 	}
-	
+
 #define DEFINE_BINARY_OPERATOR(T, OP) \
 	T operator OP (const T other) { \
 		return value OP other; \
 	}
-	
+
 #define DEFINE_ASSIGN_OPERATOR(T, OP) \
 	T& operator OP (const T other) { \
 		return value OP other; \
 	}
-	
+
 #define DEFINE_COMPARE_OPERATOR(T, OP) \
 	bool operator OP (const T other) { \
 		return value OP other; \
 	}
-	
+
 #define DEFINE_CAST_OPERATOR(T) \
 	operator T() { \
 		return (T) value; \
 	}
-	
+
 #define DEFINE_ALL_COMPARE_OPERATORS(T) \
 	DEFINE_COMPARE_OPERATOR (T, ==) \
 	DEFINE_COMPARE_OPERATOR (T, !=) \
@@ -121,7 +123,7 @@ private:
 	DEFINE_COMPARE_OPERATOR (T, <) \
 	DEFINE_COMPARE_OPERATOR (T, >=) \
 	DEFINE_COMPARE_OPERATOR (T, <=) \
-	 
+
 #define DEFINE_INCREMENT_OPERATORS(T) \
 	T operator++() { return ++value; } \
 	T operator++(int) { return value++; } \

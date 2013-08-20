@@ -58,53 +58,12 @@ bool Config::load() {
 		if (!cfg)
 			break;
 		
-		cfg->loadFromConfig (settings);
+		QVariant val = settings->value (cfg->name, cfg->defaultVariant());
+		cfg->loadFromVariant (val);
 	}
 	
 	settings->deleteLater();
 	return true;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void IntConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toInt();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void FloatConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toFloat();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void StringConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, defval);
-	value = val.toString();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void BoolConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toBool();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void KeySequenceConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, defval.toString());
-	value = QKeySequence (val.toString());
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void ListConfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, defval);
-	value = val.toList();
 }
 
 // =============================================================================
@@ -166,6 +125,9 @@ str Config::defaultString() const {
 }
 
 // =============================================================================
+// We cannot just add config objects to a list or vector because that would rely
+// on the vector's c-tor being called before the configs' c-tors. With global
+// variables we cannot assume that!! Therefore we need to use a C-style array here.
 // -----------------------------------------------------------------------------
 void Config::addToArray (Config* ptr) {
 	if (g_cfgPointerCursor == 0)
