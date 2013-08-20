@@ -316,7 +316,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 		return;
 	
 	if (type == LDObject::Subfile) {
-		List<str> matrixstrvals = container_cast<QStringList, List<str>> (str (dlg.le_matrix->text()).split (" "));
+		QStringList matrixstrvals = dlg.le_matrix->text().split (" ");
 		
 		if (matrixstrvals.size() == 9) {
 			double matrixvals[9];
