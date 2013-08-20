@@ -51,14 +51,14 @@ enum extprog {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-cfg (str, prog_isecalc, "");
-cfg (str, prog_intersector, "");
-cfg (str, prog_coverer, "");
-cfg (str, prog_ytruder, "");
-cfg (str, prog_rectifier, "");
-cfg (str, prog_edger2, "");
+cfg (String, prog_isecalc, "");
+cfg (String, prog_intersector, "");
+cfg (String, prog_coverer, "");
+cfg (String, prog_ytruder, "");
+cfg (String, prog_rectifier, "");
+cfg (String, prog_edger2, "");
 
-strconfig* const g_extProgPaths[] = {
+StringConfig* const g_extProgPaths[] = {
 	&prog_isecalc,
 	&prog_intersector,
 	&prog_coverer,
@@ -68,14 +68,14 @@ strconfig* const g_extProgPaths[] = {
 };
 
 #ifndef _WIN32
-cfg (bool, prog_isecalc_wine, false);
-cfg (bool, prog_intersector_wine, false);
-cfg (bool, prog_coverer_wine, false);
-cfg (bool, prog_ytruder_wine, false);
-cfg (bool, prog_rectifier_wine, false);
-cfg (bool, prog_edger2_wine, false);
+cfg (Bool, prog_isecalc_wine, false);
+cfg (Bool, prog_intersector_wine, false);
+cfg (Bool, prog_coverer_wine, false);
+cfg (Bool, prog_ytruder_wine, false);
+cfg (Bool, prog_rectifier_wine, false);
+cfg (Bool, prog_edger2_wine, false);
 
-boolconfig* const g_extProgWine[] = {
+BoolConfig* const g_extProgWine[] = {
 	&prog_isecalc_wine,
 	&prog_intersector_wine,
 	&prog_coverer_wine,

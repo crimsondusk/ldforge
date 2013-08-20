@@ -32,26 +32,27 @@ typedef QString str;
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
 
-#define cfg(T, NAME, DEFAULT) T##config NAME (DEFAULT, #NAME, #DEFAULT)
-#define extern_cfg(T, NAME)   extern T##config NAME
+#define cfg(T, NAME, DEFAULT) T##Config NAME (DEFAULT, #NAME, #DEFAULT)
+#define extern_cfg(T, NAME)   extern T##Config NAME
 
 // =========================================================
-class config {
+class Config {
 public:
 	enum Type {
-		Type_none,
-		Type_int,
-		Type_str,
-		Type_float,
-		Type_bool,
-		Type_keyseq,
+		None,
+		Int,
+		String,
+		Float,
+		Bool,
+		KeySequence,
 	};
 
-	config (const char* defstring) : m_defstring (defstring) {}
+	Config (const char* name, const char* defstring) :
+		name (name), m_defstring (defstring) {}
 	const char* name;
 
 	virtual Type getType() const {
-		return Type_none;
+		return None;
 	}
 	
 	str toString() const;
@@ -71,34 +72,34 @@ private:
 	const char* m_defstring;
 };
 
-void addConfig (config* ptr);
+void addConfig (Config* ptr);
 
 // =============================================================================
 #define DEFINE_UNARY_OPERATOR(T, OP) \
 	T operator OP() { \
 		return OP value; \
-	} \
-	 
+	}
+	
 #define DEFINE_BINARY_OPERATOR(T, OP) \
 	T operator OP (const T other) { \
 		return value OP other; \
-	} \
-	 
+	}
+	
 #define DEFINE_ASSIGN_OPERATOR(T, OP) \
 	T& operator OP (const T other) { \
 		return value OP other; \
-	} \
-	 
+	}
+	
 #define DEFINE_COMPARE_OPERATOR(T, OP) \
 	bool operator OP (const T other) { \
 		return value OP other; \
-	} \
-	 
+	}
+	
 #define DEFINE_CAST_OPERATOR(T) \
 	operator T() { \
 		return (T) value; \
-	} \
-	 
+	}
+	
 #define DEFINE_ALL_COMPARE_OPERATORS(T) \
 	DEFINE_COMPARE_OPERATOR (T, ==) \
 	DEFINE_COMPARE_OPERATOR (T, !=) \
@@ -114,34 +115,24 @@ void addConfig (config* ptr);
 	T operator--(int) { return value--; }
 
 #define CONFIGTYPE(T) \
-	class T##config : public config
+	class T##Config : public Config
 
-#define IMPLEMENT_CONFIG(T) \
+#define IMPLEMENT_CONFIG(NAME, T) \
 	T value, defval; \
+	NAME##Config (T defval, const char* name, const char* defstring) : \
+		Config (name, defstring), value (defval), defval (defval) \
+		{ addConfig (this); } \
 	\
-	T##config (T _defval, const char* _name, const char* defstring) : config (defstring) { \
-		value = defval = _defval; \
-		name = _name; \
-		addConfig (this); \
-	} \
-	operator const T&() const { \
-		return value; \
-	} \
-	config::Type getType() const override { \
-		return config::Type_##T; \
-	} \
-	virtual void resetValue() { \
-		value = defval; \
-	} \
-	virtual bool isDefault() const { \
-		return value == defval; \
-	} \
+	operator const T&() const { return value; } \
+	Config::Type getType() const override { return Config::NAME; } \
+	virtual void resetValue() { value = defval; } \
+	virtual bool isDefault() const { return value == defval; } \
 	virtual void loadFromConfig (const QSettings* cfg) override;
 
 // =============================================================================
-CONFIGTYPE (int) {
+CONFIGTYPE (Int) {
 public:
-	IMPLEMENT_CONFIG (int)
+	IMPLEMENT_CONFIG (Int, int)
 	DEFINE_ALL_COMPARE_OPERATORS (int)
 	DEFINE_INCREMENT_OPERATORS (int)
 	DEFINE_BINARY_OPERATOR (int, +)
@@ -169,9 +160,9 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (str) {
+CONFIGTYPE (String) {
 public:
-	IMPLEMENT_CONFIG (str)
+	IMPLEMENT_CONFIG (String, str)
 
 	DEFINE_COMPARE_OPERATOR (str, ==)
 	DEFINE_COMPARE_OPERATOR (str, !=)
@@ -184,9 +175,9 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (float) {
+CONFIGTYPE (Float) {
 public:
-	IMPLEMENT_CONFIG (float)
+	IMPLEMENT_CONFIG (Float, float)
 	DEFINE_ALL_COMPARE_OPERATORS (float)
 	DEFINE_INCREMENT_OPERATORS (float)
 	DEFINE_BINARY_OPERATOR (float, +)
@@ -200,21 +191,19 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (bool) {
+CONFIGTYPE (Bool) {
 public:
-	IMPLEMENT_CONFIG (bool)
+	IMPLEMENT_CONFIG (Bool, bool)
 	DEFINE_ALL_COMPARE_OPERATORS (bool)
 	DEFINE_ASSIGN_OPERATOR (bool, =)
 };
 
 // =============================================================================
-typedef QKeySequence keyseq;
-
-CONFIGTYPE (keyseq) {
+CONFIGTYPE (KeySequence) {
 public:
-	IMPLEMENT_CONFIG (keyseq)
-	DEFINE_ALL_COMPARE_OPERATORS (keyseq)
-	DEFINE_ASSIGN_OPERATOR (keyseq, =)
+	IMPLEMENT_CONFIG (KeySequence, QKeySequence)
+	DEFINE_ALL_COMPARE_OPERATORS (QKeySequence)
+	DEFINE_ASSIGN_OPERATOR (QKeySequence, =)
 };
 
 #endif // CONFIG_H

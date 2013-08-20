@@ -35,7 +35,7 @@
 #include "ui_flip.h"
 #include "ui_addhistoryline.h"
 
-cfg (bool, edit_schemanticinline, false);
+cfg (Bool, edit_schemanticinline, false);
 
 // =============================================================================
 // -----------------------------------------------------------------------------

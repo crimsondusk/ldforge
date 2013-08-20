@@ -53,7 +53,7 @@ void loadPrimitives() {
 	loadPrimitiveCatgories();
 	
 	// Try to load prims.cfg
-	File conf (config::filepath ("prims.cfg"), File::Read);
+	File conf (Config::filepath ("prims.cfg"), File::Read);
 	
 	if (!conf) {
 		// No prims.cfg, build it
@@ -130,7 +130,7 @@ void PrimitiveLister::work() {
 	}
 	
 	// Save to a config file
-	File conf (config::filepath ("prims.cfg"), File::Write);
+	File conf (Config::filepath ("prims.cfg"), File::Write);
 	
 	for (Primitive & info : m_prims)
 		fprint (conf, "%1 %2\n", info.name, info.title);
@@ -231,7 +231,7 @@ static void populateCategories() {
 // -----------------------------------------------------------------------------
 static void loadPrimitiveCatgories() {
 	g_PrimitiveCategories.clear();
-	File f (config::dirpath() + "primregexps.cfg", File::Read);
+	File f (Config::dirpath() + "primregexps.cfg", File::Read);
 	
 	if (!f)
 		f.open (":/data/primitive-categories.cfg", File::Read);

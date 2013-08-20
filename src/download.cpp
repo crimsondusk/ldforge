@@ -30,9 +30,9 @@
 #include "file.h"
 #include "gldraw.h"
 
-cfg (str, net_downloadpath, "");
-cfg (bool, net_guesspaths, true);
-cfg (bool, net_autoclose, false);
+cfg (String, net_downloadpath, "");
+cfg (Bool, net_guesspaths, true);
+cfg (Bool, net_autoclose, false);
 
 constexpr const char* PartDownloader::k_OfficialURL,
 	*PartDownloader::k_UnofficialURL;

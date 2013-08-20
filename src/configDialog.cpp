@@ -37,33 +37,33 @@
 #include "ui_config.h"
 #include "build/moc_configDialog.cpp"
 
-extern_cfg (str, gl_bgcolor);
-extern_cfg (str, gl_maincolor);
-extern_cfg (bool, lv_colorize);
-extern_cfg (bool, gl_colorbfc);
-extern_cfg (float, gl_maincolor_alpha);
-extern_cfg (int, gl_linethickness);
-extern_cfg (str, gui_colortoolbar);
-extern_cfg (bool, edit_schemanticinline);
-extern_cfg (bool, gl_blackedges);
-extern_cfg (bool, gui_implicitfiles);
-extern_cfg (str, net_downloadpath);
-extern_cfg (bool, net_guesspaths);
-extern_cfg (bool, net_autoclose);
-extern_cfg (bool, gl_logostuds);
+extern_cfg (String, gl_bgcolor);
+extern_cfg (String, gl_maincolor);
+extern_cfg (Bool, lv_colorize);
+extern_cfg (Bool, gl_colorbfc);
+extern_cfg (Float, gl_maincolor_alpha);
+extern_cfg (Int, gl_linethickness);
+extern_cfg (String, gui_colortoolbar);
+extern_cfg (Bool, edit_schemanticinline);
+extern_cfg (Bool, gl_blackedges);
+extern_cfg (Bool, gui_implicitfiles);
+extern_cfg (String, net_downloadpath);
+extern_cfg (Bool, net_guesspaths);
+extern_cfg (Bool, net_autoclose);
+extern_cfg (Bool, gl_logostuds);
 
-extern_cfg (str, prog_ytruder);
-extern_cfg (str, prog_rectifier);
-extern_cfg (str, prog_intersector);
-extern_cfg (str, prog_coverer);
-extern_cfg (str, prog_isecalc);
-extern_cfg (str, prog_edger2);
-extern_cfg (bool, prog_ytruder_wine);
-extern_cfg (bool, prog_rectifier_wine);
-extern_cfg (bool, prog_intersector_wine);
-extern_cfg (bool, prog_coverer_wine);
-extern_cfg (bool, prog_isecalc_wine);
-extern_cfg (bool, prog_edger2_wine);
+extern_cfg (String, prog_ytruder);
+extern_cfg (String, prog_rectifier);
+extern_cfg (String, prog_intersector);
+extern_cfg (String, prog_coverer);
+extern_cfg (String, prog_isecalc);
+extern_cfg (String, prog_edger2);
+extern_cfg (Bool, prog_ytruder_wine);
+extern_cfg (Bool, prog_rectifier_wine);
+extern_cfg (Bool, prog_intersector_wine);
+extern_cfg (Bool, prog_coverer_wine);
+extern_cfg (Bool, prog_isecalc_wine);
+extern_cfg (Bool, prog_edger2_wine);
 
 const char* g_extProgPathFilter =
 #ifdef _WIN32
@@ -72,7 +72,7 @@ const char* g_extProgPathFilter =
 	"";
 #endif
 
-#define act(N) extern_cfg (keyseq, key_##N);
+#define act(N) extern_cfg (KeySequence, key_##N);
 #include "actions.h"
 
 // =============================================================================
@@ -140,7 +140,7 @@ void ConfigDialog::initShortcutsTab() {
 	connect (ui->shortcut_clear, SIGNAL (clicked()), this, SLOT (slot_clearShortcut()));
 }
 
-void ConfigDialog::addShortcut (keyseqconfig& cfg, QAction* act, ulong& i) {
+void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, ulong& i) {
 	ShortcutListItem* item = new ShortcutListItem;
 	item->setIcon (act->icon());
 	item->setKeyConfig (&cfg);
@@ -213,11 +213,11 @@ void ConfigDialog::initGridTab() {
 // -----------------------------------------------------------------------------
 static const struct extProgInfo {
 	const str name, iconname;
-	strconfig* const path;
+	StringConfig* const path;
 	mutable QLineEdit* input;
 	mutable QPushButton* setPathButton;
 #ifndef _WIN32
-	boolconfig* const wine;
+	BoolConfig* const wine;
 	mutable QCheckBox* wineBox;
 #endif // _WIN32
 } g_extProgInfo[] = {
@@ -405,7 +405,7 @@ void ConfigDialog::slot_clearColors() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ConfigDialog::pickColor (strconfig& conf, QPushButton* button) {
+void ConfigDialog::pickColor (StringConfig& conf, QPushButton* button) {
 	QColor col = QColorDialog::getColor (QColor (conf));
 	
 	if (col.isValid()) {
@@ -618,7 +618,7 @@ void ConfigDialog::staticDialog() {
 #endif // _WIN32
 		}
 		
-		config::save();
+		Config::save();
 		reloadAllSubfiles();
 		loadLogoedStuds();
 		g_win->R()->setBackground();
@@ -654,7 +654,7 @@ KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent, Qt::Win
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool KeySequenceDialog::staticDialog (keyseqconfig* cfg, QWidget* parent) {
+bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent) {
 	KeySequenceDialog dlg (cfg->value, parent);
 	
 	if (dlg.exec() == false)

@@ -47,10 +47,10 @@ str join (initlist<StringFormatArg> vals, str delim = " ");
 // Grid stuff
 typedef struct {
 	const char* const name;
-	floatconfig* const confs[4];
+	FloatConfig* const confs[4];
 } gridinfo;
 
-extern_cfg (int, grid);
+extern_cfg (Int, grid);
 static const short g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 

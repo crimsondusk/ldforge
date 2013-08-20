@@ -51,9 +51,9 @@ int main (int argc, char* argv[]) {
 	LDFile::setCurrent (null);
 	
 	// Load or create the configuration
-	if (!config::load()) {
+	if (!Config::load()) {
 		print ("Creating configuration file...\n");
-		if (config::save())
+		if (Config::save())
 			print ("Configuration file successfully created.\n");
 		else
 			print ("failed to create configuration file!\n");

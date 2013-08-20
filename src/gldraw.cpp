@@ -51,16 +51,16 @@ static const struct staticCameraMeta {
 	{{  0, -1, 0 }, Z, Y, false,  true },
 };
 
-cfg (str, gl_bgcolor, "#CCCCD9");
-cfg (str, gl_maincolor, "#707078");
-cfg (float, gl_maincolor_alpha, 1.0);
-cfg (int, gl_linethickness, 2);
-cfg (bool, gl_colorbfc, true);
-cfg (int, gl_camera, GLRenderer::Free);
-cfg (bool, gl_blackedges, true);
-cfg (bool, gl_axes, false);
-cfg (bool, gl_wireframe, false);
-cfg (bool, gl_logostuds, false);
+cfg (String, gl_bgcolor, "#CCCCD9");
+cfg (String, gl_maincolor, "#707078");
+cfg (Float, gl_maincolor_alpha, 1.0);
+cfg (Int, gl_linethickness, 2);
+cfg (Bool, gl_colorbfc, true);
+cfg (Int, gl_camera, GLRenderer::Free);
+cfg (Bool, gl_blackedges, true);
+cfg (Bool, gl_axes, false);
+cfg (Bool, gl_wireframe, false);
+cfg (Bool, gl_logostuds, false);
 
 // argh
 const char* g_CameraNames[7] = {

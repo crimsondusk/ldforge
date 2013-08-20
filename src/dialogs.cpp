@@ -42,7 +42,7 @@
 #include "build/moc_dialogs.cpp"
 
 extern const char* g_extProgPathFilter;
-extern_cfg (str, io_ldpath);
+extern_cfg (String, io_ldpath);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -224,7 +224,7 @@ void LDrawPathDialog::slot_tryConfigure() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_accept() {
-	config::save();
+	Config::save();
 	accept();
 }
 

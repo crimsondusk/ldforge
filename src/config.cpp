@@ -26,7 +26,7 @@
 #include "gui.h"
 #include "file.h"
 
-config* g_configPointers[MAX_CONFIG];
+Config* g_configPointers[MAX_CONFIG];
 static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
@@ -47,11 +47,11 @@ static QSettings* getSettingsObject() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Load the configuration from file
-bool config::load() {
+bool Config::load() {
 	QSettings* settings = getSettingsObject();
 	print ("config::load: Loading configuration file from %1...\n", settings->fileName());
 	
-	for (config* cfg : g_configPointers) {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
@@ -64,62 +64,62 @@ bool config::load() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void intconfig::loadFromConfig (const QSettings* cfg) {
+void IntConfig::loadFromConfig (const QSettings* cfg) {
 	QVariant val = cfg->value (name, str::number (defval));
 	value = val.toInt();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void floatconfig::loadFromConfig (const QSettings* cfg) {
+void FloatConfig::loadFromConfig (const QSettings* cfg) {
 	QVariant val = cfg->value (name, str::number (defval));
 	value = val.toFloat();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void strconfig::loadFromConfig (const QSettings* cfg) {
+void StringConfig::loadFromConfig (const QSettings* cfg) {
 	QVariant val = cfg->value (name, defval);
 	value = val.toString();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void boolconfig::loadFromConfig (const QSettings* cfg) {
+void BoolConfig::loadFromConfig (const QSettings* cfg) {
 	QVariant val = cfg->value (name, str::number (defval));
 	value = val.toBool();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void keyseqconfig::loadFromConfig (const QSettings* cfg) {
+void KeySequenceConfig::loadFromConfig (const QSettings* cfg) {
 	QVariant val = cfg->value (name, defval.toString());
-	value = keyseq (val.toString());
+	value = QKeySequence (val.toString());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 // TODO: make virtual
-str config::toString() const {
+str Config::toString() const {
 	switch (getType()) {
-	case Type_int:
-		return fmt ("%1", static_cast<const intconfig*> (this)->value);
+	case Int:
+		return fmt ("%1", static_cast<const IntConfig*> (this)->value);
 		break;
 	
-	case Type_str:
-		return static_cast<const strconfig*> (this)->value;
+	case String:
+		return static_cast<const StringConfig*> (this)->value;
 		break;
 	
-	case Type_float:
-		return fmt ("%1", static_cast<const floatconfig*> (this)->value);
+	case Float:
+		return fmt ("%1", static_cast<const FloatConfig*> (this)->value);
 		break;
 	
-	case Type_bool:
-		return (static_cast<const boolconfig*> (this)->value) ? "true" : "false";
+	case Bool:
+		return (static_cast<const BoolConfig*> (this)->value) ? "true" : "false";
 		break;
 	
-	case Type_keyseq:
-		return static_cast<const keyseqconfig*> (this)->value.toString();
+	case KeySequence:
+		return static_cast<const KeySequenceConfig*> (this)->value.toString();
 		break;
 	
 	default:
@@ -132,11 +132,11 @@ str config::toString() const {
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Save the configuration to disk
-bool config::save() {
+bool Config::save() {
 	QSettings* settings = getSettingsObject();
 	print ("Saving configuration to %1...\n", settings->fileName());
 	
-	for (config* cfg : g_configPointers) {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
@@ -150,8 +150,8 @@ bool config::save() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void config::reset() {
-	for (config* cfg : g_configPointers) {
+void Config::reset() {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
@@ -161,25 +161,25 @@ void config::reset() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str config::filepath (str file) {
-	return config::dirpath() + DIRSLASH + file;
+str Config::filepath (str file) {
+	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str config::dirpath() {
+str Config::dirpath() {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str config::defaultString() const {
+str Config::defaultString() const {
 	str defstring = m_defstring;
 	
 	// String types inevitably get extra quotes in their default string due to
 	// preprocessing stuff. We can only remove them now...
-	if (getType() == Type_str) {
+	if (getType() == String) {
 		defstring.remove (0, 1);
 		defstring.chop (1);
 	}
@@ -189,7 +189,7 @@ str config::defaultString() const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void addConfig (config* ptr) {
+void addConfig (Config* ptr) {
 	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
 	

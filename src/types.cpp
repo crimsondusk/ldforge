@@ -300,15 +300,15 @@ StringFormatArg::StringFormatArg (const char* v) {
 	m_val = v;
 }
 
-StringFormatArg::StringFormatArg (const strconfig& v) {
+StringFormatArg::StringFormatArg (const StringConfig& v) {
 	m_val = v.value;
 }
 
-StringFormatArg::StringFormatArg (const intconfig& v) {
+StringFormatArg::StringFormatArg (const IntConfig& v) {
 	m_val.number (v.value);
 }
 
-StringFormatArg::StringFormatArg (const floatconfig& v) {
+StringFormatArg::StringFormatArg (const FloatConfig& v) {
 	m_val.number (v.value);
 }
 

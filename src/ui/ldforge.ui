@@ -159,6 +159,8 @@
     <addaction name="actionModeDraw"/>
     <addaction name="separator"/>
     <addaction name="actionSetDrawDepth"/>
+    <addaction name="separator"/>
+    <addaction name="actionJumpTo"/>
    </widget>
    <widget class="QMenu" name="menuTools">
     <property name="title">
@@ -1269,6 +1271,11 @@
   <action name="actionAddHistoryLine">
    <property name="text">
     <string>Add History Line</string>
+   </property>
+  </action>
+  <action name="actionJumpTo">
+   <property name="text">
+    <string>Go to Line...</string>
    </property>
   </action>
  </widget>

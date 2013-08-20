@@ -32,10 +32,10 @@
 #include "gldraw.h"
 #include "build/moc_file.cpp"
 
-cfg (str, io_ldpath, "");
-cfg (str, io_recentfiles, "");
-extern_cfg (str, net_downloadpath);
-extern_cfg (bool, gl_logostuds);
+cfg (String, io_ldpath, "");
+cfg (String, io_recentfiles, "");
+extern_cfg (String, net_downloadpath);
+extern_cfg (Bool, gl_logostuds);
 
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
@@ -495,7 +495,7 @@ void addRecentFile (str path) {
 	// Rebuild the config string
 	io_recentfiles = rfiles.join ("@");
 	
-	config::save();
+	Config::save();
 	g_win->updateRecentFilesMenu();
 }
 

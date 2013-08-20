@@ -30,9 +30,9 @@ typedef QChar qchar;
 typedef QString str;
 template<class T> class ConstListReverser;
 template<class T> using c_rev = ConstListReverser<T>;
-class strconfig;
-class intconfig;
-class floatconfig;
+class StringConfig;
+class IntConfig;
+class FloatConfig;
 class QFile;
 class QTextStream;
 
@@ -370,9 +370,9 @@ public:
 	StringFormatArg (const vertex& v);
 	StringFormatArg (const matrix& v);
 	StringFormatArg (const char* v);
-	StringFormatArg (const strconfig& v);
-	StringFormatArg (const intconfig& v);
-	StringFormatArg (const floatconfig& v);
+	StringFormatArg (const StringConfig& v);
+	StringFormatArg (const IntConfig& v);
+	StringFormatArg (const FloatConfig& v);
 	StringFormatArg (const void* v);
 	
 	template<class T> StringFormatArg (const List<T>& v) {

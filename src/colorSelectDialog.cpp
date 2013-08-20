@@ -33,8 +33,8 @@
 static const int g_numColumns = 16;
 static const short g_squareSize = 32;
 
-extern_cfg (str, gl_maincolor);
-extern_cfg (float, gl_maincolor_alpha);
+extern_cfg (String, gl_maincolor);
+extern_cfg (Float, gl_maincolor_alpha);
 
 // =============================================================================
 // -----------------------------------------------------------------------------

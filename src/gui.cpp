@@ -51,17 +51,17 @@
 
 static bool g_bSelectionLocked = false;
 
-cfg (bool, lv_colorize, true);
-cfg (str, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
-cfg (bool, gui_implicitfiles, false);
-extern_cfg (str, io_recentfiles);
-extern_cfg (bool, gl_axes);
-extern_cfg (str, gl_maincolor);
-extern_cfg (float, gl_maincolor_alpha);
-extern_cfg (bool, gl_wireframe);
-extern_cfg (bool, gl_colorbfc);
+cfg (Bool, lv_colorize, true);
+cfg (String, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
+cfg (Bool, gui_implicitfiles, false);
+extern_cfg (String, io_recentfiles);
+extern_cfg (Bool, gl_axes);
+extern_cfg (String, gl_maincolor);
+extern_cfg (Float, gl_maincolor_alpha);
+extern_cfg (Bool, gl_wireframe);
+extern_cfg (Bool, gl_colorbfc);
 
-#define act(N) extern_cfg (keyseq, key_##N);
+#define act(N) extern_cfg (KeySequence, key_##N);
 #include "actions.h"
 
 const char* g_modeActionNames[] = {
@@ -571,7 +571,7 @@ void ForgeWindow::closeEvent (QCloseEvent* ev) {
 	
 	// Save the configuration before leaving so that, for instance, grid choice
 	// is preserved across instances.
-	config::save();
+	Config::save();
 	
 	ev->accept();
 }

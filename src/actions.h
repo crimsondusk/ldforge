@@ -104,5 +104,6 @@ act (RotateZNeg)
 act (RotateZPos)
 act (RotationPoint)
 act (AddHistoryLine)
+act (JumpTo)
 
 #undef act

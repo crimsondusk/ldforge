@@ -37,8 +37,8 @@
 #include "ui_newpart.h"
 #include "widgets.h"
 
-extern_cfg (bool, gl_wireframe);
-extern_cfg (bool, gl_colorbfc);
+extern_cfg (Bool, gl_wireframe);
+extern_cfg (Bool, gl_colorbfc);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -438,7 +438,7 @@ DEFINE_ACTION (Screenshot, 0) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-extern_cfg (bool, gl_axes);
+extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0) {
 	gl_axes = !gl_axes;
 	ACTION (Axes)->setChecked (gl_axes);
@@ -562,4 +562,25 @@ DEFINE_ACTION (BFCView, SHIFT (B)) {
 	gl_colorbfc = !gl_colorbfc;
 	ACTION (BFCView)->setChecked (gl_colorbfc);
 	g_win->R()->refresh();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (JumpTo, CTRL (G)) {
+	bool ok;
+	int defval = 0;
+	LDObject* obj;
+	
+	if (g_win->sel().size() == 1)
+		defval = g_win->sel()[0]->getIndex();
+	
+	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
+		1, LDFile::current()->numObjs(), 1, &ok);
+	
+	if (!ok || (obj = LDFile::current()->object (idx - 1)) == null)
+		return;
+	
+	g_win->clearSelection();
+	g_win->sel() << obj;
+	g_win->updateSelection();
 }

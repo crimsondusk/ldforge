@@ -46,7 +46,7 @@ class Ui_LDForgeUI;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define DEFINE_ACTION(NAME, DEFSHORTCUT) \
-	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
+	cfg (KeySequence, key_##NAME, DEFSHORTCUT); \
 	void actiondef_##NAME()
 
 #define ACTION(N) g_win->action##N()

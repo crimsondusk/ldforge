@@ -28,7 +28,7 @@ class QDoubleSpinBox;
 
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem {
-	PROPERTY (keyseqconfig*, keyConfig, setKeyConfig)
+	PROPERTY (KeySequenceConfig*, keyConfig, setKeyConfig)
 	PROPERTY (QAction*, action, setAction)
 	
 public:
@@ -61,9 +61,9 @@ private:
 	void initQuickColorTab();
 	void initGridTab();
 	void initExtProgTab();
-	void addShortcut (keyseqconfig& cfg, QAction* act, ulong& i);
+	void addShortcut (KeySequenceConfig& cfg, QAction* act, ulong& i);
 	void setButtonBackground (QPushButton* button, str value);
-	void pickColor (strconfig& cfg, QPushButton* button);
+	void pickColor (StringConfig& cfg, QPushButton* button);
 	void updateQuickColorList (LDQuickColor* sel = null);
 	void setShortcutText (ShortcutListItem* item);
 	int getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack);
@@ -94,7 +94,7 @@ class KeySequenceDialog : public QDialog {
 
 public:
 	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);
-	static bool staticDialog (keyseqconfig* cfg, QWidget* parent = null);
+	static bool staticDialog (KeySequenceConfig* cfg, QWidget* parent = null);
 	
 	QLabel* lb_output;
 	QDialogButtonBox* bbx_buttons;
