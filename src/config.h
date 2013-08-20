@@ -68,13 +68,26 @@ public:
 	static str dirpath();
 	static str filepath (str file);
 	
+protected:
+	static void addToArray (Config* ptr);
+	
 private:
 	const char* m_defstring;
 };
 
-void addConfig (Config* ptr);
-
 // =============================================================================
+#define IMPLEMENT_CONFIG(NAME, T) \
+	T value, defval; \
+	NAME##Config (T defval, const char* name, const char* defstring) : \
+		Config (name, defstring), value (defval), defval (defval) \
+		{ Config::addToArray (this); } \
+	\
+	operator const T&() const { return value; } \
+	Config::Type getType() const override { return Config::NAME; } \
+	virtual void resetValue() { value = defval; } \
+	virtual bool isDefault() const { return value == defval; } \
+	virtual void loadFromConfig (const QSettings* cfg) override;
+	
 #define DEFINE_UNARY_OPERATOR(T, OP) \
 	T operator OP() { \
 		return OP value; \
@@ -114,23 +127,8 @@ void addConfig (Config* ptr);
 	T operator--() { return --value; } \
 	T operator--(int) { return value--; }
 
-#define CONFIGTYPE(T) \
-	class T##Config : public Config
-
-#define IMPLEMENT_CONFIG(NAME, T) \
-	T value, defval; \
-	NAME##Config (T defval, const char* name, const char* defstring) : \
-		Config (name, defstring), value (defval), defval (defval) \
-		{ addConfig (this); } \
-	\
-	operator const T&() const { return value; } \
-	Config::Type getType() const override { return Config::NAME; } \
-	virtual void resetValue() { value = defval; } \
-	virtual bool isDefault() const { return value == defval; } \
-	virtual void loadFromConfig (const QSettings* cfg) override;
-
 // =============================================================================
-CONFIGTYPE (Int) {
+class IntConfig : public Config {
 public:
 	IMPLEMENT_CONFIG (Int, int)
 	DEFINE_ALL_COMPARE_OPERATORS (int)
@@ -160,22 +158,22 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (String) {
+class StringConfig : public Config {
 public:
 	IMPLEMENT_CONFIG (String, str)
-
+	
 	DEFINE_COMPARE_OPERATOR (str, ==)
 	DEFINE_COMPARE_OPERATOR (str, !=)
 	DEFINE_ASSIGN_OPERATOR (str, =)
 	DEFINE_ASSIGN_OPERATOR (str, +=)
 	
-	qchar operator[] (int n) {
+	QChar operator[] (int n) {
 		return value[n];
 	}
 };
 
 // =============================================================================
-CONFIGTYPE (Float) {
+class FloatConfig : public Config {
 public:
 	IMPLEMENT_CONFIG (Float, float)
 	DEFINE_ALL_COMPARE_OPERATORS (float)
@@ -191,7 +189,7 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (Bool) {
+class BoolConfig : public Config {
 public:
 	IMPLEMENT_CONFIG (Bool, bool)
 	DEFINE_ALL_COMPARE_OPERATORS (bool)
@@ -199,7 +197,7 @@ public:
 };
 
 // =============================================================================
-CONFIGTYPE (KeySequence) {
+class KeySequenceConfig : public Config {
 public:
 	IMPLEMENT_CONFIG (KeySequence, QKeySequence)
 	DEFINE_ALL_COMPARE_OPERATORS (QKeySequence)

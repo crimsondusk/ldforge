@@ -189,7 +189,7 @@ str Config::defaultString() const {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void addConfig (Config* ptr) {
+void Config::addToArray (Config* ptr) {
 	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
 	
