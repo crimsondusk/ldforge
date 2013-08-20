@@ -47,8 +47,7 @@ public:
 		KeySequence,
 	};
 
-	Config (const char* name, const char* defstring) :
-		name (name), m_defstring (defstring) {}
+	Config (const char* name, const char* defstring);
 	const char* name;
 
 	virtual Type getType() const {

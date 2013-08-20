@@ -44,6 +44,12 @@ static QSettings* getSettingsObject() {
 #endif // PORTABLE
 }
 
+Config::Config (const char* name, const char* defstring) :
+	name (name), m_defstring (defstring)
+{
+	assert (getType() != None);
+}
+
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Load the configuration from file
