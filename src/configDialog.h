@@ -53,8 +53,6 @@ public:
 	
 	explicit ConfigDialog (Tab deftab = InterfaceTab, QWidget* parent = null, Qt::WindowFlags f = 0);
 	virtual ~ConfigDialog();
-	static void staticDialog();
-	const Ui_ConfigUI* getUI() const;
 	float getGridValue (int i, int j) const;
 	
 	List<LDQuickColor> quickColors;
@@ -66,11 +64,7 @@ private:
 	QLabel* lb_gridIcons[3];
 	List<QListWidgetItem*> quickColorItems;
 	
-	void initMainTab();
-	void initShortcutsTab();
-	void initQuickColorTab();
-	void initGridTab();
-	void initExtProgTab();
+	void applySettings();
 	void addShortcut (KeySequenceConfig& cfg, QAction* act, ulong& i);
 	void setButtonBackground (QPushButton* button, str value);
 	void pickColor (StringConfig& cfg, QPushButton* button);
@@ -80,6 +74,8 @@ private:
 	str quickColorString();
 	QListWidgetItem* getSelectedQuickColor();
 	QList<ShortcutListItem*> getShortcutSelection();
+	void initGrids();
+	void initExtProgs();
 	
 private slots:
 	void slot_setGLBackground();
@@ -94,6 +90,7 @@ private slots:
 	void slot_clearColors();
 	void slot_setExtProgPath();
 	void slot_findDownloadFolder();
+	void buttonClicked (QAbstractButton* button);
 };
 
 // =============================================================================

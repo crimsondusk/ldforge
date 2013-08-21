@@ -77,6 +77,9 @@ bool Config::save() {
 		if (!cfg)
 			break;
 		
+		if (cfg->isDefault())
+			continue;
+		
 		settings->setValue (cfg->name, cfg->toVariant());
 	}
 	

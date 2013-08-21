@@ -29,6 +29,7 @@
 #include "types.h"
 #include "primitives.h"
 #include "gldraw.h"
+#include "configDialog.h"
 
 List<LDFile*> g_loadedFiles;
 ForgeWindow* g_win = null; 
@@ -39,6 +40,8 @@ static str g_versionString, g_fullVersionString;
 
 const vertex g_origin (0.0f, 0.0f, 0.0f);
 const matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
+
+cfg (Bool, firststart, true);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -64,11 +67,18 @@ int main (int argc, char* argv[]) {
 	loadLogoedStuds();
 	
 	ForgeWindow* win = new ForgeWindow;
-	
 	newFile();
-	loadPrimitives();
-	
 	win->show();
+	
+	// If this is the first start, get the user to configuration. Especially point
+	// them to the profile tab, it's the most important form to fill in.
+	if (firststart) {
+		(new ConfigDialog (ConfigDialog::ProfileTab))->exec();
+		firststart = false;
+		Config::save();
+	}
+	
+	loadPrimitives();
 	return app.exec();
 }
 
