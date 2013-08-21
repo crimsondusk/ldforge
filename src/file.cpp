@@ -14,14 +14,17 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  file.cpp: File I/O and management.
+ *  - File loading, parsing, manipulation, saving, closing.
+ *  - LDraw path verification.
  */
 
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
 #include <QApplication>
-
-#include <stdlib.h>
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -149,7 +152,7 @@ LDFile::~LDFile() {
 // -----------------------------------------------------------------------------
 LDFile* findLoadedFile (str name) {
 	for (LDFile* file : g_loadedFiles)
-		if (file->name() == name)
+		if (!file->name().isEmpty() && file->getShortName() == name)
 			return file;
 	
 	return null;

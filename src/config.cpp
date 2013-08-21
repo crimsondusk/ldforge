@@ -14,6 +14,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  config.cpp: Configuration management. I don't like how unsafe QSettings
+ *  is so this implements a type-safer and idenitifer-safer wrapping system of
+ *  configuration variables. QSettings is used underlyingly, this is a matter
+ *  of interface.
  */
 
 #include <errno.h>
@@ -30,6 +36,8 @@ Config* g_configPointers[MAX_CONFIG];
 static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
+// Get the QSettings object. A portable build refers to a file in the current
+// directory, a non-portable build to ~/.config/LDForge or to registry.
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject() {
 #ifdef PORTABLE
@@ -48,11 +56,11 @@ Config::Config (const char* name, const char* defstring) :
 	name (name), m_defstring (defstring) {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
 // Load the configuration from file
+// -----------------------------------------------------------------------------
 bool Config::load() {
 	QSettings* settings = getSettingsObject();
-	print ("config::load: Loading configuration file from %1...\n", settings->fileName());
+	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 	
 	for (Config* cfg : g_configPointers) {
 		if (!cfg)
@@ -67,8 +75,8 @@ bool Config::load() {
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
 // Save the configuration to disk
+// -----------------------------------------------------------------------------
 bool Config::save() {
 	QSettings* settings = getSettingsObject();
 	print ("Saving configuration to %1...\n", settings->fileName());
@@ -89,6 +97,7 @@ bool Config::save() {
 }
 
 // =============================================================================
+// Reset configuration defaults.
 // -----------------------------------------------------------------------------
 void Config::reset() {
 	for (Config* cfg : g_configPointers) {
@@ -100,31 +109,19 @@ void Config::reset() {
 }
 
 // =============================================================================
+// Where is the configuration file located at? Note that the Windows build uses
+// the registry so only use this with PORTABLE code.
 // -----------------------------------------------------------------------------
 str Config::filepath (str file) {
 	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
+// Directory of the configuration file. PORTABLE code here as well.
 // -----------------------------------------------------------------------------
 str Config::dirpath() {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-str Config::defaultString() const {
-	str defstring = m_defstring;
-	
-	// String types inevitably get extra quotes in their default string due to
-	// preprocessing stuff. We can only remove them now...
-	if (getType() == String) {
-		defstring.remove (0, 1);
-		defstring.chop (1);
-	}
-	
-	return defstring;
 }
 
 // =============================================================================

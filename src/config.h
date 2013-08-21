@@ -55,7 +55,6 @@ public:
 		return (Type) 0;
 	}
 	
-	str defaultString() const;
 	virtual void resetValue() {}
 	virtual void loadFromVariant (const QVariant& val) { (void) val; }
 	virtual bool isDefault() const { return false; }
