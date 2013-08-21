@@ -130,10 +130,16 @@ LDFile::~LDFile() {
 	// file as something else.
 	if (this == LDFile::current()) {
 		// If we closed the last file, create a blank one.
-		if (g_loadedFiles.size() == 0)
+		if (countExplicitFiles() == 0)
 			newFile();
-		else
-			LDFile::setCurrent (g_loadedFiles[0]);
+		else {
+			// Find the first explicit file loaded
+			int idx = 0;
+			while (g_loadedFiles[idx]->implicit())
+				idx++;
+			
+			LDFile::setCurrent (g_loadedFiles[idx]);
+		}
 	}
 	
 	g_win->updateFileList();
