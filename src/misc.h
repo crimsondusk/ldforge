@@ -94,7 +94,7 @@ namespace Grid {
 	};
 	
 	double snap (double value, const Grid::Config axis);
-};
+}
 
 // =============================================================================
 template<class T> void dataswap (T& a, T& b) {

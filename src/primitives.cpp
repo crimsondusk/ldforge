@@ -26,6 +26,7 @@
 #include "ui_makeprim.h"
 #include "misc.h"
 #include "colors.h"
+#include "moc_primitives.cxx"
 
 List<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;
@@ -564,5 +565,3 @@ void PrimitivePrompt::hiResToggled (bool on) {
 	if (on && ui->sb_segs->value() == lores)
 		ui->sb_segs->setValue (hires);
 }
-
-#include "build/moc_primitives.cpp"

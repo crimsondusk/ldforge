@@ -38,7 +38,7 @@
 #include "colorSelectDialog.h"
 #include "gldraw.h"
 #include "ui_config.h"
-#include "build/moc_configDialog.cpp"
+#include "moc_configDialog.cxx"
 
 extern_cfg (String, gl_bgcolor);
 extern_cfg (String, gl_maincolor);

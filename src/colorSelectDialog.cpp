@@ -31,7 +31,7 @@
 #include "config.h"
 #include "misc.h"
 #include "ui_colorsel.h"
-#include "build/moc_colorSelectDialog.cpp"
+#include "moc_colorSelectDialog.cxx"
 
 static const int g_numColumns = 16;
 static const short g_squareSize = 32;
