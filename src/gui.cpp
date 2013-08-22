@@ -919,4 +919,3 @@ QImage imageFromScreencap (uchar* data, ushort w, ushort h) {
 	return QImage (data, w, h, QImage::Format_ARGB32).rgbSwapped().mirrored();
 }
 
-#include "moc_gui.cxx"

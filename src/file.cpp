@@ -33,7 +33,6 @@
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
-#include "moc_file.cxx"
 
 cfg (String, io_ldpath, "");
 cfg (List, io_recentfiles, {});

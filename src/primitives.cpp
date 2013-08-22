@@ -26,7 +26,6 @@
 #include "ui_makeprim.h"
 #include "misc.h"
 #include "colors.h"
-#include "moc_primitives.cxx"
 
 List<PrimitiveCategory> g_PrimitiveCategories;
 static PrimitiveLister* g_activePrimLister = null;

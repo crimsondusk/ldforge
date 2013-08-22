@@ -26,7 +26,6 @@
 #include "ui_downloadfrom.h"
 #include "types.h"
 #include "gui.h"
-#include "moc_download.cxx"
 #include "file.h"
 #include "gldraw.h"
 

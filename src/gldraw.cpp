@@ -36,7 +36,6 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
-#include "moc_gldraw.cxx"
 
 static const struct staticCameraMeta {
 	const char glrotate[3];

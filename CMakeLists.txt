@@ -116,7 +116,7 @@ endif()
 
 include (${QT_USE_FILE})
 add_definitions (${QT_DEFINITIONS})
-add_executable (ldforge ${LDFORGE_SOURCES} ${LDFORGE_XFORMS} ${LDFORGE_XQRC})
+add_executable (ldforge ${LDFORGE_SOURCES} ${LDFORGE_XFORMS} ${LDFORGE_XQRC} ${LDFORGE_MOC})
 target_link_libraries (ldforge
 	${QT_LIBRARIES}
 	GL
