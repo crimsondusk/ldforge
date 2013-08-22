@@ -5,3 +5,4 @@ Makefile
 ldforge
 *.dat
 debug_lastOutput
+.kdev_include_paths
