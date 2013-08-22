@@ -29,7 +29,6 @@
 #include "history.h"
 #include "configDialog.h"
 #include "addObjectDialog.h"
-#include "aboutDialog.h"
 #include "misc.h"
 #include "gldraw.h"
 #include "dialogs.h"

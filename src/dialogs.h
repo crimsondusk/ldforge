@@ -124,4 +124,15 @@ private:
 	Ui_ExtProgPath* ui;
 };
 
+// =============================================================================
+class AboutDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	
+private slots:
+	void slot_mail();
+};
+
 #endif // DIALOGS_H

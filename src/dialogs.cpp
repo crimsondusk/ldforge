@@ -27,6 +27,8 @@
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "dialogs.h"
 #include "widgets.h"
@@ -39,6 +41,7 @@
 #include "ui_ldrawpath.h"
 #include "ui_openprogress.h"
 #include "ui_extprogpath.h"
+#include "ui_about.h"
 #include "build/moc_dialogs.cpp"
 
 extern const char* g_extProgPathFilter;
@@ -307,4 +310,28 @@ void ExtProgPathPrompt::findPath() {
 // -----------------------------------------------------------------------------
 str ExtProgPathPrompt::getPath() const {
 	return ui->m_path->text();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f)
+{
+	Ui::AboutUI ui;
+	ui.setupUi (this);
+	ui.versionInfo->setText (fmt (tr ("LDForge %1"), fullVersionString()));
+	
+	QPushButton* mailButton = new QPushButton;
+	mailButton->setText ("Contact");
+	mailButton->setIcon (getIcon ("mail"));
+	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
+	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
+	
+	setWindowTitle ("About " APPNAME);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void AboutDialog::slot_mail() {
+	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <slatenails64@gmail.com>?subject=LDForge"));
 }
