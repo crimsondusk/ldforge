@@ -358,7 +358,7 @@ void GLRenderer::drawGLScene() {
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 	
-	if (m_camera != GLRenderer::Free) {
+	if (m_camera != Free) {
 		glMatrixMode (GL_PROJECTION);
 		glPushMatrix();
 		
@@ -366,9 +366,11 @@ void GLRenderer::drawGLScene() {
 		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
 		glTranslatef (m_panX, m_panY, 0.0f);
 		
-		glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
-			g_staticCameras[m_camera].glrotate[1],
-			g_staticCameras[m_camera].glrotate[2]);
+		if (m_camera != Front && m_camera != Back) {
+			glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
+				g_staticCameras[m_camera].glrotate[1],
+				g_staticCameras[m_camera].glrotate[2]);
+		}
 		
 		// Back camera needs to be handled differently
 		if (m_camera == GLRenderer::Back) {
