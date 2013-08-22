@@ -241,10 +241,10 @@ void FileLoader::start() {
 	if (concurrent()) {
 		g_aborted = false;
 		
-		// Show a progress dialog if we're loading the main file here and move
-		// the actual work to a separate thread as this can be a rather intensive
-		// operation and if we don't respond quickly enough, the program can be
-		// deemed inresponsive.. which is a bad thing.
+		// Show a progress dialog if we're loading the main file here so we can
+		// show progress updates and keep the WM posted that we're still here.
+		// Of course we cannot exec() the dialog because then the dialog would
+		// block.
 		dlg = new OpenProgressDialog (g_win);
 		dlg->setNumLines (lines().size());
 		dlg->setModal (true);
@@ -256,14 +256,15 @@ void FileLoader::start() {
 	} else
 		dlg = null;
 	
+	// Begin working
 	work (0);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void FileLoader::work (int i) {
+	// User wishes to abort, so stop here now.
 	if (aborted()) {
-		// We were flagged for abortion, so abort.
 		for (LDObject* obj : m_objs)
 			delete obj;
 		
@@ -272,6 +273,7 @@ void FileLoader::work (int i) {
 		return;
 	}
 	
+	// Parse up to 300 lines per iteration
 	int max = i + 300;
 	
 	for (; i < max && i < (int) lines().size(); ++i) {
@@ -296,17 +298,30 @@ void FileLoader::work (int i) {
 		m_objs << obj;
 		setProgress (i);
 		
+		// If we have a dialog pointer, update the progress now
 		if (concurrent())
 			dlg->updateProgress (i);
 	}
 	
+	// If we're done now, tell the environment we're done and stop.
 	if (i >= ((int) lines().size()) - 1) {
 		emit workDone();
 		setDone (true);
 		return;
 	}
 	
+	// Otherwise, continue, by recursing back.
 	if (!done()) {
+		// If we have a dialog to show progress output to, we cannot just call
+		// work() again immediately as the dialog needs some processor cycles as
+		// well. Thus, take a detour through the event loop by using the
+		// meta-object system.
+		//
+		// This terminates the loop here and control goes back to the function
+		// which called the file loader. It will keep processing the event loop
+		// until we're ready (see loadFileContents), thus the event loop will
+		// eventually catch the invokation we throw here and send us back. Though
+		// it's not technically recursion anymore, more like a for loop. :P
 		if (concurrent())
 			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (int, i + 1));
 		else
@@ -344,6 +359,10 @@ List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	loader->setConcurrent (g_loadingMainFile);
 	loader->start();
 	
+	// After start() returns, if the loader isn't done yet, it's delaying
+	// its next iteration through the event loop. We need to catch this here
+	// by telling the event loop to tick, which will tick the file loader again.
+	// We keep doing this until the file loader is ready.
 	while (loader->done() == false)
 		qApp->processEvents();
 	
