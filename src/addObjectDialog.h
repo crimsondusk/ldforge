@@ -24,7 +24,7 @@
 
 class QTreeWidgetItem;
 class QLineEdit;
-class RadioBox;
+class RadioGroup;
 class QCheckBox;
 class QSpinBox;
 class QLabel;
@@ -50,7 +50,7 @@ public:
 	QPushButton* pb_color;
 	
 	// BFC-related widgets
-	RadioBox* rb_bfcType;
+	RadioGroup* rb_bfcType;
 	
 	// Subfile stuff
 	QTreeWidget* tw_subfileList;

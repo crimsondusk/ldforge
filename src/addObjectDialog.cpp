@@ -82,7 +82,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		break;
 	
 	case LDObject::BFC:
-		rb_bfcType = new RadioBox ("Statement", {}, 0, Qt::Vertical);
+		rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
 		
 		for (int i = 0; i < LDBFC::NumStatements; ++i) {
 			// Separate these in two columns

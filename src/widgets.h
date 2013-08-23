@@ -25,26 +25,27 @@
 #include "common.h"
 #include "types.h"
 
+class QIcon;
 class QCheckBox;
 class QButtonGroup;
 class QBoxLayout;
 class QRadioButton;
 
 // =============================================================================
-// RadioBox
+// RadioGroup
 //
 // Convenience widget - is a groupbox of radio buttons.
 // =============================================================================
-class RadioBox : public QGroupBox {
+class RadioGroup : public QGroupBox {
 	Q_OBJECT
 	
 public:
 	typedef List<QRadioButton*>::it it;
 	
-	explicit RadioBox() { init (Qt::Vertical); }
-	explicit RadioBox (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
-	explicit RadioBox (const QString& title, QWidget* parent = null);
-	explicit RadioBox (const QString& title, initlist<char const*> entries, int const defaultId,
+	explicit RadioGroup() { init (Qt::Vertical); }
+	explicit RadioGroup (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
+	explicit RadioGroup (const QString& title, QWidget* parent = null);
+	explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
 		const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
 	
 	void			addButton		(const char* entry);
@@ -59,8 +60,8 @@ public:
 	int				value			() const;
 	
 	QRadioButton*	operator[]		(uint n) const;
-	RadioBox&		operator<<		(QRadioButton* button);
-	RadioBox&		operator<<		(const char* entry);
+	RadioGroup&		operator<<		(QRadioButton* button);
+	RadioGroup&		operator<<		(const char* entry);
 
 signals:
 	void buttonPressed (int btn);
@@ -76,7 +77,7 @@ private:
 	int m_curId, m_defId, m_oldId;
 	QButtonGroup* m_buttonGroup;
 	
-	Q_DISABLE_COPY (RadioBox)
+	Q_DISABLE_COPY (RadioGroup)
 
 private slots:
 	void slot_buttonPressed (int btn);

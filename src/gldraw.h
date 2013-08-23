@@ -25,7 +25,7 @@
 
 class MessageManager;
 class QDialogButtonBox;
-class RadioBox;
+class RadioGroup;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
