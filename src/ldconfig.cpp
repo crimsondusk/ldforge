@@ -44,7 +44,6 @@ void parseLDConfig() {
 	if (!f) {
 		critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing! (%1)"),
 			strerror (errno)));
-		delete f;
 		return;
 	}
 	

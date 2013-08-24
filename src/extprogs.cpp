@@ -31,7 +31,6 @@
 #include "file.h"
 #include "widgets.h"
 #include "history.h"
-#include "labeledwidget.h"
 #include "ui_ytruder.h"
 #include "ui_intersector.h"
 #include "ui_rectifier.h"
@@ -391,12 +390,6 @@ DEFINE_ACTION (Rectifier, 0){
 		return;
 	
 	insertOutput (outDATName, true, {});
-}
-
-LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
-	LabeledWidget<QComboBox>* widget = new LabeledWidget<QComboBox> (label, new QComboBox);
-	makeColorSelector (widget->w());
-	return widget;
 }
 
 // =============================================================================
