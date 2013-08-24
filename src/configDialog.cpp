@@ -292,10 +292,6 @@ void ConfigDialog::applySettings() {
 	ld_defaultname = ui->m_profileName->text();
 	ld_defaultlicense = ui->m_profileLicense->currentIndex();
 	
-	// Ensure '/' postfix to the download path
-	if (net_downloadpath.value.right (1) != DIRSLASH)
-		net_downloadpath += DIRSLASH;
-	
 	// Rebuild the quick color toolbar
 	g_win->setQuickColors (quickColors);
 	gui_colortoolbar = quickColorString();

@@ -28,6 +28,7 @@
 #include "gui.h"
 #include "file.h"
 #include "gldraw.h"
+#include "configDialog.h"
 
 cfg (String, net_downloadpath, "");
 cfg (Bool, net_guesspaths, true);
@@ -43,6 +44,8 @@ void PartDownloader::k_download() {
 	if (path == "" || QDir (path).exists() == false) {
 		critical (PartDownloader::tr ("You need to specify a valid path for "
 			"downloaded files in the configuration to download paths."));
+		
+		(new ConfigDialog (ConfigDialog::DownloadTab, null))->exec();
 		return;
 	}
 	
@@ -196,7 +199,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn) {
 		
 		modifyDest (dest);
 		
-		if (QFile::exists (PartDownloader::getDownloadPath() + dest)) {
+		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest)) {
 			const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
 			
 			if (!confirm (tr ("Overwrite?"), overwritemsg))
@@ -224,7 +227,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary) {
 		return;
 	
 	modifyDest (dest);
-	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + dest);
+	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
 	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
 	
 	m_filesToDownload << dest;
@@ -298,7 +301,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	m_prompt (parent),
 	m_url (url),
 	m_dest (dest),
-	m_fpath (PartDownloader::getDownloadPath() + dest),
+	m_fpath (PartDownloader::getDownloadPath() + DIRSLASH + dest),
 	m_nam (new QNetworkAccessManager),
 	m_firstUpdate (true),
 	m_state (Requesting),
