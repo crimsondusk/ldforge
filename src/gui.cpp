@@ -174,12 +174,13 @@ List<LDQuickColor> quickColorsFromConfig() {
 	List<LDQuickColor> colors;
 	
 	for (str colorname : gui_colortoolbar.value.split (":")) {
-		if (colorname == "|") {
-			colors << LDQuickColor ({null, null, true});
-		} else {
+		if (colorname == "|")
+			colors << LDQuickColor::getSeparator();
+		else {
 			LDColor* col = getColor (colorname.toLong());
-			assert (col != null);
-			colors << LDQuickColor ({col, null, false});
+			
+			if (col != null)
+				colors << LDQuickColor (col, null);
 		}
 	}
 	
@@ -193,19 +194,19 @@ void ForgeWindow::updateToolBars() {
 	ui->colorToolbar->clear();
 	
 	for (LDQuickColor& entry : m_quickColors) {
-		if (entry.isSeparator)
+		if (entry.isSeparator())
 			ui->colorToolbar->addSeparator();
 		else {
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.col, 22));
+			colorButton->setIcon (makeColorIcon (entry.color(), 22));
 			colorButton->setIconSize (QSize (22, 22));
-			colorButton->setToolTip (entry.col->name);
+			colorButton->setToolTip (entry.color()->name);
 			
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
 			ui->colorToolbar->addWidget (colorButton);
 			m_colorButtons << colorButton;
 			
-			entry.btn = colorButton;
+			entry.setToolButton (colorButton);
 		}
 	}
 	
@@ -445,9 +446,9 @@ void ForgeWindow::slot_quickColor() {
 	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 	
-	for (LDQuickColor entry : m_quickColors) {
-		if (entry.btn == button) {
-			col = entry.col;
+	for (const LDQuickColor& entry : m_quickColors) {
+		if (entry.toolButton() == button) {
+			col = entry.color();
 			break;
 		}
 	}
@@ -488,6 +489,8 @@ void ForgeWindow::fullRefresh() {
 	m_renderer->hardRefresh();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void ForgeWindow::refresh() {
 	buildObjList();
 	m_renderer->update();
@@ -919,3 +922,16 @@ QImage imageFromScreencap (uchar* data, ushort w, ushort h) {
 	return QImage (data, w, h, QImage::Format_ARGB32).rgbSwapped().mirrored();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
+LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
+	m_color (color),
+	m_toolButton (toolButton) {}
+
+LDQuickColor LDQuickColor::getSeparator() {
+	return LDQuickColor (null, null);
+}
+
+bool LDQuickColor::isSeparator() const {
+	return color() == null;
+}

@@ -357,11 +357,11 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel) {
 	for (LDQuickColor& entry : quickColors) {
 		QListWidgetItem* item = new QListWidgetItem;
 		
-		if (entry.isSeparator) {
+		if (entry.isSeparator()) {
 			item->setText ("--------");
 			item->setIcon (getIcon ("empty"));
 		} else {
-			LDColor* col = entry.col;
+			LDColor* col = entry.color();
 			
 			if (col == null) {
 				item->setText ("[[unknown color]]");
@@ -375,7 +375,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel) {
 		ui->quickColorList->addItem (item);
 		quickColorItems << item;
 		
-		if (sel && &entry == sel) {
+		if (sel &&& entry == sel) {
 			ui->quickColorList->setCurrentItem (item);
 			ui->quickColorList->scrollToItem (item);
 		}
@@ -399,20 +399,20 @@ void ConfigDialog::slot_setColor() {
 		ulong i = getItemRow (item, quickColorItems);
 		entry = &quickColors[i];
 		
-		if (entry->isSeparator == true)
+		if (entry->isSeparator() == true)
 			return; // don't color separators
 	}
 	
-	short defval = entry ? entry->col->index : -1;
+	short defval = entry ? entry->color()->index : -1;
 	short val;
 	
 	if (ColorSelector::getColor (val, defval, this) == false)
 		return;
 	
 	if (entry)
-		entry->col = getColor (val);
+		entry->setColor (getColor (val));
 	else {
-		LDQuickColor entry = {getColor (val), null, false};
+		LDQuickColor entry (getColor (val), null);
 		
 		item = getSelectedQuickColor();
 		ulong idx;
@@ -468,7 +468,7 @@ void ConfigDialog::slot_moveColor() {
 // Add a separator to quick colors
 // -----------------------------------------------------------------------------
 void ConfigDialog::slot_addColorSeparator() {
-	quickColors << LDQuickColor ({null, null, true});
+	quickColors << LDQuickColor::getSeparator();
 	updateQuickColorList (&quickColors[quickColors.size() - 1]);
 }
 
@@ -638,14 +638,14 @@ void ConfigDialog::setShortcutText (ShortcutListItem* item) {
 str ConfigDialog::quickColorString() {
 	str val;
 	
-	for (LDQuickColor entry : quickColors) {
+	for (const LDQuickColor& entry : quickColors) {
 		if (val.length() > 0)
 			val += ':';
 		
-		if (entry.isSeparator)
+		if (entry.isSeparator())
 			val += '|';
 		else
-			val += fmt ("%1", entry.col->index);
+			val += fmt ("%1", entry.color()->index);
 	}
 	
 	return val;

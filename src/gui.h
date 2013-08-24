@@ -58,10 +58,15 @@ class Ui_LDForgeUI;
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
 
 // =============================================================================
-struct LDQuickColor {
-	LDColor* col;
-	QToolButton* btn;
-	bool isSeparator;
+class LDQuickColor {
+	PROPERTY (LDColor*, color, setColor)
+	PROPERTY (QToolButton*, toolButton, setToolButton)
+	
+public:
+	LDQuickColor (LDColor* color, QToolButton* toolButton);
+	bool isSeparator() const;
+	
+	static LDQuickColor getSeparator();
 };
 
 // =============================================================================
