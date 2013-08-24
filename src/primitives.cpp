@@ -124,7 +124,7 @@ void PrimitiveLister::work() {
 			info.title.remove (0, 1);  // remove 0
 			info.title = info.title.simplified();
 		}
-
+		
 		m_prims << info;
 		emit update (++i);
 	}
@@ -186,7 +186,7 @@ static void populateCategories() {
 		cat.setName (g_Other);
 		unmatched = & (g_PrimitiveCategories << cat);
 	}
-
+	
 	for (Primitive& prim : g_primitives) {
 		bool matched = false;
 		prim.cat = null;
@@ -524,15 +524,18 @@ void generatePrimitive() {
 	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
 	
-	*f << new LDComment (descr);
-	*f << new LDComment (fmt ("Name: %1", name));
-	*f << new LDComment (fmt ("Author: LDForge"));
-	*f << new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : ""));
-	*f << new LDComment (CALicense);
-	*f << new LDEmpty;
-	*f << new LDBFC (LDBFC::CertifyCCW);
-	*f << new LDEmpty;
-	*f << makePrimitive (type, segs, divs, num);
+	f->addObjects ({
+		new LDComment (descr),
+		new LDComment (fmt ("Name: %1", name)),
+		new LDComment (fmt ("Author: LDForge")),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
+		new LDComment (CALicense),
+		new LDEmpty,
+		new LDBFC (LDBFC::CertifyCCW),
+		new LDEmpty,
+	});
+	
+	f->addObjects (makePrimitive (type, segs, divs, num));
 	
 	g_win->save (f, false);
 	delete f;

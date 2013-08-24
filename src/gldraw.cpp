@@ -394,7 +394,7 @@ void GLRenderer::drawGLScene() {
 	if (gl_colorbfc && !m_picking && !drawOnly()) {
 		glEnable (GL_CULL_FACE);
 		
-		for (LDObject* obj : file()->objs()) {
+		for (LDObject* obj : file()->objects()) {
 			if (obj->hidden())
 				continue;
 			
@@ -407,7 +407,7 @@ void GLRenderer::drawGLScene() {
 		
 		glDisable (GL_CULL_FACE);
 	} else {
-		for (LDObject* obj : file()->objs()) {
+		for (LDObject* obj : file()->objects()) {
 			if (obj->hidden())
 				continue;
 			
@@ -683,7 +683,7 @@ void GLRenderer::compileAllObjects() {
 	
 	m_knownVerts.clear();
 	
-	for (LDObject* obj : file()->objs())
+	for (LDObject* obj : file()->objects())
 		compileObject (obj);
 	
 	// Compile axes
@@ -1609,7 +1609,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev) {
 LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam) {
 	LDOverlay* ovlobj = null;
 	
-	for (LDObject * obj : *file()) {
+	for (LDObject * obj : file()->objects()) {
 		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->camera() == cam) {
 			ovlobj = static_cast<LDOverlay*> (obj);
 			break;

@@ -285,7 +285,7 @@ void ForgeWindow::buildObjList() {
 	
 	ui->objectList->clear();
 	
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		str descr;
 		
 		switch (obj->getType()) {
@@ -410,7 +410,7 @@ void ForgeWindow::slot_selectionChanged() {
 	m_sel.clear();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 	
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 	for (QListWidgetItem* item : items) {
 		if (item == obj->qObjListEntry) {
 			m_sel << obj;
@@ -501,7 +501,7 @@ void ForgeWindow::refresh() {
 void ForgeWindow::updateSelection() {
 	g_bSelectionLocked = true;
 	
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		obj->setSelected (false);
 	
 	ui->objectList->clearSelection();
@@ -628,7 +628,7 @@ void ForgeWindow::deleteObjVector (List<LDObject*> objs) {
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteByColor (const short colnum) {
 	List<LDObject*> objs;
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (!obj->isColored() || obj->color() != colnum)
 			continue;
 		
@@ -650,7 +650,7 @@ void ForgeWindow::updateEditModeActions() {
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_editObject (QListWidgetItem* listitem) {
 	LDObject* obj = null;
-	for (LDObject* it : *LDFile::current()) {
+	for (LDObject* it : LDFile::current()->objects()) {
 		if (it->qObjListEntry == listitem) {
 			obj = it;
 			break;
@@ -785,7 +785,7 @@ QIcon makeColorIcon (LDColor* colinfo, const ushort size) {
 void makeColorSelector (QComboBox* box) {
 	std::map<short, ulong> counts;
 	
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (!obj->isColored())
 			continue;
 		

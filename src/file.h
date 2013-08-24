@@ -50,7 +50,7 @@ namespace LDPaths {
 // =============================================================================
 class LDFile : public QObject {
 	Q_OBJECT
-	READ_PROPERTY (List<LDObject*>, objs, setObjects)
+	READ_PROPERTY (List<LDObject*>, objects, setObjects)
 	READ_PROPERTY (History, history, setHistory)
 	READ_PROPERTY (List<LDObject*>, vertices, setVertices)
 	PROPERTY (str, name, setName)
@@ -67,8 +67,11 @@ public:
 	~LDFile();
 	
 	ulong addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
+	void addObjects (const List<LDObject*> objs);
 	void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
+	str getShortName();
 	bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
+	List<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 	void insertObj (const ulong pos, LDObject* obj);
 	ulong numObjs() const;
 	LDObject* object (ulong pos) const;
@@ -77,60 +80,19 @@ public:
 	bool safeToClose();                              // Perform safety checks. Do this before closing any files!
 	void setObject (ulong idx, LDObject* obj);
 
-	LDFile& operator<< (LDObject* obj) {
-		addObject (obj);
-		return *this;
-	}
-	
-	LDFile& operator<< (List<LDObject*> objs);
-	
-	it begin() {
-		return PROP_NAME (objs).begin();
-	}
-	
-	c_it begin() const {
-		return PROP_NAME (objs).begin();
-	}
-	
-	it end() {
-		return PROP_NAME (objs).end();
-	}
-	
-	c_it end() const {
-		return PROP_NAME (objs).end();
-	}
-	
-	void openHistory() {
-		m_history.open();
-	}
-	
-	void closeHistory() {
-		m_history.close();
-	}
-	
-	void undo() {
-		m_history.undo();
-	}
-	
-	void redo() {
-		m_history.redo();
-	}
-	
-	void clearHistory() {
-		m_history.clear();
-	}
-	
-	void addToHistory (AbstractHistoryEntry* entry) {
-		m_history << entry;
-	}
+	inline LDFile& operator<< (LDObject* obj) { addObject (obj); return *this; }
+	inline void openHistory() { m_history.open(); }
+	inline void closeHistory() { m_history.close(); }
+	inline void undo() { m_history.undo(); }
+	inline void redo() { m_history.redo(); }
+	inline void clearHistory() { m_history.clear(); }
+	inline void addToHistory (AbstractHistoryEntry* entry) { m_history << entry; }
 	
 	static void closeUnused();
 	static LDFile* current();
 	static void setCurrent (LDFile* f);
 	static void closeInitialFile();
 	static int countExplicitFiles();
-	str getShortName();
-	List<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 	
 private:
 	static LDFile* m_curfile;

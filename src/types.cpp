@@ -504,7 +504,7 @@ void LDBoundingBox::calculate() {
 	if (!LDFile::current())
 		return;
 	
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		calcObject (obj);
 }
 

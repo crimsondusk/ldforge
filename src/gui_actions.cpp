@@ -88,18 +88,17 @@ DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
-	LDFile* f = LDFile::current();
-	*f << new LDComment (ui.le_title->text());
-	*f << new LDComment ("Name: <untitled>.dat" );
-	*f << new LDComment (fmt ("Author: %1", ui.le_author->text()));
-	*f << new LDComment (fmt ("!LDRAW_ORG Unofficial_Part"));
-	
-	if (license != "")
-		*f << new LDComment (license);
-	
-	*f << new LDEmpty;
-	*f << new LDBFC (BFCType);
-	*f << new LDEmpty;
+	LDFile::current()->addObjects ({new LDComment (ui.le_title->text()),
+		new LDComment ("Name: <untitled>.dat" ),
+		new LDComment (fmt ("Author: %1", ui.le_author->text())),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
+		(license != "" ?
+			new LDComment (license) :
+			null),
+		new LDEmpty,
+		new LDBFC (BFCType),
+		new LDEmpty,
+	});
 	
 	g_win->fullRefresh();
 }
@@ -267,7 +266,7 @@ DEFINE_ACTION (AboutQt, 0) {
 DEFINE_ACTION (SelectAll, CTRL (A)) {
 	g_win->sel().clear();
 	
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		g_win->sel() << obj;
 	
 	g_win->updateSelection();
@@ -282,7 +281,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 		return; // no consensus on color
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		if (obj->color() == colnum)
 			g_win->sel() << obj;
 	
@@ -313,7 +312,7 @@ DEFINE_ACTION (SelectByType, 0) {
 	}
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->getType() != type)
 			continue;
 		

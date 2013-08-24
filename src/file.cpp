@@ -113,11 +113,11 @@ LDFile::LDFile() {
 // -----------------------------------------------------------------------------
 LDFile::~LDFile() {
 	// Clear everything from the model
-	for (LDObject* obj : m_objs)
+	for (LDObject* obj : objects())
 		delete obj;
 	
 	// Clear the cache as well
-	for (LDObject* obj : m_cache)
+	for (LDObject* obj : cache())
 		delete obj;
 	
 	// Remove this file from the list of files
@@ -595,7 +595,7 @@ bool LDFile::save (str savepath) {
 	
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
-	for (LDObject* obj : objs())
+	for (LDObject* obj : objects())
 		f.write (obj->raw() + "\r\n");
 	
 	// File is saved, now clean up.
@@ -827,7 +827,7 @@ void reloadAllSubfiles() {
 	g_loadedFiles << LDFile::current();
 	
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->getType() == LDObject::Subfile) {
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDFile* fileInfo = getFile (ref->fileInfo()->name());
@@ -851,8 +851,8 @@ void reloadAllSubfiles() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 ulong LDFile::addObject (LDObject* obj) {
-	m_history.add (new AddHistory (m_objs.size(), obj));
-	m_objs << obj;
+	m_history.add (new AddHistory (objects().size(), obj));
+	m_objects << obj;
 	
 	if (obj->getType() == LDObject::Vertex)
 		m_vertices << obj;
@@ -863,9 +863,17 @@ ulong LDFile::addObject (LDObject* obj) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+void LDFile::addObjects (const List<LDObject*> objs) {
+	for (LDObject* obj : objs)
+		if (obj)
+			addObject (obj);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDFile::insertObj (const ulong pos, LDObject* obj) {
 	m_history.add (new AddHistory (pos, obj));
-	m_objs.insert (pos, obj);
+	m_objects.insert (pos, obj);
 	obj->setFile (this);
 }
 
@@ -874,7 +882,7 @@ void LDFile::insertObj (const ulong pos, LDObject* obj) {
 void LDFile::forgetObject (LDObject* obj) {
 	ulong idx = obj->getIndex();
 	m_history.add (new DelHistory (idx, obj));
-	m_objs.erase (idx);
+	m_objects.erase (idx);
 	obj->setFile (null);
 }
 
@@ -899,7 +907,7 @@ void LDFile::setObject (ulong idx, LDObject* obj) {
 	m_history << new EditHistory (idx, oldcode, newcode);
 	
 	obj->setFile (this);
-	m_objs[idx] = obj;
+	m_objects[idx] = obj;
 }
 
 // =============================================================================
@@ -907,7 +915,7 @@ void LDFile::setObject (ulong idx, LDObject* obj) {
 static List<LDFile*> getFilesUsed (LDFile* node) {
 	List<LDFile*> filesUsed;
 	
-	for (LDObject* obj : *node) {
+	for (LDObject* obj : node->objects()) {
 		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
@@ -955,10 +963,10 @@ void LDFile::closeUnused() {
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDObject* LDFile::object (ulong pos) const {
-	if (m_objs.size() <= pos)
+	if (m_objects.size() <= pos)
 		return null;
 	
-	return m_objs[pos];
+	return m_objects[pos];
 }
 
 // =============================================================================
@@ -970,16 +978,7 @@ LDObject* LDFile::obj (ulong pos) const {
 // =============================================================================
 // -----------------------------------------------------------------------------
 ulong LDFile::numObjs() const {
-	return m_objs.size();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-LDFile& LDFile::operator<< (List<LDObject*> objs) {
-	for (LDObject* obj : objs)
-		addObject (obj);
-	
-	return *this;
+	return objects().size();
 }
 
 // =============================================================================
@@ -1023,7 +1022,7 @@ List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags) {
 		if (!deep)
 			doCache = false;
 		
-		for (LDObject* obj : m_objs) {
+		for (LDObject* obj : objects()) {
 			// Skip those without scemantic meaning
 			if (!obj->isScemantic())
 				continue;

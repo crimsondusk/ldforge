@@ -632,7 +632,7 @@ DEFINE_ACTION (Demote, 0) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool isColorUsed (short colnum) {
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
 	
@@ -648,8 +648,7 @@ DEFINE_ACTION (Autocolor, 0) {
 		colnum++;
 	
 	if (colnum >= MAX_COLORS) {
-		//: Auto-colorer error message
-		critical (ForgeWindow::tr ("Out of unused colors! What are you doing?!"));
+		log (ForgeWindow::tr ("Cannot auto-color: all colors are in use!"));
 		return;
 	}
 	

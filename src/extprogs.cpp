@@ -188,7 +188,7 @@ void writeSelection (str fname) {
 void writeColorGroup (const short colnum, str fname) {
 	List<LDObject*> objects;
 	
-	for (LDObject* obj : *LDFile::current()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 		

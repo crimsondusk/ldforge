@@ -229,11 +229,14 @@ void LDObject::replace (LDObject* other) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::swap (LDObject* other) {
-	for (LDObject*& obj : *file()) {
+	int i = 0;
+	for (LDObject* obj : file()->objects()) {
 		if (obj == this)
-			obj = other;
+			file()->setObject (i, other);
 		elif (obj == other)
-			obj = this;
+			file()->setObject (i, this);
+		
+		++i;
 	}
 
 	file()->addToHistory (new SwapHistory (id(), other->id()));
@@ -348,7 +351,7 @@ void LDObject::moveObjects (List<LDObject*> objs, const bool up) {
 		const long idx = obj->getIndex(),
 			target = idx + (up ? -1 : 1);
 		
-		if ((up && idx == 0) || (!up && idx == (long) (file->objs().size() - 1))) {
+		if ((up && idx == 0) || (!up && idx == (long) (file->objects().size() - 1))) {
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
