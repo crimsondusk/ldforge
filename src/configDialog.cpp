@@ -375,7 +375,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel) {
 		ui->quickColorList->addItem (item);
 		quickColorItems << item;
 		
-		if (sel &&& entry == sel) {
+		if (sel && &entry == sel) {
 			ui->quickColorList->setCurrentItem (item);
 			ui->quickColorList->scrollToItem (item);
 		}
