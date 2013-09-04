@@ -88,7 +88,8 @@ DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
-	LDFile::current()->addObjects ({new LDComment (ui.le_title->text()),
+	LDFile::current()->addObjects ({
+		new LDComment (ui.le_title->text()),
 		new LDComment ("Name: <untitled>.dat" ),
 		new LDComment (fmt ("Author: %1", ui.le_author->text())),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
