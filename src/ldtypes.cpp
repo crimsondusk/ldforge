@@ -647,8 +647,9 @@ void LDOverlay::invert() {}
 // makes history stuff work out of the box.
 // -----------------------------------------------------------------------------
 template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val) {
-	if (obj->file()) {
-		long idx = obj->getIndex();
+	long idx;
+	
+	if (obj->file() && (idx = obj->getIndex()) != -1) {
 		str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();
