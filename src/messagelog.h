@@ -53,15 +53,9 @@ public:
 		QDateTime expiry;
 	};
 	
-	typedef List<Line>::it it;
-	typedef List<Line>::c_it c_it;
-	
 	explicit MessageManager (QObject* parent = 0);
 	void addLine (str line);
-	c_it begin() const;
-	c_it end() const;
-	
-	MessageManager& operator<< (str line);
+	const List<Line>& getLines() const;
 	
 private:
 	List<Line> m_lines;

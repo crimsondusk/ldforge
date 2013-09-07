@@ -27,6 +27,8 @@
 #include <QGridLayout>
 #include <QProgressBar>
 #include <QCheckBox>
+#include <QDesktopServices>
+#include <QUrl>
 
 #include "dialogs.h"
 #include "widgets.h"
@@ -38,10 +40,14 @@
 #include "ui_overlay.h"
 #include "ui_ldrawpath.h"
 #include "ui_openprogress.h"
+#include "ui_extprogpath.h"
+#include "ui_about.h"
 
-extern_cfg (str, io_ldpath);
+extern const char* g_extProgPathFilter;
+extern_cfg (String, io_ldpath);
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	ui = new Ui_OverlayUI;
 	ui->setupUi (this);
@@ -69,10 +75,14 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 	fillDefaults (cam);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 OverlayDialog::~OverlayDialog() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OverlayDialog::fillDefaults (int newcam) {
 	overlayMeta& info = g_win->R()->getOverlay (newcam);
 	radioDefault<int> (newcam, m_cameraArgs);
@@ -92,6 +102,8 @@ void OverlayDialog::fillDefaults (int newcam) {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 str OverlayDialog::fpath() const {
 	return ui->filename->text();
 }
@@ -129,11 +141,12 @@ void OverlayDialog::slot_dimensionsChanged() {
 	ui->buttonBox->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
-// =================================================================================================
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
-	m_validDefault (validDefault) {
-	
+	m_validDefault (validDefault)
+{
 	ui = new Ui_LDPathUI;
 	ui->setupUi (this);
 	ui->status->setText ("---");
@@ -158,6 +171,8 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 		slot_tryConfigure();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDrawPathDialog::~LDrawPathDialog() {
 	delete ui;
 }
@@ -178,6 +193,8 @@ str LDrawPathDialog::filename() const {
 	return ui->path->text();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_findPath() {
 	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 	
@@ -187,29 +204,34 @@ void LDrawPathDialog::slot_findPath() {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_exit() {
 	exit (1);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_tryConfigure() {
 	if (LDPaths::tryConfigure (filename()) == false) {
 		ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
 		return;
 	}
-
+	
 	ui->status->setText ("<span style=\"color: #270; \">OK!</span>");
 	okButton()->setEnabled (true);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_accept() {
-	config::save();
+	Config::save();
 	accept();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f) {
 	ui = new Ui_OpenProgressUI;
 	ui->setupUi (this);
@@ -219,29 +241,96 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 	m_progress = 0;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 OpenProgressDialog::~OpenProgressDialog() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 READ_ACCESSOR (ulong, OpenProgressDialog::numLines) {
 	return m_numLines;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines) {
 	m_numLines = val;
 	ui->progressBar->setRange (0, numLines());
 	updateValues();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OpenProgressDialog::updateValues() {
 	ui->progressText->setText (fmt ("Parsing... %1 / %2", progress(), numLines()));
 	ui->progressBar->setValue (progress());
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void OpenProgressDialog::updateProgress (int progress) {
 	m_progress = progress;
 	updateValues();
 }
 
-#include "build/moc_dialogs.cpp"
-// kate: indent-mode cstyle; indent-width 4; replace-tabs off; tab-width 4; 
+// =============================================================================
+// -----------------------------------------------------------------------------
+ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f),
+	ui (new Ui_ExtProgPath)
+{
+	ui->setupUi (this);
+	
+	str labelText = ui->m_label->text();
+	labelText.replace ("<PROGRAM>", progName);
+	ui->m_label->setText (labelText);
+	
+	connect (ui->m_findPath, SIGNAL (clicked (bool)), this, SLOT (findPath()));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+ExtProgPathPrompt::~ExtProgPathPrompt() {
+	delete ui;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void ExtProgPathPrompt::findPath() {
+	str path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
+	
+	if (!path.isEmpty())
+		ui->m_path->setText (path);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+str ExtProgPathPrompt::getPath() const {
+	return ui->m_path->text();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
+	QDialog (parent, f)
+{
+	Ui::AboutUI ui;
+	ui.setupUi (this);
+	ui.versionInfo->setText (fmt (tr ("LDForge %1"), fullVersionString()));
+	
+	QPushButton* mailButton = new QPushButton;
+	mailButton->setText ("Contact");
+	mailButton->setIcon (getIcon ("mail"));
+	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
+	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
+	
+	setWindowTitle ("About " APPNAME);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void AboutDialog::slot_mail() {
+	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <slatenails64@gmail.com>?subject=LDForge"));
+}

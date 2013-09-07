@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -30,9 +30,9 @@ typedef QChar qchar;
 typedef QString str;
 template<class T> class ConstListReverser;
 template<class T> using c_rev = ConstListReverser<T>;
-class strconfig;
-class intconfig;
-class floatconfig;
+class StringConfig;
+class IntConfig;
+class FloatConfig;
 class QFile;
 class QTextStream;
 
@@ -279,6 +279,11 @@ private:
 	std::deque<T> m_vect;
 };
 
+template<class T> static inline T& operator>> (const T& a, List<T>& b) {
+	b.insert (0, a);
+	return b;
+}
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -370,9 +375,9 @@ public:
 	StringFormatArg (const vertex& v);
 	StringFormatArg (const matrix& v);
 	StringFormatArg (const char* v);
-	StringFormatArg (const strconfig& v);
-	StringFormatArg (const intconfig& v);
-	StringFormatArg (const floatconfig& v);
+	StringFormatArg (const StringConfig& v);
+	StringFormatArg (const IntConfig& v);
+	StringFormatArg (const FloatConfig& v);
 	StringFormatArg (const void* v);
 	
 	template<class T> StringFormatArg (const List<T>& v) {
@@ -509,6 +514,6 @@ extern File g_file_stderr;
 extern const vertex g_origin; // Vertex at (0, 0, 0)
 extern const matrix g_identity; // Identity matrix
 
-static const double pi = 3.14159265358979323846f;
+static const double pi = 3.14159265358979323846;
 
 #endif // TYPES_H

@@ -14,6 +14,9 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  colorSelectDialog.cpp: Color selector box.
  */
 
 #include <QGraphicsScene>
@@ -32,47 +35,43 @@
 static const int g_numColumns = 16;
 static const short g_squareSize = 32;
 
-extern_cfg (str, gl_maincolor);
-extern_cfg (float, gl_maincolor_alpha);
+extern_cfg (String, gl_maincolor);
+extern_cfg (Float, gl_maincolor_alpha);
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent) {
 	// Remove the default color if it's invalid
 	if (!::getColor (defval))
 		defval = -1;
-
+	
 	m_firstResize = true;
 	ui = new Ui_ColorSelUI;
 	ui->setupUi (this);
-
+	
 	m_scene = new QGraphicsScene;
 	ui->viewport->setScene (m_scene);
 	setSelection (::getColor (defval));
-
+	
 	// not really an icon but eh
 	m_scene->setBackgroundBrush (getIcon ("checkerboard"));
-
 	drawScene();
-
+	
 	int width = viewportWidth();
 	ui->viewport->setMinimumWidth (width);
 	ui->viewport->setMaximumWidth (width);
-
+	
 	drawColorInfo();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 ColorSelector::~ColorSelector() {
 	delete ui;
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void ColorSelector::drawScene() {
 	const int numCols = g_numColumns;
 	const int square = g_squareSize;
@@ -119,22 +118,19 @@ void ColorSelector::drawScene() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 int ColorSelector::numRows() const {
 	return (MAX_COLORS / g_numColumns);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 int ColorSelector::viewportWidth() const {
 	return g_numColumns * g_squareSize + 21;
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void ColorSelector::drawColorInfo() {
 	if (!sel()) {
 		ui->colorLabel->setText ("---");
@@ -145,8 +141,7 @@ void ColorSelector::drawColorInfo() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void ColorSelector::resizeEvent (QResizeEvent* ev) {
 	// If this is the first resize, check if we need to scroll down to see the
 	// currently selected color. We cannot do this in the constructor because the
@@ -167,8 +162,7 @@ void ColorSelector::resizeEvent (QResizeEvent* ev) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void ColorSelector::mousePressEvent (QMouseEvent* event) {
 	QPointF scenepos = ui->viewport->mapToScene (event->pos());
 	
@@ -187,8 +181,7 @@ void ColorSelector::mousePressEvent (QMouseEvent* event) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 bool ColorSelector::getColor (short& val, short int defval, QWidget* parent) {
 	ColorSelector dlg (defval, parent);
 	
@@ -199,5 +192,3 @@ bool ColorSelector::getColor (short& val, short int defval, QWidget* parent) {
 	
 	return false;
 }
-
-#include "build/moc_colorSelectDialog.cpp"

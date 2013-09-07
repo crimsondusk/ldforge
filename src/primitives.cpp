@@ -32,20 +32,28 @@ static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
 List<Primitive> g_primitives;
 
-static const str g_Other = QObject::tr ("Other");
+static const str g_Other = PrimitiveLister::tr ("Other");
+
+static const str g_radialNameRoots[] = {
+	"edge",
+	"cyli",
+	"disc",
+	"ndis",
+	"ring",
+	"con"
+};
 
 static void populateCategories();
 static void loadPrimitiveCatgories();
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void loadPrimitives() {
 	print ("Loading primitives...\n");
 	loadPrimitiveCatgories();
 	
 	// Try to load prims.cfg
-	File conf (config::filepath ("prims.cfg"), File::Read);
+	File conf (Config::filepath ("prims.cfg"), File::Read);
 	
 	if (!conf) {
 		// No prims.cfg, build it
@@ -69,8 +77,7 @@ void loadPrimitives() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 	QFileInfoList flist = dir.entryInfoList();
 	
@@ -86,8 +93,7 @@ static void recursiveGetFilenames (QDir dir, List<str>& fnames) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitiveLister::work() {
 	g_activePrimLister = this;
 	m_prims.clear();
@@ -118,13 +124,13 @@ void PrimitiveLister::work() {
 			info.title.remove (0, 1);  // remove 0
 			info.title = info.title.simplified();
 		}
-
+		
 		m_prims << info;
 		emit update (++i);
 	}
 	
 	// Save to a config file
-	File conf (config::filepath ("prims.cfg"), File::Write);
+	File conf (Config::filepath ("prims.cfg"), File::Write);
 	
 	for (Primitive & info : m_prims)
 		fprint (conf, "%1 %2\n", info.name, info.title);
@@ -140,8 +146,7 @@ void PrimitiveLister::work() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitiveLister::start() {
 	if (g_activePrimLister)
 		return;
@@ -157,6 +162,8 @@ void PrimitiveLister::start() {
 	listerThread->start();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 static PrimitiveCategory* findCategory (str name) {
 	for (PrimitiveCategory& cat : g_PrimitiveCategories)
 		if (cat.name() == name)
@@ -166,8 +173,7 @@ static PrimitiveCategory* findCategory (str name) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void populateCategories() {
 	for (PrimitiveCategory& cat : g_PrimitiveCategories)
 		cat.prims.clear();
@@ -180,7 +186,7 @@ static void populateCategories() {
 		cat.setName (g_Other);
 		unmatched = & (g_PrimitiveCategories << cat);
 	}
-
+	
 	for (Primitive& prim : g_primitives) {
 		bool matched = false;
 		prim.cat = null;
@@ -222,11 +228,10 @@ static void populateCategories() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static void loadPrimitiveCatgories() {
 	g_PrimitiveCategories.clear();
-	File f (config::dirpath() + "primregexps.cfg", File::Read);
+	File f (Config::dirpath() + "primregexps.cfg", File::Read);
 	
 	if (!f)
 		f.open (":/data/primitive-categories.cfg", File::Read);
@@ -278,20 +283,19 @@ static void loadPrimitiveCatgories() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 bool primitiveLoaderBusy() {
 	return g_primListerMutex;
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static double radialPoint (int i, int divs, double (*func) (double)) {
 	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) {
 	List<LDObject*> objs;
 	List<int> condLineSegs;
@@ -307,7 +311,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 			vertex v0 (x0, 0.0f, z0),
 				   v1 (x1, 0.0f, z1);
 			
-			LDLineObject* line = new LDLineObject;
+			LDLine* line = new LDLine;
 			line->setVertex (0, v0);
 			line->setVertex (1, v1);
 			line->setColor (edgecolor);
@@ -354,7 +358,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 					v2 (x2, y2, z2),
 					v3 (x3, y3, z3);
 				
-				LDQuadObject* quad = new LDQuadObject;
+				LDQuad* quad = new LDQuad;
 				quad->setColor (maincolor);
 				quad->setVertex (0, v0);
 				quad->setVertex (1, v1);
@@ -389,7 +393,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 				
 				// Disc negatives need to go the other way around, otherwise
 				// they'll end up upside-down.
-				LDTriangleObject* seg = new LDTriangleObject;
+				LDTriangle* seg = new LDTriangle;
 				seg->setColor (maincolor);
 				seg->setVertex (type == Disc ? 0 : 2, v0);
 				seg->setVertex (1, v1);
@@ -423,7 +427,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 			v0[Z] *= num;
 		}
 		
-		LDCondLineObject* line = new LDCondLineObject;
+		LDCndLine* line = new LDCndLine;
 		line->setColor (edgecolor);
 		line->setVertex (0, v0);
 		line->setVertex (1, v1);
@@ -436,8 +440,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num) 
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 static str primitiveTypeName (PrimitiveType type) {
 	// Not translated as primitives are in English.
 	return type == Circle   ? "Circle" :
@@ -447,18 +450,8 @@ static str primitiveTypeName (PrimitiveType type) {
 		type == Ring     ? "Ring" : "Cone";
 }
 
-static const str g_radialNameRoots[] = {
-	"edge",
-	"cyli",
-	"disc",
-	"ndis",
-	"ring",
-	"con"
-};
-
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 	short numer = segs,
 		  denom = divs;
@@ -489,8 +482,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void generatePrimitive() {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 	
@@ -532,20 +524,25 @@ void generatePrimitive() {
 	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
 	
-	*f << new LDCommentObject (descr);
-	*f << new LDCommentObject (fmt ("Name: %1", name));
-	*f << new LDCommentObject (fmt ("Author: LDForge"));
-	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : ""));
-	*f << new LDCommentObject (CALicense);
-	*f << new LDEmptyObject;
-	*f << new LDBFCObject (LDBFCObject::CertifyCCW);
-	*f << new LDEmptyObject;
-	*f << makePrimitive (type, segs, divs, num);
+	f->addObjects ({
+		new LDComment (descr),
+		new LDComment (fmt ("Name: %1", name)),
+		new LDComment (fmt ("Author: LDForge")),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
+		new LDComment (CALicense),
+		new LDEmpty,
+		new LDBFC (LDBFC::CertifyCCW),
+		new LDEmpty,
+	});
+	
+	f->addObjects (makePrimitive (type, segs, divs, num));
 	
 	g_win->save (f, false);
 	delete f;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f) {
 	
@@ -554,10 +551,14 @@ PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	connect (ui->cb_hires, SIGNAL (toggled(bool)), this, SLOT (hiResToggled (bool)));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 PrimitivePrompt::~PrimitivePrompt() {
 	delete ui;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PrimitivePrompt::hiResToggled (bool on) {
 	ui->sb_segs->setMaximum (on ? hires : lores);
 	
@@ -566,5 +567,3 @@ void PrimitivePrompt::hiResToggled (bool on) {
 	if (on && ui->sb_segs->value() == lores)
 		ui->sb_segs->setValue (hires);
 }
-
-#include "build/moc_primitives.cpp"

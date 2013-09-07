@@ -5,7 +5,8 @@
 #include "misc.h"
 #include "gldraw.h"
 
-cfg (bool, gl_blackedges, true);
+cfg (Bool, gl_blackedges, false);
+static List<short> g_warnedColors;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -89,9 +90,7 @@ void VertexCompiler::Array::write (const Vertex& f) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::Array::merge (
-	Array* other
-) {
+void VertexCompiler::Array::merge (Array* other) {
 	// Ensure there's room for both buffers
 	resizeToFit (writtenSize() + other->writtenSize());
 	
@@ -101,94 +100,69 @@ void VertexCompiler::Array::merge (
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-VertexCompiler::VertexCompiler() : m_file (null) {
-	for (int i = 0; i < NumArrays; ++i) {
-		m_mainArrays[i] = new Array;
-		m_changed[i] = false;
-	}
+VertexCompiler::VertexCompiler() :
+	m_file (null)
+{
+	memset (m_changed, 0xFF, sizeof m_changed);
 }
 
-// =============================================================================
-// -----------------------------------------------------------------------------
-VertexCompiler::~VertexCompiler() {
-	for (Array* array : m_mainArrays)
-		delete array;
-}
+VertexCompiler::~VertexCompiler() {}
 
 // =============================================================================
+// Note: we use the top level object's color but the draw object's vertices.
+// This is so that the index color is generated correctly - it has to reference
+// the top level object's ID. This is crucial for picking to work.
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileVertex (::vertex v, QColor col, Array* array) {
-	VertexCompiler::Vertex glvertex;
-	glvertex.x = v.x();
-	glvertex.y = -v.y();
-	glvertex.z = v.z();
-	glvertex.color =
-		(col.red()   & 0xFF) << 0x00 |
-		(col.green() & 0xFF) << 0x08 |
-		(col.blue()  & 0xFF) << 0x10 |
-		(col.alpha() & 0xFF) << 0x18;
-	
-	array->write (glvertex);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-// Note: we use the true object's color but the draw object's vertices. This is
-// so that the index color is generated correctly - it has to reference the true
-// object's ID. This is crucial for picking to work.
 void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
-	Array** arrays = m_objArrays[trueobj];
-	LDObject::Type objtype = drawobj->getType();
-	const bool isline = (objtype == LDObject::Line || objtype == LDObject::CondLine);
-	const int verts = isline ? 2 : drawobj->vertices();
+	List<CompiledTriangle>& data = m_objArrays[trueobj];
 	
 	QColor normalColor = getObjectColor (trueobj, Normal),
-		pickColor = getObjectColor (trueobj, PickColor);
+	       pickColor = getObjectColor (trueobj, PickColor);
 	
-	for (int i = 0; i < verts; ++i) {
-		compileVertex (drawobj->getVertex (i), normalColor, arrays[isline ? EdgeArray : MainArray]);
-		compileVertex (drawobj->getVertex (i), pickColor, arrays[isline ? EdgePickArray : PickArray]);
-	}
+	LDObject::Type type = drawobj->getType();
+	assert (type != LDObject::Subfile);
 	
-	// For non-lines, compile BFC data. Note that the front objects are what get
-	// reversed here! This is because we invert the Y axis, which inverts the
-	// entire part model, so we remedy that here.
-	if (!isline) {
-		QColor col = getObjectColor (trueobj, BFCBack);
-		for (int i = 0; i < verts; ++i)
-			compileVertex (drawobj->getVertex(i), col, arrays[BFCArray]);
+	List<LDObject*> objs;
+	if (type == LDObject::Quad) {
+		for (LDTriangle* t : static_cast<LDQuad*> (drawobj)->splitToTriangles())
+			objs << t;
+	} else
+		objs << drawobj;
+	
+	for (LDObject* obj : objs) {
+		const LDObject::Type objtype = obj->getType();
+		const bool isline = (objtype == LDObject::Line || objtype == LDObject::CndLine);
+		const int verts = isline ? 2 : obj->vertices();
 		
-		col = getObjectColor (trueobj, BFCFront);
-		for (int i = verts - 1; i >= 0; --i)
-			compileVertex (drawobj->getVertex(i), col, arrays[BFCArray]);
+		CompiledTriangle a;
+		a.rgb = normalColor.rgb();
+		a.pickrgb = pickColor.rgb();
+		a.numVerts = verts;
+		a.obj = trueobj;
+		
+		for (int i = 0; i < verts; ++i) {
+			a.verts[i] = obj->getVertex (i);
+			a.verts[i].y() = -a.verts[i].y();
+		}
+		
+		data << a;
 	}
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
-	if (m_objArrays.find (obj) == m_objArrays.end()) {
-		m_objArrays[obj] = new Array*[NumArrays];
-		
-		for (int i = 0; i < NumArrays; ++i)
-			m_objArrays[obj][i] = new Array;
-	} else {
-		for (int i = 0; i < NumArrays; ++i)
-			m_objArrays[obj][i]->clear();
-	}
-	
+	print ("compile %1 (%2)\n", obj->id(), topobj->id());
 	List<LDObject*> objs;
 	
 	switch (obj->getType()) {
 	case LDObject::Triangle:
 		compilePolygon (obj, topobj);
-		m_changed[MainArray] = true;
 		break;
 	
 	case LDObject::Quad:
-		for (LDTriangleObject* triangle : static_cast<LDQuadObject*> (obj)->splitToTriangles())
+		for (LDTriangle* triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
 			compilePolygon (triangle, topobj);
-		m_changed[MainArray] = true;
 		break;
 	
 	case LDObject::Line:
@@ -196,7 +170,7 @@ void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
 		break;
 	
 	case LDObject::Subfile:
-		objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, true);
+		objs = static_cast<LDSubfile*> (obj)->inlineContents (LDSubfile::RendererInline | LDSubfile::DeepCacheInline);
 		
 		for (LDObject* obj : objs) {
 			compileObject (obj, topobj);
@@ -207,22 +181,21 @@ void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
 	default:
 		break;
 	}
+	
+	// Set all of m_changed to true
+	memset (m_changed, 0xFF, sizeof m_changed);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compileFile() {
-	for (LDObject* obj : *m_file)
+	for (LDObject* obj : m_file->objects())
 		compileObject (obj, obj);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::forgetObject (LDObject* obj) {
-	for (int i = 0; i < NumArrays; ++i)
-		delete m_objArrays[obj][i];
-	
-	delete m_objArrays[obj];
 	m_objArrays.remove (obj);
 }
 
@@ -234,27 +207,111 @@ void VertexCompiler::setFile (LDFile* file) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
+const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 	assert (type < NumArrays);
 	
-	if (m_changed) {
+	if (m_changed[type]) {
 		m_changed[type] = false;
-		m_mainArrays[type]->clear();
+		m_mainArrays[type].clear();
 		
-		for (LDObject* obj : *m_file) {
+		print ("merge array %1\n", (int) type);
+		
+		for (LDObject* obj : m_file->objects()) {
+			if (!obj->isScemantic())
+				continue;
+			
+			const LDObject::Type objtype = obj->getType();
+			const bool isline = (objtype == LDObject::Line || objtype == LDObject::CndLine);
+			const bool islinearray = (type == EdgeArray || type == EdgePickArray);
+			
+			if ((isline && !islinearray) || (!isline && islinearray))
+				continue;
+			
 			auto it = m_objArrays.find (obj);
 			
-			if (it != m_objArrays.end())
-				m_mainArrays[type]->merge ((*it)[type]);
+			if (it != m_objArrays.end()) {
+				const List<CompiledTriangle>& data = *it;
+				
+				for (const CompiledTriangle& i : data) {
+					Array* verts = postprocess (i, type);
+					m_mainArrays[type].merge (verts);
+					delete verts;
+				}
+			}
 		}
+		
+		print ("merged array: %1 bytes\n", m_mainArrays[type].writtenSize());
 	}
 	
-	return m_mainArrays[type];
+	return &m_mainArrays[type];
+}
+
+// =============================================================================
+// This turns a compiled triangle into usable VAO vertices
+// -----------------------------------------------------------------------------
+VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& triangle, ArrayType type) {
+	Array* va = new Array;
+	List<Vertex> verts;
+	
+	for (int i = 0; i < triangle.numVerts; ++i) {
+		alias v0 = triangle.verts[i];
+		Vertex v;
+		v.x = v0.x();
+		v.y = v0.y();
+		v.z = v0.z();
+		
+		switch (type) {
+		case MainArray:
+		case EdgeArray:
+			v.color = triangle.rgb;
+			break;
+		
+		case PickArray:
+		case EdgePickArray:
+			v.color = triangle.pickrgb;
+		
+		case BFCArray:
+			break;
+		
+		case NumArrays:
+			assert (false);
+		}
+		
+		verts << v;
+	}
+	
+	if (type == BFCArray) {
+		int32 rgb = getObjectColor (triangle.obj, BFCFront).rgb();
+		for (Vertex v : verts) {
+			v.color = rgb;
+			va->write (v);
+		}
+		
+		rgb = getObjectColor (triangle.obj, BFCBack).rgb();
+		for (Vertex v : c_rev<Vertex> (verts)) {
+			v.color = rgb;
+			va->write (v);
+		}
+	} else {
+		for (Vertex v : verts)
+			va->write (v);
+	}
+	
+	return va;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static List<short> g_warnedColors;
+uint32 VertexCompiler::getColorRGB (QColor& color) {
+	return
+		(color.red()   & 0xFF) << 0x00 |
+		(color.green() & 0xFF) << 0x08 |
+		(color.blue()  & 0xFF) << 0x10 |
+		(color.alpha() & 0xFF) << 0x18;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const {
 	QColor qcol;
 	
@@ -280,7 +337,7 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const 
 	
 	if ((colotype == BFCFront || colotype == BFCBack) &&
 		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine) {
+		obj->getType() != LDObject::CndLine) {
 		
 		if (colotype == BFCFront)
 			qcol = QColor (40, 192, 0);

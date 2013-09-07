@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -46,7 +46,7 @@ class Ui_LDForgeUI;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define DEFINE_ACTION(NAME, DEFSHORTCUT) \
-	cfg (keyseq, key_##NAME, DEFSHORTCUT); \
+	cfg (KeySequence, key_##NAME, DEFSHORTCUT); \
 	void actiondef_##NAME()
 
 #define ACTION(N) g_win->action##N()
@@ -58,10 +58,15 @@ class Ui_LDForgeUI;
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
 
 // =============================================================================
-struct LDQuickColor {
-	LDColor* col;
-	QToolButton* btn;
-	bool isSeparator;
+class LDQuickColor {
+	PROPERTY (LDColor*, color, setColor)
+	PROPERTY (QToolButton*, toolButton, setToolButton)
+	
+public:
+	LDQuickColor (LDColor* color, QToolButton* toolButton);
+	bool isSeparator() const;
+	
+	static LDQuickColor getSeparator();
 };
 
 // =============================================================================

@@ -14,6 +14,11 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  colors.cpp: LDraw color management. LDConfig.ldr parsing is not here!
+ *  TODO: Make LDColor more full-fledged, add support for direct colors.
+ *  TODO: g_LDColors should probably be a map.
  */
 
 #include "common.h"
@@ -26,20 +31,23 @@
 
 static LDColor* g_LDColors[MAX_COLORS];
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void initColors() {
 	LDColor* col;
 	print ("%1: initializing color information.\n", __func__);
 	
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new LDColor;
+	col->faceColor =
 	col->hexcode = "#AAAAAA";
-	col->faceColor = col->hexcode;
 	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
 	
 	col = new LDColor;
+	col->faceColor =
+	col->edgeColor =
 	col->hexcode = "#000000";
-	col->edgeColor = col->faceColor = Qt::black;
 	g_LDColors[edgecolor] = col;
 	
 	parseLDConfig();
@@ -65,7 +73,8 @@ void setColor (short colnum, LDColor* col) {
 }
 
 // =============================================================================
-uchar luma (QColor& col) {
+// -----------------------------------------------------------------------------
+int luma (QColor& col) {
 	return (0.2126f * col.red()) +
 	       (0.7152f * col.green()) +
 	       (0.0722f * col.blue());

@@ -14,14 +14,17 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  file.cpp: File I/O and management.
+ *  - File loading, parsing, manipulation, saving, closing.
+ *  - LDraw path verification.
  */
 
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
 #include <QApplication>
-
-#include <stdlib.h>
 #include "common.h"
 #include "config.h"
 #include "file.h"
@@ -31,19 +34,23 @@
 #include "dialogs.h"
 #include "gldraw.h"
 
-cfg (str, io_ldpath, "");
-cfg (str, io_recentfiles, "");
-extern_cfg (str, net_downloadpath);
+cfg (String, io_ldpath, "");
+cfg (List, io_recentfiles, {});
+extern_cfg (String, net_downloadpath);
+extern_cfg (Bool, gl_logostuds);
 
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
 static bool g_aborted = false;
+static LDFile* g_logoedStud = null;
+static LDFile* g_logoedStud2 = null;
 
 LDFile* LDFile::m_curfile = null;
 
 DEFINE_PROPERTY (QListWidgetItem*, LDFile, listItem, setListItem)
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 namespace LDPaths {
 	static str pathError;
 	
@@ -94,6 +101,7 @@ namespace LDPaths {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 LDFile::LDFile() {
 	setImplicit (true);
 	setSavePos (-1);
@@ -102,13 +110,14 @@ LDFile::LDFile() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 LDFile::~LDFile() {
 	// Clear everything from the model
-	for (LDObject* obj : m_objs)
+	for (LDObject* obj : objects())
 		delete obj;
 	
 	// Clear the cache as well
-	for (LDObject* obj : m_cache)
+	for (LDObject* obj : cache())
 		delete obj;
 	
 	// Remove this file from the list of files
@@ -123,25 +132,33 @@ LDFile::~LDFile() {
 	// file as something else.
 	if (this == LDFile::current()) {
 		// If we closed the last file, create a blank one.
-		if (g_loadedFiles.size() == 0)
+		if (countExplicitFiles() == 0)
 			newFile();
-		else
-			LDFile::setCurrent (g_loadedFiles[0]);
+		else {
+			// Find the first explicit file loaded
+			int idx = 0;
+			while (g_loadedFiles[idx]->implicit())
+				idx++;
+			
+			LDFile::setCurrent (g_loadedFiles[idx]);
+		}
 	}
 	
 	g_win->updateFileList();
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 LDFile* findLoadedFile (str name) {
 	for (LDFile* file : g_loadedFiles)
-		if (file->name() == name)
+		if (!file->name().isEmpty() && file->getShortName() == name)
 			return file;
 	
 	return null;
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 str dirname (str path) {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 	
@@ -157,6 +174,7 @@ str dirname (str path) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 str basename (str path) {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 	
@@ -167,6 +185,7 @@ str basename (str path) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 File* openLDrawFile (str relpath, bool subdirs) {
 	print ("%1: Try to open %2\n", __func__, relpath);
 	File* f = new File;
@@ -213,8 +232,7 @@ File* openLDrawFile (str relpath, bool subdirs) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void FileLoader::start() {
 	setDone (false);
 	setProgress (0);
@@ -223,10 +241,10 @@ void FileLoader::start() {
 	if (concurrent()) {
 		g_aborted = false;
 		
-		// Show a progress dialog if we're loading the main file here and move
-		// the actual work to a separate thread as this can be a rather intensive
-		// operation and if we don't respond quickly enough, the program can be
-		// deemed inresponsive.. which is a bad thing.
+		// Show a progress dialog if we're loading the main file here so we can
+		// show progress updates and keep the WM posted that we're still here.
+		// Of course we cannot exec() the dialog because then the dialog would
+		// block.
 		dlg = new OpenProgressDialog (g_win);
 		dlg->setNumLines (lines().size());
 		dlg->setModal (true);
@@ -238,12 +256,15 @@ void FileLoader::start() {
 	} else
 		dlg = null;
 	
+	// Begin working
 	work (0);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void FileLoader::work (int i) {
+	// User wishes to abort, so stop here now.
 	if (aborted()) {
-		// We were flagged for abortion, so abort.
 		for (LDObject* obj : m_objs)
 			delete obj;
 		
@@ -252,6 +273,7 @@ void FileLoader::work (int i) {
 		return;
 	}
 	
+	// Parse up to 300 lines per iteration
 	int max = i + 300;
 	
 	for (; i < max && i < (int) lines().size(); ++i) {
@@ -267,7 +289,7 @@ void FileLoader::work (int i) {
 		
 		// Check for parse errors and warn about tthem
 		if (obj->getType() == LDObject::Error) {
-			log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDErrorObject*> (obj)->reason);
+			log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDError*> (obj)->reason);
 			
 			if (m_warningsPointer)
 				(*m_warningsPointer)++;
@@ -276,24 +298,39 @@ void FileLoader::work (int i) {
 		m_objs << obj;
 		setProgress (i);
 		
+		// If we have a dialog pointer, update the progress now
 		if (concurrent())
 			dlg->updateProgress (i);
 	}
 	
+	// If we're done now, tell the environment we're done and stop.
 	if (i >= ((int) lines().size()) - 1) {
 		emit workDone();
 		setDone (true);
 		return;
 	}
 	
+	// Otherwise, continue, by recursing back.
 	if (!done()) {
+		// If we have a dialog to show progress output to, we cannot just call
+		// work() again immediately as the dialog needs some processor cycles as
+		// well. Thus, take a detour through the event loop by using the
+		// meta-object system.
+		//
+		// This terminates the loop here and control goes back to the function
+		// which called the file loader. It will keep processing the event loop
+		// until we're ready (see loadFileContents), thus the event loop will
+		// eventually catch the invokation we throw here and send us back. Though
+		// it's not technically recursion anymore, more like a for loop. :P
 		if (concurrent())
-			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (ulong, i + 1));
+			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (int, i + 1));
 		else
 			work (i + 1);
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void FileLoader::abort() {
 	setAborted (true);
 	
@@ -302,8 +339,7 @@ void FileLoader::abort() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	List<str> lines;
 	List<LDObject*> objs;
@@ -323,6 +359,10 @@ List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 	loader->setConcurrent (g_loadingMainFile);
 	loader->start();
 	
+	// After start() returns, if the loader isn't done yet, it's delaying
+	// its next iteration through the event loop. We need to catch this here
+	// by telling the event loop to tick, which will tick the file loader again.
+	// We keep doing this until the file loader is ready.
 	while (loader->done() == false)
 		qApp->processEvents();
 	
@@ -335,8 +375,7 @@ List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 LDFile* openDATFile (str path, bool search) {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
@@ -383,8 +422,7 @@ LDFile* openDATFile (str path, bool search) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 bool LDFile::safeToClose() {
 	typedef QMessageBox msgbox;
 	setlocale (LC_ALL, "C");
@@ -433,8 +471,7 @@ bool LDFile::safeToClose() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void closeAll() {
 	// Remove all loaded files and the objects they contain
 	List<LDFile*> files = g_loadedFiles;
@@ -443,8 +480,7 @@ void closeAll() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void newFile() {
 	// Create a new anonymous file and set it to our current
 	LDFile* f = new LDFile;
@@ -462,10 +498,9 @@ void newFile() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void addRecentFile (str path) {
-	QStringList rfiles = io_recentfiles.value.split ('@');
+	alias rfiles = io_recentfiles.value;
 	int idx = rfiles.indexOf (path);
 	
 	// If this file already is in the list, pop it out.
@@ -484,17 +519,13 @@ void addRecentFile (str path) {
 	// Add the file
 	rfiles << path;
 	
-	// Rebuild the config string
-	io_recentfiles = rfiles.join ("@");
-	
-	config::save();
+	Config::save();
 	g_win->updateRecentFilesMenu();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
 // Open an LDraw file and set it as the main model
-// =============================================================================
+// -----------------------------------------------------------------------------
 void openMainFile (str path) {
 	g_loadingMainFile = true;
 	LDFile* file = openDATFile (path, false);
@@ -530,8 +561,7 @@ void openMainFile (str path) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 bool LDFile::save (str savepath) {
 	if (!savepath.length())
 		savepath = name();
@@ -544,11 +574,11 @@ bool LDFile::save (str savepath) {
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open. If it's saved into a directory
 	// called "s" or "48", prepend that into the name.
-	LDCommentObject* fpathComment = null;
+	LDComment* fpathComment = null;
 	LDObject* first = object (1);
 	
 	if (!implicit() && first != null && first->getType() == LDObject::Comment) {
-		fpathComment = static_cast<LDCommentObject*> (first);
+		fpathComment = static_cast<LDComment*> (first);
 		
 		if (fpathComment->text.left (6) == "Name: ") {
 			str newname;
@@ -565,7 +595,7 @@ bool LDFile::save (str savepath) {
 	
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
-	for (LDObject* obj : objs())
+	for (LDObject* obj : objects())
 		f.write (obj->raw() + "\r\n");
 	
 	// File is saved, now clean up.
@@ -581,17 +611,18 @@ bool LDFile::save (str savepath) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 #define CHECK_TOKEN_COUNT(N) \
 	if (tokens.size() != N) \
-		return new LDErrorObject (line, "Bad amount of tokens");
+		return new LDError (line, "Bad amount of tokens");
 
 #define CHECK_TOKEN_NUMBERS(MIN, MAX) \
 	for (ushort i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
-			return new LDErrorObject (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
+			return new LDError (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 static vertex parseVertex (QStringList& s, const ushort n) {
 	vertex v;
 	
@@ -602,21 +633,20 @@ static vertex parseVertex (QStringList& s, const ushort n) {
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
 // This is the LDraw code parser function. It takes in a string containing LDraw
 // code and returns the object parsed from it. parseLine never returns null,
 // the object will be LDError if it could not be parsed properly.
-// =============================================================================
+// -----------------------------------------------------------------------------
 LDObject* parseLine (str line) {
 	QStringList tokens = line.split (" ", str::SkipEmptyParts);
 	
 	if (tokens.size() <= 0) {
 		// Line was empty, or only consisted of whitespace
-		return new LDEmptyObject;
+		return new LDEmpty;
 	}
 	
 	if (tokens[0].length() != 1 || tokens[0][0].isDigit() == false)
-		return new LDErrorObject (line, "Illogical line code");
+		return new LDError (line, "Illogical line code");
 	
 	int num = tokens[0][0].digitValue();
 	
@@ -631,25 +661,25 @@ LDObject* parseLine (str line) {
 		
 		// Handle BFC statements
 		if (tokens.size() > 2 && tokens[1] == "BFC") {
-			for (short i = 0; i < LDBFCObject::NumStatements; ++i)
-				if (comm == fmt ("BFC %1", LDBFCObject::statements [i]))
-					return new LDBFCObject ((LDBFCObject::Type) i);
+			for (short i = 0; i < LDBFC::NumStatements; ++i)
+				if (comm == fmt ("BFC %1", LDBFC::statements [i]))
+					return new LDBFC ((LDBFC::Type) i);
 			
 			// MLCAD is notorious for stuffing these statements in parts it
 			// creates. The above block only handles valid statements, so we
 			// need to handle MLCAD-style invertnext, clip and noclip separately.
 			struct {
 				const char* a;
-				LDBFCObject::Type b;
+				LDBFC::Type b;
 			} BFCData[] = {
-				{ "INVERTNEXT", LDBFCObject::InvertNext },
-				{ "NOCLIP", LDBFCObject::NoClip },
-				{ "CLIP", LDBFCObject::Clip }
+				{ "INVERTNEXT", LDBFC::InvertNext },
+				{ "NOCLIP", LDBFC::NoClip },
+				{ "CLIP", LDBFC::Clip }
 			};
 			
 			for (const auto& i : BFCData)
 				if (comm == fmt ("BFC CERTIFY %1", i.a))
-					return new LDBFCObject (i.b);
+					return new LDBFC (i.b);
 		}
 		
 		if (tokens.size() > 2 && tokens[1] == "!LDFORGE") {
@@ -659,7 +689,7 @@ LDObject* parseLine (str line) {
 				CHECK_TOKEN_COUNT (7)
 				CHECK_TOKEN_NUMBERS (3, 6)
 				
-				LDVertexObject* obj = new LDVertexObject;
+				LDVertex* obj = new LDVertex;
 				obj->setColor (tokens[3].toLong());
 				
 				for (const Axis ax : g_Axes)
@@ -670,7 +700,7 @@ LDObject* parseLine (str line) {
 				CHECK_TOKEN_COUNT (9);
 				CHECK_TOKEN_NUMBERS (5, 8)
 				
-				LDOverlayObject* obj = new LDOverlayObject;
+				LDOverlay* obj = new LDOverlay;
 				obj->setFilename (tokens[3]);
 				obj->setCamera (tokens[4].toLong());
 				obj->setX (tokens[5].toLong());
@@ -682,7 +712,7 @@ LDObject* parseLine (str line) {
 		}
 		
 		// Just a regular comment:
-		LDCommentObject* obj = new LDCommentObject;
+		LDComment* obj = new LDComment;
 		obj->text = comm;
 		return obj;
 	}
@@ -701,12 +731,12 @@ LDObject* parseLine (str line) {
 		
 		// If we cannot open the file, mark it an error
 		if (!load) {
-			LDErrorObject* obj = new LDErrorObject (line, fmt ("Could not open %1", tokens[14]));
+			LDError* obj = new LDError (line, fmt ("Could not open %1", tokens[14]));
 			obj->setFileRef (tokens[14]);
 			return obj;
 		}
 		
-		LDSubfileObject* obj = new LDSubfileObject;
+		LDSubfile* obj = new LDSubfile;
 		obj->setColor (tokens[1].toLong());
 		obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
 		
@@ -725,7 +755,7 @@ LDObject* parseLine (str line) {
 		CHECK_TOKEN_NUMBERS (1, 7)
 		
 		// Line
-		LDLineObject* obj = new LDLineObject;
+		LDLine* obj = new LDLine;
 		obj->setColor (tokens[1].toLong());
 		
 		for (short i = 0; i < 2; ++i)
@@ -739,7 +769,7 @@ LDObject* parseLine (str line) {
 		CHECK_TOKEN_NUMBERS (1, 10)
 		
 		// Triangle
-		LDTriangleObject* obj = new LDTriangleObject;
+		LDTriangle* obj = new LDTriangle;
 		obj->setColor (tokens[1].toLong());
 		
 		for (short i = 0; i < 3; ++i)
@@ -757,9 +787,9 @@ LDObject* parseLine (str line) {
 		LDObject* obj;
 		
 		if (num == 4)
-			obj = new LDQuadObject;
+			obj = new LDQuad;
 		else
-			obj = new LDCondLineObject;
+			obj = new LDCndLine;
 		
 		obj->setColor (tokens[1].toLong());
 		
@@ -770,13 +800,12 @@ LDObject* parseLine (str line) {
 	}
 	
 	default: // Strange line we couldn't parse
-		return new LDErrorObject (line, "Unknown line code number");
+		return new LDError (line, "Unknown line code number");
 	}
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 LDFile* getFile (str filename) {
 	// Try find the file in the list of loaded files
 	LDFile* load = findLoadedFile (filename);
@@ -789,8 +818,7 @@ LDFile* getFile (str filename) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void reloadAllSubfiles() {
 	if (!LDFile::current())
 		return;
@@ -799,21 +827,21 @@ void reloadAllSubfiles() {
 	g_loadedFiles << LDFile::current();
 	
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->getType() == LDObject::Subfile) {
-			LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDFile* fileInfo = getFile (ref->fileInfo()->name());
 			
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDErrorObject (ref->raw(), "Could not open referred file"));
+				ref->replace (new LDError (ref->raw(), "Could not open referred file"));
 		}
 		
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
 		if (obj->getType() == LDObject::Error)
-			obj->replace (parseLine (static_cast<LDErrorObject*> (obj)->contents));
+			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
 	}
 	
 	// Close all files left unused
@@ -821,11 +849,10 @@ void reloadAllSubfiles() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 ulong LDFile::addObject (LDObject* obj) {
-	m_history.add (new AddHistory (m_objs.size(), obj));
-	m_objs << obj;
+	m_history.add (new AddHistory (objects().size(), obj));
+	m_objects << obj;
 	
 	if (obj->getType() == LDObject::Vertex)
 		m_vertices << obj;
@@ -835,25 +862,32 @@ ulong LDFile::addObject (LDObject* obj) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// -----------------------------------------------------------------------------
+void LDFile::addObjects (const List<LDObject*> objs) {
+	for (LDObject* obj : objs)
+		if (obj)
+			addObject (obj);
+}
+
 // =============================================================================
+// -----------------------------------------------------------------------------
 void LDFile::insertObj (const ulong pos, LDObject* obj) {
 	m_history.add (new AddHistory (pos, obj));
-	m_objs.insert (pos, obj);
+	m_objects.insert (pos, obj);
 	obj->setFile (this);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 void LDFile::forgetObject (LDObject* obj) {
 	ulong idx = obj->getIndex();
 	m_history.add (new DelHistory (idx, obj));
-	m_objs.erase (idx);
+	m_objects.erase (idx);
 	obj->setFile (null);
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 bool safeToCloseAll() {
 	for (LDFile* f : g_loadedFiles)
 		if (!f->safeToClose())
@@ -863,6 +897,7 @@ bool safeToCloseAll() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void LDFile::setObject (ulong idx, LDObject* obj) {
 	assert (idx < numObjs());
 	
@@ -872,17 +907,19 @@ void LDFile::setObject (ulong idx, LDObject* obj) {
 	m_history << new EditHistory (idx, oldcode, newcode);
 	
 	obj->setFile (this);
-	m_objs[idx] = obj;
+	m_objects[idx] = obj;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 static List<LDFile*> getFilesUsed (LDFile* node) {
 	List<LDFile*> filesUsed;
 	
-	for (LDObject* obj : *node) {
+	for (LDObject* obj : node->objects()) {
 		if (obj->getType() != LDObject::Subfile)
 			continue;
 		
-		LDSubfileObject* ref = static_cast<LDSubfileObject*> (obj);
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		filesUsed << ref->fileInfo();
 		filesUsed << getFilesUsed (ref->fileInfo());
 	}
@@ -892,6 +929,7 @@ static List<LDFile*> getFilesUsed (LDFile* node) {
 
 // =============================================================================
 // Find out which files are unused and close them.
+// -----------------------------------------------------------------------------
 void LDFile::closeUnused() {
 	List<LDFile*> filesUsed = getFilesUsed (LDFile::current());
 	
@@ -922,32 +960,35 @@ void LDFile::closeUnused() {
 	g_loadedFiles << filesUsed;
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDObject* LDFile::object (ulong pos) const {
-	if (m_objs.size() <= pos)
+	if (m_objects.size() <= pos)
 		return null;
 	
-	return m_objs[pos];
+	return m_objects[pos];
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDObject* LDFile::obj (ulong pos) const {
 	return object (pos);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 ulong LDFile::numObjs() const {
-	return m_objs.size();
+	return objects().size();
 }
 
-LDFile& LDFile::operator<< (List<LDObject*> objs) {
-	for (LDObject* obj : objs)
-		addObject (obj);
-	
-	return *this;
-}
-
+// =============================================================================
+// -----------------------------------------------------------------------------
 bool LDFile::hasUnsavedChanges() const {
 	return !implicit() && history().pos() != savePos();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 str LDFile::getShortName() {
 	if (name().length() > 0)
 		return basename (name());
@@ -956,19 +997,83 @@ str LDFile::getShortName() {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
+List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags) {
+	// Possibly substitute with logoed studs:
+	// stud.dat -> stud-logo.dat
+	// stud2.dat -> stud-logo2.dat
+	if (gl_logostuds && (flags & LDSubfile::RendererInline)) {
+		if (name() == "stud.dat" && g_logoedStud)
+			return g_logoedStud->inlineContents (flags);
+		elif (name() == "stud2.dat" && g_logoedStud2)
+			return g_logoedStud2->inlineContents (flags);
+	}
+	
+	List<LDObject*> objs, objcache;
+	
+	bool deep = flags & LDSubfile::DeepInline,
+		doCache = flags & LDSubfile::CacheInline;
+	
+	// If we have this cached, just clone that
+	if (deep && cache().size()) {
+		for (LDObject* obj : cache())
+			objs << obj->clone();
+	} else {
+		if (!deep)
+			doCache = false;
+		
+		for (LDObject* obj : objects()) {
+			// Skip those without scemantic meaning
+			if (!obj->isScemantic())
+				continue;
+			
+			// Got another sub-file reference, inline it if we're deep-inlining. If not,
+			// just add it into the objects normally. Also, we only cache immediate
+			// subfiles and this is not one. Yay, recursion!
+			if (deep && obj->getType() == LDObject::Subfile) {
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				
+				// We only want to cache immediate subfiles, so shed the caching
+				// flag when recursing deeper in hierarchy.
+				List<LDObject*> otherobjs = ref->inlineContents (flags & ~(LDSubfile::CacheInline));
+				
+				for (LDObject* otherobj : otherobjs) {
+					// Cache this object, if desired
+					if (doCache)
+						objcache << otherobj->clone();
+					
+					objs << otherobj;
+				}
+			} else {
+				if (doCache)
+					objcache << obj->clone();
+				
+				objs << obj->clone();
+			}
+		}
+		
+		if (doCache)
+			setCache (objcache);
+	}
+	
+	return objs;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDFile* LDFile::current() {
 	return m_curfile;
 }
 
 // =============================================================================
-/* Sets the given file as the current one on display. At some point in time this
- * was an operation completely unheard of. ;)
- *
- * FIXME: f can be temporarily null. This probably should not be the case.
- */
+// Sets the given file as the current one on display. At some point in time this
+// was an operation completely unheard of. ;)
+//
+// FIXME: f can be temporarily null. This probably should not be the case.
+// -----------------------------------------------------------------------------
 void LDFile::setCurrent (LDFile* f) {
-	/* Implicit files were loaded for caching purposes and must never be set
-	 * current. */
+	// Implicit files were loaded for caching purposes and must never be set
+	// current.
 	if (f && f->implicit())
 		return;
 	
@@ -989,6 +1094,7 @@ void LDFile::setCurrent (LDFile* f) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 int LDFile::countExplicitFiles() {
 	int count = 0;
 	
@@ -1002,12 +1108,24 @@ int LDFile::countExplicitFiles() {
 // =============================================================================
 // This little beauty closes the initial file that was open at first when opening
 // a new file over it.
+// -----------------------------------------------------------------------------
 void LDFile::closeInitialFile() {
-	if (countExplicitFiles() == 2 &&
+	if (
+		countExplicitFiles() == 2 &&
 		g_loadedFiles[0]->name() == "" &&
-		!g_loadedFiles[0]->hasUnsavedChanges()) {
+		!g_loadedFiles[0]->hasUnsavedChanges()
+	)
 		delete g_loadedFiles[0];
-	}
 }
 
-#include "build/moc_file.cpp"
+// =============================================================================
+// -----------------------------------------------------------------------------
+void loadLogoedStuds() {
+	print ("Loading logoed studs...\n");
+	
+	delete g_logoedStud;
+	delete g_logoedStud2;
+	
+	g_logoedStud = openDATFile ("stud-logo.dat", true);
+	g_logoedStud2 = openDATFile ("stud2-logo.dat", true);
+}

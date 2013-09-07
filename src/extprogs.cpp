@@ -31,13 +31,13 @@
 #include "file.h"
 #include "widgets.h"
 #include "history.h"
-#include "labeledwidget.h"
 #include "ui_ytruder.h"
 #include "ui_intersector.h"
 #include "ui_rectifier.h"
 #include "ui_coverer.h"
 #include "ui_isecalc.h"
 #include "ui_edger2.h"
+#include "dialogs.h"
 
 enum extprog {
 	Isecalc,
@@ -49,22 +49,32 @@ enum extprog {
 };
 
 // =============================================================================
-cfg (str, prog_isecalc, "");
-cfg (str, prog_intersector, "");
-cfg (str, prog_coverer, "");
-cfg (str, prog_ytruder, "");
-cfg (str, prog_rectifier, "");
-cfg (str, prog_edger2, "");
+// -----------------------------------------------------------------------------
+cfg (String, prog_isecalc, "");
+cfg (String, prog_intersector, "");
+cfg (String, prog_coverer, "");
+cfg (String, prog_ytruder, "");
+cfg (String, prog_rectifier, "");
+cfg (String, prog_edger2, "");
+
+StringConfig* const g_extProgPaths[] = {
+	&prog_isecalc,
+	&prog_intersector,
+	&prog_coverer,
+	&prog_ytruder,
+	&prog_rectifier,
+	&prog_edger2,
+};
 
 #ifndef _WIN32
-cfg (bool, prog_isecalc_wine, false);
-cfg (bool, prog_intersector_wine, false);
-cfg (bool, prog_coverer_wine, false);
-cfg (bool, prog_ytruder_wine, false);
-cfg (bool, prog_rectifier_wine, false);
-cfg (bool, prog_edger2_wine, false);
+cfg (Bool, prog_isecalc_wine, false);
+cfg (Bool, prog_intersector_wine, false);
+cfg (Bool, prog_coverer_wine, false);
+cfg (Bool, prog_ytruder_wine, false);
+cfg (Bool, prog_rectifier_wine, false);
+cfg (Bool, prog_edger2_wine, false);
 
-boolconfig* const g_extProgWine[] = {
+BoolConfig* const g_extProgWine[] = {
 	&prog_isecalc_wine,
 	&prog_intersector_wine,
 	&prog_coverer_wine,
@@ -84,19 +94,24 @@ const char* g_extProgNames[] = {
 };
 
 // =============================================================================
-static bool checkProgPath (str path, const extprog prog) {
+// -----------------------------------------------------------------------------
+static bool checkProgPath (const extprog prog) {
+	alias path = g_extProgPaths[prog]->value;
+	
 	if (path.length() > 0)
 		return true;
 	
-	const char* name = g_extProgNames[prog];
+	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
+	if (dlg->exec() && !dlg->getPath().isEmpty()) {
+		path = dlg->getPath();
+		return true;
+	}
 	
-	critical (fmt (QObject::tr ("Couldn't run %1 as no path has "
-		"been defined for it. Use the configuration dialog's External Programs "
-		"tab to define a path for %1."), name));
 	return false;
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 static str processErrorString (QProcess& proc) {
 	switch (proc.error()) {
 	case QProcess::FailedToStart:
@@ -120,6 +135,7 @@ static str processErrorString (QProcess& proc) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 	if (!tmp.open())
 		return false;
@@ -130,10 +146,12 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void writeObjects (List<LDObject*>& objects, File& f) {
 	for (LDObject* obj : objects) {
 		if (obj->getType() == LDObject::Subfile) {
-			List<LDObject*> objs = static_cast<LDSubfileObject*> (obj)->inlineContents (true, false);
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
 			
 			writeObjects (objs, f);
 			
@@ -144,6 +162,8 @@ void writeObjects (List<LDObject*>& objects, File& f) {
 	}
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void writeObjects (List<LDObject*>& objects, str fname) {
 	// Write the input file
 	File f (fname, File::Write);
@@ -158,15 +178,17 @@ void writeObjects (List<LDObject*>& objects, str fname) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void writeSelection (str fname) {
 	writeObjects (g_win->sel(), fname);
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void writeColorGroup (const short colnum, str fname) {
 	List<LDObject*> objects;
 	
-	for (LDObject* obj : *LDFile::current()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 		
@@ -177,6 +199,7 @@ void writeColorGroup (const short colnum, str fname) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	QTemporaryFile input, output;
 	str inputname, outputname;
@@ -231,7 +254,8 @@ bool runUtilityProcess (extprog prog, str path, str argvstr) {
 	return true;
 }
 
-// ================================================================================================
+// =============================================================================
+// -----------------------------------------------------------------------------
 static void insertOutput (str fname, bool replace, List<short> colorsToReplace) {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
@@ -271,13 +295,12 @@ static void insertOutput (str fname, bool replace, List<short> colorsToReplace) 
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 // Interface for Ytruder
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Ytruder, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_ytruder, Ytruder))
+	if (!checkProgPath (Ytruder))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -327,13 +350,12 @@ DEFINE_ACTION (Ytruder, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
 // Rectifier interface
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Rectifier, 0){
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_rectifier, Rectifier))
+	if (!checkProgPath (Rectifier))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -370,20 +392,13 @@ DEFINE_ACTION (Rectifier, 0){
 	insertOutput (outDATName, true, {});
 }
 
-LabeledWidget<QComboBox>* buildColorSelector (const char* label) {
-	LabeledWidget<QComboBox>* widget = new LabeledWidget<QComboBox> (label, new QComboBox);
-	makeColorSelector (widget->w());
-	return widget;
-}
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // Intersector interface
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Intersector, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_intersector, Intersector))
+	if (!checkProgPath (Intersector))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -461,20 +476,20 @@ DEFINE_ACTION (Intersector, 0) {
 	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
 	
-	if (ui.cb_edges->isChecked() && runUtilityProcess (Isecalc, prog_isecalc,
-		join ({inDATName, cutDATName, edgesDATName})))
-	{
+	if (
+		ui.cb_edges->isChecked() &&
+		checkProgPath (Isecalc) &&
+		runUtilityProcess (Isecalc, prog_isecalc, join ({inDATName, cutDATName, edgesDATName}))
+	)
 		insertOutput (edgesDATName, false, {});
-	}
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Coverer, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_coverer, Coverer))
+	if (!checkProgPath (Coverer))
 		return;
 	
 	QDialog* dlg = new QDialog;
@@ -525,12 +540,11 @@ DEFINE_ACTION (Coverer, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Isecalc, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_isecalc, Isecalc))
+	if (!checkProgPath (Isecalc))
 		return;
 	
 	Ui::IsecalcUI ui;
@@ -577,12 +591,11 @@ DEFINE_ACTION (Isecalc, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Edger2, 0) {
 	setlocale (LC_ALL, "C");
 	
-	if (!checkProgPath (prog_edger2, Edger2))
+	if (!checkProgPath (Edger2))
 		return;
 	
 	QDialog* dlg = new QDialog;

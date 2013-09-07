@@ -23,6 +23,7 @@
 #include "common.h"
 #include "types.h"
 
+class Ui_ExtProgPath;
 class QRadioButton;
 class QCheckBox;
 class QProgressBar;
@@ -32,7 +33,7 @@ class QDoubleSpinBox;
 class QPushButton;
 class QLineEdit;
 class QSpinBox;
-class RadioBox;
+class RadioGroup;
 class QLabel;
 class QAbstractButton;
 class Ui_OverlayUI;
@@ -107,5 +108,31 @@ private:
 	void updateValues();
 };
 
+// =============================================================================
+class ExtProgPathPrompt : public QDialog {
+	Q_OBJECT
+	
+public:
+	explicit ExtProgPathPrompt (str progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
+	virtual ~ExtProgPathPrompt();
+	str getPath() const;
+	
+public slots:
+	void findPath();
+	
+private:
+	Ui_ExtProgPath* ui;
+};
+
+// =============================================================================
+class AboutDialog : public QDialog {
+	Q_OBJECT
+	
+public:
+	AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+	
+private slots:
+	void slot_mail();
+};
+
 #endif // DIALOGS_H
-// kate: indent-mode cstyle; indent-width 4; replace-tabs off; tab-width 4; 

@@ -24,6 +24,7 @@
 
 // =============================================================================
 // Helper function for parseLDConfig
+// -----------------------------------------------------------------------------
 static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val) {
 	short pos;
 	
@@ -36,13 +37,13 @@ static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 void parseLDConfig() {
 	File* f = openLDrawFile ("LDConfig.ldr", false);
 	
 	if (!f) {
 		critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing! (%1)"),
 			strerror (errno)));
-		delete f;
 		return;
 	}
 	
@@ -110,23 +111,25 @@ void parseLDConfig() {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 LDConfigParser::LDConfigParser (str inText, char sep) {
 	m_tokens = container_cast<QStringList, List<str>> (inText.split (sep, QString::SkipEmptyParts));
 	m_pos = -1;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::atBeginning() {
 	return (m_pos == -1);
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::atEnd() {
 	return (m_pos == (signed) m_tokens.size() - 1);
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::getToken (str& val, const ushort pos) {
 	if (pos >= m_tokens.size())
@@ -136,16 +139,19 @@ bool LDConfigParser::getToken (str& val, const ushort pos) {
 	return true;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::next (str& val) {
 	return getToken (val, ++m_pos);
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::peekNext (str& val) {
 	return getToken (val, m_pos + 1);
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::findToken (short& result, char const* needle, short args) {
 	for (ushort i = 0; i < (m_tokens.size() - args); ++i) {
@@ -158,21 +164,25 @@ bool LDConfigParser::findToken (short& result, char const* needle, short args) {
 	return false;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 void LDConfigParser::rewind() {
 	m_pos = -1;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 void LDConfigParser::seek (short amount, bool rel) {
 	m_pos = (rel ? m_pos : 0) + amount;
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 size_t LDConfigParser::size() {
 	return m_tokens.size();
 }
 
+// =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::tokenCompare (short inPos, const char* sOther) {
 	str tok;

@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  * (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -25,7 +25,7 @@
 
 class MessageManager;
 class QDialogButtonBox;
-class RadioBox;
+class RadioGroup;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
@@ -147,9 +147,10 @@ private:
 	void           clampAngle (double& angle) const;                       // Clamps an angle to [0, 360]
 	vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
-	LDOverlayObject* findOverlayObject (Camera cam);
+	LDOverlay*     findOverlayObject (Camera cam);
 	void           updateRectVerts();
 	void           pick (uint mouseX, uint mouseY);                        // Perform object selection
+	QColor         getTextPen() const;                                     // Determine which color to draw text with
 	
 private slots:
 	void           slot_toolTipTimer();

@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -29,7 +29,6 @@
 #include "history.h"
 #include "configDialog.h"
 #include "addObjectDialog.h"
-#include "aboutDialog.h"
 #include "misc.h"
 #include "gldraw.h"
 #include "dialogs.h"
@@ -37,56 +36,82 @@
 #include "ui_newpart.h"
 #include "widgets.h"
 
-extern_cfg (bool, gl_wireframe);
-extern_cfg (bool, gl_colorbfc);
+extern_cfg (Bool, gl_wireframe);
+extern_cfg (Bool, gl_colorbfc);
+extern_cfg (String, ld_defaultname);
+extern_cfg (String, ld_defaultuser);
+extern_cfg (Int, ld_defaultlicense);
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (New, CTRL_SHIFT (N)) {
 	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
+	
+	str authortext = ld_defaultname;
+	
+	if (!ld_defaultuser.value.isEmpty())
+		authortext.append (fmt (" [%1]", ld_defaultuser));
+	
+	ui.le_author->setText (authortext);
+	
+	switch (ld_defaultlicense) {
+	case 0:
+		ui.rb_license_ca->setChecked (true);
+		break;
+	
+	case 1:
+		ui.rb_license_nonca->setChecked (true);
+		break;
+	
+	case 2:
+		ui.rb_license_none->setChecked (true);
+		break;
+	
+	default:
+		QMessageBox::warning (null, "Warning",
+			fmt ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
+		break;
+	}
 	
 	if (dlg->exec() == false)
 		return;
 	
 	newFile();
 	
-	const LDBFCObject::Type BFCType =
-		ui.rb_bfc_ccw->isChecked() ? LDBFCObject::CertifyCCW :
-		ui.rb_bfc_cw->isChecked()  ? LDBFCObject::CertifyCW : LDBFCObject::NoCertify;
+	const LDBFC::Type BFCType =
+		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
+		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 	
 	const str license =
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 	
-	LDFile* f = LDFile::current();
-	*f << new LDCommentObject (ui.le_title->text());
-	*f << new LDCommentObject ("Name: <untitled>.dat" );
-	*f << new LDCommentObject (fmt ("Author: %1", ui.le_author->text()));
-	*f << new LDCommentObject (fmt ("!LDRAW_ORG Unofficial_Part"));
-	
-	if (license != "")
-		*f << new LDCommentObject (license);
-	
-	*f << new LDEmptyObject;
-	*f << new LDBFCObject (BFCType);
-	*f << new LDEmptyObject;
+	LDFile::current()->addObjects ({
+		new LDComment (ui.le_title->text()),
+		new LDComment ("Name: <untitled>.dat" ),
+		new LDComment (fmt ("Author: %1", ui.le_author->text())),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
+		(license != "" ?
+			new LDComment (license) :
+			null),
+		new LDEmpty,
+		new LDBFC (BFCType),
+		new LDEmpty,
+	});
 	
 	g_win->fullRefresh();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewFile, CTRL (N)) {
 	newFile();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Open, CTRL (O)) {
 	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 	
@@ -97,22 +122,19 @@ DEFINE_ACTION (Open, CTRL (O)) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Save, CTRL (S)) {
 	g_win->save (LDFile::current(), false);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S)) {
 	g_win->save (LDFile::current(), true);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAll, CTRL (L)) {
 	for (LDFile* file : g_loadedFiles) {
 		if (file->implicit())
@@ -123,8 +145,7 @@ DEFINE_ACTION (SaveAll, CTRL (L)) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Close, CTRL (W)) {
 	if (!LDFile::current()->safeToClose())
 		return;
@@ -133,8 +154,7 @@ DEFINE_ACTION (Close, CTRL (W)) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (CloseAll, 0) {
 	if (!safeToCloseAll())
 		return;
@@ -143,63 +163,79 @@ DEFINE_ACTION (CloseAll, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Settings, 0) {
-	ConfigDialog::staticDialog();
+	(new ConfigDialog)->exec();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SetLDrawPath, 0) {
-	LDrawPathDialog dlg (true);
-	dlg.exec();
+	(new LDrawPathDialog (true))->exec();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Exit, CTRL (Q)) {
 	exit (0);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewSubfile, 0) {
 	AddObjectDialog::staticDialog (LDObject::Subfile, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewLine, 0) {
 	AddObjectDialog::staticDialog (LDObject::Line, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewTriangle, 0) {
 	AddObjectDialog::staticDialog (LDObject::Triangle, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewQuad, 0) {
 	AddObjectDialog::staticDialog (LDObject::Quad, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewCLine, 0) {
-	AddObjectDialog::staticDialog (LDObject::CondLine, null);
+	AddObjectDialog::staticDialog (LDObject::CndLine, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewComment, 0) {
 	AddObjectDialog::staticDialog (LDObject::Comment, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewBFC, 0) {
 	AddObjectDialog::staticDialog (LDObject::BFC, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (NewVertex, 0) {
 	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (MakePrimitive, 0) {
 	generatePrimitive();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Edit, 0) {
 	if (g_win->sel().size() != 1)
 		return;
@@ -208,34 +244,37 @@ DEFINE_ACTION (Edit, 0) {
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Help, KEY (F1)) {
 	
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (About, 0) {
 	AboutDialog().exec();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (AboutQt, 0) {
 	QMessageBox::aboutQt (g_win);
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectAll, CTRL (A)) {
 	g_win->sel().clear();
 	
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		g_win->sel() << obj;
 	
 	g_win->updateSelection();
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 	short colnum = g_win->getSelectedColor();
 	
@@ -243,7 +282,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 		return; // no consensus on color
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDFile::current()->objs())
+	for (LDObject* obj : LDFile::current()->objects())
 		if (obj->color() == colnum)
 			g_win->sel() << obj;
 	
@@ -251,6 +290,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A)) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByType, 0) {
 	if (g_win->sel().size() == 0)
 		return;
@@ -265,19 +305,19 @@ DEFINE_ACTION (SelectByType, 0) {
 	str refName;
 	
 	if (type == LDObject::Subfile) {
-		refName = static_cast<LDSubfileObject*> (g_win->sel()[0])->fileInfo()->name();
+		refName = static_cast<LDSubfile*> (g_win->sel()[0])->fileInfo()->name();
 		
 		for (LDObject* obj : g_win->sel())
-			if (static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
+			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 	
 	g_win->sel().clear();
-	for (LDObject* obj : LDFile::current()->objs()) {
+	for (LDObject* obj : LDFile::current()->objects()) {
 		if (obj->getType() != type)
 			continue;
 		
-		if (type == LDObject::Subfile && static_cast<LDSubfileObject*> (obj)->fileInfo()->name() != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 			continue;
 		
 		g_win->sel() << obj;
@@ -287,8 +327,7 @@ DEFINE_ACTION (SelectByType, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (GridCoarse, 0) {
 	grid = Grid::Coarse;
 	g_win->updateGridToolBar();
@@ -305,16 +344,14 @@ DEFINE_ACTION (GridFine, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ResetView, CTRL (0)) {
 	g_win->R()->resetAngles();
 	g_win->R()->update();
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertFrom, 0) {
 	str fname = QFileDialog::getOpenFileName();
 	ulong idx = g_win->getInsertionPoint();
@@ -345,8 +382,7 @@ DEFINE_ACTION (InsertFrom, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ExportTo, 0) {
 	if (g_win->sel().size() == 0)
 		return;
@@ -370,8 +406,7 @@ DEFINE_ACTION (ExportTo, 0) {
 }
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertRaw, 0) {
 	ulong idx = g_win->getInsertionPoint();
 	
@@ -405,6 +440,8 @@ DEFINE_ACTION (InsertRaw, 0) {
 	g_win->scrollToSelection();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Screenshot, 0) {
 	setlocale (LC_ALL, "C");
 	
@@ -427,7 +464,8 @@ DEFINE_ACTION (Screenshot, 0) {
 }
 
 // =============================================================================
-extern_cfg (bool, gl_axes);
+// -----------------------------------------------------------------------------
+extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0) {
 	gl_axes = !gl_axes;
 	ACTION (Axes)->setChecked (gl_axes);
@@ -435,6 +473,7 @@ DEFINE_ACTION (Axes, 0) {
 }
 
 // =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Visibility, 0) {
 	for (LDObject* obj : g_win->sel())
 		obj->setHidden (!obj->hidden());
@@ -442,13 +481,16 @@ DEFINE_ACTION (Visibility, 0) {
 	g_win->refresh();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (Wireframe, 0) {
 	gl_wireframe = !gl_wireframe;
 	g_win->R()->refresh();
 }
 
-DEFINE_ACTION (SetOverlay,  0)
-{
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (SetOverlay,  0) {
 	OverlayDialog dlg;
 	
 	if (!dlg.exec())
@@ -458,18 +500,26 @@ DEFINE_ACTION (SetOverlay,  0)
 		dlg.ofsy(), dlg.lwidth(), dlg.lheight() );
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ClearOverlay, 0) {
 	g_win->R()->clearOverlay();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeSelect, CTRL (1)) {
 	g_win->R()->setEditMode (Select);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeDraw, CTRL (2)) {
 	g_win->R()->setEditMode (Draw);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (SetDrawDepth, 0) {
 	if (g_win->R()->camera() == GL::Free)
 		return;
@@ -527,12 +577,37 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0)) {
 }
 #endif
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (ScanPrimitives, 0) {
 	PrimitiveLister::start();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 DEFINE_ACTION (BFCView, SHIFT (B)) {
 	gl_colorbfc = !gl_colorbfc;
 	ACTION (BFCView)->setChecked (gl_colorbfc);
 	g_win->R()->refresh();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (JumpTo, CTRL (G)) {
+	bool ok;
+	int defval = 0;
+	LDObject* obj;
+	
+	if (g_win->sel().size() == 1)
+		defval = g_win->sel()[0]->getIndex();
+	
+	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
+		1, LDFile::current()->numObjs(), 1, &ok);
+	
+	if (!ok || (obj = LDFile::current()->object (idx - 1)) == null)
+		return;
+	
+	g_win->clearSelection();
+	g_win->sel() << obj;
+	g_win->updateSelection();
 }

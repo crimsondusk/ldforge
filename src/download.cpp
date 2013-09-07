@@ -1,17 +1,17 @@
 /*
  *  LDForge: LDraw parts authoring CAD
  *  Copyright (C) 2013 Santeri Piippo
- *  
+ *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
  *  the Free Software Foundation, either version 3 of the License, or
  *  (at your option) any later version.
- *  
+ *
  *  This program is distributed in the hope that it will be useful,
  *  but WITHOUT ANY WARRANTY; without even the implied warranty of
  *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  *  GNU General Public License for more details.
- *  
+ *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
@@ -26,13 +26,13 @@
 #include "ui_downloadfrom.h"
 #include "types.h"
 #include "gui.h"
-#include "build/moc_download.cpp"
 #include "file.h"
 #include "gldraw.h"
+#include "configDialog.h"
 
-cfg (str, net_downloadpath, "");
-cfg (bool, net_guesspaths, true);
-cfg (bool, net_autoclose, false);
+cfg (String, net_downloadpath, "");
+cfg (Bool, net_guesspaths, true);
+cfg (Bool, net_autoclose, false);
 
 constexpr const char* PartDownloader::k_OfficialURL,
 	*PartDownloader::k_UnofficialURL;
@@ -44,6 +44,8 @@ void PartDownloader::k_download() {
 	if (path == "" || QDir (path).exists() == false) {
 		critical (PartDownloader::tr ("You need to specify a valid path for "
 			"downloaded files in the configuration to download paths."));
+		
+		(new ConfigDialog (ConfigDialog::DownloadTab, null))->exec();
 		return;
 	}
 	
@@ -73,7 +75,7 @@ PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent) {
 	
 	m_downloadButton = new QPushButton (tr ("Download"));
 	ui->buttonBox->addButton (m_downloadButton, QDialogButtonBox::ActionRole);
-	ui->buttonBox->button (QDialogButtonBox::Abort)->setEnabled (false);
+	getButton (Abort)->setEnabled (false);
 	
 	connect (ui->source, SIGNAL (currentIndexChanged (int)), this, SLOT (sourceChanged (int)));
 	connect (ui->buttonBox, SIGNAL (clicked (QAbstractButton*)), this, SLOT (buttonClicked (QAbstractButton*)));
@@ -116,8 +118,8 @@ void PartDownloader::modifyDest (str& dest) const {
 	
 	// Ensure .dat extension
 	if (dest.right (4) != ".dat") {
-		// Remove the existing extension, if any. It may be we're here over a
-		// typo in the .dat extension.
+		/* Remove the existing extension, if any. It may be we're here over a
+		   typo in the .dat extension. */
 		const int dotpos = dest.lastIndexOf (".");
 		if (dotpos != -1 && dotpos >= dest.length() - 4)
 			dest.chop (dest.length() - dotpos);
@@ -125,8 +127,8 @@ void PartDownloader::modifyDest (str& dest) const {
 		dest += ".dat";
 	}
 	
-	// If the part starts with s\ or s/, then use parts/s/. Same goes with
-	// 48\ and p/48/.
+	/* If the part starts with s\ or s/, then use parts/s/. Same goes with
+	   48\ and p/48/. */
 	if (dest.left (2) == "s\\" || dest.left (2) == "s/") {
 		dest.remove (0, 2);
 		dest.prepend ("parts/s/");
@@ -136,31 +138,30 @@ void PartDownloader::modifyDest (str& dest) const {
 	}
 	
 	/* Try determine where to put this part. We have four directories:
-	 * parts/, parts/s/, p/, and p/48/. If we haven't already specified
-	 * either parts/ or p/, we need to add it automatically. Part files
-	 * are numbers which can be followed by:
-	 * - c** (composites)
-	 * - d** (formed stickers)
-	 * - a lowercase alphabetic letter for variants
-	 *
-	 * Subfiles have an s** prefix, in which case we use parts/s/. Note that
-	 * the regex starts with a '^' so it won't catch already fully given part
-	 * file names.
-	 */
-	{
-		str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
-		str subpartRegex = partRegex + "s[0-9][0-9]+";
-		
-		partRegex += "\\.dat$";
-		subpartRegex += "\\.dat$";
-		
-		if (QRegExp (subpartRegex).exactMatch (dest))
-			dest.prepend ("parts/s/");
-		elif (QRegExp (partRegex).exactMatch (dest))
-			dest.prepend ("parts/");
-		elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
-			dest.prepend ("p/");
-	}
+	   parts/, parts/s/, p/, and p/48/. If we haven't already specified
+	   either parts/ or p/, we need to add it automatically. Part files
+	   are numbers wit a possible u prefix for parts with unknown number
+	   which can be followed by any of:
+	   - c** (composites)
+	   - d** (formed stickers)
+	   - p** (patterns)
+	   - a lowercase alphabetic letter for variants
+	
+	   Subfiles (usually) have an s** prefix, in which case we use parts/s/.
+	   Note that the regex starts with a '^' so it won't catch already fully
+	   given part file names. */
+	str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
+	str subpartRegex = partRegex + "s[0-9][0-9]+";
+	
+	partRegex += "\\.dat$";
+	subpartRegex += "\\.dat$";
+	
+	if (QRegExp (subpartRegex).exactMatch (dest))
+		dest.prepend ("parts/s/");
+	elif (QRegExp (partRegex).exactMatch (dest))
+		dest.prepend ("parts/");
+	elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
+		dest.prepend ("p/");
 }
 
 // =============================================================================
@@ -178,6 +179,8 @@ void PartDownloader::sourceChanged (int i) {
 		ui->fileNameLabel->setText (tr ("File name:"));
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void PartDownloader::buttonClicked (QAbstractButton* btn) {
 	if (btn == getButton (Close)) {
 		reject();
@@ -196,7 +199,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn) {
 		
 		modifyDest (dest);
 		
-		if (QFile::exists (PartDownloader::getDownloadPath() + dest)) {
+		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest)) {
 			const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
 			
 			if (!confirm (tr ("Overwrite?"), overwritemsg))
@@ -224,7 +227,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary) {
 		return;
 	
 	modifyDest (dest);
-	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + dest);
+	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
 	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
 	
 	m_filesToDownload << dest;
@@ -260,7 +263,7 @@ void PartDownloader::checkIfFinished() {
 		g_win->fullRefresh();
 		g_win->R()->resetAngles();
 	}
-		
+	
 	if (net_autoclose && !failed) {
 		// Close automatically if desired.
 		accept();
@@ -298,7 +301,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	m_prompt (parent),
 	m_url (url),
 	m_dest (dest),
-	m_fpath (PartDownloader::getDownloadPath() + dest),
+	m_fpath (PartDownloader::getDownloadPath() + DIRSLASH + dest),
 	m_nam (new QNetworkAccessManager),
 	m_firstUpdate (true),
 	m_state (Requesting),
@@ -410,12 +413,9 @@ void PartDownloadRequest::downloadFinished() {
 	// from unknown file references, try resolve that by downloading the reference.
 	// This is why downloading a part may end up downloading multiple files, as
 	// it resolves dependencies.
-	for (LDObject* obj : *f) {
-		if (obj->getType() != LDObject::Error)
-			continue;
-		
-		LDErrorObject* err = static_cast<LDErrorObject*> (obj);
-		if (err->fileRef() == "")
+	for (LDObject* obj : f->objects()) {
+		LDError* err = dynamic_cast<LDError*> (obj);
+		if (!err || err->fileRef().isEmpty())
 			continue;
 		
 		str dest = err->fileRef();
@@ -423,8 +423,10 @@ void PartDownloadRequest::downloadFinished() {
 		m_prompt->downloadFile (dest, str (PartDownloader::k_UnofficialURL) + dest, false);
 	}
 	
-	if (m_primary)
+	if (m_primary) {
+		addRecentFile (m_fpath);
 		m_prompt->setPrimaryFile (f);
+	}
 	
 	m_prompt->checkIfFinished();
 }

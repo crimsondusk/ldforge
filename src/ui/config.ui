@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>513</width>
-    <height>377</height>
+    <width>561</width>
+    <height>351</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -24,7 +24,7 @@
       <enum>QTabWidget::North</enum>
      </property>
      <property name="currentIndex">
-      <number>5</number>
+      <number>0</number>
      </property>
      <property name="elideMode">
       <enum>Qt::ElideNone</enum>
@@ -40,7 +40,7 @@
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
-       <string>General</string>
+       <string>Interface</string>
       </attribute>
       <layout class="QVBoxLayout" name="verticalLayout_2">
        <item>
@@ -190,40 +190,157 @@
         </layout>
        </item>
        <item>
-        <widget class="QCheckBox" name="colorizeObjects">
-         <property name="whatsThis">
-          <string>Makes colored objects (non-16 and 24) appear colored in the list view. A red triangle will, for instance, have its entry written in red text. This can be useful to locate colored objects.</string>
-         </property>
-         <property name="text">
-          <string>Colorize objects in list view</string>
-         </property>
-        </widget>
+        <layout class="QHBoxLayout" name="horizontalLayout_8">
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_11">
+           <item>
+            <widget class="QCheckBox" name="blackEdges">
+             <property name="whatsThis">
+              <string>Makes all edgelines appear black. If this is not set, edge lines take their color as defined in LDConfig.ldr.</string>
+             </property>
+             <property name="text">
+              <string>Black edges</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="colorBFC">
+             <property name="whatsThis">
+              <string>Polygons' front sides become green and back sides red.</string>
+             </property>
+             <property name="text">
+              <string>Red/green BFC view (incomplete)</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="colorizeObjects">
+             <property name="whatsThis">
+              <string>Makes colored objects (non-16 and 24) appear colored in the list view. A red triangle will, for instance, have its entry written in red text. This can be useful to locate colored objects.</string>
+             </property>
+             <property name="text">
+              <string>Colorize objects in list view</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QCheckBox" name="implicitFiles">
+             <property name="text">
+              <string>List implicitly loaded files</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </item>
+         <item>
+          <layout class="QVBoxLayout" name="verticalLayout_12">
+           <item>
+            <widget class="QCheckBox" name="m_logostuds">
+             <property name="text">
+              <string>Use logoed studs</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <spacer name="verticalSpacer_6">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>40</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+          </layout>
+         </item>
+        </layout>
        </item>
+      </layout>
+     </widget>
+     <widget class="QWidget" name="tab_7">
+      <attribute name="title">
+       <string>Profile</string>
+      </attribute>
+      <layout class="QVBoxLayout" name="verticalLayout_10">
        <item>
-        <widget class="QCheckBox" name="colorBFC">
-         <property name="whatsThis">
-          <string>Polygons' front sides become green and back sides red.</string>
+        <widget class="QGroupBox" name="groupBox_4">
+         <property name="title">
+          <string>Profile</string>
          </property>
-         <property name="text">
-          <string>Red/green BFC view (incomplete)</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="blackEdges">
-         <property name="whatsThis">
-          <string>Makes all edgelines appear black. If this is not set, edge lines take their color as defined in LDConfig.ldr.</string>
-         </property>
-         <property name="text">
-          <string>Black edges</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QCheckBox" name="implicitFiles">
-         <property name="text">
-          <string>List implicitly loaded files</string>
-         </property>
+         <layout class="QVBoxLayout" name="verticalLayout_8">
+          <item>
+           <layout class="QFormLayout" name="formLayout_3">
+            <item row="2" column="0">
+             <widget class="QLabel" name="label_8">
+              <property name="text">
+               <string>Username:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="0">
+             <widget class="QLabel" name="label_7">
+              <property name="text">
+               <string>Name:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="3" column="0">
+             <widget class="QLabel" name="label_9">
+              <property name="text">
+               <string>License:</string>
+              </property>
+             </widget>
+            </item>
+            <item row="1" column="1">
+             <widget class="QLineEdit" name="m_profileName"/>
+            </item>
+            <item row="2" column="1">
+             <widget class="QLineEdit" name="m_profileUsername"/>
+            </item>
+            <item row="3" column="1">
+             <widget class="QComboBox" name="m_profileLicense">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <item>
+               <property name="text">
+                <string>CA - redistributable</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>NonCA - not redistributable</string>
+               </property>
+              </item>
+              <item>
+               <property name="text">
+                <string>None</string>
+               </property>
+              </item>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_7">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>
@@ -574,7 +691,7 @@ Under Linux, you can also set the programs to be launched with Wine, so you can 
       <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+      <set>QDialogButtonBox::Apply|QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
@@ -583,38 +700,5 @@ Under Linux, you can also set the programs to be launched with Wine, so you can 
  <resources>
   <include location="../../ldforge.qrc"/>
  </resources>
- <connections>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>accepted()</signal>
-   <receiver>ConfigUI</receiver>
-   <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>248</x>
-     <y>254</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>157</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>buttonBox</sender>
-   <signal>rejected()</signal>
-   <receiver>ConfigUI</receiver>
-   <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>316</x>
-     <y>260</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>286</x>
-     <y>274</y>
-    </hint>
-   </hints>
-  </connection>
- </connections>
+ <connections/>
 </ui>

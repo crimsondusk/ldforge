@@ -19,7 +19,7 @@
 #ifndef COLORS_H
 #define COLORS_H
 
-#include <qcolor.h>
+#include <QColor>
 #include "common.h"
 
 #define MAX_COLORS 512
@@ -32,7 +32,7 @@ public:
 };
 
 void initColors();
-uchar luma (QColor& col);
+int luma (QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
 LDColor* getColor (short colnum);

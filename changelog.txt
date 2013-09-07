@@ -6,17 +6,34 @@
 		- Added close, close all and save all actions.
 - Added ability to download parts from the Parts Tracker or from a custom-specified URL. If the resulting
 	file contains references to unknown files, LDForge attempts to recursively download all of them.
-- Color icon border now reflects the color's edge color.
-- Changing to draw mode while in free camera now causes the camera to be changed to top.
+- Converted the configuration code to use QSettings, in practice this means the configuration file moved to
+	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
+	lost during transition from version 0.2 and 0.3.
 - Corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
 	- Added support for multiple spaces before the ring number.
+- Changing to draw mode while in free camera now causes the camera to be changed to top.
+- Added config fields for default name/username/license. This data will be automatically filled
+	into forms that require such information.
+- Upon first start the configuration prompt pops up on its own, defaulting on the profile tab. This
+	way the user can fill in the profile data on the first start and get that out of the way (and
+	gives the opportunity to see the other config fields)
+- Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
+- Added new action "Go to line", default shortcut Ctrl-G. It should be obvious what it does.
+- Added support for logoed studs, this should satisfy Steffen. :p
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
+- When an external program is attempted to be used without a binary path defined, one will be asked
+	with an input dialog instead of being told to go to configuration to set the path.
+- When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
+	path now as well if necessary instead of just ignoring it and not adding the edgelines.
+- BFC red/green view and black edges no longer default to true.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
+- Color icon border now reflects the color's edge color.
+- Fixed: The message log was still written with black text with dark backgrounds.
 
 =================================================
 == Changes in version 0.2-alpha

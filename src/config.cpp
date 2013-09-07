@@ -14,6 +14,12 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *  =====================================================================
+ *
+ *  config.cpp: Configuration management. I don't like how unsafe QSettings
+ *  is so this implements a type-safer and idenitifer-safer wrapping system of
+ *  configuration variables. QSettings is used underlyingly, this is a matter
+ *  of interface.
  */
 
 #include <errno.h>
@@ -26,10 +32,13 @@
 #include "gui.h"
 #include "file.h"
 
-config* g_configPointers[MAX_CONFIG];
+Config* g_configPointers[MAX_CONFIG];
 static ushort g_cfgPointerCursor = 0;
 
 // =============================================================================
+// Get the QSettings object. A portable build refers to a file in the current
+// directory, a non-portable build to ~/.config/LDForge or to registry.
+// -----------------------------------------------------------------------------
 static QSettings* getSettingsObject() {
 #ifdef PORTABLE
 # ifdef _WIN32
@@ -43,17 +52,22 @@ static QSettings* getSettingsObject() {
 #endif // PORTABLE
 }
 
+Config::Config (const char* name, const char* defstring) :
+	name (name), m_defstring (defstring) {}
+
 // =============================================================================
 // Load the configuration from file
-bool config::load() {
+// -----------------------------------------------------------------------------
+bool Config::load() {
 	QSettings* settings = getSettingsObject();
-	print ("config::load: Loading configuration file from %1...\n", settings->fileName());
+	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 	
-	for (config* cfg : g_configPointers) {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
-		cfg->loadFromConfig (settings);
+		QVariant val = settings->value (cfg->name, cfg->defaultVariant());
+		cfg->loadFromVariant (val);
 	}
 	
 	settings->deleteLater();
@@ -61,73 +75,20 @@ bool config::load() {
 }
 
 // =============================================================================
-void intconfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toInt();
-}
-
-void floatconfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toFloat();
-}
-
-void strconfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, defval);
-	value = val.toString();
-}
-
-void boolconfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, str::number (defval));
-	value = val.toBool();
-}
-
-void keyseqconfig::loadFromConfig (const QSettings* cfg) {
-	QVariant val = cfg->value (name, defval.toString());
-	value = keyseq (val.toString());
-}
-
-// =============================================================================
-// TODO: make virtual
-str config::toString() const {
-	switch (getType()) {
-	case Type_int:
-		return fmt ("%1", static_cast<const intconfig*> (this)->value);
-		break;
-	
-	case Type_str:
-		return static_cast<const strconfig*> (this)->value;
-		break;
-	
-	case Type_float:
-		return fmt ("%1", static_cast<const floatconfig*> (this)->value);
-		break;
-	
-	case Type_bool:
-		return (static_cast<const boolconfig*> (this)->value) ? "true" : "false";
-		break;
-	
-	case Type_keyseq:
-		return static_cast<const keyseqconfig*> (this)->value.toString();
-		break;
-	
-	default:
-		break;
-	}
-	
-	return "";
-}
-
-// =============================================================================
 // Save the configuration to disk
-bool config::save() {
+// -----------------------------------------------------------------------------
+bool Config::save() {
 	QSettings* settings = getSettingsObject();
 	print ("Saving configuration to %1...\n", settings->fileName());
 	
-	for (config* cfg : g_configPointers) {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
-		settings->setValue (cfg->name, cfg->toString());
+		if (cfg->isDefault())
+			continue;
+		
+		settings->setValue (cfg->name, cfg->toVariant());
 	}
 	
 	settings->sync();
@@ -136,8 +97,10 @@ bool config::save() {
 }
 
 // =============================================================================
-void config::reset() {
-	for (config* cfg : g_configPointers) {
+// Reset configuration defaults.
+// -----------------------------------------------------------------------------
+void Config::reset() {
+	for (Config* cfg : g_configPointers) {
 		if (!cfg)
 			break;
 		
@@ -146,32 +109,27 @@ void config::reset() {
 }
 
 // =============================================================================
-str config::filepath (str file) {
-	return config::dirpath() + DIRSLASH + file;
+// Where is the configuration file located at? Note that the Windows build uses
+// the registry so only use this with PORTABLE code.
+// -----------------------------------------------------------------------------
+str Config::filepath (str file) {
+	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
-str config::dirpath() {
+// Directory of the configuration file. PORTABLE code here as well.
+// -----------------------------------------------------------------------------
+str Config::dirpath() {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
 // =============================================================================
-str config::defaultString() const {
-	str defstring = m_defstring;
-	
-	// String types inevitably get extra quotes in their default string due to
-	// preprocessing stuff. We can only remove them now...
-	if (getType() == Type_str) {
-		defstring.remove (0, 1);
-		defstring.chop (1);
-	}
-	
-	return defstring;
-}
-
-// =============================================================================
-void addConfig (config* ptr) {
+// We cannot just add config objects to a list or vector because that would rely
+// on the vector's c-tor being called before the configs' c-tors. With global
+// variables we cannot assume that!! Therefore we need to use a C-style array here.
+// -----------------------------------------------------------------------------
+void Config::addToArray (Config* ptr) {
 	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
 	

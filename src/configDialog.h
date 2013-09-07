@@ -28,7 +28,7 @@ class QDoubleSpinBox;
 
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem {
-	PROPERTY (keyseqconfig*, keyConfig, setKeyConfig)
+	PROPERTY (KeySequenceConfig*, keyConfig, setKeyConfig)
 	PROPERTY (QAction*, action, setAction)
 	
 public:
@@ -41,10 +41,18 @@ class ConfigDialog : public QDialog {
 	Q_OBJECT
 	
 public:
-	ConfigDialog (ForgeWindow* parent);
+	enum Tab {
+		InterfaceTab,
+		ProfileTab,
+		ShortcutsTab,
+		QuickColorsTab,
+		GridsTab,
+		ExtProgsTab,
+		DownloadTab
+	};
+	
+	explicit ConfigDialog (Tab deftab = InterfaceTab, QWidget* parent = null, Qt::WindowFlags f = 0);
 	virtual ~ConfigDialog();
-	static void staticDialog();
-	const Ui_ConfigUI* getUI() const;
 	float getGridValue (int i, int j) const;
 	
 	List<LDQuickColor> quickColors;
@@ -56,20 +64,18 @@ private:
 	QLabel* lb_gridIcons[3];
 	List<QListWidgetItem*> quickColorItems;
 	
-	void initMainTab();
-	void initShortcutsTab();
-	void initQuickColorTab();
-	void initGridTab();
-	void initExtProgTab();
-	void addShortcut (keyseqconfig& cfg, QAction* act, ulong& i);
+	void applySettings();
+	void addShortcut (KeySequenceConfig& cfg, QAction* act, ulong& i);
 	void setButtonBackground (QPushButton* button, str value);
-	void pickColor (strconfig& cfg, QPushButton* button);
+	void pickColor (StringConfig& cfg, QPushButton* button);
 	void updateQuickColorList (LDQuickColor* sel = null);
 	void setShortcutText (ShortcutListItem* item);
 	int getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack);
 	str quickColorString();
 	QListWidgetItem* getSelectedQuickColor();
 	QList<ShortcutListItem*> getShortcutSelection();
+	void initGrids();
+	void initExtProgs();
 	
 private slots:
 	void slot_setGLBackground();
@@ -84,6 +90,7 @@ private slots:
 	void slot_clearColors();
 	void slot_setExtProgPath();
 	void slot_findDownloadFolder();
+	void buttonClicked (QAbstractButton* button);
 };
 
 // =============================================================================
@@ -94,7 +101,7 @@ class KeySequenceDialog : public QDialog {
 
 public:
 	explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);
-	static bool staticDialog (keyseqconfig* cfg, QWidget* parent = null);
+	static bool staticDialog (KeySequenceConfig* cfg, QWidget* parent = null);
 	
 	QLabel* lb_output;
 	QDialogButtonBox* bbx_buttons;
