@@ -501,10 +501,14 @@ void ForgeWindow::refresh() {
 void ForgeWindow::updateSelection() {
 	g_bSelectionLocked = true;
 	
+	print ("1\n");
 	for (LDObject* obj : LDFile::current()->objects())
 		obj->setSelected (false);
 	
+	print ("2\n");
 	ui->objectList->clearSelection();
+	
+	print ("3\n");
 	for (LDObject* obj : m_sel) {
 		if (obj->qObjListEntry == null)
 			continue;
@@ -513,6 +517,7 @@ void ForgeWindow::updateSelection() {
 		obj->setSelected (true);
 	}
 	
+	print ("4\n");
 	g_bSelectionLocked = false;
 	slot_selectionChanged();
 }

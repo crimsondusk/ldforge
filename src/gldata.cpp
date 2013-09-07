@@ -7,6 +7,7 @@
 
 cfg (Bool, gl_blackedges, false);
 static List<short> g_warnedColors;
+VertexCompiler g_vertexCompiler;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -155,8 +156,8 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
-	print ("compile %1 (%2, %3)\n", obj->id(), obj->typeName(), topobj->id());
 	List<LDObject*> objs;
+	m_objArrays[obj].clear();
 	
 	switch (obj->getType()) {
 	case LDObject::Triangle:
@@ -183,8 +184,6 @@ void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
 		break;
 	}
 	
-	print ("-> %1\n", m_objArrays[obj].size());
-	
 	// Set all of m_changed to true
 	memset (m_changed, 0xFF, sizeof m_changed);
 }
@@ -210,8 +209,8 @@ void VertexCompiler::setFile (LDFile* file) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
-	assert (type < NumArrays);
+const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type) {
+	assert (type < GL::NumArrays);
 	
 	if (m_changed[type]) {
 		m_changed[type] = false;
@@ -221,7 +220,7 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 			if (!obj->isScemantic())
 				continue;
 			
-			const bool islinearray = (type == EdgeArray || type == EdgePickArray);
+			const bool islinearray = (type == GL::EdgeArray || type == GL::EdgePickArray);
 			auto it = m_objArrays.find (obj);
 			
 			if (it != m_objArrays.end()) {
@@ -229,13 +228,17 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 				
 				for (const CompiledTriangle& i : data) {
 					if (i.isCondLine) {
-						if (type != EdgePickArray && type != CondEdgeArray)
+						// Conditional lines go to the edge pick array and the array
+						// specifically designated for conditional lines and nowhere else.
+						if (type != GL::EdgePickArray && type != GL::CondEdgeArray)
 							continue;
 					} else {
+						// Lines and only lines go to the line array and only to the line array.
 						if ((i.numVerts == 2) ^ islinearray)
 							continue;
 						
-						if (type == CondEdgeArray)
+						// Only conditional lines go into the conditional line array
+						if (type == GL::CondEdgeArray)
 							continue;
 					}
 					
@@ -255,7 +258,7 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 // =============================================================================
 // This turns a compiled triangle into usable VAO vertices
 // -----------------------------------------------------------------------------
-VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& triangle, ArrayType type) {
+VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& triangle, GL::VAOType type) {
 	Array* va = new Array;
 	List<Vertex> verts;
 	
@@ -267,27 +270,27 @@ VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& tria
 		v.z = v0.z();
 		
 		switch (type) {
-		case MainArray:
-		case EdgeArray:
-		case CondEdgeArray:
+		case GL::MainArray:
+		case GL::EdgeArray:
+		case GL::CondEdgeArray:
 			v.color = triangle.rgb;
 			break;
 		
-		case PickArray:
-		case EdgePickArray:
+		case GL::PickArray:
+		case GL::EdgePickArray:
 			v.color = triangle.pickrgb;
 		
-		case BFCArray:
-			break;
+		case GL::BFCArray:
+			break; // handled separately
 		
-		case NumArrays:
+		case GL::NumArrays:
 			assert (false);
 		}
 		
 		verts << v;
 	}
 	
-	if (type == BFCArray) {
+	if (type == GL::BFCArray) {
 		int32 rgb = getObjectColor (triangle.obj, BFCFront).rgb();
 		for (Vertex v : verts) {
 			v.color = rgb;
@@ -379,7 +382,7 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const 
 				if (obj->color() == i)
 					return Qt::black;
 			
-			print ("%1: Unknown color %2!\n", __func__, obj->color());
+			log ("%1: Unknown color %2!\n", __func__, obj->color());
 			g_warnedColors << obj->color();
 			return Qt::black;
 		}

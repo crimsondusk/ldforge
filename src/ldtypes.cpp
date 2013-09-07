@@ -24,6 +24,7 @@
 #include "history.h"
 #include "gldraw.h"
 #include "colors.h"
+#include "gldata.h"
 
 cfg (String, ld_defaultname, "");
 cfg (String, ld_defaultuser, "");
@@ -265,6 +266,8 @@ LDObject::~LDObject() {
 	
 	if (pos < g_LDObjects.size())
 		g_LDObjects.erase (pos);
+	
+	g_vertexCompiler.forgetObject (this);
 }
 
 // =============================================================================

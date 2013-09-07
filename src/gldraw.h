@@ -67,6 +67,16 @@ public:
 	enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
 	enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 	
+	enum VAOType {
+		MainArray,
+		EdgeArray,
+		CondEdgeArray,
+		BFCArray,
+		PickArray,
+		EdgePickArray,
+		NumArrays
+	};
+	
 	GLRenderer (QWidget* parent = null);
 	~GLRenderer();
 	
@@ -131,8 +141,8 @@ private:
 	QPoint m_pos, m_globalpos, m_rangeStart;
 	QPen m_thickBorderPen, m_thinBorderPen;
 	Camera m_camera, m_toolTipCamera;
-	uint m_axeslist;
-	ushort m_width, m_height;
+	GLuint m_axeslist;
+	int m_width, m_height;
 	List<vertex> m_drawedVerts;
 	bool m_rectdraw;
 	vertex m_rectverts[4];
@@ -147,6 +157,7 @@ private:
 	void           clampAngle (double& angle) const;                       // Clamps an angle to [0, 360]
 	vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
+	void           drawVAOs (VAOType arrayType, GLenum type);              // Draw a VAO array
 	LDOverlay*     findOverlayObject (Camera cam);
 	void           updateRectVerts();
 	void           pick (uint mouseX, uint mouseY);                        // Perform object selection

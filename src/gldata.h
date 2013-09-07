@@ -2,6 +2,7 @@
 #define LDFORGE_GLDATA_H
 
 #include "types.h"
+#include "gldraw.h"
 #include <QMap>
 #include <QRgb>
 
@@ -43,16 +44,6 @@ public:
 		BFCFront,
 		BFCBack,
 		PickColor,
-	};
-	
-	enum ArrayType {
-		MainArray,
-		EdgeArray,
-		CondEdgeArray,
-		BFCArray,
-		PickArray,
-		EdgePickArray,
-		NumArrays
 	};
 	
 	struct CompiledTriangle {
@@ -99,20 +90,22 @@ public:
 	void compileFile();
 	void compileObject (LDObject* obj, LDObject* topobj);
 	void forgetObject (LDObject* obj);
-	const Array* getMergedBuffer (ArrayType type);
+	const Array* getMergedBuffer (GL::VAOType type);
 	QColor getObjectColor (LDObject* obj, ColorType list) const;
 	
 	static uint32 getColorRGB (QColor& color);
 	
 private:
 	void compilePolygon (LDObject* drawobj, LDObject* trueobj);
-	Array* postprocess (const CompiledTriangle& i, ArrayType type);
+	Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
 	
 	QMap<LDObject*, List<CompiledTriangle>> m_objArrays;
 	QMap<LDFile*, Array*> m_fileCache;
-	Array m_mainArrays[NumArrays];
+	Array m_mainArrays[GL::NumArrays];
 	LDFile* m_file;
-	bool m_changed[NumArrays];
+	bool m_changed[GL::NumArrays];
 };
+
+extern VertexCompiler g_vertexCompiler;
 
 #endif // LDFORGE_GLDATA_H

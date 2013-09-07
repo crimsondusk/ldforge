@@ -91,14 +91,6 @@ const struct GLAxis {
 	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
 
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-#warning this should be a member
-static VertexCompiler g_vertexCompiler;
-static bool g_glInvert = false;
-static List<short> g_warnedColors;
-
 // =============================================================================
 // -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent) {
@@ -306,7 +298,7 @@ void GLRenderer::drawGLScene() {
 		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
 	}
 	
-	// Draw the polygons
+	// Draw the VAOs now
 	glEnableClientState (GL_VERTEX_ARRAY);
 	glEnableClientState (GL_COLOR_ARRAY);
 	glDisableClientState (GL_NORMAL_ARRAY);
@@ -317,33 +309,15 @@ void GLRenderer::drawGLScene() {
 	} else
 		glDisable (GL_CULL_FACE);
 	
-	const VertexCompiler::Array* array;
-	
-	array = g_vertexCompiler.getMergedBuffer (
-		(m_picking) ? VertexCompiler::PickArray :
-		(gl_colorbfc) ? VertexCompiler::BFCArray :
-			VertexCompiler::MainArray);
-	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
-	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
-	glDrawArrays (GL_TRIANGLES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
-	
-	// Draw edge lines
-	array = g_vertexCompiler.getMergedBuffer (
-		(m_picking) ? VertexCompiler::EdgePickArray :
-			VertexCompiler::EdgeArray);
-	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
-	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
-	glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+	drawVAOs ((m_picking ? PickArray : gl_colorbfc ? BFCArray : MainArray), GL_TRIANGLES);
+	drawVAOs ((m_picking ? EdgePickArray : EdgeArray), GL_LINES);
 	
 	// Draw conditional lines. Note that conditional lines are drawn into
 	// EdgePickArray in the picking scene, so when picking, don't do anything
 	// here.
 	if (!m_picking) {
-		array = g_vertexCompiler.getMergedBuffer (VertexCompiler::CondEdgeArray);
 		glEnable (GL_LINE_STIPPLE);
-		glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
-		glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
-		glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+		drawVAOs (CondEdgeArray, GL_LINES);
 		glDisable (GL_LINE_STIPPLE);
 	}
 	
@@ -354,6 +328,14 @@ void GLRenderer::drawGLScene() {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+void GLRenderer::drawVAOs (VAOType arrayType, GLenum type) {
+	const VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (arrayType);
+	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
+	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
+	glDrawArrays (type, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+}
+
+// =============================================================================
 // This converts a 2D point on the screen to a 3D point in the model. If 'snap'
 // is true, the 3D point will snap to the current grid.
 // -----------------------------------------------------------------------------
@@ -873,9 +855,9 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	
 	glGetIntegerv (GL_VIEWPORT, viewport);
 	
-	short x0 = mouseX,
-		y0 = mouseY;
-	short x1, y1;
+	int x0 = mouseX,
+		y0 = mouseY,
+		x1, y1;
 	
 	// Determine how big an area to read - with range picking, we pick by
 	// the area given, with single pixel picking, we use an 1 x 1 area.
@@ -895,14 +877,14 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		dataswap (y0, y1);
 	
 	// Clamp the values to ensure they're within bounds
-	x0 = max<short> (0, x0);
-	y0 = max<short> (0, y0);
-	x1 = min<short> (x1, m_width);
-	y1 = min<short> (y1, m_height);
+	x0 = max (0, x0);
+	y0 = max (0, y0);
+	x1 = min (x1, m_width);
+	y1 = min (y1, m_height);
 	
-	const short areawidth = (x1 - x0);
-	const short areaheight = (y1 - y0);
-	const long numpixels = areawidth * areaheight;
+	const int areawidth = (x1 - x0);
+	const int areaheight = (y1 - y0);
+	const int64 numpixels = areawidth * areaheight;
 	
 	// Allocate space for the pixel data.
 	uchar* const pixeldata = new uchar[4 * numpixels];
@@ -916,8 +898,10 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 	LDObject* removedObj = null;
 	
 	// Go through each pixel read and add them to the selection.
-	for (long i = 0; i < numpixels; ++i) {
-		long idx =
+	for (int64 i = 0; i < numpixels; ++i) {
+		printf ("Color: #%X%X%X\n", pixelptr[0], pixelptr[1], pixelptr[2]);
+		
+		int32 idx =
 			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x00100) +
 			(*(pixelptr + 2) * 0x00001);
@@ -928,6 +912,10 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 			continue; // White is background; skip
 		
 		LDObject* obj = LDObject::fromID (idx);
+		if (!obj) {
+			log ("WARNING: Object #%1 doesn't exist!", idx);
+			continue;
+		}
 		
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
