@@ -48,6 +48,7 @@ public:
 	enum ArrayType {
 		MainArray,
 		EdgeArray,
+		CondEdgeArray,
 		BFCArray,
 		PickArray,
 		EdgePickArray,
@@ -59,6 +60,7 @@ public:
 		uint8     numVerts;
 		QRgb      rgb;
 		QRgb      pickrgb;
+		bool      isCondLine;
 		LDObject* obj;
 	};
 	

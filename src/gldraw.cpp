@@ -196,6 +196,7 @@ void GLRenderer::initializeGL() {
 	setBackground();
 	
 	glLineWidth (gl_linethickness);
+	glLineStipple (1, 0x6666);
 	
 	setAutoFillBackground (false);
 	setMouseTracking (true);
@@ -316,7 +317,9 @@ void GLRenderer::drawGLScene() {
 	} else
 		glDisable (GL_CULL_FACE);
 	
-	const VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (
+	const VertexCompiler::Array* array;
+	
+	array = g_vertexCompiler.getMergedBuffer (
 		(m_picking) ? VertexCompiler::PickArray :
 		(gl_colorbfc) ? VertexCompiler::BFCArray :
 			VertexCompiler::MainArray);
@@ -331,6 +334,18 @@ void GLRenderer::drawGLScene() {
 	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
 	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
 	glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+	
+	// Draw conditional lines. Note that conditional lines are drawn into
+	// EdgePickArray in the picking scene, so when picking, don't do anything
+	// here.
+	if (!m_picking) {
+		array = g_vertexCompiler.getMergedBuffer (VertexCompiler::CondEdgeArray);
+		glEnable (GL_LINE_STIPPLE);
+		glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
+		glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
+		glDrawArrays (GL_LINES, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+		glDisable (GL_LINE_STIPPLE);
+	}
 	
 	glPopMatrix();
 	glMatrixMode (GL_MODELVIEW);

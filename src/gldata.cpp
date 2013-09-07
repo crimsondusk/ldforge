@@ -114,15 +114,13 @@ VertexCompiler::~VertexCompiler() {}
 // the top level object's ID. This is crucial for picking to work.
 // -----------------------------------------------------------------------------
 void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
+	const QColor pickColor = getObjectColor (trueobj, PickColor);
 	List<CompiledTriangle>& data = m_objArrays[trueobj];
-	
-	QColor normalColor = getObjectColor (trueobj, Normal),
-	       pickColor = getObjectColor (trueobj, PickColor);
-	
 	LDObject::Type type = drawobj->getType();
+	List<LDObject*> objs;
+	
 	assert (type != LDObject::Subfile);
 	
-	List<LDObject*> objs;
 	if (type == LDObject::Quad) {
 		for (LDTriangle* t : static_cast<LDQuad*> (drawobj)->splitToTriangles())
 			objs << t;
@@ -133,16 +131,21 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
 		const LDObject::Type objtype = obj->getType();
 		const bool isline = (objtype == LDObject::Line || objtype == LDObject::CndLine);
 		const int verts = isline ? 2 : obj->vertices();
+		QColor normalColor = getObjectColor (obj, Normal);
+		
+		assert (isline || objtype == LDObject::Triangle);
 		
 		CompiledTriangle a;
 		a.rgb = normalColor.rgb();
 		a.pickrgb = pickColor.rgb();
 		a.numVerts = verts;
 		a.obj = trueobj;
+		a.isCondLine = (objtype == LDObject::CndLine);
 		
 		for (int i = 0; i < verts; ++i) {
 			a.verts[i] = obj->getVertex (i);
 			a.verts[i].y() = -a.verts[i].y();
+			a.verts[i].z() = -a.verts[i].z();
 		}
 		
 		data << a;
@@ -152,21 +155,19 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
-	print ("compile %1 (%2)\n", obj->id(), topobj->id());
+	print ("compile %1 (%2, %3)\n", obj->id(), obj->typeName(), topobj->id());
 	List<LDObject*> objs;
 	
 	switch (obj->getType()) {
 	case LDObject::Triangle:
+	case LDObject::Line:
+	case LDObject::CndLine:
 		compilePolygon (obj, topobj);
 		break;
 	
 	case LDObject::Quad:
 		for (LDTriangle* triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
 			compilePolygon (triangle, topobj);
-		break;
-	
-	case LDObject::Line:
-		compilePolygon (obj, topobj);
 		break;
 	
 	case LDObject::Subfile:
@@ -181,6 +182,8 @@ void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
 	default:
 		break;
 	}
+	
+	print ("-> %1\n", m_objArrays[obj].size());
 	
 	// Set all of m_changed to true
 	memset (m_changed, 0xFF, sizeof m_changed);
@@ -214,25 +217,28 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 		m_changed[type] = false;
 		m_mainArrays[type].clear();
 		
-		print ("merge array %1\n", (int) type);
-		
 		for (LDObject* obj : m_file->objects()) {
 			if (!obj->isScemantic())
 				continue;
 			
-			const LDObject::Type objtype = obj->getType();
-			const bool isline = (objtype == LDObject::Line || objtype == LDObject::CndLine);
 			const bool islinearray = (type == EdgeArray || type == EdgePickArray);
-			
-			if ((isline && !islinearray) || (!isline && islinearray))
-				continue;
-			
 			auto it = m_objArrays.find (obj);
 			
 			if (it != m_objArrays.end()) {
 				const List<CompiledTriangle>& data = *it;
 				
 				for (const CompiledTriangle& i : data) {
+					if (i.isCondLine) {
+						if (type != EdgePickArray && type != CondEdgeArray)
+							continue;
+					} else {
+						if ((i.numVerts == 2) ^ islinearray)
+							continue;
+						
+						if (type == CondEdgeArray)
+							continue;
+					}
+					
 					Array* verts = postprocess (i, type);
 					m_mainArrays[type].merge (verts);
 					delete verts;
@@ -240,7 +246,7 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (ArrayType type) {
 			}
 		}
 		
-		print ("merged array: %1 bytes\n", m_mainArrays[type].writtenSize());
+		print ("merged array %1: %2 bytes\n", (int) type, m_mainArrays[type].writtenSize());
 	}
 	
 	return &m_mainArrays[type];
@@ -263,6 +269,7 @@ VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& tria
 		switch (type) {
 		case MainArray:
 		case EdgeArray:
+		case CondEdgeArray:
 			v.color = triangle.rgb;
 			break;
 		
