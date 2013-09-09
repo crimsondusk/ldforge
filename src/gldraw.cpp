@@ -902,9 +902,9 @@ void GLRenderer::pick (uint mouseX, uint mouseY) {
 		printf ("Color: #%X%X%X\n", pixelptr[0], pixelptr[1], pixelptr[2]);
 		
 		int32 idx =
-			(*(pixelptr + 0) * 0x10000) +
+			(*(pixelptr + 0) * 0x00001) +
 			(*(pixelptr + 1) * 0x00100) +
-			(*(pixelptr + 2) * 0x00001);
+			(*(pixelptr + 2) * 0x10000);
 		
 		pixelptr += 4;
 		
@@ -1106,7 +1106,7 @@ static List<vertex> getVertices (LDObject* obj) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileObject (LDObject* obj) {
-	g_vertexCompiler.compileObject (obj, obj);
+	g_vertexCompiler.stageForCompilation (obj);
 	obj->m_glinit = true;
 }
 

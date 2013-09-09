@@ -33,6 +33,7 @@
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
+#include "gldata.h"
 
 cfg (String, io_ldpath, "");
 cfg (List, io_recentfiles, {});
@@ -282,7 +283,7 @@ void FileLoader::work (int i) {
 		// Trim the trailing newline
 		qchar c;
 		
-		while ((c = line[line.length() - 1]) == '\n' || c == '\r')
+		while (line.length() > 0 && ((c = line[line.length() - 1]) == '\n' || c == '\r'))
 			line.chop (1);
 		
 		LDObject* obj = parseLine (line);
@@ -1085,6 +1086,7 @@ void LDFile::setCurrent (LDFile* f) {
 		g_win->updateFileListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();
+		g_vertexCompiler.needMerge();
 		g_win->R()->setFile (f);
 		g_win->R()->resetAngles();
 		g_win->R()->repaint();

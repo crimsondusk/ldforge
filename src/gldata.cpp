@@ -4,6 +4,7 @@
 #include "file.h"
 #include "misc.h"
 #include "gldraw.h"
+#include <QDate>
 
 cfg (Bool, gl_blackedges, false);
 static List<short> g_warnedColors;
@@ -104,7 +105,7 @@ void VertexCompiler::Array::merge (Array* other) {
 VertexCompiler::VertexCompiler() :
 	m_file (null)
 {
-	memset (m_changed, 0xFF, sizeof m_changed);
+	needMerge();
 }
 
 VertexCompiler::~VertexCompiler() {}
@@ -114,9 +115,8 @@ VertexCompiler::~VertexCompiler() {}
 // This is so that the index color is generated correctly - it has to reference
 // the top level object's ID. This is crucial for picking to work.
 // -----------------------------------------------------------------------------
-void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
+void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, List<CompiledTriangle>& data) {
 	const QColor pickColor = getObjectColor (trueobj, PickColor);
-	List<CompiledTriangle>& data = m_objArrays[trueobj];
 	LDObject::Type type = drawobj->getType();
 	List<LDObject*> objs;
 	
@@ -155,49 +155,101 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj) {
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileObject (LDObject* obj, LDObject* topobj) {
+void VertexCompiler::compileObject (LDObject* obj) {
+	initObject (obj);
+	List<CompiledTriangle> data;
+	QTime t0;
+	
+	for (int i = 0; i < GL::NumArrays; ++i)
+		m_objArrays[obj][i].clear();
+	
+	t0 = QTime::currentTime();
+	compileSubObject (obj, obj, data);
+	print ("COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
+	
+	t0 = QTime::currentTime();
+	for (int i = 0; i < GL::NumArrays; ++i) {
+		GL::VAOType type = (GL::VAOType) i;
+		const bool islinearray = (type == GL::EdgeArray || type == GL::EdgePickArray);
+		
+		for (const CompiledTriangle& poly : data) {
+			if (poly.isCondLine) {
+				// Conditional lines go to the edge pick array and the array
+				// specifically designated for conditional lines and nowhere else.
+				if (type != GL::EdgePickArray && type != GL::CondEdgeArray)
+					continue;
+			} else {
+				// Lines and only lines go to the line array and only to the line array.
+				if ((poly.numVerts == 2) ^ islinearray)
+					continue;
+				
+				// Only conditional lines go into the conditional line array
+				if (type == GL::CondEdgeArray)
+					continue;
+			}
+			
+			Array* verts = postprocess (poly, type);
+			m_objArrays[obj][type].merge (verts);
+			delete verts;
+		}
+	}
+	print ("POST-PROCESS: %1ms\n", t0.msecsTo (QTime::currentTime()));
+	
+	needMerge();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, List<CompiledTriangle>& data) {
 	List<LDObject*> objs;
-	m_objArrays[obj].clear();
 	
 	switch (obj->getType()) {
 	case LDObject::Triangle:
 	case LDObject::Line:
 	case LDObject::CndLine:
-		compilePolygon (obj, topobj);
+		compilePolygon (obj, topobj, data);
 		break;
 	
 	case LDObject::Quad:
 		for (LDTriangle* triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
-			compilePolygon (triangle, topobj);
+			compilePolygon (triangle, topobj, data);
 		break;
 	
 	case LDObject::Subfile:
+	{
+		QTime t0 = QTime::currentTime();
 		objs = static_cast<LDSubfile*> (obj)->inlineContents (LDSubfile::RendererInline | LDSubfile::DeepCacheInline);
+		print ("\t- INLINE: %1ms\n", t0.msecsTo (QTime::currentTime()));
+		print ("\t- %1 objects\n", objs.size());
 		
+		t0 = QTime::currentTime();
 		for (LDObject* obj : objs) {
-			compileObject (obj, topobj);
+			compileSubObject (obj, topobj, data);
 			delete obj;
 		}
+		print ("\t- SUB-COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
+	}
 		break;
 	
 	default:
 		break;
 	}
-	
-	// Set all of m_changed to true
-	memset (m_changed, 0xFF, sizeof m_changed);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::compileFile() {
 	for (LDObject* obj : m_file->objects())
-		compileObject (obj, obj);
+		compileObject (obj);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void VertexCompiler::forgetObject (LDObject* obj) {
+	auto it = m_objArrays.find (obj);
+	if (it != m_objArrays.end())
+		delete *it;
+	
 	m_objArrays.remove (obj);
 }
 
@@ -210,6 +262,14 @@ void VertexCompiler::setFile (LDFile* file) {
 // =============================================================================
 // -----------------------------------------------------------------------------
 const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type) {
+	// If there are objects staged for compilation, compile them now.
+	if (m_staged.size() > 0) {
+		for (LDObject* obj : m_staged)
+			compileObject (obj);
+		
+		m_staged.clear();
+	}
+	
 	assert (type < GL::NumArrays);
 	
 	if (m_changed[type]) {
@@ -220,33 +280,10 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type) 
 			if (!obj->isScemantic())
 				continue;
 			
-			const bool islinearray = (type == GL::EdgeArray || type == GL::EdgePickArray);
 			auto it = m_objArrays.find (obj);
 			
-			if (it != m_objArrays.end()) {
-				const List<CompiledTriangle>& data = *it;
-				
-				for (const CompiledTriangle& i : data) {
-					if (i.isCondLine) {
-						// Conditional lines go to the edge pick array and the array
-						// specifically designated for conditional lines and nowhere else.
-						if (type != GL::EdgePickArray && type != GL::CondEdgeArray)
-							continue;
-					} else {
-						// Lines and only lines go to the line array and only to the line array.
-						if ((i.numVerts == 2) ^ islinearray)
-							continue;
-						
-						// Only conditional lines go into the conditional line array
-						if (type == GL::CondEdgeArray)
-							continue;
-					}
-					
-					Array* verts = postprocess (i, type);
-					m_mainArrays[type].merge (verts);
-					delete verts;
-				}
-			}
+			if (it != m_objArrays.end())
+				m_mainArrays[type].merge (&(*it)[type]);
 		}
 		
 		print ("merged array %1: %2 bytes\n", (int) type, m_mainArrays[type].writtenSize());
@@ -376,21 +413,23 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const 
 			// not appear pitch-black.
 			if (obj->color() != edgecolor)
 				qcol = GL::getMainColor();
+			else
+				qcol = Qt::black;
 			
-			// Warn about the unknown colors, but only once.
+			// Warn about the unknown color, but only once.
 			for (short i : g_warnedColors)
 				if (obj->color() == i)
-					return Qt::black;
+					return qcol;
 			
 			log ("%1: Unknown color %2!\n", __func__, obj->color());
 			g_warnedColors << obj->color();
-			return Qt::black;
+			return qcol;
 		}
 	}
 	
 	if (obj->topLevelParent()->selected()) {
-		// Brighten it up for the select list.
-		const uchar add = 51;
+		// Brighten it up if selected.
+		const int add = 51;
 		
 		qcol.setRed (min (qcol.red() + add, 255));
 		qcol.setGreen (min (qcol.green() + add, 255));
@@ -398,4 +437,25 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const 
 	}
 	
 	return qcol;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void VertexCompiler::needMerge() {
+	// Set all of m_changed to true
+	memset (m_changed, 0xFF, sizeof m_changed);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void VertexCompiler::initObject (LDObject* obj) {
+	if (m_objArrays.find (obj) == m_objArrays.end())
+		m_objArrays[obj] = new Array[GL::NumArrays];
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void VertexCompiler::stageForCompilation (LDObject* obj) {
+	m_staged << obj;
+	m_staged.makeUnique();
 }

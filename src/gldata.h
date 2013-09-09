@@ -48,11 +48,11 @@ public:
 	
 	struct CompiledTriangle {
 		vertex    verts[3];
-		uint8     numVerts;
-		QRgb      rgb;
-		QRgb      pickrgb;
-		bool      isCondLine;
-		LDObject* obj;
+		uint8     numVerts;    // 2 if a line
+		QRgb      rgb;         // Color of this poly normally
+		QRgb      pickrgb;     // Color of this poly while picking
+		bool      isCondLine;  // Is this a conditional line?
+		LDObject* obj;         // Pointer to the object this poly represents
 	};
 	
 	struct Vertex {
@@ -88,22 +88,27 @@ public:
 	~VertexCompiler();
 	void setFile (LDFile* file);
 	void compileFile();
-	void compileObject (LDObject* obj, LDObject* topobj);
 	void forgetObject (LDObject* obj);
+	void initObject (LDObject* obj);
 	const Array* getMergedBuffer (GL::VAOType type);
 	QColor getObjectColor (LDObject* obj, ColorType list) const;
+	void needMerge();
+	void stageForCompilation (LDObject* obj);
 	
 	static uint32 getColorRGB (QColor& color);
 	
 private:
-	void compilePolygon (LDObject* drawobj, LDObject* trueobj);
+	void compilePolygon (LDObject* drawobj, LDObject* trueobj, List<CompiledTriangle>& data);
+	void compileObject (LDObject* obj);
+	void compileSubObject (LDObject* obj, LDObject* topobj, List<CompiledTriangle>& data);
 	Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
 	
-	QMap<LDObject*, List<CompiledTriangle>> m_objArrays;
+	QMap<LDObject*, Array*> m_objArrays;
 	QMap<LDFile*, Array*> m_fileCache;
 	Array m_mainArrays[GL::NumArrays];
 	LDFile* m_file;
 	bool m_changed[GL::NumArrays];
+	List<LDObject*> m_staged;
 };
 
 extern VertexCompiler g_vertexCompiler;
