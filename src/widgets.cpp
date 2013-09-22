@@ -174,3 +174,4 @@ RadioGroup::it RadioGroup::begin() {
 RadioGroup::it RadioGroup::end() {
 	return m_objects.end();
 }
+#include "moc_widgets.cpp"

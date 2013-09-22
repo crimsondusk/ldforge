@@ -1711,3 +1711,4 @@ void GLRenderer::updateOverlayObjects() {
 	if (g_win->R() == this)
 		g_win->refresh();
 }
+#include "moc_gldraw.cpp"

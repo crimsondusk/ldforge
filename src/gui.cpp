@@ -935,3 +935,4 @@ LDQuickColor LDQuickColor::getSeparator() {
 bool LDQuickColor::isSeparator() const {
 	return color() == null;
 }
+#include "moc_gui.cpp"
