@@ -192,3 +192,4 @@ bool ColorSelector::getColor (short& val, short int defval, QWidget* parent) {
 	
 	return false;
 }
+#include "moc_colorSelectDialog.cpp"

@@ -488,3 +488,4 @@ void PartDownloadRequest::abort() {
 DEFINE_ACTION (DownloadFrom, 0) {
 	PartDownloader::k_download();
 }
+#include "moc_download.cpp"

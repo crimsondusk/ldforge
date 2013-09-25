@@ -1131,3 +1131,4 @@ void loadLogoedStuds() {
 	g_logoedStud = openDATFile ("stud-logo.dat", true);
 	g_logoedStud2 = openDATFile ("stud2-logo.dat", true);
 }
+#include "moc_file.cpp"

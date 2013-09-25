@@ -334,3 +334,4 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 void AboutDialog::slot_mail() {
 	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <slatenails64@gmail.com>?subject=LDForge"));
 }
+#include "moc_dialogs.cpp"

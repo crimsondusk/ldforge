@@ -404,3 +404,4 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj) {
 	
 	g_win->fullRefresh();
 }
+#include "moc_addObjectDialog.cpp"
