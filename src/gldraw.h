@@ -34,7 +34,8 @@ class QTimer;
 
 enum EditMode {
 	Select,
-	Draw
+	Draw,
+	CircleMode,
 };
 
 // Meta for overlays
@@ -150,12 +151,16 @@ private:
 	void           compileVertex (const vertex& vrt);                      // Compile a single vertex to a list
 	vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
 	QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
-	LDOverlay* findOverlayObject (Camera cam);
+	LDOverlay*     findOverlayObject (Camera cam);
 	void           updateRectVerts();
 	void           pick (uint mouseX, uint mouseY);                        // Perform object selection
 	void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
 	QColor         getTextPen() const;                                     // Determine which color to draw text with
-	
+	void           getRelativeAxes (Axis& relX, Axis& relY) const;
+
+	void           drawBlip (QPainter& paint, QPoint pos) const;
+	double         circleDrawDist() const;
+
 private slots:
 	void           slot_toolTipTimer();
 };

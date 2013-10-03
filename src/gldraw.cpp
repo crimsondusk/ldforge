@@ -50,6 +50,12 @@ static const struct staticCameraMeta {
 	{{  0, -1, 0 }, Z, Y, false,  true },
 };
 
+static const matrix g_circleDrawTransforms[3] = {
+	{ 2, 0, 0, 0, 1, 0, 0, 0, 2 },
+	{ 2, 0, 0, 0, 0, 2, 0, 1, 0 },
+	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
+};
+
 cfg (String, gl_bgcolor, "#CCCCD9");
 cfg (String, gl_maincolor, "#707078");
 cfg (Float, gl_maincolor_alpha, 1.0);
@@ -532,7 +538,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		
 		// If we're drawing, draw the vertices onto the screen.
 		if (editMode() == Draw) {
-			const short blipsize = 8;
 			int numverts = 4;
 			
 			if (!m_rectdraw)
@@ -579,19 +584,47 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 				paint.drawPolygon (poly, numverts);
 				
 				// Draw vertex blips
-				pen = m_thinBorderPen;
-				pen.setWidth (1);
-				paint.setPen (pen);
-				paint.setBrush (QColor (64, 192, 0));
-				
-				for (ushort i = 0; i < numverts; ++i) {
+				for (int i = 0; i < numverts; ++i) {
 					QPoint& blip = poly[i];
-					paint.drawEllipse (blip.x() - blipsize / 2, blip.y() - blipsize / 2,
-						blipsize, blipsize);
-					
+					drawBlip (paint, blip);
+
 					// Draw their coordinates
 					paint.drawText (blip.x(), blip.y() - 8, polyverts[i].stringRep (true));
 				}
+			}
+		}
+		elif (editMode() == CircleMode)
+		{	// If we have not specified the center point of the circle yet, preview it on the screen.
+			if (m_drawedVerts.size() == 0)
+				drawBlip (paint, coordconv3_2 (m_hoverpos));
+			else
+			{	QVector<vertex> verts;
+				const double dist = circleDrawDist();
+				const int segs = lores;
+				const double angleUnit = (2 * pi) / segs;
+				Axis relX, relY;
+				getRelativeAxes (relX, relY);
+
+				for (int i = 0; i < segs; ++i)
+				{	vertex v = g_origin;
+					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist);
+					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist);
+					verts << v;
+				}
+
+				QVector<QPoint> points;
+				for (const vertex& v : verts)
+				{	QPoint point = coordconv3_2 (v);
+					drawBlip (paint, point);
+					points << point;
+				}
+
+				QPen pen = m_thinBorderPen;
+				pen.setWidth (2);
+				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
+				paint.setPen (pen);
+				paint.setBrush (Qt::NoBrush);
+				paint.drawPolygon (QPolygon (points));
 			}
 		}
 	}
@@ -664,6 +697,17 @@ void GLRenderer::paintEvent (QPaintEvent* ev) {
 		paint.setBrush (QBrush (fillColor));
 		paint.drawRect (rect);
 	}
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
+{	QPen pen = m_thinBorderPen;
+	const int blipsize = 8;
+	pen.setWidth (1);
+	paint.setPen (pen);
+	paint.setBrush (QColor (64, 192, 0));
+	paint.drawEllipse (pos.x() - blipsize / 2, pos.y() - blipsize / 2, blipsize, blipsize);
 }
 
 // =============================================================================
@@ -855,7 +899,16 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 			
 			addDrawnVertex (m_hoverpos);
 			break;
-		
+
+		case CircleMode:
+			if (m_drawedVerts.size() == 2)
+			{	endDraw (true);
+				return;
+			}
+
+			addDrawnVertex (m_hoverpos);
+			break;
+
 		case Select:
 			if (!drawOnly()) {
 				if (m_totalmove < 10)
@@ -898,7 +951,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev) {
 				closest = pos3d;
 				valid = true;
 				
-				/* If it's only 4 pixels away, I think we found our vertex now. */
+				// If it's only 4 pixels away, I think we found our vertex now.
 				if (distsq <= 16.0f) // 4.0f ** 2
 					break;
 			}
@@ -1175,6 +1228,7 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode) {
 		break;
 	
 	case Draw:
+	case CircleMode:
 		// Cannot draw into the free camera - use top instead.
 		if (m_camera == Free)
 			setCamera (Top);
@@ -1222,46 +1276,75 @@ void GLRenderer::endDraw (bool accept) {
 	// Clean the selection and create the object
 	List<vertex>& verts = m_drawedVerts;
 	LDObject* obj = null;
-	
-	if (m_rectdraw) {
-		LDQuad* quad = new LDQuad;
-		
-		// Copy the vertices from m_rectverts
-		updateRectVerts();
-		
-		for (int i = 0; i < quad->vertices(); ++i)
-			quad->setVertex (i, m_rectverts[i]);
-		
-		quad->setColor (maincolor);
-		obj = quad;
-	} else {
-		switch (verts.size()) {
-		case 1:
-			// 1 vertex - add a vertex object
-			obj = new LDVertex;
-			static_cast<LDVertex*> (obj)->pos = verts[0];
-			obj->setColor (maincolor);
-			break;
-		
-		case 2:
-			// 2 verts - make a line
-			obj = new LDLine (verts[0], verts[1]);
-			obj->setColor (edgecolor);
-			break;
+
+	switch (editMode())
+	{	case Draw:
+		if (m_rectdraw) {
+			LDQuad* quad = new LDQuad;
 			
-		case 3:
-		case 4:
-			obj = (verts.size() == 3) ?
-				static_cast<LDObject*> (new LDTriangle) :
-				static_cast<LDObject*> (new LDQuad);
+			// Copy the vertices from m_rectverts
+			updateRectVerts();
 			
-			obj->setColor (maincolor);
-			for (ushort i = 0; i < obj->vertices(); ++i)
-				obj->setVertex (i, verts[i]);
-			break;
+			for (int i = 0; i < quad->vertices(); ++i)
+				quad->setVertex (i, m_rectverts[i]);
+			
+			quad->setColor (maincolor);
+			obj = quad;
+		} else {
+			switch (verts.size()) {
+			case 1:
+				// 1 vertex - add a vertex object
+				obj = new LDVertex;
+				static_cast<LDVertex*> (obj)->pos = verts[0];
+				obj->setColor (maincolor);
+				break;
+			
+			case 2:
+				// 2 verts - make a line
+				obj = new LDLine (verts[0], verts[1]);
+				obj->setColor (edgecolor);
+				break;
+				
+			case 3:
+			case 4:
+				obj = (verts.size() == 3) ?
+					static_cast<LDObject*> (new LDTriangle) :
+					static_cast<LDObject*> (new LDQuad);
+				
+				obj->setColor (maincolor);
+				for (ushort i = 0; i < obj->vertices(); ++i)
+					obj->setVertex (i, verts[i]);
+				break;
+			}
 		}
+		break;
+
+		case CircleMode:
+		{	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+			const double dist = circleDrawDist();
+
+			matrix transform = g_circleDrawTransforms[camera() % 3];
+			for (int i = 0; i < 9; ++i)
+			{	if (transform[i] == 2)
+					transform[i] = dist;
+				elif (transform[i] == 1 && camera() >= 3)
+					transform[i] = -1;
+			}
+
+			LDSubfile* ref = new LDSubfile;
+			ref->setFileInfo (findLoadedFile ("4-4edge.dat"));
+			ref->setTransform (transform);
+			ref->setPosition (m_drawedVerts[0]);
+			ref->setColor (maincolor);
+			obj = ref;
+		}
+		break;
+
+		case Select:
+		assert (false);
+		return;
 	}
-	
+
 	if (obj) {
 		g_win->beginAction (null);
 		file()->addObject (obj);
@@ -1272,6 +1355,27 @@ void GLRenderer::endDraw (bool accept) {
 	
 	m_drawedVerts.clear();
 	m_rectdraw = false;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+double GLRenderer::circleDrawDist() const
+{	assert (m_drawedVerts.size() >= 1);
+	const vertex& v1 = (m_drawedVerts.size() == 2) ? m_drawedVerts[1] : m_hoverpos;
+	Axis relX, relY;
+	getRelativeAxes (relX, relY);
+
+	const double dx = m_drawedVerts[0][relX] - v1[relX];
+	const double dy = m_drawedVerts[0][relY] - v1[relY];
+	return sqrt ((dx * dx) + (dy * dy));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
+{	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	relX = cam->axisX;
+	relY = cam->axisY;
 }
 
 // =============================================================================

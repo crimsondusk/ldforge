@@ -64,11 +64,6 @@ extern_cfg (Bool, gl_colorbfc);
 #define act(N) extern_cfg (KeySequence, key_##N);
 #include "actions.h"
 
-const char* g_modeActionNames[] = {
-	"modeSelect",
-	"modeDraw",
-};
-
 // =============================================================================
 // -----------------------------------------------------------------------------
 ForgeWindow::ForgeWindow() {
@@ -606,6 +601,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos) {
 	contextMenu->addAction (ACTION (ClearOverlay));
 	contextMenu->addAction (ACTION (ModeSelect));
 	contextMenu->addAction (ACTION (ModeDraw));
+	contextMenu->addAction (ACTION (ModeCircle));
 	
 	if (R()->camera() != GL::Free) {
 		contextMenu->addSeparator();
@@ -644,6 +640,7 @@ void ForgeWindow::updateEditModeActions() {
 	const EditMode mode = R()->editMode();
 	ACTION (ModeSelect)->setChecked (mode == Select);
 	ACTION (ModeDraw)->setChecked (mode == Draw);
+	ACTION (ModeCircle)->setChecked (mode == CircleMode);
 }
 
 // =============================================================================
