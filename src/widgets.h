@@ -40,7 +40,7 @@ class RadioGroup : public QGroupBox
 {	Q_OBJECT
 
 	public:
-		typedef List<QRadioButton*>::it it;
+		typedef List<QRadioButton*>::Iterator Iterator;
 
 		explicit RadioGroup()
 		{	init (Qt::Vertical);
@@ -54,20 +54,20 @@ class RadioGroup : public QGroupBox
 		explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
 			const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
 
-		void			addButton	(const char* entry);
-		void			addButton	(QRadioButton* button);
-		it				begin	();
-		it				end	();
-		void			init	(Qt::Orientation orient);
-		bool			isChecked	(int n) const;
-		void			rowBreak	();
-		void			setCurrentRow	(uint row);
-		void			setValue	(int val);
-		int				value	() const;
+		void            addButton	(const char* entry);
+		void            addButton	(QRadioButton* button);
+		Iterator        begin();
+		Iterator        end();
+		void            init (Qt::Orientation orient);
+		bool            isChecked (int n) const;
+		void            rowBreak();
+		void            setCurrentRow (uint row);
+		void            setValue (int val);
+		int             value() const;
 
-		QRadioButton*	operator[]	(uint n) const;
-		RadioGroup&		operator<<	(QRadioButton* button);
-		RadioGroup&		operator<<	(const char* entry);
+		QRadioButton*   operator[] (uint n) const;
+		RadioGroup&     operator<< (QRadioButton* button);
+		RadioGroup&     operator<< (const char* entry);
 
 	signals:
 		void buttonPressed (int btn);

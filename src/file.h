@@ -60,9 +60,6 @@ class LDFile : public QObject
 		DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
 
 	public:
-		typedef List<LDObject*>::it it;
-		typedef List<LDObject*>::c_it c_it;
-
 		LDFile();
 		~LDFile();
 

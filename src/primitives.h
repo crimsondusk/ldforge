@@ -45,9 +45,6 @@ class PrimitiveCategory
 			Type type;
 		};
 
-		typedef List<RegexEntry>::it it;
-		typedef List<RegexEntry>::c_it c_it;
-
 		List<RegexEntry> regexes;
 		List<Primitive> prims;
 		static List<Primitive> uncat;

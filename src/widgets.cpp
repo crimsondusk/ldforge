@@ -166,12 +166,12 @@ void RadioGroup::slot_buttonReleased (int btn)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-RadioGroup::it RadioGroup::begin()
+RadioGroup::Iterator RadioGroup::begin()
 {	return m_objects.begin();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-RadioGroup::it RadioGroup::end()
+RadioGroup::Iterator RadioGroup::end()
 {	return m_objects.end();
 }

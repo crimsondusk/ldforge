@@ -76,11 +76,11 @@ class matrix
 		void			zero	();
 		matrix&			operator=	(matrix other);
 
-		inline double& val (const uint idx)
+		inline double& val (int idx)
 		{	return m_vals[idx];
 		}
 
-		inline const double val (const uint idx) const
+		inline const double& val (int idx) const
 		{	return m_vals[idx];
 		}
 
@@ -88,10 +88,10 @@ class matrix
 		{	return mult (other);
 		}
 
-		inline double& operator[] (const uint idx)
+		inline double& operator[] (int idx)
 		{	return val (idx);
 		}
-		inline const double& operator[] (const uint idx) const
+		inline const double& operator[] (int idx) const
 		{	return val (idx);
 		}
 
@@ -112,16 +112,18 @@ class vertex
 		vertex() {}
 		vertex (double x, double y, double z);
 
-		double&			coord	(const ushort n)
+		vertex          midpoint    (const vertex& other);
+		void            move        (const vertex& other);
+		str             stringRep   (bool mangled) const;
+		void            transform   (matrix matr, vertex pos);
+
+		inline double& coord (int n)
 		{	return m_coords[n];
 		}
-		const double&	coord	(const ushort n) const
+
+		inline const double& coord (int n) const
 		{	return m_coords[n];
 		}
-		vertex			midpoint	(const vertex& other);
-		void			move	(const vertex& other);
-		str				stringRep	(bool mangled) const;
-		void			transform	(matrix matr, vertex pos);
 
 		inline double& x ()
 		{	return m_coords[X];
@@ -173,45 +175,45 @@ class vertex
 // =============================================================================
 template<class T> class List
 {	public:
-		typedef typename std::deque<T>::iterator it;
-		typedef typename std::deque<T>::const_iterator c_it;
-		typedef typename std::deque<T>::reverse_iterator r_it;
-		typedef typename std::deque<T>::const_reverse_iterator cr_it;
+		typedef typename std::deque<T>::iterator Iterator;
+		typedef typename std::deque<T>::const_iterator ConstIterator;
+		typedef typename std::deque<T>::reverse_iterator ReverseIterator;
+		typedef typename std::deque<T>::const_reverse_iterator ConstReverseIterator;
 
 		List() {}
 		List (initlist<T> vals)
 		{	m_vect = vals;
 		}
 
-		inline it begin()
+		inline Iterator begin()
 		{	return m_vect.begin();
 		}
 
-		inline c_it begin() const
+		inline ConstIterator begin() const
 		{	return m_vect.cbegin();
 		}
 
-		inline it end()
+		inline Iterator end()
 		{	return m_vect.end();
 		}
 
-		inline c_it end() const
+		inline ConstIterator end() const
 		{	return m_vect.cend();
 		}
 
-		inline r_it rbegin()
+		inline ReverseIterator rbegin()
 		{	return m_vect.rbegin();
 		}
 
-		inline cr_it crbegin() const
+		inline ConstReverseIterator crbegin() const
 		{	return m_vect.crbegin();
 		}
 
-		inline r_it rend()
+		inline ReverseIterator rend()
 		{	return m_vect.rend();
 		}
 
-		inline cr_it crend() const
+		inline ConstReverseIterator crend() const
 		{	return m_vect.crend();
 		}
 
@@ -272,7 +274,7 @@ template<class T> class List
 		{	// Remove duplicate entries. For this to be effective, the List must be
 			// sorted first.
 			sort();
-			it pos = std::unique (begin(), end());
+			Iterator pos = std::unique (begin(), end());
 			resize (std::distance (begin(), pos));
 		}
 
@@ -324,17 +326,17 @@ template<class T> class List
 // =============================================================================
 template<class T> class ListReverser
 {	public:
-		typedef typename List<T>::r_it it;
+		typedef typename List<T>::ReverseIterator Iterator;
 
 		ListReverser (List<T>& vect)
 		{	m_vect = &vect;
 		}
 
-		it begin()
+		Iterator begin()
 		{	return m_vect->rbegin();
 		}
 
-		it end()
+		Iterator end()
 		{	return m_vect->rend();
 		}
 
@@ -351,17 +353,17 @@ template<class T> class ListReverser
 // =============================================================================
 template<class T> class ConstListReverser
 {	public:
-		typedef typename List<T>::cr_it it;
+		typedef typename List<T>::ConstReverseIterator Iterator;
 
 		ConstListReverser (const List<T>& vect)
 		{	m_vect = &vect;
 		}
 
-		it begin() const
+		Iterator begin() const
 		{	return m_vect->crbegin();
 		}
 
-		it end() const
+		Iterator end() const
 		{	return m_vect->crend();
 		}
 

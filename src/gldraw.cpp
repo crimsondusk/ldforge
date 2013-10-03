@@ -1346,8 +1346,7 @@ void GLRenderer::endDraw (bool accept)
 			break;
 
 		case CircleMode:
-		{	const staticCameraMeta* cam = &g_staticCameras[m_camera];
-			const double dist = circleDrawDist();
+		{	const double dist = circleDrawDist();
 
 			matrix transform = g_circleDrawTransforms[camera() % 3];
 
