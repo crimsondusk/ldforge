@@ -511,6 +511,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	initGLData();
 	drawGLScene();
 
+	QPen textpen = getTextPen();
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont());
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
@@ -540,7 +541,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 		paint.setPen (getTextPen());
 		paint.drawText (m_width - textSize.width(), m_height - 16, textSize.width(),
-						textSize.height(), Qt::AlignCenter, text);
+			textSize.height(), Qt::AlignCenter, text);
+
+		QPen linepen = m_thinBorderPen;
+		linepen.setWidth (2);
+		linepen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 
 		// If we're drawing, draw the vertices onto the screen.
 		if (editMode() == Draw)
@@ -586,10 +591,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				}
 
 				// Draw the polygon-to-be
-				QPen pen = m_thinBorderPen;
-				pen.setWidth (2);
-				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
-				paint.setPen (pen);
+				paint.setPen (linepen);
 				paint.setBrush (QColor (64, 192, 0, 128));
 				paint.drawPolygon (poly, numverts);
 
@@ -603,7 +605,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				}
 			}
 		}
-
 		elif (editMode() == CircleMode)
 		{	// If we have not specified the center point of the circle yet, preview it on the screen.
 			if (m_drawedVerts.size() == 0)
@@ -614,6 +615,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				const int segs = lores;
 				const double angleUnit = (2 * pi) / segs;
 				Axis relX, relY;
+				QVector<QPoint> points;
+
 				getRelativeAxes (relX, relY);
 
 				for (int i = 0; i < segs; ++i)
@@ -623,20 +626,22 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					verts << v;
 				}
 
-				QVector<QPoint> points;
-
-			for (const vertex & v : verts)
+				for (const vertex& v : verts)
 				{	QPoint point = coordconv3_2 (v);
 					drawBlip (paint, point);
 					points << point;
 				}
 
-				QPen pen = m_thinBorderPen;
-				pen.setWidth (2);
-				pen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
-				paint.setPen (pen);
+				paint.setPen (linepen);
 				paint.setBrush (Qt::NoBrush);
 				paint.drawPolygon (QPolygon (points));
+
+				{ // Draw the current radius in the middle of the circle.
+					QPoint origin = coordconv3_2 (m_drawedVerts[0]);
+					str label = str::number (dist);
+					paint.setPen (textpen);
+					paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y(), label);
+				}
 			}
 		}
 	}
@@ -649,7 +654,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		paint.drawRect (m_cameraIcons[camera()].selRect);
 
 		// Draw the actual icons
-	for (CameraIcon & info : m_cameraIcons)
+		for (CameraIcon& info : m_cameraIcons)
 		{	// Don't draw the free camera icon when in draw mode
 			if (&info == &m_cameraIcons[GL::Free] && editMode() != Select)
 				continue;
@@ -660,11 +665,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		str fmtstr = tr ("%1 Camera");
 
 		// Draw a label for the current camera in the bottom left corner
-		{	const ushort margin = 4;
+		{	const int margin = 4;
 
 			str label;
 			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
-			paint.setPen (getTextPen());
+			paint.setPen (textpen);
 			paint.drawText (QPoint (margin, height() - (margin + metrics.descent())), label);
 		}
 
@@ -685,7 +690,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		const int margin = 2;
 		QColor penColor = getTextPen();
 
-	for (const MessageManager::Line & line : msglog()->getLines())
+		for (const MessageManager::Line& line : msglog()->getLines())
 		{	penColor.setAlphaF (line.alpha);
 			paint.setPen (penColor);
 			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
@@ -695,10 +700,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (m_rangepick && !m_picking && m_totalmove >= 10)
-	{	const short x0 = m_rangeStart.x(),
-						y0 = m_rangeStart.y(),
-						x1 = m_pos.x(),
-						y1 = m_pos.y();
+	{	int x0 = m_rangeStart.x(),
+			y0 = m_rangeStart.y(),
+			x1 = m_pos.x(),
+			y1 = m_pos.y();
 
 		QRect rect (x0, y0, x1 - x0, y1 - y0);
 		QColor fillColor = (m_addpick ? "#40FF00" : "#00CCFF");
@@ -883,7 +888,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	if (wasLeft)
 	{	// Check if we selected a camera icon
 		if (!m_rangepick)
-	{	for (CameraIcon & info : m_cameraIcons)
+		{	for (CameraIcon & info : m_cameraIcons)
 			{	if (info.destRect.contains (ev->pos()))
 				{	setCamera (info.cam);
 					goto end;
@@ -892,9 +897,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		}
 
 		switch (editMode())
-		{	case Draw:
-
-				if (m_rectdraw)
+		{
+			case Draw:
+			{	if (m_rectdraw)
 				{	if (m_drawedVerts.size() == 2)
 					{	endDraw (true);
 						return;
@@ -914,21 +919,19 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				}
 
 				addDrawnVertex (m_hoverpos);
-				break;
+			} break;
 
 			case CircleMode:
-
-				if (m_drawedVerts.size() == 2)
+			{	if (m_drawedVerts.size() == 2)
 				{	endDraw (true);
 					return;
 				}
 
 				addDrawnVertex (m_hoverpos);
-				break;
+			} break;
 
 			case Select:
-
-				if (!drawOnly())
+			{	if (!drawOnly())
 				{	if (m_totalmove < 10)
 						m_rangepick = false;
 
@@ -938,8 +941,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 					if (m_totalmove < 10 || m_rangepick)
 						pick (ev->x(), ev->y());
 				}
-
-				break;
+			} break;
 		}
 
 		m_rangepick = false;
@@ -953,7 +955,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 
 		QPoint curspos = coordconv3_2 (m_hoverpos);
 
-	for (const vertex & pos3d: m_knownVerts)
+		for (const vertex& pos3d: m_knownVerts)
 		{	QPoint pos2d = coordconv3_2 (pos3d);
 
 			// Measure squared distance
@@ -1243,14 +1245,13 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode)
 
 	switch (editMode())
 	{	case Select:
-			unsetCursor();
+		{	unsetCursor();
 			setContextMenuPolicy (Qt::DefaultContextMenu);
-			break;
+		} break;
 
 		case Draw:
 		case CircleMode:
-
-			// Cannot draw into the free camera - use top instead.
+		{	// Cannot draw into the free camera - use top instead.
 			if (m_camera == Free)
 				setCamera (Top);
 
@@ -1267,7 +1268,7 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode)
 			g_win->sel().clear();
 			g_win->updateSelection();
 			m_drawedVerts.clear();
-			break;
+		} break;
 	}
 
 	g_win->updateEditModeActions();
@@ -1353,9 +1354,8 @@ void GLRenderer::endDraw (bool accept)
 			for (int i = 0; i < 9; ++i)
 			{	if (transform[i] == 2)
 					transform[i] = dist;
-
 				elif (transform[i] == 1 && camera() >= 3)
-				transform[i] = -1;
+					transform[i] = -1;
 			}
 
 			LDSubfile* ref = new LDSubfile;
