@@ -113,7 +113,7 @@ void parseLDConfig()
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDConfigParser::LDConfigParser (str inText, char sep)
-{	m_tokens = container_cast<QStringList, List<str>> (inText.split (sep, QString::SkipEmptyParts));
+{	m_tokens = inText.split (sep, QString::SkipEmptyParts);
 	m_pos = -1;
 }
 
@@ -126,7 +126,7 @@ bool LDConfigParser::atBeginning()
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::atEnd()
-{	return (m_pos == (signed) m_tokens.size() - 1);
+{	return (m_pos == m_tokens.size() - 1);
 }
 
 // =============================================================================

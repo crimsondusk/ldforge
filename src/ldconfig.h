@@ -20,6 +20,7 @@
 #define LDCONFIG_H
 
 #include "types.h"
+#include <QStringList>
 
 // =============================================================================
 // StringParser
@@ -46,8 +47,8 @@ class LDConfigParser
 		}
 
 	private:
-		List<str> m_tokens;
-		short m_pos;
+		QStringList m_tokens;
+		int m_pos;
 };
 
 void parseLDConfig();

@@ -68,15 +68,6 @@ enum RotationPoint
 vertex rotPoint (const List<LDObject*>& objs);
 void configRotationPoint();
 
-template<class T, class R> R container_cast (const T& a)
-{	R b;
-
-	for (auto i : a)
-		b << i;
-
-	return b;
-}
-
 // =============================================================================
 namespace Grid
 {	enum Type
