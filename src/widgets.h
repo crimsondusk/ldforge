@@ -36,52 +36,58 @@ class QRadioButton;
 //
 // Convenience widget - is a groupbox of radio buttons.
 // =============================================================================
-class RadioGroup : public QGroupBox {
-	Q_OBJECT
-	
-public:
-	typedef List<QRadioButton*>::it it;
-	
-	explicit RadioGroup() { init (Qt::Vertical); }
-	explicit RadioGroup (QWidget* parent = null) : QGroupBox (parent) { init (Qt::Vertical); }
-	explicit RadioGroup (const QString& title, QWidget* parent = null);
-	explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
-		const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
-	
-	void			addButton		(const char* entry);
-	void			addButton		(QRadioButton* button);
-	it				begin			();
-	it				end				();
-	void			init			(Qt::Orientation orient);
-	bool			isChecked		(int n) const;
-	void			rowBreak		();
-	void			setCurrentRow	(uint row);
-	void			setValue		(int val);
-	int				value			() const;
-	
-	QRadioButton*	operator[]		(uint n) const;
-	RadioGroup&		operator<<		(QRadioButton* button);
-	RadioGroup&		operator<<		(const char* entry);
+class RadioGroup : public QGroupBox
+{	Q_OBJECT
 
-signals:
-	void buttonPressed (int btn);
-	void buttonReleased (int btn);
-	void valueChanged (int val);
+	public:
+		typedef List<QRadioButton*>::it it;
 
-private:
-	List<QRadioButton*> m_objects;
-	List<QBoxLayout*> m_layouts;
-	QBoxLayout* m_coreLayout;
-	QBoxLayout* m_currentLayout;
-	bool m_vert;
-	int m_curId, m_defId, m_oldId;
-	QButtonGroup* m_buttonGroup;
-	
-	Q_DISABLE_COPY (RadioGroup)
+		explicit RadioGroup()
+		{	init (Qt::Vertical);
+		}
 
-private slots:
-	void slot_buttonPressed (int btn);
-	void slot_buttonReleased (int btn);
+		explicit RadioGroup (QWidget* parent = null) : QGroupBox (parent)
+		{	init (Qt::Vertical);
+		}
+
+		explicit RadioGroup (const QString& title, QWidget* parent = null);
+		explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
+			const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
+
+		void			addButton	(const char* entry);
+		void			addButton	(QRadioButton* button);
+		it				begin	();
+		it				end	();
+		void			init	(Qt::Orientation orient);
+		bool			isChecked	(int n) const;
+		void			rowBreak	();
+		void			setCurrentRow	(uint row);
+		void			setValue	(int val);
+		int				value	() const;
+
+		QRadioButton*	operator[]	(uint n) const;
+		RadioGroup&		operator<<	(QRadioButton* button);
+		RadioGroup&		operator<<	(const char* entry);
+
+	signals:
+		void buttonPressed (int btn);
+		void buttonReleased (int btn);
+		void valueChanged (int val);
+
+	private:
+		List<QRadioButton*> m_objects;
+		List<QBoxLayout*> m_layouts;
+		QBoxLayout* m_coreLayout;
+		QBoxLayout* m_currentLayout;
+		bool m_vert;
+		int m_curId, m_defId, m_oldId;
+		QButtonGroup* m_buttonGroup;
+
+		Q_DISABLE_COPY (RadioGroup)
+
+	private slots:
+		void slot_buttonPressed (int btn);
+		void slot_buttonReleased (int btn);
 };
 
 #endif // WIDGETS_H

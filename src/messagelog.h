@@ -37,32 +37,32 @@ class QTimer;
  * their expiry. If the message manager's lines change, the renderer undergoes
  * repainting.
  */
-class MessageManager : public QObject {
-	Q_OBJECT
-	PROPERTY (GLRenderer*, renderer, setRenderer)
-	
-public:
-	// Single line of the message log.
-	class Line {
+class MessageManager : public QObject
+{		Q_OBJECT
+		PROPERTY (GLRenderer*, renderer, setRenderer)
+
 	public:
-		Line (str text);
-		bool update (bool& changed);
-		
-		str text;
-		float alpha;
-		QDateTime expiry;
-	};
-	
-	explicit MessageManager (QObject* parent = 0);
-	void addLine (str line);
-	const List<Line>& getLines() const;
-	
-private:
-	List<Line> m_lines;
-	QTimer* m_ticker;
-	
-private slots:
-	void tick();
+		// Single line of the message log.
+		class Line
+		{	public:
+				Line (str text);
+				bool update (bool& changed);
+
+				str text;
+				float alpha;
+				QDateTime expiry;
+		};
+
+		explicit MessageManager (QObject* parent = 0);
+		void addLine (str line);
+		const List<Line>& getLines() const;
+
+	private:
+		List<Line> m_lines;
+		QTimer* m_ticker;
+
+	private slots:
+		void tick();
 };
 
 #endif // MESSAGELOG_H

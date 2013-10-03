@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORSELECTOR_H
-#define COLORSELECTOR_H
+#ifndef LDFORGE_COLORSELECTOR_H
+#define LDFORGE_COLORSELECTOR_H
 
 #include <QDialog>
 #include "common.h"
@@ -26,28 +26,28 @@ class LDColor;
 class Ui_ColorSelUI;
 class QGraphicsScene;
 
-class ColorSelector : public QDialog {
-	Q_OBJECT
+class ColorSelector : public QDialog
+{	Q_OBJECT
 	READ_PROPERTY (LDColor*, sel, setSelection)
-	
-public:
-	explicit ColorSelector (short defval = -1, QWidget* parent = null);
-	virtual ~ColorSelector();
-	static bool getColor (short& val, short defval = -1, QWidget* parent = null);
-	
-protected:
-	void mousePressEvent (QMouseEvent* event);
-	void resizeEvent (QResizeEvent* ev);
-	
-private:
-	Ui_ColorSelUI* ui;
-	QGraphicsScene* m_scene;
-	bool m_firstResize;
-	
-	int numRows() const;
-	int viewportWidth() const;
-	void drawScene();
-	void drawColorInfo();
+
+	public:
+		explicit ColorSelector (short defval = -1, QWidget* parent = null);
+		virtual ~ColorSelector();
+		static bool getColor (short& val, short defval = -1, QWidget* parent = null);
+
+	protected:
+		void mousePressEvent (QMouseEvent* event);
+		void resizeEvent (QResizeEvent* ev);
+
+	private:
+		Ui_ColorSelUI* ui;
+		QGraphicsScene* m_scene;
+		bool m_firstResize;
+
+		int numRows() const;
+		int viewportWidth() const;
+		void drawScene();
+		void drawColorInfo();
 };
 
 #endif // COLORSELECTOR_H

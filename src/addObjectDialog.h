@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef ZZ_ADDOBJECTDIALOG_H
-#define ZZ_ADDOBJECTDIALOG_H
+#ifndef LDFORGE_ADDOBJECTDIALOG_H
+#define LDFORGE_ADDOBJECTDIALOG_H
 
 #include <QDialog>
 #include "ldtypes.h"
@@ -31,42 +31,42 @@ class QLabel;
 class QTreeWidget;
 class QDoubleSpinBox;
 
-class AddObjectDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-    AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent = null);
-	static void staticDialog (const LDObject::Type type, LDObject* obj);
-	
-	QLabel* lb_typeIcon;
-	
-	// Comment line edit
-	QLineEdit* le_comment;
-	
-	// Coordinate edits for.. anything with coordinates, really.
-	QDoubleSpinBox* dsb_coords[12];
-	
-	// Color selection dialog button
-	QPushButton* pb_color;
-	
-	// BFC-related widgets
-	RadioGroup* rb_bfcType;
-	
-	// Subfile stuff
-	QTreeWidget* tw_subfileList;
-	QLineEdit* le_subfileName;
-	QLabel* lb_subfileName;
-	QLineEdit* le_matrix;
-	
-private:
-	void setButtonBackground (QPushButton* button, short color);
-	str currentSubfileName();
-	
-	short colnum;
-	
-private slots:
-	void slot_colorButtonClicked();
-	void slot_subfileTypeChanged();
+class AddObjectDialog : public QDialog
+{	Q_OBJECT
+
+	public:
+		AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent = null);
+		static void staticDialog (const LDObject::Type type, LDObject* obj);
+
+		QLabel* lb_typeIcon;
+
+		// Comment line edit
+		QLineEdit* le_comment;
+
+		// Coordinate edits for.. anything with coordinates, really.
+		QDoubleSpinBox* dsb_coords[12];
+
+		// Color selection dialog button
+		QPushButton* pb_color;
+
+		// BFC-related widgets
+		RadioGroup* rb_bfcType;
+
+		// Subfile stuff
+		QTreeWidget* tw_subfileList;
+		QLineEdit* le_subfileName;
+		QLabel* lb_subfileName;
+		QLineEdit* le_matrix;
+
+	private:
+		void setButtonBackground (QPushButton* button, short color);
+		str currentSubfileName();
+
+		short colnum;
+
+	private slots:
+		void slot_colorButtonClicked();
+		void slot_subfileTypeChanged();
 };
 
 #endif // ZZ_ADDOBJECTDIALOG_H

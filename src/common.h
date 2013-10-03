@@ -48,9 +48,6 @@
 // RC Number for BUILD_RC
 #define RC_NUMBER      0
 
-// Uncomment for portable build... maybe it's time to move to cmake?
-// #define PORTABLE
-
 // =============================================
 #if (BUILD_ID != BUILD_INTERNAL)
 #define RELEASE

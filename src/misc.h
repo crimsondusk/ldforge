@@ -45,23 +45,22 @@ void simplify (short& numer, short& denom);
 str join (initlist<StringFormatArg> vals, str delim = " ");
 
 // Grid stuff
-typedef struct {
-	const char* const name;
+struct gridinfo
+{	const char* const name;
 	FloatConfig* const confs[4];
-} gridinfo;
+};
 
 extern_cfg (Int, grid);
 static const short g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
-inline const gridinfo& currentGrid() {
-	return g_GridInfo[grid];
+inline const gridinfo& currentGrid()
+{	return g_GridInfo[grid];
 }
 
 // =============================================================================
 enum RotationPoint
-{
-	ObjectOrigin,
+{	ObjectOrigin,
 	WorldOrigin,
 	CustomPoint
 };
@@ -69,65 +68,65 @@ enum RotationPoint
 vertex rotPoint (const List<LDObject*>& objs);
 void configRotationPoint();
 
-template<class T, class R> R container_cast (const T& a) {
-	R b;
-	
+template<class T, class R> R container_cast (const T& a)
+{	R b;
+
 	for (auto i : a)
 		b << i;
-	
+
 	return b;
 }
 
 // =============================================================================
-namespace Grid {
-	enum Type {
-		Coarse,
+namespace Grid
+{	enum Type
+	{	Coarse,
 		Medium,
 		Fine
 	};
-	
-	enum Config {
-		X,
+
+	enum Config
+	{	X,
 		Y,
 		Z,
 		Angle
 	};
-	
+
 	double snap (double value, const Grid::Config axis);
 }
 
 // =============================================================================
-template<class T> void dataswap (T& a, T& b) {
-	T c = a;
+template<class T> void dataswap (T& a, T& b)
+{	T c = a;
 	a = b;
 	b = c;
 }
 
 // -----------------------------------------------------------------------------
 // Plural expression
-template<class T> static inline const char* plural (T n) {
-	return (n != 1) ? "s" : "";
+template<class T> static inline const char* plural (T n)
+{	return (n != 1) ? "s" : "";
 }
 
 // -----------------------------------------------------------------------------
 // Templated clamp
-template<class T> static inline T clamp (T a, T min, T max) {
-	return (a > max) ? max : (a < min) ? min : a;
+template<class T> static inline T clamp (T a, T min, T max)
+{	return (a > max) ? max : (a < min) ? min : a;
 }
 
 // Templated minimum
-template<class T> static inline T min (T a, T b) {
-	return (a < b) ? a : b;
+template<class T> static inline T min (T a, T b)
+{	return (a < b) ? a : b;
 }
 
 // Templated maximum
-template<class T> static inline T max (T a, T b) {
-	return (a > b) ? a : b;
+template<class T> static inline T max (T a, T b)
+{	return (a > b) ? a : b;
 }
 
 // Templated absolute value
-template<class T> static inline T abs (T a) {
-	return (a >= 0) ? a : -a;
+template<class T> static inline T abs (T a)
+{	return (a >= 0) ? a : -a;
 }
 
 #endif // MISC_H
