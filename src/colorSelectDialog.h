@@ -50,4 +50,4 @@ class ColorSelector : public QDialog
 		void drawColorInfo();
 };
 
-#endif // COLORSELECTOR_H
+#endif // LDFORGE_COLORSELECTOR_H

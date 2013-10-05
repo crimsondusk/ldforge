@@ -84,7 +84,7 @@ OverlayDialog::~OverlayDialog()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OverlayDialog::fillDefaults (int newcam)
-{	overlayMeta& info = g_win->R()->getOverlay (newcam);
+{	LDGLOverlay& info = g_win->R()->getOverlay (newcam);
 	radioDefault<int> (newcam, m_cameraArgs);
 
 	if (info.img != null)

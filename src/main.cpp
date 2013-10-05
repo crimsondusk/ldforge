@@ -94,18 +94,14 @@ void doPrint (File& f, initlist<StringFormatArg> args)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void doPrint (FILE* fp, initlist<StringFormatArg> args)
-{	if (fp == stdout)
-		doPrint (g_file_stdout, args);
-
-	elif (fp == stderr)
-	doPrint (g_file_stderr, args);
-	else
-		fatal ("unknown FILE* argument");
+{	str msg = DoFormat (args);
+	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
+	fflush (fp);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str versionString()
+QString versionString()
 {	if (g_versionString.length() == 0)
 	{
 #if VERSION_PATCH == 0
@@ -120,7 +116,7 @@ str versionString()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str versionMoniker()
+QString versionMoniker()
 {
 #if BUILD_ID == BUILD_INTERNAL
 	return "Internal";
@@ -137,25 +133,8 @@ str versionMoniker()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str fullVersionString()
+QString fullVersionString()
 {	return fmt ("v%1 %2", versionString(), versionMoniker());
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-static void bombBox (str msg)
-{	msg.replace ("\n", "<br />");
-
-	QMessageBox box (null);
-	const QMessageBox::StandardButton btn = QMessageBox::Close;
-	box.setWindowTitle ("Fatal Error");
-	box.setIconPixmap (getIcon ("bomb"));
-	box.setWindowIcon (getIcon ("ldforge"));
-	box.setText (msg);
-	box.addButton (btn);
-	box.button (btn)->setText ("Damn it");
-	box.setDefaultButton (btn);
-	box.exec();
 }
 
 // =============================================================================
@@ -164,7 +143,7 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 {	str errmsg = fmt ("File: %1\nLine: %2:\nFunction %3:\n\nAssertion `%4' failed",
 					  file, line, funcname, expr);
 
-#if BUILD_ID == BUILD_INTERNAL
+#ifndef RELEASE
 	errmsg += ", aborting.";
 #else
 	errmsg += ".";
@@ -172,27 +151,22 @@ void assertionFailure (const char* file, const ulong line, const char* funcname,
 
 	printf ("%s\n", errmsg.toStdString().c_str());
 
-#if BUILD_ID == BUILD_INTERNAL
-
+#ifndef RELEASE
 	if (g_win)
 		g_win->deleteLater();
 
-	bombBox (errmsg);
+	errmsg.replace ("\n", "<br />");
+	
+	QMessageBox box (null);
+	const QMessageBox::StandardButton btn = QMessageBox::Close;
+	box.setWindowTitle ("Fatal Error");
+	box.setIconPixmap (getIcon ("bomb"));
+	box.setWindowIcon (getIcon ("ldforge"));
+	box.setText (errmsg);
+	box.addButton (btn);
+	box.button (btn)->setText ("Damn it");
+	box.setDefaultButton (btn);
+	box.exec();
 	abort();
 #endif
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void fatalError (const char* file, const ulong line, const char* funcname, str msg)
-{	str errmsg = fmt ("Aborting over a call to fatal():\nFile: %1\nLine: %2\nFunction: %3\n\n%4",
-					  file, line, funcname, msg);
-
-	print ("%1\n", errmsg);
-
-	if (g_win)
-		g_win->deleteLater();
-
-	bombBox (errmsg);
-	abort();
 }

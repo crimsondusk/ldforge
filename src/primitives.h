@@ -24,6 +24,7 @@
 #include <QRegExp>
 #include <QDialog>
 
+class LDFile;
 class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive
@@ -103,6 +104,10 @@ class PrimitivePrompt : public QDialog
 		void hiResToggled (bool on);
 };
 
-void generatePrimitive();
+LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
+
+// Gets a primitive by the given specs. If the primitive cannot be found, it will
+// be automatically generated.
+LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
 #endif // PRIMITIVES_H

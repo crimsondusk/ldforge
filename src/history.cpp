@@ -37,7 +37,7 @@ void History::undo()
 {	if (m_changesets.size() == 0 || pos() == -1)
 		return;
 
-	const list& set = changeset (pos());
+	const Changeset& set = changeset (pos());
 	g_fullRefresh = false;
 
 	// Iterate the list in reverse and undo all actions
@@ -60,7 +60,7 @@ void History::redo()
 {	if (pos() == (long) m_changesets.size())
 		return;
 
-	const list& set = changeset (pos() + 1);
+	const Changeset& set = changeset (pos() + 1);
 	g_fullRefresh = false;
 
 	// Redo things - in the order as they were done in the first place
@@ -80,8 +80,8 @@ void History::redo()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::clear()
-{	for (List<AbstractHistoryEntry*> set : m_changesets)
-		for (AbstractHistoryEntry* change : set)
+{	for (Changeset set : m_changesets)
+		for (auto change : set)
 			delete change;
 
 	m_changesets.clear();

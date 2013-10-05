@@ -53,8 +53,7 @@ DEFINE_PROPERTY (QListWidgetItem*, LDFile, listItem, setListItem)
 // =============================================================================
 // -----------------------------------------------------------------------------
 namespace LDPaths
-{
-	static str pathError;
+{	static str pathError;
 
 	struct
 	{	str LDConfigPath;
@@ -99,12 +98,15 @@ namespace LDPaths
 	str getError()
 	{	return pathError;
 	}
+
 	str ldconfig()
 	{	return pathInfo.LDConfigPath;
 	}
+
 	str prims()
 	{	return pathInfo.primsPath;
 	}
+
 	str parts()
 	{	return pathInfo.partsPath;
 	}
@@ -123,11 +125,11 @@ LDFile::LDFile()
 // -----------------------------------------------------------------------------
 LDFile::~LDFile()
 {	// Clear everything from the model
-for (LDObject * obj : objects())
+	for (LDObject* obj : objects())
 		delete obj;
 
 	// Clear the cache as well
-for (LDObject * obj : cache())
+	for (LDObject* obj : cache())
 		delete obj;
 
 	// Remove this file from the list of files
@@ -141,18 +143,20 @@ for (LDObject * obj : cache())
 	// If we just closed the current file, we need to set the current
 	// file as something else.
 	if (this == LDFile::current())
-	{	// If we closed the last file, create a blank one.
-		if (countExplicitFiles() == 0)
-			newFile();
-		else
-		{	// Find the first explicit file loaded
-			int idx = 0;
+	{	bool found = false;
 
-			while (g_loadedFiles[idx]->implicit())
-				idx++;
-
-			LDFile::setCurrent (g_loadedFiles[idx]);
+		// Try find an explicitly loaded file - if we can't find one,
+		// we need to create a new file to switch to.
+		for (LDFile* file : g_loadedFiles)
+		{	if (!file->implicit())
+			{	LDFile::setCurrent (file);
+				found = true;
+				break;
+			}
 		}
+
+		if (!found)
+			newFile();
 	}
 
 	g_win->updateFileList();
@@ -229,15 +233,16 @@ File* openLDrawFile (str relpath, bool subdirs)
 		return f;
 
 	if (subdirs)
-	{	// Look in sub-directories: parts and p. Also look in net_downloadpath.
-	for (const str & topdir : initlist<str> ( { io_ldpath, net_downloadpath }))
-
-		for (const str & subdir : initlist<str> ( { "parts", "p" }))
+	{	// Look in sub-directories: parts and p. Also look in net_downloadpath, since that's
+		// where we download parts from the PT to.
+		for (const str& topdir : initlist<str> ({ io_ldpath, net_downloadpath }))
+		{	for (const str& subdir : initlist<str> ({ "parts", "p" }))
 			{	fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 
 				if (f->open (fullPath, File::Read))
 					return f;
 			}
+		}
 	}
 
 	// Did not find the file.

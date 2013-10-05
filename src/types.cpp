@@ -411,9 +411,7 @@ bool File::readLine (str& line)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool File::atEnd() const
-{	if (!m_textstream)
-		fatal ("cannot use atEnd on a null file");
-
+{	assert (m_textstream != null);
 	return m_textstream->atEnd();
 }
 

@@ -653,7 +653,7 @@ void ForgeWindow::updateEditModeActions()
 void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
 {	LDObject* obj = null;
 
-for (LDObject * it : LDFile::current()->objects())
+	for (LDObject* it : LDFile::current()->objects())
 	{	if (it->qObjListEntry == listitem)
 		{	obj = it;
 			break;
@@ -694,13 +694,12 @@ void ForgeWindow::primitiveLoaderEnd()
 void ForgeWindow::save (LDFile* f, bool saveAs)
 {	str path = f->name();
 
-	if (path.length() == 0 || saveAs)
+	if (saveAs || path.isEmpty())
 	{	path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
-											 LDFile::current()->name(), tr ("LDraw files (*.dat *.ldr)"));
+			LDFile::current()->name(), tr ("LDraw files (*.dat *.ldr)"));
 
-		if (path.length() == 0)
-		{	// User didn't give a file name. This happens if the user cancelled
-			// saving in the save file dialog. Abort.
+		if (path.isEmpty())
+		{	// User didn't give a file name, abort.
 			return;
 		}
 	}

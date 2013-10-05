@@ -37,7 +37,7 @@ class History
 	READ_PROPERTY (bool, opened, setOpened)
 
 	public:
-		typedef List<AbstractHistoryEntry*> list;
+		typedef List<AbstractHistoryEntry*> Changeset;
 
 		enum Type
 		{	Del,
@@ -66,13 +66,13 @@ class History
 			return *this;
 		}
 
-		inline const list& changeset (long pos) const
+		inline const Changeset& changeset (long pos) const
 		{	return m_changesets[pos];
 		}
 
 	private:
-		list m_currentArchive;
-		List<list> m_changesets;
+		Changeset m_currentArchive;
+		List<Changeset> m_changesets;
 };
 
 // =============================================================================

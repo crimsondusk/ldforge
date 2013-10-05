@@ -39,12 +39,18 @@ enum EditMode
 };
 
 // Meta for overlays
-struct overlayMeta
+struct LDGLOverlay
 {	vertex v0, v1;
 	ushort ox, oy;
 	double lw, lh;
 	str fname;
 	QImage* img;
+};
+
+struct LDFixedCameraInfo
+{	const char glrotate[3];
+	const Axis axisX, axisY;
+	const bool negX, negY;
 };
 
 // =============================================================================
@@ -84,7 +90,7 @@ class GLRenderer : public QGLWidget
 		void           drawGLScene();
 		void           endDraw (bool accept);
 		QColor         getMainColor();
-		overlayMeta&   getOverlay (int newcam);
+		LDGLOverlay&   getOverlay (int newcam);
 		void           hardRefresh();
 		void           initGLData();
 		void           overlaysFromObjects();
@@ -123,28 +129,44 @@ class GLRenderer : public QGLWidget
 		{	QPixmap* img;
 			QRect srcRect, destRect, selRect;
 			Camera cam;
-		} m_cameraIcons[7];
+		};
 
-		QTimer* m_toolTipTimer;
-		Qt::MouseButtons m_lastButtons;
+		CameraIcon            m_cameraIcons[7];
+		QTimer*               m_toolTipTimer;
+		Qt::MouseButtons      m_lastButtons;
 		Qt::KeyboardModifiers m_keymods;
-		ulong m_totalmove;
-		vertex m_hoverpos;
-		double m_virtWidth, m_virtHeight, m_rotX, m_rotY, m_rotZ, m_panX, m_panY;
-		bool m_darkbg, m_rangepick, m_addpick, m_drawToolTip, m_screencap;
-		QPoint m_pos, m_globalpos, m_rangeStart;
-		QPen m_thickBorderPen, m_thinBorderPen;
-		Camera m_camera, m_toolTipCamera;
-		uint m_axeslist;
-		ushort m_width, m_height;
-		List<vertex> m_drawedVerts;
-		bool m_rectdraw;
-		vertex m_rectverts[4];
-		QColor m_bgcolor;
-		double m_depthValues[6];
-		overlayMeta m_overlays[6];
-		List<vertex> m_knownVerts;
-		bool m_panning;
+		ulong                 m_totalmove;
+		vertex                m_hoverpos;
+		double                m_virtWidth,
+		                      m_virtHeight,
+							  m_rotX,
+							  m_rotY,
+							  m_rotZ,
+							  m_panX,
+							  m_panY;
+		bool                  m_darkbg,
+		                      m_rangepick,
+							  m_addpick,
+							  m_drawToolTip,
+							  m_screencap;
+		QPoint                m_pos,
+		                      m_globalpos,
+		                      m_rangeStart;
+		QPen                  m_thickBorderPen,
+							  m_thinBorderPen;
+		Camera                m_camera,
+		                      m_toolTipCamera;
+		GLuint                m_axeslist;
+		int                   m_width,
+		                      m_height;
+		List<vertex>          m_drawedVerts;
+		bool                  m_rectdraw;
+		vertex                m_rectverts[4];
+		QColor                m_bgcolor;
+		double                m_depthValues[6];
+		LDGLOverlay           m_overlays[6];
+		List<vertex>          m_knownVerts;
+		bool                  m_panning;
 
 		void           addDrawnVertex (vertex m_hoverpos);
 		void           calcCameraIcons();                                      // Compute geometry for camera icons

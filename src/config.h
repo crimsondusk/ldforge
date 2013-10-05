@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef LDFORGE_CONFIG_H
+#define LDFORGE_CONFIG_H
 
 #include "common.h"
 
@@ -243,4 +243,4 @@ class ListConfig : public Config
 		}
 };
 
-#endif // CONFIG_H
+#endif // LDFORGE_CONFIG_H

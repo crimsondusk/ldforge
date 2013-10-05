@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIGDIALOG_H
-#define CONFIGDIALOG_H
+#ifndef LDFORGE_CONFIGDIALOG_H
+#define LDFORGE_CONFIGDIALOG_H
 
 #include "gui.h"
 #include <QDialog>
@@ -114,4 +114,4 @@ class KeySequenceDialog : public QDialog
 		virtual void keyPressEvent (QKeyEvent* ev) override;
 };
 
-#endif // CONFIGDIALOG_H
+#endif // LDFORGE_CONFIGDIALOG_H

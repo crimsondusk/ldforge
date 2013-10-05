@@ -484,48 +484,33 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void generatePrimitive()
-{	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
-
-	if (!dlg->exec())
-		return;
-
-	int segs = dlg->ui->sb_segs->value();
-	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
-	int num = dlg->ui->sb_ringnum->value();
-	PrimitiveType type =
-		dlg->ui->rb_circle->isChecked()   ? Circle :
-		dlg->ui->rb_cylinder->isChecked() ? Cylinder :
-		dlg->ui->rb_disc->isChecked()     ? Disc :
-		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
-		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
-
-	// Make the description
-	str frac = ftoa ( ( (float) segs) / divs);
+LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
+{	// Make the description
+	str frac = ftoa (((float) segs) / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
-
+	
 	// Ensure that there's decimals, even if they're 0.
 	if (frac.indexOf (".") == -1)
 		frac += ".0";
-
+	
 	if (type == Ring || type == Cone)
 	{	str spacing =
-			(num < 10) ? "  " :
-			(num < 100) ? " "  : "";
-
+		(num < 10) ? "  " :
+		(num < 100) ? " "  : "";
+		
 		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
 	}
 	else
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
-
+	
 	// Prepend "Hi-Res" if 48/ primitive.
 	if (divs == hires)
 		descr.insert (0, "Hi-Res ");
-
+	
 	LDFile* f = new LDFile;
 	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
-
+	
 	f->addObjects (
 	{	new LDComment (descr),
 		new LDComment (fmt ("Name: %1", name)),
@@ -536,19 +521,28 @@ void generatePrimitive()
 		new LDBFC (LDBFC::CertifyCCW),
 		new LDEmpty,
 	});
-
+	
 	f->addObjects (makePrimitive (type, segs, divs, num));
+	return f;
+}
 
-	g_win->save (f, false);
-	delete f;
+// =============================================================================
+// -----------------------------------------------------------------------------
+LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num)
+{	str name = radialFileName (type, segs, divs, num);
+	LDFile* f = getFile (name);
+	if (f != null)
+		return f;
+
+	return generatePrimitive (type, segs, divs, num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
-	QDialog (parent, f)
+QDialog (parent, f)
 {
-
+	
 	ui = new Ui_MakePrimUI;
 	ui->setupUi (this);
 	connect (ui->cb_hires, SIGNAL (toggled (bool)), this, SLOT (hiResToggled (bool)));
@@ -564,9 +558,33 @@ PrimitivePrompt::~PrimitivePrompt()
 // -----------------------------------------------------------------------------
 void PrimitivePrompt::hiResToggled (bool on)
 {	ui->sb_segs->setMaximum (on ? hires : lores);
-
+	
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
 	if (on && ui->sb_segs->value() == lores)
 		ui->sb_segs->setValue (hires);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (MakePrimitive, 0)
+{	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
+	
+	if (!dlg->exec())
+		return;
+	
+	int segs = dlg->ui->sb_segs->value();
+	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
+	int num = dlg->ui->sb_ringnum->value();
+	PrimitiveType type =
+	dlg->ui->rb_circle->isChecked()   ? Circle :
+	dlg->ui->rb_cylinder->isChecked() ? Cylinder :
+	dlg->ui->rb_disc->isChecked()     ? Disc :
+	dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
+	dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
+	
+	LDFile* f = generatePrimitive (type, segs, divs, num);
+	
+	g_win->save (f, false);
+	delete f;
 }

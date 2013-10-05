@@ -69,4 +69,4 @@ class AddObjectDialog : public QDialog
 		void slot_subfileTypeChanged();
 };
 
-#endif // ZZ_ADDOBJECTDIALOG_H
+#endif // LDFORGE_ADDOBJECTDIALOG_H

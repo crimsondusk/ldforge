@@ -20,8 +20,8 @@
 // This file is included one way or another in every source file of LDForge.
 // Stuff defined and included here is universally included.
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef LDFORGE_COMMON_H
+#define LDFORGE_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,15 +68,15 @@ static const std::nullptr_t null = nullptr;
 #endif // __GNUC__
 
 #ifdef WIN32
-#define DIRSLASH "\\"
-#define DIRSLASH_CHAR '\\'
+# define DIRSLASH "\\"
+# define DIRSLASH_CHAR '\\'
 #else // WIN32
-#define DIRSLASH "/"
-#define DIRSLASH_CHAR '/'
+# define DIRSLASH "/"
+# define DIRSLASH_CHAR '/'
 #endif // WIN32
 
 #ifdef RELEASE
-#define NDEBUG // remove asserts
+# define NDEBUG // remove asserts
 #endif // RELEASE
 
 #define PROP_NAME(GET) m_##GET
@@ -142,27 +142,19 @@ public slots: \
 #define FUNCNAME __func__
 #endif // __GNUC__
 
-// Replace assert with a version that shows a GUI dialog if possible
+// Replace assert with a version that shows a GUI dialog if possible.
+// On Windows I just can't get the actual error messages otherwise.
 #ifdef assert
 #undef assert
 #endif // assert
 
-class QString;
-typedef QString str;
-
 void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
-void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
+#define assert(N) ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
 
 // Version string identifier
-str versionString();
-str versionMoniker();
-str fullVersionString();
-
-#define assert(N) \
-	((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
-
-#define fatal(MSG) \
-	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
+QString versionString();
+QString versionMoniker();
+QString fullVersionString();
 
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
@@ -180,4 +172,4 @@ static const char* __func__ = ""; // Current function name
 typedef void FILE; // :|
 #endif // IN_IDE_PARSER
 
-#endif // COMMON_H
+#endif // LDFORGE_COMMON_H

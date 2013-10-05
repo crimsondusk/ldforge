@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DIALOGS_H
-#define DIALOGS_H
+#ifndef LDFORGE_DIALOGS_H
+#define LDFORGE_DIALOGS_H
 
 #include <QDialog>
 #include "common.h"
@@ -135,4 +135,4 @@ class AboutDialog : public QDialog
 		void slot_mail();
 };
 
-#endif // DIALOGS_H
+#endif // LDFORGE_DIALOGS_H

@@ -38,11 +38,7 @@
 #include "messagelog.h"
 #include "moc_gldraw.cpp"
 
-static const struct staticCameraMeta
-{	const char glrotate[3];
-	const Axis axisX, axisY;
-	const bool negX, negY;
-} g_staticCameras[6] =
+static const LDFixedCameraInfo g_FixedCameras[6] =
 {	{{  1,  0, 0 }, X, Z, false, false },
 	{{  0,  0, 0 }, X, Y, false,  true },
 	{{  0,  1, 0 }, Z, Y,  true,  true },
@@ -89,12 +85,12 @@ const GL::Camera g_Cameras[7] =
 	GL::Free
 };
 
-const struct GLAxis
+const struct LDGLAxis
 {	const QColor col;
 	const vertex vert;
 } g_GLAxes[3] =
 {	{ QColor (255,   0,   0), vertex (10000, 0, 0) },
-	{ QColor (80, 192,   0), vertex (0, 10000, 0) },
+	{ QColor (80,  192,   0), vertex (0, 10000, 0) },
 	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
 };
 
@@ -124,7 +120,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_thinBorderPen.setWidth (1);
 
 	// Init camera icons
-for (const GL::Camera cam : g_Cameras)
+	for (const GL::Camera cam : g_Cameras)
 	{	str iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower());
 
 		CameraIcon* info = &m_cameraIcons[cam];
@@ -146,23 +142,31 @@ GLRenderer::~GLRenderer()
 {	for (int i = 0; i < 6; ++i)
 		delete m_overlays[i].img;
 
-for (CameraIcon & info : m_cameraIcons)
+	for (CameraIcon& info : m_cameraIcons)
 		delete info.img;
 }
 
 // =============================================================================
+// Calculates the "hitboxes" of the camera icons so that we can tell when the
+// cursor is pointing at the camera icon.
 // -----------------------------------------------------------------------------
 void GLRenderer::calcCameraIcons()
-{	ushort i = 0;
+{	int i = 0;
 
-for (CameraIcon & info : m_cameraIcons)
-	{	const long x1 = (m_width - (info.cam != Free ? 48 : 16)) + ( (i % 3) * 16) - 1,
-					   y1 = ( (i / 3) * 16) + 1;
+	for (CameraIcon& info : m_cameraIcons)
+	{	// MATH
+		const long x1 = (m_width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
+			y1 = ((i / 3) * 16) + 1;
 
 		info.srcRect = QRect (0, 0, 16, 16);
 		info.destRect = QRect (x1, y1, 16, 16);
-		info.selRect = QRect (info.destRect.x(), info.destRect.y(),
-							  info.destRect.width() + 1, info.destRect.height() + 1);
+		info.selRect = QRect (
+			info.destRect.x(),
+			info.destRect.y(),
+			info.destRect.width() + 1,
+			info.destRect.height() + 1
+		);
+
 		++i;
 	}
 }
@@ -293,11 +297,11 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 				qcol = getMainColor();
 
 			// Warn about the unknown colors, but only once.
-		for (short i : g_warnedColors)
+			for (short i : g_warnedColors)
 				if (obj->color() == i)
 					return;
 
-			printf ("%s: Unknown color %d!\n", __func__, obj->color());
+			print ("%1: Unknown color %2!\n", __func__, obj->color());
 			g_warnedColors << obj->color();
 			return;
 		}
@@ -318,10 +322,10 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 	}
 
 	glColor4f (
-		( (double) r) / 255.0f,
-		( (double) g) / 255.0f,
-		( (double) b) / 255.0f,
-		( (double) a) / 255.0f);
+		((double) r) / 255.0f,
+		((double) g) / 255.0f,
+		((double) b) / 255.0f,
+		((double) a) / 255.0f);
 }
 
 // =============================================================================
@@ -376,9 +380,9 @@ void GLRenderer::drawGLScene()
 		glTranslatef (m_panX, m_panY, 0.0f);
 
 		if (m_camera != Front && m_camera != Back)
-		{	glRotatef (90.0f, g_staticCameras[m_camera].glrotate[0],
-					   g_staticCameras[m_camera].glrotate[1],
-					   g_staticCameras[m_camera].glrotate[2]);
+		{	glRotatef (90.0f, g_FixedCameras[m_camera].glrotate[0],
+					   g_FixedCameras[m_camera].glrotate[1],
+					   g_FixedCameras[m_camera].glrotate[2]);
 		}
 
 		// Back camera needs to be handled differently
@@ -404,7 +408,7 @@ void GLRenderer::drawGLScene()
 	if (gl_colorbfc && !m_picking && !drawOnly())
 	{	glEnable (GL_CULL_FACE);
 
-	for (LDObject * obj : file()->objects())
+		for (LDObject* obj : file()->objects())
 		{	if (obj->hidden())
 				continue;
 
@@ -418,7 +422,7 @@ void GLRenderer::drawGLScene()
 		glDisable (GL_CULL_FACE);
 	}
 	else
-{	for (LDObject * obj : file()->objects())
+	{	for (LDObject* obj : file()->objects())
 		{	if (obj->hidden())
 				continue;
 
@@ -443,7 +447,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 {	assert (camera() != Free);
 
 	vertex pos3d;
-	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
 	const short negXFac = cam->negX ? -1 : 1,
@@ -476,7 +480,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 // -----------------------------------------------------------------------------
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 {	GLfloat m[16];
-	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
 	const short negXFac = cam->negX ? -1 : 1,
@@ -522,7 +526,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 	if (m_camera != Free && !picking())
 	{	// Paint the overlay image if we have one
-		const overlayMeta& overlay = m_overlays[m_camera];
+		const LDGLOverlay& overlay = m_overlays[m_camera];
 
 		if (overlay.img != null)
 		{	QPoint v0 = coordconv3_2 (m_overlays[m_camera].v0),
@@ -752,7 +756,7 @@ for (LDObject * obj : file()->objects())
 	glNewList (m_axeslist, GL_COMPILE);
 	glBegin (GL_LINES);
 
-for (const GLAxis & ax : g_GLAxes)
+for (const LDGLAxis & ax : g_GLAxes)
 	{	qglColor (ax.col);
 		compileVertex (ax.vert);
 		compileVertex (-ax.vert);
@@ -1400,7 +1404,7 @@ double GLRenderer::circleDrawDist() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
-{	const staticCameraMeta* cam = &g_staticCameras[m_camera];
+{	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	relX = cam->axisX;
 	relY = cam->axisY;
 }
@@ -1505,7 +1509,7 @@ Axis GLRenderer::cameraAxis (bool y, GL::Camera camid)
 {	if (camid == (GL::Camera) - 1)
 		camid = m_camera;
 
-	const staticCameraMeta* cam = &g_staticCameras[camid];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[camid];
 	return (y) ? cam->axisY : cam->axisX;
 }
 
@@ -1513,7 +1517,7 @@ Axis GLRenderer::cameraAxis (bool y, GL::Camera camid)
 // -----------------------------------------------------------------------------
 bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, int h)
 {	QImage* img = new QImage (file);
-	overlayMeta& info = getOverlay (cam);
+	LDGLOverlay& info = getOverlay (cam);
 
 	if (img->isNull())
 	{	critical (tr ("Failed to load overlay image!"));
@@ -1539,8 +1543,8 @@ bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, in
 	const Axis x2d = cameraAxis (false, cam),
 			   y2d = cameraAxis (true, cam);
 
-	double negXFac = g_staticCameras[cam].negX ? -1 : 1,
-		   negYFac = g_staticCameras[cam].negY ? -1 : 1;
+	double negXFac = g_FixedCameras[cam].negX ? -1 : 1,
+		   negYFac = g_FixedCameras[cam].negY ? -1 : 1;
 
 	info.v0 = info.v1 = g_origin;
 	info.v0[x2d] = - (info.ox * info.lw * negXFac) / img->width();
@@ -1565,7 +1569,7 @@ void GLRenderer::clearOverlay()
 {	if (camera() == Free)
 		return;
 
-	overlayMeta& info = m_overlays[camera()];
+	LDGLOverlay& info = m_overlays[camera()];
 	delete info.img;
 	info.img = null;
 
@@ -1594,7 +1598,7 @@ const char* GLRenderer::cameraName() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-overlayMeta& GLRenderer::getOverlay (int newcam)
+LDGLOverlay& GLRenderer::getOverlay (int newcam)
 {	return m_overlays[newcam];
 }
 
@@ -1619,8 +1623,8 @@ void GLRenderer::zoomToFit()
 	bool firstrun = true;
 	const uint32 white = 0xFFFFFFFF;
 	bool inward = true;
-	ulong run = 0;
-	const ushort w = m_width, h = m_height;
+	int run = 0;
+	const int w = m_width, h = m_height;
 
 	glClearColor (1.0, 1.0, 1.0, 1.0);
 	glDisable (GL_DITHER);
@@ -1762,7 +1766,7 @@ void GLRenderer::overlaysFromObjects()
 	{	if (cam == Free)
 			continue;
 
-		overlayMeta& meta = m_overlays[cam];
+		LDGLOverlay& meta = m_overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!ovlobj && meta.img)
@@ -1781,7 +1785,7 @@ void GLRenderer::updateOverlayObjects()
 	{	if (cam == Free)
 			continue;
 
-		overlayMeta& meta = m_overlays[cam];
+		LDGLOverlay& meta = m_overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!meta.img && ovlobj)
