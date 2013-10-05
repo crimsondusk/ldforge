@@ -69,9 +69,9 @@ class PrimitiveLister : public QObject
 		void work();
 
 	signals:
-		void starting (ulong num);
+		void starting (int num);
 		void workDone();
-		void update (ulong i);
+		void update (int i);
 
 	private:
 		List<Primitive> m_prims;

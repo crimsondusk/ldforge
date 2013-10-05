@@ -131,7 +131,7 @@ bool LDConfigParser::atEnd()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::getToken (str& val, const ushort pos)
+bool LDConfigParser::getToken (str& val, const int pos)
 {	if (pos >= m_tokens.size())
 		return false;
 
@@ -154,7 +154,7 @@ bool LDConfigParser::peekNext (str& val)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::findToken (short& result, char const* needle, short args)
-{	for (ushort i = 0; i < (m_tokens.size() - args); ++i)
+{	for (int i = 0; i < (m_tokens.size() - args); ++i)
 	{	if (m_tokens[i] == needle)
 		{	result = i;
 			return true;

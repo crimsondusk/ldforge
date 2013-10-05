@@ -456,7 +456,7 @@ for (const LDQuickColor & entry : m_quickColors)
 
 	short newColor = col->index;
 
-for (LDObject * obj : m_sel)
+	for (LDObject * obj : m_sel)
 	{	if (obj->isColored() == false)
 			continue; // uncolored object
 
@@ -470,7 +470,7 @@ for (LDObject * obj : m_sel)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ulong ForgeWindow::getInsertionPoint()
+int ForgeWindow::getInsertionPoint()
 {	if (m_sel.size() > 0)
 	{	// If we have a selection, put the item after it.
 		return (m_sel[m_sel.size() - 1]->getIndex()) + 1;
@@ -665,7 +665,7 @@ void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::primitiveLoaderStart (ulong max)
+void ForgeWindow::primitiveLoaderStart (int max)
 {	m_primLoaderWidget->show();
 	m_primLoaderBar->setRange (0, max);
 	m_primLoaderBar->setValue (0);
@@ -674,7 +674,7 @@ void ForgeWindow::primitiveLoaderStart (ulong max)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::primitiveLoaderUpdate (ulong prog)
+void ForgeWindow::primitiveLoaderUpdate (int prog)
 {	m_primLoaderBar->setValue (prog);
 }
 
@@ -765,7 +765,7 @@ void critical (str msg)
 }
 
 // =============================================================================
-QIcon makeColorIcon (LDColor* colinfo, const ushort size)
+QIcon makeColorIcon (LDColor* colinfo, const int size)
 {	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
@@ -787,9 +787,9 @@ QIcon makeColorIcon (LDColor* colinfo, const ushort size)
 
 // =============================================================================
 void makeColorSelector (QComboBox* box)
-{	std::map<short, ulong> counts;
+{	std::map<int, int> counts;
 
-for (LDObject * obj : LDFile::current()->objects())
+	for (LDObject * obj : LDFile::current()->objects())
 	{	if (!obj->isColored())
 			continue;
 
@@ -800,9 +800,9 @@ for (LDObject * obj : LDFile::current()->objects())
 	}
 
 	box->clear();
-	ulong row = 0;
+	int row = 0;
 
-for (const auto & pair : counts)
+	for (const auto & pair : counts)
 	{	LDColor* col = getColor (pair.first);
 		assert (col != null);
 
@@ -924,7 +924,7 @@ for (LDObject * obj : *f)
 	buildObjList();
 }
 
-QImage imageFromScreencap (uchar* data, ushort w, ushort h)
+QImage imageFromScreencap (uchar* data, int w, int h)
 {	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	return QImage (data, w, h, QImage::Format_ARGB32).rgbSwapped().mirrored();
 }

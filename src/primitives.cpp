@@ -100,8 +100,8 @@ void PrimitiveLister::work()
 	m_prims.clear();
 
 	QDir dir (LDPaths::prims());
-	ulong baselen = dir.absolutePath().length();
-	ulong i = 0;
+	int baselen = dir.absolutePath().length();
+	int i = 0;
 	List<str> fnames;
 
 	assert (dir.exists());
@@ -155,8 +155,8 @@ void PrimitiveLister::start()
 	PrimitiveLister* lister = new PrimitiveLister;
 	QThread* listerThread = new QThread;
 	lister->moveToThread (listerThread);
-	connect (lister, SIGNAL (starting (ulong)), g_win, SLOT (primitiveLoaderStart (ulong)));
-	connect (lister, SIGNAL (update (ulong)), g_win, SLOT (primitiveLoaderUpdate (ulong)));
+	connect (lister, SIGNAL (starting (int)), g_win, SLOT (primitiveLoaderStart (int)));
+	connect (lister, SIGNAL (update (int)), g_win, SLOT (primitiveLoaderUpdate (int)));
 	connect (lister, SIGNAL (workDone()), g_win, SLOT (primitiveLoaderEnd()));
 	connect (listerThread, SIGNAL (started()), lister, SLOT (work()));
 	connect (listerThread, SIGNAL (finished()), lister, SLOT (deleteLater()));

@@ -242,7 +242,6 @@ DEFINE_ACTION (Edit, 0)
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Help, KEY (F1))
 {
-
 }
 
 // =============================================================================
@@ -351,7 +350,7 @@ DEFINE_ACTION (ResetView, CTRL (0))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertFrom, 0)
 {	str fname = QFileDialog::getOpenFileName();
-	ulong idx = g_win->getInsertionPoint();
+	int idx = g_win->getInsertionPoint();
 
 	if (!fname.length())
 		return;
@@ -408,7 +407,7 @@ DEFINE_ACTION (ExportTo, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertRaw, 0)
-{	ulong idx = g_win->getInsertionPoint();
+{	int idx = g_win->getInsertionPoint();
 
 	QDialog* const dlg = new QDialog;
 	QVBoxLayout* const layout = new QVBoxLayout;
@@ -445,7 +444,7 @@ DEFINE_ACTION (InsertRaw, 0)
 DEFINE_ACTION (Screenshot, 0)
 {	setlocale (LC_ALL, "C");
 
-	ushort w, h;
+	int w, h;
 	uchar* imgdata = g_win->R()->screencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
@@ -553,7 +552,7 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 		return;
 	}
 
-	ushort w, h;
+	int w, h;
 
 	GLRenderer* rend = new GLRenderer;
 	rend->resize (64, 64);

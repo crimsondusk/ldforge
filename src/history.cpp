@@ -41,8 +41,8 @@ void History::undo()
 	g_fullRefresh = false;
 
 	// Iterate the list in reverse and undo all actions
-	for (const AbstractHistoryEntry* change : c_rev<AbstractHistoryEntry*> (set))
-		change->undo();
+	for (auto it = set.end() - 1; it != set.begin(); --it)
+		(*it)->undo();
 
 	setPos (pos() - 1);
 

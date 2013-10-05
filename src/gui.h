@@ -97,7 +97,7 @@ class ForgeWindow : public QMainWindow
 		void updateTitle();
 		void fullRefresh();
 		void refresh();
-		ulong getInsertionPoint();
+		int getInsertionPoint();
 		void updateToolBars();
 		void updateRecentFilesMenu();
 		void updateSelection();
@@ -138,8 +138,8 @@ class ForgeWindow : public QMainWindow
 #include "actions.h"
 
 	public slots:
-		void primitiveLoaderStart (ulong max);
-		void primitiveLoaderUpdate (ulong prog);
+		void primitiveLoaderStart (int max);
+		void primitiveLoaderUpdate (int prog);
 		void primitiveLoaderEnd();
 		void clearSelection();
 		void slot_action();
@@ -185,9 +185,9 @@ List<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based
 bool confirm (str title, str msg); // Generic confirm prompt
 bool confirm (str msg); // Generic confirm prompt
 void critical (str msg); // Generic error prompt
-QIcon makeColorIcon (LDColor* colinfo, const ushort size); // Makes an icon for the given color
+QIcon makeColorIcon (LDColor* colinfo, const int size); // Makes an icon for the given color
 void makeColorSelector (QComboBox* box); // Fills the given combo-box with color information
-QImage imageFromScreencap (uchar* data, ushort w, ushort h);
+QImage imageFromScreencap (uchar* data, int w, int h);
 
 // =============================================================================
 // -----------------------------------------------------------------------------

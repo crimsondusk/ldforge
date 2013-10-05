@@ -63,19 +63,19 @@ class LDFile : public QObject
 		LDFile();
 		~LDFile();
 
-		ulong addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
+		int addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
 		void addObjects (const List<LDObject*> objs);
 		void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
 		str getShortName();
 		bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
 		List<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
-		void insertObj (const ulong pos, LDObject* obj);
-		ulong numObjs() const;
-		LDObject* object (ulong pos) const;
-		LDObject* obj (ulong pos) const;
+		void insertObj (int pos, LDObject* obj);
+		int numObjs() const;
+		LDObject* object (int pos) const;
+		LDObject* obj (int pos) const;
 		bool save (str path = "");                       // Saves this file to disk.
 		bool safeToClose();                              // Perform safety checks. Do this before closing any files!
-		void setObject (ulong idx, LDObject* obj);
+		void setObject (int idx, LDObject* obj);
 
 		inline LDFile& operator<< (LDObject* obj)
 		{	addObject (obj);
@@ -147,7 +147,7 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
+List<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 
 extern List<LDFile*> g_loadedFiles;
 
@@ -170,10 +170,10 @@ class FileLoader : public QObject
 {		Q_OBJECT
 		READ_PROPERTY (List<LDObject*>, objs, setObjects)
 		READ_PROPERTY (bool, done, setDone)
-		READ_PROPERTY (ulong, progress, setProgress)
+		READ_PROPERTY (int, progress, setProgress)
 		READ_PROPERTY (bool, aborted, setAborted)
 		PROPERTY (List<str>, lines, setLines)
-		PROPERTY (ulong*, warningsPointer, setWarningsPointer)
+		PROPERTY (int*, warningsPointer, setWarningsPointer)
 		PROPERTY (bool, concurrent, setConcurrent)
 
 	public slots:

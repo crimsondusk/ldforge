@@ -148,7 +148,7 @@ public slots: \
 #undef assert
 #endif // assert
 
-void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
+void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
 #define assert(N) ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
 
 // Version string identifier

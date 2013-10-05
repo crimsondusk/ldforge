@@ -167,9 +167,9 @@ void ColorSelector::resizeEvent (QResizeEvent* ev)
 void ColorSelector::mousePressEvent (QMouseEvent* event)
 {	QPointF scenepos = ui->viewport->mapToScene (event->pos());
 
-	ulong x = ( (ulong) scenepos.x() - (g_squareSize / 2)) / g_squareSize;
-	ulong y = ( (ulong) scenepos.y() - (g_squareSize / 2)) / g_squareSize;
-	ulong idx = (y * g_numColumns) + x;
+	int x = (scenepos.x() - (g_squareSize / 2)) / g_squareSize;
+	int y = (scenepos.y() - (g_squareSize / 2)) / g_squareSize;
+	int idx = (y * g_numColumns) + x;
 
 	LDColor* col = ::getColor (idx);
 

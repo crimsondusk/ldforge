@@ -61,11 +61,11 @@ class RadioGroup : public QGroupBox
 		void            init (Qt::Orientation orient);
 		bool            isChecked (int n) const;
 		void            rowBreak();
-		void            setCurrentRow (uint row);
+		void            setCurrentRow (int row);
 		void            setValue (int val);
 		int             value() const;
 
-		QRadioButton*   operator[] (uint n) const;
+		QRadioButton*   operator[] (int n) const;
 		RadioGroup&     operator<< (QRadioButton* button);
 		RadioGroup&     operator<< (const char* entry);
 

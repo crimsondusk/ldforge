@@ -100,34 +100,34 @@ class DelHistory : public AbstractHistoryEntry
 			Other,	// was deleted witout specific reason
 		};
 
-		PROPERTY (ulong, index, setIndex)
+		PROPERTY (int, index, setIndex)
 		PROPERTY (str, code, setCode)
 		PROPERTY (DelHistory::Type, type, setType)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
 
-		DelHistory (ulong idx, LDObject* obj, Type type = Other) :
-			m_index (idx),
-			m_code (obj->raw()),
-			m_type (type) {}
+		DelHistory (int idx, LDObject* obj, Type type = Other) :
+				m_index (idx),
+				m_code (obj->raw()),
+				m_type (type) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry
-{	PROPERTY (ulong, index, setIndex)
+{	PROPERTY (int, index, setIndex)
 	PROPERTY (str, oldCode, setOldCode)
 	PROPERTY (str, newCode, setNewCode)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
 
-		EditHistory (ulong idx, str oldCode, str newCode) :
-			m_index (idx),
-			m_oldCode (oldCode),
-			m_newCode (newCode) {}
+		EditHistory (int idx, str oldCode, str newCode) :
+				m_index (idx),
+				m_oldCode (oldCode),
+				m_newCode (newCode) {}
 };
 
 // =============================================================================
@@ -140,17 +140,17 @@ class AddHistory : public AbstractHistoryEntry
 			Paste,	// was added through a paste operation
 		};
 
-		PROPERTY (ulong, index, setIndex)
+		PROPERTY (int, index, setIndex)
 		PROPERTY (str, code, setCode)
 		PROPERTY (AddHistory::Type, type, setType)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)
 
-		AddHistory (ulong idx, LDObject* obj, Type type = Other) :
-			m_index (idx),
-			m_code (obj->raw()),
-			m_type (type) {}
+		AddHistory (int idx, LDObject* obj, Type type = Other) :
+				m_index (idx),
+				m_code (obj->raw()),
+				m_type (type) {}
 };
 
 // =============================================================================
@@ -160,22 +160,22 @@ class MoveHistory : public AbstractHistoryEntry
 {	public:
 		IMPLEMENT_HISTORY_TYPE (Move)
 
-		List<ulong> indices;
+		List<int> indices;
 		vertex dest;
 
-		MoveHistory (List<ulong> indices, vertex dest) :
-			indices (indices),
-			dest (dest) {}
+		MoveHistory (List<int> indices, vertex dest) :
+				indices (indices),
+				dest (dest) {}
 };
 
 class SwapHistory : public AbstractHistoryEntry
 {	public:
 		IMPLEMENT_HISTORY_TYPE (Swap)
-		ulong a, b;
+		int a, b;
 
-		SwapHistory (ulong a, ulong b) :
-			a (a),
-			b (b) {}
+		SwapHistory (int a, int b) :
+				a (a),
+				b (b) {}
 };
 
 #endif // HISTORY_H

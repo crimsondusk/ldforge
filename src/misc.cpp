@@ -26,7 +26,7 @@
 #include "ui_rotpoint.h"
 
 // Prime number table.
-const ushort g_primes[NUM_PRIMES] =
+const int g_primes[NUM_PRIMES] =
 {	2,    3,    5,    7,   11,   13,   17,   19,   23,   29,
 	31,   37,   41,   43,   47,   53,   59,   61,   67,   71,
 	73,   79,   83,   89,   97,  101,  103,  107,  109,  113,
@@ -187,8 +187,8 @@ void simplify (short& numer, short& denom)
 	do
 	{	repeat = false;
 
-		for (ushort x = 0; x < NUM_PRIMES; x++)
-		{	const ushort prime = g_primes[NUM_PRIMES - x - 1];
+		for (int x = 0; x < NUM_PRIMES; x++)
+		{	const int prime = g_primes[NUM_PRIMES - x - 1];
 
 			if (numer <= prime || denom <= prime)
 				continue;

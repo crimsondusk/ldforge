@@ -105,7 +105,7 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->implicitFiles->setChecked (gui_implicitfiles);
 	ui->m_logostuds->setChecked (gl_logostuds);
 
-	ulong i = 0;
+	int i = 0;
 #define act(N) addShortcut (key_##N, ACTION(N), i);
 #include "actions.h"
 
@@ -153,7 +153,7 @@ ConfigDialog::~ConfigDialog()
 // =============================================================================
 // Adds a shortcut entry to the list of shortcuts.
 // -----------------------------------------------------------------------------
-void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, ulong& i)
+void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 {	ShortcutListItem* item = new ShortcutListItem;
 	item->setIcon (act->icon());
 	item->setKeyConfig (&cfg);
@@ -210,7 +210,7 @@ for (QLabel * label : initlist<QLabel*> ( { xlabel, ylabel, zlabel, anglabel }))
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static const struct extProgInfo
+static const struct LDExtProgInfo
 {	const str name, iconname;
 	StringConfig* const path;
 	mutable QLineEdit* input;
@@ -219,7 +219,7 @@ static const struct extProgInfo
 	BoolConfig* const wine;
 	mutable QCheckBox* wineBox;
 #endif // _WIN32
-} g_extProgInfo[] =
+} g_LDExtProgInfo[] =
 {
 #ifndef _WIN32
 # define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null, &prog_##LOWNAME##_wine, null },
@@ -240,9 +240,9 @@ static const struct extProgInfo
 // -----------------------------------------------------------------------------
 void ConfigDialog::initExtProgs()
 {	QGridLayout* pathsLayout = new QGridLayout;
-	ulong row = 0;
+	int row = 0;
 
-for (const extProgInfo & info : g_extProgInfo)
+	for (const LDExtProgInfo& info : g_LDExtProgInfo)
 	{	QLabel* icon = new QLabel,
 		*progLabel = new QLabel (info.name);
 		QLineEdit* input = new QLineEdit;
@@ -307,7 +307,7 @@ void ConfigDialog::applySettings()
 #include "actions.h"
 
 	// Ext program settings
-for (const extProgInfo & info : g_extProgInfo)
+	for (const LDExtProgInfo& info : g_LDExtProgInfo)
 	{	*info.path = info.input->text();
 
 #ifndef _WIN32
@@ -396,7 +396,7 @@ void ConfigDialog::slot_setColor()
 		if (!item)
 			return;
 
-		ulong i = getItemRow (item, quickColorItems);
+		int i = getItemRow (item, quickColorItems);
 		entry = &quickColors[i];
 
 		if (entry->isSeparator() == true)
@@ -415,12 +415,7 @@ void ConfigDialog::slot_setColor()
 	{	LDQuickColor entry (getColor (val), null);
 
 		item = getSelectedQuickColor();
-		ulong idx;
-
-		if (item)
-			idx = getItemRow (item, quickColorItems) + 1;
-		else
-			idx = quickColorItems.size();
+		int idx = (item) ? getItemRow (item, quickColorItems) + 1 : quickColorItems.size();
 
 		quickColors.insert (idx, entry);
 		entry = quickColors[idx];
@@ -454,7 +449,7 @@ void ConfigDialog::slot_moveColor()
 	int idx = getItemRow (item, quickColorItems);
 	int dest = up ? (idx - 1) : (idx + 1);
 
-	if (dest < 0 || (ulong) dest >= quickColorItems.size())
+	if (dest < 0 || dest >= quickColorItems.size())
 		return; // destination out of bounds
 
 	LDQuickColor tmp = quickColors[dest];
@@ -597,9 +592,9 @@ for (ShortcutListItem * item : sel)
 // Set the path of an external program
 // -----------------------------------------------------------------------------
 void ConfigDialog::slot_setExtProgPath()
-{	const extProgInfo* info = null;
+{	const LDExtProgInfo* info = null;
 
-for (const extProgInfo & it : g_extProgInfo)
+for (const LDExtProgInfo & it : g_LDExtProgInfo)
 	{	if (it.setPathButton == sender())
 		{	info = &it;
 			break;

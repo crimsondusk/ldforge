@@ -103,11 +103,11 @@ bool vertex::operator!= (const vertex& other) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 double& vertex::operator[] (const Axis ax)
-{	return coord ( (ushort) ax);
+{	return coord ( (int) ax);
 }
 
 const double& vertex::operator[] (const Axis ax) const
-{	return coord ( (ushort) ax);
+{	return coord ( (int) ax);
 }
 
 double& vertex::operator[] (const int ax)

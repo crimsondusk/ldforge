@@ -28,8 +28,6 @@ class LDObject;
 
 typedef QChar qchar;
 typedef QString str;
-template<class T> class ConstListReverser;
-template<class T> using c_rev = ConstListReverser<T>;
 class StringConfig;
 class IntConfig;
 class FloatConfig;
@@ -217,7 +215,7 @@ template<class T> class List
 		{	return m_vect.crend();
 		}
 
-		void erase (ulong pos)
+		void erase (int pos)
 		{	assert (pos < size());
 			m_vect.erase (m_vect.begin() + pos);
 		}
@@ -256,8 +254,8 @@ template<class T> class List
 		List<T> reverse() const
 		{	List<T> rev;
 
-			for (const T& val : c_rev<T> (*this))
-				rev << val;
+			for (auto it = end() - 1; it != begin(); --it)
+				rev << *it;
 
 			return rev;
 		}
@@ -266,7 +264,7 @@ template<class T> class List
 		{	m_vect.clear();
 		}
 
-		void insert (ulong pos, const T& value)
+		void insert (int pos, const T& value)
 		{	m_vect.insert (m_vect.begin() + pos, value);
 		}
 
@@ -278,16 +276,16 @@ template<class T> class List
 			resize (std::distance (begin(), pos));
 		}
 
-		ulong size() const
+		int size() const
 		{	return m_vect.size();
 		}
 
-		T& operator[] (ulong n)
+		T& operator[] (int n)
 		{	assert (n < size());
 			return m_vect[n];
 		}
 
-		const T& operator[] (ulong n) const
+		const T& operator[] (int n) const
 		{	assert (n < size());
 			return m_vect[n];
 		}
@@ -300,79 +298,22 @@ template<class T> class List
 		{	std::sort (begin(), end());
 		}
 
-		ulong find (const T& needle)
-		{	ulong i = 0;
+		int find (const T& needle)
+		{	int i = 0;
 
-		for (const T & hay : *this)
+			for (const T & hay : *this)
 			{	if (hay == needle)
 					return i;
 
 				i++;
 			}
 
-			return -1u;
+			return -1;
 		}
 
 	private:
 		std::deque<T> m_vect;
 };
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// ListReverser (aka rev)
-//
-// Helper class used to reverse-iterate Lists in range-for-loops.
-// =============================================================================
-template<class T> class ListReverser
-{	public:
-		typedef typename List<T>::ReverseIterator Iterator;
-
-		ListReverser (List<T>& vect)
-		{	m_vect = &vect;
-		}
-
-		Iterator begin()
-		{	return m_vect->rbegin();
-		}
-
-		Iterator end()
-		{	return m_vect->rend();
-		}
-
-	private:
-		List<T>* m_vect;
-};
-
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// ConstListReverser (aka c_rev)
-//
-// Like ListReverser, except works on const Lists.
-// =============================================================================
-template<class T> class ConstListReverser
-{	public:
-		typedef typename List<T>::ConstReverseIterator Iterator;
-
-		ConstListReverser (const List<T>& vect)
-		{	m_vect = &vect;
-		}
-
-		Iterator begin() const
-		{	return m_vect->crbegin();
-		}
-
-		Iterator end() const
-		{	return m_vect->crend();
-		}
-
-	private:
-		const List<T>* m_vect;
-};
-
-template<class T> using rev = ListReverser<T>;
-template<class T> using c_rev = ConstListReverser<T>;
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -416,9 +357,9 @@ class StringFormatArg
 		template<class T> StringFormatArg (const List<T>& v)
 		{	m_val = "{ ";
 
-			uint i = 0;
+			int i = 0;
 
-		for (const T & it : v)
+			for (const T& it : v)
 			{	if (i++)
 					m_val += ", ";
 

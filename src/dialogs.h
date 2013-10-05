@@ -48,8 +48,8 @@ class OverlayDialog : public QDialog
 		virtual ~OverlayDialog();
 
 		str         fpath() const;
-		ushort      ofsx() const;
-		ushort      ofsy() const;
+		int         ofsx() const;
+		int         ofsy() const;
 		double      lwidth() const;
 		double      lheight() const;
 		int         camera() const;
@@ -92,8 +92,8 @@ class LDrawPathDialog : public QDialog
 // =============================================================================
 class OpenProgressDialog : public QDialog
 {	Q_OBJECT
-	READ_PROPERTY (ulong, progress, setProgress)
-	DECLARE_PROPERTY (ulong, numLines, setNumLines)
+	READ_PROPERTY (int, progress, setProgress)
+	DECLARE_PROPERTY (int, numLines, setNumLines)
 
 	public:
 		explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);

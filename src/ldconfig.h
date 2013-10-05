@@ -35,7 +35,7 @@ class LDConfigParser
 		bool atBeginning();
 		bool next (str& val);
 		bool peekNext (str& val);
-		bool getToken (str& val, const ushort pos);
+		bool getToken (str& val, const int pos);
 		bool findToken (short& result, char const* needle, short args);
 		size_t size();
 		void rewind();

@@ -139,7 +139,7 @@ QString fullVersionString()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr)
+void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
 {	str errmsg = fmt ("File: %1\nLine: %2:\nFunction %3:\n\nAssertion `%4' failed",
 					  file, line, funcname, expr);
 

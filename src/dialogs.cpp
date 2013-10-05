@@ -109,11 +109,11 @@ str OverlayDialog::fpath() const
 {	return ui->filename->text();
 }
 
-ushort OverlayDialog::ofsx() const
+int OverlayDialog::ofsx() const
 {	return ui->originX->value();
 }
 
-ushort OverlayDialog::ofsy() const
+int OverlayDialog::ofsy() const
 {	return ui->originY->value();
 }
 
@@ -249,13 +249,13 @@ OpenProgressDialog::~OpenProgressDialog()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (ulong, OpenProgressDialog::numLines)
+READ_ACCESSOR (int, OpenProgressDialog::numLines)
 {	return m_numLines;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-SET_ACCESSOR (ulong, OpenProgressDialog::setNumLines)
+SET_ACCESSOR (int, OpenProgressDialog::setNumLines)
 {	m_numLines = val;
 	ui->progressBar->setRange (0, numLines());
 	updateValues();

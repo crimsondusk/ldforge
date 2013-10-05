@@ -113,7 +113,7 @@ str LDSubfile::raw()
 str LDLine::raw()
 {	str val = fmt ("2 %1", color());
 
-	for (ushort i = 0; i < 2; ++i)
+	for (int i = 0; i < 2; ++i)
 		val += fmt (" %1", getVertex (i));
 
 	return val;
@@ -124,7 +124,7 @@ str LDLine::raw()
 str LDTriangle::raw()
 {	str val = fmt ("3 %1", color());
 
-	for (ushort i = 0; i < 3; ++i)
+	for (int i = 0; i < 3; ++i)
 		val += fmt (" %1", getVertex (i));
 
 	return val;
@@ -135,7 +135,7 @@ str LDTriangle::raw()
 str LDQuad::raw()
 {	str val = fmt ("4 %1", color());
 
-	for (ushort i = 0; i < 4; ++i)
+	for (int i = 0; i < 4; ++i)
 		val += fmt (" %1", getVertex (i));
 
 	return val;
@@ -147,7 +147,7 @@ str LDCndLine::raw()
 {	str val = fmt ("5 %1", color());
 
 	// Add the coordinates
-	for (ushort i = 0; i < 4; ++i)
+	for (int i = 0; i < 4; ++i)
 		val += fmt (" %1", getVertex (i));
 
 	return val;
@@ -254,7 +254,7 @@ LDLine::LDLine (vertex v1, vertex v2)
 // -----------------------------------------------------------------------------
 LDObject::~LDObject()
 {	// Remove this object from the selection array if it is there.
-	for (ulong i = 0; i < g_win->sel().size(); ++i)
+	for (int i = 0; i < g_win->sel().size(); ++i)
 		if (g_win->sel() [i] == this)
 			g_win->sel().erase (i);
 
@@ -262,9 +262,9 @@ LDObject::~LDObject()
 	GL::deleteLists (this);
 
 	// Remove this object from the list of LDObjects
-	ulong pos = g_LDObjects.find (this);
+	int pos;
 
-	if (pos < g_LDObjects.size())
+	if ((pos = g_LDObjects.find (this)) != -1)
 		g_LDObjects.erase (pos);
 }
 
@@ -327,7 +327,7 @@ long LDObject::getIndex() const
 	assert (file() != null);
 #endif
 
-	for (ulong i = 0; i < file()->numObjs(); ++i)
+	for (int i = 0; i < file()->numObjs(); ++i)
 		if (file()->obj (i) == this)
 			return i;
 
@@ -395,25 +395,25 @@ str LDObject::objectListContents (const List<LDObject*>& objs)
 
 	for (long i = 0; i < LDObject::NumTypes; ++i)
 	{	LDObject::Type objType = (LDObject::Type) i;
-		ulong objCount = 0;
+		int count = 0;
 
-	for (LDObject * obj : objs)
+		for (LDObject * obj : objs)
 			if (obj->getType() == objType)
-				objCount++;
+				count++;
 
-		if (objCount == 0)
+		if (count == 0)
 			continue;
 
 		if (!firstDetails)
 			text += ", ";
 
-		str noun = fmt ("%1%2", typeName (objType), plural (objCount));
+		str noun = fmt ("%1%2", typeName (objType), plural (count));
 
 		// Plural of "vertex" is "vertices". Stupid English.
-		if (objType == LDObject::Vertex && objCount != 1)
+		if (objType == LDObject::Vertex && count != 1)
 			noun = "vertices";
 
-		text += fmt ("%1 %2", objCount, noun);
+		text += fmt ("%1 %2", count, noun);
 		firstDetails = false;
 	}
 
@@ -578,7 +578,7 @@ void LDSubfile::invert()
 	// flipped but I don't have a method for checking flatness yet.
 	// Food for thought...
 
-	ulong idx = getIndex();
+	int idx = getIndex();
 
 	if (idx > 0)
 	{	LDBFC* bfc = dynamic_cast<LDBFC*> (prev());

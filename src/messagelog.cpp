@@ -23,7 +23,7 @@
 #include "gui.h"
 #include "moc_messagelog.cpp"
 
-static const unsigned int g_maxMessages = 5;
+static const int g_maxMessages = 5;
 static const int g_expiry = 5;
 static const int g_fadeTime = 500; // msecs
 
@@ -93,7 +93,7 @@ void MessageManager::tick()
 
 	bool changed = false;
 
-	for (uint i = 0; i < m_lines.size(); ++i)
+	for (int i = 0; i < m_lines.size(); ++i)
 	{	bool lineChanged;
 
 		if (!m_lines[i].update (lineChanged))

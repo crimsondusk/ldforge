@@ -133,7 +133,7 @@ LDFile::~LDFile()
 		delete obj;
 
 	// Remove this file from the list of files
-	for (ulong i = 0; i < g_loadedFiles.size(); ++i)
+	for (int i = 0; i < g_loadedFiles.size(); ++i)
 	{	if (g_loadedFiles[i] == this)
 		{	g_loadedFiles.erase (i);
 			break;
@@ -361,7 +361,7 @@ void FileLoader::abort()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok)
+List<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 {	List<str> lines;
 	List<LDObject*> objs;
 
@@ -420,14 +420,14 @@ LDFile* openDATFile (str path, bool search)
 	LDFile* load = new LDFile;
 	load->setName (path);
 
-	ulong numWarnings;
+	int numWarnings;
 	bool ok;
 	List<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
 
 	if (!ok)
 		return null;
 
-for (LDObject * obj : objs)
+	for (LDObject* obj : objs)
 		load->addObject (obj);
 
 	delete f;
@@ -641,13 +641,13 @@ for (LDObject * obj : objects())
 		return new LDError (line, "Bad amount of tokens");
 
 #define CHECK_TOKEN_NUMBERS(MIN, MAX) \
-	for (ushort i = MIN; i <= MAX; ++i) \
+	for (int i = MIN; i <= MAX; ++i) \
 		if (!isNumber (tokens[i])) \
 			return new LDError (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static vertex parseVertex (QStringList& s, const ushort n)
+static vertex parseVertex (QStringList& s, const int n)
 {	vertex v;
 
 for (const Axis ax : g_Axes)
@@ -875,7 +875,7 @@ for (LDObject * obj : LDFile::current()->objects())
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ulong LDFile::addObject (LDObject* obj)
+int LDFile::addObject (LDObject* obj)
 {	m_history.add (new AddHistory (objects().size(), obj));
 	m_objects << obj;
 
@@ -896,7 +896,7 @@ void LDFile::addObjects (const List<LDObject*> objs)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::insertObj (const ulong pos, LDObject* obj)
+void LDFile::insertObj (int pos, LDObject* obj)
 {	m_history.add (new AddHistory (pos, obj));
 	m_objects.insert (pos, obj);
 	obj->setFile (this);
@@ -905,7 +905,7 @@ void LDFile::insertObj (const ulong pos, LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDFile::forgetObject (LDObject* obj)
-{	ulong idx = obj->getIndex();
+{	int idx = obj->getIndex();
 	m_history.add (new DelHistory (idx, obj));
 	m_objects.erase (idx);
 	obj->setFile (null);
@@ -923,7 +923,7 @@ bool safeToCloseAll()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::setObject (ulong idx, LDObject* obj)
+void LDFile::setObject (int idx, LDObject* obj)
 {	assert (idx < numObjs());
 
 	// Mark this change to history
@@ -987,7 +987,7 @@ for (LDFile * file : g_loadedFiles)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject* LDFile::object (ulong pos) const
+LDObject* LDFile::object (int pos) const
 {	if (m_objects.size() <= pos)
 		return null;
 
@@ -996,13 +996,13 @@ LDObject* LDFile::object (ulong pos) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject* LDFile::obj (ulong pos) const
+LDObject* LDFile::obj (int pos) const
 {	return object (pos);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ulong LDFile::numObjs() const
+int LDFile::numObjs() const
 {	return objects().size();
 }
 

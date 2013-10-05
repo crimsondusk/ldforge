@@ -81,7 +81,7 @@ DEFINE_ACTION (Copy, CTRL (C))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Paste, CTRL (V))
 {	const str clipboardText = qApp->clipboard()->text();
-	ulong idx = g_win->getInsertionPoint();
+	int idx = g_win->getInsertionPoint();
 	g_win->sel().clear();
 	int num = 0;
 
@@ -310,9 +310,9 @@ DEFINE_ACTION (CornerVerts, 0)
 	{	if (obj->vertices() < 2)
 			continue;
 
-		ulong idx = obj->getIndex();
+		int idx = obj->getIndex();
 
-		for (short i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->vertices(); ++i)
 		{	LDVertex* vert = new LDVertex;
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->color());

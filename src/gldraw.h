@@ -41,7 +41,7 @@ enum EditMode
 // Meta for overlays
 struct LDGLOverlay
 {	vertex v0, v1;
-	ushort ox, oy;
+	int ox, oy;
 	double lw, lh;
 	str fname;
 	QImage* img;
@@ -96,7 +96,7 @@ class GLRenderer : public QGLWidget
 		void           overlaysFromObjects();
 		void           refresh();
 		void           resetAngles();
-		uchar*         screencap (ushort& w, ushort& h);
+		uchar*         screencap (int& w, int& h);
 		void           setBackground();
 		void           setCamera (const Camera cam);
 		void           setDepthValue (double depth);
@@ -135,7 +135,6 @@ class GLRenderer : public QGLWidget
 		QTimer*               m_toolTipTimer;
 		Qt::MouseButtons      m_lastButtons;
 		Qt::KeyboardModifiers m_keymods;
-		ulong                 m_totalmove;
 		vertex                m_hoverpos;
 		double                m_virtWidth,
 		                      m_virtHeight,
@@ -158,7 +157,8 @@ class GLRenderer : public QGLWidget
 		                      m_toolTipCamera;
 		GLuint                m_axeslist;
 		int                   m_width,
-		                      m_height;
+		                      m_height,
+							  m_totalmove;
 		List<vertex>          m_drawedVerts;
 		bool                  m_rectdraw;
 		vertex                m_rectverts[4];
@@ -178,7 +178,7 @@ class GLRenderer : public QGLWidget
 		QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
 		LDOverlay*     findOverlayObject (Camera cam);
 		void           updateRectVerts();
-		void           pick (uint mouseX, uint mouseY);                        // Perform object selection
+		void           pick (int mouseX, int mouseY);                          // Perform object selection
 		void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
 		QColor         getTextPen() const;                                     // Determine which color to draw text with
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;

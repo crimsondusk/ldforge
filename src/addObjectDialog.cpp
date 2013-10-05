@@ -404,7 +404,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		obj->setColor (dlg.colnum);
 
 	if (newObject)
-	{	ulong idx = g_win->getInsertionPoint();
+	{	int idx = g_win->getInsertionPoint();
 		LDFile::current()->insertObj (idx, obj);
 	}
 

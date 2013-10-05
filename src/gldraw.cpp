@@ -1105,7 +1105,7 @@ void GLRenderer::setCamera (const GL::Camera cam)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void GLRenderer::pick (uint mouseX, uint mouseY)
+void GLRenderer::pick (int mouseX, int mouseY)
 {	GLint viewport[4];
 	makeCurrent();
 
@@ -1194,7 +1194,7 @@ void GLRenderer::pick (uint mouseX, uint mouseY)
 		if (!m_rangepick && m_addpick)
 		{	bool removed = false;
 
-			for (ulong i = 0; i < g_win->sel().size(); ++i)
+			for (int i = 0; i < g_win->sel().size(); ++i)
 			{	if (g_win->sel() [i] == obj)
 				{	g_win->sel().erase (i);
 					obj->setSelected (false);
@@ -1341,7 +1341,7 @@ void GLRenderer::endDraw (bool accept)
 
 						obj->setColor (maincolor);
 
-						for (ushort i = 0; i < obj->vertices(); ++i)
+						for (int i = 0; i < obj->vertices(); ++i)
 							obj->setVertex (i, verts[i]);
 
 						break;
@@ -1459,7 +1459,7 @@ for (const GL::ListType listType : g_glListTypes)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-uchar* GLRenderer::screencap (ushort& w, ushort& h)
+uchar* GLRenderer::screencap (int& w, int& h)
 {	w = m_width;
 	h = m_height;
 	uchar* cap = new uchar[4 * w * h];
@@ -1650,12 +1650,12 @@ void GLRenderer::zoomToFit()
 		bool filled = false;
 
 		// Check the top and bottom rows
-		for (ushort i = 0; i < w && !filled; ++i)
+		for (int i = 0; i < w && !filled; ++i)
 			if (imgdata[i] != white || imgdata[ ( (h - 1) * w) + i] != white)
 				filled = true;
 
 		// Left and right edges
-		for (ushort i = 0; i < h && !filled; ++i)
+		for (int i = 0; i < h && !filled; ++i)
 			if (imgdata[i * w] != white || imgdata[ (i * w) + (w - 1)] != white)
 				filled = true;
 
@@ -1813,7 +1813,7 @@ void GLRenderer::updateOverlayObjects()
 			// the last one found. Otherwise, place it before the first schemantic
 			// object and put an empty object after it (though don't do this if
 			// there was no schemantic elements at all)
-			ulong i, lastOverlay = -1u;
+			int i, lastOverlay = -1;
 			bool found = false;
 
 			for (i = 0; i < file()->numObjs(); ++i)
@@ -1828,7 +1828,7 @@ void GLRenderer::updateOverlayObjects()
 					lastOverlay = i;
 			}
 
-			if (lastOverlay != -1u)
+			if (lastOverlay != -1)
 				file()->insertObj (lastOverlay + 1, ovlobj);
 			else
 			{	file()->insertObj (i, ovlobj);

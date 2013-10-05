@@ -29,7 +29,7 @@ class QColor;
 class QAction;
 
 // Prime numbers
-extern const ushort g_primes[NUM_PRIMES];
+extern const int g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
 bool isNumber (const str& tok);

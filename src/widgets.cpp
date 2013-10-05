@@ -124,7 +124,7 @@ RadioGroup& RadioGroup::operator<< (const char* entry)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void RadioGroup::setCurrentRow (uint row)
+void RadioGroup::setCurrentRow (int row)
 {	m_currentLayout = m_layouts[row];
 }
 
@@ -142,7 +142,7 @@ void RadioGroup::setValue (int val)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QRadioButton* RadioGroup::operator[] (uint n) const
+QRadioButton* RadioGroup::operator[] (int n) const
 {	return m_objects[n];
 }
 
