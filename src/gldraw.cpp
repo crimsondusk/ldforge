@@ -515,7 +515,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	initGLData();
 	drawGLScene();
 
-	QPen textpen = getTextPen();
+	const QPen textpen = getTextPen();
+	const QBrush polybrush (QColor (64, 192, 0, 128));
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont());
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
@@ -596,7 +597,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 				// Draw the polygon-to-be
 				paint.setPen (linepen);
-				paint.setBrush (QColor (64, 192, 0, 128));
+				paint.setBrush (polybrush);
 				paint.drawPolygon (poly, numverts);
 
 				// Draw vertex blips
@@ -614,38 +615,62 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 			if (m_drawedVerts.size() == 0)
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
 			else
-			{	QVector<vertex> verts;
-				const double dist = circleDrawDist();
+			{	QVector<vertex> verts, verts2;
+				const double dist0 = circleDrawDist(0),
+					dist1 = (m_drawedVerts.size() >= 2) ? circleDrawDist (1) : -1;
 				const int segs = lores;
 				const double angleUnit = (2 * pi) / segs;
 				Axis relX, relY;
-				QVector<QPoint> points;
+				QVector<QPoint> points,
+					points2;
 
 				getRelativeAxes (relX, relY);
 
 				for (int i = 0; i < segs; ++i)
 				{	vertex v = g_origin;
-					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist);
-					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist);
+					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0);
+					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist0);
 					verts << v;
+
+					if (dist1 != -1)
+					{	v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist1);
+						v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist1);
+						verts2 << v;
+					}
 				}
 
-				for (const vertex& v : verts)
+				for (const vertex& v : verts + verts2)
 				{	QPoint point = coordconv3_2 (v);
 					drawBlip (paint, point);
 					points << point;
 				}
 
-				paint.setPen (linepen);
-				paint.setBrush (Qt::NoBrush);
-				paint.drawPolygon (QPolygon (points));
+				// Insert the first point as the seventeenth one so that
+				// the ring polygon is closed properly.
+				if (points.size() >= 16)
+					points.insert (16, points[0]);
+
+				// Same for the outer ring. Note that the indices are offset by 1
+				// because of the insertion done above bumps the values.
+				if (points.size() >= 33)
+					points.insert (33, points[17]);
 
 				{ // Draw the current radius in the middle of the circle.
 					QPoint origin = coordconv3_2 (m_drawedVerts[0]);
-					str label = str::number (dist);
+					str label = str::number (dist0);
 					paint.setPen (textpen);
 					paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y(), label);
+
+					if (m_drawedVerts.size() >= 2)
+					{	label = str::number (dist1);
+						paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y() + metrics.height(), label);
+					}
 				}
+
+				// Draw the circle/ring
+				paint.setPen (linepen);
+				paint.setBrush ((m_drawedVerts.size() >= 2) ? polybrush : Qt::NoBrush);
+				paint.drawPolygon (QPolygon (points));
 			}
 		}
 	}
@@ -926,7 +951,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			} break;
 
 			case CircleMode:
-			{	if (m_drawedVerts.size() == 2)
+			{	if (m_drawedVerts.size() == 3)
 				{	endDraw (true);
 					return;
 				}
@@ -1351,7 +1376,7 @@ void GLRenderer::endDraw (bool accept)
 			break;
 
 		case CircleMode:
-		{	const double dist = circleDrawDist();
+		{	const double dist = circleDrawDist (0);
 
 			matrix transform = g_circleDrawTransforms[camera() % 3];
 
@@ -1390,15 +1415,15 @@ void GLRenderer::endDraw (bool accept)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-double GLRenderer::circleDrawDist() const
-{	assert (m_drawedVerts.size() >= 1);
-	const vertex& v1 = (m_drawedVerts.size() == 2) ? m_drawedVerts[1] : m_hoverpos;
+double GLRenderer::circleDrawDist (int pos) const
+{	assert (m_drawedVerts.size() >= pos + 1);
+	const vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
 	Axis relX, relY;
 	getRelativeAxes (relX, relY);
 
 	const double dx = m_drawedVerts[0][relX] - v1[relX];
 	const double dy = m_drawedVerts[0][relY] - v1[relY];
-	return sqrt ( (dx * dx) + (dy * dy));
+	return sqrt ((dx * dx) + (dy * dy));
 }
 
 // =============================================================================

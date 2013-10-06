@@ -184,7 +184,7 @@ class GLRenderer : public QGLWidget
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 
 		void           drawBlip (QPainter& paint, QPoint pos) const;
-		double         circleDrawDist() const;
+		double         circleDrawDist(int pos) const;
 
 	private slots:
 		void           slot_toolTipTimer();
