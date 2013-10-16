@@ -25,6 +25,8 @@
 #include "dialogs.h"
 #include "ui_rotpoint.h"
 
+RingFinder g_RingFinder;
+
 // Prime number table.
 const int g_primes[NUM_PRIMES] =
 {	2,    3,    5,    7,   11,   13,   17,   19,   23,   29,
@@ -181,7 +183,7 @@ bool isNumber (const str& tok)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void simplify (short& numer, short& denom)
+void simplify (int& numer, int& denom)
 {	bool repeat;
 
 	do
@@ -274,7 +276,7 @@ void configRotationPoint()
 str join (initlist<StringFormatArg> vals, str delim)
 {	QStringList list;
 
-for (const StringFormatArg & arg : vals)
+	for (const StringFormatArg& arg : vals)
 		list << arg.value();
 
 	return list.join (delim);
@@ -300,4 +302,47 @@ double atof (str val)
 	double fval = atof (buf);
 	delete[] buf;
 	return fval;
+}
+
+// =============================================================================
+// This is the main algorithm of the ring finder. It tries to use math to find
+// the one ring between r0 and r1. If it fails (the ring number is non-integral),
+// it finds an intermediate radius (ceil of the ring number times scale) and
+// splits the radius at this point, calling this function again to try find the
+// rings between r0 - r and r - r1.
+//
+// This does not always yield into usable results. If at some point r == r0 or
+// r == r1, there is no hope of finding the rings, at least with this algorithm,
+// as it would fall into an infinite recursion.
+// -----------------------------------------------------------------------------
+bool RingFinder::findRings (double r0, double r1)
+{	// Find the scale and number of a ring between r1 and r0.
+	double scale = r1 - r0;
+	double num = r0 / scale;
+
+	// If the ring number is integral, we have found a fitting ring to r0 -> r1!
+	if (isInteger (num))
+	{	SolutionComponent cmp;
+		cmp.scale = scale;
+		cmp.num = (int) ceil (num);
+		m_solution << cmp;
+	}
+	else
+	{	// If not, find an intermediate <r> between the radii
+		double r = ceil (num) * scale;
+
+		// If r is the same as r0 or r1, we simply cannot find any rings between
+		// r0 and r1. Stop and return failure.
+		if (isZero (r0 - r) || isZero (r1 - r))
+			return false;
+
+		// Split this ring into r0 -> r and r -> r1. Recurse to possibly find
+		// the rings for these. If either recurse fails, the entire algorithm
+		// fails as well.
+		if (!findRings (r0, r) || !findRings (r, r1))
+			return false;
+	}
+
+	// The algorithm did not fail, thus we succeeded!
+	return true;
 }

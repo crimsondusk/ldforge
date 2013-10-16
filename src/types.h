@@ -165,6 +165,46 @@ class vertex
 };
 
 // =============================================================================
+// -----------------------------------------------------------------------------
+class Line
+{	public:
+		Line() {}
+		Line (const vertex& v0, const vertex v1) :
+			m_v0 (v0),
+			m_v1 (v1) {}
+
+		inline const vertex& getVertex (int i) const
+		{	assert (i == 0 || i == 1);
+			return (i == 0) ? m_v0 : m_v1;
+		}
+
+		inline void setVertex (int i, const vertex& a)
+		{	assert (i == 0 || i == 1);
+			(i == 0) ? m_v0 : m_v1 = a;
+		}
+
+		inline const vertex& v0() const
+		{	return m_v0;
+		}
+
+		inline const vertex& v1() const
+		{	return m_v1;
+		}
+
+		inline void setV0 (const vertex& a)
+		{	m_v0 = a;
+		}
+
+		inline void setV1 (const vertex& a)
+		{	m_v1 = a;
+		}
+
+	private:
+		vertex m_v0,
+		       m_v1;
+};
+
+// =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // List

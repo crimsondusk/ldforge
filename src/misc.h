@@ -40,7 +40,7 @@ str ftoa (double num);
 double atof (str val);
 
 // Simplifies the given fraction.
-void simplify (short& numer, short& denom);
+void simplify (int& numer, int& denom);
 
 str join (initlist<StringFormatArg> vals, str delim = " ");
 
@@ -51,7 +51,7 @@ struct gridinfo
 };
 
 extern_cfg (Int, grid);
-static const short g_NumGrids = 3;
+static const int g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
 inline const gridinfo& currentGrid()
@@ -87,6 +87,37 @@ namespace Grid
 }
 
 // =============================================================================
+// RingFinder
+//
+// Provides an algorithm for finding a solution of rings between radii r0 and r1.
+// =============================================================================
+class RingFinder
+{	public:
+	struct SolutionComponent
+	{	int num;
+		double scale;
+	};
+
+	typedef List<SolutionComponent> SolutionType;
+
+	RingFinder() {}
+	bool findRings (double r0, double r1);
+
+	inline const SolutionType& solution()
+	{	return m_solution;
+	}
+
+	inline bool operator() (double r0, double r1)
+	{	return findRings (r0, r1);
+	}
+
+private:
+	SolutionType m_solution;
+};
+
+extern RingFinder g_RingFinder;
+
+// =============================================================================
 template<class T> void dataswap (T& a, T& b)
 {	T c = a;
 	a = b;
@@ -118,6 +149,14 @@ template<class T> static inline T max (T a, T b)
 // Templated absolute value
 template<class T> static inline T abs (T a)
 {	return (a >= 0) ? a : -a;
+}
+
+template<class T> inline bool isZero (T a)
+{	return abs<T> (a) < 0.0001;
+}
+
+template<class T> inline bool isInteger (T a)
+{	return isZero (a - (int) a);
 }
 
 #endif // MISC_H

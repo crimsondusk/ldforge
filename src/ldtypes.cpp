@@ -230,12 +230,11 @@ void LDObject::replace (LDObject* other)
 void LDObject::swap (LDObject* other)
 {	int i = 0;
 
-for (LDObject * obj : file()->objects())
+	for (LDObject* obj : file()->objects())
 	{	if (obj == this)
 			file()->setObject (i, other);
-
 		elif (obj == other)
-		file()->setObject (i, this);
+			file()->setObject (i, this);
 
 		++i;
 	}

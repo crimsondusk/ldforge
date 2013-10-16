@@ -619,7 +619,7 @@ bool LDFile::save (str savepath)
 
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
-for (LDObject * obj : objects())
+	for (LDObject* obj : objects())
 		f.write (obj->raw() + "\r\n");
 
 	// File is saved, now clean up.
@@ -1015,8 +1015,11 @@ bool LDFile::hasUnsavedChanges() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDFile::getShortName()
-{	if (name().length() > 0)
+{	if (!name().isEmpty())
 		return basename (name());
+
+	if (!defaultName().isEmpty())
+		return defaultName();
 
 	return tr ("<anonymous>");
 }

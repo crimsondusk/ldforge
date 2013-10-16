@@ -47,6 +47,9 @@ namespace LDPaths
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
+//
+// The default name is a placeholder, initially suggested name for a file. The
+// primitive generator uses this to give initial names to primitives.
 // =============================================================================
 class LDFile : public QObject
 {	Q_OBJECT
@@ -54,6 +57,7 @@ class LDFile : public QObject
 		READ_PROPERTY (History, history, setHistory)
 		READ_PROPERTY (List<LDObject*>, vertices, setVertices)
 		PROPERTY (str, name, setName)
+		PROPERTY (str, defaultName, setDefaultName)
 		PROPERTY (bool, implicit, setImplicit)
 		PROPERTY (List<LDObject*>, cache, setCache)
 		PROPERTY (long, savePos, setSavePos)

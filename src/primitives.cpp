@@ -61,7 +61,7 @@ void loadPrimitives()
 	}
 	else
 	{	// Read primitives from prims.cfg
-		for (str line : conf)
+	for (str line : conf)
 		{	int space = line.indexOf (" ");
 
 			if (space == -1)
@@ -108,7 +108,7 @@ void PrimitiveLister::work()
 	recursiveGetFilenames (dir, fnames);
 	emit starting (fnames.size());
 
-	for (str fname : fnames)
+for (str fname : fnames)
 	{	File f (fname, File::Read);
 
 		Primitive info;
@@ -133,7 +133,7 @@ void PrimitiveLister::work()
 	// Save to a config file
 	File conf (Config::filepath ("prims.cfg"), File::Write);
 
-	for (Primitive & info : m_prims)
+for (Primitive & info : m_prims)
 		fprint (conf, "%1 %2\n", info.name, info.title);
 
 	conf.close();
@@ -166,7 +166,7 @@ void PrimitiveLister::start()
 // =============================================================================
 // -----------------------------------------------------------------------------
 static PrimitiveCategory* findCategory (str name)
-{	for (PrimitiveCategory& cat : g_PrimitiveCategories)
+{	for (PrimitiveCategory & cat : g_PrimitiveCategories)
 		if (cat.name() == name)
 			return &cat;
 
@@ -188,24 +188,24 @@ static void populateCategories()
 		unmatched = & (g_PrimitiveCategories << cat);
 	}
 
-	for (Primitive& prim : g_primitives)
+for (Primitive & prim : g_primitives)
 	{	bool matched = false;
 		prim.cat = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
-		for (PrimitiveCategory & cat : g_PrimitiveCategories)
-		{	for (PrimitiveCategory::RegexEntry & entry : cat.regexes)
+	for (PrimitiveCategory & cat : g_PrimitiveCategories)
+	{	for (PrimitiveCategory::RegexEntry & entry : cat.regexes)
 			{	switch (entry.type)
 				{	case PrimitiveCategory::Filename:
-					// f-regex, check against filename
-					matched = entry.regex.exactMatch (prim.name);
-					break;
+						// f-regex, check against filename
+						matched = entry.regex.exactMatch (prim.name);
+						break;
 
 					case PrimitiveCategory::Title:
-					// t-regex, check against title
-					matched = entry.regex.exactMatch (prim.title);
-					break;
+						// t-regex, check against title
+						matched = entry.regex.exactMatch (prim.title);
+						break;
 				}
 
 				if (matched)
@@ -243,7 +243,7 @@ static void loadPrimitiveCatgories()
 	if (f)
 	{	PrimitiveCategory cat;
 
-		for (str line : f)
+	for (str line : f)
 		{	int colon;
 
 			if (line.length() == 0 || line[0] == '#')
@@ -263,8 +263,9 @@ static void loadPrimitiveCatgories()
 
 				if (cmd == "f")
 					type = PrimitiveCategory::Filename;
+
 				elif (cmd == "t")
-					type = PrimitiveCategory::Title;
+				type = PrimitiveCategory::Title;
 				else
 					continue;
 
@@ -293,7 +294,20 @@ bool primitiveLoaderBusy()
 // =============================================================================
 // -----------------------------------------------------------------------------
 static double radialPoint (int i, int divs, double (*func) (double))
-{	return (*func) ((i * 2 * pi) / divs);
+{	return (*func) ( (i * 2 * pi) / divs);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void makeCircle (int segs, int divs, double radius, List<QLineF>& lines)
+{	for (int i = 0; i < segs; ++i)
+	{	double x0 = radius * radialPoint (i, divs, cos),
+				   x1 = radius * radialPoint (i + 1, divs, cos),
+				   z0 = radius * radialPoint (i, divs, sin),
+				   z1 = radius * radialPoint (i + 1, divs, sin);
+
+		lines << QLineF (QPointF (x0, z0), QPointF (x1, z1));
+	}
 }
 
 // =============================================================================
@@ -301,12 +315,15 @@ static double radialPoint (int i, int divs, double (*func) (double))
 List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 {	List<LDObject*> objs;
 	List<int> condLineSegs;
+	List<QLineF> circle;
+
+	makeCircle (segs, divs, 1, circle);
 
 	for (int i = 0; i < segs; ++i)
-	{	double x0 = radialPoint (i, divs, cos),
-			x1 = radialPoint (i + 1, divs, cos),
-			z0 = radialPoint (i, divs, sin),
-			z1 = radialPoint (i + 1, divs, sin);
+	{	double x0 = circle[i].x1(),
+				   x1 = circle[i].x2(),
+				   z0 = circle[i].y1(),
+				   z1 = circle[i].y2();
 
 		switch (type)
 		{	case Circle:
@@ -318,8 +335,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 				line->setVertex (1, v1);
 				line->setColor (edgecolor);
 				objs << line;
-			}
-			break;
+			} break;
 
 			case Cylinder:
 			case Ring:
@@ -374,8 +390,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 				if (type == Cylinder || type == Cone)
 					condLineSegs << i;
-			}
-			break;
+			} break;
 
 			case Disc:
 			case DiscNeg:
@@ -400,11 +415,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 				seg->setVertex (1, v1);
 				seg->setVertex (type == Disc ? 2 : 0, v2);
 				objs << seg;
-			}
-			break;
-
-			default:
-			break;
+			} break;
 		}
 	}
 
@@ -413,7 +424,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (segs < divs && condLineSegs.size() != 0)
 		condLineSegs << segs;
 
-	for (int i : condLineSegs)
+for (int i : condLineSegs)
 	{	vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
 		  v1,
 		  v2 (radialPoint (i + 1, divs, cos), 0.0f, radialPoint (i + 1, divs, sin)),
@@ -421,6 +432,7 @@ List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 		if (type == Cylinder)
 			v1 = vertex (v0[X], 1.0f, v0[Z]);
+
 		elif (type == Cone)
 		{	v1 = vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
 			v0[X] *= num;
@@ -454,15 +466,14 @@ static str primitiveTypeName (PrimitiveType type)
 // =============================================================================
 // -----------------------------------------------------------------------------
 str radialFileName (PrimitiveType type, int segs, int divs, int num)
-{	short numer = segs,
-			  denom = divs;
+{	int numer = segs,
+			denom = divs;
 
 	// Simplify the fractional part, but the denominator must be at least 4.
 	simplify (numer, denom);
 
 	if (denom < 4)
-	{	const short factor = 4 / denom;
-
+	{	const int factor = 4 / denom;
 		numer *= factor;
 		denom *= factor;
 	}
@@ -476,7 +487,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
 	int extra = (frac.length() + numstr.length() + root.length()) - 8;
-	root.chop (min<short> (max<short> (extra, 0), 2));
+	root.chop (clamp (extra, 0, 2));
 
 	// Stick them all together and return the result.
 	return prefix + frac + root + numstr + ".dat";
@@ -486,31 +497,31 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 // -----------------------------------------------------------------------------
 LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {	// Make the description
-	str frac = ftoa (((float) segs) / divs);
+	str frac = ftoa ( ( (float) segs) / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
-	
+
 	// Ensure that there's decimals, even if they're 0.
 	if (frac.indexOf (".") == -1)
 		frac += ".0";
-	
+
 	if (type == Ring || type == Cone)
 	{	str spacing =
-		(num < 10) ? "  " :
-		(num < 100) ? " "  : "";
-		
+			(num < 10) ? "  " :
+			(num < 100) ? " "  : "";
+
 		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
 	}
 	else
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
-	
+
 	// Prepend "Hi-Res" if 48/ primitive.
 	if (divs == hires)
 		descr.insert (0, "Hi-Res ");
-	
+
 	LDFile* f = new LDFile;
-	f->setName (QFileDialog::getSaveFileName (null, QObject::tr ("Save Primitive"), name));
-	
+	f->setDefaultName (name);
+
 	f->addObjects (
 	{	new LDComment (descr),
 		new LDComment (fmt ("Name: %1", name)),
@@ -521,7 +532,7 @@ LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 		new LDBFC (LDBFC::CertifyCCW),
 		new LDEmpty,
 	});
-	
+
 	f->addObjects (makePrimitive (type, segs, divs, num));
 	return f;
 }
@@ -531,6 +542,7 @@ LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {	str name = radialFileName (type, segs, divs, num);
 	LDFile* f = getFile (name);
+
 	if (f != null)
 		return f;
 
@@ -540,10 +552,8 @@ LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 // =============================================================================
 // -----------------------------------------------------------------------------
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
-QDialog (parent, f)
-{
-	
-	ui = new Ui_MakePrimUI;
+	QDialog (parent, f)
+{	ui = new Ui_MakePrimUI;
 	ui->setupUi (this);
 	connect (ui->cb_hires, SIGNAL (toggled (bool)), this, SLOT (hiResToggled (bool)));
 }
@@ -558,7 +568,7 @@ PrimitivePrompt::~PrimitivePrompt()
 // -----------------------------------------------------------------------------
 void PrimitivePrompt::hiResToggled (bool on)
 {	ui->sb_segs->setMaximum (on ? hires : lores);
-	
+
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
 	if (on && ui->sb_segs->value() == lores)
@@ -569,22 +579,22 @@ void PrimitivePrompt::hiResToggled (bool on)
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (MakePrimitive, 0)
 {	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
-	
+
 	if (!dlg->exec())
 		return;
-	
+
 	int segs = dlg->ui->sb_segs->value();
 	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
 	int num = dlg->ui->sb_ringnum->value();
 	PrimitiveType type =
-	dlg->ui->rb_circle->isChecked()   ? Circle :
-	dlg->ui->rb_cylinder->isChecked() ? Cylinder :
-	dlg->ui->rb_disc->isChecked()     ? Disc :
-	dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
-	dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
-	
+		dlg->ui->rb_circle->isChecked()   ? Circle :
+		dlg->ui->rb_cylinder->isChecked() ? Cylinder :
+		dlg->ui->rb_disc->isChecked()     ? Disc :
+		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
+		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
+
 	LDFile* f = generatePrimitive (type, segs, divs, num);
-	
+
 	g_win->save (f, false);
 	delete f;
 }

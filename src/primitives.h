@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PRIMITIVES_H
-#define PRIMITIVES_H
+#ifndef LDFORGE_PRIMITIVES_H
+#define LDFORGE_PRIMITIVES_H
 
 #include "common.h"
 #include "types.h"
@@ -104,10 +104,13 @@ class PrimitivePrompt : public QDialog
 		void hiResToggled (bool on);
 };
 
+void makeCircle (int segs, int divs, double radius, List< QLineF >& lines);
 LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 
 // Gets a primitive by the given specs. If the primitive cannot be found, it will
 // be automatically generated.
 LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
-#endif // PRIMITIVES_H
+str radialFileName (PrimitiveType type, int segs, int divs, int num);
+
+#endif // LDFORGE_PRIMITIVES_H

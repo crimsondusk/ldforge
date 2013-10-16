@@ -36,6 +36,7 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
+#include "primitives.h"
 #include "moc_gldraw.cpp"
 
 static const LDFixedCameraInfo g_FixedCameras[6] =
@@ -655,6 +656,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				if (points.size() >= 33)
 					points.insert (33, points[17]);
 
+				// Draw the circle/ring
+				paint.setPen (linepen);
+				paint.setBrush ((m_drawedVerts.size() >= 2) ? polybrush : Qt::NoBrush);
+				paint.drawPolygon (QPolygon (points));
+
 				{ // Draw the current radius in the middle of the circle.
 					QPoint origin = coordconv3_2 (m_drawedVerts[0]);
 					str label = str::number (dist0);
@@ -666,11 +672,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 						paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y() + metrics.height(), label);
 					}
 				}
-
-				// Draw the circle/ring
-				paint.setPen (linepen);
-				paint.setBrush ((m_drawedVerts.size() >= 2) ? polybrush : Qt::NoBrush);
-				paint.drawPolygon (QPolygon (points));
 			}
 		}
 	}
@@ -894,10 +895,12 @@ void GLRenderer::clampAngle (double& angle) const
 // -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos)
 {	// If we picked an already-existing vertex, stop drawing
-for (vertex & vert : m_drawedVerts)
-	{	if (vert == pos)
-		{	endDraw (true);
-			return;
+	if (editMode() != CircleMode)
+	{	for (vertex& vert : m_drawedVerts)
+		{	if (vert == pos)
+			{	endDraw (true);
+				return;
+			}
 		}
 	}
 
@@ -1326,12 +1329,11 @@ void GLRenderer::endDraw (bool accept)
 
 	// Clean the selection and create the object
 	List<vertex>& verts = m_drawedVerts;
-	LDObject* obj = null;
+	List<LDObject*> objs;
 
 	switch (editMode())
 	{	case Draw:
-
-			if (m_rectdraw)
+		{	if (m_rectdraw)
 			{	LDQuad* quad = new LDQuad;
 
 				// Copy the vertices from m_rectverts
@@ -1341,26 +1343,28 @@ void GLRenderer::endDraw (bool accept)
 					quad->setVertex (i, m_rectverts[i]);
 
 				quad->setColor (maincolor);
-				obj = quad;
+				objs << quad;
 			}
 			else
 			{	switch (verts.size())
 				{	case 1:
-						// 1 vertex - add a vertex object
-						obj = new LDVertex;
-						static_cast<LDVertex*> (obj)->pos = verts[0];
+					{	// 1 vertex - add a vertex object
+						LDVertex* obj = new LDVertex;
+						obj->pos = verts[0];
 						obj->setColor (maincolor);
-						break;
+						objs << obj;
+					} break;
 
 					case 2:
-						// 2 verts - make a line
-						obj = new LDLine (verts[0], verts[1]);
+					{	// 2 verts - make a line
+						LDLine* obj = new LDLine (verts[0], verts[1]);
 						obj->setColor (edgecolor);
-						break;
+						objs << obj;
+					} break;
 
 					case 3:
 					case 4:
-						obj = (verts.size() == 3) ?
+					{	LDObject* obj = (verts.size() == 3) ?
 							  static_cast<LDObject*> (new LDTriangle) :
 							  static_cast<LDObject*> (new LDQuad);
 
@@ -1369,43 +1373,106 @@ void GLRenderer::endDraw (bool accept)
 						for (int i = 0; i < obj->vertices(); ++i)
 							obj->setVertex (i, verts[i]);
 
-						break;
+						objs << obj;
+					} break;
 				}
 			}
-
-			break;
+		} break;
 
 		case CircleMode:
-		{	const double dist = circleDrawDist (0);
+		{	const int segs = lores, divs = lores; // TODO: make customizable
+			double dist0 = circleDrawDist (0),
+				dist1 = circleDrawDist (1);
+			enum {Circle, Ring, Disc, CustomRing} type = Ring;
+			int num = 0;
+			double scale;
 
-			matrix transform = g_circleDrawTransforms[camera() % 3];
+			if (dist1 < dist0)
+				std::swap<double> (dist0, dist1);
 
-			for (int i = 0; i < 9; ++i)
-			{	if (transform[i] == 2)
-					transform[i] = dist;
-				elif (transform[i] == 1 && camera() >= 3)
-					transform[i] = -1;
+			if (dist0 == dist1)
+			{	scale = dist0;
+				type = Circle;
+			} elif (dist0 == 0 || dist1 == 0)
+			{	scale = (dist0 != 0) ? dist0 : dist1;
+				type = Disc;
+			} else
+			{	/*	scale = |r1 - r0|
+					number = r0 / scale */
+				scale = abs (dist1 - dist0);
+				assert (scale != 0);
+
+				if (!isInteger (dist0) || !isInteger (scale) || (((int) dist0) % ((int) scale)) != 0)
+					type = CustomRing; // Non-integer ring number - make a custom ring
+				else
+					num = ((int) dist0) / ((int) scale);
 			}
 
-			LDSubfile* ref = new LDSubfile;
-			ref->setFileInfo (findLoadedFile ("4-4edge.dat"));
-			ref->setTransform (transform);
-			ref->setPosition (m_drawedVerts[0]);
-			ref->setColor (maincolor);
-			obj = ref;
-		}
-		break;
+			if (type == CustomRing)
+			{	// Last resort: draw the ring with quads
+				List<QLineF> c0, c1;
+
+				makeCircle (segs, divs, dist0, c0);
+				makeCircle (segs, divs, dist1, c1);
+
+				for (int i = 0; i < 16; ++i)
+				{
+				}
+			}
+			else
+			{	matrix transform = g_circleDrawTransforms[camera() % 3];
+				LDFile* refFile = null;
+
+				for (int i = 0; i < 9; ++i)
+				{	if (transform[i] == 2)
+						transform[i] = scale;
+					elif (transform[i] == 1 && camera() >= 3)
+						transform[i] = -1;
+				}
+
+				switch (type)
+				{	case Circle:
+					{	refFile = getFile ("4-4edge.dat");
+					} break;
+
+					case Disc:
+					{	refFile = getFile ("4-4disc.dat");
+					} break;
+
+					case Ring:
+					{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, num))) == null)
+						{	refFile = generatePrimitive (::Ring, lores, lores, num);
+							refFile->setImplicit (false);
+						}
+					} break;
+				}
+
+				if (refFile)
+				{	LDSubfile* ref = new LDSubfile;
+					ref->setFileInfo (refFile);
+					ref->setTransform (transform);
+					ref->setPosition (m_drawedVerts[0]);
+					ref->setColor (maincolor);
+					objs << ref;
+				}
+			}
+		} break;
 
 		case Select:
-			assert (false);
+		{	assert (false);
 			return;
+		} break;
 	}
 
-	if (obj)
+	if (objs.size() > 0)
 	{	g_win->beginAction (null);
-		file()->addObject (obj);
-		compileObject (obj);
-		g_win->fullRefresh();
+
+		for (LDObject* obj : objs)
+		{	file()->addObject (obj);
+			compileObject (obj);
+		}
+
+		g_win->refresh();
 		g_win->endAction();
 	}
 

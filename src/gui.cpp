@@ -696,7 +696,7 @@ void ForgeWindow::save (LDFile* f, bool saveAs)
 
 	if (saveAs || path.isEmpty())
 	{	path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
-			LDFile::current()->name(), tr ("LDraw files (*.dat *.ldr)"));
+			(f->name().isEmpty()) ? f->name() : f->defaultName(), tr ("LDraw files (*.dat *.ldr)"));
 
 		if (path.isEmpty())
 		{	// User didn't give a file name, abort.
@@ -755,13 +755,13 @@ bool confirm (str msg)
 
 bool confirm (str title, str msg)
 {	return QMessageBox::question (g_win, title, msg,
-								  (QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
+		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
 void critical (str msg)
 {	QMessageBox::critical (g_win, ForgeWindow::tr ("Error"), msg,
-						   (QMessageBox::Close), QMessageBox::Close);
+		(QMessageBox::Close), QMessageBox::Close);
 }
 
 // =============================================================================
