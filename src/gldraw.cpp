@@ -1324,6 +1324,21 @@ SET_ACCESSOR (LDFile*, GLRenderer::setFile)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+matrix GLRenderer::getCircleDrawMatrix (double scale)
+{	matrix transform = g_circleDrawTransforms[camera() % 3];
+
+	for (int i = 0; i < 9; ++i)
+	{	if (transform[i] == 2)
+			transform[i] = scale;
+		elif (transform[i] == 1 && camera() >= 3)
+			transform[i] = -1;
+	}
+
+	return transform;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::endDraw (bool accept)
 {	(void) accept;
 
@@ -1383,32 +1398,39 @@ void GLRenderer::endDraw (bool accept)
 		{	const int segs = lores, divs = lores; // TODO: make customizable
 			double dist0 = circleDrawDist (0),
 				dist1 = circleDrawDist (1);
-			enum {Circle, Ring, Disc, CustomRing} type = Ring;
-			int num = 0;
-			double scale;
+			LDFile* refFile = null;
+			matrix transform;
+			bool circleOrDisc = false;
 
 			if (dist1 < dist0)
 				std::swap<double> (dist0, dist1);
 
 			if (dist0 == dist1)
-			{	scale = dist0;
-				type = Circle;
-			} elif (dist0 == 0 || dist1 == 0)
-			{	scale = (dist0 != 0) ? dist0 : dist1;
-				type = Disc;
-			} else
-			{	/*	scale = |r1 - r0|
-					number = r0 / scale */
-				scale = abs (dist1 - dist0);
-				assert (scale != 0);
-
-				if (!isInteger (dist0) || !isInteger (scale) || (((int) dist0) % ((int) scale)) != 0)
-					type = CustomRing; // Non-integer ring number - make a custom ring
-				else
-					num = ((int) dist0) / ((int) scale);
+			{	refFile = getFile ("4-4edge.dat");
+				transform = getCircleDrawMatrix (dist0);
+				circleOrDisc = true;
 			}
+			elif (dist0 == 0 || dist1 == 0)
+			{	refFile = getFile ("4-4disc.dat");
+				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
+				circleOrDisc = true;
+			}
+			elif (g_RingFinder (dist0, dist1) /* && g_RingFinder.solution().size() <= 3 */)
+			{	for (const RingFinder::SolutionComponent& cmp : g_RingFinder.solution())
+				{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
+					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
+						refFile->setImplicit (false);
+					}
 
-			if (type == CustomRing)
+					LDSubfile* ref = new LDSubfile;
+					ref->setFileInfo (refFile);
+					ref->setTransform (getCircleDrawMatrix (cmp.scale));
+					ref->setPosition (m_drawedVerts[0]);
+					ref->setColor (maincolor);
+					objs << ref;
+				}
+			}
+			else
 			{	// Last resort: draw the ring with quads
 				List<QLineF> c0, c1;
 
@@ -1419,42 +1441,14 @@ void GLRenderer::endDraw (bool accept)
 				{
 				}
 			}
-			else
-			{	matrix transform = g_circleDrawTransforms[camera() % 3];
-				LDFile* refFile = null;
 
-				for (int i = 0; i < 9; ++i)
-				{	if (transform[i] == 2)
-						transform[i] = scale;
-					elif (transform[i] == 1 && camera() >= 3)
-						transform[i] = -1;
-				}
-
-				switch (type)
-				{	case Circle:
-					{	refFile = getFile ("4-4edge.dat");
-					} break;
-
-					case Disc:
-					{	refFile = getFile ("4-4disc.dat");
-					} break;
-
-					case Ring:
-					{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, num))) == null)
-						{	refFile = generatePrimitive (::Ring, lores, lores, num);
-							refFile->setImplicit (false);
-						}
-					} break;
-				}
-
-				if (refFile)
-				{	LDSubfile* ref = new LDSubfile;
-					ref->setFileInfo (refFile);
-					ref->setTransform (transform);
-					ref->setPosition (m_drawedVerts[0]);
-					ref->setColor (maincolor);
-					objs << ref;
-				}
+			if (circleOrDisc)
+			{	LDSubfile* ref = new LDSubfile;
+				ref->setFileInfo (refFile);
+				ref->setTransform (transform);
+				ref->setPosition (m_drawedVerts[0]);
+				ref->setColor (maincolor);
+				objs << ref;
 			}
 		} break;
 

@@ -113,6 +113,8 @@ class RingFinder
 
 private:
 	SolutionType m_solution;
+
+	bool findRingsRecursor (double r0, double r1);
 };
 
 extern RingFinder g_RingFinder;

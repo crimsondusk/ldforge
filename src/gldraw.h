@@ -182,6 +182,7 @@ class GLRenderer : public QGLWidget
 		void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
 		QColor         getTextPen() const;                                     // Determine which color to draw text with
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
+		matrix         getCircleDrawMatrix (double scale);
 
 		void           drawBlip (QPainter& paint, QPoint pos) const;
 		double         circleDrawDist(int pos) const;
