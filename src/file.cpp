@@ -637,7 +637,7 @@ bool LDFile::save (str savepath)
 
 #define CHECK_TOKEN_NUMBERS(MIN, MAX) \
 	for (int i = MIN; i <= MAX; ++i) \
-		if (!isNumber (tokens[i])) \
+		if (!numeric (tokens[i])) \
 			return new LDError (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
 
 // =============================================================================
@@ -645,8 +645,8 @@ bool LDFile::save (str savepath)
 static vertex parseVertex (QStringList& s, const int n)
 {	vertex v;
 
-for (const Axis ax : g_Axes)
-		v[ax] = atof (s[n + ax]);
+	for (const Axis ax : g_Axes)
+		v[ax] = s[n + ax].toDouble();
 
 	return v;
 }

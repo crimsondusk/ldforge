@@ -498,7 +498,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 // -----------------------------------------------------------------------------
 LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {	// Make the description
-	str frac = ftoa ( ( (float) segs) / divs);
+	str frac = str::number ((float) segs / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
 

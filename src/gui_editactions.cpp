@@ -507,20 +507,21 @@ DEFINE_ACTION (RoundCoordinates, 0)
 	int num = 0;
 
 	for (LDObject* obj : g_win->sel())
-		for (short i = 0; i < obj->vertices(); ++i)
+	{	for (short i = 0; i < obj->vertices(); ++i)
 		{	vertex v = obj->getVertex (i);
 
-		for (const Axis ax : g_Axes)
+			for (const Axis ax : g_Axes)
 			{	// HACK: .. should find a better way to do this
-				char valstr[64];
-				sprintf (valstr, "%.3f", v[ax]);
-				v[ax] = atof (valstr);
+				str valstr;
+				valstr.sprintf ("%.3f", v[ax]);
+				v[ax] = valstr.toDouble();
 			}
 
 			obj->setVertex (i, v);
 			g_win->R()->compileObject (obj);
 			num += 3;
 		}
+	}
 
 	log (ForgeWindow::tr ("Rounded %1 coordinates"), num);
 	g_win->refresh();

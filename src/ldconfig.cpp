@@ -72,7 +72,7 @@ void parseLDConfig()
 		if (!parseLDConfigTag (pars, "CODE", valuestr))
 			continue;
 
-		if (!isNumber (valuestr))
+		if (!numeric (valuestr))
 			continue; // not a number
 
 		// Ensure that the code is within [0 - 511]

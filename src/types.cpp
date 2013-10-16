@@ -219,7 +219,7 @@ str matrix::stringRep() const
 	{	if (i > 0)
 			val += ' ';
 
-		val += ftoa (m_vals[i]);
+		val += str::number (m_vals[i]);
 	}
 
 	return val;
@@ -282,11 +282,11 @@ StringFormatArg::StringFormatArg (const qchar& v)
 }
 
 StringFormatArg::StringFormatArg (const float& v)
-{	m_val = ftoa (v);
+{	m_val = str::number (v);
 }
 
 StringFormatArg::StringFormatArg (const double& v)
-{	m_val = ftoa (v);
+{	m_val = str::number (v);
 }
 
 StringFormatArg::StringFormatArg (const vertex& v)

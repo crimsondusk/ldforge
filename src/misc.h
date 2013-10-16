@@ -33,12 +33,7 @@ class QAction;
 extern const int g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
-bool isNumber (const str& tok);
-
-// Converts a float value to a string value.
-str ftoa (double num);
-
-double atof (str val);
+bool numeric (const str& tok);
 
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);

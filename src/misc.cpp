@@ -128,33 +128,8 @@ double Grid::snap (double in, const Grid::Config axis)
 }
 
 // =============================================================================
-// Float to string. Removes trailing zeroes and is locale-independant.
-// TODO: Replace with QString::number()
 // -----------------------------------------------------------------------------
-str ftoa (double num)
-{	// Disable the locale first so that the decimal point will not
-	// turn into anything weird (like commas)
-	setlocale (LC_NUMERIC, "C");
-
-	str rep;
-	rep.sprintf ("%f", num);
-
-	// Remove trailing zeroes
-	while (rep.right (1) == "0")
-		rep.chop (1);
-
-	// If there were only zeroes in the decimal place, remove
-	// the decimal point now.
-	if (rep.right (1) == ".")
-		rep.chop (1);
-
-	return rep;
-}
-
-// =============================================================================
-// TODO: I guess Qt must have something like this stashed somewhere?
-// -----------------------------------------------------------------------------
-bool isNumber (const str& tok)
+bool numeric (const str& tok)
 {	bool gotDot = false;
 
 	for (int i = 0; i < tok.length(); ++i)
@@ -280,28 +255,6 @@ str join (initlist<StringFormatArg> vals, str delim)
 		list << arg.value();
 
 	return list.join (delim);
-}
-
-// =============================================================================
-// TODO: I'm quite sure Qt has this covered as well.
-// -----------------------------------------------------------------------------
-double atof (str val)
-{	// Disable the locale while parsing the line or atof's behavior changes
-	// between locales (i.e. fails to read decimals properly). That is
-	// quite undesired...
-	setlocale (LC_NUMERIC, "C");
-
-	char* buf = new char[val.length()];
-	char* bufptr = &buf[0];
-
-	for (QChar& c : val)
-		*bufptr++ = c.toLatin1();
-
-	*bufptr = '\0';
-
-	double fval = atof (buf);
-	delete[] buf;
-	return fval;
 }
 
 // =============================================================================

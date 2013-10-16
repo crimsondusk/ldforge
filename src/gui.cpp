@@ -281,18 +281,17 @@ void ForgeWindow::buildObjList()
 
 	ui->objectList->clear();
 
-for (LDObject * obj : LDFile::current()->objects())
+	for (LDObject* obj : LDFile::current()->objects())
 	{	str descr;
 
 		switch (obj->getType())
 		{	case LDObject::Comment:
-				descr = static_cast<LDComment*> (obj)->text;
+			{	descr = static_cast<LDComment*> (obj)->text;
 
 				// Remove leading whitespace
 				while (descr[0] == ' ')
 					descr.remove (0, 1);
-
-				break;
+			} break;
 
 			case LDObject::Empty:
 				break; // leave it empty
@@ -301,41 +300,36 @@ for (LDObject * obj : LDFile::current()->objects())
 			case LDObject::Triangle:
 			case LDObject::Quad:
 			case LDObject::CndLine:
-
-				for (short i = 0; i < obj->vertices(); ++i)
+			{	for (short i = 0; i < obj->vertices(); ++i)
 				{	if (i != 0)
 						descr += ", ";
 
 					descr += obj->getVertex (i).stringRep (true);
 				}
-
-				break;
+			} break;
 
 			case LDObject::Error:
-				descr = fmt ("ERROR: %1", obj->raw());
-				break;
+			{	descr = fmt ("ERROR: %1", obj->raw());
+			} break;
 
 			case LDObject::Vertex:
-				descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
-				break;
+			{	descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
+			} break;
 
 			case LDObject::Subfile:
 			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->fileInfo()->name(),
-							 ref->position().stringRep (true));
+				descr = fmt ("%1 %2, (", ref->fileInfo()->name(), ref->position().stringRep (true));
 
-				for (short i = 0; i < 9; ++i)
-					descr += fmt ("%1%2", ftoa (ref->transform() [i]),
-								  (i != 8) ? " " : "");
+				for (int i = 0; i < 9; ++i)
+					descr += fmt ("%1%2", ref->transform()[i], (i != 8) ? " " : "");
 
 				descr += ')';
-			}
-			break;
+			} break;
 
 			case LDObject::BFC:
-				descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
-				break;
+			{	descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
+			} break;
 
 			case LDObject::Overlay:
 			{	LDOverlay* ovl = static_cast<LDOverlay*> (obj);
@@ -345,8 +339,8 @@ for (LDObject * obj : LDFile::current()->objects())
 			break;
 
 			default:
-				descr = obj->typeName();
-				break;
+			{	descr = obj->typeName();
+			} break;
 		}
 
 		// Put it into brackets if it's hidden
@@ -360,9 +354,8 @@ for (LDObject * obj : LDFile::current()->objects())
 		if (obj->getType() == LDObject::Error)
 		{	item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
-		} elif (lv_colorize && obj->isColored() &&
-
-				obj->color() != maincolor && obj->color() != edgecolor)
+		}
+		elif (lv_colorize && obj->isColored() && obj->color() != maincolor && obj->color() != edgecolor)
 		{	// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
 			LDColor* col = getColor (obj->color());
@@ -408,8 +401,8 @@ void ForgeWindow::slot_selectionChanged()
 	m_sel.clear();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
-for (LDObject * obj : LDFile::current()->objects())
-	for (QListWidgetItem * item : items)
+	for (LDObject* obj : LDFile::current()->objects())
+		for (QListWidgetItem* item : items)
 		{	if (item == obj->qObjListEntry)
 			{	m_sel << obj;
 				break;
@@ -417,12 +410,12 @@ for (LDObject * obj : LDFile::current()->objects())
 		}
 
 	// Update the GL renderer
-for (LDObject * obj : priorSelection)
+	for (LDObject* obj : priorSelection)
 	{	obj->setSelected (false);
 		m_renderer->compileObject (obj);
 	}
 
-for (LDObject * obj : m_sel)
+	for (LDObject* obj : m_sel)
 	{	obj->setSelected (true);
 		m_renderer->compileObject (obj);
 	}
