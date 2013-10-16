@@ -56,7 +56,7 @@ class OverlayDialog : public QDialog
 
 	private:
 		Ui_OverlayUI* ui;
-		List<pair<QRadioButton*, int>> m_cameraArgs;
+		QList<pair<QRadioButton*, int>> m_cameraArgs;
 
 	private slots:
 		void slot_fpath();

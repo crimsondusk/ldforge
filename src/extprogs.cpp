@@ -148,11 +148,11 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeObjects (List<LDObject*>& objects, File& f)
+void writeObjects (QList<LDObject*>& objects, File& f)
 {	for (LDObject * obj : objects)
 	{	if (obj->getType() == LDObject::Subfile)
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
+			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
 
 			writeObjects (objs, f);
 
@@ -166,7 +166,7 @@ void writeObjects (List<LDObject*>& objects, File& f)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeObjects (List<LDObject*>& objects, str fname)
+void writeObjects (QList<LDObject*>& objects, str fname)
 {	// Write the input file
 	File f (fname, File::Write);
 
@@ -188,7 +188,7 @@ void writeSelection (str fname)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void writeColorGroup (const short colnum, str fname)
-{	List<LDObject*> objects;
+{	QList<LDObject*> objects;
 
 for (LDObject * obj : LDFile::current()->objects())
 	{	if (obj->isColored() == false || obj->color() != colnum)
@@ -260,7 +260,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void insertOutput (str fname, bool replace, List<short> colorsToReplace)
+static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
 {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
@@ -274,7 +274,7 @@ static void insertOutput (str fname, bool replace, List<short> colorsToReplace)
 		return;
 	}
 
-	List<LDObject*> objs = loadFileContents (&f, null);
+	QList<LDObject*> objs = loadFileContents (&f, null);
 
 	// If we replace the objects, delete the selection now.
 	if (replace)

@@ -30,7 +30,7 @@ cfg (String, ld_defaultuser, "");
 cfg (Int, ld_defaultlicense, 0);
 
 // List of all LDObjects
-List<LDObject*> g_LDObjects;
+QList<LDObject*> g_LDObjects;
 
 // =============================================================================
 // LDObject constructors
@@ -192,7 +192,7 @@ str LDBFC::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDTriangle*> LDQuad::splitToTriangles()
+QList<LDTriangle*> LDQuad::splitToTriangles()
 {	// Create the two triangles based on this quadrilateral:
 	// 0---3       0---3    3
 	// |   |       |  /    /|
@@ -206,7 +206,7 @@ List<LDTriangle*> LDQuad::splitToTriangles()
 	tri1->setColor (color());
 	tri2->setColor (color());
 
-	List<LDTriangle*> triangles;
+	QList<LDTriangle*> triangles;
 	triangles << tri1;
 	triangles << tri2;
 	return triangles;
@@ -300,8 +300,8 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, short 
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
-{	List<LDObject*> objs = fileInfo()->inlineContents (flags);
+QList<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
+{	QList<LDObject*> objs = fileInfo()->inlineContents (flags);
 
 	// Transform the objects
 for (LDObject * obj : objs)
@@ -330,7 +330,7 @@ long LDObject::getIndex() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDObject::moveObjects (List<LDObject*> objs, const bool up)
+void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 {	if (objs.size() == 0)
 		return;
 
@@ -338,7 +338,7 @@ void LDObject::moveObjects (List<LDObject*> objs, const bool up)
 	const long start = up ? 0 : (objs.size() - 1);
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
-	List<LDObject*> objsToCompile;
+	QList<LDObject*> objsToCompile;
 	LDFile* file = objs[0]->file();
 
 	for (long i = start; i != end; i += incr)
@@ -380,7 +380,7 @@ str LDObject::typeName (LDObject::Type type)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDObject::objectListContents (const List<LDObject*>& objs)
+str LDObject::objectListContents (const QList<LDObject*>& objs)
 {	bool firstDetails = true;
 	str text = "";
 

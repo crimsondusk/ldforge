@@ -167,8 +167,8 @@ for (const QVariant & it : io_recentfiles)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDQuickColor> quickColorsFromConfig()
-{	List<LDQuickColor> colors;
+QList<LDQuickColor> quickColorsFromConfig()
+{	QList<LDQuickColor> colors;
 
 for (str colorname : gui_colortoolbar.value.split (":"))
 	{	if (colorname == "|")
@@ -251,7 +251,7 @@ int ForgeWindow::deleteSelection()
 {	if (m_sel.size() == 0)
 		return 0;
 
-	List<LDObject*> selCopy = m_sel;
+	QList<LDObject*> selCopy = m_sel;
 	int num = 0;
 
 	// Delete the objects that were being selected
@@ -402,7 +402,7 @@ void ForgeWindow::slot_selectionChanged()
 	if (m_renderer->picking())
 		return;
 
-	List<LDObject*> priorSelection = m_sel;
+	QList<LDObject*> priorSelection = m_sel;
 
 	// Get the objects from the object list selection
 	m_sel.clear();
@@ -617,7 +617,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::deleteObjVector (List<LDObject*> objs)
+void ForgeWindow::deleteObjVector (QList<LDObject*> objs)
 {	for (LDObject * obj : objs)
 	{	LDFile::current()->forgetObject (obj);
 		delete obj;
@@ -627,7 +627,7 @@ void ForgeWindow::deleteObjVector (List<LDObject*> objs)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteByColor (const short colnum)
-{	List<LDObject*> objs;
+{	QList<LDObject*> objs;
 
 for (LDObject * obj : LDFile::current()->objects())
 	{	if (!obj->isColored() || obj->color() != colnum)

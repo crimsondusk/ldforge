@@ -29,7 +29,7 @@
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str DoFormat (List<StringFormatArg> args)
+str DoFormat (QList<StringFormatArg> args)
 {	assert (args.size() >= 1);
 	str text = args[0].value();
 
@@ -523,7 +523,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
+			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
 		for (LDObject * obj : objs)
 			{	calcObject (obj);

@@ -78,8 +78,8 @@ class PartDownloader : public QDialog
 		friend class PartDownloadRequest;
 
 	private:
-		List<str> m_filesToDownload;
-		List<PartDownloadRequest*> m_requests;
+		QList<str> m_filesToDownload;
+		QList<PartDownloadRequest*> m_requests;
 		QPushButton* m_downloadButton;
 };
 

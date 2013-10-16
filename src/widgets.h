@@ -40,7 +40,7 @@ class RadioGroup : public QGroupBox
 {	Q_OBJECT
 
 	public:
-		typedef List<QRadioButton*>::Iterator Iterator;
+		typedef QList<QRadioButton*>::Iterator Iterator;
 
 		explicit RadioGroup()
 		{	init (Qt::Vertical);
@@ -75,8 +75,8 @@ class RadioGroup : public QGroupBox
 		void valueChanged (int val);
 
 	private:
-		List<QRadioButton*> m_objects;
-		List<QBoxLayout*> m_layouts;
+		QList<QRadioButton*> m_objects;
+		QList<QBoxLayout*> m_layouts;
 		QBoxLayout* m_coreLayout;
 		QBoxLayout* m_currentLayout;
 		bool m_vert;

@@ -55,14 +55,14 @@ class ConfigDialog : public QDialog
 		virtual ~ConfigDialog();
 		float getGridValue (int i, int j) const;
 
-		List<LDQuickColor> quickColors;
+		QList<LDQuickColor> quickColors;
 		QDoubleSpinBox* dsb_gridData[3][4];
 
 	private:
 		Ui_ConfigUI* ui;
 		QLabel* lb_gridLabels[3];
 		QLabel* lb_gridIcons[3];
-		List<QListWidgetItem*> quickColorItems;
+		QList<QListWidgetItem*> quickColorItems;
 
 		void applySettings();
 		void addShortcut (KeySequenceConfig& cfg, QAction* act, int& i);
@@ -70,7 +70,7 @@ class ConfigDialog : public QDialog
 		void pickColor (StringConfig& cfg, QPushButton* button);
 		void updateQuickColorList (LDQuickColor* sel = null);
 		void setShortcutText (ShortcutListItem* item);
-		int getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack);
+		int getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack);
 		str quickColorString();
 		QListWidgetItem* getSelectedQuickColor();
 		QList<ShortcutListItem*> getShortcutSelection();

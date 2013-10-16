@@ -65,7 +65,7 @@ enum RotationPoint
 	CustomPoint
 };
 
-vertex rotPoint (const List<LDObject*>& objs);
+vertex rotPoint (const QList<LDObject*>& objs);
 void configRotationPoint();
 
 // =============================================================================
@@ -98,7 +98,7 @@ class RingFinder
 		double scale;
 	};
 
-	typedef List<SolutionComponent> SolutionType;
+	typedef QList<SolutionComponent> SolutionType;
 
 	RingFinder() {}
 	bool findRings (double r0, double r1);

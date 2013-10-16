@@ -116,8 +116,8 @@ class LDObject
 
 		static str typeName (LDObject::Type type); // Get type name by enumerator
 		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-		static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDFile?
-		static str objectListContents (const List<LDObject*>& objs); // Get a description of a list of LDObjects
+		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDFile?
+		static str objectListContents (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
 		static LDObject* fromID (int id);
 
 		// TODO: make these private!
@@ -301,7 +301,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 		// Inlines this subfile. Note that return type is an array of heap-allocated
 		// LDObject-clones, they must be deleted one way or another.
-		List<LDObject*> inlineContents (InlineFlags flags);
+		QList<LDObject*> inlineContents (InlineFlags flags);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)
@@ -387,7 +387,7 @@ class LDQuad : public LDObject
 		LDQuad() {}
 
 		// Split this quad into two triangles (note: heap-allocated)
-		List<LDTriangle*> splitToTriangles();
+		QList<LDTriangle*> splitToTriangles();
 };
 
 // =============================================================================

@@ -208,7 +208,7 @@ void simplify (int& numer, int& denom)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-vertex rotPoint (const List<LDObject*>& objs)
+vertex rotPoint (const QList<LDObject*>& objs)
 {	LDBoundingBox box;
 
 	switch (edit_rotpoint)

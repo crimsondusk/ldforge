@@ -55,10 +55,10 @@ class MessageManager : public QObject
 
 		explicit MessageManager (QObject* parent = 0);
 		void addLine (str line);
-		const List<Line>& getLines() const;
+		const QList<Line>& getLines() const;
 
 	private:
-		List<Line> m_lines;
+		QList<Line> m_lines;
 		QTimer* m_ticker;
 
 	private slots:

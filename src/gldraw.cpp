@@ -96,7 +96,7 @@ const struct LDGLAxis
 };
 
 static bool g_glInvert = false;
-static List<short> g_warnedColors;
+static QList<short> g_warnedColors;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -845,7 +845,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			List<LDObject*> objs;
+			QList<LDObject*> objs;
 
 			objs = ref->inlineContents (
 					   LDSubfile::DeepInline |
@@ -1142,7 +1142,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick)
-	{	List<LDObject*> oldsel = g_win->sel();
+	{	QList<LDObject*> oldsel = g_win->sel();
 		g_win->sel().clear();
 
 		for (LDObject* obj : oldsel)
@@ -1338,8 +1338,8 @@ void GLRenderer::endDraw (bool accept)
 {	(void) accept;
 
 	// Clean the selection and create the object
-	List<vertex>& verts = m_drawedVerts;
-	List<LDObject*> objs;
+	QList<vertex>& verts = m_drawedVerts;
+	QList<LDObject*> objs;
 
 	switch (editMode())
 	{	case Draw:
@@ -1427,7 +1427,7 @@ void GLRenderer::endDraw (bool accept)
 			}
 			else
 			{	// Last resort: draw the ring with quads
-				List<QLineF> c0, c1;
+				QList<QLineF> c0, c1;
 
 				makeCircle (segs, divs, dist0, c0);
 				makeCircle (segs, divs, dist1, c1);
@@ -1492,8 +1492,8 @@ void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static List<vertex> getVertices (LDObject* obj)
-{	List<vertex> verts;
+static QList<vertex> getVertices (LDObject* obj)
+{	QList<vertex> verts;
 
 	if (obj->vertices() >= 2)
 	{	for (int i = 0; i < obj->vertices(); ++i)
@@ -1501,7 +1501,7 @@ static List<vertex> getVertices (LDObject* obj)
 	} elif (obj->getType() == LDObject::Subfile)
 
 	{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-		List<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
+		QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
 	for (LDObject * obj : objs)
 		{	verts << getVertices (obj);
@@ -1531,7 +1531,7 @@ for (const GL::ListType listType : g_glListTypes)
 	}
 
 	// Mark in known vertices of this object
-	List<vertex> verts = getVertices (obj);
+	QList<vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
 	removeDuplicates (m_knownVerts);
 

@@ -108,7 +108,7 @@ void MessageManager::tick()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const List<MessageManager::Line>& MessageManager::getLines() const
+const QList<MessageManager::Line>& MessageManager::getLines() const
 {	return m_lines;
 }
 

@@ -53,13 +53,13 @@ namespace LDPaths
 // =============================================================================
 class LDFile : public QObject
 {	Q_OBJECT
-		READ_PROPERTY (List<LDObject*>, objects, setObjects)
+		READ_PROPERTY (QList<LDObject*>, objects, setObjects)
 		READ_PROPERTY (History, history, setHistory)
-		READ_PROPERTY (List<LDObject*>, vertices, setVertices)
+		READ_PROPERTY (QList<LDObject*>, vertices, setVertices)
 		PROPERTY (str, name, setName)
 		PROPERTY (str, defaultName, setDefaultName)
 		PROPERTY (bool, implicit, setImplicit)
-		PROPERTY (List<LDObject*>, cache, setCache)
+		PROPERTY (QList<LDObject*>, cache, setCache)
 		PROPERTY (long, savePos, setSavePos)
 		DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
 
@@ -68,11 +68,11 @@ class LDFile : public QObject
 		~LDFile();
 
 		int addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
-		void addObjects (const List<LDObject*> objs);
+		void addObjects (const QList<LDObject*> objs);
 		void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
 		str getShortName();
 		bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
-		List<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
+		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
 		int numObjs() const;
 		LDObject* object (int pos) const;
@@ -151,16 +151,16 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-List<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
+QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 
-extern List<LDFile*> g_loadedFiles;
+extern QList<LDFile*> g_loadedFiles;
 
 void addRecentFile (str path);
 void loadLogoedStuds();
 str basename (str path);
 str dirname (str path);
 
-extern List<LDFile*> g_loadedFiles; // Vector of all currently opened files.
+extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -172,11 +172,11 @@ extern List<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // =============================================================================
 class FileLoader : public QObject
 {		Q_OBJECT
-		READ_PROPERTY (List<LDObject*>, objs, setObjects)
+		READ_PROPERTY (QList<LDObject*>, objs, setObjects)
 		READ_PROPERTY (bool, done, setDone)
 		READ_PROPERTY (int, progress, setProgress)
 		READ_PROPERTY (bool, aborted, setAborted)
-		PROPERTY (List<str>, lines, setLines)
+		PROPERTY (QList<str>, lines, setLines)
 		PROPERTY (int*, warningsPointer, setWarningsPointer)
 		PROPERTY (bool, concurrent, setConcurrent)
 

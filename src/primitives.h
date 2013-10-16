@@ -46,9 +46,9 @@ class PrimitiveCategory
 			Type type;
 		};
 
-		List<RegexEntry> regexes;
-		List<Primitive> prims;
-		static List<Primitive> uncat;
+		QList<RegexEntry> regexes;
+		QList<Primitive> prims;
+		static QList<Primitive> uncat;
 };
 
 // =============================================================================
@@ -74,10 +74,10 @@ class PrimitiveLister : public QObject
 		void update (int i);
 
 	private:
-		List<Primitive> m_prims;
+		QList<Primitive> m_prims;
 };
 
-extern List<PrimitiveCategory> g_PrimitiveCategories;
+extern QList<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives();
 bool primitiveLoaderBusy();
@@ -104,7 +104,7 @@ class PrimitivePrompt : public QDialog
 		void hiResToggled (bool on);
 };
 
-void makeCircle (int segs, int divs, double radius, List<QLineF>& lines);
+void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines);
 LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 
 // Gets a primitive by the given specs. If the primitive cannot be found, it will

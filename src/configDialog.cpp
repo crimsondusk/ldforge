@@ -514,7 +514,7 @@ void ConfigDialog::setButtonBackground (QPushButton* button, str value)
 // =============================================================================
 // Finds the given list widget item in the list of widget items given.
 // -----------------------------------------------------------------------------
-int ConfigDialog::getItemRow (QListWidgetItem* item, List<QListWidgetItem*>& haystack)
+int ConfigDialog::getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack)
 {	int i = 0;
 
 for (QListWidgetItem * it : haystack)

@@ -362,7 +362,7 @@ DEFINE_ACTION (InsertFrom, 0)
 		return;
 	}
 
-	List<LDObject*> objs = loadFileContents (&f, null);
+	QList<LDObject*> objs = loadFileContents (&f, null);
 
 	g_win->sel().clear();
 

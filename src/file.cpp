@@ -356,9 +356,9 @@ void FileLoader::abort()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
-{	List<str> lines;
-	List<LDObject*> objs;
+QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
+{	QList<str> lines;
+	QList<LDObject*> objs;
 
 	if (numWarnings)
 		*numWarnings = 0;
@@ -417,7 +417,7 @@ LDFile* openDATFile (str path, bool search)
 
 	int numWarnings;
 	bool ok;
-	List<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
+	QList<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
 
 	if (!ok)
 		return null;
@@ -492,7 +492,7 @@ bool LDFile::safeToClose()
 // -----------------------------------------------------------------------------
 void closeAll()
 {	// Remove all loaded files and the objects they contain
-	List<LDFile*> files = g_loadedFiles;
+	QList<LDFile*> files = g_loadedFiles;
 
 for (LDFile * file : files)
 		delete file;
@@ -883,7 +883,7 @@ int LDFile::addObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::addObjects (const List<LDObject*> objs)
+void LDFile::addObjects (const QList<LDObject*> objs)
 {	for (LDObject * obj : objs)
 		if (obj)
 			addObject (obj);
@@ -932,8 +932,8 @@ void LDFile::setObject (int idx, LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static List<LDFile*> getFilesUsed (LDFile* node)
-{	List<LDFile*> filesUsed;
+static QList<LDFile*> getFilesUsed (LDFile* node)
+{	QList<LDFile*> filesUsed;
 
 for (LDObject * obj : node->objects())
 	{	if (obj->getType() != LDObject::Subfile)
@@ -951,7 +951,7 @@ for (LDObject * obj : node->objects())
 // Find out which files are unused and close them.
 // -----------------------------------------------------------------------------
 void LDFile::closeUnused()
-{	List<LDFile*> filesUsed = getFilesUsed (LDFile::current());
+{	QList<LDFile*> filesUsed = getFilesUsed (LDFile::current());
 
 	// Anything that's explicitly opened must not be closed
 	for (LDFile* file : g_loadedFiles)
@@ -1021,7 +1021,7 @@ str LDFile::getShortName()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
+QList<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
 {	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
@@ -1033,7 +1033,7 @@ List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
 		return g_logoedStud2->inlineContents (flags);
 	}
 
-	List<LDObject*> objs, objcache;
+	QList<LDObject*> objs, objcache;
 
 	bool deep = flags & LDSubfile::DeepInline,
 		 doCache = flags & LDSubfile::CacheInline;
@@ -1060,7 +1060,7 @@ List<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
 
 				// We only want to cache immediate subfiles, so shed the caching
 				// flag when recursing deeper in hierarchy.
-				List<LDObject*> otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
+				QList<LDObject*> otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
 
 			for (LDObject * otherobj : otherobjs)
 				{	// Cache this object, if desired

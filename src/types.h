@@ -46,7 +46,6 @@ typedef quint16 uint16;
 typedef quint32 uint32;
 typedef quint64 uint64;
 
-template<class T> using List = QList<T>;
 template<class T> using initlist = std::initializer_list<T>;
 template<class T, class R> using pair = std::pair<T, R>;
 using std::size_t;
@@ -204,7 +203,7 @@ class StringFormatArg
 		StringFormatArg (const FloatConfig& v);
 		StringFormatArg (const void* v);
 
-		template<class T> StringFormatArg (const List<T>& v)
+		template<class T> StringFormatArg (const QList<T>& v)
 		{	m_val = "{ ";
 
 			int i = 0;
@@ -313,7 +312,7 @@ class LDBoundingBox
 };
 
 // Formatter function
-str DoFormat (List<StringFormatArg> args);
+str DoFormat (QList<StringFormatArg> args);
 
 // printf replacement
 void doPrint (File& f, initlist<StringFormatArg> args);

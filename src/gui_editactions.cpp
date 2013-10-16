@@ -41,7 +41,7 @@ extern_cfg (String, ld_defaultuser);
 // =============================================================================
 // -----------------------------------------------------------------------------
 static int copyToClipboard()
-{	List<LDObject*> objs = g_win->sel();
+{	QList<LDObject*> objs = g_win->sel();
 	int num = 0;
 
 	// Clear the clipboard first.
@@ -108,7 +108,7 @@ DEFINE_ACTION (Delete, KEY (Delete))
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void doInline (bool deep)
-{	List<LDObject*> sel = g_win->sel();
+{	QList<LDObject*> sel = g_win->sel();
 
 	for (LDObject* obj : sel)
 	{	// Get the index of the subfile so we know where to insert the
@@ -118,7 +118,7 @@ static void doInline (bool deep)
 		if (idx == -1)
 			continue;
 
-		List<LDObject*> objs;
+		QList<LDObject*> objs;
 
 		if (obj->getType() == LDObject::Subfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (
@@ -159,7 +159,7 @@ DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SplitQuads, 0)
-{	List<LDObject*> objs = g_win->sel();
+{	QList<LDObject*> objs = g_win->sel();
 	int num = 0;
 
 	for (LDObject* obj : objs)
@@ -172,7 +172,7 @@ DEFINE_ACTION (SplitQuads, 0)
 		if (index == -1)
 			return;
 
-		List<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles();
+		QList<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles();
 
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
@@ -235,7 +235,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 	short colnum;
 	short defcol = -1;
 
-	List<LDObject*> objs = g_win->sel();
+	QList<LDObject*> objs = g_win->sel();
 
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
@@ -258,7 +258,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Borders, CTRL_SHIFT (B))
-{	List<LDObject*> objs = g_win->sel();
+{	QList<LDObject*> objs = g_win->sel();
 	int num = 0;
 
 	for (LDObject* obj : objs)
@@ -330,7 +330,7 @@ DEFINE_ACTION (CornerVerts, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void doMoveSelection (const bool up)
-{	List<LDObject*> objs = g_win->sel();
+{	QList<LDObject*> objs = g_win->sel();
 	LDObject::moveObjects (objs, up);
 	g_win->buildObjList();
 }
@@ -400,7 +400,7 @@ DEFINE_ACTION (MoveZPos, KEY (Up))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Invert, CTRL_SHIFT (W))
-{	List<LDObject*> sel = g_win->sel();
+{	QList<LDObject*> sel = g_win->sel();
 
 	for (LDObject* obj : sel)
 	{	obj->invert();
@@ -421,8 +421,8 @@ static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& trans
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void doRotate (const short l, const short m, const short n)
-{	List<LDObject*> sel = g_win->sel();
-	List<vertex*> queue;
+{	QList<LDObject*> sel = g_win->sel();
+	QList<vertex*> queue;
 	const vertex rotpoint = rotPoint (sel);
 	const double angle = (pi * currentGrid().confs[Grid::Angle]->value) / 180,
 				 cosangle = cos (angle),
@@ -564,7 +564,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	const bool any = ui.any->isChecked(),
 			   rel = ui.relative->isChecked();
 
-	List<Axis> sel;
+	QList<Axis> sel;
 	int num = 0;
 
 	if (ui.x->isChecked()) sel << X;
@@ -607,7 +607,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	if (!dlg->exec())
 		return;
 
-	List<Axis> sel;
+	QList<Axis> sel;
 
 	if (ui.x->isChecked()) sel << X;
 	if (ui.y->isChecked()) sel << Y;
@@ -630,7 +630,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Demote, 0)
-{	List<LDObject*> sel = g_win->sel();
+{	QList<LDObject*> sel = g_win->sel();
 	int num = 0;
 
 	for (LDObject* obj : sel)

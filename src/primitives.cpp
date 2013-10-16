@@ -28,8 +28,8 @@
 #include "colors.h"
 #include "moc_primitives.cpp"
 
-List<PrimitiveCategory> g_PrimitiveCategories;
-List<Primitive> g_primitives;
+QList<PrimitiveCategory> g_PrimitiveCategories;
+QList<Primitive> g_primitives;
 static PrimitiveLister* g_activePrimLister = null;
 static bool g_primListerMutex = false;
 static const str g_Other = PrimitiveLister::tr ("Other");
@@ -79,7 +79,7 @@ void loadPrimitives()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void recursiveGetFilenames (QDir dir, List<str>& fnames)
+static void recursiveGetFilenames (QDir dir, QList<str>& fnames)
 {	QFileInfoList flist = dir.entryInfoList();
 
 for (const QFileInfo & info : flist)
@@ -102,7 +102,7 @@ void PrimitiveLister::work()
 	QDir dir (LDPaths::prims());
 	int baselen = dir.absolutePath().length();
 	int i = 0;
-	List<str> fnames;
+	QList<str> fnames;
 
 	assert (dir.exists());
 	recursiveGetFilenames (dir, fnames);
@@ -300,7 +300,7 @@ static double radialPoint (int i, int divs, double (*func) (double))
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void makeCircle (int segs, int divs, double radius, List<QLineF>& lines)
+void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 {	for (int i = 0; i < segs; ++i)
 	{	double x0 = radius * radialPoint (i, divs, cos),
 				   x1 = radius * radialPoint (i + 1, divs, cos),
@@ -313,10 +313,10 @@ void makeCircle (int segs, int divs, double radius, List<QLineF>& lines)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-List<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
-{	List<LDObject*> objs;
-	List<int> condLineSegs;
-	List<QLineF> circle;
+QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
+{	QList<LDObject*> objs;
+	QList<int> condLineSegs;
+	QList<QLineF> circle;
 
 	makeCircle (segs, divs, 1, circle);
 

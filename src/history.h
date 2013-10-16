@@ -37,7 +37,7 @@ class History
 	READ_PROPERTY (bool, opened, setOpened)
 
 	public:
-		typedef List<AbstractHistoryEntry*> Changeset;
+		typedef QList<AbstractHistoryEntry*> Changeset;
 
 		enum Type
 		{	Del,
@@ -72,7 +72,7 @@ class History
 
 	private:
 		Changeset m_currentArchive;
-		List<Changeset> m_changesets;
+		QList<Changeset> m_changesets;
 };
 
 // =============================================================================
@@ -160,10 +160,10 @@ class MoveHistory : public AbstractHistoryEntry
 {	public:
 		IMPLEMENT_HISTORY_TYPE (Move)
 
-		List<int> indices;
+		QList<int> indices;
 		vertex dest;
 
-		MoveHistory (List<int> indices, vertex dest) :
+		MoveHistory (QList<int> indices, vertex dest) :
 				indices (indices),
 				dest (dest) {}
 };

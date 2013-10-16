@@ -188,13 +188,14 @@ void PartDownloader::sourceChanged (int i)
 void PartDownloader::buttonClicked (QAbstractButton* btn)
 {	if (btn == getButton (Close))
 	{	reject();
-	} elif (btn == getButton (Abort))
-
+	}
+	elif (btn == getButton (Abort))
 	{	setAborted (true);
 
-	for (PartDownloadRequest * req : m_requests)
+		for (PartDownloadRequest* req : m_requests)
 			req->abort();
-	} elif (btn == getButton (Download))
+	}
+	elif (btn == getButton (Download))
 	{	str dest = ui->fname->text();
 		setPrimaryFile (null);
 		setAborted (false);
