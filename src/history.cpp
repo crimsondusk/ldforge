@@ -111,11 +111,11 @@ void History::close()
 
 	setOpened (false);
 
-	if (m_currentArchive.size() == 0)
+	if (m_currentArchive.isEmpty())
 		return;
 
 	while (pos() < size() - 1)
-		m_changesets.erase (size() - 1);
+		m_changesets.removeLast();
 
 	m_changesets << m_currentArchive;
 	m_currentArchive.clear();

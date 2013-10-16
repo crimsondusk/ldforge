@@ -133,12 +133,7 @@ LDFile::~LDFile()
 		delete obj;
 
 	// Remove this file from the list of files
-	for (int i = 0; i < g_loadedFiles.size(); ++i)
-	{	if (g_loadedFiles[i] == this)
-		{	g_loadedFiles.erase (i);
-			break;
-		}
-	}
+	g_loadedFiles.removeOne (this);
 
 	// If we just closed the current file, we need to set the current
 	// file as something else.
@@ -907,14 +902,14 @@ void LDFile::insertObj (int pos, LDObject* obj)
 void LDFile::forgetObject (LDObject* obj)
 {	int idx = obj->getIndex();
 	m_history.add (new DelHistory (idx, obj));
-	m_objects.erase (idx);
+	m_objects.removeAt (idx);
 	obj->setFile (null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool safeToCloseAll()
-{	for (LDFile * f : g_loadedFiles)
+{	for (LDFile* f : g_loadedFiles)
 		if (!f->safeToClose())
 			return false;
 
@@ -959,18 +954,18 @@ void LDFile::closeUnused()
 {	List<LDFile*> filesUsed = getFilesUsed (LDFile::current());
 
 	// Anything that's explicitly opened must not be closed
-for (LDFile * file : g_loadedFiles)
+	for (LDFile* file : g_loadedFiles)
 		if (!file->implicit())
 			filesUsed << file;
 
 	// Remove duplicated entries
-	filesUsed.makeUnique();
+	removeDuplicates (filesUsed);
 
 	// Close all open files that aren't in filesUsed
-for (LDFile * file : g_loadedFiles)
+	for (LDFile* file : g_loadedFiles)
 	{	bool isused = false;
 
-	for (LDFile * usedFile : filesUsed)
+		for (LDFile* usedFile : filesUsed)
 		{	if (file == usedFile)
 			{	isused = true;
 				break;

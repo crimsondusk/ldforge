@@ -227,7 +227,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary)
 {	const int row = ui->progress->rowCount();
 
 	// Don't download files repeadetly.
-	if (m_filesToDownload.find (dest) != -1u)
+	if (m_filesToDownload.indexOf (dest) != -1)
 		return;
 
 	modifyDest (dest);

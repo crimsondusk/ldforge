@@ -1013,11 +1013,11 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			addDrawnVertex (closest);
 	}
 
-	if (wasRight && m_drawedVerts.size() > 0)
+	if (wasRight && !m_drawedVerts.isEmpty())
 	{	// Remove the last vertex
-		m_drawedVerts.erase (m_drawedVerts.size() - 1);
+		m_drawedVerts.removeLast();
 
-		if (m_drawedVerts.size() == 0)
+		if (m_drawedVerts.isEmpty())
 			m_rectdraw = false;
 	}
 
@@ -1145,7 +1145,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	{	List<LDObject*> oldsel = g_win->sel();
 		g_win->sel().clear();
 
-	for (LDObject * obj : oldsel)
+		for (LDObject* obj : oldsel)
 		{	obj->setSelected (false);
 			compileObject (obj);
 		}
@@ -1220,19 +1220,14 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
 		if (!m_rangepick && m_addpick)
-		{	bool removed = false;
+		{	int pos = g_win->sel().indexOf (obj);
 
-			for (int i = 0; i < g_win->sel().size(); ++i)
-			{	if (g_win->sel() [i] == obj)
-				{	g_win->sel().erase (i);
-					obj->setSelected (false);
-					removed = true;
-					removedObj = obj;
-				}
-			}
-
-			if (removed)
+			if (pos != -1)
+			{	g_win->sel().removeAt (i);
+				obj->setSelected (false);
+				removedObj = obj;
 				break;
+			}
 		}
 
 		g_win->sel() << obj;
@@ -1241,13 +1236,13 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	delete[] pixeldata;
 
 	// Remove duplicated entries
-	g_win->sel().makeUnique();
+	removeDuplicates (g_win->sel());
 
 	// Update everything now.
 	g_win->updateSelection();
 
 	// Recompile the objects now to update their color
-for (LDObject * obj : g_win->sel())
+	for (LDObject* obj : g_win->sel())
 		compileObject (obj);
 
 	if (removedObj)
@@ -1538,7 +1533,7 @@ for (const GL::ListType listType : g_glListTypes)
 	// Mark in known vertices of this object
 	List<vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
-	m_knownVerts.makeUnique();
+	removeDuplicates (m_knownVerts);
 
 	obj->m_glinit = true;
 }

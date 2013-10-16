@@ -104,7 +104,7 @@ class PrimitivePrompt : public QDialog
 		void hiResToggled (bool on);
 };
 
-void makeCircle (int segs, int divs, double radius, List< QLineF >& lines);
+void makeCircle (int segs, int divs, double radius, List<QLineF>& lines);
 LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 
 // Gets a primitive by the given specs. If the primitive cannot be found, it will

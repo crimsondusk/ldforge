@@ -185,17 +185,18 @@ static void populateCategories()
 	{	// Shouldn't happen.. but catch it anyway.
 		PrimitiveCategory cat;
 		cat.setName (g_Other);
-		unmatched = & (g_PrimitiveCategories << cat);
+		g_PrimitiveCategories << cat;
+		unmatched = &g_PrimitiveCategories.last();
 	}
 
-for (Primitive & prim : g_primitives)
+	for (Primitive & prim : g_primitives)
 	{	bool matched = false;
 		prim.cat = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
-	for (PrimitiveCategory & cat : g_PrimitiveCategories)
-	{	for (PrimitiveCategory::RegexEntry & entry : cat.regexes)
+		for (PrimitiveCategory& cat : g_PrimitiveCategories)
+		{	for (PrimitiveCategory::RegexEntry& entry : cat.regexes)
 			{	switch (entry.type)
 				{	case PrimitiveCategory::Filename:
 						// f-regex, check against filename

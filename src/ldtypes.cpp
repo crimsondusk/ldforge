@@ -253,18 +253,13 @@ LDLine::LDLine (vertex v1, vertex v2)
 // -----------------------------------------------------------------------------
 LDObject::~LDObject()
 {	// Remove this object from the selection array if it is there.
-	for (int i = 0; i < g_win->sel().size(); ++i)
-		if (g_win->sel() [i] == this)
-			g_win->sel().erase (i);
+	g_win->sel().removeOne (this);
 
 	// Delete the GL lists
 	GL::deleteLists (this);
 
 	// Remove this object from the list of LDObjects
-	int pos;
-
-	if ((pos = g_LDObjects.find (this)) != -1)
-		g_LDObjects.erase (pos);
+	g_LDObjects.removeOne (this);
 }
 
 // =============================================================================
@@ -366,11 +361,11 @@ void LDObject::moveObjects (List<LDObject*> objs, const bool up)
 		obj->swap (file->obj (target));
 	}
 
-	objsToCompile.makeUnique();
+	removeDuplicates (objsToCompile);
 
 	// The objects need to be recompiled, otherwise their pick lists are left with
 	// the wrong index colors which messes up selection.
-for (LDObject * obj : objsToCompile)
+	for (LDObject* obj : objsToCompile)
 		g_win->R()->compileObject (obj);
 }
 

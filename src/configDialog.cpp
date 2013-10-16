@@ -432,7 +432,7 @@ void ConfigDialog::slot_delColor()
 		return;
 
 	QListWidgetItem* item = ui->quickColorList->selectedItems() [0];
-	quickColors.erase (getItemRow (item, quickColorItems));
+	quickColors.removeAt (getItemRow (item, quickColorItems));
 	updateQuickColorList();
 }
 
