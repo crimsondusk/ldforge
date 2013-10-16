@@ -567,7 +567,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				if (!m_rectdraw)
 				{	uchar i = 0;
 
-				for (vertex & vert : m_drawedVerts)
+					for (vertex& vert : m_drawedVerts)
 					{	poly[i] = coordconv3_2 (vert);
 						polyverts[i] = vert;
 						++i;
@@ -622,11 +622,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				const int segs = lores;
 				const double angleUnit = (2 * pi) / segs;
 				Axis relX, relY;
-				QVector<QPoint> points,
-					points2;
+				QVector<QPoint> ringpoints, circlepoints, circle2points;
 
 				getRelativeAxes (relX, relY);
 
+				// Calculate the preview positions of vertices
 				for (int i = 0; i < segs; ++i)
 				{	vertex v = g_origin;
 					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0);
@@ -640,26 +640,46 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					}
 				}
 
+				int i = 0;
 				for (const vertex& v : verts + verts2)
-				{	QPoint point = coordconv3_2 (v);
+				{	// Calculate the 2D point of the vertex
+					QPoint point = coordconv3_2 (v);
+
+					// Draw a green blip at where it is
 					drawBlip (paint, point);
-					points << point;
+
+					// Add it to the list of points for the green ring fill.
+					ringpoints << point;
+
+					// Also add the circle points to separate lists
+					if (i < verts.size())
+						circlepoints << point;
+					else
+						circle2points << point;
+
+					++i;
 				}
 
 				// Insert the first point as the seventeenth one so that
 				// the ring polygon is closed properly.
-				if (points.size() >= 16)
-					points.insert (16, points[0]);
+				if (ringpoints.size() >= 16)
+					ringpoints.insert (16, ringpoints[0]);
 
 				// Same for the outer ring. Note that the indices are offset by 1
 				// because of the insertion done above bumps the values.
-				if (points.size() >= 33)
-					points.insert (33, points[17]);
+				if (ringpoints.size() >= 33)
+					ringpoints.insert (33, ringpoints[17]);
 
-				// Draw the circle/ring
-				paint.setPen (linepen);
+				// Draw the ring
 				paint.setBrush ((m_drawedVerts.size() >= 2) ? polybrush : Qt::NoBrush);
-				paint.drawPolygon (QPolygon (points));
+				paint.setPen (Qt::NoPen);
+				paint.drawPolygon (QPolygon (ringpoints));
+
+				// Draw the circles
+				paint.setBrush (Qt::NoBrush);
+				paint.setPen (linepen);
+				paint.drawPolygon (QPolygon (circlepoints));
+				paint.drawPolygon (QPolygon (circle2points));
 
 				{ // Draw the current radius in the middle of the circle.
 					QPoint origin = coordconv3_2 (m_drawedVerts[0]);
