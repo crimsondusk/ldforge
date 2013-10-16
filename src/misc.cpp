@@ -324,7 +324,6 @@ bool RingFinder::findRingsRecursor (double r0, double r1)
 {	// Find the scale and number of a ring between r1 and r0.
 	double scale = r1 - r0;
 	double num = r0 / scale;
-	print ("r0: %1, r1: %2, scale: %3, num: %4\n", r0, r1, scale, num);
 
 	// If the ring number is integral, we have found a fitting ring to r0 -> r1!
 	if (isInteger (num))
@@ -336,14 +335,11 @@ bool RingFinder::findRingsRecursor (double r0, double r1)
 	else
 	{	// If not, find an intermediate <r> between the radii
 		double r = ceil (num) * scale;
-		print ("\tr: %1\n", r);
 
 		// If r is the same as r0 or r1, we simply cannot find any rings between
 		// r0 and r1. Stop and return failure.
 		if (isZero (r0 - r) || isZero (r1 - r))
-		{	print ("failure!\n");
 			return false;
-		}
 
 		// Split this ring into r0 -> r and r -> r1. Recurse to possibly find
 		// the rings for these. If either recurse fails, the entire algorithm
