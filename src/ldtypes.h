@@ -385,6 +385,7 @@ class LDQuad : public LDObject
 
 	public:
 		LDQuad() {}
+		LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vertex& v3);
 
 		// Split this quad into two triangles (note: heap-allocated)
 		QList<LDTriangle*> splitToTriangles();

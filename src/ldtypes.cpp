@@ -251,6 +251,15 @@ LDLine::LDLine (vertex v1, vertex v2)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+LDQuad::LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vertex& v3)
+{	setVertex (0, v0);
+	setVertex (1, v1);
+	setVertex (2, v2);
+	setVertex (3, v3);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 LDObject::~LDObject()
 {	// Remove this object from the selection array if it is there.
 	g_win->sel().removeOne (this);

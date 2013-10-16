@@ -1421,17 +1421,20 @@ void GLRenderer::endDraw (bool accept)
 				std::swap<double> (dist0, dist1);
 
 			if (dist0 == dist1)
-			{	refFile = getFile ("4-4edge.dat");
+			{	// If the radii are the same, there's no ring space to fill. Use a circle.
+				refFile = getFile ("4-4edge.dat");
 				transform = getCircleDrawMatrix (dist0);
 				circleOrDisc = true;
 			}
 			elif (dist0 == 0 || dist1 == 0)
-			{	refFile = getFile ("4-4disc.dat");
+			{	// If either radii is 0, use a disc.
+				refFile = getFile ("4-4disc.dat");
 				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
 				circleOrDisc = true;
 			}
-			elif (g_RingFinder (dist0, dist1) /* && g_RingFinder.solution().size() <= 3 */)
-			{	for (const RingFinder::SolutionComponent& cmp : g_RingFinder.solution())
+			elif (g_RingFinder (dist0, dist1))
+			{	// The ring finder found a solution, use that. Add the component rings to the file.
+				for (const RingFinder::SolutionComponent& cmp : g_RingFinder.solution())
 				{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
@@ -1448,12 +1451,41 @@ void GLRenderer::endDraw (bool accept)
 			else
 			{	// Last resort: draw the ring with quads
 				QList<QLineF> c0, c1;
+				Axis relX, relY, relZ;
+				getRelativeAxes (relX, relY);
+				relZ = (Axis) (3 - relX - relY);
+				double x0 = m_drawedVerts[0][relX],
+					y0 = m_drawedVerts[0][relY];
 
+				vertex templ;
+				templ[relX] = x0;
+				templ[relY] = y0;
+				templ[relZ] = depthValue();
+
+				// Calculate circle coords
 				makeCircle (segs, divs, dist0, c0);
 				makeCircle (segs, divs, dist1, c1);
 
-				for (int i = 0; i < 16; ++i)
-				{
+				for (int i = 0; i < segs; ++i)
+				{	vertex v0, v1, v2, v3;
+					v0 = v1 = v2 = v3 = templ;
+					v0[relX] += c0[i].x1();
+					v0[relY] += c0[i].y1();
+					v1[relX] += c0[i].x2();
+					v1[relY] += c0[i].y2();
+					v2[relX] += c1[i].x2();
+					v2[relY] += c1[i].y2();
+					v3[relX] += c1[i].x1();
+					v3[relY] += c1[i].y1();
+
+					LDQuad* q = new LDQuad (v0, v1, v2, v3);
+					q->setColor (maincolor);
+
+					// Ensure the quads always are BFC-front towards the camera
+					if (camera() % 3 <= 0)
+						q->invert();
+
+					objs << q;
 				}
 			}
 
