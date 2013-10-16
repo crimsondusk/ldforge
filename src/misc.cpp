@@ -315,39 +315,143 @@ double atof (str val)
 // r == r1, there is no hope of finding the rings, at least with this algorithm,
 // as it would fall into an infinite recursion.
 // -----------------------------------------------------------------------------
-bool RingFinder::findRings (double r0, double r1)
-{	m_solution.clear();
-	return findRingsRecursor (r0, r1);
-}
+bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolution)
+{	char tabs[64];
+	memset (tabs, '\t', m_stack);
+	tabs[m_stack] = '\0';
 
-bool RingFinder::findRingsRecursor (double r0, double r1)
-{	// Find the scale and number of a ring between r1 and r0.
+	// Don't recurse too deep.
+	if (m_stack >= 5)
+		return false;
+
+	// Find the scale and number of a ring between r1 and r0.
+	assert (r1 >= r0);
 	double scale = r1 - r0;
 	double num = r0 / scale;
 
 	// If the ring number is integral, we have found a fitting ring to r0 -> r1!
 	if (isInteger (num))
-	{	SolutionComponent cmp;
+	{	Component cmp;
 		cmp.scale = scale;
-		cmp.num = (int) ceil (num);
-		m_solution << cmp;
+		cmp.num = (int) round (num);
+		currentSolution.addComponent (cmp);
+
+		// If we're still at the first recursion, this is the only
+		// ring and there's nothing left to do. Guess we found the winner.
+		if (m_stack == 0)
+		{	m_solutions.push_back (currentSolution);
+			return true;
+		}
 	}
 	else
-	{	// If not, find an intermediate <r> between the radii
-		double r = ceil (num) * scale;
-
-		// If r is the same as r0 or r1, we simply cannot find any rings between
-		// r0 and r1. Stop and return failure.
-		if (isZero (r0 - r) || isZero (r1 - r))
+	{	// Try find solutions by splitting the ring in various positions.
+		if (isZero (r1 - r0))
 			return false;
 
-		// Split this ring into r0 -> r and r -> r1. Recurse to possibly find
-		// the rings for these. If either recurse fails, the entire algorithm
-		// fails as well.
-		if (!findRingsRecursor (r0, r) || !findRingsRecursor (r, r1))
-			return false;
+		double interval;
+
+		// Determine interval. The smaller delta between radii, the more precise
+		// interval should be used. We can't really use a 0.5 increment when
+		// calculating rings to 10 -> 105... that would take ages to process!
+		if (r1 - r0 < 0.5)
+			interval = 0.1;
+		else if (r1 - r0 < 10)
+			interval = 0.5;
+		else if (r1 - r0 < 50)
+			interval = 1;
+		else
+			interval = 5;
+
+		// Now go through possible splits and try find rings for both segments.
+		for (double r = r0 + interval; r < r1; r += interval)
+		{	Solution sol = currentSolution;
+
+			m_stack++;
+			bool res = findRingsRecursor (r0, r, sol) && findRingsRecursor (r, r1, sol);
+			m_stack--;
+
+			if (res)
+			{	// We succeeded in finding radii for this segment. If the stack is 0, this
+				// is the first recursion to this function. Thus there are no more ring segments
+				// to process and we can add the solution.
+				//
+				// If not, when this function ends, it will be called again with more arguments.
+				// Accept the solution to this segment by setting currentSolution to sol, and
+				// return true to continue processing.
+				if (m_stack == 0)
+					m_solutions.push_back (sol);
+				else
+				{	currentSolution = sol;
+					return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
-	// The algorithm did not fail, thus we succeeded!
+	return true;
+}
+
+// =============================================================================
+// Main function. Call this with r0 and r1. If this returns true, use bestSolution
+// for the solution that was presented.
+// -----------------------------------------------------------------------------
+bool RingFinder::findRings (double r0, double r1)
+{	m_solutions.clear();
+	Solution sol;
+
+	// Recurse in and try find solutions.
+	findRingsRecursor (r0, r1, sol);
+
+	// Compare the solutions and find the best one. The solution class has an operator>
+	// overload to compare two solutions.
+	m_bestSolution = null;
+
+	for (QVector<Solution>::iterator solp = m_solutions.begin(); solp != m_solutions.end(); ++solp)
+	{	const Solution& sol = *solp;
+
+		if (m_bestSolution == null || sol > *m_bestSolution)
+			m_bestSolution = &sol;
+	}
+
+	return (m_bestSolution != null);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
+{	// If this solution has less components than the other one, this one
+	// is definitely better.
+	if (components().size() < other.components().size())
+		return true;
+
+	// vice versa
+	if (other.components().size() < components().size())
+		return false;
+
+	// Calculate the maximum ring number. Since the solutions have equal
+	// ring counts, the solutions with lesser maximum rings should result
+	// in cleaner code and less new primitives, right?
+	int maxA = 0,
+	maxB = 0;
+
+	for (int i = 0; i < components().size(); ++i)
+	{	if (components()[i].num > maxA)
+			maxA = components()[i].num;
+
+		if (other.components()[i].num > maxB)
+			maxB = other.components()[i].num;
+	}
+
+	if (maxA < maxB)
+		return true;
+
+	if (maxB < maxA)
+		return false;
+
+	// Solutions have equal rings and equal maximum ring numbers. Let's
+	// just say this one is better, at this point it does not matter which
+	// one is chosen.
 	return true;
 }

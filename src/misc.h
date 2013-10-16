@@ -22,6 +22,7 @@
 #include "config.h"
 #include "common.h"
 #include "types.h"
+#include <qvector.h>
 
 #define NUM_PRIMES 500
 
@@ -93,18 +94,39 @@ namespace Grid
 // =============================================================================
 class RingFinder
 {	public:
-	struct SolutionComponent
+	struct Component
 	{	int num;
 		double scale;
 	};
 
-	typedef QList<SolutionComponent> SolutionType;
+	class Solution
+	{	public:
+			// Components of this solution
+			inline const QVector<Component>& components() const
+			{	return m_components;
+			}
+
+			// Add a component to this solution
+			void addComponent (const Component& a)
+			{	m_components.push_back (a);
+			}
+
+			// Compare solutions
+			bool operator> (const Solution& other) const;
+
+	private:
+		QVector<Component> m_components;
+	};
 
 	RingFinder() {}
 	bool findRings (double r0, double r1);
 
-	inline const SolutionType& solution()
-	{	return m_solution;
+	inline const Solution* bestSolution()
+	{	return m_bestSolution;
+	}
+
+	inline const QVector<Solution>& allSolutions() const
+	{	return m_solutions;
 	}
 
 	inline bool operator() (double r0, double r1)
@@ -112,9 +134,11 @@ class RingFinder
 	}
 
 private:
-	SolutionType m_solution;
+	QVector<Solution> m_solutions;
+	const Solution*   m_bestSolution;
+	int               m_stack;
 
-	bool findRingsRecursor (double r0, double r1);
+	bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
 };
 
 extern RingFinder g_RingFinder;

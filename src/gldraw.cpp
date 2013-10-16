@@ -1434,7 +1434,7 @@ void GLRenderer::endDraw (bool accept)
 			}
 			elif (g_RingFinder (dist0, dist1))
 			{	// The ring finder found a solution, use that. Add the component rings to the file.
-				for (const RingFinder::SolutionComponent& cmp : g_RingFinder.solution())
+				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->components())
 				{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
