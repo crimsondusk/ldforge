@@ -21,6 +21,13 @@ HEADERS         = src/*.h
 FORMS           = ui/*.ui
 QT             += opengl network
 QMAKE_CXXFLAGS += -std=c++0x
+CONFIG         += debug_and_release
+
+CONFIG (debug, debug|release) {
+	TARGET = ldforge_debug
+} else {
+	TARGET = ldforge
+}
 
 unix {
 	LIBS += -lGLU

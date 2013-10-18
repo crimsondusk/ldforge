@@ -281,7 +281,7 @@ void FileLoader::start()
 void FileLoader::work (int i)
 {	// User wishes to abort, so stop here now.
 	if (aborted())
-{	for (LDObject * obj : m_objs)
+	{	for (LDObject* obj : m_objs)
 			delete obj;
 
 		m_objs.clear();
@@ -298,7 +298,7 @@ void FileLoader::work (int i)
 		// Trim the trailing newline
 		qchar c;
 
-		while ( (c = line[line.length() - 1]) == '\n' || c == '\r')
+		while (!line.isEmpty() && (c = line[line.length() - 1]) == '\n' || c == '\r')
 			line.chop (1);
 
 		LDObject* obj = parseLine (line);
