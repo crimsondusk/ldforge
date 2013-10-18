@@ -111,6 +111,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	setDrawOnly (false);
 	setMessageLog (null);
 	m_width = m_height = -1;
+	m_hoverpos = g_origin;
 
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
