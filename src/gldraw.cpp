@@ -498,8 +498,8 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
 	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
 
-	double rx = ( ( (transformed[axisX] * negXFac) + m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
-	double ry = ( ( (transformed[axisY] * negYFac) - m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	double rx = (((transformed[axisX] * negXFac) + m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
+	double ry = (((transformed[axisY] * negYFac) - m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
 
 	return QPoint (rx, -ry);
 }

@@ -308,7 +308,7 @@ void FileLoader::work (int i)
 		{	log ("Couldn't parse line #%1: %2", m_progress + 1, static_cast<LDError*> (obj)->reason);
 
 			if (m_warningsPointer)
-				(*m_warningsPointer) ++;
+				(*m_warningsPointer)++;
 		}
 
 		m_objs << obj;
@@ -320,7 +320,7 @@ void FileLoader::work (int i)
 	}
 
 	// If we're done now, tell the environment we're done and stop.
-	if (i >= ( (int) lines().size()) - 1)
+	if (i >= ((int) lines().size()) - 1)
 	{	emit workDone();
 		setDone (true);
 		return;
