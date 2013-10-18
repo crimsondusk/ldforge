@@ -34,6 +34,7 @@
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
 - Color icon border now reflects the color's edge color.
+- Fixed: File loading would skip every 300th line.
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
 

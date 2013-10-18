@@ -339,7 +339,7 @@ void FileLoader::work (int i)
 		// eventually catch the invokation we throw here and send us back. Though
 		// it's not technically recursion anymore, more like a for loop. :P
 		if (concurrent())
-			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (int, i + 1));
+			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (int, i));
 		else
 			work (i + 1);
 	}
