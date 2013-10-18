@@ -1764,7 +1764,6 @@ void GLRenderer::zoomToFit()
 	bool firstrun = true;
 	const uint32 white = 0xFFFFFFFF;
 	bool inward = true;
-	int run = 0;
 	const int w = m_width, h = m_height;
 
 	glClearColor (1.0, 1.0, 1.0, 1.0);
@@ -1800,6 +1799,8 @@ void GLRenderer::zoomToFit()
 			if (imgdata[i * w] != white || imgdata[ (i * w) + (w - 1)] != white)
 				filled = true;
 
+		delete[] cap;
+
 		if (firstrun)
 		{	// If this is the first run, we don't know enough to determine
 			// whether the zoom was to fit, so we mark in our knowledge so
@@ -1823,9 +1824,7 @@ void GLRenderer::zoomToFit()
 			inward = !filled;
 		}
 
-		delete[] cap;
 		lastfilled = filled;
-		++run;
 	}
 
 	setBackground();
