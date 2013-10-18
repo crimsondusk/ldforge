@@ -91,6 +91,7 @@ class ConfigDialog : public QDialog
 		void slot_setExtProgPath();
 		void slot_findDownloadFolder();
 		void buttonClicked (QAbstractButton* button);
+		void selectPage (int row);
 };
 
 // =============================================================================

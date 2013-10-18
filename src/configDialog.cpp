@@ -135,19 +135,32 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->m_profileName->setText (ld_defaultname);
 	ui->m_profileUsername->setText (ld_defaultuser);
 	ui->m_profileLicense->setCurrentIndex (ld_defaultlicense);
-	ui->tabs->setCurrentIndex (deftab);
 
 	initGrids();
 	initExtProgs();
+	selectPage (deftab);
 
 	connect (ui->buttonBox, SIGNAL (clicked (QAbstractButton*)),
-			 this, SLOT (buttonClicked (QAbstractButton*)));
+		this, SLOT (buttonClicked (QAbstractButton*)));
+
+	connect (ui->m_pages, SIGNAL (currentChanged (int)),
+		this, SLOT (selectPage (int)));
+
+	connect (ui->m_pagelist, SIGNAL (currentRowChanged (int)),
+		this, SLOT (selectPage (int)));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 ConfigDialog::~ConfigDialog()
 {	delete ui;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void ConfigDialog::selectPage (int row)
+{	ui->m_pagelist->setCurrentRow (row);
+	ui->m_pages->setCurrentIndex (row);
 }
 
 // =============================================================================
@@ -179,7 +192,7 @@ void ConfigDialog::initGrids()
 	*anglabel = new QLabel ("Angle");
 	short i = 1;
 
-for (QLabel * label : initlist<QLabel*> ( { xlabel, ylabel, zlabel, anglabel }))
+	for (QLabel* label : initlist<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
 	{	label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);
 	}
@@ -335,7 +348,6 @@ void ConfigDialog::buttonClicked (QAbstractButton* button)
 	{	applySettings();
 		accept();
 	} elif (button == dbb->button (QDDB::Apply))
-
 	{	applySettings();
 	} elif (button == dbb->button (QDDB::Cancel))
 	{	reject();
@@ -352,7 +364,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 	quickColorItems.clear();
 
 	// Init table items
-for (LDQuickColor & entry : quickColors)
+	for (LDQuickColor& entry : quickColors)
 	{	QListWidgetItem* item = new QListWidgetItem;
 
 		if (entry.isSeparator())
@@ -517,7 +529,7 @@ void ConfigDialog::setButtonBackground (QPushButton* button, str value)
 int ConfigDialog::getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack)
 {	int i = 0;
 
-for (QListWidgetItem * it : haystack)
+	for (QListWidgetItem* it : haystack)
 	{	if (it == item)
 			return i;
 
@@ -543,7 +555,7 @@ QListWidgetItem* ConfigDialog::getSelectedQuickColor()
 QList<ShortcutListItem*> ConfigDialog::getShortcutSelection()
 {	QList<ShortcutListItem*> out;
 
-for (QListWidgetItem * entry : ui->shortcutsList->selectedItems())
+	for (QListWidgetItem* entry : ui->shortcutsList->selectedItems())
 		out << static_cast<ShortcutListItem*> (entry);
 
 	return out;
@@ -570,7 +582,7 @@ void ConfigDialog::slot_setShortcut()
 void ConfigDialog::slot_resetShortcut()
 {	QList<ShortcutListItem*> sel = getShortcutSelection();
 
-for (ShortcutListItem * item : sel)
+	for (ShortcutListItem* item : sel)
 	{	item->keyConfig()->reset();
 		setShortcutText (item);
 	}
@@ -582,7 +594,7 @@ for (ShortcutListItem * item : sel)
 void ConfigDialog::slot_clearShortcut()
 {	QList<ShortcutListItem*> sel = getShortcutSelection();
 
-for (ShortcutListItem * item : sel)
+	for (ShortcutListItem* item : sel)
 	{	item->keyConfig()->value = QKeySequence();
 		setShortcutText (item);
 	}
@@ -594,7 +606,7 @@ for (ShortcutListItem * item : sel)
 void ConfigDialog::slot_setExtProgPath()
 {	const LDExtProgInfo* info = null;
 
-for (const LDExtProgInfo & it : g_LDExtProgInfo)
+	for (const LDExtProgInfo& it : g_LDExtProgInfo)
 	{	if (it.setPathButton == sender())
 		{	info = &it;
 			break;
@@ -634,7 +646,7 @@ void ConfigDialog::setShortcutText (ShortcutListItem* item)
 str ConfigDialog::quickColorString()
 {	str val;
 
-for (const LDQuickColor & entry : quickColors)
+	for (const LDQuickColor& entry : quickColors)
 	{	if (val.length() > 0)
 			val += ':';
 
