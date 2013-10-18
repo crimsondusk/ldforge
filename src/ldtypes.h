@@ -52,6 +52,7 @@ public: \
 class QListWidgetItem;
 class LDSubfile;
 class LDFile;
+class LDSharedVertex;
 
 // =============================================================================
 // LDObject
@@ -95,7 +96,7 @@ class LDObject
 		}
 		long getIndex() const;                      // Index (i.e. line number) of this object
 		virtual LDObject::Type getType() const;     // Type enumerator of this object
-		const vertex& getVertex (int i) const;      // Get a vertex by index
+		const vertex& getVertex (int i) const;    // Get a vertex by index
 		virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
 		virtual void invert();                      // Inverts this object (winding is reversed)
 		virtual bool isColored() const;             // Is this object colored?
@@ -132,7 +133,35 @@ class LDObject
 		friend class GLRenderer;
 
 	private:
-		vertex m_coords[4];
+		LDSharedVertex* m_coords[4];
+};
+
+// =============================================================================
+// LDSharedVertex
+//
+// For use as coordinates of LDObjects. Keeps count of references.
+// -----------------------------------------------------------------------------
+class LDSharedVertex
+{	public:
+		inline const vertex& data() const
+		{	return m_data;
+		}
+
+		inline operator const vertex&() const
+		{	return m_data;
+		}
+
+		void addRef (LDObject* a);
+		void delRef (LDObject* a);
+
+		static LDSharedVertex* getSharedVertex (const vertex& a);
+
+	protected:
+		LDSharedVertex (const vertex& a) : m_data (a) {}
+
+	private:
+		QList<LDObject*> m_refs;
+		vertex m_data;
 };
 
 // =============================================================================
@@ -152,13 +181,18 @@ class LDObject
 // =============================================================================
 class LDMatrixObject
 {	DECLARE_PROPERTY (matrix, transform, setTransform)
-	DECLARE_PROPERTY (vertex, position, setPosition)
 	PROPERTY (LDObject*, linkPointer, setLinkPointer)
 
 	public:
 		LDMatrixObject() {}
 		LDMatrixObject (const matrix& transform, const vertex& pos) :
-			PROP_NAME (transform) (transform), PROP_NAME (position) (pos) {}
+			m_transform (transform), m_position (LDSharedVertex::getSharedVertex (pos)) {}
+
+		const vertex& position() const
+		{	return m_position->data();
+		}
+
+		void setPosition (const vertex& a);
 
 		const double& setCoordinate (const Axis ax, double value)
 		{	vertex v = position();
@@ -167,6 +201,9 @@ class LDMatrixObject
 
 			return position() [ax];
 		}
+
+	private:
+		LDSharedVertex* m_position;
 };
 
 // =============================================================================

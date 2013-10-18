@@ -320,13 +320,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		return;
 
 	if (type == LDObject::Subfile)
-	{	QStringList matrixstrvals = dlg.le_matrix->text().split (" ");
+	{	QStringList matrixstrvals = dlg.le_matrix->text().split (" ", QString::SkipEmptyParts);
 
 		if (matrixstrvals.size() == 9)
 		{	double matrixvals[9];
 			int i = 0;
 
-		for (str val : matrixstrvals)
+			for (str val : matrixstrvals)
 				matrixvals[i++] = val.toFloat();
 
 			transform = matrix (matrixvals);

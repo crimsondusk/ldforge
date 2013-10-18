@@ -107,10 +107,10 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_editMode = Select;
 	m_rectdraw = false;
 	m_panning = false;
-	m_firstResize = true;
 	setFile (null);
 	setDrawOnly (false);
 	setMessageLog (null);
+	m_width = m_height = -1;
 
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -350,14 +350,6 @@ void GLRenderer::hardRefresh()
 void GLRenderer::resizeGL (int w, int h)
 {	m_width = w;
 	m_height = h;
-
-	// If this is the first call to resizeGL, reset the angles. We cannot call
-	// resetAngles() in the initializer because it does not know m_width or m_height,
-	// which zoomToFit() must know.
-	if (m_firstResize)
-	{	m_firstResize = false;
-		resetAngles();
-	}
 
 	calcCameraIcons();
 
@@ -801,7 +793,7 @@ void GLRenderer::compileAllObjects()
 
 	m_knownVerts.clear();
 
-for (LDObject * obj : file()->objects())
+	for (LDObject* obj : file()->objects())
 		compileObject (obj);
 
 	// Compile axes
@@ -810,7 +802,7 @@ for (LDObject * obj : file()->objects())
 	glNewList (m_axeslist, GL_COMPILE);
 	glBegin (GL_LINES);
 
-for (const LDGLAxis & ax : g_GLAxes)
+	for (const LDGLAxis& ax : g_GLAxes)
 	{	qglColor (ax.col);
 		compileVertex (ax.vert);
 		compileVertex (-ax.vert);
@@ -827,14 +819,14 @@ for (const LDGLAxis & ax : g_GLAxes)
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 {	glBegin (gltype);
 
-	const short numverts = (obj->getType() != LDObject::CndLine) ? obj->vertices() : 2;
+	const int numverts = (obj->getType() != LDObject::CndLine) ? obj->vertices() : 2;
 
 	if (g_glInvert == false)
-		for (short i = 0; i < numverts; ++i)
-			compileVertex (obj->m_coords[i]);
+		for (int i = 0; i < numverts; ++i)
+			compileVertex (obj->getVertex (i));
 	else
-		for (short i = numverts - 1; i >= 0; --i)
-			compileVertex (obj->m_coords[i]);
+		for (int i = numverts - 1; i >= 0; --i)
+			compileVertex (obj->getVertex (i));
 
 	glEnd();
 }
@@ -1755,7 +1747,7 @@ void GLRenderer::zoomNotch (bool inward)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomToFit()
-{	if (file() == null)
+{	if (file() == null || m_width == -1 || m_height == -1)
 	{	setZoom (30.0f);
 		return;
 	}

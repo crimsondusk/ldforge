@@ -42,10 +42,13 @@ LDObject::LDObject() :
 	m_file (null),
 	qObjListEntry (null),
 	m_glinit (false)
-{	// Determine ID
+{
+	memset (m_coords, 0, sizeof m_coords);
+
+	// Determine ID
 	int32 id = 1; // 0 is invalid
 
-for (LDObject * obj : g_LDObjects)
+	for (LDObject* obj : g_LDObjects)
 		if (obj->id() >= id)
 			id = obj->id() + 1;
 
@@ -661,7 +664,7 @@ void LDOverlay::invert() {}
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
 // -----------------------------------------------------------------------------
-template<class T> void changeProperty (LDObject* obj, T* ptr, const T& val)
+template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& val)
 {	long idx;
 
 	if (obj->file() && (idx = obj->getIndex()) != -1)
@@ -688,21 +691,17 @@ SET_ACCESSOR (short, LDObject::setColor)
 // =============================================================================
 // -----------------------------------------------------------------------------
 const vertex& LDObject::getVertex (int i) const
-{	return m_coords[i];
+{	return m_coords[i]->data();
 }
 
 void LDObject::setVertex (int i, const vertex& vert)
-{	changeProperty (this, &m_coords[i], vert);
+{	changeProperty (this, &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (vertex, LDMatrixObject::position)
-{	return m_position;
-}
-
-SET_ACCESSOR (vertex, LDMatrixObject::setPosition)
-{	changeProperty (linkPointer(), &m_position, val);
+void LDMatrixObject::setPosition (const vertex& a)
+{	changeProperty (linkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
 }
 
 // =============================================================================
@@ -713,4 +712,37 @@ READ_ACCESSOR (matrix, LDMatrixObject::transform)
 
 SET_ACCESSOR (matrix, LDMatrixObject::setTransform)
 {	changeProperty (linkPointer(), &m_transform, val);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+static QMap<vertex, LDSharedVertex*> g_sharedVerts;
+
+LDSharedVertex* LDSharedVertex::getSharedVertex (const vertex& a)
+{	auto it = g_sharedVerts.find (a);
+
+	if (it == g_sharedVerts.end())
+	{	LDSharedVertex* v = new LDSharedVertex (a);
+		g_sharedVerts[a] = v;
+		return v;
+	}
+
+	return *it;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDSharedVertex::addRef(LDObject* a)
+{	m_refs << a;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDSharedVertex::delRef (LDObject* a)
+{	m_refs.removeOne (a);
+
+	if (m_refs.empty())
+	{	g_sharedVerts.remove (m_data);
+		delete this;
+	}
 }
