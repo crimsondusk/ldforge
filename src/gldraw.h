@@ -159,14 +159,15 @@ class GLRenderer : public QGLWidget
 		int                   m_width,
 		                      m_height,
 							  m_totalmove;
-		QList<vertex>          m_drawedVerts;
+		QList<vertex>         m_drawedVerts;
 		bool                  m_rectdraw;
 		vertex                m_rectverts[4];
 		QColor                m_bgcolor;
 		double                m_depthValues[6];
 		LDGLOverlay           m_overlays[6];
-		QList<vertex>          m_knownVerts;
+		QList<vertex>         m_knownVerts;
 		bool                  m_panning;
+		bool                  m_firstResize;
 
 		void           addDrawnVertex (vertex m_hoverpos);
 		void           calcCameraIcons();                                      // Compute geometry for camera icons

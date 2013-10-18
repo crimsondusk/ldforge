@@ -107,9 +107,9 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_editMode = Select;
 	m_rectdraw = false;
 	m_panning = false;
+	m_firstResize = true;
 	setFile (null);
 	setDrawOnly (false);
-	resetAngles();
 	setMessageLog (null);
 
 	m_toolTipTimer = new QTimer (this);
@@ -350,6 +350,14 @@ void GLRenderer::hardRefresh()
 void GLRenderer::resizeGL (int w, int h)
 {	m_width = w;
 	m_height = h;
+
+	// If this is the first call to resizeGL, reset the angles. We cannot call
+	// resetAngles() in the initializer because it does not know m_width or m_height,
+	// which zoomToFit() must know.
+	if (m_firstResize)
+	{	m_firstResize = false;
+		resetAngles();
+	}
 
 	calcCameraIcons();
 
