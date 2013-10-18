@@ -12,7 +12,6 @@ INCLUDEPATH    += . ./build/
 RC_FILE         = ldforge.rc
 RESOURCES       = ldforge.qrc
 RCC_DIR         = ./build/
-OBJECTS_DIR     = ./build/
 MOC_DIR         = ./build/
 RCC_DIR         = ./build/
 UI_DIR          = ./build/
@@ -26,9 +25,11 @@ CONFIG         += debug_and_release
 CONFIG (debug, debug|release) {
 	TARGET   = ldforge_debug
 	DEFINES += DEBUG
+	OBJECTS_DIR = ./build_debug/
 } else {
 	TARGET = ldforge
 	DEFINES += RELEASE
+	OBJECTS_DIR = ./build_release/
 }
 
 unix {

@@ -242,6 +242,12 @@ void ForgeWindow::updateTitle()
 			title += '*';
 	}
 
+#ifdef DEBUG
+	title += " [debug build]";
+#elif BUILD_ID != BUILD_RELEASE
+	title += " [release build]";
+#endif // DEBUG
+
 	setWindowTitle (title);
 }
 

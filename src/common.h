@@ -48,23 +48,20 @@
 #define RC_NUMBER      0
 
 // =============================================
-#if (BUILD_ID != BUILD_INTERNAL)
-#define RELEASE
-#endif // BUILD_ID
+#ifdef DEBUG
+# undef RELEASE
+#endif // DEBUG
 
+#ifdef RELEASE
+# undef DEBUG
+#endif // RELEASE
+
+// =============================================
 #define alias auto&
-#define elif else if
+#define elif(A) else if (A)
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
-
-#ifdef __GNUC__
-# define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
-# define ATTR(N) __attribute__ ((N))
-#else
-# define FORMAT_PRINTF(M,N)
-# define ATTR(N)
-#endif // __GNUC__
 
 #ifdef WIN32
 # define DIRSLASH "\\"
