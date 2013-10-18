@@ -216,7 +216,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 #endif // _WIN32
 
-	print ("cmdline: %1 %2\n", path, argv.join (" "));
+	log ("cmdline: %1 %2\n", path, argv.join (" "));
 
 	// Temporary files for stdin and stdout
 	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
@@ -238,7 +238,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	proc.waitForFinished();
 
 #ifndef RELEASE
-	print ("%1", str (proc.readAllStandardOutput()));
+	log ("%1", str (proc.readAllStandardOutput()));
 #endif // RELEASE
 
 	str err = "";

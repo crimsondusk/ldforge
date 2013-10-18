@@ -135,4 +135,6 @@ class AboutDialog : public QDialog
 		void slot_mail();
 };
 
+void bombBox (const str& message);
+
 #endif // LDFORGE_DIALOGS_H

@@ -323,14 +323,12 @@ void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
 void DoLog (std::initializer_list<StringFormatArg> args);
 
 // Macros to access these functions
-# ifndef IN_IDE_PARSER
+# ifndef IN_IDE_PARSER 
 #define fmt(...) DoFormat ({__VA_ARGS__})
-# define print(...) doPrint (g_file_stdout, {__VA_ARGS__})
 # define fprint(F, ...) doPrint (F, {__VA_ARGS__})
-# define log(...) DoLog({ __VA_ARGS__ });
+# define log(...) DoLog({ __VA_ARGS__ })
 #else
 str fmt (const char* fmtstr, ...);
-void print (const char* fmtstr, ...);
 void fprint (File& f, const char* fmtstr, ...);
 void log (const char* fmtstr, ...);
 #endif

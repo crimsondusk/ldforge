@@ -25,7 +25,6 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <QString>
@@ -74,10 +73,6 @@ static const std::nullptr_t null = nullptr;
 # define DIRSLASH "/"
 # define DIRSLASH_CHAR '/'
 #endif // WIN32
-
-#ifdef RELEASE
-# define NDEBUG // remove asserts
-#endif // RELEASE
 
 #define PROP_NAME(GET) m_##GET
 
@@ -144,12 +139,17 @@ public slots: \
 
 // Replace assert with a version that shows a GUI dialog if possible.
 // On Windows I just can't get the actual error messages otherwise.
+void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
+
 #ifdef assert
-#undef assert
+# undef assert
 #endif // assert
 
-void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
-#define assert(N) ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
+#ifdef DEBUG
+# define assert(N) ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
+#else
+# define assert(N)
+#endif // DEBUG
 
 // Version string identifier
 QString versionString();

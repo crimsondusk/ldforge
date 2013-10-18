@@ -302,7 +302,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 				if (obj->color() == i)
 					return;
 
-			print ("%1: Unknown color %2!\n", __func__, obj->color());
+			log ("%1: Unknown color %2!\n", __func__, obj->color());
 			g_warnedColors << obj->color();
 			return;
 		}

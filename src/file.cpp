@@ -199,7 +199,7 @@ str basename (str path)
 // =============================================================================
 // -----------------------------------------------------------------------------
 File* openLDrawFile (str relpath, bool subdirs)
-{	print ("%1: Try to open %2\n", __func__, relpath);
+{	log ("%1: Try to open %2\n", __func__, relpath);
 	File* f = new File;
 	str fullPath;
 
@@ -241,7 +241,7 @@ File* openLDrawFile (str relpath, bool subdirs)
 	}
 
 	// Did not find the file.
-	print ("could not find %1\n", relpath);
+	log ("could not find %1\n", relpath);
 	delete f;
 	return null;
 }
@@ -1147,7 +1147,7 @@ void LDFile::closeInitialFile()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadLogoedStuds()
-{	print ("Loading logoed studs...\n");
+{	log ("Loading logoed studs...\n");
 
 	delete g_logoedStud;
 	delete g_logoedStud2;

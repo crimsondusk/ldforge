@@ -24,9 +24,11 @@ QMAKE_CXXFLAGS += -std=c++0x
 CONFIG         += debug_and_release
 
 CONFIG (debug, debug|release) {
-	TARGET = ldforge_debug
+	TARGET   = ldforge_debug
+	DEFINES += DEBUG
 } else {
 	TARGET = ldforge
+	DEFINES += RELEASE
 }
 
 unix {

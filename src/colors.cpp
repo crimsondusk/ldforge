@@ -35,19 +35,16 @@ static LDColor* g_LDColors[MAX_COLORS];
 // -----------------------------------------------------------------------------
 void initColors()
 {	LDColor* col;
-	print ("%1: initializing color information.\n", __func__);
+	log ("%1: initializing color information.\n", __func__);
 
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new LDColor;
-	col->faceColor =
-		col->hexcode = "#AAAAAA";
+	col->faceColor = col->hexcode = "#AAAAAA";
 	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
 
 	col = new LDColor;
-	col->faceColor =
-		col->edgeColor =
-			col->hexcode = "#000000";
+	col->faceColor = col->edgeColor = col->hexcode = "#000000";
 	g_LDColors[edgecolor] = col;
 
 	parseLDConfig();

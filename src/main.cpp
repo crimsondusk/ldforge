@@ -30,6 +30,8 @@
 #include "primitives.h"
 #include "gldraw.h"
 #include "configDialog.h"
+#include "dialogs.h"
+#include "crashcatcher.h"
 
 QList<LDFile*> g_loadedFiles;
 ForgeWindow* g_win = null;
@@ -49,18 +51,19 @@ int main (int argc, char* argv[])
 {	QApplication app (argc, argv);
 	app.setOrganizationName (APPNAME);
 	app.setApplicationName (APPNAME);
-
 	g_app = &app;
+
+	initCrashCatcher();
 	LDFile::setCurrent (null);
 
 	// Load or create the configuration
 	if (!Config::load())
-	{	print ("Creating configuration file...\n");
+	{	log ("Creating configuration file...\n");
 
 		if (Config::save())
-			print ("Configuration file successfully created.\n");
+			log ("Configuration file successfully created.\n");
 		else
-			print ("failed to create configuration file!\n");
+			log ("failed to create configuration file!\n");
 	}
 
 	LDPaths::initPaths();
@@ -135,38 +138,4 @@ QString versionMoniker()
 // -----------------------------------------------------------------------------
 QString fullVersionString()
 {	return fmt ("v%1 %2", versionString(), versionMoniker());
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
-{	str errmsg = fmt ("File: %1\nLine: %2:\nFunction %3:\n\nAssertion `%4' failed",
-					  file, line, funcname, expr);
-
-#ifndef RELEASE
-	errmsg += ", aborting.";
-#else
-	errmsg += ".";
-#endif
-
-	printf ("%s\n", errmsg.toStdString().c_str());
-
-#ifndef RELEASE
-	if (g_win)
-		g_win->deleteLater();
-
-	errmsg.replace ("\n", "<br />");
-	
-	QMessageBox box (null);
-	const QMessageBox::StandardButton btn = QMessageBox::Close;
-	box.setWindowTitle ("Fatal Error");
-	box.setIconPixmap (getIcon ("bomb"));
-	box.setWindowIcon (getIcon ("ldforge"));
-	box.setText (errmsg);
-	box.addButton (btn);
-	box.button (btn)->setText ("Damn it");
-	box.setDefaultButton (btn);
-	box.exec();
-	abort();
-#endif
 }

@@ -19,10 +19,10 @@
 #ifndef MISC_H
 #define MISC_H
 
+#include <QVector>
 #include "config.h"
 #include "common.h"
 #include "types.h"
-#include <qvector.h>
 
 #define NUM_PRIMES 500
 

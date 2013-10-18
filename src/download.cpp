@@ -41,6 +41,7 @@ constexpr const char *PartDownloader::k_UnofficialURL;
 // -----------------------------------------------------------------------------
 void PartDownloader::k_download()
 {	str path = getDownloadPath();
+	assert (false);
 
 	if (path == "" || QDir (path).exists() == false)
 	{	critical (PartDownloader::tr ("You need to specify a valid path for "
@@ -232,7 +233,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary)
 		return;
 
 	modifyDest (dest);
-	print ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
+	log ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
 	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
 
 	m_filesToDownload << dest;
@@ -320,7 +321,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	QDir dir (dirpath);
 
 	if (!dir.exists())
-	{	print ("Creating %1...\n", dirpath);
+	{	log ("Creating %1...\n", dirpath);
 
 		if (!dir.mkpath (dirpath))
 			critical (fmt (tr ("Couldn't create the directory %1!"), dirpath));

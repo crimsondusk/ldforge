@@ -118,8 +118,10 @@ const QList<MessageManager::Line>& MessageManager::getLines() const
 // -----------------------------------------------------------------------------
 void DoLog (std::initializer_list<StringFormatArg> args)
 {	const str msg = DoFormat (args);
-	g_win->addMessage (msg);
+
+	if (g_win)
+		g_win->addMessage (msg);
 
 	// Also print it to stdout
-	print ("%1\n", msg);
+	fprint (stdout, "%1", msg);
 }

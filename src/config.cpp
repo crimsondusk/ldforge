@@ -61,7 +61,7 @@ Config::Config (const char* name, const char* defstring) :
 // -----------------------------------------------------------------------------
 bool Config::load()
 {	QSettings* settings = getSettingsObject();
-	print ("config::load: Loading configuration file from %1\n", settings->fileName());
+	log ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
 	{	if (!cfg)
@@ -80,7 +80,7 @@ bool Config::load()
 // -----------------------------------------------------------------------------
 bool Config::save()
 {	QSettings* settings = getSettingsObject();
-	print ("Saving configuration to %1...\n", settings->fileName());
+	log ("Saving configuration to %1...\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
 	{	if (!cfg)

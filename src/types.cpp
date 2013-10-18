@@ -204,9 +204,9 @@ matrix::matrix (initlist<double> vals)
 void matrix::puts() const
 {	for (short i = 0; i < 3; ++i)
 	{	for (short j = 0; j < 3; ++j)
-			print ("%1\t", m_vals[ (i * 3) + j]);
+			log ("%1\t", m_vals[ (i * 3) + j]);
 
-		print ("\n");
+		log ("\n");
 	}
 }
 

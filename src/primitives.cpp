@@ -49,7 +49,7 @@ static void loadPrimitiveCatgories();
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadPrimitives()
-{	print ("Loading primitives...\n");
+{	log ("Loading primitives...\n");
 	loadPrimitiveCatgories();
 
 	// Try to load prims.cfg

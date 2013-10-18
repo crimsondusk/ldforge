@@ -28,8 +28,8 @@
 #include <QProgressBar>
 #include <QCheckBox>
 #include <QDesktopServices>
+#include <QMessageBox>
 #include <QUrl>
-
 #include "dialogs.h"
 #include "widgets.h"
 #include "gui.h"
@@ -42,6 +42,8 @@
 #include "ui_openprogress.h"
 #include "ui_extprogpath.h"
 #include "ui_about.h"
+#include "ui_bombbox.h"
+#include "moc_dialogs.cpp"
 
 extern const char* g_extProgPathFilter;
 extern_cfg (String, io_ldpath);
@@ -332,4 +334,15 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 void AboutDialog::slot_mail()
 {	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <slatenails64@gmail.com>?subject=LDForge"));
 }
-#include "moc_dialogs.cpp"
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void bombBox (const str& message)
+{	QDialog dlg (g_win);
+	Ui_BombBox ui;
+
+	ui.setupUi (&dlg);
+	ui.m_text->setText (message);
+	ui.buttonBox->button (QDialogButtonBox::Close)->setText (QObject::tr ("Damn it"));
+	dlg.exec();
+}
