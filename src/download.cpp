@@ -41,7 +41,6 @@ constexpr const char *PartDownloader::k_UnofficialURL;
 // -----------------------------------------------------------------------------
 void PartDownloader::k_download()
 {	str path = getDownloadPath();
-	assert (false);
 
 	if (path == "" || QDir (path).exists() == false)
 	{	critical (PartDownloader::tr ("You need to specify a valid path for "

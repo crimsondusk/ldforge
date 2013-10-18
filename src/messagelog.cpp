@@ -119,9 +119,11 @@ const QList<MessageManager::Line>& MessageManager::getLines() const
 void DoLog (std::initializer_list<StringFormatArg> args)
 {	const str msg = DoFormat (args);
 
-	if (g_win)
-		g_win->addMessage (msg);
+	for (str& a : msg.split ("\n", QString::SkipEmptyParts))
+	{	if (g_win)
+			g_win->addMessage (a);
 
-	// Also print it to stdout
-	fprint (stdout, "%1", msg);
+		// Also print it to stdout
+		fprint (stdout, "%1\n", a);
+	}
 }
