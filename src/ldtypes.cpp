@@ -667,6 +667,9 @@ void LDOverlay::invert() {}
 template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& val)
 {	long idx;
 
+	if (*ptr == val)
+		return;
+
 	if (obj->file() && (idx = obj->getIndex()) != -1)
 	{	str before = obj->raw();
 		*ptr = val;
