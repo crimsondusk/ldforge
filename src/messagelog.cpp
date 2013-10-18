@@ -74,7 +74,7 @@ bool MessageManager::Line::update (bool& changed)
 void MessageManager::addLine (str line)
 {	// If there's too many entries, pop the excess out
 	while (m_lines.size() >= g_maxMessages)
-		m_lines.erase (0);
+		m_lines.removeFirst();
 
 	m_lines << Line (line);
 

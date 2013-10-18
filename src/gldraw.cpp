@@ -1791,12 +1791,12 @@ void GLRenderer::zoomToFit()
 
 		// Check the top and bottom rows
 		for (int i = 0; i < w && !filled; ++i)
-			if (imgdata[i] != white || imgdata[ ( (h - 1) * w) + i] != white)
+			if (imgdata[i] != white || imgdata[((h - 1) * w) + i] != white)
 				filled = true;
 
 		// Left and right edges
 		for (int i = 0; i < h && !filled; ++i)
-			if (imgdata[i * w] != white || imgdata[ (i * w) + (w - 1)] != white)
+			if (imgdata[i * w] != white || imgdata[(i * w) + w - 1] != white)
 				filled = true;
 
 		delete[] cap;
