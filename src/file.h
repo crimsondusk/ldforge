@@ -69,8 +69,10 @@ class LDFile : public QObject
 
 		int addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
 		void addObjects (const QList<LDObject*> objs);
+		void clearSelection();
 		void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
 		str getShortName();
+		const QList<LDObject*>& selection() const;
 		bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
 		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
@@ -116,8 +118,15 @@ class LDFile : public QObject
 		static void closeInitialFile();
 		static int countExplicitFiles();
 
+	protected:
+		void addToSelection (LDObject* obj);
+		void removeFromSelection (LDObject* obj);
+		friend class LDObject;
+
 	private:
-		static LDFile* m_curfile;
+		QList<LDObject*>   m_sel;
+
+		static LDFile*     m_curfile;
 };
 
 // Close all current loaded files and start off blank.
@@ -155,6 +164,10 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 
 extern QList<LDFile*> g_loadedFiles;
 
+inline const QList<LDObject*>& selection()
+{	return LDFile::current()->selection();
+}
+
 void addRecentFile (str path);
 void loadLogoedStuds();
 str basename (str path);
@@ -168,7 +181,8 @@ extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // FileLoader
 //
 // Loads the given file and parses it to LDObjects using parseLine. It's a
-// separate class so as to be able to do the work in a separate thread.
+// separate class so as to be able to do the work progressively through the
+// event loop, allowing the program to maintain responsivity during loading.
 // =============================================================================
 class FileLoader : public QObject
 {		Q_OBJECT

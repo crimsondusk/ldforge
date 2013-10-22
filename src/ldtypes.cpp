@@ -264,8 +264,9 @@ LDQuad::LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vert
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDObject::~LDObject()
-{	// Remove this object from the selection array if it is there.
-	g_win->sel().removeOne (this);
+{	// If this object was selected, unselect it now
+	if (selected())
+		unselect();
 
 	// Delete the GL lists
 	GL::deleteLists (this);
@@ -735,7 +736,7 @@ LDSharedVertex* LDSharedVertex::getSharedVertex (const vertex& a)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDSharedVertex::addRef(LDObject* a)
+void LDSharedVertex::addRef (LDObject* a)
 {	m_refs << a;
 }
 
@@ -748,4 +749,24 @@ void LDSharedVertex::delRef (LDObject* a)
 	{	g_sharedVerts.remove (m_data);
 		delete this;
 	}
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDObject::select()
+{	if (!file())
+	{	log ("Warning: Object #%1 cannot be selected as it is not assigned a file!\n", id());
+		return;
+	}
+
+	file()->addToSelection (this);
+}
+
+void LDObject::unselect()
+{	if (!file())
+	{	log ("Warning: Object #%1 cannot be unselected as it is not assigned a file!\n", id());
+		return;
+	}
+
+	file()->removeFromSelection (this);
 }

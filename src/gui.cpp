@@ -254,14 +254,14 @@ void ForgeWindow::updateTitle()
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ForgeWindow::deleteSelection()
-{	if (m_sel.size() == 0)
+{	if (selection().isEmpty())
 		return 0;
 
-	QList<LDObject*> selCopy = m_sel;
+	QList<LDObject*> selCopy = selection();
 	int num = 0;
 
 	// Delete the objects that were being selected
-for (LDObject * obj : selCopy)
+	for (LDObject* obj : selCopy)
 	{	LDFile::current()->forgetObject (obj);
 		++num;
 		delete obj;
@@ -382,10 +382,10 @@ void ForgeWindow::buildObjList()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::scrollToSelection()
-{	if (m_sel.size() == 0)
+{	if (selection().isEmpty())
 		return;
 
-	LDObject* obj = m_sel[m_sel.size() - 1];
+	LDObject* obj = selection().last();
 	ui->objectList->scrollToItem (obj->qObjListEntry);
 }
 
@@ -401,30 +401,27 @@ void ForgeWindow::slot_selectionChanged()
 	if (m_renderer->picking())
 		return;
 
-	QList<LDObject*> priorSelection = m_sel;
+	QList<LDObject*> priorSelection = selection();
 
 	// Get the objects from the object list selection
-	m_sel.clear();
+	LDFile::current()->clearSelection();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
 	for (LDObject* obj : LDFile::current()->objects())
-		for (QListWidgetItem* item : items)
+	{	for (QListWidgetItem* item : items)
 		{	if (item == obj->qObjListEntry)
-			{	m_sel << obj;
+			{	obj->select();
 				break;
 			}
 		}
+	}
 
 	// Update the GL renderer
-	for (LDObject* obj : priorSelection)
-	{	obj->setSelected (false);
-		m_renderer->compileObject (obj);
-	}
+	QList<LDObject*> compound = priorSelection + selection();
+	removeDuplicates (compound);
 
-	for (LDObject* obj : m_sel)
-	{	obj->setSelected (true);
+	for (LDObject* obj : compound)
 		m_renderer->compileObject (obj);
-	}
 
 	m_renderer->update();
 }
@@ -443,7 +440,7 @@ void ForgeWindow::slot_quickColor()
 	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 
-for (const LDQuickColor & entry : m_quickColors)
+	for (const LDQuickColor & entry : m_quickColors)
 	{	if (entry.toolButton() == button)
 		{	col = entry.color();
 			break;
@@ -455,7 +452,7 @@ for (const LDQuickColor & entry : m_quickColors)
 
 	short newColor = col->index;
 
-	for (LDObject * obj : m_sel)
+	for (LDObject* obj : selection())
 	{	if (obj->isColored() == false)
 			continue; // uncolored object
 
@@ -470,10 +467,9 @@ for (const LDQuickColor & entry : m_quickColors)
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ForgeWindow::getInsertionPoint()
-{	if (m_sel.size() > 0)
-	{	// If we have a selection, put the item after it.
-		return (m_sel[m_sel.size() - 1]->getIndex()) + 1;
-	}
+{	// If we have a selection, put the item after it.
+	if (!selection().isEmpty())
+		return selection().last()->getIndex() + 1;
 
 	// Otherwise place the object at the end.
 	return LDFile::current()->numObjs();
@@ -498,12 +494,12 @@ void ForgeWindow::refresh()
 void ForgeWindow::updateSelection()
 {	g_bSelectionLocked = true;
 
-for (LDObject * obj : LDFile::current()->objects())
+	for (LDObject* obj : LDFile::current()->objects())
 		obj->setSelected (false);
 
 	ui->objectList->clearSelection();
 
-for (LDObject * obj : m_sel)
+	for (LDObject* obj : selection())
 	{	if (obj->qObjListEntry == null)
 			continue;
 
@@ -517,20 +513,10 @@ for (LDObject * obj : m_sel)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool ForgeWindow::isSelected (LDObject* obj)
-{	LDObject* needle = obj->topLevelParent();
-
-for (LDObject * hay : m_sel)
-		if (hay == needle)
-			return true;
-
-	return false;
-}
-
 short ForgeWindow::getSelectedColor()
 {	short result = -1;
 
-for (LDObject * obj : m_sel)
+	for (LDObject* obj : selection())
 	{	if (obj->isColored() == false)
 			continue; // doesn't use color
 
@@ -549,7 +535,7 @@ for (LDObject * obj : m_sel)
 LDObject::Type ForgeWindow::uniformSelectedType()
 {	LDObject::Type result = LDObject::Unidentified;
 
-for (LDObject * obj : m_sel)
+	for (LDObject * obj : selection())
 	{	if (result != LDObject::Unidentified && obj->color() != result)
 			return LDObject::Unidentified;
 
@@ -579,8 +565,8 @@ void ForgeWindow::closeEvent (QCloseEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::spawnContextMenu (const QPoint pos)
-{	const bool single = (g_win->sel().size() == 1);
-	LDObject* singleObj = (single) ? g_win->sel() [0] : null;
+{	const bool single = (selection().size() == 1);
+	LDObject* singleObj = (single) ? selection()[0] : null;
 
 	QMenu* contextMenu = new QMenu;
 
@@ -816,10 +802,6 @@ void makeColorSelector (QComboBox* box)
 
 void ForgeWindow::setStatusBarText (str text)
 {	statusBar()->showMessage (text);
-}
-
-void ForgeWindow::clearSelection()
-{	m_sel.clear();
 }
 
 Ui_LDForgeUI* ForgeWindow::interface() const

@@ -105,7 +105,6 @@ class ForgeWindow : public QMainWindow
 		void updateEditModeActions();
 		void updateFileList();
 		void updateFileListItem (LDFile* f);
-		bool isSelected (LDObject* obj);
 		short getSelectedColor();
 		LDObject::Type uniformSelectedType();
 		void scrollToSelection();
@@ -117,10 +116,6 @@ class ForgeWindow : public QMainWindow
 
 		inline GLRenderer* R()
 		{	return m_renderer;
-		}
-
-		inline QList<LDObject*>& sel()
-		{	return m_sel;
 		}
 
 		inline void setQuickColors (QList<LDQuickColor>& colors)
@@ -141,7 +136,6 @@ class ForgeWindow : public QMainWindow
 		void primitiveLoaderStart (int max);
 		void primitiveLoaderUpdate (int prog);
 		void primitiveLoaderEnd();
-		void clearSelection();
 		void slot_action();
 		void changeCurrentFile();
 

@@ -231,10 +231,10 @@ DEFINE_ACTION (NewVertex, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Edit, 0)
-{	if (g_win->sel().size() != 1)
+{	if (selection().size() != 1)
 		return;
 
-	LDObject* obj = g_win->sel() [0];
+	LDObject* obj = selection() [0];
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
 
@@ -259,10 +259,8 @@ DEFINE_ACTION (AboutQt, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectAll, CTRL (A))
-{	g_win->sel().clear();
-
-	for (LDObject* obj : LDFile::current()->objects())
-		g_win->sel() << obj;
+{	for (LDObject* obj : LDFile::current()->objects())
+		obj->select();
 
 	g_win->updateSelection();
 }
@@ -275,11 +273,11 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 	if (colnum == -1)
 		return; // no consensus on color
 
-	g_win->sel().clear();
+	LDFile::current()->clearSelection();
 
 	for (LDObject* obj : LDFile::current()->objects())
 		if (obj->color() == colnum)
-			g_win->sel() << obj;
+			obj->select();
 
 	g_win->updateSelection();
 }
@@ -287,7 +285,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByType, 0)
-{	if (g_win->sel().size() == 0)
+{	if (selection().isEmpty())
 		return;
 
 	LDObject::Type type = g_win->uniformSelectedType();
@@ -300,14 +298,14 @@ DEFINE_ACTION (SelectByType, 0)
 	str refName;
 
 	if (type == LDObject::Subfile)
-	{	refName = static_cast<LDSubfile*> (g_win->sel() [0])->fileInfo()->name();
+	{	refName = static_cast<LDSubfile*> (selection()[0])->fileInfo()->name();
 
-		for (LDObject* obj : g_win->sel())
+		for (LDObject* obj : selection())
 			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 
-	g_win->sel().clear();
+	LDFile::current()->clearSelection();
 
 	for (LDObject* obj : LDFile::current()->objects())
 	{	if (obj->getType() != type)
@@ -316,7 +314,7 @@ DEFINE_ACTION (SelectByType, 0)
 		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 			continue;
 
-		g_win->sel() << obj;
+		obj->select();
 	}
 
 	g_win->updateSelection();
@@ -364,11 +362,11 @@ DEFINE_ACTION (InsertFrom, 0)
 
 	QList<LDObject*> objs = loadFileContents (&f, null);
 
-	g_win->sel().clear();
+	LDFile::current()->clearSelection();
 
 	for (LDObject* obj : objs)
 	{	LDFile::current()->insertObj (idx, obj);
-		g_win->sel() << obj;
+		obj->select();
 		g_win->R()->compileObject (obj);
 
 		idx++;
@@ -381,7 +379,7 @@ DEFINE_ACTION (InsertFrom, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ExportTo, 0)
-{	if (g_win->sel().size() == 0)
+{	if (selection().isEmpty())
 		return;
 
 	str fname = QFileDialog::getSaveFileName();
@@ -396,7 +394,7 @@ DEFINE_ACTION (ExportTo, 0)
 		return;
 	}
 
-	for (LDObject* obj : g_win->sel())
+	for (LDObject* obj : selection())
 	{	str contents = obj->raw();
 		QByteArray data = contents.toUtf8();
 		file.write (data, data.size());
@@ -424,13 +422,13 @@ DEFINE_ACTION (InsertRaw, 0)
 	if (dlg->exec() == false)
 		return;
 
-	g_win->sel().clear();
+	LDFile::current()->clearSelection();
 
 	for (str line : str (te_edit->toPlainText()).split ("\n"))
 	{	LDObject* obj = parseLine (line);
 
 		LDFile::current()->insertObj (idx, obj);
-		g_win->sel() << obj;
+		obj->select();
 		g_win->R()->compileObject (obj);
 		idx++;
 	}
@@ -475,7 +473,7 @@ DEFINE_ACTION (Axes, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Visibility, 0)
-{	for (LDObject* obj : g_win->sel())
+{	for (LDObject* obj : selection())
 		obj->setHidden (!obj->hidden());
 
 	g_win->refresh();
@@ -605,16 +603,16 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 	int defval = 0;
 	LDObject* obj;
 
-	if (g_win->sel().size() == 1)
-		defval = g_win->sel() [0]->getIndex();
+	if (selection().size() == 1)
+		defval = selection()[0]->getIndex();
 
 	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
-									1, LDFile::current()->numObjs(), 1, &ok);
+		1, LDFile::current()->numObjs(), 1, &ok);
 
 	if (!ok || (obj = LDFile::current()->object (idx - 1)) == null)
 		return;
 
-	g_win->clearSelection();
-	g_win->sel() << obj;
+	LDFile::current()->clearSelection();
+	obj->select();
 	g_win->updateSelection();
 }

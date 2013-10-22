@@ -93,6 +93,8 @@ class matrix
 		{	return val (idx);
 		}
 
+		bool operator== (const matrix& other) const;
+
 	private:
 		double m_vals[9];
 };

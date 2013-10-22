@@ -1163,13 +1163,11 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick)
-	{	QList<LDObject*> oldsel = g_win->sel();
-		g_win->sel().clear();
+	{	QList<LDObject*> oldsel = selection();
+		LDFile::current()->clearSelection();
 
 		for (LDObject* obj : oldsel)
-		{	obj->setSelected (false);
 			compileObject (obj);
-		}
 	}
 
 	m_picking = true;
@@ -1241,29 +1239,23 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
 		if (!m_rangepick && m_addpick)
-		{	int pos = g_win->sel().indexOf (obj);
-
-			if (pos != -1)
-			{	g_win->sel().removeAt (i);
-				obj->setSelected (false);
+		{	if (obj->selected())
+			{	obj->unselect();
 				removedObj = obj;
 				break;
 			}
 		}
 
-		g_win->sel() << obj;
+		obj->select();
 	}
 
 	delete[] pixeldata;
-
-	// Remove duplicated entries
-	removeDuplicates (g_win->sel());
 
 	// Update everything now.
 	g_win->updateSelection();
 
 	// Recompile the objects now to update their color
-	for (LDObject* obj : g_win->sel())
+	for (LDObject* obj : selection())
 		compileObject (obj);
 
 	if (removedObj)
@@ -1311,9 +1303,12 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode)
 			setCursor (Qt::CrossCursor);
 
 			// Clear the selection when beginning to draw.
-			// FIXME: make the selection clearing stuff in ::pick a method and use it
-			// here! This code doesn't update the GL lists.
-			g_win->sel().clear();
+			QList<LDObject*> priorsel = selection();
+			LDFile::current()->clearSelection();
+
+			for (LDObject* obj : priorsel)
+				compileObject (obj);
+
 			g_win->updateSelection();
 			m_drawedVerts.clear();
 		} break;
@@ -1865,11 +1860,11 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 
 	pick (ev->x(), ev->y());
 
-	if (g_win->sel().size() == 0)
+	if (selection().isEmpty())
 		return;
 
 	g_win->beginAction (null);
-	LDObject* obj = g_win->sel() [0];
+	LDObject* obj = selection().first();
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 	g_win->endAction();
 	ev->accept();
@@ -1880,7 +1875,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam)
 {	LDOverlay* ovlobj = null;
 
-for (LDObject * obj : file()->objects())
+	for (LDObject * obj : file()->objects())
 	{	if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->camera() == cam)
 		{	ovlobj = static_cast<LDOverlay*> (obj);
 			break;

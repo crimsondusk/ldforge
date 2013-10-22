@@ -96,7 +96,7 @@ class LDObject
 		}
 		long getIndex() const;                      // Index (i.e. line number) of this object
 		virtual LDObject::Type getType() const;     // Type enumerator of this object
-		const vertex& getVertex (int i) const;    // Get a vertex by index
+		const vertex& getVertex (int i) const;      // Get a vertex by index
 		virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
 		virtual void invert();                      // Inverts this object (winding is reversed)
 		virtual bool isColored() const;             // Is this object colored?
@@ -104,16 +104,16 @@ class LDObject
 		virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
 		LDObject* next() const;                     // Object after this in the current file
 		LDObject* prev() const;                     // Object prior to this in the current file
-		virtual str raw()
-		{	return "";    // This object as LDraw code
-		}
+		virtual str raw() {	return ""; }            // This object as LDraw code
 		void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
+		void select();
 		void setVertex (int i, const vertex& vert); // Set a vertex to the given value
 		void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
 		void swap (LDObject* other);                // Swap this object with another.
-		LDObject* topLevelParent();                // What object in the current file ultimately references this?
+		LDObject* topLevelParent();                 // What object in the current file ultimately references this?
 		virtual str typeName() const;               // Type name of this object
-		virtual short vertices() const;            // Number of vertices this object has
+		void unselect();
+		virtual short vertices() const;             // Number of vertices this object has
 
 		static str typeName (LDObject::Type type); // Get type name by enumerator
 		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator

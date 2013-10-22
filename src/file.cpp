@@ -364,7 +364,7 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 		*numWarnings = 0;
 
 	// Calculate the amount of lines
-for (str line : *f)
+	for (str line : *f)
 		lines << line;
 
 	f->rewind();
@@ -1107,7 +1107,6 @@ void LDFile::setCurrent (LDFile* f)
 
 	if (g_win && f)
 	{	// A ton of stuff needs to be updated
-		g_win->clearSelection();
 		g_win->updateFileListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();
@@ -1124,7 +1123,7 @@ void LDFile::setCurrent (LDFile* f)
 int LDFile::countExplicitFiles()
 {	int count = 0;
 
-for (LDFile * f : g_loadedFiles)
+	for (LDFile* f : g_loadedFiles)
 		if (f->implicit() == false)
 			count++;
 
@@ -1154,4 +1153,41 @@ void loadLogoedStuds()
 
 	g_logoedStud = openDATFile ("stud-logo.dat", true);
 	g_logoedStud2 = openDATFile ("stud2-logo.dat", true);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDFile::addToSelection (LDObject* obj) // [protected]
+{	if (obj->selected())
+		return;
+
+	assert (obj->file() == this);
+	m_sel << obj;
+	obj->setSelected (true);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDFile::removeFromSelection (LDObject* obj) // [protected]
+{	if (!obj->selected())
+		return;
+
+	assert (obj->file() == this);
+	m_sel.removeOne (obj);
+	obj->setSelected (false);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDFile::clearSelection()
+{	for (LDObject* obj : m_sel)
+		removeFromSelection (obj);
+
+	assert (m_sel.isEmpty());
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+const QList<LDObject*>& LDFile::selection() const
+{	return m_sel;
 }

@@ -148,15 +148,15 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeObjects (QList<LDObject*>& objects, File& f)
-{	for (LDObject * obj : objects)
+static void writeObjects (const QList<LDObject*>& objects, File& f)
+{	for (LDObject* obj : objects)
 	{	if (obj->getType() == LDObject::Subfile)
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
 
 			writeObjects (objs, f);
 
-		for (LDObject * obj : objs)
+			for (LDObject* obj : objs)
 				delete obj;
 		}
 		else
@@ -166,7 +166,7 @@ void writeObjects (QList<LDObject*>& objects, File& f)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeObjects (QList<LDObject*>& objects, str fname)
+static void writeObjects (const QList<LDObject*>& objects, str fname)
 {	// Write the input file
 	File f (fname, File::Write);
 
@@ -182,7 +182,7 @@ void writeObjects (QList<LDObject*>& objects, str fname)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void writeSelection (str fname)
-{	writeObjects (g_win->sel(), fname);
+{	writeObjects (selection(), fname);
 }
 
 // =============================================================================
@@ -190,7 +190,7 @@ void writeSelection (str fname)
 void writeColorGroup (const short colnum, str fname)
 {	QList<LDObject*> objects;
 
-for (LDObject * obj : LDFile::current()->objects())
+	for (LDObject* obj : LDFile::current()->objects())
 	{	if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 
@@ -280,20 +280,20 @@ static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
 	if (replace)
 		g_win->deleteSelection();
 
-for (const short colnum : colorsToReplace)
+	for (const short colnum : colorsToReplace)
 		g_win->deleteByColor (colnum);
 
 	// Insert the new objects
-	g_win->sel().clear();
+	LDFile::current()->clearSelection();
 
-for (LDObject * obj : objs)
+	for (LDObject * obj : objs)
 	{	if (!obj->isScemantic())
 		{	delete obj;
 			continue;
 		}
 
 		LDFile::current()->addObject (obj);
-		g_win->sel() << obj;
+		obj->select();
 	}
 
 	g_win->fullRefresh();
