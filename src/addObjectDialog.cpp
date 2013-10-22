@@ -313,8 +313,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	matrix transform = g_identity;
 	AddObjectDialog dlg (type, obj);
 
-	if (obj)
-		assert (obj->getType() == type);
+	assert (!obj || obj->getType() == type);
 
 	if (dlg.exec() == false)
 		return;
