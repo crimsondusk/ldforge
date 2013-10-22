@@ -209,7 +209,7 @@ void LDrawPathDialog::slot_findPath()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_exit()
-{	exit (1);
+{	exit (0);
 }
 
 // =============================================================================
@@ -238,7 +238,6 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 {	ui = new Ui_OpenProgressUI;
 	ui->setupUi (this);
 	ui->progressText->setText ("Parsing...");
-
 	setNumLines (0);
 	m_progress = 0;
 }
@@ -282,12 +281,11 @@ void OpenProgressDialog::updateProgress (int progress)
 ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	ui (new Ui_ExtProgPath)
-{	ui->setupUi (this);
-
+{
+	ui->setupUi (this);
 	str labelText = ui->m_label->text();
 	labelText.replace ("<PROGRAM>", progName);
 	ui->m_label->setText (labelText);
-
 	connect (ui->m_findPath, SIGNAL (clicked (bool)), this, SLOT (findPath()));
 }
 

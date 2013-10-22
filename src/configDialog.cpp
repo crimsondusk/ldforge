@@ -38,6 +38,7 @@
 #include "colorSelectDialog.h"
 #include "gldraw.h"
 #include "ui_config.h"
+#include "moc_configDialog.cpp"
 
 extern_cfg (String, gl_bgcolor);
 extern_cfg (String, gl_maincolor);
@@ -713,4 +714,3 @@ void KeySequenceDialog::keyPressEvent (QKeyEvent* ev)
 {	seq = ev->key() + ev->modifiers();
 	updateOutput();
 }
-#include "moc_configDialog.cpp"

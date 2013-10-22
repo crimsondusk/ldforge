@@ -1080,7 +1080,6 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 		m_panY -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
 	} elif (left && !m_rangepick && camera() == Free)
-
 	{	m_rotX = m_rotX + (dy);
 		m_rotY = m_rotY + (dx);
 
@@ -1547,11 +1546,10 @@ static QList<vertex> getVertices (LDObject* obj)
 	{	for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile)
-
 	{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
-	for (LDObject * obj : objs)
+		for (LDObject* obj : objs)
 		{	verts << getVertices (obj);
 			delete obj;
 		}
@@ -1665,15 +1663,13 @@ bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, in
 
 	if (info.lw == 0)
 		info.lw = (info.lh * img->width()) / img->height();
-
 	elif (info.lh == 0)
-	info.lh = (info.lw * img->height()) / img->width();
+		info.lh = (info.lw * img->height()) / img->width();
 
 	const Axis x2d = cameraAxis (false, cam),
-			   y2d = cameraAxis (true, cam);
-
-	double negXFac = g_FixedCameras[cam].negX ? -1 : 1,
-		   negYFac = g_FixedCameras[cam].negY ? -1 : 1;
+		y2d = cameraAxis (true, cam);
+	const double negXFac = g_FixedCameras[cam].negX ? -1 : 1,
+		negYFac = g_FixedCameras[cam].negY ? -1 : 1;
 
 	info.v0 = info.v1 = g_origin;
 	info.v0[x2d] = - (info.ox * info.lw * negXFac) / img->width();
@@ -1901,8 +1897,7 @@ void GLRenderer::overlaysFromObjects()
 		{	delete meta.img;
 			meta.img = null;
 		} elif (ovlobj && (!meta.img || meta.fname != ovlobj->filename()))
-
-		setupOverlay (cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height());
+			setupOverlay (cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height());
 	}
 }
 
@@ -1930,7 +1925,6 @@ void GLRenderer::updateOverlayObjects()
 			m_file->forgetObject (ovlobj);
 			delete ovlobj;
 		} elif (meta.img && !ovlobj)
-
 		{	// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
 			ovlobj = new LDOverlay;

@@ -161,11 +161,10 @@ void PartDownloader::modifyDest (str& dest) const
 
 	if (QRegExp (subpartRegex).exactMatch (dest))
 		dest.prepend ("parts/s/");
-
 	elif (QRegExp (partRegex).exactMatch (dest))
-	dest.prepend ("parts/");
+		dest.prepend ("parts/");
 	elif (dest.left (6) != "parts/" && dest.left (2) != "p/")
-	dest.prepend ("p/");
+		dest.prepend ("p/");
 }
 
 // =============================================================================
@@ -288,13 +287,16 @@ QPushButton* PartDownloader::getButton (PartDownloader::Button i)
 
 	switch (i)
 	{	case Download:
-			return m_downloadButton;
+		{	return m_downloadButton;
+		}
 
 		case Abort:
-			return qobject_cast<QPushButton*> (btnbox->button (QDBB::Abort));
+		{	return qobject_cast<QPushButton*> (btnbox->button (QDBB::Abort));
+		}
 
 		case Close:
-			return qobject_cast<QPushButton*> (btnbox->button (QDBB::Close));
+		{	return qobject_cast<QPushButton*> (btnbox->button (QDBB::Close));
+		}
 	}
 
 	return null;
@@ -347,7 +349,7 @@ void PartDownloadRequest::updateToTable()
 	switch (m_state)
 	{	case Requesting:
 		case Downloading:
-			prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
+		{	prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
 
 			if (!prog)
 			{	prog = new QProgressBar;
@@ -356,16 +358,15 @@ void PartDownloadRequest::updateToTable()
 
 			prog->setRange (0, m_bytesTotal);
 			prog->setValue (m_bytesRead);
-			break;
+		} break;
 
 		case Finished:
 		case Failed:
-		{	QLabel* lb = new QLabel ( (m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
+		{	QLabel* lb = new QLabel ((m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
 									  "<b><span style=\"color: #800\">FAILED</span></b>");
 			lb->setAlignment (Qt::AlignCenter);
 			table->setCellWidget (tableRow(), progcol, lb);
-		}
-		break;
+		} break;
 	}
 
 	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), labelcol));
@@ -391,8 +392,7 @@ void PartDownloadRequest::downloadFinished()
 
 		m_state = Failed;
 	} elif (state() != Failed)
-
-	m_state = Finished;
+		m_state = Finished;
 
 	m_bytesRead = m_bytesTotal;
 	updateToTable();

@@ -814,7 +814,7 @@ Ui_LDForgeUI* ForgeWindow::interface() const
 void ForgeWindow::updateFileList()
 {	ui->fileList->clear();
 
-for (LDFile * f : g_loadedFiles)
+	for (LDFile* f : g_loadedFiles)
 	{	// Don't list implicit files unless explicitly desired.
 		if (f->implicit() && !gui_implicitfiles)
 			continue;

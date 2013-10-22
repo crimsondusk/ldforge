@@ -208,12 +208,10 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 
 #ifndef _WIN32
-
 	if (*g_extProgWine[prog])
 	{	argv.insert (0, path);
 		path = "wine";
 	}
-
 #endif // _WIN32
 
 	log ("cmdline: %1 %2\n", path, argv.join (" "));
@@ -236,10 +234,6 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 	// Wait while it runs
 	proc.waitForFinished();
-
-#ifndef RELEASE
-	log ("%1", str (proc.readAllStandardOutput()));
-#endif // RELEASE
 
 	str err = "";
 
@@ -419,7 +413,7 @@ DEFINE_ACTION (Intersector, 0)
 	short inCol, cutCol;
 	const bool repeatInverse = ui.cb_repeat->isChecked();
 
-	for (;;)
+	forever
 	{	if (!dlg->exec())
 			return;
 
@@ -505,7 +499,7 @@ DEFINE_ACTION (Coverer, 0)
 
 	short in1Col, in2Col;
 
-	for (;;)
+	forever
 	{	if (!dlg->exec())
 			return;
 
@@ -563,7 +557,7 @@ DEFINE_ACTION (Isecalc, 0)
 	short in1Col, in2Col;
 
 	// Run the dialog and validate input
-	for (;;)
+	forever
 	{	if (!dlg->exec())
 			return;
 

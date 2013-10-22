@@ -34,6 +34,7 @@
 #include "widgets.h"
 #include "misc.h"
 #include "primitives.h"
+#include "moc_addObjectDialog.cpp"
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -387,7 +388,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 
-		for (const Axis ax : g_Axes)
+			for (const Axis ax : g_Axes)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value());
 
 			ref->setTransform (transform);
@@ -409,4 +410,3 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 	g_win->fullRefresh();
 }
-#include "moc_addObjectDialog.cpp"
