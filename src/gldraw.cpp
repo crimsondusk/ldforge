@@ -200,10 +200,23 @@ void GLRenderer::initGLData()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resetAngles()
-{	m_rotX = 30.0f;
-	m_rotY = 325.f;
-	m_panX = m_panY = m_rotZ = 0.0f;
+{	rot (X) = 30.0f;
+	rot (Y) = 325.f;
+	pan (X) = pan (Y) = rot (Z) = 0.0f;
 	zoomToFit();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void GLRenderer::resetAllAngles()
+{	Camera oldcam = camera();
+
+	for (int i = 0; i < 7; ++i)
+	{	setCamera ((Camera) i);
+		resetAngles();
+	}
+
+	setCamera (oldcam);
 }
 
 // =============================================================================
@@ -387,12 +400,12 @@ void GLRenderer::drawGLScene()
 
 		glLoadIdentity();
 		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
-		glTranslatef (m_panX, m_panY, 0.0f);
+		glTranslatef (pan (X), pan (Y), 0.0f);
 
 		if (m_camera != Front && m_camera != Back)
-		{	glRotatef (90.0f, g_FixedCameras[m_camera].glrotate[0],
-					   g_FixedCameras[m_camera].glrotate[1],
-					   g_FixedCameras[m_camera].glrotate[2]);
+		{	glRotatef (90.0f, g_FixedCameras[camera()].glrotate[0],
+				g_FixedCameras[camera()].glrotate[1],
+				g_FixedCameras[camera()].glrotate[2]);
 		}
 
 		// Back camera needs to be handled differently
@@ -407,10 +420,10 @@ void GLRenderer::drawGLScene()
 		glLoadIdentity();
 
 		glTranslatef (0.0f, 0.0f, -2.0f);
-		glTranslatef (m_panX, m_panY, -zoom());
-		glRotatef (m_rotX, 1.0f, 0.0f, 0.0f);
-		glRotatef (m_rotY, 0.0f, 1.0f, 0.0f);
-		glRotatef (m_rotZ, 0.0f, 0.0f, 1.0f);
+		glTranslatef (pan (X), pan (Y), -zoom());
+		glRotatef (rot (X), 1.0f, 0.0f, 0.0f);
+		glRotatef (rot (Y), 0.0f, 1.0f, 0.0f);
+		glRotatef (rot (Z), 0.0f, 0.0f, 1.0f);
 	}
 
 	const GL::ListType list = (!drawOnly() && m_picking) ? PickList : NormalList;
@@ -464,8 +477,8 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 				negYFac = cam->negY ? -1 : 1;
 
 	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
-	double cx = (-m_virtWidth + ( (2 * pos2d.x() * m_virtWidth) / m_width) - m_panX);
-	double cy = (m_virtHeight - ( (2 * pos2d.y() * m_virtHeight) / m_height) - m_panY);
+	double cx = (-m_virtWidth + ((2 * pos2d.x() * m_virtWidth) / m_width) - pan (X));
+	double cy = (m_virtHeight - ((2 * pos2d.y() * m_virtHeight) / m_height) - pan (Y));
 
 	if (snap)
 	{	cx = Grid::snap (cx, (Grid::Config) axisX);
@@ -507,8 +520,8 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
 	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
 
-	double rx = (((transformed[axisX] * negXFac) + m_virtWidth + m_panX) * m_width) / (2 * m_virtWidth);
-	double ry = (((transformed[axisY] * negYFac) - m_virtHeight + m_panY) * m_height) / (2 * m_virtHeight);
+	double rx = (((transformed[axisX] * negXFac) + m_virtWidth + pan (X)) * m_width) / (2 * m_virtWidth);
+	double ry = (((transformed[axisY] * negYFac) - m_virtHeight + pan (Y)) * m_height) / (2 * m_virtHeight);
 
 	return QPoint (rx, -ry);
 }
@@ -1084,15 +1097,15 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 			   shift = ev->modifiers() & Qt::ShiftModifier;
 
 	if (mid || (left && shift))
-	{	m_panX += 0.03f * dx * (zoom() / 7.5f);
-		m_panY -= 0.03f * dy * (zoom() / 7.5f);
+	{	pan (X) += 0.03f * dx * (zoom() / 7.5f);
+		pan (Y) -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
 	} elif (left && !m_rangepick && camera() == Free)
-	{	m_rotX = m_rotX + (dy);
-		m_rotY = m_rotY + (dx);
+	{	rot (X) = rot (X) + dy;
+		rot (Y) = rot (Y) + dx;
 
-		clampAngle (m_rotX);
-		clampAngle (m_rotY);
+		clampAngle (rot (X));
+		clampAngle (rot (Y));
 	}
 
 	// Start the tool tip timer
@@ -1130,7 +1143,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev)
 {	makeCurrent();
 
 	zoomNotch (ev->delta() > 0);
-	setZoom (clamp<double> (zoom(), 0.01f, 10000.0f));
+	zoom() = clamp (zoom(), 0.01, 10000.0);
 
 	update();
 	ev->accept();
@@ -1739,16 +1752,16 @@ LDGLOverlay& GLRenderer::getOverlay (int newcam)
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomNotch (bool inward)
 {	if (zoom() > 15)
-		setZoom (zoom() * (inward ? 0.833f : 1.2f));
+		zoom() *= inward ? 0.833f : 1.2f;
 	else
-		setZoom (zoom() + (inward ? -1.2f : 1.2f));
+		zoom() += inward ? -1.2f : 1.2f;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomToFit()
 {	if (file() == null || m_width == -1 || m_height == -1)
-	{	setZoom (30.0f);
+	{	zoom() = 30.0f;
 		return;
 	}
 
@@ -1766,10 +1779,10 @@ void GLRenderer::zoomToFit()
 	m_picking = true;
 
 	for (;;)
-	{	if (zoom() > 10000.0f || zoom() < 0.0f)
+	{	if (zoom() > 10000.0 || zoom() < 0.0)
 		{	// Obviously, there's nothing to draw if we get here.
 			// Default to 30.0f and break out.
-			setZoom (30.0f);
+			zoom() = 30.0;
 			break;
 		}
 
@@ -1821,6 +1834,19 @@ void GLRenderer::zoomToFit()
 
 	setBackground();
 	m_picking = false;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void GLRenderer::zoomAllToFit()
+{	Camera oldcam = camera();
+
+	for (int i = 0; i < 7; ++i)
+	{	setCamera ((Camera) i);
+		zoomToFit();
+	}
+
+	setCamera (oldcam);
 }
 
 // =============================================================================

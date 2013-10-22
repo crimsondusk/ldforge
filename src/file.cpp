@@ -1111,7 +1111,7 @@ void LDFile::setCurrent (LDFile* f)
 		g_win->buildObjList();
 		g_win->updateTitle();
 		g_win->R()->setFile (f);
-		g_win->R()->resetAngles();
+		g_win->R()->resetAllAngles();
 		g_win->R()->repaint();
 
 		log ("Changed file to %1", f->getShortName());

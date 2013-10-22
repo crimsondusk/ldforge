@@ -153,7 +153,7 @@ class ForgeWindow : public QMainWindow
 		MessageManager* m_msglog;
 		Ui_LDForgeUI* ui;
 
-		void invokeAction (QAction* act, void (*func) ());
+		void invokeAction (QAction* act, void (*func)());
 
 
 	private slots:

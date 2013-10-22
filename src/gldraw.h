@@ -64,7 +64,6 @@ class GLRenderer : public QGLWidget
 {	Q_OBJECT
 
 	PROPERTY (bool, drawOnly, setDrawOnly)
-	PROPERTY (double, zoom, setZoom)
 	PROPERTY (MessageManager*, msglog, setMessageLog)
 	READ_PROPERTY (bool, picking, setPicking)
 	DECLARE_PROPERTY (LDFile*, file, setFile)
@@ -96,6 +95,7 @@ class GLRenderer : public QGLWidget
 		void           overlaysFromObjects();
 		void           refresh();
 		void           resetAngles();
+		void           resetAllAngles();
 		uchar*         screencap (int& w, int& h);
 		void           setBackground();
 		void           setCamera (const Camera cam);
@@ -104,6 +104,7 @@ class GLRenderer : public QGLWidget
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 		void           zoomToFit();
+		void           zoomAllToFit();
 
 		static void    deleteLists (LDObject* obj);
 
@@ -137,17 +138,19 @@ class GLRenderer : public QGLWidget
 		Qt::KeyboardModifiers m_keymods;
 		vertex                m_hoverpos;
 		double                m_virtWidth,
-		                      m_virtHeight,
-							  m_rotX,
-							  m_rotY,
-							  m_rotZ,
-							  m_panX,
-							  m_panY;
+	                          m_virtHeight,
+							  m_rotX[7],
+							  m_rotY[7],
+							  m_rotZ[7],
+							  m_panX[7],
+							  m_panY[7],
+		                      m_zoom[7];
 		bool                  m_darkbg,
 		                      m_rangepick,
 							  m_addpick,
 							  m_drawToolTip,
-							  m_screencap;
+							  m_screencap,
+		                      m_panning;
 		QPoint                m_pos,
 		                      m_globalpos,
 		                      m_rangeStart;
@@ -166,26 +169,69 @@ class GLRenderer : public QGLWidget
 		double                m_depthValues[6];
 		LDGLOverlay           m_overlays[6];
 		QList<vertex>         m_knownVerts;
-		bool                  m_panning;
 
 		void           addDrawnVertex (vertex m_hoverpos);
-		void           calcCameraIcons();                                      // Compute geometry for camera icons
-		void           clampAngle (double& angle) const;                       // Clamps an angle to [0, 360]
-		void           compileList (LDObject* obj, const ListType list);       // Compile one of the lists of an object
-		void           compileSubObject (LDObject* obj, const GLenum gltype);  // Sub-routine for object compiling
-		void           compileVertex (const vertex& vrt);                      // Compile a single vertex to a list
-		vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;    // Convert a 2D point to a 3D point
-		QPoint         coordconv3_2 (const vertex& pos3d) const;               // Convert a 3D point to a 2D point
 		LDOverlay*     findOverlayObject (Camera cam);
 		void           updateRectVerts();
-		void           pick (int mouseX, int mouseY);                          // Perform object selection
-		void           setObjectColor (LDObject* obj, const ListType list);    // Set the color to an object list
-		QColor         getTextPen() const;                                     // Determine which color to draw text with
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 		matrix         getCircleDrawMatrix (double scale);
-
 		void           drawBlip (QPainter& paint, QPoint pos) const;
-		double         circleDrawDist(int pos) const;
+		
+		// Compute geometry for camera icons
+		void           calcCameraIcons();
+		
+		// How large is the circle we're drawing right now?
+		double         circleDrawDist (int pos) const;
+		
+		// Clamps an angle to [0, 360]
+		void           clampAngle (double& angle) const;
+		
+		// Compile one of the lists of an object
+		void           compileList (LDObject* obj, const ListType list);
+		
+		// Sub-routine for object compiling
+		void           compileSubObject (LDObject* obj, const GLenum gltype);
+		
+		// Compile a single vertex to a list
+		void           compileVertex (const vertex& vrt);
+		
+		// Convert a 2D point to a 3D point
+		vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
+		
+		// Convert a 3D point to a 2D point
+		QPoint         coordconv3_2 (const vertex& pos3d) const;
+
+		// Determine which color to draw text with
+		QColor         getTextPen() const;
+
+		// Perform object selection
+		void           pick (int mouseX, int mouseY);
+
+		// Set the color to an object list
+		void           setObjectColor (LDObject* obj, const ListType list);
+
+		// Get a rotation value
+		inline double& rot (Axis ax)
+		{	return
+				(ax == X) ? m_rotX[camera()] :
+				(ax == Y) ? m_rotY[camera()] :
+				            m_rotZ[camera()];
+		}
+
+		// Get a panning value
+		inline double& pan (Axis ax)
+		{	return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+		}
+
+		// Same except const (can be used in const methods)
+		inline const double& pan (Axis ax) const
+		{	return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+		}
+
+		// Get the zoom value
+		inline double& zoom()
+		{	return m_zoom[camera()];
+		}
 
 	private slots:
 		void           slot_toolTipTimer();
