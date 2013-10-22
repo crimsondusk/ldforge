@@ -472,10 +472,28 @@ DEFINE_ACTION (Axes, 0)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-DEFINE_ACTION (Visibility, 0)
+DEFINE_ACTION (VisibilityToggle, 0)
 {	for (LDObject* obj : selection())
 		obj->setHidden (!obj->hidden());
 
+	g_win->refresh();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (VisibilityHide, 0)
+{	for (LDObject* obj : selection())
+		obj->setHidden (true);
+	
+	g_win->refresh();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (VisibilityReveal, 0)
+{	for (LDObject* obj : selection())
+	obj->setHidden (false);
+	
 	g_win->refresh();
 }
 

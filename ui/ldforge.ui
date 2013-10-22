@@ -70,7 +70,7 @@
      <x>0</x>
      <y>0</y>
      <width>900</width>
-     <height>26</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -182,10 +182,13 @@
     <addaction name="actionBorders"/>
     <addaction name="actionCornerVerts"/>
     <addaction name="actionRoundCoordinates"/>
-    <addaction name="actionVisibility"/>
     <addaction name="actionReplaceCoords"/>
     <addaction name="actionFlip"/>
     <addaction name="actionDemote"/>
+    <addaction name="separator"/>
+    <addaction name="actionVisibilityHide"/>
+    <addaction name="actionVisibilityToggle"/>
+    <addaction name="actionVisibilityReveal"/>
    </widget>
    <widget class="QMenu" name="menuExternal_Tools">
     <property name="title">
@@ -294,6 +297,7 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionDownloadFrom"/>
    <addaction name="actionNewSubfile"/>
    <addaction name="actionNewLine"/>
    <addaction name="actionNewTriangle"/>
@@ -377,11 +381,15 @@
    <addaction name="actionUncolorize"/>
    <addaction name="actionInvert"/>
    <addaction name="actionSplitQuads"/>
+   <addaction name="actionInline"/>
    <addaction name="actionEditRaw"/>
    <addaction name="actionBorders"/>
+   <addaction name="actionCornerVerts"/>
    <addaction name="actionReplaceCoords"/>
    <addaction name="actionRoundCoordinates"/>
-   <addaction name="actionVisibility"/>
+   <addaction name="actionVisibilityHide"/>
+   <addaction name="actionVisibilityToggle"/>
+   <addaction name="actionVisibilityReveal"/>
   </widget>
   <widget class="QToolBar" name="toolBar_8">
    <property name="windowTitle">
@@ -954,10 +962,10 @@
     <string>Round coordinates down to 3/4 decimals</string>
    </property>
   </action>
-  <action name="actionVisibility">
+  <action name="actionVisibilityToggle">
    <property name="icon">
     <iconset resource="../ldforge.qrc">
-     <normaloff>:/icons/visibility.png</normaloff>:/icons/visibility.png</iconset>
+     <normaloff>:/icons/visibility-toggle.png</normaloff>:/icons/visibility-toggle.png</iconset>
    </property>
    <property name="text">
     <string>Toggle Visibility</string>
@@ -1289,6 +1297,30 @@
    </property>
    <property name="text">
     <string>Circle Mode</string>
+   </property>
+  </action>
+  <action name="actionVisibilityHide">
+   <property name="icon">
+    <iconset resource="../ldforge.qrc">
+     <normaloff>:/icons/visibility-hide.png</normaloff>:/icons/visibility-hide.png</iconset>
+   </property>
+   <property name="text">
+    <string>Hide</string>
+   </property>
+   <property name="toolTip">
+    <string>Hides objects from view</string>
+   </property>
+  </action>
+  <action name="actionVisibilityReveal">
+   <property name="icon">
+    <iconset resource="../ldforge.qrc">
+     <normaloff>:/icons/visibility-show.png</normaloff>:/icons/visibility-show.png</iconset>
+   </property>
+   <property name="text">
+    <string>Reveal</string>
+   </property>
+   <property name="toolTip">
+    <string>Reveals objects. Undoes hiding.</string>
    </property>
   </action>
  </widget>

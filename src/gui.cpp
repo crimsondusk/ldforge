@@ -345,12 +345,15 @@ void ForgeWindow::buildObjList()
 			} break;
 		}
 
-		// Put it into brackets if it's hidden
-		if (obj->hidden())
-			descr = fmt ("[[ %1 ]]", descr);
-
 		QListWidgetItem* item = new QListWidgetItem (descr);
 		item->setIcon (getIcon (obj->typeName()));
+		
+		// Use italic font if hidden
+		if (obj->hidden())
+		{	QFont font = item->font();
+			font.setItalic (true);
+			item->setFont (font);
+		}
 
 		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == LDObject::Error)

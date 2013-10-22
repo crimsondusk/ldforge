@@ -99,7 +99,9 @@
 	<file>./icons/uncolorize.png</file>
 	<file>./icons/undo.png</file>
 	<file>./icons/vertex.png</file>
-	<file>./icons/visibility.png</file>
+	<file>./icons/visibility-hide.png</file>
+	<file>./icons/visibility-show.png</file>
+	<file>./icons/visibility-toggle.png</file>
 	<file>./icons/wireframe.png</file>
 	<file>./icons/ytruder.png</file>
 	<file>data/primitive-categories.cfg</file>

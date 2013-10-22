@@ -22,6 +22,8 @@
 	gives the opportunity to see the other config fields)
 - Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
 - Added new action "Go to line", default shortcut Ctrl-G. It should be obvious what it does.
+- Added new actions "Hide" and "Reveal" which allow direct setting of objects' visibility setting instead of
+	toggling it.
 - Added support for logoed studs, this should satisfy Steffen. :p
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
