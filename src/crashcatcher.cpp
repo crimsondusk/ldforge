@@ -32,7 +32,7 @@ static void handleCrash (int sig)
 
 	if (g_crashCatcherActive)
 	{	printf ("caught signal while crash catcher is active!\n");
-		return;
+		exit (149);
 	}
 
 	const pid_t pid = getpid();

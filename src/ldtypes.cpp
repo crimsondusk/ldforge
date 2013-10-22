@@ -268,6 +268,10 @@ LDObject::~LDObject()
 	if (selected())
 		unselect();
 
+	// If this object was associated to a file, remove it off it now
+	if (file())
+		file()->forgetObject (this);
+
 	// Delete the GL lists
 	GL::deleteLists (this);
 

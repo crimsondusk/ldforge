@@ -258,17 +258,13 @@ int ForgeWindow::deleteSelection()
 		return 0;
 
 	QList<LDObject*> selCopy = selection();
-	int num = 0;
 
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy)
-	{	LDFile::current()->forgetObject (obj);
-		++num;
 		delete obj;
-	}
 
 	refresh();
-	return num;
+	return selCopy.size();
 }
 
 // =============================================================================
