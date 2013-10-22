@@ -1,5 +1,5 @@
 =================================================
-== Changes in version 0.2.999-internal
+== Changes in version 0.3-alpha
 =================================================
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
