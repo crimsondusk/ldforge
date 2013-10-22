@@ -207,7 +207,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	}
 
 	if (defaults->hasMatrix())
-	{	LDMatrixObject* mo = obj ? dynamic_cast<LDMatrixObject*> (obj) : null;
+	{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
@@ -215,7 +215,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		matrix defaultMatrix = g_identity;
 
 		if (mo)
-	{	for (const Axis ax : g_Axes)
+		{	for (const Axis ax : g_Axes)
 				dsb_coords[ax]->setValue (mo->position() [ax]);
 
 			defaultMatrix = mo->transform();

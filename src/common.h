@@ -143,7 +143,7 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 #endif // assert
 
 #ifdef DEBUG
-# define assert(N) { ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N)) }
+# define assert(N) { ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N)); }
 #else
 # define assert(N) {}
 #endif // DEBUG
