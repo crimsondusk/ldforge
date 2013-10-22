@@ -64,6 +64,7 @@ cfg (Bool, gl_blackedges, false);
 cfg (Bool, gl_axes, false);
 cfg (Bool, gl_wireframe, false);
 cfg (Bool, gl_logostuds, false);
+cfg (Bool, gl_aa, true);
 
 // argh
 const char* g_CameraNames[7] =
@@ -185,8 +186,15 @@ void GLRenderer::initGLData()
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_MULTISAMPLE);
 
-	glEnable (GL_LINE_SMOOTH);
-	glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+	if (gl_aa)
+	{	glEnable (GL_LINE_SMOOTH);
+		glEnable (GL_POLYGON_SMOOTH);
+		glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
+		glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
+	} else
+	{	glDisable (GL_LINE_SMOOTH);
+		glDisable (GL_POLYGON_SMOOTH);
+	}
 }
 
 // =============================================================================

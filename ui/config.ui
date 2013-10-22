@@ -249,9 +249,9 @@
                  </widget>
                 </item>
                 <item>
-                 <widget class="QCheckBox" name="implicitFiles">
+                 <widget class="QCheckBox" name="m_aa">
                   <property name="text">
-                   <string>List implicitly loaded files</string>
+                   <string>Anti-aliased lines</string>
                   </property>
                  </widget>
                 </item>
@@ -263,6 +263,13 @@
                  <widget class="QCheckBox" name="m_logostuds">
                   <property name="text">
                    <string>Use logoed studs</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QCheckBox" name="implicitFiles">
+                  <property name="text">
+                   <string>List implicitly loaded files</string>
                   </property>
                  </widget>
                 </item>

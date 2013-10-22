@@ -49,6 +49,7 @@ extern_cfg (Int, gl_linethickness);
 extern_cfg (String, gui_colortoolbar);
 extern_cfg (Bool, edit_schemanticinline);
 extern_cfg (Bool, gl_blackedges);
+extern_cfg (Bool, gl_aa);
 extern_cfg (Bool, gui_implicitfiles);
 extern_cfg (String, net_downloadpath);
 extern_cfg (Bool, net_guesspaths);
@@ -103,6 +104,7 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->colorizeObjects->setChecked (lv_colorize);
 	ui->colorBFC->setChecked (gl_colorbfc);
 	ui->blackEdges->setChecked (gl_blackedges);
+	ui->m_aa->setChecked (gl_aa);
 	ui->implicitFiles->setChecked (gui_implicitfiles);
 	ui->m_logostuds->setChecked (gl_logostuds);
 
@@ -306,6 +308,7 @@ void ConfigDialog::applySettings()
 	ld_defaultuser = ui->m_profileUsername->text();
 	ld_defaultname = ui->m_profileName->text();
 	ld_defaultlicense = ui->m_profileLicense->currentIndex();
+	gl_aa = ui->m_aa->isChecked();
 
 	// Rebuild the quick color toolbar
 	g_win->setQuickColors (quickColors);

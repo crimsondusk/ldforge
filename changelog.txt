@@ -29,6 +29,7 @@
 	with an input dialog instead of being told to go to configuration to set the path.
 - When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
 	path now as well if necessary instead of just ignoring it and not adding the edgelines.
+- Added a configuration option for line anti-aliasing.
 - BFC red/green view and black edges no longer default to true.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
