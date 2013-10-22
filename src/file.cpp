@@ -199,7 +199,7 @@ str basename (str path)
 // =============================================================================
 // -----------------------------------------------------------------------------
 File* openLDrawFile (str relpath, bool subdirs)
-{	log ("%1: Try to open %2\n", __func__, relpath);
+{	log ("Opening %1...\n", relpath);
 	File* f = new File;
 	str fullPath;
 
@@ -241,7 +241,7 @@ File* openLDrawFile (str relpath, bool subdirs)
 	}
 
 	// Did not find the file.
-	log ("could not find %1\n", relpath);
+	log ("Could not find %1.\n", relpath);
 	delete f;
 	return null;
 }

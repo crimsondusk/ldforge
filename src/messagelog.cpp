@@ -88,7 +88,7 @@ void MessageManager::addLine (str line)
 // redrawn if something changed.
 // -----------------------------------------------------------------------------
 void MessageManager::tick()
-{	if (m_lines.size() == 0)
+{	if (m_lines.isEmpty())
 		return;
 
 	bool changed = false;

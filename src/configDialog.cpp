@@ -441,7 +441,7 @@ void ConfigDialog::slot_setColor()
 // Remove a quick color
 // -----------------------------------------------------------------------------
 void ConfigDialog::slot_delColor()
-{	if (ui->quickColorList->selectedItems().size() == 0)
+{	if (ui->quickColorList->selectedItems().isEmpty())
 		return;
 
 	QListWidgetItem* item = ui->quickColorList->selectedItems() [0];
@@ -455,7 +455,7 @@ void ConfigDialog::slot_delColor()
 void ConfigDialog::slot_moveColor()
 {	const bool up = (static_cast<QPushButton*> (sender()) == ui->quickColor_moveUp);
 
-	if (ui->quickColorList->selectedItems().size() == 0)
+	if (ui->quickColorList->selectedItems().isEmpty())
 		return;
 
 	QListWidgetItem* item = ui->quickColorList->selectedItems() [0];
@@ -544,7 +544,7 @@ int ConfigDialog::getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& ha
 // Which quick color is currently selected?
 // -----------------------------------------------------------------------------
 QListWidgetItem* ConfigDialog::getSelectedQuickColor()
-{	if (ui->quickColorList->selectedItems().size() == 0)
+{	if (ui->quickColorList->selectedItems().isEmpty())
 		return null;
 
 	return ui->quickColorList->selectedItems() [0];

@@ -614,11 +614,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		}
 		elif (editMode() == CircleMode)
 		{	// If we have not specified the center point of the circle yet, preview it on the screen.
-			if (m_drawedVerts.size() == 0)
+			if (m_drawedVerts.isEmpty())
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
 			else
 			{	QVector<vertex> verts, verts2;
-				const double dist0 = circleDrawDist(0),
+				const double dist0 = circleDrawDist (0),
 					dist1 = (m_drawedVerts.size() >= 2) ? circleDrawDist (1) : -1;
 				const int segs = lores;
 				const double angleUnit = (2 * pi) / segs;
@@ -965,7 +965,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 						return;
 					}
 
-					if (m_drawedVerts.size() == 0 && ev->modifiers() & Qt::ShiftModifier)
+					if (m_drawedVerts.isEmpty() && ev->modifiers() & Qt::ShiftModifier)
 					{	m_rectdraw = true;
 						updateRectVerts();
 					}
@@ -1821,7 +1821,7 @@ void GLRenderer::updateRectVerts()
 {	if (!m_rectdraw)
 		return;
 
-	if (m_drawedVerts.size() == 0)
+	if (m_drawedVerts.isEmpty())
 	{	for (int i = 0; i < 4; ++i)
 			m_rectverts[i] = m_hoverpos;
 

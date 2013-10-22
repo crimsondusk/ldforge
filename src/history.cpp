@@ -34,7 +34,7 @@ History::History() :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::undo()
-{	if (m_changesets.size() == 0 || pos() == -1)
+{	if (m_changesets.isEmpty() || pos() == -1)
 		return;
 
 	const Changeset& set = changeset (pos());

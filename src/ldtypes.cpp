@@ -344,7 +344,7 @@ long LDObject::getIndex() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
-{	if (objs.size() == 0)
+{	if (objs.isEmpty())
 		return;
 
 	// If we move down, we need to iterate the array in reverse order.
@@ -397,7 +397,7 @@ str LDObject::objectListContents (const QList<LDObject*>& objs)
 {	bool firstDetails = true;
 	str text = "";
 
-	if (objs.size() == 0)
+	if (objs.isEmpty())
 		return "nothing"; // :)
 
 	for (long i = 0; i < LDObject::NumTypes; ++i)
@@ -416,7 +416,8 @@ str LDObject::objectListContents (const QList<LDObject*>& objs)
 
 		str noun = fmt ("%1%2", typeName (objType), plural (count));
 
-		// Plural of "vertex" is "vertices". Stupid English.
+		// Plural of "vertex" is "vertices", correct that
+		
 		if (objType == LDObject::Vertex && count != 1)
 			noun = "vertices";
 
