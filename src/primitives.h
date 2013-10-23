@@ -16,77 +16,74 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef PRIMITIVES_H
-#define PRIMITIVES_H
+#ifndef LDFORGE_PRIMITIVES_H
+#define LDFORGE_PRIMITIVES_H
 
 #include "common.h"
 #include "types.h"
 #include <QRegExp>
 #include <QDialog>
 
+class LDFile;
 class Ui_MakePrimUI;
 class PrimitiveCategory;
-struct Primitive {
-	str name, title;
+struct Primitive
+{	str name, title;
 	PrimitiveCategory* cat;
 };
 
-class PrimitiveCategory {
-	PROPERTY (str, name, setName)
-	
-public:
-	enum Type {
-		Filename,
-		Title
-	};
-	
-	struct RegexEntry {
-		QRegExp regex;
-		Type type;
-	};
-	
-	typedef List<RegexEntry>::it it;
-	typedef List<RegexEntry>::c_it c_it;
-	
-	List<RegexEntry> regexes;
-	List<Primitive> prims;
-	static List<Primitive> uncat;
+class PrimitiveCategory
+{	PROPERTY (str, name, setName)
+
+	public:
+		enum Type
+		{	Filename,
+			Title
+		};
+
+		struct RegexEntry
+		{	QRegExp regex;
+			Type type;
+		};
+
+		QList<RegexEntry> regexes;
+		QList<Primitive> prims;
+		static QList<Primitive> uncat;
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 // PrimitiveLister
-// 
+//
 // Worker object that scans the primitives folder for primitives and
 // builds an index of them.
 // =============================================================================
-class PrimitiveLister : public QObject {
-	Q_OBJECT
-	
-public:
-	static void start();
-	
-public slots:
-	void work();
-	
-signals:
-	void starting (ulong num);
-	void workDone();
-	void update (ulong i);
-	
-private:
-	List<Primitive> m_prims;
+class PrimitiveLister : public QObject
+{		Q_OBJECT
+
+	public:
+		static void start();
+
+	public slots:
+		void work();
+
+	signals:
+		void starting (int num);
+		void workDone();
+		void update (int i);
+
+	private:
+		QList<Primitive> m_prims;
 };
 
-extern List<PrimitiveCategory> g_PrimitiveCategories;
+extern QList<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives();
 bool primitiveLoaderBusy();
 
 enum PrimitiveType
-{
-	Circle,
+{	Circle,
 	Cylinder,
 	Disc,
 	DiscNeg,
@@ -95,18 +92,25 @@ enum PrimitiveType
 };
 
 // =============================================================================
-class PrimitivePrompt : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);
-	virtual ~PrimitivePrompt();
-	Ui_MakePrimUI* ui;
-	
-public slots:
-	void hiResToggled (bool on);
+class PrimitivePrompt : public QDialog
+{		Q_OBJECT
+
+	public:
+		explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);
+		virtual ~PrimitivePrompt();
+		Ui_MakePrimUI* ui;
+
+	public slots:
+		void hiResToggled (bool on);
 };
 
-void generatePrimitive();
+void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines);
+LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 
-#endif // PRIMITIVES_H
+// Gets a primitive by the given specs. If the primitive cannot be found, it will
+// be automatically generated.
+LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num);
+
+str radialFileName (PrimitiveType type, int segs, int divs, int num);
+
+#endif // LDFORGE_PRIMITIVES_H

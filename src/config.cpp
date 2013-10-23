@@ -33,13 +33,14 @@
 #include "file.h"
 
 Config* g_configPointers[MAX_CONFIG];
-static ushort g_cfgPointerCursor = 0;
+static int g_cfgPointerCursor = 0;
 
 // =============================================================================
 // Get the QSettings object. A portable build refers to a file in the current
 // directory, a non-portable build to ~/.config/LDForge or to registry.
 // -----------------------------------------------------------------------------
-static QSettings* getSettingsObject() {
+static QSettings* getSettingsObject()
+{
 #ifdef PORTABLE
 # ifdef _WIN32
 #  define EXTENSION ".ini"
@@ -58,18 +59,18 @@ Config::Config (const char* name, const char* defstring) :
 // =============================================================================
 // Load the configuration from file
 // -----------------------------------------------------------------------------
-bool Config::load() {
-	QSettings* settings = getSettingsObject();
-	print ("config::load: Loading configuration file from %1\n", settings->fileName());
-	
-	for (Config* cfg : g_configPointers) {
-		if (!cfg)
+bool Config::load()
+{	QSettings* settings = getSettingsObject();
+	log ("config::load: Loading configuration file from %1\n", settings->fileName());
+
+	for (Config* cfg : g_configPointers)
+	{	if (!cfg)
 			break;
-		
+
 		QVariant val = settings->value (cfg->name, cfg->defaultVariant());
 		cfg->loadFromVariant (val);
 	}
-	
+
 	settings->deleteLater();
 	return true;
 }
@@ -77,20 +78,20 @@ bool Config::load() {
 // =============================================================================
 // Save the configuration to disk
 // -----------------------------------------------------------------------------
-bool Config::save() {
-	QSettings* settings = getSettingsObject();
-	print ("Saving configuration to %1...\n", settings->fileName());
-	
-	for (Config* cfg : g_configPointers) {
-		if (!cfg)
+bool Config::save()
+{	QSettings* settings = getSettingsObject();
+	log ("Saving configuration to %1...\n", settings->fileName());
+
+	for (Config* cfg : g_configPointers)
+	{	if (!cfg)
 			break;
-		
+
 		if (cfg->isDefault())
 			continue;
-		
+
 		settings->setValue (cfg->name, cfg->toVariant());
 	}
-	
+
 	settings->sync();
 	settings->deleteLater();
 	return true;
@@ -99,11 +100,11 @@ bool Config::save() {
 // =============================================================================
 // Reset configuration defaults.
 // -----------------------------------------------------------------------------
-void Config::reset() {
-	for (Config* cfg : g_configPointers) {
-		if (!cfg)
+void Config::reset()
+{	for (Config * cfg : g_configPointers)
+	{	if (!cfg)
 			break;
-		
+
 		cfg->resetValue();
 	}
 }
@@ -112,15 +113,15 @@ void Config::reset() {
 // Where is the configuration file located at? Note that the Windows build uses
 // the registry so only use this with PORTABLE code.
 // -----------------------------------------------------------------------------
-str Config::filepath (str file) {
-	return Config::dirpath() + DIRSLASH + file;
+str Config::filepath (str file)
+{	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
 // Directory of the configuration file. PORTABLE code here as well.
 // -----------------------------------------------------------------------------
-str Config::dirpath() {
-	QSettings* cfg = getSettingsObject();
+str Config::dirpath()
+{	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
@@ -129,10 +130,10 @@ str Config::dirpath() {
 // on the vector's c-tor being called before the configs' c-tors. With global
 // variables we cannot assume that!! Therefore we need to use a C-style array here.
 // -----------------------------------------------------------------------------
-void Config::addToArray (Config* ptr) {
-	if (g_cfgPointerCursor == 0)
+void Config::addToArray (Config* ptr)
+{	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
-	
+
 	assert (g_cfgPointerCursor < MAX_CONFIG);
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }

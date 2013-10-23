@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef CONFIG_H
-#define CONFIG_H
+#ifndef LDFORGE_CONFIG_H
+#define LDFORGE_CONFIG_H
 
 #include "common.h"
 
@@ -37,42 +37,53 @@ typedef QString str;
 #define extern_cfg(T, NAME)   extern T##Config NAME
 
 // =========================================================
-class Config {
-public:
-	enum Type {
-		Int,
-		String,
-		Float,
-		Bool,
-		KeySequence,
-		List,
-	};
+class Config
+{	public:
+		enum Type
+		{	Int,
+			String,
+			Float,
+			Bool,
+			KeySequence,
+			List,
+		};
 
-	Config (const char* name, const char* defstring);
-	const char* name;
+		Config (const char* name, const char* defstring);
+		const char* name;
 
-	virtual Type getType() const {
-		return (Type) 0;
-	}
-	
-	virtual void resetValue() {}
-	virtual void loadFromVariant (const QVariant& val) { (void) val; }
-	virtual bool isDefault() const { return false; }
-	virtual QVariant toVariant() const { return QVariant(); }
-	virtual QVariant defaultVariant() const { return QVariant(); }
-	
-	// ------------------------------------------
-	static bool load();
-	static bool save();
-	static void reset();
-	static str dirpath();
-	static str filepath (str file);
-	
-protected:
-	static void addToArray (Config* ptr);
-	
-private:
-	const char* m_defstring;
+		virtual Type getType() const
+		{	return (Type) 0;
+		}
+
+		virtual void resetValue() {}
+		virtual void loadFromVariant (const QVariant& val)
+		{	(void) val;
+		}
+
+		virtual bool isDefault() const
+		{	return false;
+		}
+
+		virtual QVariant toVariant() const
+		{	return QVariant();
+		}
+
+		virtual QVariant defaultVariant() const
+		{	return QVariant();
+		}
+
+		// ------------------------------------------
+		static bool load();
+		static bool save();
+		static void reset();
+		static str dirpath();
+		static str filepath (str file);
+
+	protected:
+		static void addToArray (Config* ptr);
+
+	private:
+		const char* m_defstring;
 };
 
 // =============================================================================
@@ -130,106 +141,106 @@ private:
 	T operator--(int) { return value--; }
 
 // =============================================================================
-class IntConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (Int, int)
-	DEFINE_ALL_COMPARE_OPERATORS (int)
-	DEFINE_INCREMENT_OPERATORS (int)
-	DEFINE_BINARY_OPERATOR (int, +)
-	DEFINE_BINARY_OPERATOR (int, -)
-	DEFINE_BINARY_OPERATOR (int, *)
-	DEFINE_BINARY_OPERATOR (int, /)
-	DEFINE_BINARY_OPERATOR (int, %)
-	DEFINE_BINARY_OPERATOR (int, ^)
-	DEFINE_BINARY_OPERATOR (int, |)
-	DEFINE_BINARY_OPERATOR (int, &)
-	DEFINE_BINARY_OPERATOR (int, >>)
-	DEFINE_BINARY_OPERATOR (int, <<)
-	DEFINE_UNARY_OPERATOR (int, !)
-	DEFINE_UNARY_OPERATOR (int, ~)
-	DEFINE_UNARY_OPERATOR (int, -)
-	DEFINE_UNARY_OPERATOR (int, +)
-	DEFINE_ASSIGN_OPERATOR (int, =)
-	DEFINE_ASSIGN_OPERATOR (int, +=)
-	DEFINE_ASSIGN_OPERATOR (int, -=)
-	DEFINE_ASSIGN_OPERATOR (int, *=)
-	DEFINE_ASSIGN_OPERATOR (int, /=)
-	DEFINE_ASSIGN_OPERATOR (int, %=)
-	DEFINE_ASSIGN_OPERATOR (int, >>=)
-	DEFINE_ASSIGN_OPERATOR (int, <<=)
+class IntConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (Int, int)
+		DEFINE_ALL_COMPARE_OPERATORS (int)
+		DEFINE_INCREMENT_OPERATORS (int)
+		DEFINE_BINARY_OPERATOR (int, +)
+		DEFINE_BINARY_OPERATOR (int, -)
+		DEFINE_BINARY_OPERATOR (int, *)
+		DEFINE_BINARY_OPERATOR (int, /)
+		DEFINE_BINARY_OPERATOR (int, %)
+		DEFINE_BINARY_OPERATOR (int, ^)
+		DEFINE_BINARY_OPERATOR (int, |)
+		DEFINE_BINARY_OPERATOR (int, &)
+		DEFINE_BINARY_OPERATOR (int, >>)
+		DEFINE_BINARY_OPERATOR (int, <<)
+		DEFINE_UNARY_OPERATOR (int, !)
+		DEFINE_UNARY_OPERATOR (int, ~)
+		DEFINE_UNARY_OPERATOR (int, -)
+		DEFINE_UNARY_OPERATOR (int, +)
+		DEFINE_ASSIGN_OPERATOR (int, =)
+		DEFINE_ASSIGN_OPERATOR (int, +=)
+		DEFINE_ASSIGN_OPERATOR (int, -=)
+		DEFINE_ASSIGN_OPERATOR (int, *=)
+		DEFINE_ASSIGN_OPERATOR (int, /=)
+		DEFINE_ASSIGN_OPERATOR (int, %=)
+		DEFINE_ASSIGN_OPERATOR (int, >>=)
+		DEFINE_ASSIGN_OPERATOR (int, <<=)
 };
 
 // =============================================================================
-class StringConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (String, str)
-	
-	DEFINE_COMPARE_OPERATOR (str, ==)
-	DEFINE_COMPARE_OPERATOR (str, !=)
-	DEFINE_ASSIGN_OPERATOR (str, =)
-	DEFINE_ASSIGN_OPERATOR (str, +=)
-	
-	QChar operator[] (int n) {
-		return value[n];
-	}
+class StringConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (String, str)
+
+		DEFINE_COMPARE_OPERATOR (str, ==)
+		DEFINE_COMPARE_OPERATOR (str, !=)
+		DEFINE_ASSIGN_OPERATOR (str, =)
+		DEFINE_ASSIGN_OPERATOR (str, +=)
+
+		QChar operator[] (int n)
+		{	return value[n];
+		}
 };
 
 // =============================================================================
-class FloatConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (Float, float)
-	DEFINE_ALL_COMPARE_OPERATORS (float)
-	DEFINE_INCREMENT_OPERATORS (float)
-	DEFINE_BINARY_OPERATOR (float, +)
-	DEFINE_BINARY_OPERATOR (float, -)
-	DEFINE_BINARY_OPERATOR (float, *)
-	DEFINE_UNARY_OPERATOR (float, !)
-	DEFINE_ASSIGN_OPERATOR (float, =)
-	DEFINE_ASSIGN_OPERATOR (float, +=)
-	DEFINE_ASSIGN_OPERATOR (float, -=)
-	DEFINE_ASSIGN_OPERATOR (float, *=)
+class FloatConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (Float, float)
+		DEFINE_ALL_COMPARE_OPERATORS (float)
+		DEFINE_INCREMENT_OPERATORS (float)
+		DEFINE_BINARY_OPERATOR (float, +)
+		DEFINE_BINARY_OPERATOR (float, -)
+		DEFINE_BINARY_OPERATOR (float, *)
+		DEFINE_UNARY_OPERATOR (float, !)
+		DEFINE_ASSIGN_OPERATOR (float, =)
+		DEFINE_ASSIGN_OPERATOR (float, +=)
+		DEFINE_ASSIGN_OPERATOR (float, -=)
+		DEFINE_ASSIGN_OPERATOR (float, *=)
 };
 
 // =============================================================================
-class BoolConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (Bool, bool)
-	DEFINE_ALL_COMPARE_OPERATORS (bool)
-	DEFINE_ASSIGN_OPERATOR (bool, =)
+class BoolConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (Bool, bool)
+		DEFINE_ALL_COMPARE_OPERATORS (bool)
+		DEFINE_ASSIGN_OPERATOR (bool, =)
 };
 
 // =============================================================================
-class KeySequenceConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (KeySequence, QKeySequence)
-	DEFINE_ALL_COMPARE_OPERATORS (QKeySequence)
-	DEFINE_ASSIGN_OPERATOR (QKeySequence, =)
+class KeySequenceConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (KeySequence, QKeySequence)
+		DEFINE_ALL_COMPARE_OPERATORS (QKeySequence)
+		DEFINE_ASSIGN_OPERATOR (QKeySequence, =)
 };
 
 // =============================================================================
-class ListConfig : public Config {
-public:
-	IMPLEMENT_CONFIG (List, QList<QVariant>)
-	DEFINE_ASSIGN_OPERATOR (QList<QVariant>, =)
-	
-	typedef QList<QVariant>::iterator it;
-	typedef QList<QVariant>::const_iterator c_it;
-	
-	it begin() {
-		return value.begin();
-	}
-	
-	c_it begin() const {
-		return value.constBegin();
-	}
-	
-	it end() {
-		return value.end();
-	}
-	
-	c_it end() const {
-		return value.constEnd();
-	}
+class ListConfig : public Config
+{	public:
+		IMPLEMENT_CONFIG (List, QList<QVariant>)
+		DEFINE_ASSIGN_OPERATOR (QList<QVariant>, =)
+
+		typedef QList<QVariant>::iterator it;
+		typedef QList<QVariant>::const_iterator c_it;
+
+		it begin()
+		{	return value.begin();
+		}
+
+		c_it begin() const
+		{	return value.constBegin();
+		}
+
+		it end()
+		{	return value.end();
+		}
+
+		c_it end() const
+		{	return value.constEnd();
+		}
 };
 
-#endif // CONFIG_H
+#endif // LDFORGE_CONFIG_H

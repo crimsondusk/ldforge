@@ -16,19 +16,19 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef COLORS_H
-#define COLORS_H
+#ifndef LDFORGE_COLORS_H
+#define LDFORGE_COLORS_H
 
 #include <QColor>
 #include "common.h"
 
 #define MAX_COLORS 512
 
-class LDColor {
-public:
-	str name, hexcode;
-	QColor faceColor, edgeColor;
-	short index;
+class LDColor
+{	public:
+		str name, hexcode;
+		QColor faceColor, edgeColor;
+		short index;
 };
 
 void initColors();
@@ -42,4 +42,4 @@ void setColor (short colnum, LDColor* col);
 static const short maincolor = 16;
 static const short edgecolor = 24;
 
-#endif // COLORS_H
+#endif // LDFORGE_COLORS_H

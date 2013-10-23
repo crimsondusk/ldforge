@@ -33,49 +33,46 @@ static LDColor* g_LDColors[MAX_COLORS];
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void initColors() {
-	LDColor* col;
-	print ("%1: initializing color information.\n", __func__);
-	
+void initColors()
+{	LDColor* col;
+	log ("%1: initializing color information.\n", __func__);
+
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new LDColor;
-	col->faceColor =
-	col->hexcode = "#AAAAAA";
+	col->faceColor = col->hexcode = "#AAAAAA";
 	col->edgeColor = Qt::black;
 	g_LDColors[maincolor] = col;
-	
+
 	col = new LDColor;
-	col->faceColor =
-	col->edgeColor =
-	col->hexcode = "#000000";
+	col->faceColor = col->edgeColor = col->hexcode = "#000000";
 	g_LDColors[edgecolor] = col;
-	
+
 	parseLDConfig();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDColor* getColor (short colnum) {
-	// Check bounds
+LDColor* getColor (short colnum)
+{	// Check bounds
 	if (colnum < 0 || colnum >= MAX_COLORS)
 		return null;
-	
+
 	return g_LDColors[colnum];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void setColor (short colnum, LDColor* col) {
-	if (colnum < 0 || colnum >= MAX_COLORS)
+void setColor (short colnum, LDColor* col)
+{	if (colnum < 0 || colnum >= MAX_COLORS)
 		return;
-	
+
 	g_LDColors[colnum] = col;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-int luma (QColor& col) {
-	return (0.2126f * col.red()) +
-	       (0.7152f * col.green()) +
-	       (0.0722f * col.blue());
+int luma (QColor& col)
+{	return (0.2126f * col.red()) +
+		   (0.7152f * col.green()) +
+		   (0.0722f * col.blue());
 }

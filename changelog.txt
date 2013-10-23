@@ -1,5 +1,5 @@
 =================================================
-== Changes in version 0.2.999-internal
+== Changes in version 0.3-alpha
 =================================================
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
@@ -9,6 +9,7 @@
 - Converted the configuration code to use QSettings, in practice this means the configuration file moved to
 	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
 	lost during transition from version 0.2 and 0.3.
+- Added a new editing mode for drawing circles.
 - Corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
@@ -21,18 +22,25 @@
 	gives the opportunity to see the other config fields)
 - Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
 - Added new action "Go to line", default shortcut Ctrl-G. It should be obvious what it does.
+- Added new actions "Hide" and "Reveal" which allow direct setting of objects' visibility setting instead of
+	toggling it.
 - Added support for logoed studs, this should satisfy Steffen. :p
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
+- The viewport now uses 7 sets of rotation/pan/zoom values, one for each camera. Changing these values
+	in one camera no longer affects other cameras.
 - When an external program is attempted to be used without a binary path defined, one will be asked
 	with an input dialog instead of being told to go to configuration to set the path.
 - When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
 	path now as well if necessary instead of just ignoring it and not adding the edgelines.
+- Added a configuration option for line anti-aliasing.
 - BFC red/green view and black edges no longer default to true.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
 - Color icon border now reflects the color's edge color.
+- Fixed: File loading would skip every 300th line.
+- Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
 
 =================================================

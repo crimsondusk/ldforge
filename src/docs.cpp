@@ -25,27 +25,27 @@
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-class DocumentViewer : public QDialog {
-public:
-	explicit DocumentViewer (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f) {
-		te_text = new QTextEdit (this);
-		te_text->setMinimumSize (QSize (400, 300));
-		te_text->setReadOnly (true);
-		
-		QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Close);
-		QVBoxLayout* layout = new QVBoxLayout (this);
-		layout->addWidget (te_text);
-		layout->addWidget (bbx_buttons);
-		
-		connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
-	}
-	
-	void setText (const char* text) {
-		te_text->setText (text);
-	}
-	
-private:
-	QTextEdit* te_text;
+class DocumentViewer : public QDialog
+{	public:
+		explicit DocumentViewer (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f)
+		{	te_text = new QTextEdit (this);
+			te_text->setMinimumSize (QSize (400, 300));
+			te_text->setReadOnly (true);
+
+			QDialogButtonBox* bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Close);
+			QVBoxLayout* layout = new QVBoxLayout (this);
+			layout->addWidget (te_text);
+			layout->addWidget (bbx_buttons);
+
+			connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
+		}
+
+		void setText (const char* text)
+		{	te_text->setText (text);
+		}
+
+	private:
+		QTextEdit* te_text;
 };
 
 const char* g_docs_overlays =
@@ -65,8 +65,8 @@ const char* g_docs_overlays =
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void showDocumentation (const char* text) {
-	DocumentViewer dlg;
+void showDocumentation (const char* text)
+{	DocumentViewer dlg;
 	dlg.setText (text);
 	dlg.exec();
 }

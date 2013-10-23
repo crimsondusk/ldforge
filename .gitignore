@@ -1,8 +1,11 @@
 build
+build_debug
+build_release
 ldforge.kdev4
-src/ui_*.h
 Makefile
+Makefile.*
 ldforge
+ldforge_debug
 *.dat
 debug_lastOutput
 .kdev_include_paths

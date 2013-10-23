@@ -52,6 +52,7 @@ public: \
 class QListWidgetItem;
 class LDSubfile;
 class LDFile;
+class LDSharedVertex;
 
 // =============================================================================
 // LDObject
@@ -61,74 +62,106 @@ class LDFile;
 // which is a token of the object's type. The object can be casted into
 // sub-classes based on this enumerator.
 // =============================================================================
-class LDObject {
-	PROPERTY (bool, hidden, setHidden)
+class LDObject
+{	PROPERTY (bool, hidden, setHidden)
 	PROPERTY (bool, selected, setSelected)
 	PROPERTY (LDObject*, parent, setParent)
 	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (int32, id, setID)
 	DECLARE_PROPERTY (short, color, setColor)
 
-public:
-	// Object type codes. Codes are sorted in order of significance.
-	enum Type {
-		Subfile,        // Object represents a sub-file reference
-		Quad,           // Object represents a quadrilateral
-		Triangle,       // Object represents a triangle
-		Line,           // Object represents a line
-		CndLine,        // Object represents a conditional line
-		Vertex,         // Object is a vertex, LDForge extension object
-		BFC,            // Object represents a BFC statement
-		Overlay,        // Object contains meta-info about an overlay image.
-		Comment,        // Object represents a comment
-		Error,          // Object is the result of failed parsing
-		Empty,          // Object represents an empty line
-		Unidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
-		NumTypes        // Amount of object types
-	};
+	public:
+		// Object type codes. Codes are sorted in order of significance.
+		enum Type
+		{	Subfile,        // Object represents a sub-file reference
+			Quad,           // Object represents a quadrilateral
+			Triangle,       // Object represents a triangle
+			Line,           // Object represents a line
+			CndLine,        // Object represents a conditional line
+			Vertex,         // Object is a vertex, LDForge extension object
+			BFC,            // Object represents a BFC statement
+			Overlay,        // Object contains meta-info about an overlay image.
+			Comment,        // Object represents a comment
+			Error,          // Object is the result of failed parsing
+			Empty,          // Object represents an empty line
+			Unidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
+			NumTypes        // Amount of object types
+		};
 
-	LDObject();
-	virtual ~LDObject();
-	
-	virtual LDObject* clone() {return 0;}       // Creates a new LDObject identical to this one.
-	long getIndex() const;                      // Index (i.e. line number) of this object
-	virtual LDObject::Type getType() const;     // Type enumerator of this object
-	const vertex& getVertex (int i) const;      // Get a vertex by index
-	virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
-	virtual void invert();                      // Inverts this object (winding is reversed)
-	virtual bool isColored() const;             // Is this object colored?
-	virtual bool isScemantic() const;           // Does this object have meaning in the part model?
-	virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
-	LDObject* next() const;                     // Object after this in the current file
-	LDObject* prev() const;                     // Object prior to this in the current file
-	virtual str raw() { return ""; }            // This object as LDraw code
-	void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
-	void setVertex (int i, const vertex& vert); // Set a vertex to the given value
-	void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
-	void swap (LDObject* other);                // Swap this object with another.
-	LDObject* topLevelParent();                // What object in the current file ultimately references this?
-	virtual str typeName() const;               // Type name of this object
-	virtual short vertices() const;            // Number of vertices this object has
-	
-	static str typeName (LDObject::Type type); // Get type name by enumerator
-	static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-	static void moveObjects (List<LDObject*> objs, const bool up); // TODO: move this to LDFile?
-	static str objectListContents (const List<LDObject*>& objs); // Get a description of a list of LDObjects
-	static LDObject* fromID (int id);
-	
-	// TODO: make these private!
-	// OpenGL list for this object
-	uint glLists[4];
-	
-	// Object list entry for this object
-	QListWidgetItem* qObjListEntry;
+		LDObject();
+		virtual ~LDObject();
 
-protected:
-	bool m_glinit;
-	friend class GLRenderer;
+		virtual LDObject* clone()
+		{	return 0;   // Creates a new LDObject identical to this one.
+		}
+		long getIndex() const;                      // Index (i.e. line number) of this object
+		virtual LDObject::Type getType() const;     // Type enumerator of this object
+		const vertex& getVertex (int i) const;      // Get a vertex by index
+		virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
+		virtual void invert();                      // Inverts this object (winding is reversed)
+		virtual bool isColored() const;             // Is this object colored?
+		virtual bool isScemantic() const;           // Does this object have meaning in the part model?
+		virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
+		LDObject* next() const;                     // Object after this in the current file
+		LDObject* prev() const;                     // Object prior to this in the current file
+		virtual str raw() {	return ""; }            // This object as LDraw code
+		void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
+		void select();
+		void setVertex (int i, const vertex& vert); // Set a vertex to the given value
+		void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
+		void swap (LDObject* other);                // Swap this object with another.
+		LDObject* topLevelParent();                 // What object in the current file ultimately references this?
+		virtual str typeName() const;               // Type name of this object
+		void unselect();
+		virtual short vertices() const;             // Number of vertices this object has
 
-private:
-	vertex m_coords[4];
+		static str typeName (LDObject::Type type); // Get type name by enumerator
+		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
+		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDFile?
+		static str objectListContents (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
+		static LDObject* fromID (int id);
+
+		// TODO: make these private!
+		// OpenGL list for this object
+		uint glLists[4];
+
+		// Object list entry for this object
+		QListWidgetItem* qObjListEntry;
+
+	protected:
+		bool m_glinit;
+		friend class GLRenderer;
+
+	private:
+		LDSharedVertex* m_coords[4];
+};
+
+// =============================================================================
+// LDSharedVertex
+//
+// For use as coordinates of LDObjects. Keeps count of references.
+// -----------------------------------------------------------------------------
+class LDSharedVertex
+{	public:
+		inline const vertex& data() const
+		{	return m_data;
+		}
+
+		inline operator const vertex&() const
+		{	return m_data;
+		}
+
+		void addRef (LDObject* a);
+		void delRef (LDObject* a);
+
+		static LDSharedVertex* getSharedVertex (const vertex& a);
+
+	protected:
+		LDSharedVertex (const vertex& a) : m_data (a) {}
+
+	private:
+		QList<LDObject*> m_refs;
+		vertex m_data;
 };
 
 // =============================================================================
@@ -146,23 +179,31 @@ private:
 // matrix as well. Even though right now only LDSubfile uses this, I'm keeping
 // this class distinct in case I get new extension ideas. :)
 // =============================================================================
-class LDMatrixObject {
-	DECLARE_PROPERTY (matrix, transform, setTransform)
-	DECLARE_PROPERTY (vertex, position, setPosition)
+class LDMatrixObject
+{	DECLARE_PROPERTY (matrix, transform, setTransform)
 	PROPERTY (LDObject*, linkPointer, setLinkPointer)
 
-public:
-	LDMatrixObject() {}
-	LDMatrixObject (const matrix& transform, const vertex& pos) :
-		PROP_NAME (transform) (transform), PROP_NAME (position) (pos) {}
+	public:
+		LDMatrixObject() {}
+		LDMatrixObject (const matrix& transform, const vertex& pos) :
+			m_transform (transform), m_position (LDSharedVertex::getSharedVertex (pos)) {}
 
-	const double& setCoordinate (const Axis ax, double value) {
-		vertex v = position();
-		v[ax] = value;
-		setPosition (v);
+		const vertex& position() const
+		{	return m_position->data();
+		}
 
-		return position() [ax];
-	}
+		void setPosition (const vertex& a);
+
+		const double& setCoordinate (const Axis ax, double value)
+		{	vertex v = position();
+			v[ax] = value;
+			setPosition (v);
+
+			return position() [ax];
+		}
+
+	private:
+		LDSharedVertex* m_position;
 };
 
 // =============================================================================
@@ -173,8 +214,8 @@ public:
 // allowing garbage lines be debugged and corrected within LDForge. The member
 // zContent contains the contents of the unparsable line.
 // =============================================================================
-class LDError : public LDObject {
-	LDOBJ (Error)
+class LDError : public LDObject
+{	LDOBJ (Error)
 	LDOBJ_NAME (error)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -182,15 +223,15 @@ class LDError : public LDObject {
 	LDOBJ_NO_MATRIX
 	PROPERTY (str, fileRef, setFileRef)
 
-public:
-	LDError();
-	LDError (str contents, str reason) : contents (contents), reason (reason) {}
+	public:
+		LDError();
+		LDError (str contents, str reason) : contents (contents), reason (reason) {}
 
-	// Content of this unknown line
-	str contents;
+		// Content of this unknown line
+		str contents;
 
-	// Why is this gibberish?
-	str reason;
+		// Why is this gibberish?
+		str reason;
 };
 
 // =============================================================================
@@ -198,8 +239,8 @@ public:
 //
 // Represents an empty line in the LDraw code file.
 // =============================================================================
-class LDEmpty : public LDObject {
-	LDOBJ (Empty)
+class LDEmpty : public LDObject
+{	LDOBJ (Empty)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
@@ -212,19 +253,19 @@ class LDEmpty : public LDObject {
 // Represents a code-0 comment in the LDraw code file. Member text contains
 // the text of the comment.
 // =============================================================================
-class LDComment : public LDObject {
-	LDOBJ (Comment)
+class LDComment : public LDObject
+{	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-public:
-	LDComment() {}
-	LDComment (str text) : text (text) {}
+	public:
+		LDComment() {}
+		LDComment (str text) : text (text) {}
 
-	str text; // The text of this comment
+		str text; // The text of this comment
 };
 
 // =============================================================================
@@ -233,37 +274,37 @@ public:
 // Represents a 0 BFC statement in the LDraw code. eStatement contains the type
 // of this statement.
 // =============================================================================
-class LDBFC : public LDObject {
-public:
-	enum Type {
-		CertifyCCW,
-		CCW,
-		CertifyCW,
-		CW,
-		NoCertify,
-		InvertNext,
-		Clip,
-		ClipCCW,
-		ClipCW,
-		NoClip,
-		NumStatements
-	};
-	
-	LDOBJ (BFC)
-	LDOBJ_NAME (bfc)
-	LDOBJ_VERTICES (0)
-	LDOBJ_UNCOLORED
-	LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
-	LDOBJ_NO_MATRIX
-	
-public:
-	LDBFC() {}
-	LDBFC (const LDBFC::Type type) : type (type) {}
+class LDBFC : public LDObject
+{	public:
+		enum Type
+		{	CertifyCCW,
+			CCW,
+			CertifyCW,
+			CW,
+			NoCertify,
+			InvertNext,
+			Clip,
+			ClipCCW,
+			ClipCW,
+			NoClip,
+			NumStatements
+		};
 
-	// Statement strings
-	static const char* statements[];
+		LDOBJ (BFC)
+		LDOBJ_NAME (bfc)
+		LDOBJ_VERTICES (0)
+		LDOBJ_UNCOLORED
+		LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
+		LDOBJ_NO_MATRIX
 
-	Type type;
+	public:
+		LDBFC() {}
+		LDBFC (const LDBFC::Type type) : type (type) {}
+
+		// Statement strings
+		static const char* statements[];
+
+		Type type;
 };
 
 // =============================================================================
@@ -271,8 +312,8 @@ public:
 //
 // Represents a single code-1 subfile reference.
 // =============================================================================
-class LDSubfile : public LDObject, public LDMatrixObject {
-	LDOBJ (Subfile)
+class LDSubfile : public LDObject, public LDMatrixObject
+{	LDOBJ (Subfile)
 	LDOBJ_NAME (subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
@@ -280,24 +321,24 @@ class LDSubfile : public LDObject, public LDMatrixObject {
 	LDOBJ_HAS_MATRIX
 	PROPERTY (LDFile*, fileInfo, setFileInfo)
 
-public:
-	enum InlineFlag {
-		DeepInline     = (1 << 0),
-		CacheInline    = (1 << 1),
-		RendererInline = (1 << 2),
-		
-		DeepCacheInline = DeepInline | CacheInline,
-	};
-	
-	Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
-	
-	LDSubfile() {
-		setLinkPointer (this);
-	}
-	
-	// Inlines this subfile. Note that return type is an array of heap-allocated
-	// LDObject-clones, they must be deleted one way or another.
-	List<LDObject*> inlineContents (InlineFlags flags);
+	public:
+		enum InlineFlag
+		{	DeepInline     = (1 << 0),
+			CacheInline    = (1 << 1),
+			RendererInline = (1 << 2),
+
+			DeepCacheInline = DeepInline | CacheInline,
+		};
+
+		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
+
+		LDSubfile()
+		{	setLinkPointer (this);
+		}
+
+		// Inlines this subfile. Note that return type is an array of heap-allocated
+		// LDObject-clones, they must be deleted one way or another.
+		QList<LDObject*> inlineContents (InlineFlags flags);
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)
@@ -309,17 +350,17 @@ Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)
 // points of the line. The line is colored with dColor unless uncolored mode is
 // set.
 // =============================================================================
-class LDLine : public LDObject {
-	LDOBJ (Line)
+class LDLine : public LDObject
+{	LDOBJ (Line)
 	LDOBJ_NAME (line)
 	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-public:
-	LDLine() {}
-	LDLine (vertex v1, vertex v2);
+	public:
+		LDLine() {}
+		LDLine (vertex v1, vertex v2);
 };
 
 // =============================================================================
@@ -328,17 +369,17 @@ public:
 // Represents a single code-5 conditional line. The end-points v0 and v1 are
 // inherited from LDLine, c0 and c1 are the control points of this line.
 // =============================================================================
-class LDCndLine : public LDLine {
-	LDOBJ (CndLine)
+class LDCndLine : public LDLine
+{	LDOBJ (CndLine)
 	LDOBJ_NAME (condline)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-public:
-	LDCndLine() {}
-	LDLine* demote();
+	public:
+		LDCndLine() {}
+		LDLine* demote();
 };
 
 // =============================================================================
@@ -348,21 +389,21 @@ public:
 // and v2 contain the end-points of this triangle. dColor is the color the
 // triangle is colored with.
 // =============================================================================
-class LDTriangle : public LDObject {
-	LDOBJ (Triangle)
+class LDTriangle : public LDObject
+{	LDOBJ (Triangle)
 	LDOBJ_NAME (triangle)
 	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-public:
-	LDTriangle() {}
-	LDTriangle (vertex v0, vertex v1, vertex v2) {
-		setVertex (0, v0);
-		setVertex (1, v1);
-		setVertex (2, v2);
-	}
+	public:
+		LDTriangle() {}
+		LDTriangle (vertex v0, vertex v1, vertex v2)
+		{	setVertex (0, v0);
+			setVertex (1, v1);
+			setVertex (2, v2);
+		}
 };
 
 // =============================================================================
@@ -371,19 +412,20 @@ public:
 // Represents a single code-4 quadrilateral. v0, v1, v2 and v3 are the end points
 // of the quad, dColor is the color used for the quad.
 // =============================================================================
-class LDQuad : public LDObject {
-public:
-	LDOBJ (Quad)
+class LDQuad : public LDObject
+{	LDOBJ (Quad)
 	LDOBJ_NAME (quad)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDQuad() {}
+	public:
+		LDQuad() {}
+		LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vertex& v3);
 
-	// Split this quad into two triangles (note: heap-allocated)
-	List<LDTriangle*> splitToTriangles();
+		// Split this quad into two triangles (note: heap-allocated)
+		QList<LDTriangle*> splitToTriangles();
 };
 
 // =============================================================================
@@ -394,18 +436,18 @@ public:
 // with. Vertices are a part authoring tool and they should not appear in
 // finished parts.
 // =============================================================================
-class LDVertex : public LDObject {
-public:
-	LDOBJ (Vertex)
+class LDVertex : public LDObject
+{	LDOBJ (Vertex)
 	LDOBJ_NAME (vertex)
 	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	LDVertex() {}
+	public:
+		LDVertex() {}
 
-	vertex pos;
+		vertex pos;
 };
 
 // =============================================================================
@@ -414,8 +456,8 @@ public:
 // Overlay image meta, stored in the header of parts so as to preserve overlay
 // information.
 // =============================================================================
-class LDOverlay : public LDObject {
-	LDOBJ (Overlay)
+class LDOverlay : public LDObject
+{	LDOBJ (Overlay)
 	LDOBJ_NAME (overlay)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -431,7 +473,7 @@ class LDOverlay : public LDObject {
 
 // Other common LDraw stuff
 static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
-	NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
+				 NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
 static const short lores = 16;
 static const short hires = 48;
 

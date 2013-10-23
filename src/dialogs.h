@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef DIALOGS_H
-#define DIALOGS_H
+#ifndef LDFORGE_DIALOGS_H
+#define LDFORGE_DIALOGS_H
 
 #include <QDialog>
 #include "common.h"
@@ -40,99 +40,101 @@ class Ui_OverlayUI;
 class Ui_LDPathUI;
 class Ui_OpenProgressUI;
 
-class OverlayDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	virtual ~OverlayDialog();
-	
-	str         fpath() const;
-	ushort      ofsx() const;
-	ushort      ofsy() const;
-	double      lwidth() const;
-	double      lheight() const;
-	int         camera() const;
-	
-private:
-	Ui_OverlayUI* ui;
-	List<pair<QRadioButton*, int>> m_cameraArgs;
-	
-private slots:
-	void slot_fpath();
-	void slot_help();
-	void slot_dimensionsChanged();
-	void fillDefaults (int newcam);
+class OverlayDialog : public QDialog
+{	Q_OBJECT
+
+	public:
+		explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+		virtual ~OverlayDialog();
+
+		str         fpath() const;
+		int         ofsx() const;
+		int         ofsy() const;
+		double      lwidth() const;
+		double      lheight() const;
+		int         camera() const;
+
+	private:
+		Ui_OverlayUI* ui;
+		QList<pair<QRadioButton*, int>> m_cameraArgs;
+
+	private slots:
+		void slot_fpath();
+		void slot_help();
+		void slot_dimensionsChanged();
+		void fillDefaults (int newcam);
 };
 
 // =============================================================================
-class LDrawPathDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
-	virtual ~LDrawPathDialog();
-	str filename() const;
-	void setPath (str path);
-	
-private:
-	Q_DISABLE_COPY (LDrawPathDialog)
-	const bool m_validDefault;
-	Ui_LDPathUI* ui;
-	QPushButton* okButton();
-	QPushButton* cancelButton();
-	
-private slots:
-	void slot_findPath();
-	void slot_tryConfigure();
-	void slot_exit();
-	void slot_accept();
+class LDrawPathDialog : public QDialog
+{	Q_OBJECT
+
+	public:
+		explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
+		virtual ~LDrawPathDialog();
+		str filename() const;
+		void setPath (str path);
+
+	private:
+		Q_DISABLE_COPY (LDrawPathDialog)
+		const bool m_validDefault;
+		Ui_LDPathUI* ui;
+		QPushButton* okButton();
+		QPushButton* cancelButton();
+
+	private slots:
+		void slot_findPath();
+		void slot_tryConfigure();
+		void slot_exit();
+		void slot_accept();
 };
 
 // =============================================================================
-class OpenProgressDialog : public QDialog {
-	Q_OBJECT
-	READ_PROPERTY (ulong, progress, setProgress)
-	DECLARE_PROPERTY (ulong, numLines, setNumLines)
+class OpenProgressDialog : public QDialog
+{	Q_OBJECT
+	READ_PROPERTY (int, progress, setProgress)
+	DECLARE_PROPERTY (int, numLines, setNumLines)
 
-public:
-	explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	virtual ~OpenProgressDialog();
+	public:
+		explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+		virtual ~OpenProgressDialog();
 
-public slots:
-	void updateProgress (int progress);
+	public slots:
+		void updateProgress (int progress);
 
-private:
-	Ui_OpenProgressUI* ui;
+	private:
+		Ui_OpenProgressUI* ui;
 
-	void updateValues();
+		void updateValues();
 };
 
 // =============================================================================
-class ExtProgPathPrompt : public QDialog {
-	Q_OBJECT
-	
-public:
-	explicit ExtProgPathPrompt (str progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
-	virtual ~ExtProgPathPrompt();
-	str getPath() const;
-	
-public slots:
-	void findPath();
-	
-private:
-	Ui_ExtProgPath* ui;
+class ExtProgPathPrompt : public QDialog
+{		Q_OBJECT
+
+	public:
+		explicit ExtProgPathPrompt (str progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
+		virtual ~ExtProgPathPrompt();
+		str getPath() const;
+
+	public slots:
+		void findPath();
+
+	private:
+		Ui_ExtProgPath* ui;
 };
 
 // =============================================================================
-class AboutDialog : public QDialog {
-	Q_OBJECT
-	
-public:
-	AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
-	
-private slots:
-	void slot_mail();
+class AboutDialog : public QDialog
+{		Q_OBJECT
+
+	public:
+		AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
+
+	private slots:
+		void slot_mail();
 };
 
-#endif // DIALOGS_H
+void bombBox (const str& message);
+
+#endif // LDFORGE_DIALOGS_H

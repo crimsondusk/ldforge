@@ -66,6 +66,7 @@
 	<file>./icons/line.png</file>
 	<file>./icons/mail.png</file>
 	<file>./icons/make-borders.png</file>
+	<file>./icons/mode-circle.png</file>
 	<file>./icons/mode-draw.png</file>
 	<file>./icons/mode-select.png</file>
 	<file>./icons/move-x-neg.png</file>
@@ -98,7 +99,9 @@
 	<file>./icons/uncolorize.png</file>
 	<file>./icons/undo.png</file>
 	<file>./icons/vertex.png</file>
-	<file>./icons/visibility.png</file>
+	<file>./icons/visibility-hide.png</file>
+	<file>./icons/visibility-show.png</file>
+	<file>./icons/visibility-toggle.png</file>
 	<file>./icons/wireframe.png</file>
 	<file>./icons/ytruder.png</file>
 	<file>data/primitive-categories.cfg</file>

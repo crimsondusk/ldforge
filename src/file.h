@@ -29,10 +29,10 @@
 class History;
 class OpenProgressDialog;
 
-namespace LDPaths {
-	void initPaths();
+namespace LDPaths
+{	void initPaths();
 	bool tryConfigure (str path);
-	
+
 	str ldconfig();
 	str prims();
 	str parts();
@@ -47,55 +47,86 @@ namespace LDPaths {
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
+//
+// The default name is a placeholder, initially suggested name for a file. The
+// primitive generator uses this to give initial names to primitives.
 // =============================================================================
-class LDFile : public QObject {
-	Q_OBJECT
-	READ_PROPERTY (List<LDObject*>, objects, setObjects)
-	READ_PROPERTY (History, history, setHistory)
-	READ_PROPERTY (List<LDObject*>, vertices, setVertices)
-	PROPERTY (str, name, setName)
-	PROPERTY (bool, implicit, setImplicit)
-	PROPERTY (List<LDObject*>, cache, setCache)
-	PROPERTY (long, savePos, setSavePos)
-	DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
-	
-public:
-	typedef List<LDObject*>::it it;
-	typedef List<LDObject*>::c_it c_it;
-	
-	LDFile();
-	~LDFile();
-	
-	ulong addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
-	void addObjects (const List<LDObject*> objs);
-	void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
-	str getShortName();
-	bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
-	List<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
-	void insertObj (const ulong pos, LDObject* obj);
-	ulong numObjs() const;
-	LDObject* object (ulong pos) const;
-	LDObject* obj (ulong pos) const;
-	bool save (str path = "");                       // Saves this file to disk.
-	bool safeToClose();                              // Perform safety checks. Do this before closing any files!
-	void setObject (ulong idx, LDObject* obj);
+class LDFile : public QObject
+{	Q_OBJECT
+		READ_PROPERTY (QList<LDObject*>, objects, setObjects)
+		READ_PROPERTY (History, history, setHistory)
+		READ_PROPERTY (QList<LDObject*>, vertices, setVertices)
+		PROPERTY (str, name, setName)
+		PROPERTY (str, defaultName, setDefaultName)
+		PROPERTY (bool, implicit, setImplicit)
+		PROPERTY (QList<LDObject*>, cache, setCache)
+		PROPERTY (long, savePos, setSavePos)
+		DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
 
-	inline LDFile& operator<< (LDObject* obj) { addObject (obj); return *this; }
-	inline void openHistory() { m_history.open(); }
-	inline void closeHistory() { m_history.close(); }
-	inline void undo() { m_history.undo(); }
-	inline void redo() { m_history.redo(); }
-	inline void clearHistory() { m_history.clear(); }
-	inline void addToHistory (AbstractHistoryEntry* entry) { m_history << entry; }
-	
-	static void closeUnused();
-	static LDFile* current();
-	static void setCurrent (LDFile* f);
-	static void closeInitialFile();
-	static int countExplicitFiles();
-	
-private:
-	static LDFile* m_curfile;
+	public:
+		LDFile();
+		~LDFile();
+
+		int addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
+		void addObjects (const QList<LDObject*> objs);
+		void clearSelection();
+		void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
+		str getShortName();
+		const QList<LDObject*>& selection() const;
+		bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
+		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
+		void insertObj (int pos, LDObject* obj);
+		int numObjs() const;
+		LDObject* object (int pos) const;
+		LDObject* obj (int pos) const;
+		bool save (str path = "");                       // Saves this file to disk.
+		bool safeToClose();                              // Perform safety checks. Do this before closing any files!
+		void setObject (int idx, LDObject* obj);
+
+		inline LDFile& operator<< (LDObject* obj)
+		{	addObject (obj);
+			return *this;
+		}
+
+		inline void openHistory()
+		{	m_history.open();
+		}
+
+		inline void closeHistory()
+		{	m_history.close();
+		}
+
+		inline void undo()
+		{	m_history.undo();
+		}
+
+		inline void redo()
+		{	m_history.redo();
+		}
+
+		inline void clearHistory()
+		{	m_history.clear();
+		}
+
+		inline void addToHistory (AbstractHistoryEntry* entry)
+		{	m_history << entry;
+		}
+
+		static void closeUnused();
+		static LDFile* current();
+		static void setCurrent (LDFile* f);
+		static void closeInitialFile();
+		static int countExplicitFiles();
+
+	protected:
+		void addToSelection (LDObject* obj);
+		void removeFromSelection (LDObject* obj);
+		friend class LDObject;
+
+	private:
+		QList<LDObject*>   m_sel;
+
+		static LDFile*     m_curfile;
 };
 
 // Close all current loaded files and start off blank.
@@ -129,16 +160,20 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-List<LDObject*> loadFileContents (File* f, ulong* numWarnings, bool* ok = null);
+QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 
-extern List<LDFile*> g_loadedFiles;
+extern QList<LDFile*> g_loadedFiles;
+
+inline const QList<LDObject*>& selection()
+{	return LDFile::current()->selection();
+}
 
 void addRecentFile (str path);
 void loadLogoedStuds();
 str basename (str path);
 str dirname (str path);
 
-extern List<LDFile*> g_loadedFiles; // Vector of all currently opened files.
+extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -146,31 +181,32 @@ extern List<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // FileLoader
 //
 // Loads the given file and parses it to LDObjects using parseLine. It's a
-// separate class so as to be able to do the work in a separate thread.
+// separate class so as to be able to do the work progressively through the
+// event loop, allowing the program to maintain responsivity during loading.
 // =============================================================================
-class FileLoader : public QObject {
-	Q_OBJECT
-	READ_PROPERTY (List<LDObject*>, objs, setObjects)
-	READ_PROPERTY (bool, done, setDone)
-	READ_PROPERTY (ulong, progress, setProgress)
-	READ_PROPERTY (bool, aborted, setAborted)
-	PROPERTY (List<str>, lines, setLines)
-	PROPERTY (ulong*, warningsPointer, setWarningsPointer)
-	PROPERTY (bool, concurrent, setConcurrent)
-	
-public slots:
-	void start();
-	void abort();
-	
-private:
-	OpenProgressDialog* dlg;
-	
-private slots:
-	void work (int i);
-	
-signals:
-	void progressUpdate (int progress);
-	void workDone();
+class FileLoader : public QObject
+{		Q_OBJECT
+		READ_PROPERTY (QList<LDObject*>, objs, setObjects)
+		READ_PROPERTY (bool, done, setDone)
+		READ_PROPERTY (int, progress, setProgress)
+		READ_PROPERTY (bool, aborted, setAborted)
+		PROPERTY (QList<str>, lines, setLines)
+		PROPERTY (int*, warningsPointer, setWarningsPointer)
+		PROPERTY (bool, concurrent, setConcurrent)
+
+	public slots:
+		void start();
+		void abort();
+
+	private:
+		OpenProgressDialog* dlg;
+
+	private slots:
+		void work (int i);
+
+	signals:
+		void progressUpdate (int progress);
+		void workDone();
 };
 
 #endif // FILE_H

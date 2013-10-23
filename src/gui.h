@@ -41,7 +41,7 @@ class Ui_LDForgeUI;
 	bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
 	connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept())); \
 	connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject())); \
-
+ 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -58,106 +58,110 @@ class Ui_LDForgeUI;
 #define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
 
 // =============================================================================
-class LDQuickColor {
-	PROPERTY (LDColor*, color, setColor)
+class LDQuickColor
+{	PROPERTY (LDColor*, color, setColor)
 	PROPERTY (QToolButton*, toolButton, setToolButton)
-	
-public:
-	LDQuickColor (LDColor* color, QToolButton* toolButton);
-	bool isSeparator() const;
-	
-	static LDQuickColor getSeparator();
+
+	public:
+		LDQuickColor (LDColor* color, QToolButton* toolButton);
+		bool isSeparator() const;
+
+		static LDQuickColor getSeparator();
 };
 
 // =============================================================================
 // ObjectList
-// 
+//
 // Object list class for ForgeWindow
 // =============================================================================
-class ObjectList : public QListWidget {
-	Q_OBJECT
-	
-protected:
-	void contextMenuEvent (QContextMenuEvent* ev);
+class ObjectList : public QListWidget
+{	Q_OBJECT
+
+	protected:
+		void contextMenuEvent (QContextMenuEvent* ev);
 };
 
 // =============================================================================
 // ForgeWindow
-// 
+//
 // The one main GUI class. Hosts the renderer, object list, message log. Contains
 // slot_action, which is what all actions connect to. Manages menus and toolbars.
 // Large and in charge.
 // =============================================================================
-class ForgeWindow : public QMainWindow {
-	Q_OBJECT
-	
-public:
-	ForgeWindow();
-	void buildObjList();
-	void updateTitle();
-	void fullRefresh();
-	void refresh();
-	ulong getInsertionPoint();
-	void updateToolBars();
-	void updateRecentFilesMenu();
-	void updateSelection();
-	void updateGridToolBar();
-	void updateEditModeActions();
-	void updateFileList();
-	void updateFileListItem (LDFile* f);
-	bool isSelected (LDObject* obj);
-	short getSelectedColor();
-	LDObject::Type uniformSelectedType();
-	void scrollToSelection();
-	void spawnContextMenu (const QPoint pos);
-	void deleteObjVector (List< LDObject* > objs);
-	int deleteSelection();
-	void deleteByColor (const short int colnum);
-	void save (LDFile* f, bool saveAs);
-	GLRenderer* R() { return m_renderer; }
-	List<LDObject*>& sel() { return m_sel; }
-	void setQuickColors (List<LDQuickColor>& colors) { m_quickColors = colors; }
-	void setStatusBarText (str text);
-	void addMessage (str msg);
-	Ui_LDForgeUI* interface() const;
-	void refreshObjectList();
-	void beginAction(QAction* act);
-	void endAction();
-	
+class ForgeWindow : public QMainWindow
+{	Q_OBJECT
+
+	public:
+		ForgeWindow();
+		void buildObjList();
+		void updateTitle();
+		void fullRefresh();
+		void refresh();
+		int getInsertionPoint();
+		void updateToolBars();
+		void updateRecentFilesMenu();
+		void updateSelection();
+		void updateGridToolBar();
+		void updateEditModeActions();
+		void updateFileList();
+		void updateFileListItem (LDFile* f);
+		short getSelectedColor();
+		LDObject::Type uniformSelectedType();
+		void scrollToSelection();
+		void spawnContextMenu (const QPoint pos);
+		void deleteObjVector (QList< LDObject* > objs);
+		int deleteSelection();
+		void deleteByColor (const short int colnum);
+		void save (LDFile* f, bool saveAs);
+
+		inline GLRenderer* R()
+		{	return m_renderer;
+		}
+
+		inline void setQuickColors (QList<LDQuickColor>& colors)
+		{	m_quickColors = colors;
+		}
+
+		void setStatusBarText (str text);
+		void addMessage (str msg);
+		Ui_LDForgeUI* interface() const;
+		void refreshObjectList();
+		void beginAction (QAction* act);
+		void endAction();
+
 #define act(N) QAction* action##N();
 #include "actions.h"
-	
-public slots:
-	void primitiveLoaderStart (ulong max);
-	void primitiveLoaderUpdate (ulong prog);
-	void primitiveLoaderEnd();
-	void clearSelection();
-	void slot_action();
-	void changeCurrentFile();
-	
-protected:
-	void closeEvent (QCloseEvent* ev);
-	
-private:
-	GLRenderer* m_renderer;
-	QProgressBar* m_primLoaderBar;
-	QWidget* m_primLoaderWidget;
-	List<LDObject*> m_sel;
-	List<LDQuickColor> m_quickColors;
-	List<QToolButton*> m_colorButtons;
-	List<QAction*> m_recentFiles;
-	MessageManager* m_msglog;
-	Ui_LDForgeUI* ui;
-	
-	void invokeAction (QAction* act, void (*func)());
-	
 
-private slots:
-	void slot_selectionChanged();
-	void slot_recentFile();
-	void slot_quickColor();
-	void slot_lastSecondCleanup();
-	void slot_editObject (QListWidgetItem* listitem);
+	public slots:
+		void primitiveLoaderStart (int max);
+		void primitiveLoaderUpdate (int prog);
+		void primitiveLoaderEnd();
+		void slot_action();
+		void changeCurrentFile();
+
+	protected:
+		void closeEvent (QCloseEvent* ev);
+
+	private:
+		GLRenderer* m_renderer;
+		QProgressBar* m_primLoaderBar;
+		QWidget* m_primLoaderWidget;
+		QList<LDObject*> m_sel;
+		QList<LDQuickColor> m_quickColors;
+		QList<QToolButton*> m_colorButtons;
+		QList<QAction*> m_recentFiles;
+		MessageManager* m_msglog;
+		Ui_LDForgeUI* ui;
+
+		void invokeAction (QAction* act, void (*func)());
+
+
+	private slots:
+		void slot_selectionChanged();
+		void slot_recentFile();
+		void slot_quickColor();
+		void slot_lastSecondCleanup();
+		void slot_editObject (QListWidgetItem* listitem);
 };
 
 #define INVOKE_ACTION(N) actiondef_##N();
@@ -171,24 +175,24 @@ extern ForgeWindow* g_win;
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
 QPixmap getIcon (str iconName); // Get an icon from the resource dir
-List<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
+QList<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
 bool confirm (str title, str msg); // Generic confirm prompt
 bool confirm (str msg); // Generic confirm prompt
 void critical (str msg); // Generic error prompt
-QIcon makeColorIcon (LDColor* colinfo, const ushort size); // Makes an icon for the given color
+QIcon makeColorIcon (LDColor* colinfo, const int size); // Makes an icon for the given color
 void makeColorSelector (QComboBox* box); // Fills the given combo-box with color information
-QImage imageFromScreencap (uchar* data, ushort w, ushort h);
+QImage imageFromScreencap (uchar* data, int w, int h);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
 // =============================================================================
-template<class T> T radioSwitch (const T& defval, List<pair<QRadioButton*, T>> haystack) {
-	for (pair<QRadioButton*, const T&> i : haystack)
+template<class T> T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
+{	for (pair<QRadioButton*, const T&> i : haystack)
 		if (i.first->isChecked())
 			return i.second;
-	
+
 	return defval;
 }
 
@@ -197,10 +201,10 @@ template<class T> T radioSwitch (const T& defval, List<pair<QRadioButton*, T>> h
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
 // =============================================================================
-template<class T> void radioDefault (const T& expr, List<pair<QRadioButton*, T>> haystack) {
-	for (pair<QRadioButton*, const T&> i : haystack) {
-		if (i.second == expr) {
-			i.first->setChecked (true);
+template<class T> void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
+{	for (pair<QRadioButton*, const T&> i : haystack)
+	{	if (i.second == expr)
+		{	i.first->setChecked (true);
 			return;
 		}
 	}

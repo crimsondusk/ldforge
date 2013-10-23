@@ -20,12 +20,11 @@
 // This file is included one way or another in every source file of LDForge.
 // Stuff defined and included here is universally included.
 
-#ifndef COMMON_H
-#define COMMON_H
+#ifndef LDFORGE_COMMON_H
+#define LDFORGE_COMMON_H
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <stdint.h>
 #include <stdarg.h>
 #include <QString>
@@ -48,39 +47,29 @@
 // RC Number for BUILD_RC
 #define RC_NUMBER      0
 
-// Uncomment for portable build... maybe it's time to move to cmake?
-// #define PORTABLE
+// =============================================
+#ifdef DEBUG
+# undef RELEASE
+#endif // DEBUG
+
+#ifdef RELEASE
+# undef DEBUG
+#endif // RELEASE
 
 // =============================================
-#if (BUILD_ID != BUILD_INTERNAL)
-#define RELEASE
-#endif // BUILD_ID
-
 #define alias auto&
-#define elif else if
+#define elif(A) else if (A)
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
 
-#ifdef __GNUC__
-# define FORMAT_PRINTF(M,N) __attribute__ ((format (printf, M, N)))
-# define ATTR(N) __attribute__ ((N))
-#else
-# define FORMAT_PRINTF(M,N)
-# define ATTR(N)
-#endif // __GNUC__
-
 #ifdef WIN32
-#define DIRSLASH "\\"
-#define DIRSLASH_CHAR '\\'
+# define DIRSLASH "\\"
+# define DIRSLASH_CHAR '\\'
 #else // WIN32
-#define DIRSLASH "/"
-#define DIRSLASH_CHAR '/'
+# define DIRSLASH "/"
+# define DIRSLASH_CHAR '/'
 #endif // WIN32
-
-#ifdef RELEASE
-#define NDEBUG // remove asserts
-#endif // RELEASE
 
 #define PROP_NAME(GET) m_##GET
 
@@ -145,27 +134,24 @@ public slots: \
 #define FUNCNAME __func__
 #endif // __GNUC__
 
-// Replace assert with a version that shows a GUI dialog if possible
+// Replace assert with a version that shows a GUI dialog if possible.
+// On Windows I just can't get the actual error messages otherwise.
+void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
+
 #ifdef assert
-#undef assert
+# undef assert
 #endif // assert
 
-class QString;
-typedef QString str;
-
-void assertionFailure (const char* file, const ulong line, const char* funcname, const char* expr);
-void fatalError (const char* file, const ulong line, const char* funcname, str errmsg);
+#ifdef DEBUG
+# define assert(N) { ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N)); }
+#else
+# define assert(N) {}
+#endif // DEBUG
 
 // Version string identifier
-str versionString();
-str versionMoniker();
-str fullVersionString();
-
-#define assert(N) \
-	((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N))
-
-#define fatal(MSG) \
-	fatalError (__FILE__, __LINE__, FUNCNAME, MSG)
+QString versionString();
+QString versionMoniker();
+QString fullVersionString();
 
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
@@ -183,4 +169,4 @@ static const char* __func__ = ""; // Current function name
 typedef void FILE; // :|
 #endif // IN_IDE_PARSER
 
-#endif // COMMON_H
+#endif // LDFORGE_COMMON_H

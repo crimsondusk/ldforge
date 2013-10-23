@@ -31,146 +31,151 @@
 class AbstractHistoryEntry;
 
 // =============================================================================
-class History {
-	PROPERTY (long, pos, setPos)
+class History
+{	PROPERTY (long, pos, setPos)
 	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (bool, opened, setOpened)
-	
-public:
-	typedef List<AbstractHistoryEntry*> list;
-	
-	enum Type {
-		Del,
-		Edit,
-		Add,
-		Move,
-		Swap,
-	};
-	
-	History();
-	void undo();
-	void redo();
-	void clear();
-	void updateActions() const;
-	
-	void open();
-	void close();
-	void add (AbstractHistoryEntry* entry);
-	long size() const { return m_changesets.size(); }
-	
-	History& operator<< (AbstractHistoryEntry* entry) {
-		add (entry);
-		return *this;
-	}
-	
-	const list& changeset (long pos) const {
-		return m_changesets[pos];
-	}
-	
-private:
-	list m_currentArchive;
-	List<list> m_changesets;
+
+	public:
+		typedef QList<AbstractHistoryEntry*> Changeset;
+
+		enum Type
+		{	Del,
+			Edit,
+			Add,
+			Move,
+			Swap,
+		};
+
+		History();
+		void undo();
+		void redo();
+		void clear();
+		void updateActions() const;
+
+		void open();
+		void close();
+		void add (AbstractHistoryEntry* entry);
+
+		inline long size() const
+		{	return m_changesets.size();
+		}
+
+		inline History& operator<< (AbstractHistoryEntry* entry)
+		{	add (entry);
+			return *this;
+		}
+
+		inline const Changeset& changeset (long pos) const
+		{	return m_changesets[pos];
+		}
+
+	private:
+		Changeset m_currentArchive;
+		QList<Changeset> m_changesets;
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class AbstractHistoryEntry {
-	PROPERTY (History*, parent, setParent)
-	
-public:
-	virtual void undo() const {}
-	virtual void redo() const {}
-	virtual ~AbstractHistoryEntry() {}
-	virtual History::Type getType() const { return (History::Type) 0; }
+class AbstractHistoryEntry
+{		PROPERTY (History*, parent, setParent)
+
+	public:
+		virtual void undo() const {}
+		virtual void redo() const {}
+		virtual ~AbstractHistoryEntry() {}
+		virtual History::Type getType() const
+		{	return (History::Type) 0;
+		}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class DelHistory : public AbstractHistoryEntry {
-public:
-	enum Type {
-		Cut,	// was deleted with a cut operation
-		Other,	// was deleted witout specific reason
-	};
-	
-	PROPERTY (ulong, index, setIndex)
-	PROPERTY (str, code, setCode)
-	PROPERTY (DelHistory::Type, type, setType)
-	
-public:
-	IMPLEMENT_HISTORY_TYPE (Del)
-	
-	DelHistory (ulong idx, LDObject* obj, Type type = Other) :
-		m_index (idx),
-		m_code (obj->raw()),
-		m_type (type) {}
+class DelHistory : public AbstractHistoryEntry
+{	public:
+		enum Type
+		{	Cut,	// was deleted with a cut operation
+			Other,	// was deleted witout specific reason
+		};
+
+		PROPERTY (int, index, setIndex)
+		PROPERTY (str, code, setCode)
+		PROPERTY (DelHistory::Type, type, setType)
+
+	public:
+		IMPLEMENT_HISTORY_TYPE (Del)
+
+		DelHistory (int idx, LDObject* obj, Type type = Other) :
+				m_index (idx),
+				m_code (obj->raw()),
+				m_type (type) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class EditHistory : public AbstractHistoryEntry {
-	PROPERTY (ulong, index, setIndex)
+class EditHistory : public AbstractHistoryEntry
+{	PROPERTY (int, index, setIndex)
 	PROPERTY (str, oldCode, setOldCode)
 	PROPERTY (str, newCode, setNewCode)
-	
-public:
-	IMPLEMENT_HISTORY_TYPE (Edit)
-	
-	EditHistory (ulong idx, str oldCode, str newCode) :
-		m_index (idx),
-		m_oldCode (oldCode),
-		m_newCode (newCode) {}
+
+	public:
+		IMPLEMENT_HISTORY_TYPE (Edit)
+
+		EditHistory (int idx, str oldCode, str newCode) :
+				m_index (idx),
+				m_oldCode (oldCode),
+				m_newCode (newCode) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class AddHistory : public AbstractHistoryEntry {
-public:
-	enum Type {
-		Other,	// was "just added"
-		Paste,	// was added through a paste operation
-	};
-	
-	PROPERTY (ulong, index, setIndex)
-	PROPERTY (str, code, setCode)
-	PROPERTY (AddHistory::Type, type, setType)
-	
-public:
-	IMPLEMENT_HISTORY_TYPE (Add)
-	
-	AddHistory (ulong idx, LDObject* obj, Type type = Other) :
-		m_index (idx),
-		m_code (obj->raw()),
-		m_type (type) {}
+class AddHistory : public AbstractHistoryEntry
+{	public:
+		enum Type
+		{	Other,	// was "just added"
+			Paste,	// was added through a paste operation
+		};
+
+		PROPERTY (int, index, setIndex)
+		PROPERTY (str, code, setCode)
+		PROPERTY (AddHistory::Type, type, setType)
+
+	public:
+		IMPLEMENT_HISTORY_TYPE (Add)
+
+		AddHistory (int idx, LDObject* obj, Type type = Other) :
+				m_index (idx),
+				m_code (obj->raw()),
+				m_type (type) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-class MoveHistory : public AbstractHistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (Move)
-	
-	List<ulong> indices;
-	vertex dest;
-	
-	MoveHistory (List<ulong> indices, vertex dest) :
-		indices (indices), 
-		dest (dest) {}
+class MoveHistory : public AbstractHistoryEntry
+{	public:
+		IMPLEMENT_HISTORY_TYPE (Move)
+
+		QList<int> indices;
+		vertex dest;
+
+		MoveHistory (QList<int> indices, vertex dest) :
+				indices (indices),
+				dest (dest) {}
 };
 
-class SwapHistory : public AbstractHistoryEntry {
-public:
-	IMPLEMENT_HISTORY_TYPE (Swap)
-	ulong a, b;
-	
-	SwapHistory (ulong a, ulong b) :
-		a (a),
-		b (b) {}
+class SwapHistory : public AbstractHistoryEntry
+{	public:
+		IMPLEMENT_HISTORY_TYPE (Swap)
+		int a, b;
+
+		SwapHistory (int a, int b) :
+				a (a),
+				b (b) {}
 };
 
 #endif // HISTORY_H
