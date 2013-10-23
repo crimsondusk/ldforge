@@ -37,78 +37,78 @@ class LDFile;
  * these structs are the VAOs that get passed to the renderer.
  */
 
-class VertexCompiler {
-public:
-	enum ColorType {
-		Normal,
-		BFCFront,
-		BFCBack,
-		PickColor,
-	};
-	
-	struct CompiledTriangle {
-		vertex    verts[3];
-		uint8     numVerts;    // 2 if a line
-		QRgb      rgb;         // Color of this poly normally
-		QRgb      pickrgb;     // Color of this poly while picking
-		bool      isCondLine;  // Is this a conditional line?
-		LDObject* obj;         // Pointer to the object this poly represents
-	};
-	
-	struct Vertex {
-		float x, y, z;
-		uint32 color;
-		float pad[4];
-	};
-	
-	class Array {
-	public:
-		typedef int32 Size;
-		
-		Array();
-		Array (const Array& other) = delete;
-		~Array();
-		
-		void clear();
-		void merge (Array* other);
-		void resizeToFit (Size newSize);
-		const Size& allocatedSize() const;
-		Size writtenSize() const;
-		const Vertex* data() const;
-		void write (const VertexCompiler::Vertex& f);
-		Array& operator= (const Array& other) = delete;
-		
+class VertexCompiler
+{	public:
+		enum ColorType
+		{	Normal,
+			BFCFront,
+			BFCBack,
+			PickColor,
+		};
+
+		struct CompiledTriangle
+		{	vertex    verts[3];
+			uint8     numVerts;    // 2 if a line
+			QRgb      rgb;         // Color of this poly normally
+			QRgb      pickrgb;     // Color of this poly while picking
+			bool      isCondLine;  // Is this a conditional line?
+			LDObject* obj;         // Pointer to the object this poly represents
+		};
+
+		struct Vertex
+		{	float x, y, z;
+			uint32 color;
+			float pad[4];
+		};
+
+		class Array
+		{	public:
+				typedef int32 Size;
+
+				Array();
+				Array (const Array& other) = delete;
+				~Array();
+
+				void clear();
+				void merge (Array* other);
+				void resizeToFit (Size newSize);
+				const Size& allocatedSize() const;
+				Size writtenSize() const;
+				const Vertex* data() const;
+				void write (const VertexCompiler::Vertex& f);
+				Array& operator= (const Array& other) = delete;
+
+			private:
+				Vertex* m_data;
+				Vertex* m_ptr;
+				Size m_size;
+		};
+
+		VertexCompiler();
+		~VertexCompiler();
+		void setFile (LDFile* file);
+		void compileFile();
+		void forgetObject (LDObject* obj);
+		void initObject (LDObject* obj);
+		const Array* getMergedBuffer (GL::VAOType type);
+		QColor getObjectColor (LDObject* obj, ColorType list) const;
+		void needMerge();
+		void stageForCompilation (LDObject* obj);
+
+		static uint32 getColorRGB (QColor& color);
+
 	private:
-		Vertex* m_data;
-		Vertex* m_ptr;
-		Size m_size;
-	};
-	
-	VertexCompiler();
-	~VertexCompiler();
-	void setFile (LDFile* file);
-	void compileFile();
-	void forgetObject (LDObject* obj);
-	void initObject (LDObject* obj);
-	const Array* getMergedBuffer (GL::VAOType type);
-	QColor getObjectColor (LDObject* obj, ColorType list) const;
-	void needMerge();
-	void stageForCompilation (LDObject* obj);
-	
-	static uint32 getColorRGB (QColor& color);
-	
-private:
-	void compilePolygon (LDObject* drawobj, LDObject* trueobj, List<CompiledTriangle>& data);
-	void compileObject (LDObject* obj);
-	void compileSubObject (LDObject* obj, LDObject* topobj, List<CompiledTriangle>& data);
-	Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
-	
-	QMap<LDObject*, Array*> m_objArrays;
-	QMap<LDFile*, Array*> m_fileCache;
-	Array m_mainArrays[GL::NumArrays];
-	LDFile* m_file;
-	bool m_changed[GL::NumArrays];
-	List<LDObject*> m_staged;
+		void compilePolygon (LDObject* drawobj, LDObject* trueobj, QList<CompiledTriangle>& data);
+		void compileObject (LDObject* obj);
+		void compileSubObject (LDObject* obj, LDObject* topobj, QList<CompiledTriangle>& data);
+		Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
+
+		QMap<LDObject*, Array*> m_objArrays;
+		QMap<LDFile*, Array*> m_fileCache;
+		Array m_mainArrays[GL::NumArrays];
+		LDFile* m_file;
+		bool m_changed[GL::NumArrays];
+		QList<LDObject*> m_staged;
 };
 
 extern VertexCompiler g_vertexCompiler;

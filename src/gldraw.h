@@ -73,6 +73,16 @@ class GLRenderer : public QGLWidget
 		enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
 		enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
 
+		enum VAOType {
+			MainArray,
+			EdgeArray,
+			CondEdgeArray,
+			BFCArray,
+			PickArray,
+			EdgePickArray,
+			NumArrays
+		};
+
 		GLRenderer (QWidget* parent = null);
 		~GLRenderer();
 
@@ -88,7 +98,7 @@ class GLRenderer : public QGLWidget
 		double         depthValue() const;
 		void           drawGLScene();
 		void           endDraw (bool accept);
-		QColor         getMainColor();
+		static QColor  getMainColor();
 		LDGLOverlay&   getOverlay (int newcam);
 		void           hardRefresh();
 		void           initGLData();

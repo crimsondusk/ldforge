@@ -707,6 +707,12 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+QColor GLRenderer::getTextPen () const
+{	return m_darkbg ? Qt::white : Qt::black;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 void GLRenderer::compileAllObjects()
 {	g_vertexCompiler.compileFile();
 }
