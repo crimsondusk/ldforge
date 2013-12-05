@@ -35,7 +35,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 
-#include "common.h"
+#include "main.h"
 #include "gldraw.h"
 #include "gui.h"
 #include "file.h"

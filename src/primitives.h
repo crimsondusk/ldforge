@@ -19,7 +19,7 @@
 #ifndef LDFORGE_PRIMITIVES_H
 #define LDFORGE_PRIMITIVES_H
 
-#include "common.h"
+#include "main.h"
 #include "types.h"
 #include <QRegExp>
 #include <QDialog>

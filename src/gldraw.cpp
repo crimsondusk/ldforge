@@ -25,7 +25,7 @@
 #include <QTimer>
 #include <GL/glu.h>
 
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "file.h"
 #include "gldraw.h"

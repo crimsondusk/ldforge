@@ -22,7 +22,7 @@
 #include <QClipboard>
 
 #include "gui.h"
-#include "common.h"
+#include "main.h"
 #include "file.h"
 #include "colorSelectDialog.h"
 #include "misc.h"

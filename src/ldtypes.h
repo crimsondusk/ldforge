@@ -19,7 +19,7 @@
 #ifndef LDFORGE_LDTYPES_H
 #define LDFORGE_LDTYPES_H
 
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 #define LDOBJ(T) \

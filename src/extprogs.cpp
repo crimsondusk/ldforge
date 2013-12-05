@@ -24,7 +24,7 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "misc.h"
 #include "gui.h"

@@ -21,7 +21,7 @@
 #include <QTextStream>
 #include <QFile>
 #include <assert.h>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 #include "misc.h"
 #include "ldtypes.h"

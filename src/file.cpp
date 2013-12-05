@@ -25,7 +25,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QApplication>
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "file.h"
 #include "misc.h"

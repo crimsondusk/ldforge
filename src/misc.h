@@ -21,7 +21,7 @@
 
 #include <QVector>
 #include "config.h"
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 #define NUM_PRIMES 500

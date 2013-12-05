@@ -20,7 +20,7 @@
 #define LDFORGE_DOWNLOAD_H
 
 #include <QDialog>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class LDFile;

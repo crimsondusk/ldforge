@@ -21,7 +21,7 @@
 
 #include <QObject>
 #include <QDate>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class GLRenderer;

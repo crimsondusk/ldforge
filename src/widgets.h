@@ -22,7 +22,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <map>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class QIcon;

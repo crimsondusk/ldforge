@@ -20,7 +20,7 @@
 #define LDFORGE_GLDRAW_H
 
 #include <QGLWidget>
-#include "common.h"
+#include "main.h"
 #include "ldtypes.h"
 
 class MessageManager;

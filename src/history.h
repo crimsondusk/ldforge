@@ -19,7 +19,7 @@
 #ifndef LDFORGE_HISTORY_H
 #define LDFORGE_HISTORY_H
 
-#include "common.h"
+#include "main.h"
 #include "ldtypes.h"
 
 #define IMPLEMENT_HISTORY_TYPE(N) \

@@ -19,7 +19,7 @@
 #ifndef LDFORGE_FILE_H
 #define LDFORGE_FILE_H
 
-#include "common.h"
+#include "main.h"
 #include "ldtypes.h"
 #include "history.h"
 #include <QObject>

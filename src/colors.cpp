@@ -21,7 +21,7 @@
  *  TODO: g_LDColors should probably be a map.
  */
 
-#include "common.h"
+#include "main.h"
 #include "colors.h"
 #include "file.h"
 #include "misc.h"

@@ -19,7 +19,7 @@
 #include <math.h>
 #include <locale.h>
 #include <QColor>
-#include "common.h"
+#include "main.h"
 #include "misc.h"
 #include "gui.h"
 #include "dialogs.h"

@@ -20,7 +20,7 @@
 #define LDFORGE_COLORSELECTOR_H
 
 #include <QDialog>
-#include "common.h"
+#include "main.h"
 
 class LDColor;
 class Ui_ColorSelUI;

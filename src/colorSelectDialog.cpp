@@ -24,7 +24,7 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 
-#include "common.h"
+#include "main.h"
 #include "gui.h"
 #include "colorSelectDialog.h"
 #include "colors.h"

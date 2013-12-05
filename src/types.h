@@ -23,7 +23,7 @@
 #include <QObject>
 #include <QStringList>
 #include <deque>
-#include "common.h"
+#include "main.h"
 
 class LDObject;
 

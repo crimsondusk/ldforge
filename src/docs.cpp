@@ -20,7 +20,7 @@
 #include <QTextEdit>
 #include <QDialogButtonBox>
 #include <QBoxLayout>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 // =============================================================================

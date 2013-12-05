@@ -20,7 +20,7 @@
 #define LDFORGE_COLORS_H
 
 #include <QColor>
-#include "common.h"
+#include "main.h"
 
 #define MAX_COLORS 512
 

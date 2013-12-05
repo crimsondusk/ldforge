@@ -26,7 +26,7 @@
 #include <QDir>
 #include <QTextStream>
 #include <QSettings>
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "misc.h"
 #include "gui.h"

@@ -29,7 +29,7 @@
 #include <QDoubleSpinBox>
 #include <QLineEdit>
 #include <QCheckBox>
-#include "common.h"
+#include "main.h"
 #include "configDialog.h"
 #include "file.h"
 #include "config.h"
