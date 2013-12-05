@@ -59,8 +59,8 @@ class Ui_LDForgeUI;
 
 // =============================================================================
 class LDQuickColor
-{	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	NO_CB)
-	PROPERTY (public,	QToolButton*,	ToolButton,	NO_OPS,	NO_CB)
+{	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QToolButton*,	ToolButton,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		LDQuickColor (LDColor* color, QToolButton* toolButton);

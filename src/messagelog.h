@@ -39,7 +39,7 @@ class QTimer;
  */
 class MessageManager : public QObject
 {	Q_OBJECT
-	PROPERTY (public,	GLRenderer*,	Renderer,	NO_OPS,	NO_CB)
+	PROPERTY (public,	GLRenderer*,	Renderer,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		// Single line of the message log.

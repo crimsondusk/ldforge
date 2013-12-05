@@ -296,9 +296,9 @@ class File
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
 class LDBoundingBox
-{	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	NO_CB)
-	PROPERTY (private,	vertex,	Vertex0,	NO_OPS,		NO_CB)
-	PROPERTY (private,	vertex,	Vertex1,	NO_OPS,		NO_CB)
+{	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	vertex,	Vertex0,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	vertex,	Vertex1,	NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDBoundingBox();

@@ -104,7 +104,7 @@ str LDComment::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDSubfile::raw()
-{	str val = fmt ("1 %1 %2 ", getColor(), position());
+{	str val = fmt ("1 %1 %2 ", getColor(), getPosition());
 	val += getTransform().stringRep();
 	val += ' ';
 	val += getFileInfo()->getName();
@@ -299,7 +299,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, int pa
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			matrix newMatrix = transform * ref->getTransform();
-			vertex newpos = ref->position();
+			vertex newpos = ref->getPosition();
 
 			newpos.transform (transform, pos);
 			ref->setPosition (newpos);
@@ -324,7 +324,7 @@ QList<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
 for (LDObject * obj : objs)
 	{	// Set the parent now so we know what inlined this.
 		obj->setParent (this);
-		transformObject (obj, getTransform(), position(), getColor());
+		transformObject (obj, getTransform(), getPosition(), getColor());
 	}
 
 	return objs;
@@ -497,7 +497,7 @@ void LDVertex::move (vertex vect)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDSubfile::move (vertex vect)
-{	setPosition (position() + vect);
+{	setPosition (getPosition() + vect);
 }
 
 // =============================================================================
@@ -691,11 +691,7 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const int& LDObject::getColor() const
-{	return m_Color;
-}
-
-void LDObject::setColor (int val)
+void LDObject::setColor (const int& val)
 {	changeProperty (this, &m_Color, val);
 }
 

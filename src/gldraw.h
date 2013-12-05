@@ -63,11 +63,11 @@ struct LDFixedCameraInfo
 class GLRenderer : public QGLWidget
 {	Q_OBJECT
 
-	PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	NO_CB)
-	PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		NO_CB)
-	PROPERTY (private,	bool,					Picking,		BOOL_OPS,	NO_CB)
-	PROPERTY (public,		LDFile*,				File,			NO_OPS,		WITH_CB)
-	PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		WITH_CB)
+	PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	bool,					Picking,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		LDFile*,				File,			NO_OPS,		CUSTOM_WRITE)
+	PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
 
 	public:
 		enum Camera { Top, Front, Left, Bottom, Back, Right, Free };

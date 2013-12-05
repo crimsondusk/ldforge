@@ -321,7 +321,7 @@ void ForgeWindow::buildObjList()
 			case LDObject::Subfile:
 			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->getFileInfo()->getName(), ref->position().stringRep (true));
+				descr = fmt ("%1 %2, (", ref->getFileInfo()->getName(), ref->getPosition().stringRep (true));
 
 				for (int i = 0; i < 9; ++i)
 					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");

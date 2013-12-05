@@ -88,10 +88,9 @@ static const std::nullptr_t null = nullptr;
 # define DIRSLASH_CHAR '/'
 #endif // WIN32
 
-#define PROPERTY( ACCESS, TYPE, NAME, OPS, CALLBACK )			\
+#define PROPERTY( ACCESS, TYPE, NAME, OPS, WRITETYPE )		\
 	private:																	\
 		TYPE m_##NAME;														\
-		DEFINE_##CALLBACK( NAME )										\
 																				\
 	public:																	\
 		inline TYPE const& GET_READ_METHOD( NAME, OPS ) const	\
@@ -99,12 +98,8 @@ static const std::nullptr_t null = nullptr;
 		}																		\
 																				\
 	ACCESS:																	\
-		inline void set##NAME( TYPE const& NAME##_ )				\
-		{	m_##NAME = NAME##_;											\
-			TRIGGER_CALLBACK( NAME, CALLBACK )						\
-		}																		\
-																				\
-		DEFINE_PROPERTY_##OPS( TYPE, NAME, CALLBACK )
+		DEFINE_WRITE_METHOD_##WRITETYPE( TYPE, NAME )			\
+		DEFINE_PROPERTY_##OPS( TYPE, NAME )
 
 #define GET_READ_METHOD( NAME, OPS ) \
 	GET_READ_METHOD_##OPS( NAME )
@@ -114,50 +109,51 @@ static const std::nullptr_t null = nullptr;
 #define GET_READ_METHOD_STR_OPS( NAME ) get##NAME()
 #define GET_READ_METHOD_NUM_OPS( NAME ) get##NAME()
 
+#define DEFINE_WRITE_METHOD_STOCK_WRITE( TYPE, NAME )	\
+		inline void set##NAME( TYPE const& NAME##_ )		\
+		{	m_##NAME = NAME##_;									\
+		}
+
+#define DEFINE_WRITE_METHOD_CUSTOM_WRITE( TYPE, NAME )	\
+		void set##NAME( TYPE const& NAME##_ );					\
+
 #define DEFINE_WITH_CB( NAME ) void NAME##Changed();
 #define DEFINE_NO_CB( NAME )
 
-#define DEFINE_PROPERTY_NO_OPS( TYPE, NAME, CALLBACK  )
+#define DEFINE_PROPERTY_NO_OPS( TYPE, NAME )
 
-#define DEFINE_PROPERTY_STR_OPS( TYPE, NAME, CALLBACK )	\
-		void append##NAME( TYPE a )								\
-		{	m_##NAME.append( a );									\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
-		}																	\
-																			\
-		void prepend##NAME( TYPE a )								\
-		{	m_##NAME.prepend( a );									\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
-		}																	\
-																			\
-		void replaceIn##NAME( TYPE a, TYPE b )					\
-		{	m_##NAME.replace( a, b );								\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+#define DEFINE_PROPERTY_STR_OPS( TYPE, NAME )	\
+		void append##NAME( TYPE a )					\
+		{	TYPE tmp( m_##NAME );						\
+			tmp.append( a );								\
+			set##NAME( tmp );								\
+		}														\
+																\
+		void prepend##NAME( TYPE a )					\
+		{	TYPE tmp( m_##NAME );						\
+			tmp.prepend( a );								\
+			set##NAME( tmp );								\
+		}														\
+																\
+		void replaceIn##NAME( TYPE a, TYPE b )		\
+		{	TYPE tmp( m_##NAME );						\
+			tmp.replace( a, b );							\
+			set##NAME( tmp );								\
 		}
 
-#define DEFINE_PROPERTY_NUM_OPS( TYPE, NAME, CALLBACK )	\
-		inline void increase##NAME( TYPE a = 1 )				\
-		{	m_##NAME += a;												\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
-		}																	\
-																			\
-		inline void decrease##NAME( TYPE a = 1 )				\
-		{	m_##NAME -= a;												\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+#define DEFINE_PROPERTY_NUM_OPS( TYPE, NAME )	\
+		inline void increase##NAME( TYPE a = 1 )	\
+		{	set##NAME( m_##NAME + a );					\
+		}														\
+																\
+		inline void decrease##NAME( TYPE a = 1 )	\
+		{	set##NAME( m_##NAME - a );					\
 		}
 
-#define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME, CALLBACK )	\
-		inline void toggle##NAME()									\
-		{	m_##NAME = !m_##NAME;									\
-			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+#define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME )	\
+		inline void toggle##NAME()						\
+		{	set##NAME( !m_##NAME );						\
 		}
-
-#define TRIGGER_CALLBACK( NAME, CALLBACK ) \
-	TRIGGER_CALLBACK_##CALLBACK( NAME );
-
-#define TRIGGER_CALLBACK_NO_CB( NAME )
-#define TRIGGER_CALLBACK_WITH_CB( NAME ) \
-	NAME##Changed();
 
 #ifdef null
 #undef null

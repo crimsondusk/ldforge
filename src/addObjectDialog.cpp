@@ -39,7 +39,7 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 class SubfileListItem : public QTreeWidgetItem
-{	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	NO_CB)
+{	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	STOCK_WRITE)
 
 	public:
 		SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
@@ -221,7 +221,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 		if (mo)
 		{	for (const Axis ax : g_Axes)
-				dsb_coords[ax]->setValue (mo->position() [ax]);
+				dsb_coords[ax]->setValue (mo->getPosition() [ax]);
 
 			defaultMatrix = mo->getTransform();
 		}

@@ -53,15 +53,15 @@ namespace LDPaths
 // =============================================================================
 class LDFile : public QObject
 {	Q_OBJECT
-	PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		NO_CB)
-	PROPERTY (private,	History*,			History,			NO_OPS,		NO_CB)
-	PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		NO_CB)
-	PROPERTY (public,		str,					Name,				STR_OPS,		NO_CB)
-	PROPERTY (public,		str,					DefaultName,	STR_OPS,		NO_CB)
-	PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	NO_CB)
-	PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		NO_CB)
-	PROPERTY (public,		long,					SavePosition,	NUM_OPS,		NO_CB)
-	PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		NO_CB)
+	PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	History*,			History,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		str,					Name,				STR_OPS,		STOCK_WRITE)
+	PROPERTY (public,		str,					DefaultName,	STR_OPS,		STOCK_WRITE)
+	PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
+	PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDFile();
@@ -181,13 +181,13 @@ extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // =============================================================================
 class FileLoader : public QObject
 {	Q_OBJECT
-	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		NO_CB)
-	PROPERTY (private,	bool,					Done,				BOOL_OPS,	NO_CB)
-	PROPERTY (private,	int,					Progress,		NUM_OPS,		NO_CB)
-	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	NO_CB)
-	PROPERTY (public,		QStringList,		Lines,			NO_OPS,		NO_CB)
-	PROPERTY (public,		int*,					Warnings,		NO_OPS,		NO_CB)
-	PROPERTY (public,		bool,					OnForeground,	BOOL_OPS,	NO_CB)
+	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,					Progress,		NUM_OPS,		STOCK_WRITE)
+	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		QStringList,		Lines,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		int*,					Warnings,		NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		bool,					OnForeground,	BOOL_OPS,	STOCK_WRITE)
 
 	public slots:
 		void start();

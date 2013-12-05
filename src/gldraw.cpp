@@ -1290,8 +1290,10 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void GLRenderer::EditModeChanged()
-{	switch (getEditMode())
+void GLRenderer::setEditMode (EditMode const& a)
+{	m_EditMode = a;
+
+	switch (a)
 	{	case Select:
 		{	unsetCursor();
 			setContextMenuPolicy (Qt::DefaultContextMenu);
@@ -1326,8 +1328,10 @@ void GLRenderer::EditModeChanged()
 	update();
 }
 
-void GLRenderer::FileChanged()
-{	if (getFile() != null)
+void GLRenderer::setFile (LDFile* const& a)
+{	m_File = a;
+
+	if (a != null)
 		initOverlaysFromObjects();
 }
 

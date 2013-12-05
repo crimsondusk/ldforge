@@ -32,9 +32,9 @@ class AbstractHistoryEntry;
 
 // =============================================================================
 class History
-{	PROPERTY (private,	long,		Position,	NUM_OPS,		NO_CB)
-	PROPERTY (public,		LDFile*,	File,			NO_OPS,		NO_CB)
-	PROPERTY (public,		bool,		Ignoring,	BOOL_OPS,	NO_CB)
+{	PROPERTY (private,	long,		Position,	NUM_OPS,		STOCK_WRITE)
+	PROPERTY (public,		LDFile*,	File,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		bool,		Ignoring,	BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
@@ -78,7 +78,7 @@ class History
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AbstractHistoryEntry
-{	PROPERTY (public,	History*,	Parent,	NO_OPS,	NO_CB)
+{	PROPERTY (public,	History*,	Parent,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		virtual ~AbstractHistoryEntry() {}
@@ -93,8 +93,8 @@ class AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class DelHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int,	Index,	NO_OPS,	NO_CB)
-	PROPERTY (private,	str,	Code,		NO_OPS,	NO_CB)
+{	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
@@ -108,9 +108,9 @@ class DelHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int, Index,		NO_OPS,	NO_CB)
-	PROPERTY (private,	str, OldCode,	NO_OPS,	NO_CB)
-	PROPERTY (private,	str, NewCode,	NO_OPS,	NO_CB)
+{	PROPERTY (private,	int, Index,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	str, OldCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	str, NewCode,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
@@ -125,8 +125,8 @@ class EditHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AddHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int,	Index,	NO_OPS,	NO_CB)
-	PROPERTY (private,	str,	Code,		NO_OPS,	NO_CB)
+{	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)

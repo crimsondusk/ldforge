@@ -457,7 +457,7 @@ static void doRotate (const int l, const int m, const int n)
 		{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
-			vertex v = mo->position();
+			vertex v = mo->getPosition();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
 

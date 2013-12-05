@@ -250,8 +250,9 @@ OpenProgressDialog::~OpenProgressDialog()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void OpenProgressDialog::NumLinesChanged()
-{	ui->progressBar->setRange (0, getNumLines());
+void OpenProgressDialog::setNumLines (int const& a)
+{	m_NumLines = a;
+	ui->progressBar->setRange (0, getNumLines());
 	updateValues();
 }
 

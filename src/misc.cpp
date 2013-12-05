@@ -188,21 +188,23 @@ vertex rotPoint (const QList<LDObject*>& objs)
 
 	switch (edit_rotpoint)
 	{	case ObjectOrigin:
-
-			// Calculate center vertex
-		for (LDObject * obj : objs)
+		{	// Calculate center vertex
+			for (LDObject* obj : objs)
 				if (obj->hasMatrix())
-					box << dynamic_cast<LDMatrixObject*> (obj)->position();
+					box << dynamic_cast<LDMatrixObject*> (obj)->getPosition();
 				else
 					box << obj;
 
 			return box.center();
+		}
 
 		case WorldOrigin:
-			return g_origin;
+		{	return g_origin;
+		}
 
 		case CustomPoint:
-			return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+		{	return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+		}
 	}
 
 	return vertex();
