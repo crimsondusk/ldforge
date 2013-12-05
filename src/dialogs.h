@@ -92,8 +92,8 @@ class LDrawPathDialog : public QDialog
 // =============================================================================
 class OpenProgressDialog : public QDialog
 {	Q_OBJECT
-	READ_PROPERTY (int, progress, setProgress)
-	DECLARE_PROPERTY (int, numLines, setNumLines)
+	PROPERTY (public,	int, Progress,	NUM_OPS,	NO_CB)
+	PROPERTY (public,	int, NumLines,	NUM_OPS,	WITH_CB)
 
 	public:
 		explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);

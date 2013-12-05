@@ -38,8 +38,8 @@ class QTimer;
  * repainting.
  */
 class MessageManager : public QObject
-{		Q_OBJECT
-		PROPERTY (GLRenderer*, renderer, setRenderer)
+{	Q_OBJECT
+	PROPERTY (public,	GLRenderer*,	Renderer,	NO_OPS,	NO_CB)
 
 	public:
 		// Single line of the message log.

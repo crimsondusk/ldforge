@@ -190,8 +190,8 @@ void writeSelection (str fname)
 void writeColorGroup (const int colnum, str fname)
 {	QList<LDObject*> objects;
 
-	for (LDObject* obj : LDFile::current()->objects())
-	{	if (obj->isColored() == false || obj->color() != colnum)
+	for (LDObject* obj : LDFile::current()->getObjects())
+	{	if (obj->isColored() == false || obj->getColor() != colnum)
 			continue;
 
 		objects << obj;
@@ -404,8 +404,8 @@ DEFINE_ACTION (Intersector, 0)
 	Ui::IntersectorUI ui;
 	ui.setupUi (dlg);
 
-	makeColorSelector (ui.cmb_incol);
-	makeColorSelector (ui.cmb_cutcol);
+	makeColorComboBox (ui.cmb_incol);
+	makeColorComboBox (ui.cmb_cutcol);
 	ui.cb_repeat->setWhatsThis ("If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
 								" cutter group with the input group. Both groups are cut by the intersection.");
 	ui.cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
@@ -494,8 +494,8 @@ DEFINE_ACTION (Coverer, 0)
 	QDialog* dlg = new QDialog;
 	Ui::CovererUI ui;
 	ui.setupUi (dlg);
-	makeColorSelector (ui.cmb_col1);
-	makeColorSelector (ui.cmb_col2);
+	makeColorComboBox (ui.cmb_col1);
+	makeColorComboBox (ui.cmb_col2);
 
 	int in1Col, in2Col;
 
@@ -551,8 +551,8 @@ DEFINE_ACTION (Isecalc, 0)
 	QDialog* dlg = new QDialog;
 	ui.setupUi (dlg);
 
-	makeColorSelector (ui.cmb_col1);
-	makeColorSelector (ui.cmb_col2);
+	makeColorComboBox (ui.cmb_col1);
+	makeColorComboBox (ui.cmb_col2);
 
 	int in1Col, in2Col;
 

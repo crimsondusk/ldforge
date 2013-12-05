@@ -111,7 +111,7 @@ void ColorSelector::drawScene()
 		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 
-		if (sel() && i == sel()->index)
+		if (getSelection() && i == getSelection()->index)
 		{	auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
 			curspic->setPos (x, y);
 		}
@@ -133,12 +133,12 @@ int ColorSelector::viewportWidth() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ColorSelector::drawColorInfo()
-{	if (!sel())
+{	if (!getSelection())
 	{	ui->colorLabel->setText ("---");
 		return;
 	}
 
-	ui->colorLabel->setText (fmt ("%1 - %2", sel()->index, sel()->name));
+	ui->colorLabel->setText (fmt ("%1 - %2", getSelection()->index, getSelection()->name));
 }
 
 // =============================================================================
@@ -150,8 +150,8 @@ void ColorSelector::resizeEvent (QResizeEvent* ev)
 	if (m_firstResize)
 	{	int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
 
-		if (sel() && sel()->index >= visibleColors)
-		{	int y = (sel()->index / g_numColumns) * g_squareSize;
+		if (getSelection() && getSelection()->index >= visibleColors)
+		{	int y = (getSelection()->index / g_numColumns) * g_squareSize;
 			ui->viewport->verticalScrollBar()->setValue (y);
 		}
 
@@ -186,8 +186,8 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 bool ColorSelector::selectColor (int& val, int defval, QWidget* parent)
 {	ColorSelector dlg (defval, parent);
 
-	if (dlg.exec() && dlg.sel() != null)
-	{	val = dlg.sel()->index;
+	if (dlg.exec() && dlg.getSelection() != null)
+	{	val = dlg.getSelection()->index;
 		return true;
 	}
 

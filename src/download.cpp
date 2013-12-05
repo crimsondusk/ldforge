@@ -135,7 +135,6 @@ void PartDownloader::modifyDestination (str& dest) const
 	{	dest.remove (0, 2);
 		dest.prepend ("parts/s/");
 	} elif (dest.left (3) == "48\\" || dest.left (3) == "48/")
-
 	{	dest.remove (0, 3);
 		dest.prepend ("p/48/");
 	}
@@ -187,14 +186,12 @@ void PartDownloader::sourceChanged (int i)
 void PartDownloader::buttonClicked (QAbstractButton* btn)
 {	if (btn == getButton (Close))
 	{	reject();
-	}
-	elif (btn == getButton (Abort))
+	} elif (btn == getButton (Abort))
 	{	setAborted (true);
 
 		for (PartDownloadRequest* req : m_requests)
 			req->abort();
-	}
-	elif (btn == getButton (Download))
+	} elif (btn == getButton (Download))
 	{	str dest = ui->fname->text();
 		setPrimaryFile (null);
 		setAborted (false);
@@ -244,7 +241,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloader::checkIfFinished()
-{	bool failed = aborted();
+{	bool failed = isAborted();
 
 	// If there is some download still working, we're not finished.
 	for (PartDownloadRequest* req : m_requests)
@@ -261,8 +258,8 @@ void PartDownloader::checkIfFinished()
 	m_requests.clear();
 
 	// Update everything now
-	if (primaryFile())
-	{	LDFile::setCurrent (primaryFile());
+	if (getPrimaryFile())
+	{	LDFile::setCurrent (getPrimaryFile());
 		reloadAllSubfiles();
 		g_win->doFullRefresh();
 		g_win->R()->resetAngles();
@@ -349,11 +346,11 @@ void PartDownloadRequest::updateToTable()
 	switch (m_state)
 	{	case Requesting:
 		case Downloading:
-		{	prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
+		{	prog = qobject_cast<QProgressBar*> (table->cellWidget (getTableRow(), progcol));
 
 			if (!prog)
 			{	prog = new QProgressBar;
-				table->setCellWidget (tableRow(), progcol, prog);
+				table->setCellWidget (getTableRow(), progcol, prog);
 			}
 
 			prog->setRange (0, m_bytesTotal);
@@ -365,15 +362,15 @@ void PartDownloadRequest::updateToTable()
 		{	QLabel* lb = new QLabel ((m_state == Finished) ? "<b><span style=\"color: #080\">FINISHED</span></b>" :
 									  "<b><span style=\"color: #800\">FAILED</span></b>");
 			lb->setAlignment (Qt::AlignCenter);
-			table->setCellWidget (tableRow(), progcol, lb);
+			table->setCellWidget (getTableRow(), progcol, lb);
 		} break;
 	}
 
-	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), labelcol));
+	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (getTableRow(), labelcol));
 
 	if (m_firstUpdate)
 	{	lb = new QLabel (fmt ("<b>%1</b>", m_dest), table);
-		table->setCellWidget (tableRow(), labelcol, lb);
+		table->setCellWidget (getTableRow(), labelcol, lb);
 	}
 
 	// Make sure that the cell is big enough to contain the label
@@ -387,7 +384,7 @@ void PartDownloadRequest::updateToTable()
 // -----------------------------------------------------------------------------
 void PartDownloadRequest::downloadFinished()
 {	if (m_reply->error() != QNetworkReply::NoError)
-	{	if (m_primary && !m_prompt->aborted())
+	{	if (m_primary && !m_prompt->isAborted())
 			critical (m_reply->errorString());
 
 		m_state = Failed;
@@ -423,13 +420,13 @@ void PartDownloadRequest::downloadFinished()
 	// from unknown file references, try resolve that by downloading the reference.
 	// This is why downloading a part may end up downloading multiple files, as
 	// it resolves dependencies.
-	for (LDObject* obj : f->objects())
+	for (LDObject* obj : f->getObjects())
 	{	LDError* err = dynamic_cast<LDError*> (obj);
 
-		if (!err || err->fileRef().isEmpty())
+		if (!err || err->getFileReferenced().isEmpty())
 			continue;
 
-		str dest = err->fileRef();
+		str dest = err->getFileReferenced();
 		m_prompt->modifyDestination (dest);
 		m_prompt->downloadFile (dest, str (PartDownloader::k_UnofficialURL) + dest, false);
 	}

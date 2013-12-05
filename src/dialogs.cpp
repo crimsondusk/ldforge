@@ -239,7 +239,7 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 	ui->setupUi (this);
 	ui->progressText->setText ("Parsing...");
 	setNumLines (0);
-	m_progress = 0;
+	m_Progress = 0;
 }
 
 // =============================================================================
@@ -250,29 +250,22 @@ OpenProgressDialog::~OpenProgressDialog()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (int, OpenProgressDialog::numLines)
-{	return m_numLines;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-SET_ACCESSOR (int, OpenProgressDialog::setNumLines)
-{	m_numLines = val;
-	ui->progressBar->setRange (0, numLines());
+void OpenProgressDialog::NumLinesChanged()
+{	ui->progressBar->setRange (0, getNumLines());
 	updateValues();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OpenProgressDialog::updateValues()
-{	ui->progressText->setText (fmt ("Parsing... %1 / %2", progress(), numLines()));
-	ui->progressBar->setValue (progress());
+{	ui->progressText->setText (fmt ("Parsing... %1 / %2", getProgress(), getNumLines()));
+	ui->progressBar->setValue (getProgress());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OpenProgressDialog::updateProgress (int progress)
-{	m_progress = progress;
+{	setProgress (progress);
 	updateValues();
 }
 

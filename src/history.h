@@ -23,7 +23,7 @@
 #include "ldtypes.h"
 
 #define IMPLEMENT_HISTORY_TYPE(N) \
-	virtual ~N##History(); \
+	virtual ~N##History(){} \
 	virtual void undo() const override; \
 	virtual void redo() const override; \
 	virtual History::Type getType() const override { return History::N; }
@@ -32,9 +32,9 @@ class AbstractHistoryEntry;
 
 // =============================================================================
 class History
-{	PROPERTY (long, pos, setPos)
-	PROPERTY (LDFile*, file, setFile)
-	READ_PROPERTY (bool, opened, setOpened)
+{	PROPERTY (private,	long,		Position,	NUM_OPS,		NO_CB)
+	PROPERTY (public,		LDFile*,	File,			NO_OPS,		NO_CB)
+	PROPERTY (public,		bool,		Ignoring,	BOOL_OPS,	NO_CB)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
@@ -53,8 +53,7 @@ class History
 		void clear();
 		void updateActions() const;
 
-		void open();
-		void close();
+		void addStep();
 		void add (AbstractHistoryEntry* entry);
 
 		inline long getSize() const
@@ -71,7 +70,7 @@ class History
 		}
 
 	private:
-		Changeset m_currentArchive;
+		Changeset m_currentChangeset;
 		QList<Changeset> m_changesets;
 };
 
@@ -79,12 +78,12 @@ class History
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AbstractHistoryEntry
-{		PROPERTY (History*, parent, setParent)
+{	PROPERTY (public,	History*,	Parent,	NO_OPS,	NO_CB)
 
 	public:
+		virtual ~AbstractHistoryEntry() {}
 		virtual void undo() const {}
 		virtual void redo() const {}
-		virtual ~AbstractHistoryEntry() {}
 		virtual History::Type getType() const
 		{	return (History::Type) 0;
 		}
@@ -94,63 +93,47 @@ class AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class DelHistory : public AbstractHistoryEntry
-{	public:
-		enum Type
-		{	Cut,	// was deleted with a cut operation
-			Other,	// was deleted witout specific reason
-		};
-
-		PROPERTY (int, index, setIndex)
-		PROPERTY (str, code, setCode)
-		PROPERTY (DelHistory::Type, type, setType)
+{	PROPERTY (private,	int,	Index,	NO_OPS,	NO_CB)
+	PROPERTY (private,	str,	Code,		NO_OPS,	NO_CB)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
 
-		DelHistory (int idx, LDObject* obj, Type type = Other) :
-				m_index (idx),
-				m_code (obj->raw()),
-				m_type (type) {}
+		DelHistory (int idx, LDObject* obj) :
+				m_Index (idx),
+				m_Code (obj->raw()) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry
-{	PROPERTY (int, index, setIndex)
-	PROPERTY (str, oldCode, setOldCode)
-	PROPERTY (str, newCode, setNewCode)
+{	PROPERTY (private,	int, Index,		NO_OPS,	NO_CB)
+	PROPERTY (private,	str, OldCode,	NO_OPS,	NO_CB)
+	PROPERTY (private,	str, NewCode,	NO_OPS,	NO_CB)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
 
 		EditHistory (int idx, str oldCode, str newCode) :
-				m_index (idx),
-				m_oldCode (oldCode),
-				m_newCode (newCode) {}
+				m_Index (idx),
+				m_OldCode (oldCode),
+				m_NewCode (newCode) {}
 };
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AddHistory : public AbstractHistoryEntry
-{	public:
-		enum Type
-		{	Other,	// was "just added"
-			Paste,	// was added through a paste operation
-		};
-
-		PROPERTY (int, index, setIndex)
-		PROPERTY (str, code, setCode)
-		PROPERTY (AddHistory::Type, type, setType)
+{	PROPERTY (private,	int,	Index,	NO_OPS,	NO_CB)
+	PROPERTY (private,	str,	Code,		NO_OPS,	NO_CB)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)
 
-		AddHistory (int idx, LDObject* obj, Type type = Other) :
-				m_index (idx),
-				m_code (obj->raw()),
-				m_type (type) {}
+		AddHistory (int idx, LDObject* obj) :
+				m_Index (idx),
+				m_Code (obj->raw()) {}
 };
 
 // =============================================================================
@@ -174,11 +157,13 @@ class MoveHistory : public AbstractHistoryEntry
 class SwapHistory : public AbstractHistoryEntry
 {	public:
 		IMPLEMENT_HISTORY_TYPE (Swap)
-		int a, b;
 
 		SwapHistory (int a, int b) :
 				a (a),
 				b (b) {}
+
+	private:
+		int a, b;
 };
 
 #endif // LDFORGE_HISTORY_H

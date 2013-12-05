@@ -63,12 +63,11 @@ class LDSharedVertex;
 // sub-classes based on this enumerator.
 // =============================================================================
 class LDObject
-{	PROPERTY (bool, hidden, setHidden)
-	PROPERTY (bool, selected, setSelected)
-	PROPERTY (LDObject*, parent, setParent)
-	PROPERTY (LDFile*, file, setFile)
-	READ_PROPERTY (int32, id, setID)
-	DECLARE_PROPERTY (int, color, setColor)
+{	PROPERTY (public,		bool,			Hidden,		BOOL_OPS,	NO_CB)
+	PROPERTY (public,		bool,			Selected,	BOOL_OPS,	NO_CB)
+	PROPERTY (public,		LDObject*,	Parent,		NO_OPS,		NO_CB)
+	PROPERTY (public,		LDFile*,		File,			NO_OPS,		NO_CB)
+	PROPERTY	(private,	int32,		ID,			NUM_OPS,		NO_CB)
 
 	public:
 		// Object type codes. Codes are sorted in order of significance.
@@ -95,6 +94,7 @@ class LDObject
 		{	return 0;   // Creates a new LDObject identical to this one.
 		}
 		long getIndex() const;                      // Index (i.e. line number) of this object
+		const int& getColor() const;						// Color of this object
 		virtual LDObject::Type getType() const;     // Type enumerator of this object
 		const vertex& getVertex (int i) const;      // Get a vertex by index
 		virtual str getTypeName() const;            // Type name of this object
@@ -108,6 +108,7 @@ class LDObject
 		virtual str raw() {	return ""; }            // This object as LDraw code
 		void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
 		void select();
+		void setColor (int val);
 		void setVertex (int i, const vertex& vert); // Set a vertex to the given value
 		void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
 		void swap (LDObject* other);                // Swap this object with another.
@@ -133,7 +134,8 @@ class LDObject
 		friend class GLRenderer;
 
 	private:
-		LDSharedVertex* m_coords[4];
+		LDSharedVertex*	m_coords[4];
+		int					m_Color;
 };
 
 // =============================================================================
@@ -180,19 +182,20 @@ class LDSharedVertex
 // this class distinct in case I get new extension ideas. :)
 // =============================================================================
 class LDMatrixObject
-{	DECLARE_PROPERTY (matrix, transform, setTransform)
-	PROPERTY (LDObject*, linkPointer, setLinkPointer)
+{	PROPERTY (public,	LDObject*,	LinkPointer,	NO_OPS,	NO_CB)
 
 	public:
 		LDMatrixObject() {}
 		LDMatrixObject (const matrix& transform, const vertex& pos) :
-			m_transform (transform), m_position (LDSharedVertex::getSharedVertex (pos)) {}
+			m_Transform (transform),
+			m_position (LDSharedVertex::getSharedVertex (pos)) {}
 
 		const vertex& position() const
 		{	return m_position->data();
 		}
 
 		void setPosition (const vertex& a);
+		void setTransform (const matrix& val);
 
 		const double& setCoordinate (const Axis ax, double value)
 		{	vertex v = position();
@@ -202,8 +205,13 @@ class LDMatrixObject
 			return position() [ax];
 		}
 
+		inline const matrix& getTransform() const
+		{	return m_Transform;
+		}
+
 	private:
-		LDSharedVertex* m_position;
+		matrix				m_Transform;
+		LDSharedVertex*	m_position;
 };
 
 // =============================================================================
@@ -221,7 +229,7 @@ class LDError : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (str, fileRef, setFileRef)
+	PROPERTY (public,	str, FileReferenced, STR_OPS,	NO_CB)
 
 	public:
 		LDError();
@@ -319,7 +327,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (LDFile*, fileInfo, setFileInfo)
+	PROPERTY (public,	LDFile*, FileInfo, NO_OPS,	NO_CB)
 
 	public:
 		enum InlineFlag
@@ -463,12 +471,12 @@ class LDOverlay : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (int, camera, setCamera)
-	PROPERTY (int, x, setX)
-	PROPERTY (int, y, setY)
-	PROPERTY (int, width, setWidth)
-	PROPERTY (int, height, setHeight)
-	PROPERTY (str, filename, setFilename)
+	PROPERTY (public,	int, Camera,	NUM_OPS,	NO_CB)
+	PROPERTY (public,	int, X,			NUM_OPS,	NO_CB)
+	PROPERTY (public,	int, Y,			NUM_OPS,	NO_CB)
+	PROPERTY (public,	int, Width,		NUM_OPS,	NO_CB)
+	PROPERTY (public,	int, Height,	NUM_OPS,	NO_CB)
+	PROPERTY (public,	str, FileName,	STR_OPS,	NO_CB)
 };
 
 // Other common LDraw stuff

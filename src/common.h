@@ -23,6 +23,23 @@
 #ifndef LDFORGE_COMMON_H
 #define LDFORGE_COMMON_H
 
+// Hack to make KDevelop parse QString properly. Q_REQUIRED_RESULT expands into
+// an __attribute__((warn_unused_result)) KDevelop's lexer doesn't seem to
+// understand, yielding an error and leaving some methods unlexed.
+//
+// The following first includes <QChar> to get Q_REQUIRED_RESULT defined first,
+// then re-defining it as nothing. This causes Q_REQUIRED_RESULT to essentially
+// "vanish" from QString's methods when KDevelop lexes them.
+//
+// Similar reasoning for Q_DECL_HIDDEN, except with Q_OBJECT this time.
+#ifdef IN_IDE_PARSER
+# include <QChar>
+# undef Q_REQUIRED_RESULT
+# undef Q_DECL_HIDDEN
+# define Q_REQUIRED_RESULT
+# define Q_DECL_HIDDEN
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -71,58 +88,76 @@ static const std::nullptr_t null = nullptr;
 # define DIRSLASH_CHAR '/'
 #endif // WIN32
 
-#define PROP_NAME(GET) m_##GET
+#define PROPERTY( ACCESS, TYPE, NAME, OPS, CALLBACK )			\
+	private:																	\
+		TYPE m_##NAME;														\
+		DEFINE_##CALLBACK( NAME )										\
+																				\
+	public:																	\
+		inline TYPE const& GET_READ_METHOD( NAME, OPS ) const	\
+		{	return m_##NAME; 												\
+		}																		\
+																				\
+	ACCESS:																	\
+		inline void set##NAME( TYPE const& NAME##_ )				\
+		{	m_##NAME = NAME##_;											\
+			TRIGGER_CALLBACK( NAME, CALLBACK )						\
+		}																		\
+																				\
+		DEFINE_PROPERTY_##OPS( TYPE, NAME, CALLBACK )
 
-#define READ_ACCESSOR(T, GET) \
-	T const& GET() const
+#define GET_READ_METHOD( NAME, OPS ) \
+	GET_READ_METHOD_##OPS( NAME )
 
-#define SET_ACCESSOR(T, SET) \
-	void SET (T val)
+#define GET_READ_METHOD_BOOL_OPS( NAME ) is##NAME()
+#define GET_READ_METHOD_NO_OPS( NAME ) get##NAME()
+#define GET_READ_METHOD_STR_OPS( NAME ) get##NAME()
+#define GET_READ_METHOD_NUM_OPS( NAME ) get##NAME()
 
-// Read-only, private property with a get accessor
-#define DECLARE_READ_PROPERTY(T, GET, SET) \
-private: \
-	T PROP_NAME (GET); \
-	SET_ACCESSOR (T, SET); \
-public: \
-	READ_ACCESSOR (T, GET);
+#define DEFINE_WITH_CB( NAME ) void NAME##Changed();
+#define DEFINE_NO_CB( NAME )
 
-// Read/write private property with get and set accessors
-#define DECLARE_PROPERTY(T, GET, SET) \
-private: \
-	T PROP_NAME (GET); \
-public: \
-	READ_ACCESSOR (T, GET); \
-	SET_ACCESSOR (T, SET);
+#define DEFINE_PROPERTY_NO_OPS( TYPE, NAME, CALLBACK  )
 
-#define DEFINE_PROPERTY(T, CLASS, GET, SET) \
-	READ_ACCESSOR (T, CLASS::GET) { return PROP_NAME (GET); } \
-	SET_ACCESSOR (T, CLASS::SET) { PROP_NAME (GET) = val; }
+#define DEFINE_PROPERTY_STR_OPS( TYPE, NAME, CALLBACK )	\
+		void append##NAME( TYPE a )								\
+		{	m_##NAME.append( a );									\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}																	\
+																			\
+		void prepend##NAME( TYPE a )								\
+		{	m_##NAME.prepend( a );									\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}																	\
+																			\
+		void replaceIn##NAME( TYPE a, TYPE b )					\
+		{	m_##NAME.replace( a, b );								\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}
 
-// Shortcuts
-#define PROPERTY(T, GET, SET) \
-private: \
-	T PROP_NAME (GET); \
-public: \
-	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); } \
-	SET_ACCESSOR (T, SET) { PROP_NAME (GET) = val; }
+#define DEFINE_PROPERTY_NUM_OPS( TYPE, NAME, CALLBACK )	\
+		inline void increase##NAME( TYPE a = 1 )				\
+		{	m_##NAME += a;												\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}																	\
+																			\
+		inline void decrease##NAME( TYPE a = 1 )				\
+		{	m_##NAME -= a;												\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}
 
-#define READ_PROPERTY(T, GET, SET) \
-private: \
-	T PROP_NAME (GET); \
-	SET_ACCESSOR (T, SET) { PROP_NAME (GET) = val; } \
-public: \
-	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); }
+#define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME, CALLBACK )	\
+		inline void toggle##NAME()									\
+		{	m_##NAME = !m_##NAME;									\
+			TRIGGER_CALLBACK( NAME, CALLBACK )					\
+		}
 
-// Property whose set accessor is a public slot
-// TODO: make this replace PROPERTY
-#define SLOT_PROPERTY (T, GET, SET) \
-private: \
-	T PROP_NAME (GET); \
-public: \
-	READ_ACCESSOR (T, GET) { return PROP_NAME (GET); } \
-public slots: \
-	SET_ACCESSOR (T, SET) { PROP_NAME (GET) = val; }
+#define TRIGGER_CALLBACK( NAME, CALLBACK ) \
+	TRIGGER_CALLBACK_##CALLBACK( NAME );
+
+#define TRIGGER_CALLBACK_NO_CB( NAME )
+#define TRIGGER_CALLBACK_WITH_CB( NAME ) \
+	NAME##Changed();
 
 #ifdef null
 #undef null

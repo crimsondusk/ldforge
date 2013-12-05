@@ -17,7 +17,7 @@
  *  =====================================================================
  *
  *  config.cpp: Configuration management. I don't like how unsafe QSettings
- *  is so this implements a type-safer and idenitifer-safer wrapping system of
+ *  is so this implements a type-safer and identifer-safer wrapping system of
  *  configuration variables. QSettings is used underlyingly, this is a matter
  *  of interface.
  */
@@ -32,6 +32,12 @@
 #include "gui.h"
 #include "file.h"
 
+#ifdef _WIN32
+# define EXTENSION ".ini"
+#else
+# define EXTENSION ".cfg"
+#endif // _WIN32
+
 Config* g_configPointers[MAX_CONFIG];
 static int g_cfgPointerCursor = 0;
 
@@ -42,11 +48,6 @@ static int g_cfgPointerCursor = 0;
 static QSettings* getSettingsObject()
 {
 #ifdef PORTABLE
-# ifdef _WIN32
-#  define EXTENSION ".ini"
-# else
-#  define EXTENSION ".cfg"
-# endif // _WIN32
 	return new QSettings (str (APPNAME).toLower() + EXTENSION, QSettings::IniFormat);
 #else
 	return new QSettings;

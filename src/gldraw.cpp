@@ -102,10 +102,10 @@ static QList<int> g_warnedColors;
 // =============================================================================
 // -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
-{	m_picking = m_rangepick = false;
+{	m_Picking = m_rangepick = false;
 	m_camera = (GL::Camera) gl_camera.value;
 	m_drawToolTip = false;
-	m_editMode = Select;
+	m_EditMode = Select;
 	m_rectdraw = false;
 	m_panning = false;
 	setFile (null);
@@ -272,7 +272,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		// ID again from the color we get from the picking results. Be sure to use
 		// the top level parent's index since we want a subfile's children point
 		// to the subfile itself.
-		long i = obj->topLevelParent()->id();
+		long i = obj->topLevelParent()->getID();
 
 		// Calculate a color based from this index. This method caters for
 		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
@@ -285,47 +285,45 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		return;
 	}
 
-	if ( (list == BFCFrontList || list == BFCBackList) &&
-			obj->getType() != LDObject::Line &&
-			obj->getType() != LDObject::CndLine)
-	{
-
-		if (list == GL::BFCFrontList)
+	if ((list == BFCFrontList || list == BFCBackList) &&
+		obj->getType() != LDObject::Line &&
+		obj->getType() != LDObject::CndLine)
+	{	if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
 		else
 			qcol = QColor (224, 0, 0);
 	}
 	else
-	{	if (obj->color() == maincolor)
+	{	if (obj->getColor() == maincolor)
 			qcol = getMainColor();
 		else
-		{	LDColor* col = getColor (obj->color());
+		{	LDColor* col = getColor (obj->getColor());
 
 			if (col)
 				qcol = col->faceColor;
 		}
 
-		if (obj->color() == edgecolor)
+		if (obj->getColor() == edgecolor)
 		{	qcol = luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
 			LDColor* col;
 
-			if (!gl_blackedges && obj->parent() && (col = getColor (obj->parent()->color())))
+			if (!gl_blackedges && obj->getParent() && (col = getColor (obj->getParent()->getColor())))
 				qcol = col->edgeColor;
 		}
 
 		if (qcol.isValid() == false)
 		{	// The color was unknown. Use main color to make the object at least
 			// not appear pitch-black.
-			if (obj->color() != edgecolor)
+			if (obj->getColor() != edgecolor)
 				qcol = getMainColor();
 
 			// Warn about the unknown colors, but only once.
 			for (int i : g_warnedColors)
-				if (obj->color() == i)
+				if (obj->getColor() == i)
 					return;
 
-			log ("%1: Unknown color %2!\n", __func__, obj->color());
-			g_warnedColors << obj->color();
+			log ("%1: Unknown color %2!\n", __func__, obj->getColor());
+			g_warnedColors << obj->getColor();
 			return;
 		}
 	}
@@ -335,7 +333,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		 b = qcol.blue(),
 		 a = qcol.alpha();
 
-	if (obj->topLevelParent()->selected())
+	if (obj->topLevelParent()->isSelected())
 	{	// Brighten it up for the select list.
 		const uchar add = 51;
 
@@ -385,10 +383,10 @@ void GLRenderer::resizeGL (int w, int h)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::drawGLScene()
-{	if (file() == null)
+{	if (getFile() == null)
 		return;
 
-	if (gl_wireframe && !picking())
+	if (gl_wireframe && !isPicking())
 		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -426,13 +424,13 @@ void GLRenderer::drawGLScene()
 		glRotatef (rot (Z), 0.0f, 0.0f, 1.0f);
 	}
 
-	const GL::ListType list = (!drawOnly() && m_picking) ? PickList : NormalList;
+	const GL::ListType list = (!isDrawOnly() && isPicking()) ? PickList : NormalList;
 
-	if (gl_colorbfc && !m_picking && !drawOnly())
+	if (gl_colorbfc && !isPicking() && !isDrawOnly())
 	{	glEnable (GL_CULL_FACE);
 
-		for (LDObject* obj : file()->objects())
-		{	if (obj->hidden())
+		for (LDObject* obj : getFile()->getObjects())
+		{	if (obj->isHidden())
 				continue;
 
 			glCullFace (GL_BACK);
@@ -445,15 +443,15 @@ void GLRenderer::drawGLScene()
 		glDisable (GL_CULL_FACE);
 	}
 	else
-	{	for (LDObject* obj : file()->objects())
-		{	if (obj->hidden())
+	{	for (LDObject* obj : getFile()->getObjects())
+		{	if (obj->isHidden())
 				continue;
 
 			glCallList (obj->glLists[list]);
 		}
 	}
 
-	if (gl_axes && !m_picking && !drawOnly())
+	if (gl_axes && !isPicking() && !isDrawOnly())
 		glCallList (m_axeslist);
 
 	glPopMatrix();
@@ -545,10 +543,10 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	paint.setRenderHint (QPainter::HighQualityAntialiasing);
 
 	// If we wish to only draw the brick, stop here
-	if (drawOnly())
+	if (isDrawOnly())
 		return;
 
-	if (m_camera != Free && !picking())
+	if (m_camera != Free && !isPicking())
 	{	// Paint the overlay image if we have one
 		const LDGLOverlay& overlay = m_overlays[m_camera];
 
@@ -576,7 +574,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		linepen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 
 		// If we're drawing, draw the vertices onto the screen.
-		if (editMode() == Draw)
+		if (getEditMode() == Draw)
 		{	int numverts = 4;
 
 			if (!m_rectdraw)
@@ -633,7 +631,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				}
 			}
 		}
-		elif (editMode() == CircleMode)
+		elif (getEditMode() == CircleMode)
 		{	// If we have not specified the center point of the circle yet, preview it on the screen.
 			if (m_drawedVerts.isEmpty())
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
@@ -719,7 +717,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	}
 
 	// Camera icons
-	if (!m_picking)
+	if (!isPicking())
 	{	// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
@@ -728,7 +726,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		// Draw the actual icons
 		for (CameraIcon& info : m_cameraIcons)
 		{	// Don't draw the free camera icon when in draw mode
-			if (&info == &m_cameraIcons[GL::Free] && editMode() != Select)
+			if (&info == &m_cameraIcons[GL::Free] && getEditMode() != Select)
 				continue;
 
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
@@ -757,12 +755,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	}
 
 	// Message log
-	if (msglog())
+	if (getMessageLog())
 	{	int y = 0;
 		const int margin = 2;
 		QColor penColor = getTextPen();
 
-		for (const MessageManager::Line& line : msglog()->getLines())
+		for (const MessageManager::Line& line : getMessageLog()->getLines())
 		{	penColor.setAlphaF (line.alpha);
 			paint.setPen (penColor);
 			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
@@ -771,7 +769,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	}
 
 	// If we're range-picking, draw a rectangle encompassing the selection area.
-	if (m_rangepick && !m_picking && m_totalmove >= 10)
+	if (m_rangepick && !isPicking() && m_totalmove >= 10)
 	{	int x0 = m_rangeStart.x(),
 			y0 = m_rangeStart.y(),
 			x1 = m_pos.x(),
@@ -807,7 +805,7 @@ QColor GLRenderer::getTextPen () const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileAllObjects()
-{	if (!file())
+{	if (!getFile())
 		return;
 
 	// Compiling all is a big job, use a busy cursor
@@ -815,7 +813,7 @@ void GLRenderer::compileAllObjects()
 
 	m_knownVerts.clear();
 
-	for (LDObject* obj : file()->objects())
+	for (LDObject* obj : getFile()->getObjects())
 		compileObject (obj);
 
 	// Compile axes
@@ -895,7 +893,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 					   LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
 
-			if (ref->transform().getDeterminant() < 0)
+			if (ref->getTransform().getDeterminant() < 0)
 				g_glInvert = !g_glInvert;
 
 			LDObject* prev = ref->prev();
@@ -937,7 +935,7 @@ void GLRenderer::clampAngle (double& angle) const
 // -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos)
 {	// If we picked an already-existing vertex, stop drawing
-	if (editMode() != CircleMode)
+	if (getEditMode() != CircleMode)
 	{	for (vertex& vert : m_drawedVerts)
 		{	if (vert == pos)
 			{	endDraw (true);
@@ -970,16 +968,14 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			}
 		}
 
-		switch (editMode())
-		{
-			case Draw:
+		switch (getEditMode())
+		{	case Draw:
 			{	if (m_rectdraw)
 				{	if (m_drawedVerts.size() == 2)
 					{	endDraw (true);
 						return;
 					}
-				}
-				else
+				} else
 				{	// If we have 4 verts, stop drawing.
 					if (m_drawedVerts.size() >= 4)
 					{	endDraw (true);
@@ -1005,7 +1001,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			} break;
 
 			case Select:
-			{	if (!drawOnly())
+			{	if (!isDrawOnly())
 				{	if (m_totalmove < 10)
 						m_rangepick = false;
 
@@ -1021,7 +1017,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		m_rangepick = false;
 	}
 
-	if (wasMid && editMode() != Select && m_drawedVerts.size() < 4 && m_totalmove < 10)
+	if (wasMid && getEditMode() != Select && m_drawedVerts.size() < 4 && m_totalmove < 10)
 	{	// Find the closest vertex to our cursor
 		double mindist = 1024.0f;
 		vertex closest;
@@ -1190,7 +1186,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 			compileObject (obj);
 	}
 
-	m_picking = true;
+	setPicking (true);
 
 	// Paint the picking scene
 	glDisable (GL_DITHER);
@@ -1259,7 +1255,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
 		if (!m_rangepick && m_addpick)
-		{	if (obj->selected())
+		{	if (obj->isSelected())
 			{	obj->unselect();
 				removedObj = obj;
 				break;
@@ -1284,7 +1280,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Restore line thickness
 	glLineWidth (gl_linethickness);
 
-	m_picking = false;
+	setPicking (false);
 	m_rangepick = false;
 	glEnable (GL_DITHER);
 
@@ -1294,16 +1290,8 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (EditMode, GLRenderer::editMode)
-{	return m_editMode;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-SET_ACCESSOR (EditMode, GLRenderer::setEditMode)
-{	m_editMode = val;
-
-	switch (editMode())
+void GLRenderer::EditModeChanged()
+{	switch (getEditMode())
 	{	case Select:
 		{	unsetCursor();
 			setContextMenuPolicy (Qt::DefaultContextMenu);
@@ -1338,18 +1326,8 @@ SET_ACCESSOR (EditMode, GLRenderer::setEditMode)
 	update();
 }
 
-// =============================================================================
-// -----------------------------------------------------------------------------
-READ_ACCESSOR (LDFile*, GLRenderer::file)
-{	return m_file;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-SET_ACCESSOR (LDFile*, GLRenderer::setFile)
-{	m_file = val;
-
-	if (val != null)
+void GLRenderer::FileChanged()
+{	if (getFile() != null)
 		initOverlaysFromObjects();
 }
 
@@ -1377,7 +1355,7 @@ void GLRenderer::endDraw (bool accept)
 	QList<vertex>& verts = m_drawedVerts;
 	QList<LDObject*> objs;
 
-	switch (editMode())
+	switch (getEditMode())
 	{	case Draw:
 		{	if (m_rectdraw)
 			{	LDQuad* quad = new LDQuad;
@@ -1438,20 +1416,20 @@ void GLRenderer::endDraw (bool accept)
 
 			if (dist0 == dist1)
 			{	// If the radii are the same, there's no ring space to fill. Use a circle.
-				refFile = getFile ("4-4edge.dat");
+				refFile = ::getFile ("4-4edge.dat");
 				transform = getCircleDrawMatrix (dist0);
 				circleOrDisc = true;
 			}
 			elif (dist0 == 0 || dist1 == 0)
 			{	// If either radii is 0, use a disc.
-				refFile = getFile ("4-4disc.dat");
+				refFile = ::getFile ("4-4disc.dat");
 				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
 				circleOrDisc = true;
 			}
 			elif (g_RingFinder (dist0, dist1))
 			{	// The ring finder found a solution, use that. Add the component rings to the file.
 				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
-				{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
+				{	if ((refFile = ::getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
 					}
@@ -1525,7 +1503,7 @@ void GLRenderer::endDraw (bool accept)
 	{	g_win->beginAction (null);
 
 		for (LDObject* obj : objs)
-		{	file()->addObject (obj);
+		{	getFile()->addObject (obj);
 			compileObject (obj);
 		}
 
@@ -1584,8 +1562,8 @@ static QList<vertex> getVertices (LDObject* obj)
 void GLRenderer::compileObject (LDObject* obj)
 {	deleteLists (obj);
 
-for (const GL::ListType listType : g_glListTypes)
-	{	if (drawOnly() && listType != GL::NormalList)
+	for (const GL::ListType listType : g_glListTypes)
+	{	if (isDrawOnly() && listType != GL::NormalList)
 			continue;
 
 		GLuint list = glGenLists (1);
@@ -1760,7 +1738,7 @@ void GLRenderer::zoomNotch (bool inward)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomToFit()
-{	if (file() == null || m_width == -1 || m_height == -1)
+{	if (getFile() == null || m_width == -1 || m_height == -1)
 	{	zoom() = 30.0f;
 		return;
 	}
@@ -1776,7 +1754,7 @@ void GLRenderer::zoomToFit()
 
 	// Use the pick list while drawing the scene, this way we can tell whether borders
 	// are background or not.
-	m_picking = true;
+	setPicking (true);
 
 	for (;;)
 	{	if (zoom() > 10000.0 || zoom() < 0.0)
@@ -1833,7 +1811,7 @@ void GLRenderer::zoomToFit()
 	}
 
 	setBackground();
-	m_picking = false;
+	setPicking (false);
 }
 
 // =============================================================================
@@ -1885,7 +1863,7 @@ void GLRenderer::updateRectVerts()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
-{	if (! (ev->buttons() & Qt::LeftButton) || editMode() != Select)
+{	if (!(ev->buttons() & Qt::LeftButton) || getEditMode() != Select)
 		return;
 
 	pick (ev->x(), ev->y());
@@ -1905,8 +1883,8 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam)
 {	LDOverlay* ovlobj = null;
 
-	for (LDObject * obj : file()->objects())
-	{	if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->camera() == cam)
+	for (LDObject * obj : getFile()->getObjects())
+	{	if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
 		{	ovlobj = static_cast<LDOverlay*> (obj);
 			break;
 		}
@@ -1930,8 +1908,9 @@ void GLRenderer::initOverlaysFromObjects()
 		if (!ovlobj && meta.img)
 		{	delete meta.img;
 			meta.img = null;
-		} elif (ovlobj && (!meta.img || meta.fname != ovlobj->filename()))
-			setupOverlay (cam, ovlobj->filename(), ovlobj->x(), ovlobj->y(), ovlobj->width(), ovlobj->height());
+		} elif (ovlobj && (!meta.img || meta.fname != ovlobj->getFileName()))
+			setupOverlay (cam, ovlobj->getFileName(), ovlobj->getX(),
+				ovlobj->getY(), ovlobj->getWidth(), ovlobj->getHeight());
 	}
 }
 
@@ -1950,13 +1929,13 @@ void GLRenderer::updateOverlayObjects()
 			LDObject* nextobj = ovlobj->next();
 
 			if (nextobj && nextobj->getType() == LDObject::Empty)
-			{	m_file->forgetObject (nextobj);
+			{	getFile()->forgetObject (nextobj);
 				delete nextobj;
 			}
 
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
-			m_file->forgetObject (ovlobj);
+			getFile()->forgetObject (ovlobj);
 			delete ovlobj;
 		} elif (meta.img && !ovlobj)
 		{	// Inverse case: image is there but the overlay object is
@@ -1972,8 +1951,8 @@ void GLRenderer::updateOverlayObjects()
 			int i, lastOverlay = -1;
 			bool found = false;
 
-			for (i = 0; i < file()->getObjectCount(); ++i)
-			{	LDObject* obj = file()->getObject (i);
+			for (i = 0; i < getFile()->getObjectCount(); ++i)
+			{	LDObject* obj = getFile()->getObject (i);
 
 				if (obj->isScemantic())
 				{	found = true;
@@ -1985,18 +1964,18 @@ void GLRenderer::updateOverlayObjects()
 			}
 
 			if (lastOverlay != -1)
-				file()->insertObj (lastOverlay + 1, ovlobj);
+				getFile()->insertObj (lastOverlay + 1, ovlobj);
 			else
-			{	file()->insertObj (i, ovlobj);
+			{	getFile()->insertObj (i, ovlobj);
 
 				if (found)
-					file()->insertObj (i + 1, new LDEmpty);
+					getFile()->insertObj (i + 1, new LDEmpty);
 			}
 		}
 
 		if (meta.img && ovlobj)
 		{	ovlobj->setCamera (cam);
-			ovlobj->setFilename (meta.fname);
+			ovlobj->setFileName (meta.fname);
 			ovlobj->setX (meta.ox);
 			ovlobj->setY (meta.oy);
 			ovlobj->setWidth (meta.lw);

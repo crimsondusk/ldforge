@@ -33,7 +33,7 @@ struct Primitive
 };
 
 class PrimitiveCategory
-{	PROPERTY (str, name, setName)
+{	PROPERTY (public,	str,	Name,	STR_OPS,	NO_CB)
 
 	public:
 		enum Type

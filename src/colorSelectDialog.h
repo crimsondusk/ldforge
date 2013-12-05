@@ -28,7 +28,7 @@ class QGraphicsScene;
 
 class ColorSelector : public QDialog
 {	Q_OBJECT
-	READ_PROPERTY (LDColor*, sel, setSelection)
+	PROPERTY (private,	LDColor*,	Selection,	NO_OPS,	NO_CB)
 
 	public:
 		explicit ColorSelector (int defval = -1, QWidget* parent = null);

@@ -376,7 +376,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 			item->setIcon (getIcon ("empty"));
 		}
 		else
-		{	LDColor* col = entry.color();
+		{	LDColor* col = entry.getColor();
 
 			if (col == null)
 			{	item->setText ("[[unknown color]]");
@@ -419,7 +419,7 @@ void ConfigDialog::slot_setColor()
 			return; // don't color separators
 	}
 
-	int defval = entry ? entry->color()->index : -1;
+	int defval = entry ? entry->getColor()->index : -1;
 	int val;
 
 	if (ColorSelector::selectColor (val, defval, this) == false)
@@ -576,7 +576,7 @@ void ConfigDialog::slot_setShortcut()
 
 	ShortcutListItem* item = sel[0];
 
-	if (KeySequenceDialog::staticDialog (item->keyConfig(), this))
+	if (KeySequenceDialog::staticDialog (item->getKeyConfig(), this))
 		setShortcutText (item);
 }
 
@@ -587,7 +587,7 @@ void ConfigDialog::slot_resetShortcut()
 {	QList<ShortcutListItem*> sel = getShortcutSelection();
 
 	for (ShortcutListItem* item : sel)
-	{	item->keyConfig()->reset();
+	{	item->getKeyConfig()->reset();
 		setShortcutText (item);
 	}
 }
@@ -599,7 +599,7 @@ void ConfigDialog::slot_clearShortcut()
 {	QList<ShortcutListItem*> sel = getShortcutSelection();
 
 	for (ShortcutListItem* item : sel)
-	{	item->keyConfig()->value = QKeySequence();
+	{	item->getKeyConfig()->value = QKeySequence();
 		setShortcutText (item);
 	}
 }
@@ -638,9 +638,9 @@ void ConfigDialog::slot_findDownloadFolder()
 // Updates the text string for a given shortcut list item
 // -----------------------------------------------------------------------------
 void ConfigDialog::setShortcutText (ShortcutListItem* item)
-{	QAction* act = item->action();
+{	QAction* act = item->getAction();
 	str label = act->iconText();
-	str keybind = item->keyConfig()->value.toString();
+	str keybind = item->getKeyConfig()->value.toString();
 	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
@@ -657,7 +657,7 @@ str ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += fmt ("%1", entry.color()->index);
+			val += fmt ("%1", entry.getColor()->index);
 	}
 
 	return val;

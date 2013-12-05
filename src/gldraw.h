@@ -63,11 +63,11 @@ struct LDFixedCameraInfo
 class GLRenderer : public QGLWidget
 {	Q_OBJECT
 
-	PROPERTY (bool, drawOnly, setDrawOnly)
-	PROPERTY (MessageManager*, msglog, setMessageLog)
-	READ_PROPERTY (bool, picking, setPicking)
-	DECLARE_PROPERTY (LDFile*, file, setFile)
-	DECLARE_PROPERTY (EditMode, editMode, setEditMode)
+	PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	NO_CB)
+	PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		NO_CB)
+	PROPERTY (private,	bool,					Picking,		BOOL_OPS,	NO_CB)
+	PROPERTY (public,		LDFile*,				File,			NO_OPS,		WITH_CB)
+	PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		WITH_CB)
 
 	public:
 		enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
@@ -176,28 +176,28 @@ class GLRenderer : public QGLWidget
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 		matrix         getCircleDrawMatrix (double scale);
 		void           drawBlip (QPainter& paint, QPoint pos) const;
-		
+
 		// Compute geometry for camera icons
 		void           calcCameraIcons();
-		
+
 		// How large is the circle we're drawing right now?
 		double         getCircleDrawDist (int pos) const;
-		
+
 		// Clamps an angle to [0, 360]
 		void           clampAngle (double& angle) const;
-		
+
 		// Compile one of the lists of an object
 		void           compileList (LDObject* obj, const ListType list);
-		
+
 		// Sub-routine for object compiling
 		void           compileSubObject (LDObject* obj, const GLenum gltype);
-		
+
 		// Compile a single vertex to a list
 		void           compileVertex (const vertex& vrt);
-		
+
 		// Convert a 2D point to a 3D point
 		vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
-		
+
 		// Convert a 3D point to a 2D point
 		QPoint         coordconv3_2 (const vertex& pos3d) const;
 

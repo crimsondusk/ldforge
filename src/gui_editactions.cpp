@@ -316,7 +316,7 @@ DEFINE_ACTION (CornerVerts, 0)
 		for (int i = 0; i < obj->vertices(); ++i)
 		{	LDVertex* vert = new LDVertex;
 			vert->pos = obj->getVertex (i);
-			vert->setColor (obj->color());
+			vert->setColor (obj->getColor());
 
 			LDFile::current()->insertObj (++idx, vert);
 			g_win->R()->compileObject (vert);
@@ -462,7 +462,7 @@ static void doRotate (const int l, const int m, const int n)
 			mo->setPosition (v);
 
 			// Transform the matrix
-			mo->setTransform (mo->transform() * transform);
+			mo->setTransform (mo->getTransform() * transform);
 		} elif (obj->getType() == LDObject::Vertex)
 		{	LDVertex* vert = static_cast<LDVertex*> (obj);
 			vertex v = vert->pos;
@@ -651,8 +651,8 @@ DEFINE_ACTION (Demote, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool isColorUsed (int colnum)
-{	for (LDObject* obj : LDFile::current()->objects())
-		if (obj->isColored() && obj->color() == colnum)
+{	for (LDObject* obj : LDFile::current()->getObjects())
+		if (obj->isColored() && obj->getColor() == colnum)
 			return true;
 
 	return false;

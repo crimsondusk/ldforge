@@ -36,8 +36,8 @@ class QAbstractButton;
 // -----------------------------------------------------------------------------
 class PartDownloader : public QDialog
 {	Q_OBJECT
-	PROPERTY (LDFile*, primaryFile, setPrimaryFile)
-	PROPERTY (bool, aborted, setAborted)
+	PROPERTY (public,	LDFile*, PrimaryFile,	NO_OPS,		NO_CB)
+	PROPERTY (public,	bool,		Aborted,			BOOL_OPS,	NO_CB)
 
 	public:
 		constexpr static const char* k_UnofficialURL = "http://ldraw.org/library/unofficial/";
@@ -87,7 +87,7 @@ class PartDownloader : public QDialog
 // -----------------------------------------------------------------------------
 class PartDownloadRequest : public QObject
 {	Q_OBJECT
-	PROPERTY (int, tableRow, setTableRow)
+	PROPERTY (public,	int, TableRow,	NUM_OPS,	NO_CB)
 
 	public:
 		enum State

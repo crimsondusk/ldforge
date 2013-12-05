@@ -79,8 +79,8 @@ void MessageManager::addLine (str line)
 	m_lines << Line (line);
 
 	// Update the renderer view
-	if (renderer())
-		renderer()->update();
+	if (getRenderer())
+		getRenderer()->update();
 }
 
 // =============================================================================
@@ -102,8 +102,8 @@ void MessageManager::tick()
 		changed |= lineChanged;
 	}
 
-	if (changed && renderer())
-		renderer()->update();
+	if (changed && getRenderer())
+		getRenderer()->update();
 }
 
 // =============================================================================

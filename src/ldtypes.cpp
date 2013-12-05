@@ -36,10 +36,10 @@ QList<LDObject*> g_LDObjects;
 // LDObject constructors
 // -----------------------------------------------------------------------------
 LDObject::LDObject() :
-	m_hidden (false),
-	m_selected (false),
-	m_parent (null),
-	m_file (null),
+	m_Hidden (false),
+	m_Selected (false),
+	m_Parent (null),
+	m_File (null),
 	qObjListEntry (null),
 	m_glinit (false)
 {
@@ -49,8 +49,8 @@ LDObject::LDObject() :
 	int32 id = 1; // 0 is invalid
 
 	for (LDObject* obj : g_LDObjects)
-		if (obj->id() >= id)
-			id = obj->id() + 1;
+		if (obj->getID() >= id)
+			id = obj->getID() + 1;
 
 	setID (id);
 	g_LDObjects << this;
@@ -104,17 +104,17 @@ str LDComment::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDSubfile::raw()
-{	str val = fmt ("1 %1 %2 ", color(), position());
-	val += transform().stringRep();
+{	str val = fmt ("1 %1 %2 ", getColor(), position());
+	val += getTransform().stringRep();
 	val += ' ';
-	val += fileInfo()->name();
+	val += getFileInfo()->getName();
 	return val;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDLine::raw()
-{	str val = fmt ("2 %1", color());
+{	str val = fmt ("2 %1", getColor());
 
 	for (int i = 0; i < 2; ++i)
 		val += fmt (" %1", getVertex (i));
@@ -125,7 +125,7 @@ str LDLine::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDTriangle::raw()
-{	str val = fmt ("3 %1", color());
+{	str val = fmt ("3 %1", getColor());
 
 	for (int i = 0; i < 3; ++i)
 		val += fmt (" %1", getVertex (i));
@@ -136,7 +136,7 @@ str LDTriangle::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDQuad::raw()
-{	str val = fmt ("4 %1", color());
+{	str val = fmt ("4 %1", getColor());
 
 	for (int i = 0; i < 4; ++i)
 		val += fmt (" %1", getVertex (i));
@@ -147,7 +147,7 @@ str LDQuad::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDCndLine::raw()
-{	str val = fmt ("5 %1", color());
+{	str val = fmt ("5 %1", getColor());
 
 	// Add the coordinates
 	for (int i = 0; i < 4; ++i)
@@ -165,7 +165,7 @@ str LDError::raw()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str LDVertex::raw()
-{	return fmt ("0 !LDFORGE VERTEX %1 %2", color(), pos);
+{	return fmt ("0 !LDFORGE VERTEX %1 %2", getColor(), pos);
 }
 
 // =============================================================================
@@ -206,8 +206,8 @@ QList<LDTriangle*> LDQuad::splitToTriangles()
 	LDTriangle* tri2 = new LDTriangle (getVertex (1), getVertex (2), getVertex (3));
 
 	// The triangles also inherit the quad's color
-	tri1->setColor (color());
-	tri2->setColor (color());
+	tri1->setColor (getColor());
+	tri2->setColor (getColor());
 
 	QList<LDTriangle*> triangles;
 	triangles << tri1;
@@ -222,7 +222,7 @@ void LDObject::replace (LDObject* other)
 	assert (idx != -1);
 
 	// Replace the instance of the old object with the new object
-	file()->setObject (idx, other);
+	getFile()->setObject (idx, other);
 
 	// Remove the old object
 	delete this;
@@ -233,16 +233,16 @@ void LDObject::replace (LDObject* other)
 void LDObject::swap (LDObject* other)
 {	int i = 0;
 
-	for (LDObject* obj : file()->objects())
+	for (LDObject* obj : getFile()->getObjects())
 	{	if (obj == this)
-			file()->setObject (i, other);
+			getFile()->setObject (i, other);
 		elif (obj == other)
-			file()->setObject (i, this);
+			getFile()->setObject (i, this);
 
 		++i;
 	}
 
-	file()->addToHistory (new SwapHistory (id(), other->id()));
+	getFile()->addToHistory (new SwapHistory (getID(), other->getID()));
 }
 
 // =============================================================================
@@ -265,12 +265,12 @@ LDQuad::LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vert
 // -----------------------------------------------------------------------------
 LDObject::~LDObject()
 {	// If this object was selected, unselect it now
-	if (selected())
+	if (isSelected())
 		unselect();
 
 	// If this object was associated to a file, remove it off it now
-	if (file())
-		file()->forgetObject (this);
+	if (getFile())
+		getFile()->forgetObject (this);
 
 	// Delete the GL lists
 	GL::deleteLists (this);
@@ -298,7 +298,7 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, int pa
 
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			matrix newMatrix = transform * ref->transform();
+			matrix newMatrix = transform * ref->getTransform();
 			vertex newpos = ref->position();
 
 			newpos.transform (transform, pos);
@@ -311,20 +311,20 @@ static void transformObject (LDObject* obj, matrix transform, vertex pos, int pa
 			break;
 	}
 
-	if (obj->color() == maincolor)
+	if (obj->getColor() == maincolor)
 		obj->setColor (parentcolor);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 QList<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
-{	QList<LDObject*> objs = fileInfo()->inlineContents (flags);
+{	QList<LDObject*> objs = getFileInfo()->inlineContents (flags);
 
 	// Transform the objects
 for (LDObject * obj : objs)
 	{	// Set the parent now so we know what inlined this.
 		obj->setParent (this);
-		transformObject (obj, transform(), position(), color());
+		transformObject (obj, getTransform(), position(), getColor());
 	}
 
 	return objs;
@@ -335,11 +335,11 @@ for (LDObject * obj : objs)
 long LDObject::getIndex() const
 {
 #ifndef RELEASE
-	assert (file() != null);
+	assert (getFile() != null);
 #endif
 
-	for (int i = 0; i < file()->getObjectCount(); ++i)
-		if (file()->getObject (i) == this)
+	for (int i = 0; i < getFile()->getObjectCount(); ++i)
+		if (getFile()->getObject (i) == this)
 			return i;
 
 	return -1;
@@ -356,7 +356,7 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
 	QList<LDObject*> objsToCompile;
-	LDFile* file = objs[0]->file();
+	LDFile* file = objs[0]->getFile();
 
 	for (long i = start; i != end; i += incr)
 	{	LDObject* obj = objs[i];
@@ -364,7 +364,7 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 		const long idx = obj->getIndex(),
 				   target = idx + (up ? -1 : 1);
 
-		if ( (up && idx == 0) || (!up && idx == (long) (file->objects().size() - 1)))
+		if ( (up && idx == 0) || (!up && idx == (long) (file->getObjects().size() - 1)))
 		{	// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
 			// abort the entire operation.
@@ -435,13 +435,13 @@ str LDObject::describeObjects (const QList<LDObject*>& objs)
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDObject* LDObject::topLevelParent()
-{	if (!parent())
+{	if (!getParent())
 		return this;
 
 	LDObject* it = this;
 
-	while (it->parent())
-		it = it->parent();
+	while (it->getParent())
+		it = it->getParent();
 
 	return it;
 }
@@ -452,10 +452,10 @@ LDObject* LDObject::next() const
 {	long idx = getIndex();
 	assert (idx != -1);
 
-	if (idx == (long) file()->getObjectCount() - 1)
+	if (idx == (long) getFile()->getObjectCount() - 1)
 		return null;
 
-	return file()->getObject (idx + 1);
+	return getFile()->getObject (idx + 1);
 }
 
 // =============================================================================
@@ -467,7 +467,7 @@ LDObject* LDObject::prev() const
 	if (idx == 0)
 		return null;
 
-	return file()->getObject (idx - 1);
+	return getFile()->getObject (idx - 1);
 }
 
 // =============================================================================
@@ -597,7 +597,7 @@ void LDSubfile::invert()
 
 		if (bfc && bfc->type == LDBFC::InvertNext)
 		{	// This is prefixed with an invertnext, thus remove it.
-			file()->forgetObject (bfc);
+			getFile()->forgetObject (bfc);
 			delete bfc;
 			return;
 		}
@@ -605,7 +605,7 @@ void LDSubfile::invert()
 
 	// Not inverted, thus prefix it with a new invertnext.
 	LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-	file()->insertObj (idx, bfc);
+	getFile()->insertObj (idx, bfc);
 }
 
 // =============================================================================
@@ -636,7 +636,7 @@ LDLine* LDCndLine::demote()
 	for (int i = 0; i < repl->vertices(); ++i)
 		repl->setVertex (i, getVertex (i));
 
-	repl->setColor (color());
+	repl->setColor (getColor());
 
 	replace (repl);
 	return repl;
@@ -646,7 +646,7 @@ LDLine* LDCndLine::demote()
 // -----------------------------------------------------------------------------
 LDObject* LDObject::fromID (int id)
 {	for (LDObject * obj : g_LDObjects)
-		if (obj->id() == id)
+		if (obj->getID() == id)
 			return obj;
 
 	return null;
@@ -656,7 +656,7 @@ LDObject* LDObject::fromID (int id)
 // -----------------------------------------------------------------------------
 str LDOverlay::raw()
 {	return fmt ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
-				filename(), camera(), x(), y(), width(), height());
+		getFileName(), getCamera(), getX(), getY(), getWidth(), getHeight());
 }
 
 void LDOverlay::move (vertex vect)
@@ -669,6 +669,8 @@ void LDOverlay::invert() {}
 // Hook the set accessors of certain properties to this changeProperty function.
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
+//
+// TODO: use new PROPERTY-callbacks
 // -----------------------------------------------------------------------------
 template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& val)
 {	long idx;
@@ -676,12 +678,12 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 	if (*ptr == val)
 		return;
 
-	if (obj->file() && (idx = obj->getIndex()) != -1)
+	if (obj->getFile() && (idx = obj->getIndex()) != -1)
 	{	str before = obj->raw();
 		*ptr = val;
 		str after = obj->raw();
 
-		obj->file()->addToHistory (new EditHistory (idx, before, after));
+		obj->getFile()->addToHistory (new EditHistory (idx, before, after));
 	}
 	else
 		*ptr = val;
@@ -689,12 +691,12 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (int, LDObject::color)
-{	return m_color;
+const int& LDObject::getColor() const
+{	return m_Color;
 }
 
-SET_ACCESSOR (int, LDObject::setColor)
-{	changeProperty (this, &m_color, val);
+void LDObject::setColor (int val)
+{	changeProperty (this, &m_Color, val);
 }
 
 // =============================================================================
@@ -710,17 +712,13 @@ void LDObject::setVertex (int i, const vertex& vert)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDMatrixObject::setPosition (const vertex& a)
-{	changeProperty (linkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
+{	changeProperty (getLinkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (matrix, LDMatrixObject::transform)
-{	return m_transform;
-}
-
-SET_ACCESSOR (matrix, LDMatrixObject::setTransform)
-{	changeProperty (linkPointer(), &m_transform, val);
+void LDMatrixObject::setTransform (const matrix& val)
+{	changeProperty (getLinkPointer(), &m_Transform, val);
 }
 
 // =============================================================================
@@ -759,19 +757,19 @@ void LDSharedVertex::delRef (LDObject* a)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::select()
-{	if (!file())
-	{	log ("Warning: Object #%1 cannot be selected as it is not assigned a file!\n", id());
+{	if (!getFile())
+	{	log ("Warning: Object #%1 cannot be selected as it is not assigned a file!\n", getID());
 		return;
 	}
 
-	file()->addToSelection (this);
+	getFile()->addToSelection (this);
 }
 
 void LDObject::unselect()
-{	if (!file())
-	{	log ("Warning: Object #%1 cannot be unselected as it is not assigned a file!\n", id());
+{	if (!getFile())
+	{	log ("Warning: Object #%1 cannot be unselected as it is not assigned a file!\n", getID());
 		return;
 	}
 
-	file()->removeFromSelection (this);
+	getFile()->removeFromSelection (this);
 }

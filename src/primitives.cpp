@@ -169,7 +169,7 @@ void PrimitiveLister::start()
 // -----------------------------------------------------------------------------
 static PrimitiveCategory* findCategory (str name)
 {	for (PrimitiveCategory & cat : g_PrimitiveCategories)
-		if (cat.name() == name)
+		if (cat.getName() == name)
 			return &cat;
 
 	return null;

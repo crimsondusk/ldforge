@@ -53,15 +53,15 @@ namespace LDPaths
 // =============================================================================
 class LDFile : public QObject
 {	Q_OBJECT
-		READ_PROPERTY (QList<LDObject*>, objects, setObjects)
-		READ_PROPERTY (History, history, setHistory)
-		READ_PROPERTY (QList<LDObject*>, vertices, setVertices)
-		PROPERTY (str, name, setName)
-		PROPERTY (str, defaultName, setDefaultName)
-		PROPERTY (bool, implicit, setImplicit)
-		PROPERTY (QList<LDObject*>, cache, setCache)
-		PROPERTY (long, savePos, setSavePos)
-		DECLARE_PROPERTY (QListWidgetItem*, listItem, setListItem)
+	PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		NO_CB)
+	PROPERTY (private,	History*,			History,			NO_OPS,		NO_CB)
+	PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		NO_CB)
+	PROPERTY (public,		str,					Name,				STR_OPS,		NO_CB)
+	PROPERTY (public,		str,					DefaultName,	STR_OPS,		NO_CB)
+	PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	NO_CB)
+	PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		NO_CB)
+	PROPERTY (public,		long,					SavePosition,	NUM_OPS,		NO_CB)
+	PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		NO_CB)
 
 	public:
 		LDFile();
@@ -87,28 +87,24 @@ class LDFile : public QObject
 			return *this;
 		}
 
-		inline void openHistory()
-		{	m_history.open();
-		}
-
-		inline void closeHistory()
-		{	m_history.close();
+		inline void addHistoryStep()
+		{	m_History->addStep();
 		}
 
 		inline void undo()
-		{	m_history.undo();
+		{	m_History->undo();
 		}
 
 		inline void redo()
-		{	m_history.redo();
+		{	m_History->redo();
 		}
 
 		inline void clearHistory()
-		{	m_history.clear();
+		{	m_History->clear();
 		}
 
 		inline void addToHistory (AbstractHistoryEntry* entry)
-		{	m_history << entry;
+		{	*m_History << entry;
 		}
 
 		static void closeUnused();
@@ -184,14 +180,14 @@ extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // event loop, allowing the program to maintain responsivity during loading.
 // =============================================================================
 class FileLoader : public QObject
-{		Q_OBJECT
-		READ_PROPERTY (QList<LDObject*>, objs, setObjects)
-		READ_PROPERTY (bool, done, setDone)
-		READ_PROPERTY (int, progress, setProgress)
-		READ_PROPERTY (bool, aborted, setAborted)
-		PROPERTY (QList<str>, lines, setLines)
-		PROPERTY (int*, warningsPointer, setWarningsPointer)
-		PROPERTY (bool, concurrent, setConcurrent)
+{	Q_OBJECT
+	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		NO_CB)
+	PROPERTY (private,	bool,					Done,				BOOL_OPS,	NO_CB)
+	PROPERTY (private,	int,					Progress,		NUM_OPS,		NO_CB)
+	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	NO_CB)
+	PROPERTY (public,		QStringList,		Lines,			NO_OPS,		NO_CB)
+	PROPERTY (public,		int*,					Warnings,		NO_OPS,		NO_CB)
+	PROPERTY (public,		bool,					OnForeground,	BOOL_OPS,	NO_CB)
 
 	public slots:
 		void start();

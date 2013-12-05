@@ -39,18 +39,22 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 class SubfileListItem : public QTreeWidgetItem
-{	PROPERTY (Primitive*, primInfo, setPrimInfo)
+{	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	NO_CB)
 
 	public:
 		SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
-			QTreeWidgetItem (parent), m_primInfo (info) {}
+			QTreeWidgetItem (parent),
+			m_PrimitiveInfo (info) {}
+
 		SubfileListItem (QTreeWidget* parent, Primitive* info) :
-			QTreeWidgetItem (parent), m_primInfo (info) {}
+			QTreeWidgetItem (parent),
+			m_PrimitiveInfo (info) {}
 };
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) : QDialog (parent)
+AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
+	QDialog (parent)
 {	setlocale (LC_ALL, "C");
 
 	int coordCount = 0;
@@ -112,7 +116,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 		for (PrimitiveCategory & cat : g_PrimitiveCategories)
 			{	SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
-				parentItem->setText (0, cat.name());
+				parentItem->setText (0, cat.getName());
 				QList<QTreeWidgetItem*> subfileItems;
 
 			for (Primitive & prim : cat.prims)
@@ -122,7 +126,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 					// If this primitive is the one the current object points to,
 					// select it by default
-					if (obj && static_cast<LDSubfile*> (obj)->fileInfo()->name() == prim.name)
+					if (obj && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() == prim.name)
 						tw_subfileList->setCurrentItem (item);
 				}
 
@@ -136,7 +140,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			if (obj)
 			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-				le_subfileName->setText (ref->fileInfo()->name());
+				le_subfileName->setText (ref->getFileInfo()->getName());
 			}
 
 			break;
@@ -155,7 +159,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored())
 	{	if (obj != null)
-			colnum = obj->color();
+			colnum = obj->getColor();
 		else
 			colnum = (type == LDObject::CndLine || type == LDObject::Line) ? edgecolor : maincolor;
 
@@ -219,7 +223,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		{	for (const Axis ax : g_Axes)
 				dsb_coords[ax]->setValue (mo->position() [ax]);
 
-			defaultMatrix = mo->transform();
+			defaultMatrix = mo->getTransform();
 		}
 
 		le_matrix->setText (defaultMatrix.stringRep());
@@ -267,10 +271,10 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 str AddObjectDialog::currentSubfileName()
 {	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
 
-	if (item->primInfo() == null)
+	if (item->getPrimitiveInfo() == null)
 		return ""; // selected a heading
 
-	return item->primInfo()->name;
+	return item->getPrimitiveInfo()->name;
 }
 
 // =============================================================================

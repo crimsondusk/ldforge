@@ -19,8 +19,6 @@
 #ifndef LDFORGE_CONFIG_H
 #define LDFORGE_CONFIG_H
 
-#include "common.h"
-
 // =============================================================================
 #include <QString>
 #include <QVariant>

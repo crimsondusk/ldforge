@@ -137,7 +137,7 @@ DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAll, CTRL (L))
 {	for (LDFile* file : g_loadedFiles)
-	{	if (file->implicit())
+	{	if (file->isImplicit())
 			continue;
 
 		g_win->save (file, false);
@@ -259,7 +259,7 @@ DEFINE_ACTION (AboutQt, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectAll, CTRL (A))
-{	for (LDObject* obj : LDFile::current()->objects())
+{	for (LDObject* obj : LDFile::current()->getObjects())
 		obj->select();
 
 	g_win->updateSelection();
@@ -275,8 +275,8 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 
 	LDFile::current()->clearSelection();
 
-	for (LDObject* obj : LDFile::current()->objects())
-		if (obj->color() == colnum)
+	for (LDObject* obj : LDFile::current()->getObjects())
+		if (obj->getColor() == colnum)
 			obj->select();
 
 	g_win->updateSelection();
@@ -298,20 +298,20 @@ DEFINE_ACTION (SelectByType, 0)
 	str refName;
 
 	if (type == LDObject::Subfile)
-	{	refName = static_cast<LDSubfile*> (selection()[0])->fileInfo()->name();
+	{	refName = static_cast<LDSubfile*> (selection()[0])->getFileInfo()->getName();
 
 		for (LDObject* obj : selection())
-			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+			if (static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
 				return;
 	}
 
 	LDFile::current()->clearSelection();
 
-	for (LDObject* obj : LDFile::current()->objects())
+	for (LDObject* obj : LDFile::current()->getObjects())
 	{	if (obj->getType() != type)
 			continue;
 
-		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
 			continue;
 
 		obj->select();
@@ -446,7 +446,7 @@ DEFINE_ACTION (Screenshot, 0)
 	uchar* imgdata = g_win->R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
-	str root = basename (LDFile::current()->name());
+	str root = basename (LDFile::current()->getName());
 
 	if (root.right (4) == ".dat")
 		root.chop (4);
@@ -474,7 +474,7 @@ DEFINE_ACTION (Axes, 0)
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (VisibilityToggle, 0)
 {	for (LDObject* obj : selection())
-		obj->setHidden (!obj->hidden());
+		obj->toggleHidden();
 
 	g_win->refresh();
 }

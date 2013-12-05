@@ -28,8 +28,8 @@ class QDoubleSpinBox;
 
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem
-{	PROPERTY (KeySequenceConfig*, keyConfig, setKeyConfig)
-	PROPERTY (QAction*, action, setAction)
+{	PROPERTY (public,	KeySequenceConfig*,	KeyConfig,	NO_OPS,	NO_CB)
+	PROPERTY (public,	QAction*,				Action,		NO_OPS,	NO_CB)
 
 	public:
 		explicit ShortcutListItem (QListWidget* view = null, int type = Type) :

@@ -59,8 +59,8 @@ class Ui_LDForgeUI;
 
 // =============================================================================
 class LDQuickColor
-{	PROPERTY (LDColor*, color, setColor)
-	PROPERTY (QToolButton*, toolButton, setToolButton)
+{	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	NO_CB)
+	PROPERTY (public,	QToolButton*,	ToolButton,	NO_OPS,	NO_CB)
 
 	public:
 		LDQuickColor (LDColor* color, QToolButton* toolButton);
@@ -180,7 +180,7 @@ bool confirm (str title, str msg); // Generic confirm prompt
 bool confirm (str msg); // Generic confirm prompt
 void critical (str msg); // Generic error prompt
 QIcon makeColorIcon (LDColor* colinfo, const int size); // Makes an icon for the given color
-void makeColorSelector (QComboBox* box); // Fills the given combo-box with color information
+void makeColorComboBox (QComboBox* box); // Fills the given combo-box with color information
 QImage imageFromScreencap (uchar* data, int w, int h);
 
 // =============================================================================
@@ -188,7 +188,8 @@ QImage imageFromScreencap (uchar* data, int w, int h);
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
 // =============================================================================
-template<class T> T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
+template<class T>
+T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 {	for (pair<QRadioButton*, const T&> i : haystack)
 		if (i.first->isChecked())
 			return i.second;
@@ -201,7 +202,8 @@ template<class T> T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> 
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
 // =============================================================================
-template<class T> void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
+template<class T>
+void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
 {	for (pair<QRadioButton*, const T&> i : haystack)
 	{	if (i.second == expr)
 		{	i.first->setChecked (true);

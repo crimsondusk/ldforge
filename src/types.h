@@ -21,6 +21,7 @@
 
 #include <QString>
 #include <QObject>
+#include <QStringList>
 #include <deque>
 #include "common.h"
 
@@ -295,9 +296,9 @@ class File
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
 class LDBoundingBox
-{	READ_PROPERTY (bool, empty, setEmpty)
-	READ_PROPERTY (vertex, v0, setV0)
-	READ_PROPERTY (vertex, v1, setV1)
+{	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	NO_CB)
+	PROPERTY (private,	vertex,	Vertex0,	NO_OPS,		NO_CB)
+	PROPERTY (private,	vertex,	Vertex1,	NO_OPS,		NO_CB)
 
 	public:
 		LDBoundingBox();

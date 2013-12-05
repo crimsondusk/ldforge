@@ -182,8 +182,7 @@ template<class T> inline bool isInteger (T a)
 
 template<class T> void removeDuplicates (QList<T>& a)
 {	std::sort (a.begin(), a.end());
-	typename QList<T>::iterator pos = std::unique (a.begin(), a.end());
-	a.erase (pos, a.end());
+	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
 
 #endif // LDFORGE_MISC_H

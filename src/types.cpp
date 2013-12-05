@@ -59,7 +59,7 @@ void vertex::move (const vertex& other)
 vertex vertex::midpoint (const vertex& other)
 {	vertex mid;
 
-for (const Axis ax : g_Axes)
+	for (const Axis ax : g_Axes)
 		mid[ax] = (m_coords[ax] + other[ax]) / 2;
 
 	return mid;
@@ -513,7 +513,7 @@ void LDBoundingBox::calculate()
 	if (!LDFile::current())
 		return;
 
-for (LDObject * obj : LDFile::current()->objects())
+	for (LDObject* obj : LDFile::current()->getObjects())
 		calcObject (obj);
 }
 
@@ -563,31 +563,31 @@ LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 // -----------------------------------------------------------------------------
 void LDBoundingBox::calcVertex (const vertex& v)
 {	for (const Axis ax : g_Axes)
-	{	if (v[ax] < m_v0[ax])
-			m_v0[ax] = v[ax];
+	{	if (v[ax] < m_Vertex0[ax])
+			m_Vertex0[ax] = v[ax];
 
-		if (v[ax] > m_v1[ax])
-			m_v1[ax] = v[ax];
+		if (v[ax] > m_Vertex1[ax])
+			m_Vertex1[ax] = v[ax];
 	}
 
-	m_empty = false;
+	setEmpty (false);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDBoundingBox::reset()
-{	m_v0[X] = m_v0[Y] = m_v0[Z] = 0x7FFFFFFF;
-	m_v1[X] = m_v1[Y] = m_v1[Z] = 0xFFFFFFFF;
+{	m_Vertex0[X] = m_Vertex0[Y] = m_Vertex0[Z] = 0x7FFFFFFF;
+	m_Vertex1[X] = m_Vertex1[Y] = m_Vertex1[Z] = 0xFFFFFFFF;
 
-	m_empty = true;
+	setEmpty (true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 double LDBoundingBox::size() const
-{	double xscale = (m_v0[X] - m_v1[X]);
-	double yscale = (m_v0[Y] - m_v1[Y]);
-	double zscale = (m_v0[Z] - m_v1[Z]);
+{	double xscale = (m_Vertex0[X] - m_Vertex1[X]);
+	double yscale = (m_Vertex0[Y] - m_Vertex1[Y]);
+	double zscale = (m_Vertex0[Z] - m_Vertex1[Z]);
 	double size = zscale;
 
 	if (xscale > yscale)
@@ -607,7 +607,7 @@ double LDBoundingBox::size() const
 // -----------------------------------------------------------------------------
 vertex LDBoundingBox::center() const
 {	return vertex (
-		(m_v0[X] + m_v1[X]) / 2,
-		(m_v0[Y] + m_v1[Y]) / 2,
-		(m_v0[Z] + m_v1[Z]) / 2);
+		(m_Vertex0[X] + m_Vertex1[X]) / 2,
+		(m_Vertex0[Y] + m_Vertex1[Y]) / 2,
+		(m_Vertex0[Z] + m_Vertex1[Z]) / 2);
 }
