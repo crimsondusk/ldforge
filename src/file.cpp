@@ -296,7 +296,7 @@ void FileLoader::work (int i)
 	{	str line = lines() [i];
 
 		// Trim the trailing newline
-		qchar c;
+		QChar c;
 
 		while (!line.isEmpty() && ((c = line[line.length() - 1]) == '\n' || c == '\r'))
 			line.chop (1);
@@ -439,7 +439,7 @@ LDFile* openDATFile (str path, bool search)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDFile::safeToClose()
+bool LDFile::isSafeToClose()
 {	typedef QMessageBox msgbox;
 	setlocale (LC_ALL, "C");
 
@@ -511,7 +511,7 @@ void newFile()
 	LDFile::closeInitialFile();
 
 	g_win->R()->setFile (f);
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 	g_win->updateTitle();
 	f->history().updateActions();
 }
@@ -572,7 +572,7 @@ void openMainFile (str path)
 
 	// Rebuild the object tree view now.
 	LDFile::setCurrent (file);
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 
 	// Add it to the recent files list.
 	addRecentFile (path);
@@ -594,7 +594,7 @@ bool LDFile::save (str savepath)
 	// Only do this if the file is explicitly open. If it's saved into a directory
 	// called "s" or "48", prepend that into the name.
 	LDComment* fpathComment = null;
-	LDObject* first = object (1);
+	LDObject* first = getObject (1);
 
 	if (!implicit() && first != null && first->getType() == LDObject::Comment)
 	{	fpathComment = static_cast<LDComment*> (first);
@@ -680,7 +680,7 @@ LDObject* parseLine (str line)
 
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC")
-			{	for (short i = 0; i < LDBFC::NumStatements; ++i)
+			{	for (int i = 0; i < LDBFC::NumStatements; ++i)
 					if (comm == fmt ("BFC %1", LDBFC::statements [i]))
 						return new LDBFC ( (LDBFC::Type) i);
 
@@ -762,7 +762,7 @@ LDObject* parseLine (str line)
 
 			matrix transform;
 
-			for (short i = 0; i < 9; ++i)
+			for (int i = 0; i < 9; ++i)
 				transform[i] = tokens[i + 5].toDouble(); // 5 - 13
 
 			obj->setTransform (transform);
@@ -778,7 +778,7 @@ LDObject* parseLine (str line)
 			LDLine* obj = new LDLine;
 			obj->setColor (tokens[1].toLong());
 
-			for (short i = 0; i < 2; ++i)
+			for (int i = 0; i < 2; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 7
 
 			return obj;
@@ -792,7 +792,7 @@ LDObject* parseLine (str line)
 			LDTriangle* obj = new LDTriangle;
 			obj->setColor (tokens[1].toLong());
 
-			for (short i = 0; i < 3; ++i)
+			for (int i = 0; i < 3; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 10
 
 			return obj;
@@ -813,7 +813,7 @@ LDObject* parseLine (str line)
 
 			obj->setColor (tokens[1].toLong());
 
-			for (short i = 0; i < 4; ++i)
+			for (int i = 0; i < 4; ++i)
 				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 13
 
 			return obj;
@@ -878,7 +878,7 @@ int LDFile::addObject (LDObject* obj)
 		m_vertices << obj;
 
 	obj->setFile (this);
-	return numObjs() - 1;
+	return getObjectCount() - 1;
 }
 
 // =============================================================================
@@ -910,7 +910,7 @@ void LDFile::forgetObject (LDObject* obj)
 // -----------------------------------------------------------------------------
 bool safeToCloseAll()
 {	for (LDFile* f : g_loadedFiles)
-		if (!f->safeToClose())
+		if (!f->isSafeToClose())
 			return false;
 
 	return true;
@@ -919,10 +919,10 @@ bool safeToCloseAll()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDFile::setObject (int idx, LDObject* obj)
-{	assert (idx < numObjs());
+{	assert (idx < m_objects.size());
 
 	// Mark this change to history
-	str oldcode = object (idx)->raw();
+	str oldcode = getObject (idx)->raw();
 	str newcode = obj->raw();
 	m_history << new EditHistory (idx, oldcode, newcode);
 
@@ -935,7 +935,7 @@ void LDFile::setObject (int idx, LDObject* obj)
 static QList<LDFile*> getFilesUsed (LDFile* node)
 {	QList<LDFile*> filesUsed;
 
-for (LDObject * obj : node->objects())
+	for (LDObject* obj : node->objects())
 	{	if (obj->getType() != LDObject::Subfile)
 			continue;
 
@@ -982,7 +982,7 @@ void LDFile::closeUnused()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject* LDFile::object (int pos) const
+LDObject* LDFile::getObject (int pos) const
 {	if (m_objects.size() <= pos)
 		return null;
 
@@ -991,13 +991,7 @@ LDObject* LDFile::object (int pos) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject* LDFile::obj (int pos) const
-{	return object (pos);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-int LDFile::numObjs() const
+int LDFile::getObjectCount() const
 {	return objects().size();
 }
 
@@ -1188,6 +1182,6 @@ void LDFile::clearSelection()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const QList<LDObject*>& LDFile::selection() const
+const QList<LDObject*>& LDFile::getSelection() const
 {	return m_sel;
 }

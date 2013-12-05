@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDTYPES_H
-#define LDTYPES_H
+#ifndef LDFORGE_LDTYPES_H
+#define LDFORGE_LDTYPES_H
 
 #include "common.h"
 #include "types.h"
@@ -35,8 +35,8 @@ public: \
 	virtual void move (vertex where); \
 	virtual void invert();
 
-#define LDOBJ_NAME(N)          virtual str typeName() const override { return #N; }
-#define LDOBJ_VERTICES(V)      virtual short vertices() const override { return V; }
+#define LDOBJ_NAME(N)          virtual str getTypeName() const override { return #N; }
+#define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
 #define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false)
@@ -68,7 +68,7 @@ class LDObject
 	PROPERTY (LDObject*, parent, setParent)
 	PROPERTY (LDFile*, file, setFile)
 	READ_PROPERTY (int32, id, setID)
-	DECLARE_PROPERTY (short, color, setColor)
+	DECLARE_PROPERTY (int, color, setColor)
 
 	public:
 		// Object type codes. Codes are sorted in order of significance.
@@ -97,6 +97,7 @@ class LDObject
 		long getIndex() const;                      // Index (i.e. line number) of this object
 		virtual LDObject::Type getType() const;     // Type enumerator of this object
 		const vertex& getVertex (int i) const;      // Get a vertex by index
+		virtual str getTypeName() const;            // Type name of this object
 		virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
 		virtual void invert();                      // Inverts this object (winding is reversed)
 		virtual bool isColored() const;             // Is this object colored?
@@ -111,14 +112,13 @@ class LDObject
 		void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
 		void swap (LDObject* other);                // Swap this object with another.
 		LDObject* topLevelParent();                 // What object in the current file ultimately references this?
-		virtual str typeName() const;               // Type name of this object
 		void unselect();
-		virtual short vertices() const;             // Number of vertices this object has
+		virtual int vertices() const;             // Number of vertices this object has
 
 		static str typeName (LDObject::Type type); // Get type name by enumerator
 		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
 		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDFile?
-		static str objectListContents (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
+		static str describeObjects (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
 		static LDObject* fromID (int id);
 
 		// TODO: make these private!
@@ -474,7 +474,7 @@ class LDOverlay : public LDObject
 // Other common LDraw stuff
 static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
 				 NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
-static const short lores = 16;
-static const short hires = 48;
+static const int lores = 16;
+static const int hires = 48;
 
-#endif // LDTYPES_H
+#endif // LDFORGE_LDTYPES_H

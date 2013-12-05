@@ -16,6 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+// TODO: I believe the multi-threading is unnecessary here. Get rid of it.
+
 #include <QDir>
 #include <QThread>
 #include <QRegExp>
@@ -288,7 +290,7 @@ static void loadPrimitiveCatgories()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool primitiveLoaderBusy()
+bool isPrimitiveLoaderBusy()
 {	return g_primListerMutex;
 }
 

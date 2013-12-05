@@ -16,33 +16,33 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDCONFIG_H
-#define LDCONFIG_H
+#ifndef LDFORGE_LDCONFIG_H
+#define LDFORGE_LDCONFIG_H
 
 #include "types.h"
 #include <QStringList>
 
 // =============================================================================
-// StringParser
+// LDConfigParser
 //
-// String parsing utility
+// String parsing utility for parsing ldconfig.ldr
 // =============================================================================
 class LDConfigParser
 {	public:
 		LDConfigParser (str inText, char sep);
 
-		bool atEnd();
-		bool atBeginning();
-		bool next (str& val);
-		bool peekNext (str& val);
+		bool isAtEnd();
+		bool isAtBeginning();
+		bool getNextToken (str& val);
+		bool peekNextToken (str& val);
 		bool getToken (str& val, const int pos);
-		bool findToken (short& result, char const* needle, short args);
-		size_t size();
+		bool findToken (int& result, char const* needle, int args);
+		int getSize();
 		void rewind();
-		void seek (short amount, bool rel);
-		bool tokenCompare (short inPos, const char* sOther);
+		void seek (int amount, bool rel);
+		bool tokenCompare (int inPos, const char* sOther);
 
-		str operator[] (const size_t idx)
+		str operator[] (const int idx)
 		{	return m_tokens[idx];
 		}
 
@@ -53,4 +53,4 @@ class LDConfigParser
 
 void parseLDConfig();
 
-#endif // LDCONFIG_H
+#endif // LDFORGE_LDCONFIG_H

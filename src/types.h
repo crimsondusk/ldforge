@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef TYPES_H
-#define TYPES_H
+#ifndef LDFORGE_TYPES_H
+#define LDFORGE_TYPES_H
 
 #include <QString>
 #include <QObject>
@@ -26,29 +26,27 @@
 
 class LDObject;
 
-typedef QChar qchar;
-typedef QString str;
 class StringConfig;
 class IntConfig;
 class FloatConfig;
 class QFile;
 class QTextStream;
 
-typedef unsigned int uint;
-typedef unsigned short ushort;
-typedef unsigned long ulong;
-typedef qint8 int8;
-typedef qint16 int16;
-typedef qint32 int32;
-typedef qint64 int64;
-typedef quint8 uint8;
-typedef quint16 uint16;
-typedef quint32 uint32;
-typedef quint64 uint64;
+using str = QString;
+using int8 = qint8;
+using int16 = qint16;
+using int32 = qint32;
+using int64 = qint64;
+using uint8 = quint8;
+using uint16 = quint16;
+using uint32 = quint32;
+using uint64 = quint64;
 
-template<class T> using initlist = std::initializer_list<T>;
-template<class T, class R> using pair = std::pair<T, R>;
-using std::size_t;
+template<class T>
+using initlist = std::initializer_list<T>;
+
+template<class T, class R>
+using pair = std::pair<T, R>;
 
 enum Axis { X, Y, Z };
 static const Axis g_Axes[3] = { X, Y, Z };
@@ -67,12 +65,12 @@ class matrix
 		matrix (double fillval);
 		matrix (double vals[]);
 
-		double			determinant	() const;
-		matrix			mult	(matrix other) const;
-		void			puts	() const;
-		str				stringRep	() const;
-		void			zero	();
-		matrix&			operator=	(matrix other);
+		double			getDeterminant() const;
+		matrix			mult (matrix other) const;
+		void				puts() const;
+		str				stringRep() const;
+		void				zero();
+		matrix&			operator= (matrix other);
 
 		inline double& val (int idx)
 		{	return m_vals[idx];
@@ -89,6 +87,7 @@ class matrix
 		inline double& operator[] (int idx)
 		{	return val (idx);
 		}
+
 		inline const double& operator[] (int idx) const
 		{	return val (idx);
 		}
@@ -179,7 +178,7 @@ class StringFormatArg
 		StringFormatArg (const str& v);
 		StringFormatArg (const char& v);
 		StringFormatArg (const uchar& v);
-		StringFormatArg (const qchar& v);
+		StringFormatArg (const QChar& v);
 
 #define NUMERIC_FORMAT_ARG(T,C) \
 	StringFormatArg (const T& v) { \
@@ -342,4 +341,4 @@ extern const matrix g_identity; // Identity matrix
 
 static const double pi = 3.14159265358979323846;
 
-#endif // TYPES_H
+#endif // LDFORGE_TYPES_H

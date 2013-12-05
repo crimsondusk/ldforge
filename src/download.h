@@ -35,9 +35,9 @@ class QAbstractButton;
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloader : public QDialog
-{		Q_OBJECT
-		PROPERTY (LDFile*, primaryFile, setPrimaryFile)
-		PROPERTY (bool, aborted, setAborted)
+{	Q_OBJECT
+	PROPERTY (LDFile*, primaryFile, setPrimaryFile)
+	PROPERTY (bool, aborted, setAborted)
 
 	public:
 		constexpr static const char* k_UnofficialURL = "http://ldraw.org/library/unofficial/";
@@ -64,7 +64,7 @@ class PartDownloader : public QDialog
 		static str getDownloadPath();
 		Source getSource() const;
 		void downloadFile (str dest, str url, bool primary);
-		void modifyDest (str& dest) const;
+		void modifyDestination (str& dest) const;
 		QPushButton* getButton (Button i);
 		static void k_download();
 
@@ -78,7 +78,7 @@ class PartDownloader : public QDialog
 		friend class PartDownloadRequest;
 
 	private:
-		QList<str> m_filesToDownload;
+		QStringList m_filesToDownload;
 		QList<PartDownloadRequest*> m_requests;
 		QPushButton* m_downloadButton;
 };

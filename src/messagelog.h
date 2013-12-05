@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGELOG_H
-#define MESSAGELOG_H
+#ifndef LDFORGE_MESSAGELOG_H
+#define LDFORGE_MESSAGELOG_H
 
 #include <QObject>
 #include <QDate>
@@ -65,4 +65,4 @@ class MessageManager : public QObject
 		void tick();
 };
 
-#endif // MESSAGELOG_H
+#endif // LDFORGE_MESSAGELOG_H

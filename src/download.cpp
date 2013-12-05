@@ -97,7 +97,7 @@ str PartDownloader::getURL() const
 	switch (src)
 	{	case PartsTracker:
 			dest = ui->fname->text();
-			modifyDest (dest);
+			modifyDestination (dest);
 			return str (k_UnofficialURL) + dest;
 
 		case CustomURL:
@@ -110,7 +110,7 @@ str PartDownloader::getURL() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloader::modifyDest (str& dest) const
+void PartDownloader::modifyDestination (str& dest) const
 {	dest = dest.simplified();
 
 	// If the user doesn't want us to guess, stop right here.
@@ -202,7 +202,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 		if (getSource() == CustomURL)
 			dest = basename (getURL());
 
-		modifyDest (dest);
+		modifyDestination (dest);
 
 		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest))
 		{	const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
@@ -230,7 +230,7 @@ void PartDownloader::downloadFile (str dest, str url, bool primary)
 	if (m_filesToDownload.indexOf (dest) != -1)
 		return;
 
-	modifyDest (dest);
+	modifyDestination (dest);
 	log ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
 	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
 
@@ -264,7 +264,7 @@ void PartDownloader::checkIfFinished()
 	if (primaryFile())
 	{	LDFile::setCurrent (primaryFile());
 		reloadAllSubfiles();
-		g_win->fullRefresh();
+		g_win->doFullRefresh();
 		g_win->R()->resetAngles();
 	}
 
@@ -430,7 +430,7 @@ void PartDownloadRequest::downloadFinished()
 			continue;
 
 		str dest = err->fileRef();
-		m_prompt->modifyDest (dest);
+		m_prompt->modifyDestination (dest);
 		m_prompt->downloadFile (dest, str (PartDownloader::k_UnofficialURL) + dest, false);
 	}
 

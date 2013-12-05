@@ -101,7 +101,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		new LDEmpty,
 	});
 
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 }
 
 // =============================================================================
@@ -147,7 +147,7 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Close, CTRL (W))
-{	if (!LDFile::current()->safeToClose())
+{	if (!LDFile::current()->isSafeToClose())
 		return;
 
 	delete LDFile::current();
@@ -268,7 +268,7 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
-{	short colnum = g_win->getSelectedColor();
+{	int colnum = g_win->getSelectedColor();
 
 	if (colnum == -1)
 		return; // no consensus on color
@@ -288,7 +288,7 @@ DEFINE_ACTION (SelectByType, 0)
 {	if (selection().isEmpty())
 		return;
 
-	LDObject::Type type = g_win->uniformSelectedType();
+	LDObject::Type type = g_win->getUniformSelectedType();
 
 	if (type == LDObject::Unidentified)
 		return;
@@ -443,7 +443,7 @@ DEFINE_ACTION (Screenshot, 0)
 {	setlocale (LC_ALL, "C");
 
 	int w, h;
-	uchar* imgdata = g_win->R()->screencap (w, h);
+	uchar* imgdata = g_win->R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
 	str root = basename (LDFile::current()->name());
@@ -548,8 +548,8 @@ DEFINE_ACTION (SetDrawDepth, 0)
 
 	bool ok;
 	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
-											fmt ("Depth value for %1 Camera:", g_win->R()->cameraName()),
-											g_win->R()->depthValue(), -10000.0f, 10000.0f, 3, &ok);
+											fmt ("Depth value for %1 Camera:", g_win->R()->getCameraName()),
+											g_win->R()->getDepthValue(), -10000.0f, 10000.0f, 3, &ok);
 
 	if (ok)
 		g_win->R()->setDepthValue (depth);
@@ -625,9 +625,9 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 		defval = selection()[0]->getIndex();
 
 	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
-		1, LDFile::current()->numObjs(), 1, &ok);
+		1, LDFile::current()->getObjectCount(), 1, &ok);
 
-	if (!ok || (obj = LDFile::current()->object (idx - 1)) == null)
+	if (!ok || (obj = LDFile::current()->getObject (idx - 1)) == null)
 		return;
 
 	LDFile::current()->clearSelection();

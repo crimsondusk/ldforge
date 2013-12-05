@@ -26,7 +26,7 @@
 // Helper function for parseLDConfig
 // -----------------------------------------------------------------------------
 static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val)
-{	short pos;
+{	int pos;
 
 	// Try find the token and get its position
 	if (!pars.findToken (pos, tag, 1))
@@ -42,7 +42,7 @@ void parseLDConfig()
 {	File* f = openLDrawFile ("LDConfig.ldr", false);
 
 	if (!f)
-	{	critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing! (%1)"),
+	{	critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing: %1"),
 			strerror (errno)));
 		return;
 	}
@@ -58,7 +58,7 @@ void parseLDConfig()
 		// Parse the line
 		LDConfigParser pars (line, ' ');
 
-		short code = 0, alpha = 255;
+		int code = 0, alpha = 255;
 		str name, facename, edgename, valuestr;
 
 		// Check 0 !COLOUR, parse the name
@@ -88,14 +88,14 @@ void parseLDConfig()
 
 		// Ensure that our colors are correct
 		QColor faceColor (facename),
-			   edgeColor (edgename);
+			edgeColor (edgename);
 
 		if (!faceColor.isValid() || !edgeColor.isValid())
 			continue;
 
 		// Parse alpha if given.
 		if (parseLDConfigTag (pars, "ALPHA", valuestr))
-			alpha = clamp<short> (valuestr.toShort(), 0, 255);
+			alpha = clamp (valuestr.toInt(), 0, 255);
 
 		LDColor* col = new LDColor;
 		col->name = name;
@@ -119,14 +119,14 @@ LDConfigParser::LDConfigParser (str inText, char sep)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::atBeginning()
-{	return (m_pos == -1);
+bool LDConfigParser::isAtBeginning()
+{	return m_pos == -1;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::atEnd()
-{	return (m_pos == m_tokens.size() - 1);
+bool LDConfigParser::isAtEnd()
+{	return m_pos == m_tokens.size() - 1;
 }
 
 // =============================================================================
@@ -141,19 +141,19 @@ bool LDConfigParser::getToken (str& val, const int pos)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::next (str& val)
+bool LDConfigParser::getNextToken (str& val)
 {	return getToken (val, ++m_pos);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::peekNext (str& val)
+bool LDConfigParser::peekNextToken (str& val)
 {	return getToken (val, m_pos + 1);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::findToken (short& result, char const* needle, short args)
+bool LDConfigParser::findToken (int& result, char const* needle, int args)
 {	for (int i = 0; i < (m_tokens.size() - args); ++i)
 	{	if (m_tokens[i] == needle)
 		{	result = i;
@@ -172,19 +172,19 @@ void LDConfigParser::rewind()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDConfigParser::seek (short amount, bool rel)
+void LDConfigParser::seek (int amount, bool rel)
 {	m_pos = (rel ? m_pos : 0) + amount;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-size_t LDConfigParser::size()
+int LDConfigParser::getSize()
 {	return m_tokens.size();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::tokenCompare (short inPos, const char* sOther)
+bool LDConfigParser::tokenCompare (int inPos, const char* sOther)
 {	str tok;
 
 	if (!getToken (tok, inPos))

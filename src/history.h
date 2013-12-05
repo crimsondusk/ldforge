@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef HISTORY_H
-#define HISTORY_H
+#ifndef LDFORGE_HISTORY_H
+#define LDFORGE_HISTORY_H
 
 #include "common.h"
 #include "ldtypes.h"
@@ -57,7 +57,7 @@ class History
 		void close();
 		void add (AbstractHistoryEntry* entry);
 
-		inline long size() const
+		inline long getSize() const
 		{	return m_changesets.size();
 		}
 
@@ -66,7 +66,7 @@ class History
 			return *this;
 		}
 
-		inline const Changeset& changeset (long pos) const
+		inline const Changeset& getChangeset (long pos) const
 		{	return m_changesets[pos];
 		}
 
@@ -168,6 +168,9 @@ class MoveHistory : public AbstractHistoryEntry
 				dest (dest) {}
 };
 
+// =============================================================================
+// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
+// =============================================================================
 class SwapHistory : public AbstractHistoryEntry
 {	public:
 		IMPLEMENT_HISTORY_TYPE (Swap)
@@ -178,4 +181,4 @@ class SwapHistory : public AbstractHistoryEntry
 				b (b) {}
 };
 
-#endif // HISTORY_H
+#endif // LDFORGE_HISTORY_H

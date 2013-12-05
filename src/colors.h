@@ -28,18 +28,18 @@ class LDColor
 {	public:
 		str name, hexcode;
 		QColor faceColor, edgeColor;
-		short index;
+		int index;
 };
 
 void initColors();
 int luma (QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
-LDColor* getColor (short colnum);
-void setColor (short colnum, LDColor* col);
+LDColor* getColor (int colnum);
+void setColor (int colnum, LDColor* col);
 
 // Main and edge color identifiers
-static const short maincolor = 16;
-static const short edgecolor = 24;
+static const int maincolor = 16;
+static const int edgecolor = 24;
 
 #endif // LDFORGE_COLORS_H

@@ -193,7 +193,7 @@ void ConfigDialog::initGrids()
 	*ylabel = new QLabel ("Y"),
 	*zlabel = new QLabel ("Z"),
 	*anglabel = new QLabel ("Angle");
-	short i = 1;
+	int i = 1;
 
 	for (QLabel* label : initlist<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
 	{	label->setAlignment (Qt::AlignCenter);
@@ -336,7 +336,7 @@ void ConfigDialog::applySettings()
 	reloadAllSubfiles();
 	loadLogoedStuds();
 	g_win->R()->setBackground();
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 	g_win->updateToolBars();
 	g_win->updateFileList();
 }
@@ -419,10 +419,10 @@ void ConfigDialog::slot_setColor()
 			return; // don't color separators
 	}
 
-	short defval = entry ? entry->color()->index : -1;
-	short val;
+	int defval = entry ? entry->color()->index : -1;
+	int val;
 
-	if (ColorSelector::getColor (val, defval, this) == false)
+	if (ColorSelector::selectColor (val, defval, this) == false)
 		return;
 
 	if (entry)

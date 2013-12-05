@@ -80,7 +80,7 @@ class PrimitiveLister : public QObject
 extern QList<PrimitiveCategory> g_PrimitiveCategories;
 
 void loadPrimitives();
-bool primitiveLoaderBusy();
+bool isPrimitiveLoaderBusy();
 
 enum PrimitiveType
 {	Circle,
@@ -93,7 +93,7 @@ enum PrimitiveType
 
 // =============================================================================
 class PrimitivePrompt : public QDialog
-{		Q_OBJECT
+{	Q_OBJECT
 
 	public:
 		explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);

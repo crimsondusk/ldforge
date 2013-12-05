@@ -19,7 +19,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QTextStream>
-#include <qfile.h>
+#include <QFile>
 #include <assert.h>
 #include "common.h"
 #include "types.h"
@@ -181,14 +181,14 @@ int vertex::operator< (const vertex& other) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 matrix::matrix (double vals[])
-{	for (short i = 0; i < 9; ++i)
+{	for (int i = 0; i < 9; ++i)
 		m_vals[i] = vals[i];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 matrix::matrix (double fillval)
-{	for (short i = 0; i < 9; ++i)
+{	for (int i = 0; i < 9; ++i)
 		m_vals[i] = fillval;
 }
 
@@ -202,8 +202,8 @@ matrix::matrix (initlist<double> vals)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void matrix::puts() const
-{	for (short i = 0; i < 3; ++i)
-	{	for (short j = 0; j < 3; ++j)
+{	for (int i = 0; i < 3; ++i)
+	{	for (int j = 0; j < 3; ++j)
 			log ("%1\t", m_vals[ (i * 3) + j]);
 
 		log ("\n");
@@ -215,7 +215,7 @@ void matrix::puts() const
 str matrix::stringRep() const
 {	str val;
 
-	for (short i = 0; i < 9; ++i)
+	for (int i = 0; i < 9; ++i)
 	{	if (i > 0)
 			val += ' ';
 
@@ -237,10 +237,10 @@ matrix matrix::mult (matrix other) const
 {	matrix val;
 	val.zero();
 
-	for (short i = 0; i < 3; ++i)
-		for (short j = 0; j < 3; ++j)
-			for (short k = 0; k < 3; ++k)
-				val[ (i * 3) + j] += m_vals[ (i * 3) + k] * other[ (k * 3) + j];
+	for (int i = 0; i < 3; ++i)
+	for (int j = 0; j < 3; ++j)
+	for (int k = 0; k < 3; ++k)
+		val[(i * 3) + j] += m_vals[(i * 3) + k] * other[(k * 3) + j];
 
 	return val;
 }
@@ -254,7 +254,7 @@ matrix& matrix::operator= (matrix other)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-double matrix::determinant() const
+double matrix::getDeterminant() const
 {	return (val (0) * val (4) * val (8)) +
 		   (val (1) * val (5) * val (6)) +
 		   (val (2) * val (3) * val (7)) -
@@ -287,7 +287,7 @@ StringFormatArg::StringFormatArg (const uchar& v)
 {	m_val = v;
 }
 
-StringFormatArg::StringFormatArg (const qchar& v)
+StringFormatArg::StringFormatArg (const QChar& v)
 {	m_val = v;
 }
 
@@ -525,17 +525,15 @@ void LDBoundingBox::calcObject (LDObject* obj)
 		case LDObject::Triangle:
 		case LDObject::Quad:
 		case LDObject::CndLine:
-
-			for (short i = 0; i < obj->vertices(); ++i)
+		{	for (int i = 0; i < obj->vertices(); ++i)
 				calcVertex (obj->getVertex (i));
-
-			break;
+		} break;
 
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
-		for (LDObject * obj : objs)
+			for (LDObject * obj : objs)
 			{	calcObject (obj);
 				delete obj;
 			}

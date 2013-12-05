@@ -34,16 +34,16 @@
 #include "moc_colorSelectDialog.cpp"
 
 static const int g_numColumns = 16;
-static const short g_squareSize = 32;
+static const int g_squareSize = 32;
 
 extern_cfg (String, gl_maincolor);
 extern_cfg (Float, gl_maincolor_alpha);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent)
+ColorSelector::ColorSelector (int defval, QWidget* parent) : QDialog (parent)
 {	// Remove the default color if it's invalid
-	if (!::getColor (defval))
+	if (!getColor (defval))
 		defval = -1;
 
 	m_firstResize = true;
@@ -52,7 +52,7 @@ ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent)
 
 	m_scene = new QGraphicsScene;
 	ui->viewport->setScene (m_scene);
-	setSelection (::getColor (defval));
+	setSelection (getColor (defval));
 
 	// not really an icon but eh
 	m_scene->setBackgroundBrush (getIcon ("checkerboard"));
@@ -87,7 +87,7 @@ void ColorSelector::drawScene()
 	// Draw the color rectangles.
 	m_scene->clear();
 
-	for (short i = 0; i < MAX_COLORS; ++i)
+	for (int i = 0; i < MAX_COLORS; ++i)
 	{	LDColor* info = ::getColor (i);
 
 		if (!info)
@@ -183,7 +183,7 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool ColorSelector::getColor (short& val, short int defval, QWidget* parent)
+bool ColorSelector::selectColor (int& val, int defval, QWidget* parent)
 {	ColorSelector dlg (defval, parent);
 
 	if (dlg.exec() && dlg.sel() != null)

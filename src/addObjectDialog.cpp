@@ -53,7 +53,7 @@ class SubfileListItem : public QTreeWidgetItem
 AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) : QDialog (parent)
 {	setlocale (LC_ALL, "C");
 
-	short coordCount = 0;
+	int coordCount = 0;
 	str typeName = LDObject::typeName (type);
 
 	switch (type)
@@ -104,7 +104,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			// If the primitive lister is busy writing data, we have to wait
 			// for that to happen first. This should be quite considerably rare.
-			while (primitiveLoaderBusy())
+			while (isPrimitiveLoaderBusy())
 				;
 
 			tw_subfileList = new QTreeWidget();
@@ -164,7 +164,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		connect (pb_color, SIGNAL (clicked()), this, SLOT (slot_colorButtonClicked()));
 	}
 
-	for (short i = 0; i < coordCount; ++i)
+	for (int i = 0; i < coordCount; ++i)
 	{	dsb_coords[i] = new QDoubleSpinBox;
 		dsb_coords[i]->setDecimals (5);
 		dsb_coords[i]->setMinimum (-10000.0);
@@ -182,8 +182,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			// Apply coordinates
 			if (obj)
-			{	for (short i = 0; i < coordCount / 3; ++i)
-					for (short j = 0; j < 3; ++j)
+			{	for (int i = 0; i < coordCount / 3; ++i)
+					for (int j = 0; j < 3; ++j)
 						dsb_coords[ (i * 3) + j]->setValue (obj->getVertex (i).coord (j));
 			}
 
@@ -233,7 +233,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	if (coordCount > 0)
 	{	QGridLayout* const qCoordLayout = new QGridLayout;
 
-		for (short i = 0; i < coordCount; ++i)
+		for (int i = 0; i < coordCount; ++i)
 			qCoordLayout->addWidget (dsb_coords[i], (i / 3), (i % 3));
 
 		layout->addLayout (qCoordLayout, 0, 1, (coordCount / 3), 3);
@@ -252,7 +252,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void AddObjectDialog::setButtonBackground (QPushButton* button, short colnum)
+void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 {	LDColor* col = getColor (colnum);
 
 	button->setIcon (getIcon ("palette"));
@@ -276,7 +276,7 @@ str AddObjectDialog::currentSubfileName()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddObjectDialog::slot_colorButtonClicked()
-{	ColorSelector::getColor (colnum, colnum, this);
+{	ColorSelector::selectColor (colnum, colnum, this);
 	setButtonBackground (pb_color, colnum);
 }
 
@@ -348,10 +348,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			if (!obj)
 				obj = LDObject::getDefault (type);
 
-			for (short i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->vertices(); ++i)
 			{	vertex v;
 
-			for (const Axis ax : g_Axes)
+				for (const Axis ax : g_Axes)
 					v[ax] = dlg.dsb_coords[ (i * 3) + ax]->value();
 
 				obj->setVertex (i, v);
@@ -408,5 +408,5 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		LDFile::current()->insertObj (idx, obj);
 	}
 
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 }

@@ -187,7 +187,7 @@ void writeSelection (str fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeColorGroup (const short colnum, str fname)
+void writeColorGroup (const int colnum, str fname)
 {	QList<LDObject*> objects;
 
 	for (LDObject* obj : LDFile::current()->objects())
@@ -254,7 +254,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
+static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 {
 #ifndef RELEASE
 	QFile::copy (fname, "./debug_lastOutput");
@@ -274,7 +274,7 @@ static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
 	if (replace)
 		g_win->deleteSelection();
 
-	for (const short colnum : colorsToReplace)
+	for (const int colnum : colorsToReplace)
 		g_win->deleteByColor (colnum);
 
 	// Insert the new objects
@@ -290,7 +290,7 @@ static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
 		obj->select();
 	}
 
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 }
 
 // =============================================================================
@@ -410,7 +410,7 @@ DEFINE_ACTION (Intersector, 0)
 								" cutter group with the input group. Both groups are cut by the intersection.");
 	ui.cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 
-	short inCol, cutCol;
+	int inCol, cutCol;
 	const bool repeatInverse = ui.cb_repeat->isChecked();
 
 	forever
@@ -497,7 +497,7 @@ DEFINE_ACTION (Coverer, 0)
 	makeColorSelector (ui.cmb_col1);
 	makeColorSelector (ui.cmb_col2);
 
-	short in1Col, in2Col;
+	int in1Col, in2Col;
 
 	forever
 	{	if (!dlg->exec())
@@ -554,7 +554,7 @@ DEFINE_ACTION (Isecalc, 0)
 	makeColorSelector (ui.cmb_col1);
 	makeColorSelector (ui.cmb_col2);
 
-	short in1Col, in2Col;
+	int in1Col, in2Col;
 
 	// Run the dialog and validate input
 	forever

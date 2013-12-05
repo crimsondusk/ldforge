@@ -31,9 +31,9 @@ class ColorSelector : public QDialog
 	READ_PROPERTY (LDColor*, sel, setSelection)
 
 	public:
-		explicit ColorSelector (short defval = -1, QWidget* parent = null);
+		explicit ColorSelector (int defval = -1, QWidget* parent = null);
 		virtual ~ColorSelector();
-		static bool getColor (short& val, short defval = -1, QWidget* parent = null);
+		static bool selectColor (int& val, int defval = -1, QWidget* parent = null);
 
 	protected:
 		void mousePressEvent (QMouseEvent* event);

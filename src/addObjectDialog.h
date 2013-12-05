@@ -59,10 +59,10 @@ class AddObjectDialog : public QDialog
 		QLineEdit* le_matrix;
 
 	private:
-		void setButtonBackground (QPushButton* button, short color);
+		void setButtonBackground (QPushButton* button, int color);
 		str currentSubfileName();
 
-		short colnum;
+		int colnum;
 
 	private slots:
 		void slot_colorButtonClicked();

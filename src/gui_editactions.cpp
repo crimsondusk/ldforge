@@ -232,8 +232,8 @@ DEFINE_ACTION (SetColor, KEY (C))
 {	if (selection().isEmpty())
 		return;
 
-	short colnum;
-	short defcol = -1;
+	int colnum;
+	int defcol = -1;
 
 	QList<LDObject*> objs = selection();
 
@@ -242,7 +242,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 	defcol = g_win->getSelectedColor();
 
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelector::getColor (colnum, defcol, g_win))
+	if (ColorSelector::selectColor (colnum, defcol, g_win))
 	{	for (LDObject* obj : objs)
 		{	if (obj->isColored() == false)
 				continue;
@@ -266,7 +266,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 		if (type != LDObject::Quad && type != LDObject::Triangle)
 			continue;
 
-		short numLines;
+		int numLines;
 		LDLine* lines[4];
 
 		if (type == LDObject::Quad)
@@ -287,7 +287,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
 		}
 
-		for (short i = 0; i < numLines; ++i)
+		for (int i = 0; i < numLines; ++i)
 		{	long idx = obj->getIndex() + i + 1;
 
 			lines[i]->setColor (edgecolor);
@@ -421,7 +421,7 @@ static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& trans
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void doRotate (const short l, const short m, const short n)
+static void doRotate (const int l, const int m, const int n)
 {	QList<LDObject*> sel = selection();
 	QList<vertex*> queue;
 	const vertex rotpoint = rotPoint (sel);
@@ -447,7 +447,7 @@ static void doRotate (const short l, const short m, const short n)
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel)
 	{	if (obj->vertices())
-		{	for (short i = 0; i < obj->vertices(); ++i)
+		{	for (int i = 0; i < obj->vertices(); ++i)
 			{	vertex v = obj->getVertex (i);
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
@@ -508,7 +508,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 	int num = 0;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
+	{	for (int i = 0; i < obj->vertices(); ++i)
 		{	vertex v = obj->getVertex (i);
 
 			for (const Axis ax : g_Axes)
@@ -574,7 +574,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	if (ui.z->isChecked()) sel << Z;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
+	{	for (int i = 0; i < obj->vertices(); ++i)
 		{	vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
@@ -615,7 +615,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	if (ui.z->isChecked()) sel << Z;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
+	{	for (int i = 0; i < obj->vertices(); ++i)
 		{	vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
@@ -650,7 +650,7 @@ DEFINE_ACTION (Demote, 0)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static bool isColorUsed (short colnum)
+static bool isColorUsed (int colnum)
 {	for (LDObject* obj : LDFile::current()->objects())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
@@ -661,7 +661,7 @@ static bool isColorUsed (short colnum)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Autocolor, 0)
-{	short colnum = 0;
+{	int colnum = 0;
 
 	while (colnum < MAX_COLORS && (getColor (colnum) == null || isColorUsed (colnum)))
 		colnum++;
@@ -710,7 +710,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 
 	// Find a spot to place the new comment
 	for (
-		obj = LDFile::current()->object (0);
+		obj = LDFile::current()->getObject (0);
 		obj && obj->next() && !obj->next()->isScemantic();
 		obj = obj->next()
 	)

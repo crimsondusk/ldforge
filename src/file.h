@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef FILE_H
-#define FILE_H
+#ifndef LDFORGE_FILE_H
+#define LDFORGE_FILE_H
 
 #include "common.h"
 #include "ldtypes.h"
@@ -67,20 +67,19 @@ class LDFile : public QObject
 		LDFile();
 		~LDFile();
 
-		int addObject (LDObject* obj);                 // Adds an object to this file at the end of the file.
+		int addObject (LDObject* obj); // Adds an object to this file at the end of the file.
 		void addObjects (const QList<LDObject*> objs);
 		void clearSelection();
-		void forgetObject (LDObject* obj);               // Deletes the given object from the object chain.
+		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
 		str getShortName();
-		const QList<LDObject*>& selection() const;
-		bool hasUnsavedChanges() const;                  // Does this file have unsaved changes?
+		const QList<LDObject*>& getSelection() const;
+		bool hasUnsavedChanges() const; // Does this file have unsaved changes?
 		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
-		int numObjs() const;
-		LDObject* object (int pos) const;
-		LDObject* obj (int pos) const;
-		bool save (str path = "");                       // Saves this file to disk.
-		bool safeToClose();                              // Perform safety checks. Do this before closing any files!
+		int getObjectCount() const;
+		LDObject* getObject (int pos) const;
+		bool save (str path = ""); // Saves this file to disk.
+		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObject* obj);
 
 		inline LDFile& operator<< (LDObject* obj)
@@ -165,7 +164,7 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 extern QList<LDFile*> g_loadedFiles;
 
 inline const QList<LDObject*>& selection()
-{	return LDFile::current()->selection();
+{	return LDFile::current()->getSelection();
 }
 
 void addRecentFile (str path);
@@ -209,4 +208,4 @@ class FileLoader : public QObject
 		void workDone();
 };
 
-#endif // FILE_H
+#endif // LDFORGE_FILE_H

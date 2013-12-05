@@ -133,7 +133,7 @@ bool numeric (const str& tok)
 {	bool gotDot = false;
 
 	for (int i = 0; i < tok.length(); ++i)
-	{	const qchar c = tok[i];
+	{	const QChar c = tok[i];
 
 		// Allow leading hyphen for negatives
 		if (i == 0 && c == '-')
@@ -376,11 +376,11 @@ bool RingFinder::findRings (double r0, double r1)
 bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 {	// If this solution has less components than the other one, this one
 	// is definitely better.
-	if (components().size() < other.components().size())
+	if (getComponents().size() < other.getComponents().size())
 		return true;
 
 	// vice versa
-	if (other.components().size() < components().size())
+	if (other.getComponents().size() < getComponents().size())
 		return false;
 
 	// Calculate the maximum ring number. Since the solutions have equal
@@ -389,12 +389,12 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 	int maxA = 0,
 	maxB = 0;
 
-	for (int i = 0; i < components().size(); ++i)
-	{	if (components()[i].num > maxA)
-			maxA = components()[i].num;
+	for (int i = 0; i < getComponents().size(); ++i)
+	{	if (getComponents()[i].num > maxA)
+			maxA = getComponents()[i].num;
 
-		if (other.components()[i].num > maxB)
-			maxB = other.components()[i].num;
+		if (other.getComponents()[i].num > maxB)
+			maxB = other.getComponents()[i].num;
 	}
 
 	if (maxA < maxB)

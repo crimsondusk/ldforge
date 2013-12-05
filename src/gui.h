@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GUI_H
-#define GUI_H
+#ifndef LDFORGE_GUI_H
+#define LDFORGE_GUI_H
 
 #include <QMainWindow>
 #include <QAction>
@@ -95,7 +95,7 @@ class ForgeWindow : public QMainWindow
 		ForgeWindow();
 		void buildObjList();
 		void updateTitle();
-		void fullRefresh();
+		void doFullRefresh();
 		void refresh();
 		int getInsertionPoint();
 		void updateToolBars();
@@ -105,13 +105,13 @@ class ForgeWindow : public QMainWindow
 		void updateEditModeActions();
 		void updateFileList();
 		void updateFileListItem (LDFile* f);
-		short getSelectedColor();
-		LDObject::Type uniformSelectedType();
+		int getSelectedColor();
+		LDObject::Type getUniformSelectedType();
 		void scrollToSelection();
 		void spawnContextMenu (const QPoint pos);
-		void deleteObjVector (QList< LDObject* > objs);
+		void deleteObjects (QList<LDObject*> objs);
 		int deleteSelection();
-		void deleteByColor (const short int colnum);
+		void deleteByColor (const int colnum);
 		void save (LDFile* f, bool saveAs);
 
 		inline GLRenderer* R()
@@ -210,4 +210,4 @@ template<class T> void radioDefault (const T& expr, QList<pair<QRadioButton*, T>
 	}
 }
 
-#endif // GUI_H
+#endif // LDFORGE_GUI_H

@@ -77,11 +77,11 @@ bool LDObject::isScemantic() const
 {	return false;
 }
 
-str LDObject::typeName() const
+str LDObject::getTypeName() const
 {	return "";
 }
 
-short LDObject::vertices() const
+int LDObject::vertices() const
 {	return 0;
 }
 
@@ -281,14 +281,14 @@ LDObject::~LDObject()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void transformObject (LDObject* obj, matrix transform, vertex pos, short parentcolor)
+static void transformObject (LDObject* obj, matrix transform, vertex pos, int parentcolor)
 {	switch (obj->getType())
 	{	case LDObject::Line:
 		case LDObject::CndLine:
 		case LDObject::Triangle:
 		case LDObject::Quad:
 
-			for (short i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->vertices(); ++i)
 			{	vertex v = obj->getVertex (i);
 				v.transform (transform, pos);
 				obj->setVertex (i, v);
@@ -338,8 +338,8 @@ long LDObject::getIndex() const
 	assert (file() != null);
 #endif
 
-	for (int i = 0; i < file()->numObjs(); ++i)
-		if (file()->obj (i) == this)
+	for (int i = 0; i < file()->getObjectCount(); ++i)
+		if (file()->getObject (i) == this)
 			return i;
 
 	return -1;
@@ -373,9 +373,9 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 		}
 
 		objsToCompile << obj;
-		objsToCompile << file->obj (target);
+		objsToCompile << file->getObject (target);
 
-		obj->swap (file->obj (target));
+		obj->swap (file->getObject (target));
 	}
 
 	removeDuplicates (objsToCompile);
@@ -390,14 +390,14 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 // -----------------------------------------------------------------------------
 str LDObject::typeName (LDObject::Type type)
 {	LDObject* obj = LDObject::getDefault (type);
-	str name = obj->typeName();
+	str name = obj->getTypeName();
 	delete obj;
 	return name;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDObject::objectListContents (const QList<LDObject*>& objs)
+str LDObject::describeObjects (const QList<LDObject*>& objs)
 {	bool firstDetails = true;
 	str text = "";
 
@@ -452,10 +452,10 @@ LDObject* LDObject::next() const
 {	long idx = getIndex();
 	assert (idx != -1);
 
-	if (idx == (long) file()->numObjs() - 1)
+	if (idx == (long) file()->getObjectCount() - 1)
 		return null;
 
-	return file()->obj (idx + 1);
+	return file()->getObject (idx + 1);
 }
 
 // =============================================================================
@@ -467,7 +467,7 @@ LDObject* LDObject::prev() const
 	if (idx == 0)
 		return null;
 
-	return file()->obj (idx - 1);
+	return file()->getObject (idx - 1);
 }
 
 // =============================================================================
@@ -503,28 +503,28 @@ void LDSubfile::move (vertex vect)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDLine::move (vertex vect)
-{	for (short i = 0; i < 2; ++i)
+{	for (int i = 0; i < 2; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDTriangle::move (vertex vect)
-{	for (short i = 0; i < 3; ++i)
+{	for (int i = 0; i < 3; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDQuad::move (vertex vect)
-{	for (short i = 0; i < 4; ++i)
+{	for (int i = 0; i < 4; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDCndLine::move (vertex vect)
-{	for (short i = 0; i < 4; ++i)
+{	for (int i = 0; i < 4; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
 
@@ -689,11 +689,11 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-READ_ACCESSOR (short, LDObject::color)
+READ_ACCESSOR (int, LDObject::color)
 {	return m_color;
 }
 
-SET_ACCESSOR (short, LDObject::setColor)
+SET_ACCESSOR (int, LDObject::setColor)
 {	changeProperty (this, &m_color, val);
 }
 

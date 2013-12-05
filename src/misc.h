@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MISC_H
-#define MISC_H
+#ifndef LDFORGE_MISC_H
+#define LDFORGE_MISC_H
 
 #include <QVector>
 #include "config.h"
@@ -89,51 +89,51 @@ namespace Grid
 // =============================================================================
 class RingFinder
 {	public:
-	struct Component
-	{	int num;
-		double scale;
-	};
+		struct Component
+		{	int num;
+			double scale;
+		};
 
-	class Solution
-	{	public:
-			// Components of this solution
-			inline const QVector<Component>& components() const
-			{	return m_components;
-			}
+		class Solution
+		{	public:
+				// Components of this solution
+				inline const QVector<Component>& getComponents() const
+				{	return m_components;
+				}
 
-			// Add a component to this solution
-			void addComponent (const Component& a)
-			{	m_components.push_back (a);
-			}
+				// Add a component to this solution
+				inline void addComponent (const Component& a)
+				{	m_components.push_back (a);
+				}
 
-			// Compare solutions
-			bool operator> (const Solution& other) const;
+				// Compare solutions
+				bool operator> (const Solution& other) const;
+
+			private:
+				QVector<Component> m_components;
+		};
+
+		RingFinder() {}
+		bool findRings (double r0, double r1);
+
+		inline const Solution* bestSolution()
+		{	return m_bestSolution;
+		}
+
+		inline const QVector<Solution>& allSolutions() const
+		{	return m_solutions;
+		}
+
+		inline bool operator() (double r0, double r1)
+		{	return findRings (r0, r1);
+		}
 
 	private:
-		QVector<Component> m_components;
-	};
+		QVector<Solution> m_solutions;
+		const Solution*   m_bestSolution;
+		int               m_stack;
 
-	RingFinder() {}
-	bool findRings (double r0, double r1);
-
-	inline const Solution* bestSolution()
-	{	return m_bestSolution;
-	}
-
-	inline const QVector<Solution>& allSolutions() const
-	{	return m_solutions;
-	}
-
-	inline bool operator() (double r0, double r1)
-	{	return findRings (r0, r1);
-	}
-
-private:
-	QVector<Solution> m_solutions;
-	const Solution*   m_bestSolution;
-	int               m_stack;
-
-	bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
+		bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
 };
 
 extern RingFinder g_RingFinder;
@@ -186,4 +186,4 @@ template<class T> void removeDuplicates (QList<T>& a)
 	a.erase (pos, a.end());
 }
 
-#endif // MISC_H
+#endif // LDFORGE_MISC_H

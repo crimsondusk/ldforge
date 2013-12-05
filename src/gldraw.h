@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef GLDRAW_H
-#define GLDRAW_H
+#ifndef LDFORGE_GLDRAW_H
+#define LDFORGE_GLDRAW_H
 
 #include <QGLWidget>
 #include "common.h"
@@ -80,23 +80,23 @@ class GLRenderer : public QGLWidget
 		{	return m_camera;
 		}
 
-		Axis           cameraAxis (bool y, Camera camid = (Camera) - 1);
-		const char*    cameraName() const;
 		void           clearOverlay();
 		void           compileObject (LDObject* obj);
 		void           compileAllObjects();
-		double         depthValue() const;
 		void           drawGLScene();
 		void           endDraw (bool accept);
+		Axis           getCameraAxis (bool y, Camera camid = (Camera) - 1);
+		const char*    getCameraName() const;
+		double         getDepthValue() const;
 		QColor         getMainColor();
 		LDGLOverlay&   getOverlay (int newcam);
+		uchar*         getScreencap (int& w, int& h);
 		void           hardRefresh();
 		void           initGLData();
-		void           overlaysFromObjects();
+		void           initOverlaysFromObjects();
 		void           refresh();
 		void           resetAngles();
 		void           resetAllAngles();
-		uchar*         screencap (int& w, int& h);
 		void           setBackground();
 		void           setCamera (const Camera cam);
 		void           setDepthValue (double depth);
@@ -132,43 +132,43 @@ class GLRenderer : public QGLWidget
 			Camera cam;
 		};
 
-		CameraIcon            m_cameraIcons[7];
-		QTimer*               m_toolTipTimer;
-		Qt::MouseButtons      m_lastButtons;
-		Qt::KeyboardModifiers m_keymods;
-		vertex                m_hoverpos;
-		double                m_virtWidth,
-	                          m_virtHeight,
-							  m_rotX[7],
-							  m_rotY[7],
-							  m_rotZ[7],
-							  m_panX[7],
-							  m_panY[7],
-		                      m_zoom[7];
-		bool                  m_darkbg,
-		                      m_rangepick,
-							  m_addpick,
-							  m_drawToolTip,
-							  m_screencap,
-		                      m_panning;
-		QPoint                m_pos,
-		                      m_globalpos,
-		                      m_rangeStart;
-		QPen                  m_thickBorderPen,
-							  m_thinBorderPen;
-		Camera                m_camera,
-		                      m_toolTipCamera;
-		GLuint                m_axeslist;
-		int                   m_width,
-		                      m_height,
-							  m_totalmove;
-		QList<vertex>         m_drawedVerts;
-		bool                  m_rectdraw;
-		vertex                m_rectverts[4];
-		QColor                m_bgcolor;
-		double                m_depthValues[6];
-		LDGLOverlay           m_overlays[6];
-		QList<vertex>         m_knownVerts;
+		CameraIcon					m_cameraIcons[7];
+		QTimer*						m_toolTipTimer;
+		Qt::MouseButtons			m_lastButtons;
+		Qt::KeyboardModifiers	m_keymods;
+		vertex						m_hoverpos;
+		double						m_virtWidth,
+										m_virtHeight,
+										m_rotX[7],
+										m_rotY[7],
+										m_rotZ[7],
+										m_panX[7],
+										m_panY[7],
+										m_zoom[7];
+		bool							m_darkbg,
+										m_rangepick,
+										m_addpick,
+										m_drawToolTip,
+										m_screencap,
+										m_panning;
+		QPoint						m_pos,
+										m_globalpos,
+										m_rangeStart;
+		QPen							m_thickBorderPen,
+										m_thinBorderPen;
+		Camera						m_camera,
+										m_toolTipCamera;
+		GLuint						m_axeslist;
+		int							m_width,
+										m_height,
+										m_totalmove;
+		QList<vertex>				m_drawedVerts;
+		bool							m_rectdraw;
+		vertex						m_rectverts[4];
+		QColor						m_bgcolor;
+		double						m_depthValues[6];
+		LDGLOverlay					m_overlays[6];
+		QList<vertex>				m_knownVerts;
 
 		void           addDrawnVertex (vertex m_hoverpos);
 		LDOverlay*     findOverlayObject (Camera cam);
@@ -181,7 +181,7 @@ class GLRenderer : public QGLWidget
 		void           calcCameraIcons();
 		
 		// How large is the circle we're drawing right now?
-		double         circleDrawDist (int pos) const;
+		double         getCircleDrawDist (int pos) const;
 		
 		// Clamps an angle to [0, 360]
 		void           clampAngle (double& angle) const;
@@ -250,4 +250,4 @@ static const GLRenderer::ListType g_glListTypes[] =
 extern const GL::Camera g_Cameras[7];
 extern const char* g_CameraNames[7];
 
-#endif // GLDRAW_H
+#endif // LDFORGE_GLDRAW_H

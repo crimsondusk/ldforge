@@ -52,7 +52,7 @@ void initColors()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDColor* getColor (short colnum)
+LDColor* getColor (int colnum)
 {	// Check bounds
 	if (colnum < 0 || colnum >= MAX_COLORS)
 		return null;
@@ -62,7 +62,7 @@ LDColor* getColor (short colnum)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void setColor (short colnum, LDColor* col)
+void setColor (int colnum, LDColor* col)
 {	if (colnum < 0 || colnum >= MAX_COLORS)
 		return;
 

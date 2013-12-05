@@ -97,7 +97,7 @@ const struct LDGLAxis
 };
 
 static bool g_glInvert = false;
-static QList<short> g_warnedColors;
+static QList<int> g_warnedColors;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -320,7 +320,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 				qcol = getMainColor();
 
 			// Warn about the unknown colors, but only once.
-			for (short i : g_warnedColors)
+			for (int i : g_warnedColors)
 				if (obj->color() == i)
 					return;
 
@@ -473,7 +473,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
-	const short negXFac = cam->negX ? -1 : 1,
+	const int negXFac = cam->negX ? -1 : 1,
 				negYFac = cam->negY ? -1 : 1;
 
 	// Calculate cx and cy - these are the LDraw unit coords the cursor is at.
@@ -492,7 +492,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	// Create the vertex from the coordinates
 	pos3d[axisX] = tmp.sprintf ("%.3f", cx).toDouble();
 	pos3d[axisY] = tmp.sprintf ("%.3f", cy).toDouble();
-	pos3d[3 - axisX - axisY] = depthValue();
+	pos3d[3 - axisX - axisY] = getDepthValue();
 	return pos3d;
 }
 
@@ -506,7 +506,7 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
-	const short negXFac = cam->negX ? -1 : 1,
+	const int negXFac = cam->negX ? -1 : 1,
 				negYFac = cam->negY ? -1 : 1;
 
 	glGetFloatv (GL_MODELVIEW_MATRIX, m);
@@ -639,8 +639,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
 			else
 			{	QVector<vertex> verts, verts2;
-				const double dist0 = circleDrawDist (0),
-					dist1 = (m_drawedVerts.size() >= 2) ? circleDrawDist (1) : -1;
+				const double dist0 = getCircleDrawDist (0),
+					dist1 = (m_drawedVerts.size() >= 2) ? getCircleDrawDist (1) : -1;
 				const int segs = lores;
 				const double angleUnit = (2 * pi) / segs;
 				Axis relX, relY;
@@ -895,7 +895,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 					   LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
 
-			if (ref->transform().determinant() < 0)
+			if (ref->transform().getDeterminant() < 0)
 				g_glInvert = !g_glInvert;
 
 			LDObject* prev = ref->prev();
@@ -1200,9 +1200,9 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	glGetIntegerv (GL_VIEWPORT, viewport);
 
-	short x0 = mouseX,
+	int x0 = mouseX,
 		  y0 = mouseY;
-	short x1, y1;
+	int x1, y1;
 
 	// Determine how big an area to read - with range picking, we pick by
 	// the area given, with single pixel picking, we use an 1 x 1 area.
@@ -1223,14 +1223,14 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		dataswap (y0, y1);
 
 	// Clamp the values to ensure they're within bounds
-	x0 = max<short> (0, x0);
-	y0 = max<short> (0, y0);
-	x1 = min<short> (x1, m_width);
-	y1 = min<short> (y1, m_height);
+	x0 = max (0, x0);
+	y0 = max (0, y0);
+	x1 = min (x1, m_width);
+	y1 = min (y1, m_height);
 
-	const short areawidth = (x1 - x0);
-	const short areaheight = (y1 - y0);
-	const long numpixels = areawidth * areaheight;
+	const int areawidth = (x1 - x0);
+	const int areaheight = (y1 - y0);
+	const qint32 numpixels = areawidth * areaheight;
 
 	// Allocate space for the pixel data.
 	uchar* const pixeldata = new uchar[4 * numpixels];
@@ -1244,11 +1244,11 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	LDObject* removedObj = null;
 
 	// Go through each pixel read and add them to the selection.
-	for (long i = 0; i < numpixels; ++i)
-	{	long idx =
-			(* (pixelptr + 0) * 0x10000) +
-			(* (pixelptr + 1) * 0x00100) +
-			(* (pixelptr + 2) * 0x00001);
+	for (qint32 i = 0; i < numpixels; ++i)
+	{	qint32 idx =
+			(*(pixelptr + 0) * 0x10000) +
+			(*(pixelptr + 1) * 0x00100) +
+			(*(pixelptr + 2) * 0x00001);
 		pixelptr += 4;
 
 		if (idx == 0xFFFFFF)
@@ -1350,7 +1350,7 @@ SET_ACCESSOR (LDFile*, GLRenderer::setFile)
 {	m_file = val;
 
 	if (val != null)
-		overlaysFromObjects();
+		initOverlaysFromObjects();
 }
 
 // =============================================================================
@@ -1427,8 +1427,8 @@ void GLRenderer::endDraw (bool accept)
 
 		case CircleMode:
 		{	const int segs = lores, divs = lores; // TODO: make customizable
-			double dist0 = circleDrawDist (0),
-				dist1 = circleDrawDist (1);
+			double dist0 = getCircleDrawDist (0),
+				dist1 = getCircleDrawDist (1);
 			LDFile* refFile = null;
 			matrix transform;
 			bool circleOrDisc = false;
@@ -1450,7 +1450,7 @@ void GLRenderer::endDraw (bool accept)
 			}
 			elif (g_RingFinder (dist0, dist1))
 			{	// The ring finder found a solution, use that. Add the component rings to the file.
-				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->components())
+				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
 				{	if ((refFile = getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
@@ -1476,7 +1476,7 @@ void GLRenderer::endDraw (bool accept)
 				vertex templ;
 				templ[relX] = x0;
 				templ[relY] = y0;
-				templ[relZ] = depthValue();
+				templ[relZ] = getDepthValue();
 
 				// Calculate circle coords
 				makeCircle (segs, divs, dist0, c0);
@@ -1539,7 +1539,7 @@ void GLRenderer::endDraw (bool accept)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-double GLRenderer::circleDrawDist (int pos) const
+double GLRenderer::getCircleDrawDist (int pos) const
 {	assert (m_drawedVerts.size() >= pos + 1);
 	const vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
 	Axis relX, relY;
@@ -1607,7 +1607,7 @@ for (const GL::ListType listType : g_glListTypes)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-uchar* GLRenderer::screencap (int& w, int& h)
+uchar* GLRenderer::getScreencap (int& w, int& h)
 {	w = m_width;
 	h = m_height;
 	uchar* cap = new uchar[4 * w * h];
@@ -1653,7 +1653,7 @@ for (const GL::ListType listType : g_glListTypes)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Axis GLRenderer::cameraAxis (bool y, GL::Camera camid)
+Axis GLRenderer::getCameraAxis (bool y, GL::Camera camid)
 {	if (camid == (GL::Camera) - 1)
 		camid = m_camera;
 
@@ -1687,8 +1687,8 @@ bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, in
 	elif (info.lh == 0)
 		info.lh = (info.lw * img->height()) / img->width();
 
-	const Axis x2d = cameraAxis (false, cam),
-		y2d = cameraAxis (true, cam);
+	const Axis x2d = getCameraAxis (false, cam),
+		y2d = getCameraAxis (true, cam);
 	const double negXFac = g_FixedCameras[cam].negX ? -1 : 1,
 		negYFac = g_FixedCameras[cam].negY ? -1 : 1;
 
@@ -1731,14 +1731,14 @@ void GLRenderer::setDepthValue (double depth)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-double GLRenderer::depthValue() const
+double GLRenderer::getDepthValue() const
 {	assert (camera() < Free);
 	return m_depthValues[camera()];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const char* GLRenderer::cameraName() const
+const char* GLRenderer::getCameraName() const
 {	return g_CameraNames[camera()];
 }
 
@@ -1865,12 +1865,12 @@ void GLRenderer::updateRectVerts()
 	vertex v0 = m_drawedVerts[0],
 		   v1 = (m_drawedVerts.size() >= 2) ? m_drawedVerts[1] : m_hoverpos;
 
-	const Axis ax = cameraAxis (false),
-			   ay = cameraAxis (true),
+	const Axis ax = getCameraAxis (false),
+			   ay = getCameraAxis (true),
 			   az = (Axis) (3 - ax - ay);
 
 	for (int i = 0; i < 4; ++i)
-		m_rectverts[i][az] = depthValue();
+		m_rectverts[i][az] = getDepthValue();
 
 	m_rectverts[0][ax] = v0[ax];
 	m_rectverts[0][ay] = v0[ay];
@@ -1919,7 +1919,7 @@ LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam)
 // -----------------------------------------------------------------------------
 // Read in overlays from the current file and update overlay info accordingly.
 // -----------------------------------------------------------------------------
-void GLRenderer::overlaysFromObjects()
+void GLRenderer::initOverlaysFromObjects()
 {	for (Camera cam : g_Cameras)
 	{	if (cam == Free)
 			continue;
@@ -1972,8 +1972,8 @@ void GLRenderer::updateOverlayObjects()
 			int i, lastOverlay = -1;
 			bool found = false;
 
-			for (i = 0; i < file()->numObjs(); ++i)
-			{	LDObject* obj = file()->obj (i);
+			for (i = 0; i < file()->getObjectCount(); ++i)
+			{	LDObject* obj = file()->getObject (i);
 
 				if (obj->isScemantic())
 				{	found = true;

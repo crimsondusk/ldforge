@@ -50,7 +50,7 @@
 #include "ui_ldforge.h"
 #include "moc_gui.cpp"
 
-static bool g_bSelectionLocked = false;
+static bool g_isSelectionLocked = false;
 
 cfg (Bool, lv_colorize, true);
 cfg (String, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
@@ -231,10 +231,10 @@ void ForgeWindow::updateTitle()
 		else
 			title += fmt (": <anonymous>");
 
-		if (LDFile::current()->numObjs() > 0 &&
-				LDFile::current()->obj (0)->getType() == LDObject::Comment)
+		if (LDFile::current()->getObjectCount() > 0 &&
+				LDFile::current()->getObject (0)->getType() == LDObject::Comment)
 		{	// Append title
-			LDComment* comm = static_cast<LDComment*> (LDFile::current()->obj (0));
+			LDComment* comm = static_cast<LDComment*> (LDFile::current()->getObject (0));
 			title += fmt (": %1", comm->text);
 		}
 
@@ -276,7 +276,7 @@ void ForgeWindow::buildObjList()
 	// Lock the selection while we do this so that refreshing the object list
 	// doesn't trigger selection updating so that the selection doesn't get lost
 	// while this is done.
-	g_bSelectionLocked = true;
+	g_isSelectionLocked = true;
 
 	for (int i = 0; i < ui->objectList->count(); ++i)
 		delete ui->objectList->item (i);
@@ -302,7 +302,7 @@ void ForgeWindow::buildObjList()
 			case LDObject::Triangle:
 			case LDObject::Quad:
 			case LDObject::CndLine:
-			{	for (short i = 0; i < obj->vertices(); ++i)
+			{	for (int i = 0; i < obj->vertices(); ++i)
 				{	if (i != 0)
 						descr += ", ";
 
@@ -341,12 +341,12 @@ void ForgeWindow::buildObjList()
 			break;
 
 			default:
-			{	descr = obj->typeName();
+			{	descr = obj->getTypeName();
 			} break;
 		}
 
 		QListWidgetItem* item = new QListWidgetItem (descr);
-		item->setIcon (getIcon (obj->typeName()));
+		item->setIcon (getIcon (obj->getTypeName()));
 		
 		// Use italic font if hidden
 		if (obj->hidden())
@@ -373,7 +373,7 @@ void ForgeWindow::buildObjList()
 		ui->objectList->insertItem (ui->objectList->count(), item);
 	}
 
-	g_bSelectionLocked = false;
+	g_isSelectionLocked = false;
 	updateSelection();
 	scrollToSelection();
 }
@@ -391,7 +391,7 @@ void ForgeWindow::scrollToSelection()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_selectionChanged()
-{	if (g_bSelectionLocked == true || LDFile::current() == null)
+{	if (g_isSelectionLocked == true || LDFile::current() == null)
 		return;
 
 	// Update the shared selection array, though don't do this if this was
@@ -449,7 +449,7 @@ void ForgeWindow::slot_quickColor()
 	if (col == null)
 		return;
 
-	short newColor = col->index;
+	int newColor = col->index;
 
 	for (LDObject* obj : selection())
 	{	if (obj->isColored() == false)
@@ -471,12 +471,12 @@ int ForgeWindow::getInsertionPoint()
 		return selection().last()->getIndex() + 1;
 
 	// Otherwise place the object at the end.
-	return LDFile::current()->numObjs();
+	return LDFile::current()->getObjectCount();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::fullRefresh()
+void ForgeWindow::doFullRefresh()
 {	buildObjList();
 	m_renderer->hardRefresh();
 }
@@ -491,7 +491,7 @@ void ForgeWindow::refresh()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateSelection()
-{	g_bSelectionLocked = true;
+{	g_isSelectionLocked = true;
 
 	for (LDObject* obj : LDFile::current()->objects())
 		obj->setSelected (false);
@@ -506,14 +506,14 @@ void ForgeWindow::updateSelection()
 		obj->setSelected (true);
 	}
 
-	g_bSelectionLocked = false;
+	g_isSelectionLocked = false;
 	slot_selectionChanged();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-short ForgeWindow::getSelectedColor()
-{	short result = -1;
+int ForgeWindow::getSelectedColor()
+{	int result = -1;
 
 	for (LDObject* obj : selection())
 	{	if (obj->isColored() == false)
@@ -531,7 +531,7 @@ short ForgeWindow::getSelectedColor()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject::Type ForgeWindow::uniformSelectedType()
+LDObject::Type ForgeWindow::getUniformSelectedType()
 {	LDObject::Type result = LDObject::Unidentified;
 
 	for (LDObject * obj : selection())
@@ -601,7 +601,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::deleteObjVector (QList<LDObject*> objs)
+void ForgeWindow::deleteObjects (QList<LDObject*> objs)
 {	for (LDObject * obj : objs)
 	{	LDFile::current()->forgetObject (obj);
 		delete obj;
@@ -610,7 +610,7 @@ void ForgeWindow::deleteObjVector (QList<LDObject*> objs)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::deleteByColor (const short colnum)
+void ForgeWindow::deleteByColor (const int colnum)
 {	QList<LDObject*> objs;
 
 for (LDObject * obj : LDFile::current()->objects())
@@ -620,7 +620,7 @@ for (LDObject * obj : LDFile::current()->objects())
 		objs << obj;
 	}
 
-	deleteObjVector (objs);
+	deleteObjects (objs);
 }
 
 // =============================================================================
