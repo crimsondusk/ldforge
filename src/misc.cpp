@@ -284,11 +284,7 @@ str join (initlist<StringFormatArg> vals, str delim)
 // as it would fall into an infinite recursion.
 // -----------------------------------------------------------------------------
 bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolution)
-{	char tabs[64];
-	memset (tabs, '\t', m_stack);
-	tabs[m_stack] = '\0';
-
-	// Don't recurse too deep.
+{	// Don't recurse too deep.
 	if (m_stack >= 5)
 		return false;
 

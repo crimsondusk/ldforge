@@ -1433,7 +1433,9 @@ void GLRenderer::endDraw (bool accept)
 			elif (g_RingFinder (dist0, dist1))
 			{	// The ring finder found a solution, use that. Add the component rings to the file.
 				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
-				{	if ((refFile = ::getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
+				{	// Get a ref file for this primitive. If we cannot find it in the
+					// LDraw library, generate it.
+					if ((refFile = ::getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
 					}
@@ -1447,7 +1449,7 @@ void GLRenderer::endDraw (bool accept)
 				}
 			}
 			else
-			{	// Last resort: draw the ring with quads
+			{	// Ring finder failed, last resort: draw the ring with quads
 				QList<QLineF> c0, c1;
 				Axis relX, relY, relZ;
 				getRelativeAxes (relX, relY);
@@ -1498,7 +1500,8 @@ void GLRenderer::endDraw (bool accept)
 		} break;
 
 		case Select:
-		{	assert (false);
+		{	// this shouldn't happen
+			assert (false);
 			return;
 		} break;
 	}
