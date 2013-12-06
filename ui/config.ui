@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>717</width>
-    <height>328</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -51,7 +51,7 @@
        </item>
        <item>
         <property name="text">
-         <string>Quick colors</string>
+         <string>Color Toolbar</string>
         </property>
        </item>
        <item>
@@ -458,7 +458,7 @@ Shortcut changes apply immediately after closing this window.</string>
 Usually this contains MainColor, EdgeColor and some auxiliary colors used to group objects.</string>
            </property>
            <property name="title">
-            <string>Quick colors</string>
+            <string>Color Toolbar</string>
            </property>
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
