@@ -52,16 +52,17 @@ namespace LDPaths
 // primitive generator uses this to give initial names to primitives.
 // =============================================================================
 class LDFile : public QObject
-{	Q_OBJECT
-	PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	History*,			History,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		str,					Name,				STR_OPS,		STOCK_WRITE)
-	PROPERTY (public,		str,					DefaultName,	STR_OPS,		STOCK_WRITE)
-	PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
+{	properties:
+		Q_OBJECT
+		PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	History*,			History,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,		str,					Name,				STR_OPS,		STOCK_WRITE)
+		PROPERTY (public,		str,					DefaultName,	STR_OPS,		STOCK_WRITE)
+		PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
+		PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDFile();

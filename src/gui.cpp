@@ -597,7 +597,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 	contextMenu->addAction (ui->actionModeDraw);
 	contextMenu->addAction (ui->actionModeCircle);
 
-	if (R()->camera() != GL::Free)
+	if (R()->camera() != GL::EFreeCamera)
 	{	contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSetDrawDepth);
 	}
@@ -633,9 +633,9 @@ void ForgeWindow::deleteByColor (const int colnum)
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateEditModeActions()
 {	const EditMode mode = R()->getEditMode();
-	ui->actionModeSelect->setChecked (mode == Select);
-	ui->actionModeDraw->setChecked (mode == Draw);
-	ui->actionModeCircle->setChecked (mode == CircleMode);
+	ui->actionModeSelect->setChecked (mode == ESelectMode);
+	ui->actionModeDraw->setChecked (mode == EDrawMode);
+	ui->actionModeCircle->setChecked (mode == ECircleMode);
 }
 
 // =============================================================================

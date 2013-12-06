@@ -59,7 +59,7 @@ cfg (String, gl_maincolor, "#707078");
 cfg (Float, gl_maincolor_alpha, 1.0);
 cfg (Int, gl_linethickness, 2);
 cfg (Bool, gl_colorbfc, false);
-cfg (Int, gl_camera, GLRenderer::Free);
+cfg (Int, gl_camera, GLRenderer::EFreeCamera);
 cfg (Bool, gl_blackedges, false);
 cfg (Bool, gl_axes, false);
 cfg (Bool, gl_wireframe, false);
@@ -77,14 +77,14 @@ const char* g_CameraNames[7] =
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Free")
 };
 
-const GL::Camera g_Cameras[7] =
-{	GL::Top,
-	GL::Front,
-	GL::Left,
-	GL::Bottom,
-	GL::Back,
-	GL::Right,
-	GL::Free
+const GL::EFixedCamera g_Cameras[7] =
+{	GL::ETopCamera,
+	GL::EFrontCamera,
+	GL::ELeftCamera,
+	GL::EBottomCamera,
+	GL::EBackCamera,
+	GL::ERightCamera,
+	GL::EFreeCamera
 };
 
 const struct LDGLAxis
@@ -103,9 +103,9 @@ static QList<int> g_warnedColors;
 // -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 {	m_Picking = m_rangepick = false;
-	m_camera = (GL::Camera) gl_camera.value;
+	m_camera = (GL::EFixedCamera) gl_camera.value;
 	m_drawToolTip = false;
-	m_EditMode = Select;
+	m_EditMode = ESelectMode;
 	m_rectdraw = false;
 	m_panning = false;
 	setFile (null);
@@ -123,7 +123,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_thinBorderPen.setWidth (1);
 
 	// Init camera icons
-	for (const GL::Camera cam : g_Cameras)
+	for (const GL::EFixedCamera cam : g_Cameras)
 	{	str iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower());
 
 		CameraIcon* info = &m_cameraIcons[cam];
@@ -158,7 +158,7 @@ void GLRenderer::calcCameraIcons()
 
 	for (CameraIcon& info : m_cameraIcons)
 	{	// MATH
-		const long x1 = (m_width - (info.cam != Free ? 48 : 16)) + ((i % 3) * 16) - 1,
+		const long x1 = (m_width - (info.cam != EFreeCamera ? 48 : 16)) + ((i % 3) * 16) - 1,
 			y1 = ((i / 3) * 16) + 1;
 
 		info.srcRect = QRect (0, 0, 16, 16);
@@ -209,10 +209,10 @@ void GLRenderer::resetAngles()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resetAllAngles()
-{	Camera oldcam = camera();
+{	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
-	{	setCamera ((Camera) i);
+	{	setCamera ((EFixedCamera) i);
 		resetAngles();
 	}
 
@@ -392,7 +392,7 @@ void GLRenderer::drawGLScene()
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 
-	if (m_camera != Free)
+	if (m_camera != EFreeCamera)
 	{	glMatrixMode (GL_PROJECTION);
 		glPushMatrix();
 
@@ -400,14 +400,14 @@ void GLRenderer::drawGLScene()
 		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
 		glTranslatef (pan (X), pan (Y), 0.0f);
 
-		if (m_camera != Front && m_camera != Back)
+		if (m_camera != EFrontCamera && m_camera != EBackCamera)
 		{	glRotatef (90.0f, g_FixedCameras[camera()].glrotate[0],
 				g_FixedCameras[camera()].glrotate[1],
 				g_FixedCameras[camera()].glrotate[2]);
 		}
 
 		// Back camera needs to be handled differently
-		if (m_camera == GLRenderer::Back)
+		if (m_camera == GLRenderer::EBackCamera)
 		{	glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
 			glRotatef (180.0f, 0.0f, 0.0f, 1.0f);
 		}
@@ -465,7 +465,7 @@ void GLRenderer::drawGLScene()
 // is true, the 3D point will snap to the current grid.
 // -----------------------------------------------------------------------------
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
-{	assert (camera() != Free);
+{	assert (camera() != EFreeCamera);
 
 	vertex pos3d;
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
@@ -546,7 +546,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	if (isDrawOnly())
 		return;
 
-	if (m_camera != Free && !isPicking())
+	if (m_camera != EFreeCamera && !isPicking())
 	{	// Paint the overlay image if we have one
 		const LDGLOverlay& overlay = m_overlays[m_camera];
 
@@ -574,7 +574,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		linepen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 
 		// If we're drawing, draw the vertices onto the screen.
-		if (getEditMode() == Draw)
+		if (getEditMode() == EDrawMode)
 		{	int numverts = 4;
 
 			if (!m_rectdraw)
@@ -631,7 +631,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				}
 			}
 		}
-		elif (getEditMode() == CircleMode)
+		elif (getEditMode() == ECircleMode)
 		{	// If we have not specified the center point of the circle yet, preview it on the screen.
 			if (m_drawedVerts.isEmpty())
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
@@ -726,7 +726,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		// Draw the actual icons
 		for (CameraIcon& info : m_cameraIcons)
 		{	// Don't draw the free camera icon when in draw mode
-			if (&info == &m_cameraIcons[GL::Free] && getEditMode() != Select)
+			if (&info == &m_cameraIcons[GL::EFreeCamera] && getEditMode() != ESelectMode)
 				continue;
 
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
@@ -935,7 +935,7 @@ void GLRenderer::clampAngle (double& angle) const
 // -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos)
 {	// If we picked an already-existing vertex, stop drawing
-	if (getEditMode() != CircleMode)
+	if (getEditMode() != ECircleMode)
 	{	for (vertex& vert : m_drawedVerts)
 		{	if (vert == pos)
 			{	endDraw (true);
@@ -969,7 +969,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		}
 
 		switch (getEditMode())
-		{	case Draw:
+		{	case EDrawMode:
 			{	if (m_rectdraw)
 				{	if (m_drawedVerts.size() == 2)
 					{	endDraw (true);
@@ -991,7 +991,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				addDrawnVertex (m_hoverpos);
 			} break;
 
-			case CircleMode:
+			case ECircleMode:
 			{	if (m_drawedVerts.size() == 3)
 				{	endDraw (true);
 					return;
@@ -1000,7 +1000,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				addDrawnVertex (m_hoverpos);
 			} break;
 
-			case Select:
+			case ESelectMode:
 			{	if (!isDrawOnly())
 				{	if (m_totalmove < 10)
 						m_rangepick = false;
@@ -1017,7 +1017,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		m_rangepick = false;
 	}
 
-	if (wasMid && getEditMode() != Select && m_drawedVerts.size() < 4 && m_totalmove < 10)
+	if (wasMid && getEditMode() != ESelectMode && m_drawedVerts.size() < 4 && m_totalmove < 10)
 	{	// Find the closest vertex to our cursor
 		double mindist = 1024.0f;
 		vertex closest;
@@ -1096,7 +1096,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 	{	pan (X) += 0.03f * dx * (zoom() / 7.5f);
 		pan (Y) -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
-	} elif (left && !m_rangepick && camera() == Free)
+	} elif (left && !m_rangepick && camera() == EFreeCamera)
 	{	rot (X) = rot (X) + dy;
 		rot (Y) = rot (Y) + dx;
 
@@ -1113,7 +1113,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 	m_globalpos = ev->globalPos();
 
 	// Calculate 3d position of the cursor
-	m_hoverpos = (camera() != Free) ? coordconv2_3 (m_pos, true) : g_origin;
+	m_hoverpos = (camera() != EFreeCamera) ? coordconv2_3 (m_pos, true) : g_origin;
 
 	// Update rect vertices since m_hoverpos may have changed
 	updateRectVerts();
@@ -1162,7 +1162,7 @@ void GLRenderer::contextMenuEvent (QContextMenuEvent* ev)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void GLRenderer::setCamera (const GL::Camera cam)
+void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
 {	m_camera = cam;
 	gl_camera = (int) cam;
 	g_win->updateEditModeActions();
@@ -1294,16 +1294,16 @@ void GLRenderer::setEditMode (EditMode const& a)
 {	m_EditMode = a;
 
 	switch (a)
-	{	case Select:
+	{	case ESelectMode:
 		{	unsetCursor();
 			setContextMenuPolicy (Qt::DefaultContextMenu);
 		} break;
 
-		case Draw:
-		case CircleMode:
+		case EDrawMode:
+		case ECircleMode:
 		{	// Cannot draw into the free camera - use top instead.
-			if (m_camera == Free)
-				setCamera (Top);
+			if (m_camera == EFreeCamera)
+				setCamera (ETopCamera);
 
 			// Disable the context menu - we need the right mouse button
 			// for removing vertices.
@@ -1360,7 +1360,7 @@ void GLRenderer::endDraw (bool accept)
 	QList<LDObject*> objs;
 
 	switch (getEditMode())
-	{	case Draw:
+	{	case EDrawMode:
 		{	if (m_rectdraw)
 			{	LDQuad* quad = new LDQuad;
 
@@ -1407,7 +1407,7 @@ void GLRenderer::endDraw (bool accept)
 			}
 		} break;
 
-		case CircleMode:
+		case ECircleMode:
 		{	const int segs = lores, divs = lores; // TODO: make customizable
 			double dist0 = getCircleDrawDist (0),
 				dist1 = getCircleDrawDist (1);
@@ -1499,7 +1499,7 @@ void GLRenderer::endDraw (bool accept)
 			}
 		} break;
 
-		case Select:
+		case ESelectMode:
 		{	// this shouldn't happen
 			assert (false);
 			return;
@@ -1638,8 +1638,8 @@ for (const GL::ListType listType : g_glListTypes)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Axis GLRenderer::getCameraAxis (bool y, GL::Camera camid)
-{	if (camid == (GL::Camera) - 1)
+Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
+{	if (camid == (GL::EFixedCamera) - 1)
 		camid = m_camera;
 
 	const LDFixedCameraInfo* cam = &g_FixedCameras[camid];
@@ -1648,7 +1648,7 @@ Axis GLRenderer::getCameraAxis (bool y, GL::Camera camid)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, int h)
+bool GLRenderer::setupOverlay (EFixedCamera cam, str file, int x, int y, int w, int h)
 {	QImage* img = new QImage (file);
 	LDGLOverlay& info = getOverlay (cam);
 
@@ -1697,7 +1697,7 @@ bool GLRenderer::setupOverlay (GL::Camera cam, str file, int x, int y, int w, in
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::clearOverlay()
-{	if (camera() == Free)
+{	if (camera() == EFreeCamera)
 		return;
 
 	LDGLOverlay& info = m_overlays[camera()];
@@ -1710,14 +1710,14 @@ void GLRenderer::clearOverlay()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setDepthValue (double depth)
-{	assert (camera() < Free);
+{	assert (camera() < EFreeCamera);
 	m_depthValues[camera()] = depth;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 double GLRenderer::getDepthValue() const
-{	assert (camera() < Free);
+{	assert (camera() < EFreeCamera);
 	return m_depthValues[camera()];
 }
 
@@ -1824,10 +1824,10 @@ void GLRenderer::zoomToFit()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomAllToFit()
-{	Camera oldcam = camera();
+{	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
-	{	setCamera ((Camera) i);
+	{	setCamera ((EFixedCamera) i);
 		zoomToFit();
 	}
 
@@ -1870,7 +1870,7 @@ void GLRenderer::updateRectVerts()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
-{	if (!(ev->buttons() & Qt::LeftButton) || getEditMode() != Select)
+{	if (!(ev->buttons() & Qt::LeftButton) || getEditMode() != ESelectMode)
 		return;
 
 	pick (ev->x(), ev->y());
@@ -1887,7 +1887,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam)
+LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 {	LDOverlay* ovlobj = null;
 
 	for (LDObject * obj : getFile()->getObjects())
@@ -1905,8 +1905,8 @@ LDOverlay* GLRenderer::findOverlayObject (GLRenderer::Camera cam)
 // Read in overlays from the current file and update overlay info accordingly.
 // -----------------------------------------------------------------------------
 void GLRenderer::initOverlaysFromObjects()
-{	for (Camera cam : g_Cameras)
-	{	if (cam == Free)
+{	for (EFixedCamera cam : g_Cameras)
+	{	if (cam == EFreeCamera)
 			continue;
 
 		LDGLOverlay& meta = m_overlays[cam];
@@ -1924,8 +1924,8 @@ void GLRenderer::initOverlaysFromObjects()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::updateOverlayObjects()
-{	for (Camera cam : g_Cameras)
-	{	if (cam == Free)
+{	for (EFixedCamera cam : g_Cameras)
+	{	if (cam == EFreeCamera)
 			continue;
 
 		LDGLOverlay& meta = m_overlays[cam];

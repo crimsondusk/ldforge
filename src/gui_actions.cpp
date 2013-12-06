@@ -512,8 +512,8 @@ DEFINE_ACTION (SetOverlay,  0)
 	if (!dlg.exec())
 		return;
 
-	g_win->R()->setupOverlay ( (GL::Camera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
-							   dlg.ofsy(), dlg.lwidth(), dlg.lheight());
+	g_win->R()->setupOverlay ((GL::EFixedCamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
+		dlg.ofsy(), dlg.lwidth(), dlg.lheight());
 }
 
 // =============================================================================
@@ -525,25 +525,25 @@ DEFINE_ACTION (ClearOverlay, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeSelect, CTRL (1))
-{	g_win->R()->setEditMode (Select);
+{	g_win->R()->setEditMode (ESelectMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeDraw, CTRL (2))
-{	g_win->R()->setEditMode (Draw);
+{	g_win->R()->setEditMode (EDrawMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeCircle, CTRL (3))
-{	g_win->R()->setEditMode (CircleMode);
+{	g_win->R()->setEditMode (ECircleMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetDrawDepth, 0)
-{	if (g_win->R()->camera() == GL::Free)
+{	if (g_win->R()->camera() == GL::EFreeCamera)
 		return;
 
 	bool ok;

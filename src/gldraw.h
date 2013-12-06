@@ -33,18 +33,21 @@ class LDFile;
 class QTimer;
 
 enum EditMode
-{	Select,
-	Draw,
-	CircleMode,
+{	ESelectMode,
+	EDrawMode,
+	ECircleMode,
 };
 
 // Meta for overlays
 struct LDGLOverlay
-{	vertex v0, v1;
-	int ox, oy;
-	double lw, lh;
-	str fname;
-	QImage* img;
+{	vertex	v0,
+				v1;
+	int		ox,
+				oy;
+	double	lw,
+				lh;
+	str		fname;
+	QImage*	img;
 };
 
 struct LDFixedCameraInfo
@@ -61,22 +64,48 @@ struct LDFixedCameraInfo
 // g_win->R()
 // =============================================================================
 class GLRenderer : public QGLWidget
-{	Q_OBJECT
+{	typedefs:
+		enum EFixedCamera
+		{	ETopCamera,
+			EFrontCamera,
+			ELeftCamera,
+			EBottomCamera,
+			EBackCamera,
+			ERightCamera,
+			EFreeCamera
+		};
 
-	PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	bool,					Picking,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		LDFile*,				File,			NO_OPS,		CUSTOM_WRITE)
-	PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
+		enum ListType
+		{	NormalList,
+			PickList,
+			BFCFrontList,
+			BFCBackList
+		};
 
-	public:
-		enum Camera { Top, Front, Left, Bottom, Back, Right, Free };
-		enum ListType { NormalList, PickList, BFCFrontList, BFCBackList };
+		// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
+		// initialized before program gets to main() and constructs a QApplication
+		// and Qt doesn't like that.
+		struct CameraIcon
+		{	QPixmap*			img;
+			QRect				srcRect,
+								destRect,
+								selRect;
+			EFixedCamera	cam;
+		};
 
+	properties:
+		Q_OBJECT
+		PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	bool,					Picking,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,		LDFile*,				File,			NO_OPS,		CUSTOM_WRITE)
+		PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
+
+	public methods:
 		GLRenderer (QWidget* parent = null);
 		~GLRenderer();
 
-		inline Camera camera() const
+		inline EFixedCamera camera() const
 		{	return m_camera;
 		}
 
@@ -85,7 +114,7 @@ class GLRenderer : public QGLWidget
 		void           compileAllObjects();
 		void           drawGLScene();
 		void           endDraw (bool accept);
-		Axis           getCameraAxis (bool y, Camera camid = (Camera) - 1);
+		Axis           getCameraAxis (bool y, EFixedCamera camid = (EFixedCamera) - 1);
 		const char*    getCameraName() const;
 		double         getDepthValue() const;
 		QColor         getMainColor();
@@ -98,9 +127,9 @@ class GLRenderer : public QGLWidget
 		void           resetAngles();
 		void           resetAllAngles();
 		void           setBackground();
-		void           setCamera (const Camera cam);
+		void           setCamera (const EFixedCamera cam);
 		void           setDepthValue (double depth);
-		bool           setupOverlay (GLRenderer::Camera cam, str file, int x, int y, int w, int h);
+		bool           setupOverlay (EFixedCamera cam, str file, int x, int y, int w, int h);
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 		void           zoomToFit();
@@ -108,7 +137,7 @@ class GLRenderer : public QGLWidget
 
 		static void    deleteLists (LDObject* obj);
 
-	protected:
+	protected methods:
 		void           contextMenuEvent (QContextMenuEvent* ev);
 		void           initializeGL();
 		void           keyPressEvent (QKeyEvent* ev);
@@ -123,15 +152,6 @@ class GLRenderer : public QGLWidget
 		void           wheelEvent (QWheelEvent* ev);
 
 	private:
-		// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
-		// initialized before program gets to main() and constructs a QApplication
-		// and Qt doesn't like that.
-		struct CameraIcon
-		{	QPixmap* img;
-			QRect srcRect, destRect, selRect;
-			Camera cam;
-		};
-
 		CameraIcon					m_cameraIcons[7];
 		QTimer*						m_toolTipTimer;
 		Qt::MouseButtons			m_lastButtons;
@@ -156,7 +176,7 @@ class GLRenderer : public QGLWidget
 										m_rangeStart;
 		QPen							m_thickBorderPen,
 										m_thinBorderPen;
-		Camera						m_camera,
+		EFixedCamera				m_camera,
 										m_toolTipCamera;
 		GLuint						m_axeslist;
 		int							m_width,
@@ -171,7 +191,7 @@ class GLRenderer : public QGLWidget
 		QList<vertex>				m_knownVerts;
 
 		void           addDrawnVertex (vertex m_hoverpos);
-		LDOverlay*     findOverlayObject (Camera cam);
+		LDOverlay*     findOverlayObject (EFixedCamera cam);
 		void           updateRectVerts();
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 		matrix         getCircleDrawMatrix (double scale);
@@ -247,7 +267,7 @@ static const GLRenderer::ListType g_glListTypes[] =
 	GL::BFCBackList,
 };
 
-extern const GL::Camera g_Cameras[7];
+extern const GL::EFixedCamera g_Cameras[7];
 extern const char* g_CameraNames[7];
 
 #endif // LDFORGE_GLDRAW_H
