@@ -13,6 +13,7 @@ Features:
 * Parse error recovery, if a line/object cannot be parsed properly it will be displayed as an errorneous object. This object can be selected and its contents edited and have it reparsed, so you can fix these errors within LDForge.
 * 6 camera modes plus a free-angle one.
 * Drawing mode that allows you to literally draw polygons and lines into the screen.
+* Circle drawing mode as an extension to drawing mode to allow easy circle and ring placement. (development version only)
 * A simple primitive generator
 * Object hiding
 * Select by color or type
