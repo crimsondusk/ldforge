@@ -46,6 +46,7 @@
 #include <stdarg.h>
 #include <QString>
 #include <QMutex>
+#include <QTextFormat>
 
 #include "property.h"
 #include "config.h"
@@ -118,6 +119,10 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 QString versionString();
 QString versionMoniker();
 QString fullVersionString();
+
+#define properties private
+#define typedefs public
+#define methods
 
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:

@@ -39,6 +39,7 @@
 #define GET_READ_METHOD_NO_OPS( NAME ) get##NAME()
 #define GET_READ_METHOD_STR_OPS( NAME ) get##NAME()
 #define GET_READ_METHOD_NUM_OPS( NAME ) get##NAME()
+#define GET_READ_METHOD_LIST_OPS( NAME ) get##NAME()
 
 #define DEFINE_WRITE_METHOD_STOCK_WRITE( TYPE, NAME )	\
 		inline void set##NAME( TYPE const& NAME##_ )		\
@@ -84,6 +85,17 @@
 #define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME )	\
 		inline void toggle##NAME()						\
 		{	set##NAME( !m_##NAME );						\
+		}
+
+#define DEFINE_PROPERTY_LIST_OPS( TYPE, NAME )				\
+		void pushTo##NAME( const TYPE::value_type& a )		\
+		{	TYPE tmp( m_##NAME );									\
+			tmp.push_back( a );										\
+			set##NAME( tmp );											\
+		}																	\
+																			\
+		inline void clear##NAME()									\
+		{	set##NAME( TYPE() );										\
 		}
 
 #endif // LDFORGE_PROPERTY_H
