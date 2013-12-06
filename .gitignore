@@ -1,4 +1,5 @@
 build
+build_shared
 build_debug
 build_release
 ldforge.kdev4
