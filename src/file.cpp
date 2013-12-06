@@ -808,7 +808,7 @@ LDObject* parseLine (str line)
 			if (num == 4)
 				obj = new LDQuad;
 			else
-				obj = new LDCndLine;
+				obj = new LDCondLine;
 
 			obj->setColor (tokens[1].toLong());
 

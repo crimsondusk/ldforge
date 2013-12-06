@@ -555,7 +555,7 @@ DEFINE_ACTION (Uncolorize, 0)
 
 		int col = maincolor;
 
-		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CndLine)
+		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
@@ -652,10 +652,10 @@ DEFINE_ACTION (Demote, 0)
 	int num = 0;
 
 	for (LDObject* obj : sel)
-	{	if (obj->getType() != LDObject::CndLine)
+	{	if (obj->getType() != LDObject::CondLine)
 			continue;
 
-		LDLine* repl = static_cast<LDCndLine*> (obj)->demote();
+		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
 		g_win->R()->compileObject (repl);
 		++num;
 	}

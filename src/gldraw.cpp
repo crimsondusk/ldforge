@@ -287,7 +287,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 
 	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CndLine)
+		obj->getType() != LDObject::CondLine)
 	{	if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
 		else
@@ -839,7 +839,7 @@ void GLRenderer::compileAllObjects()
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 {	glBegin (gltype);
 
-	const int numverts = (obj->getType() != LDObject::CndLine) ? obj->vertices() : 2;
+	const int numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
 
 	if (g_glInvert == false)
 		for (int i = 0; i < numverts; ++i)
@@ -861,7 +861,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			compileSubObject (obj, GL_LINES);
 			break;
 
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 
 			// Draw conditional lines with a dash pattern - however, use a full
 			// line when drawing a pick list to make selecting them easier.

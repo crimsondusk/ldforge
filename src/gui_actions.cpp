@@ -207,7 +207,7 @@ DEFINE_ACTION (NewQuad, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewCLine, 0)
-{	AddObjectDialog::staticDialog (LDObject::CndLine, null);
+{	AddObjectDialog::staticDialog (LDObject::CondLine, null);
 }
 
 // =============================================================================

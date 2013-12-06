@@ -79,7 +79,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			break;
 
 		case LDObject::Quad:
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 			coordCount = 12;
 			break;
 
@@ -161,7 +161,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	{	if (obj != null)
 			colnum = obj->getColor();
 		else
-			colnum = (type == LDObject::CndLine || type == LDObject::Line) ? edgecolor : maincolor;
+			colnum = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
 
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, colnum);
@@ -180,7 +180,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	switch (type)
 	{	case LDObject::Line:
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 		case LDObject::Triangle:
 		case LDObject::Quad:
 
@@ -347,7 +347,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::Line:
 		case LDObject::Triangle:
 		case LDObject::Quad:
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 
 			if (!obj)
 				obj = LDObject::getDefault (type);

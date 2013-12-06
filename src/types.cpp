@@ -524,7 +524,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 	{	case LDObject::Line:
 		case LDObject::Triangle:
 		case LDObject::Quad:
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 		{	for (int i = 0; i < obj->vertices(); ++i)
 				calcVertex (obj->getVertex (i));
 		} break;

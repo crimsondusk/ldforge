@@ -146,7 +146,7 @@ str LDQuad::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDCndLine::raw()
+str LDCondLine::raw()
 {	str val = fmt ("5 %1", getColor());
 
 	// Add the coordinates
@@ -284,7 +284,7 @@ LDObject::~LDObject()
 static void transformObject (LDObject* obj, matrix transform, vertex pos, int parentcolor)
 {	switch (obj->getType())
 	{	case LDObject::Line:
-		case LDObject::CndLine:
+		case LDObject::CondLine:
 		case LDObject::Triangle:
 		case LDObject::Quad:
 
@@ -523,7 +523,7 @@ void LDQuad::move (vertex vect)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDCndLine::move (vertex vect)
+void LDCondLine::move (vertex vect)
 {	for (int i = 0; i < 4; ++i)
 		setVertex (i, getVertex (i) + vect);
 }
@@ -538,7 +538,7 @@ LDObject* LDObject::getDefault (const LDObject::Type type)
 {	CHECK_FOR_OBJ (Comment)
 	CHECK_FOR_OBJ (BFC)
 	CHECK_FOR_OBJ (Line)
-	CHECK_FOR_OBJ (CndLine)
+	CHECK_FOR_OBJ (CondLine)
 	CHECK_FOR_OBJ (Subfile)
 	CHECK_FOR_OBJ (Triangle)
 	CHECK_FOR_OBJ (Quad)
@@ -622,7 +622,7 @@ void LDLine::invert()
 {	invertLine (this);
 }
 
-void LDCndLine::invert()
+void LDCondLine::invert()
 {	invertLine (this);
 }
 
@@ -630,7 +630,7 @@ void LDVertex::invert() {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDLine* LDCndLine::demote()
+LDLine* LDCondLine::demote()
 {	LDLine* repl = new LDLine;
 
 	for (int i = 0; i < repl->vertices(); ++i)

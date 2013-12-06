@@ -306,7 +306,7 @@ void ForgeWindow::buildObjList()
 			case LDObject::Line:
 			case LDObject::Triangle:
 			case LDObject::Quad:
-			case LDObject::CndLine:
+			case LDObject::CondLine:
 			{	for (int i = 0; i < obj->vertices(); ++i)
 				{	if (i != 0)
 						descr += ", ";

@@ -77,7 +77,7 @@ class LDObject
 			Quad,           // Object represents a quadrilateral
 			Triangle,       // Object represents a triangle
 			Line,           // Object represents a line
-			CndLine,        // Object represents a conditional line
+			CondLine,        // Object represents a conditional line
 			Vertex,         // Object is a vertex, LDForge extension object
 			BFC,            // Object represents a BFC statement
 			Overlay,        // Object contains meta-info about an overlay image.
@@ -363,13 +363,13 @@ class LDLine : public LDObject
 };
 
 // =============================================================================
-// LDCndLine
+// LDCondLine
 //
 // Represents a single code-5 conditional line. The end-points v0 and v1 are
 // inherited from LDLine, c0 and c1 are the control points of this line.
 // =============================================================================
-class LDCndLine : public LDLine
-{	LDOBJ (CndLine)
+class LDCondLine : public LDLine
+{	LDOBJ (CondLine)
 	LDOBJ_NAME (condline)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
@@ -377,7 +377,7 @@ class LDCndLine : public LDLine
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDCndLine() {}
+		LDCondLine() {}
 		LDLine* demote();
 };
 

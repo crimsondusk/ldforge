@@ -443,7 +443,7 @@ for (int i : condLineSegs)
 			v0[Z] *= num;
 		}
 
-		LDCndLine* line = new LDCndLine;
+		LDCondLine* line = new LDCondLine;
 		line->setColor (edgecolor);
 		line->setVertex (0, v0);
 		line->setVertex (1, v1);
