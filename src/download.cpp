@@ -33,7 +33,7 @@
 
 cfg (String,	net_downloadpath,	"");
 cfg (Bool,		net_guesspaths,	true);
-cfg (Bool,		net_autoclose,		false);
+cfg (Bool,		net_autoclose,		true);
 
 const str g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
 
