@@ -279,21 +279,15 @@ void PartDownloader::checkIfFinished()
 // =============================================================================
 // -----------------------------------------------------------------------------
 QPushButton* PartDownloader::getButton (PartDownloader::Button i)
-{	typedef QDialogButtonBox QDBB;
-	alias btnbox = ui->buttonBox;
-
-	switch (i)
+{	switch (i)
 	{	case Download:
-		{	return m_downloadButton;
-		}
+			return m_downloadButton;
 
 		case Abort:
-		{	return qobject_cast<QPushButton*> (btnbox->button (QDBB::Abort));
-		}
+			return qobject_cast<QPushButton*> (ui->buttonBox->button (QDialogButtonBox::Abort));
 
 		case Close:
-		{	return qobject_cast<QPushButton*> (btnbox->button (QDBB::Close));
-		}
+			return qobject_cast<QPushButton*> (ui->buttonBox->button (QDialogButtonBox::Close));
 	}
 
 	return null;
