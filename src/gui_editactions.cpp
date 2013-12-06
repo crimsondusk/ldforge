@@ -375,27 +375,27 @@ void doMoveObjects (vertex vect)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (MoveXNeg, KEY (Left))
-{	doMoveObjects ( { -1, 0, 0});
+{	doMoveObjects ({ -1, 0, 0});
 }
 
 DEFINE_ACTION (MoveYNeg, KEY (Home))
-{	doMoveObjects ( {0, -1, 0});
+{	doMoveObjects ({0, -1, 0});
 }
 
 DEFINE_ACTION (MoveZNeg, KEY (Down))
-{	doMoveObjects ( {0, 0, -1});
+{	doMoveObjects ({0, 0, -1});
 }
 
 DEFINE_ACTION (MoveXPos, KEY (Right))
-{	doMoveObjects ( {1, 0, 0});
+{	doMoveObjects ({1, 0, 0});
 }
 
 DEFINE_ACTION (MoveYPos, KEY (End))
-{	doMoveObjects ( {0, 1, 0});
+{	doMoveObjects ({0, 1, 0});
 }
 
 DEFINE_ACTION (MoveZPos, KEY (Up))
-{	doMoveObjects ( {0, 0, 1});
+{	doMoveObjects ({0, 0, 1});
 }
 
 // =============================================================================
@@ -453,7 +453,6 @@ static void doRotate (const int l, const int m, const int n)
 				obj->setVertex (i, v);
 			}
 		} elif (obj->hasMatrix())
-
 		{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
@@ -508,23 +507,40 @@ DEFINE_ACTION (RoundCoordinates, 0)
 	int num = 0;
 
 	for (LDObject* obj : selection())
-	{	for (int i = 0; i < obj->vertices(); ++i)
-		{	vertex v = obj->getVertex (i);
+	{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+
+		if (mo != null)
+		{	vertex v = mo->getPosition();
+			matrix t = mo->getTransform();
 
 			for (const Axis ax : g_Axes)
-			{	// HACK: .. should find a better way to do this
-				str valstr;
-				valstr.sprintf ("%.3f", v[ax]);
-				v[ax] = valstr.toDouble();
-			}
+				roundToDecimals (v[ax], 3);
 
-			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
-			num += 3;
+			// Let matrix values be rounded to 4 decimals,
+			// they need that extra precision
+			for (int i = 0; i < 9; ++i)
+				roundToDecimals (t[i], 4);
+
+			mo->setPosition (v);
+			mo->setTransform (t);
+			num += 10;
+		}
+		else
+		{	for (int i = 0; i < obj->vertices(); ++i)
+			{	vertex v = obj->getVertex (i);
+
+				for (const Axis ax : g_Axes)
+					roundToDecimals (v[ax], 3);
+
+				obj->setVertex (i, v);
+				g_win->R()->compileObject (obj);
+				num += 3;
+			}
 		}
 	}
 
-	log (ForgeWindow::tr ("Rounded %1 coordinates"), num);
+	log (ForgeWindow::tr ("Rounded %1 values"), num);
+	g_win->refreshObjectList();
 	g_win->refresh();
 }
 

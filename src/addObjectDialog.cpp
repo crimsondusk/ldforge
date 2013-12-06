@@ -221,7 +221,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 		if (mo)
 		{	for (const Axis ax : g_Axes)
-				dsb_coords[ax]->setValue (mo->getPosition() [ax]);
+				dsb_coords[ax]->setValue (mo->getPosition()[ax]);
 
 			defaultMatrix = mo->getTransform();
 		}

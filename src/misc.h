@@ -38,6 +38,8 @@ bool numeric (const str& tok);
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);
 
+void roundToDecimals (double& a, int decimals);
+
 str join (initlist<StringFormatArg> vals, str delim = " ");
 
 // Grid stuff
@@ -137,13 +139,6 @@ class RingFinder
 };
 
 extern RingFinder g_RingFinder;
-
-// =============================================================================
-template<class T> void dataswap (T& a, T& b)
-{	T c = a;
-	a = b;
-	b = c;
-}
 
 // -----------------------------------------------------------------------------
 // Plural expression

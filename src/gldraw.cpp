@@ -1213,10 +1213,10 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	// x0 and y0 must be less than x1 and y1, respectively.
 	if (x0 > x1)
-		dataswap (x0, x1);
+		qSwap (x0, x1);
 
 	if (y0 > y1)
-		dataswap (y0, y1);
+		qSwap (y0, y1);
 
 	// Clamp the values to ensure they're within bounds
 	x0 = max (0, x0);

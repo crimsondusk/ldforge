@@ -130,8 +130,13 @@ void ForgeWindow::slot_action()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::invokeAction (QAction* act, void (*func) ())
-{	beginAction (act);
+void ForgeWindow::invokeAction (QAction* act, void (*func)())
+{
+#ifdef DEBUG
+	log ("Action %1 triggered", act->iconText());
+#endif
+
+	beginAction (act);
 	(*func) ();
 	endAction();
 }
@@ -154,7 +159,7 @@ for (QAction * recent : m_recentFiles)
 
 	QAction* first = null;
 
-for (const QVariant & it : io_recentfiles)
+	for (const QVariant& it : io_recentfiles)
 	{	str file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 
@@ -571,30 +576,30 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 	QMenu* contextMenu = new QMenu;
 
 	if (single && singleObj->getType() != LDObject::Empty)
-	{	contextMenu->addAction (ACTION (Edit));
+	{	contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();
 	}
 
-	contextMenu->addAction (ACTION (Cut));
-	contextMenu->addAction (ACTION (Copy));
-	contextMenu->addAction (ACTION (Paste));
-	contextMenu->addAction (ACTION (Delete));
+	contextMenu->addAction (ui->actionCut);
+	contextMenu->addAction (ui->actionCopy);
+	contextMenu->addAction (ui->actionPaste);
+	contextMenu->addAction (ui->actionDelete);
 	contextMenu->addSeparator();
-	contextMenu->addAction (ACTION (SetColor));
+	contextMenu->addAction (ui->actionSetColor);
 
 	if (single)
-		contextMenu->addAction (ACTION (EditRaw));
+		contextMenu->addAction (ui->actionEditRaw);
 
-	contextMenu->addAction (ACTION (Borders));
-	contextMenu->addAction (ACTION (SetOverlay));
-	contextMenu->addAction (ACTION (ClearOverlay));
-	contextMenu->addAction (ACTION (ModeSelect));
-	contextMenu->addAction (ACTION (ModeDraw));
-	contextMenu->addAction (ACTION (ModeCircle));
+	contextMenu->addAction (ui->actionBorders);
+	contextMenu->addAction (ui->actionSetOverlay);
+	contextMenu->addAction (ui->actionClearOverlay);
+	contextMenu->addAction (ui->actionModeSelect);
+	contextMenu->addAction (ui->actionModeDraw);
+	contextMenu->addAction (ui->actionModeCircle);
 
 	if (R()->camera() != GL::Free)
 	{	contextMenu->addSeparator();
-		contextMenu->addAction (ACTION (SetDrawDepth));
+		contextMenu->addAction (ui->actionSetDrawDepth);
 	}
 
 	contextMenu->exec (pos);
@@ -628,9 +633,9 @@ void ForgeWindow::deleteByColor (const int colnum)
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateEditModeActions()
 {	const EditMode mode = R()->getEditMode();
-	ACTION (ModeSelect)->setChecked (mode == Select);
-	ACTION (ModeDraw)->setChecked (mode == Draw);
-	ACTION (ModeCircle)->setChecked (mode == CircleMode);
+	ui->actionModeSelect->setChecked (mode == Select);
+	ui->actionModeDraw->setChecked (mode == Draw);
+	ui->actionModeCircle->setChecked (mode == CircleMode);
 }
 
 // =============================================================================
@@ -856,7 +861,7 @@ void ForgeWindow::updateFileListItem (LDFile* f)
 
 void ForgeWindow::beginAction (QAction* act)
 {	// Open the history so we can record the edits done during this action.
-	if (act == ACTION (Undo) || act == ACTION (Redo) || act == ACTION (Open))
+	if (act == ui->actionUndo || act == ui->actionRedo || act == ui->actionOpen)
 		LDFile::current()->getHistory()->setIgnoring (true);
 }
 
@@ -904,6 +909,15 @@ for (LDObject * obj : *f)
 #endif
 
 	buildObjList();
+}
+
+void ForgeWindow::updateActions()
+{	History* his = LDFile::current()->getHistory();
+	int pos = his->getPosition();
+	ui->actionUndo->setEnabled (pos != -1);
+	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
+	ui->actionAxes->setChecked (gl_axes);
+	ui->actionBFCView->setChecked (gl_colorbfc);
 }
 
 QImage imageFromScreencap (uchar* data, int w, int h)

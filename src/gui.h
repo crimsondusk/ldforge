@@ -113,6 +113,7 @@ class ForgeWindow : public QMainWindow
 		int deleteSelection();
 		void deleteByColor (const int colnum);
 		void save (LDFile* f, bool saveAs);
+		void updateActions();
 
 		inline GLRenderer* R()
 		{	return m_renderer;

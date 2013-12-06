@@ -180,26 +180,29 @@ class LDSharedVertex
 // this class distinct in case I get new extension ideas. :)
 // =============================================================================
 class LDMatrixObject
-{	PROPERTY (public,	LDObject*,	LinkPointer,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (public,	vertex,		Position,		NO_OPS,	CUSTOM_WRITE)
-	PROPERTY (public,	matrix,		Transform,		NO_OPS,	CUSTOM_WRITE)
+{	PROPERTY (public,	LDObject*,			LinkPointer,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
 
 	public:
 		LDMatrixObject() {}
 		LDMatrixObject (const matrix& transform, const vertex& pos) :
 			m_Transform (transform),
-			m_position (LDSharedVertex::getSharedVertex (pos)) {}
+			m_Position (LDSharedVertex::getSharedVertex (pos)) {}
 
-		const double& setCoordinate (const Axis ax, double value)
+		inline const vertex& getPosition() const
+		{	return m_Position->data();
+		}
+
+		void setCoordinate (const Axis ax, double value)
 		{	vertex v = getPosition();
 			v[ax] = value;
 			setPosition (v);
-
-			return getPosition()[ax];
 		}
 
+		void setPosition (const vertex& a);
+
 	private:
-		LDSharedVertex*	m_position;
+		LDSharedVertex*	m_Position;
 };
 
 // =============================================================================

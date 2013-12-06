@@ -669,8 +669,6 @@ void LDOverlay::invert() {}
 // Hook the set accessors of certain properties to this changeProperty function.
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
-//
-// TODO: use new PROPERTY-callbacks
 // -----------------------------------------------------------------------------
 template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& val)
 {	long idx;
@@ -701,6 +699,8 @@ const vertex& LDObject::getVertex (int i) const
 {	return m_coords[i]->data();
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDObject::setVertex (int i, const vertex& vert)
 {	changeProperty (this, &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
@@ -708,7 +708,7 @@ void LDObject::setVertex (int i, const vertex& vert)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDMatrixObject::setPosition (const vertex& a)
-{	changeProperty (getLinkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
+{	changeProperty (getLinkPointer(), &m_Position, LDSharedVertex::getSharedVertex (a));
 }
 
 // =============================================================================

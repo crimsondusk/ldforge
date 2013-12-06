@@ -10,6 +10,9 @@
 	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
 	lost during transition from version 0.2 and 0.3.
 - Added a new editing mode for drawing circles.
+- Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix.
+	Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234.
+	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
 - Corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.

@@ -50,7 +50,7 @@ void History::undo()
 	else
 		g_win->doFullRefresh();
 
-	updateActions();
+	g_win->updateActions();
 }
 
 // =============================================================================
@@ -73,7 +73,7 @@ void History::redo()
 	else
 		g_win->doFullRefresh();
 
-	updateActions();
+	g_win->updateActions();
 }
 
 // =============================================================================
@@ -88,13 +88,6 @@ void History::clear()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void History::updateActions() const
-{	ACTION (Undo)->setEnabled (getPosition() != -1);
-	ACTION (Redo)->setEnabled (getPosition() < (long) m_changesets.size() - 1);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 void History::addStep()
 {	if (m_currentChangeset.isEmpty())
 		return;
@@ -105,7 +98,7 @@ void History::addStep()
 	m_changesets << m_currentChangeset;
 	m_currentChangeset.clear();
 	setPosition (getPosition() + 1);
-	updateActions();
+	g_win->updateActions();
 }
 
 // =============================================================================

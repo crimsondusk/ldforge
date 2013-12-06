@@ -508,13 +508,11 @@ void newFile()
 	f->setImplicit (false);
 	g_loadedFiles << f;
 	LDFile::setCurrent (f);
-
 	LDFile::closeInitialFile();
-
 	g_win->R()->setFile (f);
 	g_win->doFullRefresh();
 	g_win->updateTitle();
-	f->getHistory()->updateActions();
+	g_win->updateActions();
 }
 
 // =============================================================================

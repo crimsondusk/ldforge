@@ -466,7 +466,7 @@ DEFINE_ACTION (Screenshot, 0)
 extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0)
 {	gl_axes = !gl_axes;
-	ACTION (Axes)->setChecked (gl_axes);
+	g_win->updateActions();
 	g_win->R()->update();
 }
 
@@ -610,7 +610,7 @@ DEFINE_ACTION (ScanPrimitives, 0)
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (BFCView, SHIFT (B))
 {	gl_colorbfc = !gl_colorbfc;
-	ACTION (BFCView)->setChecked (gl_colorbfc);
+	g_win->updateActions();
 	g_win->R()->refresh();
 }
 

@@ -51,7 +51,6 @@ class History
 		void undo();
 		void redo();
 		void clear();
-		void updateActions() const;
 
 		void addStep();
 		void add (AbstractHistoryEntry* entry);

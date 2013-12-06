@@ -81,6 +81,19 @@ const int g_primes[NUM_PRIMES] =
 	3517, 3527, 3529, 3533, 3539, 3541, 3547, 3557, 3559, 3571,
 };
 
+static const int32 g_e10[] =
+{	1,
+	10,
+	100,
+	1000,
+	10000,
+	100000,
+	1000000,
+	10000000,
+	100000000,
+	1000000000,
+};
+
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Grid stuff
@@ -409,4 +422,11 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 	// just say this one is better, at this point it does not matter which
 	// one is chosen.
 	return true;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void roundToDecimals (double& a, int decimals)
+{	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
+	a = round (a * g_e10[decimals]) / g_e10[decimals];
 }
