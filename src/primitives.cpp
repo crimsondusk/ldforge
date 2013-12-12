@@ -16,10 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-// TODO: I believe the multi-threading is unnecessary here. Get rid of it.
-
 #include <QDir>
-#include <QThread>
 #include <QRegExp>
 #include <QFileDialog>
 #include "document.h"
@@ -30,11 +27,14 @@
 #include "colors.h"
 #include "moc_primitives.cpp"
 
-QList<PrimitiveCategory> g_PrimitiveCategories;
+QList<PrimitiveCategory*> g_PrimitiveCategories;
 QList<Primitive> g_primitives;
 static PrimitiveLister* g_activePrimLister = null;
-static bool g_primListerMutex = false;
-static const str g_Other = PrimitiveLister::tr ("Other");
+PrimitiveCategory* g_unmatched = null;
+
+extern_cfg (String, ld_defaultname);
+extern_cfg (String, ld_defaultuser);
+extern_cfg (Int, ld_defaultlicense);
 
 static const str g_radialNameRoots[] =
 {	"edge",
@@ -45,14 +45,15 @@ static const str g_radialNameRoots[] =
 	"con"
 };
 
-static void populateCategories();
-static void loadPrimitiveCatgories();
+PrimitiveLister* getPrimitiveLister()
+{	return g_activePrimLister;
+}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadPrimitives()
 {	log ("Loading primitives...\n");
-	loadPrimitiveCatgories();
+	PrimitiveCategory::loadCategories();
 
 	// Try to load prims.cfg
 	File conf (Config::filepath ("prims.cfg"), File::Read);
@@ -63,7 +64,7 @@ void loadPrimitives()
 	}
 	else
 	{	// Read primitives from prims.cfg
-	for (str line : conf)
+		for (str line : conf)
 		{	int space = line.indexOf (" ");
 
 			if (space == -1)
@@ -75,7 +76,7 @@ void loadPrimitives()
 			g_primitives << info;
 		}
 
-		populateCategories();
+		PrimitiveCategory::populateCategories();
 	}
 }
 
@@ -84,7 +85,7 @@ void loadPrimitives()
 static void recursiveGetFilenames (QDir dir, QList<str>& fnames)
 {	QFileInfoList flist = dir.entryInfoList();
 
-for (const QFileInfo & info : flist)
+	for (const QFileInfo & info : flist)
 	{	if (info.fileName() == "." || info.fileName() == "..")
 			continue; // skip . and ..
 
@@ -97,24 +98,34 @@ for (const QFileInfo & info : flist)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PrimitiveLister::work()
+PrimitiveLister::PrimitiveLister (QObject* parent) :
+	QObject (parent),
+	m_i (0)
 {	g_activePrimLister = this;
-	m_prims.clear();
-
 	QDir dir (LDPaths::prims());
-	int baselen = dir.absolutePath().length();
-	int i = 0;
-	QList<str> fnames;
-
 	assert (dir.exists());
-	recursiveGetFilenames (dir, fnames);
-	emit starting (fnames.size());
+	m_baselen = dir.absolutePath().length();
+	recursiveGetFilenames (dir, m_files);
+	emit starting (m_files.size());
+}
 
-for (str fname : fnames)
-	{	File f (fname, File::Read);
+// =============================================================================
+// -----------------------------------------------------------------------------
+PrimitiveLister::~PrimitiveLister()
+{	g_activePrimLister = null;
+}
 
+// =============================================================================
+// -----------------------------------------------------------------------------
+void PrimitiveLister::work()
+{	int j = min (m_i + 300, m_files.size());
+	log ("PrimitiveLister::work: %1 -> %2\n", m_i, j);
+
+	for (; m_i < j; ++m_i)
+	{	str fname = m_files[m_i];
+		File f (fname, File::Read);
 		Primitive info;
-		info.name = fname.mid (baselen + 1);  // make full path relative
+		info.name = fname.mid (m_baselen + 1);  // make full path relative
 		info.name.replace ('/', '\\');  // use DOS backslashes, they're expected
 		info.cat = null;
 
@@ -129,23 +140,29 @@ for (str fname : fnames)
 		}
 
 		m_prims << info;
-		emit update (++i);
 	}
 
-	// Save to a config file
-	File conf (Config::filepath ("prims.cfg"), File::Write);
+	if (m_i == m_files.size())
+	{	// Done with primitives, now save to a config file
+		File conf (Config::filepath ("prims.cfg"), File::Write);
 
-for (Primitive & info : m_prims)
-		fprint (conf, "%1 %2\n", info.name, info.title);
+		for (Primitive& info : m_prims)
+			fprint (conf, "%1 %2\n", info.name, info.title);
 
-	conf.close();
+		conf.close();
 
-	g_primListerMutex = true;
-	g_primitives = m_prims;
-	populateCategories();
-	g_primListerMutex = false;
-	g_activePrimLister = null;
-	emit workDone();
+		g_primitives = m_prims;
+		PrimitiveCategory::populateCategories();
+		log ("%1 primitives listed", g_primitives.size());
+		g_activePrimLister = null;
+		emit workDone();
+		deleteLater();
+	}
+	else
+	{	// Defer to event loop, pick up the work later
+		emit update (m_i);
+		QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection);
+	}
 }
 
 // =============================================================================
@@ -155,149 +172,153 @@ void PrimitiveLister::start()
 		return;
 
 	PrimitiveLister* lister = new PrimitiveLister;
-	QThread* listerThread = new QThread;
-	lister->moveToThread (listerThread);
+	/*
 	connect (lister, SIGNAL (starting (int)), g_win, SLOT (primitiveLoaderStart (int)));
 	connect (lister, SIGNAL (update (int)), g_win, SLOT (primitiveLoaderUpdate (int)));
 	connect (lister, SIGNAL (workDone()), g_win, SLOT (primitiveLoaderEnd()));
-	connect (listerThread, SIGNAL (started()), lister, SLOT (work()));
-	connect (listerThread, SIGNAL (finished()), lister, SLOT (deleteLater()));
-	listerThread->start();
+	*/
+	lister->work();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static PrimitiveCategory* findCategory (str name)
-{	for (PrimitiveCategory & cat : g_PrimitiveCategories)
-		if (cat.getName() == name)
-			return &cat;
-
-	return null;
-}
+PrimitiveCategory::PrimitiveCategory (str name, QObject* parent) :
+	QObject (parent),
+	m_Name (name) {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void populateCategories()
-{	for (PrimitiveCategory & cat : g_PrimitiveCategories)
-		cat.prims.clear();
+void PrimitiveCategory::populateCategories()
+{	for (PrimitiveCategory* cat : g_PrimitiveCategories)
+		cat->prims.clear();
 
-	PrimitiveCategory* unmatched = findCategory (g_Other);
 
-	if (!unmatched)
-	{	// Shouldn't happen.. but catch it anyway.
-		PrimitiveCategory cat;
-		cat.setName (g_Other);
-		g_PrimitiveCategories << cat;
-		unmatched = &g_PrimitiveCategories.last();
-	}
-
-	for (Primitive & prim : g_primitives)
+	for (Primitive& prim : g_primitives)
 	{	bool matched = false;
 		prim.cat = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
-		for (PrimitiveCategory& cat : g_PrimitiveCategories)
-		{	for (PrimitiveCategory::RegexEntry& entry : cat.regexes)
+		for (PrimitiveCategory* cat : g_PrimitiveCategories)
+		{	for (RegexEntry& entry : cat->regexes)
 			{	switch (entry.type)
-				{	case PrimitiveCategory::Filename:
-						// f-regex, check against filename
+				{	case EFilenameRegex:
+					{	// f-regex, check against filename
 						matched = entry.regex.exactMatch (prim.name);
-						break;
+					} break;
 
-					case PrimitiveCategory::Title:
-						// t-regex, check against title
+					case ETitleRegex:
+					{	// t-regex, check against title
 						matched = entry.regex.exactMatch (prim.title);
-						break;
+					} break;
 				}
 
 				if (matched)
-				{	prim.cat = &cat;
+				{	prim.cat = cat;
 					break;
 				}
 			}
 
 			// Drop out if a category was decided on.
-			if (prim.cat)
+			if (prim.cat != null)
 				break;
 		}
 
 		// If there was a match, add the primitive to the category.
 		// Otherwise, add it to the list of unmatched primitives.
-		if (prim.cat)
+		if (prim.cat != null)
 			prim.cat->prims << prim;
 		else
-			unmatched->prims << prim;
+			g_unmatched->prims << prim;
 	}
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void loadPrimitiveCatgories()
-{	g_PrimitiveCategories.clear();
+void PrimitiveCategory::loadCategories()
+{	for (PrimitiveCategory* cat : g_PrimitiveCategories)
+		delete cat;
+
+	g_PrimitiveCategories.clear();
 	File f (Config::dirpath() + "primregexps.cfg", File::Read);
 
 	if (!f)
 		f.open (":/data/primitive-categories.cfg", File::Read);
 
 	if (!f)
-		critical (QObject::tr ("Failed to open primitive categories!"));
+	{	critical (QObject::tr ("Failed to open primitive categories!"));
+		return;
+	}
 
 	if (f)
-	{	PrimitiveCategory cat;
+	{	PrimitiveCategory* cat = null;
 
-	for (str line : f)
+		for (str line : f)
 		{	int colon;
 
 			if (line.length() == 0 || line[0] == '#')
 				continue;
 
-			if ( (colon = line.indexOf (":")) == -1)
-			{	if (cat.regexes.size() > 0)
+			if ((colon = line.indexOf (":")) == -1)
+			{	if (cat && cat->isValidToInclude())
 					g_PrimitiveCategories << cat;
 
-				cat.regexes.clear();
-				cat.prims.clear();
-				cat.setName (line);
+				cat = new PrimitiveCategory (line);
 			}
-			else
+			elif (cat != null)
 			{	str cmd = line.left (colon);
-				PrimitiveCategory::Type type = PrimitiveCategory::Filename;
+				ERegexType type = EFilenameRegex;
 
 				if (cmd == "f")
-					type = PrimitiveCategory::Filename;
-
+					type = EFilenameRegex;
 				elif (cmd == "t")
-				type = PrimitiveCategory::Title;
+					type = ETitleRegex;
 				else
+				{	log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
 					continue;
+				}
 
 				QRegExp regex (line.mid (colon + 1));
-				PrimitiveCategory::RegexEntry entry = { regex, type };
-				cat.regexes << entry;
+				RegexEntry entry = { regex, type };
+				cat->regexes << entry;
 			}
+			else
+				log ("Warning: Rules given before the first category name");
 		}
 
-		if (cat.regexes.size() > 0)
+		if (cat->isValidToInclude())
 			g_PrimitiveCategories << cat;
 	}
 
-	// Add a category for unmatched primitives
-	PrimitiveCategory cat;
-	cat.setName (g_Other);
-	g_PrimitiveCategories << cat;
+	// Add a category for unmatched primitives.
+	// Note: if this function is called the second time, g_unmatched has been
+	// deleted at the beginning of the function and is dangling at this point.
+	g_unmatched = new PrimitiveCategory (tr ("Other"));
+	g_PrimitiveCategories << g_unmatched;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+bool PrimitiveCategory::isValidToInclude()
+{	if (regexes.size() == 0)
+	{	log (tr ("Warning: category \"%1\" left without patterns"), getName());
+		deleteLater();
+		return false;
+	}
+
+	return true;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool isPrimitiveLoaderBusy()
-{	return g_primListerMutex;
+{	return g_activePrimLister != null;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 static double radialPoint (int i, int divs, double (*func) (double))
-{	return (*func) ( (i * 2 * pi) / divs);
+{	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
@@ -305,9 +326,9 @@ static double radialPoint (int i, int divs, double (*func) (double))
 void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 {	for (int i = 0; i < segs; ++i)
 	{	double x0 = radius * radialPoint (i, divs, cos),
-				   x1 = radius * radialPoint (i + 1, divs, cos),
-				   z0 = radius * radialPoint (i, divs, sin),
-				   z1 = radius * radialPoint (i + 1, divs, sin);
+			x1 = radius * radialPoint (i + 1, divs, cos),
+			z0 = radius * radialPoint (i, divs, sin),
+			z1 = radius * radialPoint (i + 1, divs, sin);
 
 		lines << QLineF (QPointF (x0, z0), QPointF (x1, z1));
 	}
@@ -427,7 +448,7 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (segs < divs && condLineSegs.size() != 0)
 		condLineSegs << segs;
 
-for (int i : condLineSegs)
+	for (int i : condLineSegs)
 	{	vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
 		  v1,
 		  v2 (radialPoint (i + 1, divs, cos), 0.0f, radialPoint (i + 1, divs, sin)),
@@ -435,7 +456,6 @@ for (int i : condLineSegs)
 
 		if (type == Cylinder)
 			v1 = vertex (v0[X], 1.0f, v0[Z]);
-
 		elif (type == Cone)
 		{	v1 = vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
 			v0[X] *= num;
@@ -525,12 +545,20 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	LDDocument* f = new LDDocument;
 	f->setDefaultName (name);
 
+	str author = APPNAME;
+	str license = "";
+
+	if (ld_defaultname.value.isEmpty() == false)
+	{	license = getLicenseText (ld_defaultlicense);
+		author = fmt ("%1 [%2]", ld_defaultname, ld_defaultuser);
+	}
+
 	f->addObjects (
 	{	new LDComment (descr),
 		new LDComment (fmt ("Name: %1", name)),
-		new LDComment (fmt ("Author: LDForge")),
+		new LDComment (fmt ("Author: %1", author)),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
-		new LDComment (CALicense),
+		new LDComment (license),
 		new LDEmpty,
 		new LDBFC (LDBFC::CertifyCCW),
 		new LDEmpty,

@@ -653,6 +653,7 @@ void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
 
+#if 0
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::primitiveLoaderStart (int max)
@@ -678,6 +679,7 @@ void ForgeWindow::primitiveLoaderEnd()
 	m_primLoaderBar->setFormat (tr ("Done"));
 	log (tr ("Primitives scanned: %1 primitives listed"), m_primLoaderBar->value());
 }
+#endif
 
 // =============================================================================
 // -----------------------------------------------------------------------------

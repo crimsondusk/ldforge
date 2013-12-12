@@ -32,23 +32,29 @@ struct Primitive
 	PrimitiveCategory* cat;
 };
 
-class PrimitiveCategory
-{	PROPERTY (public,	str,	Name,	STR_OPS,	STOCK_WRITE)
+class PrimitiveCategory : public QObject
+{	Q_OBJECT
+	PROPERTY (public,	str,	Name,	STR_OPS,	STOCK_WRITE)
 
 	public:
-		enum Type
-		{	Filename,
-			Title
+		enum ERegexType
+		{	EFilenameRegex,
+			ETitleRegex
 		};
 
 		struct RegexEntry
-		{	QRegExp regex;
-			Type type;
+		{	QRegExp		regex;
+			ERegexType	type;
 		};
 
 		QList<RegexEntry> regexes;
 		QList<Primitive> prims;
-		static QList<Primitive> uncat;
+
+		explicit PrimitiveCategory (str name, QObject* parent = 0);
+		bool isValidToInclude();
+
+		static void loadCategories();
+		static void populateCategories();
 };
 
 // =============================================================================
@@ -60,9 +66,11 @@ class PrimitiveCategory
 // builds an index of them.
 // =============================================================================
 class PrimitiveLister : public QObject
-{		Q_OBJECT
+{	Q_OBJECT
 
 	public:
+		explicit PrimitiveLister (QObject* parent = 0);
+		virtual ~PrimitiveLister();
 		static void start();
 
 	public slots:
@@ -74,13 +82,16 @@ class PrimitiveLister : public QObject
 		void update (int i);
 
 	private:
-		QList<Primitive> m_prims;
+		QList<Primitive>	m_prims;
+		QStringList			m_files;
+		int					m_i;
+		int					m_baselen;
 };
 
-extern QList<PrimitiveCategory> g_PrimitiveCategories;
+extern QList<PrimitiveCategory*> g_PrimitiveCategories;
 
 void loadPrimitives();
-bool isPrimitiveLoaderBusy();
+PrimitiveLister* getPrimitiveLister();
 
 enum PrimitiveType
 {	Circle,

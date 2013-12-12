@@ -761,6 +761,8 @@ void LDObject::select()
 	getFile()->addToSelection (this);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDObject::unselect()
 {	if (!getFile())
 	{	log ("Warning: Object #%1 cannot be unselected as it is not assigned a file!\n", getID());
@@ -768,4 +770,22 @@ void LDObject::unselect()
 	}
 
 	getFile()->removeFromSelection (this);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+str getLicenseText (int id)
+{	switch (id)
+	{	case 0:
+			return CALicense;
+
+		case 1:
+			return NonCALicense;
+
+		case 2:
+			return "";
+	}
+
+	assert (false);
+	return "";
 }

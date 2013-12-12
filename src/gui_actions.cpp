@@ -71,7 +71,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 		default:
 			QMessageBox::warning (null, "Warning",
-								  fmt ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
+				fmt ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
 			break;
 	}
 
@@ -93,9 +93,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		new LDComment ("Name: <untitled>.dat"),
 		new LDComment (fmt ("Author: %1", ui.le_author->text())),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
-		(license != "" ?
-		new LDComment (license) :
-		null),
+		(license != "" ? new LDComment (license) : null),
 		new LDEmpty,
 		new LDBFC (BFCType),
 		new LDEmpty,

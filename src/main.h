@@ -45,7 +45,6 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <QString>
-#include <QMutex>
 #include <QTextFormat>
 
 #include "property.h"

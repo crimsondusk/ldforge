@@ -62,33 +62,33 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	switch (type)
 	{	case LDObject::Comment:
-			le_comment = new QLineEdit;
+		{	le_comment = new QLineEdit;
 
 			if (obj)
 				le_comment->setText (static_cast<LDComment*> (obj)->text);
 
 			le_comment->setMinimumWidth (384);
-			break;
+		} break;
 
 		case LDObject::Line:
-			coordCount = 6;
-			break;
+		{	coordCount = 6;
+		} break;
 
 		case LDObject::Triangle:
-			coordCount = 9;
-			break;
+		{	coordCount = 9;
+		} break;
 
 		case LDObject::Quad:
 		case LDObject::CondLine:
-			coordCount = 12;
-			break;
+		{	coordCount = 12;
+		} break;
 
 		case LDObject::Vertex:
-			coordCount = 3;
-			break;
+		{	coordCount = 3;
+		} break;
 
 		case LDObject::BFC:
-			rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
+		{	rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
 
 			for (int i = 0; i < LDBFC::NumStatements; ++i)
 			{	// Separate these in two columns
@@ -100,26 +100,19 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			if (obj)
 				rb_bfcType->setValue ( (int) static_cast<LDBFC*> (obj)->type);
-
-			break;
+		} break;
 
 		case LDObject::Subfile:
-			coordCount = 3;
-
-			// If the primitive lister is busy writing data, we have to wait
-			// for that to happen first. This should be quite considerably rare.
-			while (isPrimitiveLoaderBusy())
-				;
-
+		{	coordCount = 3;
 			tw_subfileList = new QTreeWidget();
 			tw_subfileList->setHeaderLabel (tr ("Primitives"));
 
-		for (PrimitiveCategory & cat : g_PrimitiveCategories)
+			for (PrimitiveCategory* cat : g_PrimitiveCategories)
 			{	SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
-				parentItem->setText (0, cat.getName());
+				parentItem->setText (0, cat->getName());
 				QList<QTreeWidgetItem*> subfileItems;
 
-			for (Primitive & prim : cat.prims)
+				for (Primitive& prim : cat->prims)
 				{	SubfileListItem* item = new SubfileListItem (parentItem, &prim);
 					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
 					subfileItems << item;
@@ -142,12 +135,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				le_subfileName->setText (ref->getFileInfo()->getName());
 			}
-
-			break;
+		} break;
 
 		default:
-			critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
-			return;
+		{	critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
+		} return;
 	}
 
 	QPixmap icon = getIcon (fmt ("add-%1", typeName));
@@ -348,8 +340,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::Triangle:
 		case LDObject::Quad:
 		case LDObject::CondLine:
-
-			if (!obj)
+		{	if (!obj)
 				obj = LDObject::getDefault (type);
 
 			for (int i = 0; i < obj->vertices(); ++i)
@@ -360,14 +351,12 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 				obj->setVertex (i, v);
 			}
-
-			break;
+		} break;
 
 		case LDObject::BFC:
 		{	LDBFC* bfc = initObj<LDBFC> (obj);
 			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value();
-		}
-		break;
+		} break;
 
 		case LDObject::Vertex:
 		{	LDVertex* vert = initObj<LDVertex> (obj);
@@ -391,14 +380,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			}
 
 			LDSubfile* ref = initObj<LDSubfile> (obj);
+			assert (ref);
 
 			for (const Axis ax : g_Axes)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value());
 
 			ref->setTransform (transform);
 			ref->setFileInfo (file);
-		}
-		break;
+		} break;
 
 		default:
 			break;

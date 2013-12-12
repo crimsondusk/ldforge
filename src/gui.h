@@ -134,9 +134,11 @@ class ForgeWindow : public QMainWindow
 #include "actions.h"
 
 	public slots:
+#if 0
 		void primitiveLoaderStart (int max);
 		void primitiveLoaderUpdate (int prog);
 		void primitiveLoaderEnd();
+#endif // 0
 		void slot_action();
 		void changeCurrentFile();
 

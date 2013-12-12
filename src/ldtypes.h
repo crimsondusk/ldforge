@@ -476,4 +476,6 @@ static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : 
 static const int lores = 16;
 static const int hires = 48;
 
+str getLicenseText (int id);
+
 #endif // LDFORGE_LDTYPES_H
