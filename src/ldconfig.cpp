@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "file.h"
+#include "document.h"
 #include "ldconfig.h"
 #include "gui.h"
 #include "misc.h"

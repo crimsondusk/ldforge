@@ -30,7 +30,7 @@
 #include "config.h"
 #include "misc.h"
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 
 #ifdef _WIN32
 # define EXTENSION ".ini"

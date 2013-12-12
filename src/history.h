@@ -33,7 +33,7 @@ class AbstractHistoryEntry;
 // =============================================================================
 class History
 {	PROPERTY (private,	long,		Position,	NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDFile*,	File,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE)
 	PROPERTY (public,		bool,		Ignoring,	BOOL_OPS,	STOCK_WRITE)
 
 	public:

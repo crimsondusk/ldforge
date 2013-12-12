@@ -26,7 +26,7 @@
 #include "ui_downloadfrom.h"
 #include "types.h"
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 #include "gldraw.h"
 #include "configDialog.h"
 #include "moc_download.cpp"
@@ -263,7 +263,7 @@ void PartDownloader::checkIfFinished()
 
 	// Update everything now
 	if (getPrimaryFile())
-	{	LDFile::setCurrent (getPrimaryFile());
+	{	LDDocument::setCurrent (getPrimaryFile());
 		reloadAllSubfiles();
 		g_win->doFullRefresh();
 		g_win->R()->resetAngles();
@@ -412,7 +412,7 @@ void PartDownloadRequest::downloadFinished()
 	}
 
 	// Try to load this file now.
-	LDFile* f = openDATFile (getFilePath(), false);
+	LDDocument* f = openDocument (getFilePath(), false);
 
 	if (!f)
 		return;

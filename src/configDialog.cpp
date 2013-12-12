@@ -31,7 +31,7 @@
 #include <QCheckBox>
 #include "main.h"
 #include "configDialog.h"
-#include "file.h"
+#include "document.h"
 #include "config.h"
 #include "misc.h"
 #include "colors.h"
@@ -338,7 +338,7 @@ void ConfigDialog::applySettings()
 	g_win->R()->setBackground();
 	g_win->doFullRefresh();
 	g_win->updateToolBars();
-	g_win->updateFileList();
+	g_win->updateDocumentList();
 }
 
 // =============================================================================

@@ -103,8 +103,8 @@ class ForgeWindow : public QMainWindow
 		void updateSelection();
 		void updateGridToolBar();
 		void updateEditModeActions();
-		void updateFileList();
-		void updateFileListItem (LDFile* f);
+		void updateDocumentList();
+		void updateDocumentListItem (LDDocument* f);
 		int getSelectedColor();
 		LDObject::Type getUniformSelectedType();
 		void scrollToSelection();
@@ -112,7 +112,7 @@ class ForgeWindow : public QMainWindow
 		void deleteObjects (QList<LDObject*> objs);
 		int deleteSelection();
 		void deleteByColor (const int colnum);
-		void save (LDFile* f, bool saveAs);
+		void save (LDDocument* f, bool saveAs);
 		void updateActions();
 
 		inline GLRenderer* R()

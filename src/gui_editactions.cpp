@@ -23,7 +23,7 @@
 
 #include "gui.h"
 #include "main.h"
-#include "file.h"
+#include "document.h"
 #include "colorSelectDialog.h"
 #include "misc.h"
 #include "widgets.h"
@@ -82,12 +82,12 @@ DEFINE_ACTION (Copy, CTRL (C))
 DEFINE_ACTION (Paste, CTRL (V))
 {	const str clipboardText = qApp->clipboard()->text();
 	int idx = g_win->getInsertionPoint();
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 	int num = 0;
 
 	for (str line : clipboardText.split ("\n"))
 	{	LDObject* pasted = parseLine (line);
-		LDFile::current()->insertObj (idx++, pasted);
+		getCurrentDocument()->insertObj (idx++, pasted);
 		pasted->select();
 		g_win->R()->compileObject (pasted);
 		++num;
@@ -135,13 +135,13 @@ static void doInline (bool deep)
 			delete inlineobj;
 
 			LDObject* newobj = parseLine (line);
-			LDFile::current()->insertObj (idx++, newobj);
+			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
 			g_win->R()->compileObject (newobj);
 		}
 
 		// Delete the subfile now as it's been inlined.
-		LDFile::current()->forgetObject (obj);
+		getCurrentDocument()->forgetObject (obj);
 		delete obj;
 	}
 
@@ -176,8 +176,8 @@ DEFINE_ACTION (SplitQuads, 0)
 
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		LDFile::current()->setObject (index, triangles[0]);
-		LDFile::current()->insertObj (index + 1, triangles[1]);
+		getCurrentDocument()->setObject (index, triangles[0]);
+		getCurrentDocument()->insertObj (index + 1, triangles[1]);
 
 		for (LDTriangle* t : triangles)
 			g_win->R()->compileObject (t);
@@ -291,7 +291,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 		{	long idx = obj->getIndex() + i + 1;
 
 			lines[i]->setColor (edgecolor);
-			LDFile::current()->insertObj (idx, lines[i]);
+			getCurrentDocument()->insertObj (idx, lines[i]);
 			g_win->R()->compileObject (lines[i]);
 		}
 
@@ -318,7 +318,7 @@ DEFINE_ACTION (CornerVerts, 0)
 			vert->pos = obj->getVertex (i);
 			vert->setColor (obj->getColor());
 
-			LDFile::current()->insertObj (++idx, vert);
+			getCurrentDocument()->insertObj (++idx, vert);
 			g_win->R()->compileObject (vert);
 			++num;
 		}
@@ -349,11 +349,11 @@ DEFINE_ACTION (MoveDown, KEY (PageDown))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Undo, CTRL (Z))
-{	LDFile::current()->undo();
+{	getCurrentDocument()->undo();
 }
 
 DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
-{	LDFile::current()->redo();
+{	getCurrentDocument()->redo();
 }
 
 // =============================================================================
@@ -667,7 +667,7 @@ DEFINE_ACTION (Demote, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool isColorUsed (int colnum)
-{	for (LDObject* obj : LDFile::current()->getObjects())
+{	for (LDObject* obj : getCurrentDocument()->getObjects())
 		if (obj->isColored() && obj->getColor() == colnum)
 			return true;
 
@@ -726,7 +726,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 
 	// Find a spot to place the new comment
 	for (
-		obj = LDFile::current()->getObject (0);
+		obj = getCurrentDocument()->getObject (0);
 		obj && obj->next() && !obj->next()->isScemantic();
 		obj = obj->next()
 	)
@@ -745,12 +745,12 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	}
 
 	int idx = obj ? obj->getIndex() : 0;
-	LDFile::current()->insertObj (idx++, comm);
+	getCurrentDocument()->insertObj (idx++, comm);
 
 	// If we're adding a history line right before a scemantic object, pad it
 	// an empty line
 	if (obj && obj->next() && obj->next()->isScemantic())
-		LDFile::current()->insertObj (idx, new LDEmpty);
+		getCurrentDocument()->insertObj (idx, new LDEmpty);
 
 	g_win->buildObjList();
 	delete ui;

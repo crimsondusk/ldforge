@@ -27,13 +27,13 @@
 #include <QApplication>
 #include "main.h"
 #include "config.h"
-#include "file.h"
+#include "document.h"
 #include "misc.h"
 #include "gui.h"
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
-#include "moc_file.cpp"
+#include "moc_document.cpp"
 
 cfg (String, io_ldpath, "");
 cfg (List, io_recentfiles, {});
@@ -43,10 +43,10 @@ extern_cfg (Bool, gl_logostuds);
 static bool g_loadingMainFile = false;
 static const int g_MaxRecentFiles = 5;
 static bool g_aborted = false;
-static LDFile* g_logoedStud = null;
-static LDFile* g_logoedStud2 = null;
+static LDDocument* g_logoedStud = null;
+static LDDocument* g_logoedStud2 = null;
 
-LDFile* LDFile::m_curfile = null;
+LDDocument* LDDocument::m_curdoc = null;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -112,7 +112,7 @@ namespace LDPaths
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile::LDFile()
+LDDocument::LDDocument()
 {	setImplicit (true);
 	setSavePosition (-1);
 	setListItem (null);
@@ -122,7 +122,7 @@ LDFile::LDFile()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile::~LDFile()
+LDDocument::~LDDocument()
 {	// Clear everything from the model
 	for (LDObject* obj : getObjects())
 		delete obj;
@@ -138,14 +138,14 @@ LDFile::~LDFile()
 
 	// If we just closed the current file, we need to set the current
 	// file as something else.
-	if (this == LDFile::current())
+	if (this == getCurrentDocument())
 	{	bool found = false;
 
 		// Try find an explicitly loaded file - if we can't find one,
 		// we need to create a new file to switch to.
-		for (LDFile* file : g_loadedFiles)
+		for (LDDocument* file : g_loadedFiles)
 		{	if (!file->isImplicit())
-			{	LDFile::setCurrent (file);
+			{	LDDocument::setCurrent (file);
 				found = true;
 				break;
 			}
@@ -155,13 +155,13 @@ LDFile::~LDFile()
 			newFile();
 	}
 
-	g_win->updateFileList();
+	g_win->updateDocumentList();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* findLoadedFile (str name)
-{	for (LDFile * file : g_loadedFiles)
+LDDocument* findDocument (str name)
+{	for (LDDocument * file : g_loadedFiles)
 		if (!file->getName().isEmpty() && file->getShortName() == name)
 			return file;
 
@@ -210,10 +210,10 @@ File* openLDrawFile (str relpath, bool subdirs)
 	relpath.replace ("\\", "/");
 #endif // WIN32
 
-	if (LDFile::current())
+	if (getCurrentDocument())
 	{	// First, try find the file in the current model's file path. We want a file
 		// in the immediate vicinity of the current model to override stock LDraw stuff.
-		str partpath = fmt ("%1" DIRSLASH "%2", dirname (LDFile::current()->getName()), relpath);
+		str partpath = fmt ("%1" DIRSLASH "%2", dirname (getCurrentDocument()->getName()), relpath);
 
 		if (f->open (partpath, File::Read))
 			return f;
@@ -249,7 +249,7 @@ File* openLDrawFile (str relpath, bool subdirs)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void FileLoader::start()
+void LDFileLoader::start()
 {	setDone (false);
 	setProgress (0);
 	setAborted (false);
@@ -257,7 +257,7 @@ void FileLoader::start()
 	if (isOnForeground())
 	{	g_aborted = false;
 
-		// Show a progress dialog if we're loading the main file here so we can
+		// Show a progress dialog if we're loading the main document.here so we can
 		// show progress updates and keep the WM posted that we're still here.
 		// Of course we cannot exec() the dialog because then the dialog would
 		// block.
@@ -279,7 +279,7 @@ void FileLoader::start()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void FileLoader::work (int i)
+void LDFileLoader::work (int i)
 {	// User wishes to abort, so stop here now.
 	if (isAborted())
 	{	for (LDObject* obj : m_Objects)
@@ -348,7 +348,7 @@ void FileLoader::work (int i)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void FileLoader::abort()
+void LDFileLoader::abort()
 {	setAborted (true);
 
 	if (isOnForeground())
@@ -370,7 +370,7 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 
 	f->rewind();
 
-	FileLoader* loader = new FileLoader;
+	LDFileLoader* loader = new LDFileLoader;
 	loader->setWarnings (numWarnings);
 	loader->setLines (lines);
 	loader->setOnForeground (g_loadingMainFile);
@@ -393,7 +393,7 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* openDATFile (str path, bool search)
+LDDocument* openDocument (str path, bool search)
 {	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
@@ -413,7 +413,7 @@ LDFile* openDATFile (str path, bool search)
 	if (!f)
 		return null;
 
-	LDFile* load = new LDFile;
+	LDDocument* load = new LDDocument;
 	load->setName (path);
 
 	int numWarnings;
@@ -430,7 +430,7 @@ LDFile* openDATFile (str path, bool search)
 	g_loadedFiles << load;
 
 	if (g_loadingMainFile)
-	{	LDFile::setCurrent (load);
+	{	LDDocument::setCurrent (load);
 		g_win->R()->setFile (load);
 		log (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
 	}
@@ -440,7 +440,7 @@ LDFile* openDATFile (str path, bool search)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDFile::isSafeToClose()
+bool LDDocument::isSafeToClose()
 {	typedef QMessageBox msgbox;
 	setlocale (LC_ALL, "C");
 
@@ -458,7 +458,7 @@ bool LDFile::isSafeToClose()
 				// If we don't have a file path yet, we have to ask the user for one.
 				if (getName().length() == 0)
 				{	str newpath = QFileDialog::getSaveFileName (g_win, "Save As",
-								  LDFile::current()->getName(), "LDraw files (*.dat *.ldr)");
+								  getCurrentDocument()->getName(), "LDraw files (*.dat *.ldr)");
 
 					if (newpath.length() == 0)
 						return false;
@@ -493,9 +493,9 @@ bool LDFile::isSafeToClose()
 // -----------------------------------------------------------------------------
 void closeAll()
 {	// Remove all loaded files and the objects they contain
-	QList<LDFile*> files = g_loadedFiles;
+	QList<LDDocument*> files = g_loadedFiles;
 
-for (LDFile * file : files)
+for (LDDocument * file : files)
 		delete file;
 }
 
@@ -503,12 +503,12 @@ for (LDFile * file : files)
 // -----------------------------------------------------------------------------
 void newFile()
 {	// Create a new anonymous file and set it to our current
-	LDFile* f = new LDFile;
+	LDDocument* f = new LDDocument;
 	f->setName ("");
 	f->setImplicit (false);
 	g_loadedFiles << f;
-	LDFile::setCurrent (f);
-	LDFile::closeInitialFile();
+	LDDocument::setCurrent (f);
+	LDDocument::closeInitialFile();
 	g_win->R()->setFile (f);
 	g_win->doFullRefresh();
 	g_win->updateTitle();
@@ -546,7 +546,7 @@ void addRecentFile (str path)
 // -----------------------------------------------------------------------------
 void openMainFile (str path)
 {	g_loadingMainFile = true;
-	LDFile* file = openDATFile (path, false);
+	LDDocument* file = openDocument (path, false);
 
 	if (!file)
 	{	// Loading failed, thus drop down to a new file since we
@@ -567,10 +567,10 @@ void openMainFile (str path)
 
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
-	LDFile::closeInitialFile();
+	LDDocument::closeInitialFile();
 
 	// Rebuild the object tree view now.
-	LDFile::setCurrent (file);
+	LDDocument::setCurrent (file);
 	g_win->doFullRefresh();
 
 	// Add it to the recent files list.
@@ -580,7 +580,7 @@ void openMainFile (str path)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDFile::save (str savepath)
+bool LDDocument::save (str savepath)
 {	if (!savepath.length())
 		savepath = getName();
 
@@ -623,7 +623,7 @@ bool LDFile::save (str savepath)
 	setSavePosition (getHistory()->getPosition());
 	setName (savepath);
 
-	g_win->updateFileListItem (this);
+	g_win->updateDocumentListItem (this);
 	g_win->updateTitle();
 	return true;
 }
@@ -745,7 +745,7 @@ LDObject* parseLine (str line)
 			// not loading the main file now, but the subfile in question.
 			bool tmp = g_loadingMainFile;
 			g_loadingMainFile = false;
-			LDFile* load = getFile (tokens[14]);
+			LDDocument* load = getDocument (tokens[14]);
 			g_loadingMainFile = tmp;
 
 			// If we cannot open the file, mark it an error
@@ -825,31 +825,31 @@ LDObject* parseLine (str line)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* getFile (str filename)
+LDDocument* getDocument (str filename)
 {	// Try find the file in the list of loaded files
-	LDFile* load = findLoadedFile (filename);
+	LDDocument* doc = findDocument (filename);
 
 	// If it's not loaded, try open it
-	if (!load)
-		load = openDATFile (filename, true);
+	if (!doc)
+		doc = openDocument (filename, true);
 
-	return load;
+	return doc;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void reloadAllSubfiles()
-{	if (!LDFile::current())
+{	if (!getCurrentDocument())
 		return;
 
 	g_loadedFiles.clear();
-	g_loadedFiles << LDFile::current();
+	g_loadedFiles << getCurrentDocument();
 
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : LDFile::current()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{	if (obj->getType() == LDObject::Subfile)
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDFile* fileInfo = getFile (ref->getFileInfo()->getName());
+			LDDocument* fileInfo = getDocument (ref->getFileInfo()->getName());
 
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
@@ -864,12 +864,12 @@ void reloadAllSubfiles()
 	}
 
 	// Close all files left unused
-	LDFile::closeUnused();
+	LDDocument::closeUnused();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-int LDFile::addObject (LDObject* obj)
+int LDDocument::addObject (LDObject* obj)
 {	getHistory()->add (new AddHistory (getObjects().size(), obj));
 	m_Objects << obj;
 
@@ -882,7 +882,7 @@ int LDFile::addObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::addObjects (const QList<LDObject*> objs)
+void LDDocument::addObjects (const QList<LDObject*> objs)
 {	for (LDObject * obj : objs)
 		if (obj)
 			addObject (obj);
@@ -890,7 +890,7 @@ void LDFile::addObjects (const QList<LDObject*> objs)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::insertObj (int pos, LDObject* obj)
+void LDDocument::insertObj (int pos, LDObject* obj)
 {	getHistory()->add (new AddHistory (pos, obj));
 	m_Objects.insert (pos, obj);
 	obj->setFile (this);
@@ -898,7 +898,7 @@ void LDFile::insertObj (int pos, LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::forgetObject (LDObject* obj)
+void LDDocument::forgetObject (LDObject* obj)
 {	int idx = obj->getIndex();
 	getHistory()->add (new DelHistory (idx, obj));
 	m_Objects.removeAt (idx);
@@ -908,7 +908,7 @@ void LDFile::forgetObject (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool safeToCloseAll()
-{	for (LDFile* f : g_loadedFiles)
+{	for (LDDocument* f : g_loadedFiles)
 		if (!f->isSafeToClose())
 			return false;
 
@@ -917,7 +917,7 @@ bool safeToCloseAll()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::setObject (int idx, LDObject* obj)
+void LDDocument::setObject (int idx, LDObject* obj)
 {	assert (idx < m_Objects.size());
 
 	// Mark this change to history
@@ -931,8 +931,8 @@ void LDFile::setObject (int idx, LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static QList<LDFile*> getFilesUsed (LDFile* node)
-{	QList<LDFile*> filesUsed;
+static QList<LDDocument*> getFilesUsed (LDDocument* node)
+{	QList<LDDocument*> filesUsed;
 
 	for (LDObject* obj : node->getObjects())
 	{	if (obj->getType() != LDObject::Subfile)
@@ -949,11 +949,11 @@ static QList<LDFile*> getFilesUsed (LDFile* node)
 // =============================================================================
 // Find out which files are unused and close them.
 // -----------------------------------------------------------------------------
-void LDFile::closeUnused()
-{	QList<LDFile*> filesUsed = getFilesUsed (LDFile::current());
+void LDDocument::closeUnused()
+{	QList<LDDocument*> filesUsed = getFilesUsed (getCurrentDocument());
 
 	// Anything that's explicitly opened must not be closed
-	for (LDFile* file : g_loadedFiles)
+	for (LDDocument* file : g_loadedFiles)
 		if (!file->isImplicit())
 			filesUsed << file;
 
@@ -961,10 +961,10 @@ void LDFile::closeUnused()
 	removeDuplicates (filesUsed);
 
 	// Close all open files that aren't in filesUsed
-	for (LDFile* file : g_loadedFiles)
+	for (LDDocument* file : g_loadedFiles)
 	{	bool isused = false;
 
-		for (LDFile* usedFile : filesUsed)
+		for (LDDocument* usedFile : filesUsed)
 		{	if (file == usedFile)
 			{	isused = true;
 				break;
@@ -981,7 +981,7 @@ void LDFile::closeUnused()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject* LDFile::getObject (int pos) const
+LDObject* LDDocument::getObject (int pos) const
 {	if (m_Objects.size() <= pos)
 		return null;
 
@@ -990,19 +990,19 @@ LDObject* LDFile::getObject (int pos) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-int LDFile::getObjectCount() const
+int LDDocument::getObjectCount() const
 {	return getObjects().size();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDFile::hasUnsavedChanges() const
+bool LDDocument::hasUnsavedChanges() const
 {	return !isImplicit() && getHistory()->getPosition() != getSavePosition();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDFile::getShortName()
+str LDDocument::getShortName()
 {	if (!getName().isEmpty())
 		return basename (getName());
 
@@ -1014,7 +1014,7 @@ str LDFile::getShortName()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
+QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 {	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
@@ -1080,8 +1080,8 @@ QList<LDObject*> LDFile::inlineContents (LDSubfile::InlineFlags flags)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* LDFile::current()
-{	return m_curfile;
+LDDocument* LDDocument::current()
+{	return m_curdoc;
 }
 
 // =============================================================================
@@ -1090,17 +1090,17 @@ LDFile* LDFile::current()
 //
 // FIXME: f can be temporarily null. This probably should not be the case.
 // -----------------------------------------------------------------------------
-void LDFile::setCurrent (LDFile* f)
+void LDDocument::setCurrent (LDDocument* f)
 {	// Implicit files were loaded for caching purposes and must never be set
 	// current.
 	if (f && f->isImplicit())
 		return;
 
-	m_curfile = f;
+	m_curdoc = f;
 
 	if (g_win && f)
 	{	// A ton of stuff needs to be updated
-		g_win->updateFileListItem (f);
+		g_win->updateDocumentListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();
 		g_win->R()->setFile (f);
@@ -1113,10 +1113,10 @@ void LDFile::setCurrent (LDFile* f)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-int LDFile::countExplicitFiles()
+int LDDocument::countExplicitFiles()
 {	int count = 0;
 
-	for (LDFile* f : g_loadedFiles)
+	for (LDDocument* f : g_loadedFiles)
 		if (f->isImplicit() == false)
 			count++;
 
@@ -1127,7 +1127,7 @@ int LDFile::countExplicitFiles()
 // This little beauty closes the initial file that was open at first when opening
 // a new file over it.
 // -----------------------------------------------------------------------------
-void LDFile::closeInitialFile()
+void LDDocument::closeInitialFile()
 {	if (
 		countExplicitFiles() == 2 &&
 		g_loadedFiles[0]->getName() == "" &&
@@ -1144,13 +1144,13 @@ void loadLogoedStuds()
 	delete g_logoedStud;
 	delete g_logoedStud2;
 
-	g_logoedStud = openDATFile ("stud-logo.dat", true);
-	g_logoedStud2 = openDATFile ("stud2-logo.dat", true);
+	g_logoedStud = openDocument ("stud-logo.dat", true);
+	g_logoedStud2 = openDocument ("stud2-logo.dat", true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::addToSelection (LDObject* obj) // [protected]
+void LDDocument::addToSelection (LDObject* obj) // [protected]
 {	if (obj->isSelected())
 		return;
 
@@ -1161,7 +1161,7 @@ void LDFile::addToSelection (LDObject* obj) // [protected]
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::removeFromSelection (LDObject* obj) // [protected]
+void LDDocument::removeFromSelection (LDObject* obj) // [protected]
 {	if (!obj->isSelected())
 		return;
 
@@ -1172,7 +1172,7 @@ void LDFile::removeFromSelection (LDObject* obj) // [protected]
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDFile::clearSelection()
+void LDDocument::clearSelection()
 {	for (LDObject* obj : m_sel)
 		removeFromSelection (obj);
 
@@ -1181,6 +1181,6 @@ void LDFile::clearSelection()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const QList<LDObject*>& LDFile::getSelection() const
+const QList<LDObject*>& LDDocument::getSelection() const
 {	return m_sel;
 }

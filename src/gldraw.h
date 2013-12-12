@@ -29,7 +29,7 @@ class RadioGroup;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
-class LDFile;
+class LDDocument;
 class QTimer;
 
 enum EditMode
@@ -98,7 +98,7 @@ class GLRenderer : public QGLWidget
 		PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	bool,					Picking,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,		LDFile*,				File,			NO_OPS,		CUSTOM_WRITE)
+		PROPERTY (public,		LDDocument*,				File,			NO_OPS,		CUSTOM_WRITE)
 		PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
 
 	public methods:

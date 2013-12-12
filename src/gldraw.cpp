@@ -27,7 +27,7 @@
 
 #include "main.h"
 #include "config.h"
-#include "file.h"
+#include "document.h"
 #include "gldraw.h"
 #include "colors.h"
 #include "gui.h"
@@ -1180,7 +1180,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick)
 	{	QList<LDObject*> oldsel = selection();
-		LDFile::current()->clearSelection();
+		getCurrentDocument()->clearSelection();
 
 		for (LDObject* obj : oldsel)
 			compileObject (obj);
@@ -1314,7 +1314,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 
 			// Clear the selection when beginning to draw.
 			QList<LDObject*> priorsel = selection();
-			LDFile::current()->clearSelection();
+			getCurrentDocument()->clearSelection();
 
 			for (LDObject* obj : priorsel)
 				compileObject (obj);
@@ -1328,7 +1328,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 	update();
 }
 
-void GLRenderer::setFile (LDFile* const& a)
+void GLRenderer::setFile (LDDocument* const& a)
 {	m_File = a;
 
 	if (a != null)
@@ -1411,7 +1411,7 @@ void GLRenderer::endDraw (bool accept)
 		{	const int segs = lores, divs = lores; // TODO: make customizable
 			double dist0 = getCircleDrawDist (0),
 				dist1 = getCircleDrawDist (1);
-			LDFile* refFile = null;
+			LDDocument* refFile = null;
 			matrix transform;
 			bool circleOrDisc = false;
 
@@ -1420,13 +1420,13 @@ void GLRenderer::endDraw (bool accept)
 
 			if (dist0 == dist1)
 			{	// If the radii are the same, there's no ring space to fill. Use a circle.
-				refFile = ::getFile ("4-4edge.dat");
+				refFile = ::getDocument ("4-4edge.dat");
 				transform = getCircleDrawMatrix (dist0);
 				circleOrDisc = true;
 			}
 			elif (dist0 == 0 || dist1 == 0)
 			{	// If either radii is 0, use a disc.
-				refFile = ::getFile ("4-4disc.dat");
+				refFile = ::getDocument ("4-4disc.dat");
 				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
 				circleOrDisc = true;
 			}
@@ -1435,7 +1435,7 @@ void GLRenderer::endDraw (bool accept)
 				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
 				{	// Get a ref file for this primitive. If we cannot find it in the
 					// LDraw library, generate it.
-					if ((refFile = ::getFile (radialFileName (::Ring, lores, lores, cmp.num))) == null)
+					if ((refFile = ::getDocument (radialFileName (::Ring, lores, lores, cmp.num))) == null)
 					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
 					}

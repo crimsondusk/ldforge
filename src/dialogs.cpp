@@ -35,7 +35,7 @@
 #include "gui.h"
 #include "gldraw.h"
 #include "docs.h"
-#include "file.h"
+#include "document.h"
 #include "dialogs.h"
 #include "ui_overlay.h"
 #include "ui_ldrawpath.h"

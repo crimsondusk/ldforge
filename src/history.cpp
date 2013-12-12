@@ -18,7 +18,7 @@
 
 #include "history.h"
 #include "ldtypes.h"
-#include "file.h"
+#include "document.h"
 #include "misc.h"
 #include "gui.h"
 #include "gldraw.h"
@@ -116,7 +116,7 @@ void History::add (AbstractHistoryEntry* entry)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddHistory::undo() const
-{	LDFile* f = getParent()->getFile();
+{	LDDocument* f = getParent()->getFile();
 	LDObject* obj = f->getObject (getIndex());
 	f->forgetObject (obj);
 	delete obj;
@@ -127,7 +127,7 @@ void AddHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddHistory::redo() const
-{	LDFile* f = getParent()->getFile();
+{	LDDocument* f = getParent()->getFile();
 	LDObject* obj = parseLine (getCode());
 	f->insertObj (getIndex(), obj);
 	g_win->R()->compileObject (obj);
@@ -137,7 +137,7 @@ void AddHistory::redo() const
 // heh
 // -----------------------------------------------------------------------------
 void DelHistory::undo() const
-{	LDFile* f = getParent()->getFile();
+{	LDDocument* f = getParent()->getFile();
 	LDObject* obj = parseLine (getCode());
 	f->insertObj (getIndex(), obj);
 	g_win->R()->compileObject (obj);
@@ -146,7 +146,7 @@ void DelHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void DelHistory::redo() const
-{	LDFile* f = getParent()->getFile();
+{	LDDocument* f = getParent()->getFile();
 	LDObject* obj = f->getObject (getIndex());
 	f->forgetObject (obj);
 	delete obj;
@@ -157,7 +157,7 @@ void DelHistory::redo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void EditHistory::undo() const
-{	LDObject* obj = LDFile::current()->getObject (getIndex());
+{	LDObject* obj = getCurrentDocument()->getObject (getIndex());
 	LDObject* newobj = parseLine (getOldCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);
@@ -166,7 +166,7 @@ void EditHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void EditHistory::redo() const
-{	LDObject* obj = LDFile::current()->getObject (getIndex());
+{	LDObject* obj = getCurrentDocument()->getObject (getIndex());
 	LDObject* newobj = parseLine (getNewCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);

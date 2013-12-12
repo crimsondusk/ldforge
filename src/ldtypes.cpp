@@ -18,7 +18,7 @@
 
 #include "main.h"
 #include "ldtypes.h"
-#include "file.h"
+#include "document.h"
 #include "misc.h"
 #include "gui.h"
 #include "history.h"
@@ -356,7 +356,7 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
 	QList<LDObject*> objsToCompile;
-	LDFile* file = objs[0]->getFile();
+	LDDocument* file = objs[0]->getFile();
 
 	for (long i = start; i != end; i += incr)
 	{	LDObject* obj = objs[i];

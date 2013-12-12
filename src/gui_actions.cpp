@@ -25,7 +25,7 @@
 #include <QInputDialog>
 
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 #include "history.h"
 #include "configDialog.h"
 #include "addObjectDialog.h"
@@ -88,7 +88,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		ui.rb_license_ca->isChecked()    ? CALicense :
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 
-	LDFile::current()->addObjects (
+	getCurrentDocument()->addObjects (
 	{	new LDComment (ui.le_title->text()),
 		new LDComment ("Name: <untitled>.dat"),
 		new LDComment (fmt ("Author: %1", ui.le_author->text())),
@@ -124,19 +124,19 @@ DEFINE_ACTION (Open, CTRL (O))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Save, CTRL (S))
-{	g_win->save (LDFile::current(), false);
+{	g_win->save (getCurrentDocument(), false);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
-{	g_win->save (LDFile::current(), true);
+{	g_win->save (getCurrentDocument(), true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAll, CTRL (L))
-{	for (LDFile* file : g_loadedFiles)
+{	for (LDDocument* file : g_loadedFiles)
 	{	if (file->isImplicit())
 			continue;
 
@@ -147,10 +147,10 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Close, CTRL (W))
-{	if (!LDFile::current()->isSafeToClose())
+{	if (!getCurrentDocument()->isSafeToClose())
 		return;
 
-	delete LDFile::current();
+	delete getCurrentDocument();
 }
 
 // =============================================================================
@@ -259,7 +259,7 @@ DEFINE_ACTION (AboutQt, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectAll, CTRL (A))
-{	for (LDObject* obj : LDFile::current()->getObjects())
+{	for (LDObject* obj : getCurrentDocument()->getObjects())
 		obj->select();
 
 	g_win->updateSelection();
@@ -273,9 +273,9 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 	if (colnum == -1)
 		return; // no consensus on color
 
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : LDFile::current()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 		if (obj->getColor() == colnum)
 			obj->select();
 
@@ -305,9 +305,9 @@ DEFINE_ACTION (SelectByType, 0)
 				return;
 	}
 
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : LDFile::current()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{	if (obj->getType() != type)
 			continue;
 
@@ -362,10 +362,10 @@ DEFINE_ACTION (InsertFrom, 0)
 
 	QList<LDObject*> objs = loadFileContents (&f, null);
 
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
 	for (LDObject* obj : objs)
-	{	LDFile::current()->insertObj (idx, obj);
+	{	getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
 		g_win->R()->compileObject (obj);
 
@@ -422,12 +422,12 @@ DEFINE_ACTION (InsertRaw, 0)
 	if (dlg->exec() == false)
 		return;
 
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
 	for (str line : str (te_edit->toPlainText()).split ("\n"))
 	{	LDObject* obj = parseLine (line);
 
-		LDFile::current()->insertObj (idx, obj);
+		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
 		g_win->R()->compileObject (obj);
 		idx++;
@@ -446,7 +446,7 @@ DEFINE_ACTION (Screenshot, 0)
 	uchar* imgdata = g_win->R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
-	str root = basename (LDFile::current()->getName());
+	str root = basename (getCurrentDocument()->getName());
 
 	if (root.right (4) == ".dat")
 		root.chop (4);
@@ -560,7 +560,7 @@ DEFINE_ACTION (SetDrawDepth, 0)
 // but I can't figure how to generate these pictures properly. Multi-threading
 // these is an immense pain.
 DEFINE_ACTION (testpic, "Test picture", "", "", (0))
-{	LDFile* file = getFile ("axle.dat");
+{	LDDocument* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 
 	if (!file)
@@ -625,12 +625,12 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 		defval = selection()[0]->getIndex();
 
 	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
-		1, LDFile::current()->getObjectCount(), 1, &ok);
+		1, getCurrentDocument()->getObjectCount(), 1, &ok);
 
-	if (!ok || (obj = LDFile::current()->getObject (idx - 1)) == null)
+	if (!ok || (obj = getCurrentDocument()->getObject (idx - 1)) == null)
 		return;
 
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 	obj->select();
 	g_win->updateSelection();
 }

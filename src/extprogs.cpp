@@ -28,7 +28,7 @@
 #include "config.h"
 #include "misc.h"
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 #include "widgets.h"
 #include "history.h"
 #include "ui_ytruder.h"
@@ -190,7 +190,7 @@ void writeSelection (str fname)
 void writeColorGroup (const int colnum, str fname)
 {	QList<LDObject*> objects;
 
-	for (LDObject* obj : LDFile::current()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{	if (obj->isColored() == false || obj->getColor() != colnum)
 			continue;
 
@@ -278,7 +278,7 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 		g_win->deleteByColor (colnum);
 
 	// Insert the new objects
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
 	for (LDObject * obj : objs)
 	{	if (!obj->isScemantic())
@@ -286,7 +286,7 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 			continue;
 		}
 
-		LDFile::current()->addObject (obj);
+		getCurrentDocument()->addObject (obj);
 		obj->select();
 	}
 

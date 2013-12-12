@@ -22,7 +22,7 @@
 #include <QThread>
 #include <QRegExp>
 #include <QFileDialog>
-#include "file.h"
+#include "document.h"
 #include "gui.h"
 #include "primitives.h"
 #include "ui_makeprim.h"
@@ -498,7 +498,7 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
+LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {	// Make the description
 	str frac = str::number ((float) segs / divs);
 	str name = radialFileName (type, segs, divs, num);
@@ -522,7 +522,7 @@ LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (divs == hires)
 		descr.insert (0, "Hi-Res ");
 
-	LDFile* f = new LDFile;
+	LDDocument* f = new LDDocument;
 	f->setDefaultName (name);
 
 	f->addObjects (
@@ -542,9 +542,9 @@ LDFile* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDFile* getPrimitive (PrimitiveType type, int segs, int divs, int num)
+LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {	str name = radialFileName (type, segs, divs, num);
-	LDFile* f = getFile (name);
+	LDDocument* f = getDocument (name);
 
 	if (f != null)
 		return f;
@@ -596,7 +596,7 @@ DEFINE_ACTION (MakePrimitive, 0)
 		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
 		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
 
-	LDFile* f = generatePrimitive (type, segs, divs, num);
+	LDDocument* f = generatePrimitive (type, segs, divs, num);
 
 	g_win->save (f, false);
 	delete f;

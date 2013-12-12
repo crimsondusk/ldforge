@@ -16,15 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_FILE_H
-#define LDFORGE_FILE_H
+#ifndef LDFORGE_DOCUMENT_H
+#define LDFORGE_DOCUMENT_H
 
 #include "main.h"
 #include "ldtypes.h"
 #include "history.h"
 #include <QObject>
-
-#define curfile LDFile::current()
 
 class History;
 class OpenProgressDialog;
@@ -40,10 +38,11 @@ namespace LDPaths
 }
 
 // =============================================================================
-// LDFile
+// LDDocument
 //
-// The LDFile class stores a file opened in LDForge either as a editable file
-// for the user or for subfile caching. Its methods handle file input and output.
+// The LDDocument class stores a document opened in LDForge either as a editable
+// file for the user or for subfile caching. Its methods handle file input and
+// output.
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
@@ -51,7 +50,7 @@ namespace LDPaths
 // The default name is a placeholder, initially suggested name for a file. The
 // primitive generator uses this to give initial names to primitives.
 // =============================================================================
-class LDFile : public QObject
+class LDDocument : public QObject
 {	properties:
 		Q_OBJECT
 		PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
@@ -65,8 +64,8 @@ class LDFile : public QObject
 		PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
-		LDFile();
-		~LDFile();
+		LDDocument();
+		~LDDocument();
 
 		int addObject (LDObject* obj); // Adds an object to this file at the end of the file.
 		void addObjects (const QList<LDObject*> objs);
@@ -74,7 +73,7 @@ class LDFile : public QObject
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
 		str getShortName();
 		const QList<LDObject*>& getSelection() const;
-		bool hasUnsavedChanges() const; // Does this file have unsaved changes?
+		bool hasUnsavedChanges() const; // Does this document.have unsaved changes?
 		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
 		int getObjectCount() const;
@@ -83,7 +82,7 @@ class LDFile : public QObject
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObject* obj);
 
-		inline LDFile& operator<< (LDObject* obj)
+		inline LDDocument& operator<< (LDObject* obj)
 		{	addObject (obj);
 			return *this;
 		}
@@ -109,8 +108,8 @@ class LDFile : public QObject
 		}
 
 		static void closeUnused();
-		static LDFile* current();
-		static void setCurrent (LDFile* f);
+		static LDDocument* current();
+		static void setCurrent (LDDocument* f);
 		static void closeInitialFile();
 		static int countExplicitFiles();
 
@@ -120,10 +119,14 @@ class LDFile : public QObject
 		friend class LDObject;
 
 	private:
-		QList<LDObject*>   m_sel;
+		QList<LDObject*>			m_sel;
 
-		static LDFile*     m_curfile;
+		static LDDocument*		m_curdoc;
 };
+
+inline LDDocument* getCurrentDocument()
+{	return LDDocument::current();
+}
 
 // Close all current loaded files and start off blank.
 void newFile();
@@ -132,11 +135,11 @@ void newFile();
 void openMainFile (str path);
 
 // Finds an OpenFile by name or null if not open
-LDFile* findLoadedFile (str name);
+LDDocument* findDocument (str name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDFile* openDATFile (str path, bool search);
+LDDocument* openDocument (str path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 File* openLDrawFile (str relpath, bool subdirs);
@@ -147,8 +150,9 @@ void closeAll();
 // Parses a string line containing an LDraw object and returns the object parsed.
 LDObject* parseLine (str line);
 
-// Retrieves the pointer to - or loads - the given subfile.
-LDFile* getFile (str filename);
+// Retrieves the pointer to the given document by file name. Document is loaded
+// from file if necessary. Can return null if neither succeeds.
+LDDocument* getDocument (str filename);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles();
@@ -158,10 +162,10 @@ bool safeToCloseAll();
 
 QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 
-extern QList<LDFile*> g_loadedFiles;
+extern QList<LDDocument*> g_loadedFiles;
 
 inline const QList<LDObject*>& selection()
-{	return LDFile::current()->getSelection();
+{	return getCurrentDocument()->getSelection();
 }
 
 void addRecentFile (str path);
@@ -169,7 +173,7 @@ void loadLogoedStuds();
 str basename (str path);
 str dirname (str path);
 
-extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
+extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
@@ -180,7 +184,7 @@ extern QList<LDFile*> g_loadedFiles; // Vector of all currently opened files.
 // separate class so as to be able to do the work progressively through the
 // event loop, allowing the program to maintain responsivity during loading.
 // =============================================================================
-class FileLoader : public QObject
+class LDFileLoader : public QObject
 {	Q_OBJECT
 	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		STOCK_WRITE)
 	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
@@ -205,4 +209,4 @@ class FileLoader : public QObject
 		void workDone();
 };
 
-#endif // LDFORGE_FILE_H
+#endif // LDFORGE_DOCUMENT_H

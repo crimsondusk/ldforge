@@ -23,7 +23,7 @@
 #include "main.h"
 #include "types.h"
 
-class LDFile;
+class LDDocument;
 class QFile;
 class PartDownloadRequest;
 class Ui_DownloadFrom;
@@ -56,7 +56,7 @@ class PartDownloader : public QDialog
 
 	properties:
 		Q_OBJECT
-		PROPERTY (public,		LDFile*, 			PrimaryFile,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,		LDDocument*, 			PrimaryFile,		NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,		bool,					Aborted,				BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (private,	Ui_DownloadFrom*,	Interface,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QStringList,		FilesToDownload,	LIST_OPS,	STOCK_WRITE)

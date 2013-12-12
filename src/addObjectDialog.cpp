@@ -27,7 +27,7 @@
 #include <QPushButton>
 #include "gui.h"
 #include "addObjectDialog.h"
-#include "file.h"
+#include "document.h"
 #include "colors.h"
 #include "colorSelectDialog.h"
 #include "history.h"
@@ -383,7 +383,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			if (name.length() == 0)
 				return; // no subfile filename
 
-			LDFile* file = getFile (name);
+			LDDocument* file = getDocument (name);
 
 			if (!file)
 			{	critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
@@ -409,7 +409,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 	if (newObject)
 	{	int idx = g_win->getInsertionPoint();
-		LDFile::current()->insertObj (idx, obj);
+		getCurrentDocument()->insertObj (idx, obj);
 	}
 
 	g_win->doFullRefresh();

@@ -22,7 +22,7 @@
 #include <QFile>
 #include <QTextStream>
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 #include "misc.h"
 #include "config.h"
 #include "colors.h"
@@ -33,7 +33,7 @@
 #include "dialogs.h"
 #include "crashcatcher.h"
 
-QList<LDFile*> g_loadedFiles;
+QList<LDDocument*> g_loadedFiles;
 ForgeWindow* g_win = null;
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);
@@ -54,7 +54,7 @@ int main (int argc, char* argv[])
 	g_app = &app;
 
 	initCrashCatcher();
-	LDFile::setCurrent (null);
+	LDDocument::setCurrent (null);
 
 	// Load or create the configuration
 	if (!Config::load())

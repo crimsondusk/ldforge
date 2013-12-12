@@ -1,0 +1,16 @@
+You need Qt4 or Qt5 with OpenGL and networking support. On Debian and
+derivatives, e.g. Ubuntu, you'll need:
+	sudo apt-get install build-essential libqt4-dev libqt4-opengl-dev
+		libqt4-network
+
+You may also replace qt4 with qt5 in the above for Qt5.
+
+To compile:
+-	enter the root directory
+-	enter 'qmake'
+-	enter 'make release' or 'make debug'. A release build is made by default.
+
+Troubleshooting:
+- src/gldraw.h:22:21: fatal error: QGLWidget: No such file or directory
+You are missing the OpenGL development package, on Debian and derivatives,
+this is libqt4-opengl-dev or libqt5-opengl-dev.

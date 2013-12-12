@@ -51,7 +51,7 @@ public: \
 
 class QListWidgetItem;
 class LDSubfile;
-class LDFile;
+class LDDocument;
 class LDSharedVertex;
 
 // =============================================================================
@@ -66,7 +66,7 @@ class LDObject
 {	PROPERTY (public,		bool,			Hidden,		BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (public,		bool,			Selected,	BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (public,		LDObject*,	Parent,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDFile*,		File,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,		File,			NO_OPS,		STOCK_WRITE)
 	PROPERTY	(private,	int32,		ID,			NUM_OPS,		STOCK_WRITE)
 	PROPERTY (public,		int,			Color,		NUM_OPS,		CUSTOM_WRITE)
 
@@ -117,7 +117,7 @@ class LDObject
 
 		static str typeName (LDObject::Type type); // Get type name by enumerator
 		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDFile?
+		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDDocument?
 		static str describeObjects (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
 		static LDObject* fromID (int id);
 
@@ -318,7 +318,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (public,	LDFile*, FileInfo, NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDDocument*, FileInfo, NO_OPS,	STOCK_WRITE)
 
 	public:
 		enum InlineFlag

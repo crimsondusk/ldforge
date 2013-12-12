@@ -23,7 +23,7 @@
 
 #include "main.h"
 #include "colors.h"
-#include "file.h"
+#include "document.h"
 #include "misc.h"
 #include "gui.h"
 #include "ldconfig.h"

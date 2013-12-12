@@ -25,7 +25,7 @@
 #include "types.h"
 #include "misc.h"
 #include "ldtypes.h"
-#include "file.h"
+#include "document.h"
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -510,10 +510,10 @@ LDBoundingBox::LDBoundingBox()
 void LDBoundingBox::calculate()
 {	reset();
 
-	if (!LDFile::current())
+	if (!getCurrentDocument())
 		return;
 
-	for (LDObject* obj : LDFile::current()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 		calcObject (obj);
 }
 
