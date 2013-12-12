@@ -32,7 +32,6 @@ public: \
 	virtual LD##T* clone() { \
 		return new LD##T (*this); \
 	} \
-	virtual void move (vertex where); \
 	virtual void invert();
 
 #define LDOBJ_NAME(N)          virtual str getTypeName() const override { return #N; }
@@ -102,7 +101,7 @@ class LDObject
 		virtual void invert();                      // Inverts this object (winding is reversed)
 		virtual bool isColored() const;             // Is this object colored?
 		virtual bool isScemantic() const;           // Does this object have meaning in the part model?
-		virtual void move (vertex vect);            // Moves this object using the given vertex as a movement List
+		void move (vertex vect);                    // Moves this object using the given vertex as a movement List
 		LDObject* next() const;                     // Object after this in the current file
 		LDObject* prev() const;                     // Object prior to this in the current file
 		virtual str raw() {	return ""; }            // This object as LDraw code
@@ -185,7 +184,7 @@ class LDMatrixObject
 
 	public:
 		LDMatrixObject() :
-			m_Position (LDSharedVertex::getSharedVertex ({0, 0, 0})) {}
+			m_Position (LDSharedVertex::getSharedVertex (g_origin)) {}
 
 		LDMatrixObject (const matrix& transform, const vertex& pos) :
 			m_Transform (transform),

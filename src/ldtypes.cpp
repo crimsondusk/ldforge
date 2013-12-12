@@ -473,59 +473,18 @@ LDObject* LDObject::prev() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::move (vertex vect)
-{	(void) vect;
-}
-void LDEmpty::move (vertex vect)
-{	(void) vect;
-}
-void LDBFC::move (vertex vect)
-{	(void) vect;
-}
-void LDComment::move (vertex vect)
-{	(void) vect;
-}
-void LDError::move (vertex vect)
-{	(void) vect;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDVertex::move (vertex vect)
-{	pos += vect;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDSubfile::move (vertex vect)
-{	setPosition (getPosition() + vect);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDLine::move (vertex vect)
-{	for (int i = 0; i < 2; ++i)
-		setVertex (i, getVertex (i) + vect);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDTriangle::move (vertex vect)
-{	for (int i = 0; i < 3; ++i)
-		setVertex (i, getVertex (i) + vect);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDQuad::move (vertex vect)
-{	for (int i = 0; i < 4; ++i)
-		setVertex (i, getVertex (i) + vect);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void LDCondLine::move (vertex vect)
-{	for (int i = 0; i < 4; ++i)
-		setVertex (i, getVertex (i) + vect);
+{	if (hasMatrix())
+	{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (this);
+		mo->setPosition (mo->getPosition() + vect);
+	}
+	elif (getType() == LDObject::Vertex)
+	{	// ugh
+		static_cast<LDVertex*> (this)->pos += vect;
+	}
+	else
+	{	for (int i = 0; i < vertices(); ++i)
+			setVertex (i, getVertex (i) + vect);
+	}
 }
 
 // =============================================================================
@@ -657,10 +616,6 @@ LDObject* LDObject::fromID (int id)
 str LDOverlay::raw()
 {	return fmt ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
 		getFileName(), getCamera(), getX(), getY(), getWidth(), getHeight());
-}
-
-void LDOverlay::move (vertex vect)
-{	Q_UNUSED (vect)
 }
 
 void LDOverlay::invert() {}
