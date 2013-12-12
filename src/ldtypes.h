@@ -184,7 +184,9 @@ class LDMatrixObject
 	PROPERTY (public,	matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
 
 	public:
-		LDMatrixObject() {}
+		LDMatrixObject() :
+			m_Position (LDSharedVertex::getSharedVertex ({0, 0, 0})) {}
+
 		LDMatrixObject (const matrix& transform, const vertex& pos) :
 			m_Transform (transform),
 			m_Position (LDSharedVertex::getSharedVertex (pos)) {}
