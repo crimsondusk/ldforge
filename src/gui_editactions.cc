@@ -513,7 +513,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		{	vertex v = mo->getPosition();
 			matrix t = mo->getTransform();
 
-			for (const Axis ax : g_Axes)
+			for_axes (ax)
 				roundToDecimals (v[ax], 3);
 
 			// Let matrix values be rounded to 4 decimals,
@@ -529,7 +529,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		{	for (int i = 0; i < obj->vertices(); ++i)
 			{	vertex v = obj->getVertex (i);
 
-				for (const Axis ax : g_Axes)
+				for_axes (ax)
 					roundToDecimals (v[ax], 3);
 
 				obj->setVertex (i, v);

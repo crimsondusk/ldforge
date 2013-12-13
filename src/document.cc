@@ -205,7 +205,8 @@ File* openLDrawFile (str relpath, bool subdirs)
 	str fullPath;
 
 	// LDraw models use Windows-style path separators. If we're not on Windows,
-	// replace the path separator now before opening any files.
+	// replace the path separator now before opening any files. Qt expects
+	// forward-slashes as directory separators.
 #ifndef WIN32
 	relpath.replace ("\\", "/");
 #endif // WIN32
@@ -364,11 +365,9 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 	if (numWarnings)
 		*numWarnings = 0;
 
-	// Calculate the amount of lines
+	// Read in the lines
 	for (str line : *f)
 		lines << line;
-
-	f->rewind();
 
 	LDFileLoader* loader = new LDFileLoader;
 	loader->setWarnings (numWarnings);
@@ -644,7 +643,7 @@ bool LDDocument::save (str savepath)
 static vertex parseVertex (QStringList& s, const int n)
 {	vertex v;
 
-	for (const Axis ax : g_Axes)
+	for_axes (ax)
 		v[ax] = s[n + ax].toDouble();
 
 	return v;
@@ -671,11 +670,7 @@ LDObject* parseLine (str line)
 	switch (num)
 	{	case 0:
 		{	// Comment
-			str comm = line.mid (line.indexOf ("0") + 1);
-
-			// Remove any leading whitespace
-			while (comm[0] == ' ')
-				comm.remove (0, 1);
+			str comm = line.mid (line.indexOf ("0") + 1).simplified();
 
 			// Handle BFC statements
 			if (tokens.size() > 2 && tokens[1] == "BFC")
@@ -687,16 +682,16 @@ LDObject* parseLine (str line)
 				// creates. The above block only handles valid statements, so we
 				// need to handle MLCAD-style invertnext, clip and noclip separately.
 				struct
-				{	const char* a;
-					LDBFC::Type b;
+				{	str			a;
+					LDBFC::Type	b;
 				} BFCData[] =
 				{	{ "INVERTNEXT", LDBFC::InvertNext },
 					{ "NOCLIP", LDBFC::NoClip },
 					{ "CLIP", LDBFC::Clip }
 				};
 
-			for (const auto & i : BFCData)
-					if (comm == fmt ("BFC CERTIFY %1", i.a))
+				for (const auto& i : BFCData)
+					if (comm == "BFC CERTIFY " + i.a)
 						return new LDBFC (i.b);
 			}
 
@@ -710,12 +705,11 @@ LDObject* parseLine (str line)
 					LDVertex* obj = new LDVertex;
 					obj->setColor (tokens[3].toLong());
 
-				for (const Axis ax : g_Axes)
+					for_axes (ax)
 						obj->pos[ax] = tokens[4 + ax].toDouble(); // 4 - 6
 
 					return obj;
 				} elif (tokens[2] == "OVERLAY")
-
 				{	CHECK_TOKEN_COUNT (9);
 					CHECK_TOKEN_NUMBERS (5, 8)
 

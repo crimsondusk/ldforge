@@ -175,7 +175,7 @@ for (QAction * recent : m_recentFiles)
 QList<LDQuickColor> quickColorsFromConfig()
 {	QList<LDQuickColor> colors;
 
-for (str colorname : gui_colortoolbar.value.split (":"))
+	for (str colorname : gui_colortoolbar.value.split (":"))
 	{	if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
 		else
@@ -195,7 +195,7 @@ void ForgeWindow::updateToolBars()
 {	m_colorButtons.clear();
 	ui->colorToolbar->clear();
 
-for (LDQuickColor & entry : m_quickColors)
+	for (LDQuickColor& entry : m_quickColors)
 	{	if (entry.isSeparator())
 			ui->colorToolbar->addSeparator();
 		else
@@ -762,7 +762,6 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 {	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
-
 	QColor col = colinfo->faceColor;
 
 	if (colinfo->index == maincolor)
@@ -771,9 +770,13 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 		col.setAlphaF (gl_maincolor_alpha);
 	}
 
-	// Paint the icon
+	// Paint the icon border
 	paint.fillRect (QRect (0, 0, size, size), colinfo->edgeColor);
+
+	// Paint the checkerboard background, visible with translucent icons
 	paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
+
+	// Paint the color above the checkerboard
 	paint.fillRect (QRect (1, 1, size - 2, size - 2), col);
 	return QIcon (QPixmap::fromImage (img));
 }
@@ -795,7 +798,7 @@ void makeColorComboBox (QComboBox* box)
 	box->clear();
 	int row = 0;
 
-	for (const std::pair<int, int>& pair : counts)
+	for (const auto& pair : counts)
 	{	LDColor* col = getColor (pair.first);
 		assert (col != null);
 

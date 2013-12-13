@@ -49,8 +49,11 @@ using initlist = std::initializer_list<T>;
 template<class T, class R>
 using pair = std::pair<T, R>;
 
-enum Axis { X, Y, Z };
-static const Axis g_Axes[3] = { X, Y, Z };
+enum Axis
+{	X,
+	Y,
+	Z
+};
 
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *

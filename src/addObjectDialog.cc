@@ -212,7 +212,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		matrix defaultMatrix = g_identity;
 
 		if (mo)
-		{	for (const Axis ax : g_Axes)
+		{	for_axes (ax)
 				dsb_coords[ax]->setValue (mo->getPosition()[ax]);
 
 			defaultMatrix = mo->getTransform();
@@ -346,7 +346,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			for (int i = 0; i < obj->vertices(); ++i)
 			{	vertex v;
 
-				for (const Axis ax : g_Axes)
+				for_axes (ax)
 					v[ax] = dlg.dsb_coords[ (i * 3) + ax]->value();
 
 				obj->setVertex (i, v);
@@ -361,7 +361,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::Vertex:
 		{	LDVertex* vert = initObj<LDVertex> (obj);
 
-		for (const Axis ax : g_Axes)
+			for_axes (ax)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value();
 		}
 		break;
@@ -382,7 +382,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			LDSubfile* ref = initObj<LDSubfile> (obj);
 			assert (ref);
 
-			for (const Axis ax : g_Axes)
+			for_axes (ax)
 				ref->setCoordinate (ax, dlg.dsb_coords[ax]->value());
 
 			ref->setTransform (transform);

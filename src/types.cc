@@ -50,7 +50,7 @@ vertex::vertex (double x, double y, double z)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void vertex::move (const vertex& other)
-{	for (const Axis ax : g_Axes)
+{	for_axes (ax)
 		m_coords[ax] += other[ax];
 }
 
@@ -59,7 +59,7 @@ void vertex::move (const vertex& other)
 vertex vertex::midpoint (const vertex& other)
 {	vertex mid;
 
-	for (const Axis ax : g_Axes)
+	for_axes (ax)
 		mid[ax] = (m_coords[ax] + other[ax]) / 2;
 
 	return mid;
@@ -129,7 +129,7 @@ bool vertex::operator== (const vertex& other) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 vertex& vertex::operator/= (const double d)
-{	for (const Axis ax : g_Axes)
+{	for_axes (ax)
 		m_coords[ax] /= d;
 
 	return *this;
@@ -562,7 +562,7 @@ LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDBoundingBox::calcVertex (const vertex& v)
-{	for (const Axis ax : g_Axes)
+{	for_axes (ax)
 	{	if (v[ax] < m_Vertex0[ax])
 			m_Vertex0[ax] = v[ax];
 
@@ -593,9 +593,9 @@ double LDBoundingBox::size() const
 	if (xscale > yscale)
 	{	if (xscale > zscale)
 			size = xscale;
-	} elif (yscale > zscale)
-
-	size = yscale;
+	}
+	elif (yscale > zscale)
+		size = yscale;
 
 	if (abs (size) >= 2.0f)
 		return abs (size / 2);
