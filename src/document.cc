@@ -113,7 +113,8 @@ namespace LDPaths
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDDocument::LDDocument()
-{	setImplicit (true);
+{	setBeingDeleted (false);
+	setImplicit (true);
 	setSavePosition (-1);
 	setListItem (null);
 	setHistory (new History);
@@ -123,7 +124,14 @@ LDDocument::LDDocument()
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDDocument::~LDDocument()
-{	// Clear everything from the model
+{	// Remove this file from the list of files. This MUST be done FIRST, otherwise
+	// a ton of other functions will think this file is still valid when it is not!
+	g_loadedFiles.removeOne (this);
+
+	setBeingDeleted (true);
+	m_History->setIgnoring (true);
+
+	// Clear everything from the model
 	for (LDObject* obj : getObjects())
 		obj->deleteSelf();
 
@@ -132,9 +140,6 @@ LDDocument::~LDDocument()
 		obj->deleteSelf();
 
 	delete m_History;
-
-	// Remove this file from the list of files
-	g_loadedFiles.removeOne (this);
 
 	// If we just closed the current file, we need to set the current
 	// file as something else.
@@ -155,7 +160,14 @@ LDDocument::~LDDocument()
 			newFile();
 	}
 
+	if (this == g_logoedStud)
+		g_logoedStud = null;
+	elif (this == g_logoedStud2)
+		g_logoedStud2 = null;
+
+	closeUnused();
 	g_win->updateDocumentList();
+	log ("Closed %1", getName());
 }
 
 // =============================================================================
@@ -909,9 +921,12 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 // -----------------------------------------------------------------------------
 void LDDocument::forgetObject (LDObject* obj)
 {	int idx = obj->getIndex();
+	obj->unselect();
 	assert (m_Objects[idx] == obj);
-	dlog ("id: %1, type: %2, code: %3", obj->getID(), obj->getType(), obj->raw());
-	getHistory()->add (new DelHistory (idx, obj));
+
+	if (!getHistory()->isIgnoring())
+		getHistory()->add (new DelHistory (idx, obj));
+
 	m_Objects.removeAt (idx);
 	obj->setFile (null);
 }
@@ -938,14 +953,16 @@ void LDDocument::setObject (int idx, LDObject* obj)
 		*m_History << new EditHistory (idx, oldcode, newcode);
 	}
 
+	m_Objects[idx]->unselect();
+	m_Objects[idx]->setFile (null);
 	obj->setFile (this);
 	m_Objects[idx] = obj;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static QList<LDDocument*> getFilesUsed (LDDocument* node)
-{	QList<LDDocument*> filesUsed;
+static void getFilesUsed (LDDocument* node, QList<LDDocument*>& filesUsed)
+{	filesUsed << node;
 
 	for (LDObject* obj : node->getObjects())
 	{	if (obj->getType() != LDObject::Subfile)
@@ -953,43 +970,44 @@ static QList<LDDocument*> getFilesUsed (LDDocument* node)
 
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		filesUsed << ref->getFileInfo();
-		filesUsed << getFilesUsed (ref->getFileInfo());
+		getFilesUsed (ref->getFileInfo(), filesUsed);
 	}
-
-	return filesUsed;
 }
 
 // =============================================================================
 // Find out which files are unused and close them.
 // -----------------------------------------------------------------------------
-void LDDocument::closeUnused()
-{	QList<LDDocument*> filesUsed = getFilesUsed (getCurrentDocument());
+static bool g_closingUnusedFiles = false;
 
-	// Anything that's explicitly opened must not be closed
+void LDDocument::closeUnused()
+{	// Don't go here more than once at a time, otherwise we risk double-deletions
+	if (g_closingUnusedFiles)
+		return;
+
+	QList<LDDocument*> filesUsed;
+	g_closingUnusedFiles = true;
+
+	// Anything that's explicitly opened must not be closed.
+	// Also do not close anything used by anything explicit
 	for (LDDocument* file : g_loadedFiles)
 		if (!file->isImplicit())
-			filesUsed << file;
+			getFilesUsed (file, filesUsed);
+
+	// Savor the logoed studs if we use them
+	if (gl_logostuds && g_logoedStud && g_logoedStud2)
+	{	getFilesUsed (g_logoedStud, filesUsed);
+		getFilesUsed (g_logoedStud2, filesUsed);
+	}
 
 	// Remove duplicated entries
 	removeDuplicates (filesUsed);
 
 	// Close all open files that aren't in filesUsed
 	for (LDDocument* file : g_loadedFiles)
-	{	bool isused = false;
-
-		for (LDDocument* usedFile : filesUsed)
-		{	if (file == usedFile)
-			{	isused = true;
-				break;
-			}
-		}
-
-		if (!isused)
+		if (!filesUsed.contains (file))
 			delete file;
-	}
 
-	g_loadedFiles.clear();
-	g_loadedFiles << filesUsed;
+	g_closingUnusedFiles = false;
 }
 
 // =============================================================================
@@ -1032,7 +1050,10 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
 	if (gl_logostuds && (flags & LDSubfile::RendererInline))
-	{	if (getName() == "stud.dat" && g_logoedStud)
+	{	// Ensure logoed studs are loaded first
+		loadLogoedStuds();
+
+		if (getName() == "stud.dat" && g_logoedStud)
 			return g_logoedStud->inlineContents (flags);
 		elif (getName() == "stud2.dat" && g_logoedStud2)
 			return g_logoedStud2->inlineContents (flags);
@@ -1118,7 +1139,6 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->R()->setFile (f);
 		g_win->R()->resetAllAngles();
 		g_win->R()->repaint();
-
 		log ("Changed file to %1", f->getShortName());
 	}
 }
@@ -1142,7 +1162,8 @@ int LDDocument::countExplicitFiles()
 void LDDocument::closeInitialFile()
 {	if (
 		countExplicitFiles() == 2 &&
-		g_loadedFiles[0]->getName() == "" &&
+		g_loadedFiles[0]->getName().isEmpty() &&
+		g_loadedFiles[1]->getName().isEmpty() == false &&
 		!g_loadedFiles[0]->hasUnsavedChanges()
 	)
 		delete g_loadedFiles[0];
@@ -1151,13 +1172,16 @@ void LDDocument::closeInitialFile()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadLogoedStuds()
-{	log ("Loading logoed studs...\n");
+{	if (g_logoedStud && g_logoedStud2)
+		return;
 
 	delete g_logoedStud;
 	delete g_logoedStud2;
 
 	g_logoedStud = openDocument ("stud-logo.dat", true);
 	g_logoedStud2 = openDocument ("stud2-logo.dat", true);
+
+	log (LDDocument::tr ("Logoed studs loaded.\n"));
 }
 
 // =============================================================================

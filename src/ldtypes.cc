@@ -273,6 +273,13 @@ LDObject::~LDObject() {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+LDSubfile::~LDSubfile()
+{	// The document this subfile referenced may be unused now, delete if needed.
+	LDDocument::closeUnused();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 void LDObject::deleteSelf()
 {	// If this object was selected, unselect it now
 	if (isSelected())

@@ -24,7 +24,6 @@
 
 #define LDOBJ(T) \
 protected: \
-	virtual ~LD##T() {} \
 	virtual LD##T* clone() override { \
 		return new LD##T (*this); \
 	} \
@@ -398,6 +397,9 @@ class LDSubfile : public LDObject, public LDMatrixObject
 		// Inlines this subfile. Note that return type is an array of heap-allocated
 		// LDObject copies, they must be deleted manually.
 		QList<LDObject*> inlineContents (InlineFlags flags);
+
+	protected:
+		~LDSubfile();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)

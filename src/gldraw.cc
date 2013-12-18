@@ -209,7 +209,8 @@ void GLRenderer::resetAngles()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resetAllAngles()
-{	EFixedCamera oldcam = camera();
+{	/*
+	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
 	{	setCamera ((EFixedCamera) i);
@@ -217,6 +218,8 @@ void GLRenderer::resetAllAngles()
 	}
 
 	setCamera (oldcam);
+	*/
+	resetAngles();
 }
 
 // =============================================================================
@@ -1823,7 +1826,8 @@ void GLRenderer::zoomToFit()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomAllToFit()
-{	EFixedCamera oldcam = camera();
+{	/*
+	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
 	{	setCamera ((EFixedCamera) i);
@@ -1831,6 +1835,9 @@ void GLRenderer::zoomAllToFit()
 	}
 
 	setCamera (oldcam);
+	*/
+
+	zoomToFit();
 }
 
 // =============================================================================

@@ -68,8 +68,6 @@ int main (int argc, char* argv[])
 
 	LDPaths::initPaths();
 	initColors();
-	loadLogoedStuds();
-
 	ForgeWindow* win = new ForgeWindow;
 	newFile();
 	win->show();

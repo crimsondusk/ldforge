@@ -62,6 +62,7 @@ class LDDocument : public QObject
 		PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
 		PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	bool,					BeingDeleted,	BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		LDDocument();
