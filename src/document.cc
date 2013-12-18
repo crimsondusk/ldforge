@@ -415,12 +415,18 @@ LDDocument* openDocument (str path, bool search)
 	LDDocument* load = new LDDocument;
 	load->setName (path);
 
+	// Don't take the file loading as actual edits to the file
+	load->getHistory()->setIgnoring (true);
+
 	int numWarnings;
 	bool ok;
 	QList<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
 
 	if (!ok)
+	{	delete f;
+		delete load;
 		return null;
+	}
 
 	for (LDObject* obj : objs)
 		load->addObject (obj);
@@ -434,6 +440,7 @@ LDDocument* openDocument (str path, bool search)
 		log (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
 	}
 
+	load->getHistory()->setIgnoring (false);
 	return load;
 }
 
@@ -445,19 +452,18 @@ bool LDDocument::isSafeToClose()
 
 	// If we have unsaved changes, warn and give the option of saving.
 	if (hasUnsavedChanges())
-	{	str message = fmt ("There are unsaved changes to %1. Should it be saved?",
-						   (getName().length() > 0) ? getName() : "<anonymous>");
+	{	str message = fmt (tr ("There are unsaved changes to %1. Should it be saved?"),
+			(getName().length() > 0) ? getName() : tr ("<anonymous>"));
 
-		int button = msgbox::question (g_win, "Unsaved Changes", message,
-									   (msgbox::Yes | msgbox::No | msgbox::Cancel), msgbox::Cancel);
+		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
+			(msgbox::Yes | msgbox::No | msgbox::Cancel), msgbox::Cancel);
 
 		switch (button)
 		{	case msgbox::Yes:
-
-				// If we don't have a file path yet, we have to ask the user for one.
+			{	// If we don't have a file path yet, we have to ask the user for one.
 				if (getName().length() == 0)
-				{	str newpath = QFileDialog::getSaveFileName (g_win, "Save As",
-								  getCurrentDocument()->getName(), "LDraw files (*.dat *.ldr)");
+				{	str newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
+						getCurrentDocument()->getName(), tr ("LDraw files (*.dat *.ldr)"));
 
 					if (newpath.length() == 0)
 						return false;
@@ -466,16 +472,15 @@ bool LDDocument::isSafeToClose()
 				}
 
 				if (!save())
-				{	message = fmt (QObject::tr ("Failed to save %1: %2\nDo you still want to close?"),
-								   getName(), strerror (errno));
+				{	message = fmt (tr ("Failed to save %1 (%2)\nDo you still want to close?"),
+						getName(), strerror (errno));
 
-					if (msgbox::critical (g_win, "Save Failure", message,
-										  (msgbox::Yes | msgbox::No), msgbox::No) == msgbox::No)
+					if (msgbox::critical (g_win, tr ("Save Failure"), message,
+						(msgbox::Yes | msgbox::No), msgbox::No) == msgbox::No)
 					{	return false;
 					}
 				}
-
-				break;
+			} break;
 
 			case msgbox::Cancel:
 				return false;
@@ -494,7 +499,7 @@ void closeAll()
 {	// Remove all loaded files and the objects they contain
 	QList<LDDocument*> files = g_loadedFiles;
 
-for (LDDocument * file : files)
+	for (LDDocument* file : files)
 		delete file;
 }
 
@@ -517,7 +522,7 @@ void newFile()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void addRecentFile (str path)
-{	alias rfiles = io_recentfiles.value;
+{	auto& rfiles = io_recentfiles.value;
 	int idx = rfiles.indexOf (path);
 
 	// If this file already is in the list, pop it out.
@@ -924,12 +929,14 @@ bool safeToCloseAll()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDDocument::setObject (int idx, LDObject* obj)
-{	assert (idx < m_Objects.size());
+{	assert (idx >= 0 && idx < m_Objects.size());
 
 	// Mark this change to history
-	str oldcode = getObject (idx)->raw();
-	str newcode = obj->raw();
-	*m_History << new EditHistory (idx, oldcode, newcode);
+	if (!m_History->isIgnoring())
+	{	str oldcode = getObject (idx)->raw();
+		str newcode = obj->raw();
+		*m_History << new EditHistory (idx, oldcode, newcode);
+	}
 
 	obj->setFile (this);
 	m_Objects[idx] = obj;

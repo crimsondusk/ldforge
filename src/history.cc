@@ -36,6 +36,9 @@ void History::undo()
 {	if (m_changesets.isEmpty() || getPosition() == -1)
 		return;
 
+	// Don't take the changes done here as actual edits to the document
+	setIgnoring (true);
+
 	const Changeset& set = getChangeset (getPosition());
 	g_fullRefresh = false;
 
@@ -54,6 +57,7 @@ void History::undo()
 
 	g_win->updateActions();
 	dlog ("Position is now %1", getPosition());
+	setIgnoring (false);
 }
 
 // =============================================================================
@@ -62,6 +66,7 @@ void History::redo()
 {	if (getPosition() == m_changesets.size())
 		return;
 
+	setIgnoring (true);
 	const Changeset& set = getChangeset (getPosition() + 1);
 	g_fullRefresh = false;
 
@@ -78,6 +83,7 @@ void History::redo()
 
 	g_win->updateActions();
 	dlog ("Position is now %1", getPosition());
+	setIgnoring (false);
 }
 
 // =============================================================================

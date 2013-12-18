@@ -863,11 +863,7 @@ void ForgeWindow::updateDocumentListItem (LDDocument* f)
 	f->getListItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 }
 
-void ForgeWindow::beginAction (QAction* act)
-{	// Open the history so we can record the edits done during this action.
-	if (act == ui->actionUndo || act == ui->actionRedo || act == ui->actionOpen)
-		getCurrentDocument()->getHistory()->setIgnoring (true);
-}
+void ForgeWindow::beginAction (QAction* act) {}
 
 void ForgeWindow::endAction()
 {	// Close the history now.
@@ -876,9 +872,6 @@ void ForgeWindow::endAction()
 	// Update the list item of the current file - we may need to draw an icon
 	// now that marks it as having unsaved changes.
 	updateDocumentListItem (getCurrentDocument());
-
-	// We're done with the action, the history should stop ignoring now.
-	getCurrentDocument()->getHistory()->setIgnoring (false);
 }
 
 // =============================================================================
