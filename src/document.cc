@@ -1220,3 +1220,14 @@ void LDDocument::clearSelection()
 const QList<LDObject*>& LDDocument::getSelection() const
 {	return m_sel;
 }
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDDocument::swapObjects (LDObject* one, LDObject* other)
+{	int a = m_Objects.indexOf (one);
+	int b = m_Objects.indexOf (other);
+	assert (a != b != -1);
+	m_Objects[b] = one;
+	m_Objects[a] = other;
+	addToHistory (new SwapHistory (one->getID(), other->getID()));
+}

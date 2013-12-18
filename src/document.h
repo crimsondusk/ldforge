@@ -80,6 +80,7 @@ class LDDocument : public QObject
 		int getObjectCount() const;
 		LDObject* getObject (int pos) const;
 		bool save (str path = ""); // Saves this file to disk.
+		void swapObjects (LDObject* one, LDObject* other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObject* obj);
 

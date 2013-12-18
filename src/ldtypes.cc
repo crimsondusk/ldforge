@@ -237,18 +237,8 @@ void LDObject::replace (LDObject* other)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::swap (LDObject* other)
-{	int i = 0;
-
-	for (LDObject* obj : getFile()->getObjects())
-	{	if (obj == this)
-			getFile()->setObject (i, other);
-		elif (obj == other)
-			getFile()->setObject (i, this);
-
-		++i;
-	}
-
-	getFile()->addToHistory (new SwapHistory (getID(), other->getID()));
+{	assert (getFile() == other->getFile());
+	getFile()->swapObjects (this, other);
 }
 
 // =============================================================================
