@@ -38,7 +38,6 @@ void History::undo()
 
 	const Changeset& set = getChangeset (getPosition());
 	g_fullRefresh = false;
-	dlog ("History: performing undo: set has %1 changes", set.size());
 
 	// Iterate the list in reverse and undo all actions
 	for (int i = set.size() - 1; i >= 0; --i)
@@ -78,6 +77,7 @@ void History::redo()
 		g_win->doFullRefresh();
 
 	g_win->updateActions();
+	dlog ("Position is now %1", getPosition());
 }
 
 // =============================================================================
@@ -97,7 +97,6 @@ void History::addStep()
 {	if (m_currentChangeset.isEmpty())
 		return;
 
-	dlog ("position: %1, size: %2\n", getPosition(), getSize());
 	while (getPosition() < getSize() - 1)
 	{	Changeset last = m_changesets.last();
 
@@ -118,8 +117,7 @@ void History::addStep()
 // -----------------------------------------------------------------------------
 void History::add (AbstractHistoryEntry* entry)
 {	if (isIgnoring())
-	{	dlog ("Ignored addition of history entry of type %1", entry->getTypeName());
-		delete entry;
+	{	delete entry;
 		return;
 	}
 
@@ -132,7 +130,6 @@ void History::add (AbstractHistoryEntry* entry)
 // -----------------------------------------------------------------------------
 void AddHistory::undo() const
 {	LDObject* obj = getParent()->getFile()->getObject (getIndex());
-	dlog ("History: undoing addition of #%1", obj->getID());
 	obj->deleteSelf();
 	g_fullRefresh = true;
 }
@@ -147,20 +144,15 @@ void AddHistory::redo() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-DelHistory::DelHistory (int idx, LDObject* obj)
-{	dlog ("obj is: %1, code: %2", obj->getType(), obj->raw());
-	setIndex (idx);
-	setCode (obj->raw());
-}
+DelHistory::DelHistory (int idx, LDObject* obj) :
+	m_Index (idx),
+	m_Code (obj->raw()) {}
 
 // =============================================================================
 // heh
 // -----------------------------------------------------------------------------
 void DelHistory::undo() const
-{	dlog ("code: %1", getCode());
-	dlog ("index: %1", getIndex());
-	LDObject* obj = parseLine (getCode());
-	dlog( "new obj is of type %1 (%2)\n", obj->getType(), obj->getTypeName() );
+{	LDObject* obj = parseLine (getCode());
 	getParent()->getFile()->insertObj (getIndex(), obj);
 	g_win->R()->compileObject (obj);
 }
@@ -168,10 +160,8 @@ void DelHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void DelHistory::redo() const
-{	LDDocument* f = getParent()->getFile();
-	LDObject* obj = f->getObject (getIndex());
+{	LDObject* obj = getParent()->getFile()->getObject (getIndex());
 	obj->deleteSelf();
-
 	g_fullRefresh = true;
 }
 

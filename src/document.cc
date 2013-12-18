@@ -872,7 +872,7 @@ int LDDocument::addObject (LDObject* obj)
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Added object #%1\n", obj->getID());
+		dlog ("Added object #%1 (%2)\n", obj->getID(), obj->getTypeName());
 #endif
 
 	obj->setFile (this);
@@ -893,6 +893,11 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 {	getHistory()->add (new AddHistory (pos, obj));
 	m_Objects.insert (pos, obj);
 	obj->setFile (this);
+
+#ifdef DEBUG
+	if (!isImplicit())
+		dlog ("Inserted object #%1 (%2) at %3\n", obj->getID(), obj->getTypeName(), pos);
+#endif
 }
 
 // =============================================================================

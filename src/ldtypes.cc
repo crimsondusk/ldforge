@@ -30,7 +30,7 @@ cfg (String, ld_defaultuser, "");
 cfg (Int, ld_defaultlicense, 0);
 
 // List of all LDObjects
-QList<LDObject*> g_LDObjects;
+static QList<LDObject*> g_LDObjects;
 
 // =============================================================================
 // LDObject constructors
@@ -50,11 +50,14 @@ LDObject::LDObject() :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::chooseID()
-{	int32 id = 1; // 0 is invalid
+{	int32 id = 1; // 0 shalt be null
 
 	for (LDObject* obj : g_LDObjects)
+	{	assert (obj != this);
+
 		if (obj->getID() >= id)
 			id = obj->getID() + 1;
+	}
 
 	setID (id);
 }
@@ -228,7 +231,7 @@ void LDObject::replace (LDObject* other)
 	getFile()->setObject (idx, other);
 
 	// Remove the old object
-	delete this;
+	deleteSelf();
 }
 
 // =============================================================================
@@ -271,9 +274,7 @@ LDObject::~LDObject() {}
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::deleteSelf()
-{	dlog( "#%1: type: %2\n", getID(), getType());
-
-	// If this object was selected, unselect it now
+{	// If this object was selected, unselect it now
 	if (isSelected())
 		unselect();
 
@@ -399,7 +400,7 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 str LDObject::typeName (LDObject::Type type)
 {	LDObject* obj = LDObject::getDefault (type);
 	str name = obj->getTypeName();
-	delete obj;
+	obj->deleteSelf();
 	return name;
 }
 
@@ -429,7 +430,6 @@ str LDObject::describeObjects (const QList<LDObject*>& objs)
 		str noun = fmt ("%1%2", typeName (objType), plural (count));
 
 		// Plural of "vertex" is "vertices", correct that
-		
 		if (objType == LDObject::Vertex && count != 1)
 			noun = "vertices";
 
@@ -611,7 +611,7 @@ LDLine* LDCondLine::demote()
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDObject* LDObject::fromID (int id)
-{	for (LDObject * obj : g_LDObjects)
+{	for (LDObject* obj : g_LDObjects)
 		if (obj->getID() == id)
 			return obj;
 
