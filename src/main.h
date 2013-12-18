@@ -58,13 +58,7 @@
 #define BUILD_ID			BUILD_INTERNAL
 
 #define BUILD_INTERNAL	0
-#define BUILD_ALPHA		1
-#define BUILD_BETA		2
-#define BUILD_RC			3
-#define BUILD_RELEASE	4
-
-// RC Number for BUILD_RC
-#define RC_NUMBER			0
+#define BUILD_RELEASE	1
 
 // =============================================
 #ifdef DEBUG
@@ -126,7 +120,6 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 
 // Version string identifier
 QString versionString();
-QString versionMoniker();
 QString fullVersionString();
 
 #define properties private

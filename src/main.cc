@@ -117,23 +117,6 @@ QString versionString()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QString versionMoniker()
-{
-#if BUILD_ID == BUILD_INTERNAL
-	return "Internal";
-#elif BUILD_ID == BUILD_ALPHA
-	return "Alpha";
-#elif BUILD_ID == BUILD_BETA
-	return "Beta";
-#elif BUILD_ID == BUILD_RC
-	return fmt ("RC %1", RC_NUMBER);
-#else
-	return "";
-#endif // BUILD_ID
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 QString fullVersionString()
-{	return fmt ("v%1 %2", versionString(), versionMoniker());
+{	return "v" + versionString();
 }

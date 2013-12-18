@@ -1,5 +1,5 @@
 =================================================
-== Changes in version 0.3-alpha
+== Changes in version 0.3
 =================================================
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
@@ -49,7 +49,7 @@
 - Fixed: The message log was still written with black text with dark backgrounds.
 
 =================================================
-== Changes in version 0.2-alpha
+== Changes in version 0.2
 =================================================
 
 - Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.
