@@ -125,11 +125,11 @@ LDDocument::LDDocument()
 LDDocument::~LDDocument()
 {	// Clear everything from the model
 	for (LDObject* obj : getObjects())
-		delete obj;
+		obj->deleteSelf();
 
 	// Clear the cache as well
 	for (LDObject* obj : getCache())
-		delete obj;
+		obj->deleteSelf();
 
 	delete m_History;
 
@@ -284,7 +284,7 @@ void LDFileLoader::work (int i)
 {	// User wishes to abort, so stop here now.
 	if (isAborted())
 	{	for (LDObject* obj : m_Objects)
-			delete obj;
+			obj->deleteSelf();
 
 		m_Objects.clear();
 		setDone (true);
@@ -870,6 +870,11 @@ int LDDocument::addObject (LDObject* obj)
 	if (obj->getType() == LDObject::Vertex)
 		m_Vertices << obj;
 
+#ifdef DEBUG
+	if (!isImplicit())
+		dlog ("Added object #%1\n", obj->getID());
+#endif
+
 	obj->setFile (this);
 	return getObjectCount() - 1;
 }
@@ -877,7 +882,7 @@ int LDDocument::addObject (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDDocument::addObjects (const QList<LDObject*> objs)
-{	for (LDObject * obj : objs)
+{	for (LDObject* obj : objs)
 		if (obj)
 			addObject (obj);
 }
@@ -894,6 +899,8 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 // -----------------------------------------------------------------------------
 void LDDocument::forgetObject (LDObject* obj)
 {	int idx = obj->getIndex();
+	assert (m_Objects[idx] == obj);
+	dlog ("id: %1, type: %2, code: %3", obj->getID(), obj->getType(), obj->raw());
 	getHistory()->add (new DelHistory (idx, obj));
 	m_Objects.removeAt (idx);
 	obj->setFile (null);
@@ -1015,9 +1022,8 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 	if (gl_logostuds && (flags & LDSubfile::RendererInline))
 	{	if (getName() == "stud.dat" && g_logoedStud)
 			return g_logoedStud->inlineContents (flags);
-
 		elif (getName() == "stud2.dat" && g_logoedStud2)
-		return g_logoedStud2->inlineContents (flags);
+			return g_logoedStud2->inlineContents (flags);
 	}
 
 	QList<LDObject*> objs, objcache;
@@ -1025,10 +1031,10 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 	bool deep = flags & LDSubfile::DeepInline,
 		 doCache = flags & LDSubfile::CacheInline;
 
-	// If we have this cached, just clone that
+	// If we have this cached, just create a copy of that
 	if (deep && getCache().size())
 	{	for (LDObject* obj : getCache())
-			objs << obj->clone();
+			objs << obj->createCopy();
 	}
 	else
 	{	if (!deep)
@@ -1049,19 +1055,19 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 				// flag when recursing deeper in hierarchy.
 				QList<LDObject*> otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
 
-			for (LDObject * otherobj : otherobjs)
+				for (LDObject* otherobj : otherobjs)
 				{	// Cache this object, if desired
 					if (doCache)
-						objcache << otherobj->clone();
+						objcache << otherobj->createCopy();
 
 					objs << otherobj;
 				}
 			}
 			else
 			{	if (doCache)
-					objcache << obj->clone();
+					objcache << obj->createCopy();
 
-				objs << obj->clone();
+				objs << obj->createCopy();
 			}
 		}
 

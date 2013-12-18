@@ -26,15 +26,16 @@
 	virtual ~N##History(){} \
 	virtual void undo() const override; \
 	virtual void redo() const override; \
-	virtual History::Type getType() const override { return History::N; }
+	virtual History::Type getType() const override { return History::N; } \
+	virtual const char* getTypeName() const { return #N; }
 
 class AbstractHistoryEntry;
 
 // =============================================================================
 class History
-{	PROPERTY (private,	long,		Position,	NUM_OPS,		STOCK_WRITE)
+{	PROPERTY (private,	int,				Position,	NUM_OPS,		STOCK_WRITE)
 	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		bool,		Ignoring,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,				Ignoring,	BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
@@ -83,8 +84,13 @@ class AbstractHistoryEntry
 		virtual ~AbstractHistoryEntry() {}
 		virtual void undo() const {}
 		virtual void redo() const {}
+
 		virtual History::Type getType() const
 		{	return (History::Type) 0;
+		}
+
+		virtual const char* getTypeName() const
+		{	return "";
 		}
 };
 
@@ -97,10 +103,7 @@ class DelHistory : public AbstractHistoryEntry
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
-
-		DelHistory (int idx, LDObject* obj) :
-				m_Index (idx),
-				m_Code (obj->raw()) {}
+		DelHistory (int idx, LDObject* obj);
 };
 
 // =============================================================================

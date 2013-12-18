@@ -243,7 +243,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	setWindowTitle (fmt (tr ("Edit %1"), typeName));
 
 	setWindowIcon (icon);
-	delete defaults;
+	defaults->deleteSelf();
 }
 
 // =============================================================================

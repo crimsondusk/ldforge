@@ -40,20 +40,23 @@ LDObject::LDObject() :
 	m_Selected (false),
 	m_Parent (null),
 	m_File (null),
-	qObjListEntry (null),
-	m_glinit (false)
-{
-	memset (m_coords, 0, sizeof m_coords);
+	m_GLInit (false),
+	qObjListEntry (null)
+{	memset (m_coords, 0, sizeof m_coords);
+	chooseID();
+	g_LDObjects << this;
+}
 
-	// Determine ID
-	int32 id = 1; // 0 is invalid
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDObject::chooseID()
+{	int32 id = 1; // 0 is invalid
 
 	for (LDObject* obj : g_LDObjects)
 		if (obj->getID() >= id)
 			id = obj->getID() + 1;
 
 	setID (id);
-	g_LDObjects << this;
 }
 
 // =============================================================================
@@ -97,13 +100,13 @@ LDError::LDError() {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDComment::raw()
+str LDComment::raw() const
 {	return fmt ("0 %1", text);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDSubfile::raw()
+str LDSubfile::raw() const
 {	str val = fmt ("1 %1 %2 ", getColor(), getPosition());
 	val += getTransform().stringRep();
 	val += ' ';
@@ -113,7 +116,7 @@ str LDSubfile::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDLine::raw()
+str LDLine::raw() const
 {	str val = fmt ("2 %1", getColor());
 
 	for (int i = 0; i < 2; ++i)
@@ -124,7 +127,7 @@ str LDLine::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDTriangle::raw()
+str LDTriangle::raw() const
 {	str val = fmt ("3 %1", getColor());
 
 	for (int i = 0; i < 3; ++i)
@@ -135,7 +138,7 @@ str LDTriangle::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDQuad::raw()
+str LDQuad::raw() const
 {	str val = fmt ("4 %1", getColor());
 
 	for (int i = 0; i < 4; ++i)
@@ -146,7 +149,7 @@ str LDQuad::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDCondLine::raw()
+str LDCondLine::raw() const
 {	str val = fmt ("5 %1", getColor());
 
 	// Add the coordinates
@@ -158,19 +161,19 @@ str LDCondLine::raw()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDError::raw()
+str LDError::raw() const
 {	return contents;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDVertex::raw()
+str LDVertex::raw() const
 {	return fmt ("0 !LDFORGE VERTEX %1 %2", getColor(), pos);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDEmpty::raw()
+str LDEmpty::raw() const
 {	return "";
 }
 
@@ -189,7 +192,7 @@ const char* LDBFC::statements[] =
 	"NOCLIP",
 };
 
-str LDBFC::raw()
+str LDBFC::raw() const
 {	return fmt ("0 BFC %1", LDBFC::statements[type]);
 }
 
@@ -263,8 +266,14 @@ LDQuad::LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vert
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObject::~LDObject()
-{	// If this object was selected, unselect it now
+LDObject::~LDObject() {}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDObject::deleteSelf()
+{	dlog( "#%1: type: %2\n", getID(), getType());
+
+	// If this object was selected, unselect it now
 	if (isSelected())
 		unselect();
 
@@ -277,6 +286,8 @@ LDObject::~LDObject()
 
 	// Remove this object from the list of LDObjects
 	g_LDObjects.removeOne (this);
+
+	delete this;
 }
 
 // =============================================================================
@@ -321,8 +332,8 @@ QList<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
 {	QList<LDObject*> objs = getFileInfo()->inlineContents (flags);
 
 	// Transform the objects
-for (LDObject * obj : objs)
-	{	// Set the parent now so we know what inlined this.
+	for (LDObject* obj : objs)
+	{	// Set the parent now so we know what inlined the object.
 		obj->setParent (this);
 		transformObject (obj, getTransform(), getPosition(), getColor());
 	}
@@ -333,10 +344,7 @@ for (LDObject * obj : objs)
 // =============================================================================
 // -----------------------------------------------------------------------------
 long LDObject::getIndex() const
-{
-#ifndef RELEASE
-	assert (getFile() != null);
-#endif
+{	assert (getFile() != null);
 
 	for (int i = 0; i < getFile()->getObjectCount(); ++i)
 		if (getFile()->getObject (i) == this)
@@ -556,8 +564,7 @@ void LDSubfile::invert()
 
 		if (bfc && bfc->type == LDBFC::InvertNext)
 		{	// This is prefixed with an invertnext, thus remove it.
-			getFile()->forgetObject (bfc);
-			delete bfc;
+			bfc->deleteSelf();
 			return;
 		}
 	}
@@ -613,7 +620,7 @@ LDObject* LDObject::fromID (int id)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDOverlay::raw()
+str LDOverlay::raw() const
 {	return fmt ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
 		getFileName(), getCamera(), getX(), getY(), getWidth(), getHeight());
 }
@@ -636,7 +643,8 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 		*ptr = val;
 		str after = obj->raw();
 
-		obj->getFile()->addToHistory (new EditHistory (idx, before, after));
+		if (before != after)
+			obj->getFile()->addToHistory (new EditHistory (idx, before, after));
 	}
 	else
 		*ptr = val;
@@ -713,6 +721,7 @@ void LDObject::select()
 		return;
 	}
 
+	dlog ("Selected #%1\n", getID());
 	getFile()->addToSelection (this);
 }
 
@@ -743,4 +752,44 @@ str getLicenseText (int id)
 
 	assert (false);
 	return "";
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+LDObject* LDObject::createCopy() const
+{	/*
+	LDObject* copy = clone();
+	copy->setFile (null);
+	copy->setGLInit (false);
+	copy->chooseID();
+	copy->setSelected (false);
+	*/
+
+	/*
+	LDObject* copy = getDefault (getType());
+	copy->setColor (getColor());
+
+	if (hasMatrix())
+	{	LDMatrixObject* copyMo = static_cast<LDMatrixObject*> (copy);
+		const LDMatrixObject* mo = static_cast<const LDMatrixObject*> (this);
+		copyMo->setPosition (mo->getPosition());
+		copyMo->setTransform (mo->getTransform());
+	}
+	else
+	{	for (int i = 0; i < vertices(); ++i)
+			copy->setVertex (getVertex (i));
+	}
+
+	switch (getType())
+	{	case Subfile:
+		{	LDSubfile* copyRef = static_cast<LDSubfile*> (copy);
+			const LDSubfile* ref = static_cast<const LDSubfile*> (this);
+
+			copyRef->setFileInfo (ref->getFileInfo());
+		}
+	}
+	*/
+
+	LDObject* copy = parseLine (raw());
+	return copy;
 }

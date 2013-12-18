@@ -100,6 +100,16 @@ static const std::nullptr_t null = nullptr;
 #define FUNCNAME __func__
 #endif // __GNUC__
 
+#ifdef IN_IDE_PARSER
+void dlog(void, ...) {}
+#else
+# ifdef DEBUG
+#  define dlog(...) log( str( __PRETTY_FUNCTION__ ) + ": " __VA_ARGS__)
+# else
+#  define dlog(...)
+# endif // DEBUG
+#endif // IN_IDE_PARSER
+
 // Replace assert with a version that shows a GUI dialog if possible.
 // On Windows I just can't get the actual error messages otherwise.
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr);

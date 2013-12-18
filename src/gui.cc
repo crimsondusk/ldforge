@@ -266,7 +266,7 @@ int ForgeWindow::deleteSelection()
 
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy)
-		delete obj;
+		obj->deleteSelf();
 
 	refresh();
 	return selCopy.size();
@@ -540,7 +540,7 @@ int ForgeWindow::getSelectedColor()
 LDObject::Type ForgeWindow::getUniformSelectedType()
 {	LDObject::Type result = LDObject::Unidentified;
 
-	for (LDObject * obj : selection())
+	for (LDObject* obj : selection())
 	{	if (result != LDObject::Unidentified && obj->getColor() != result)
 			return LDObject::Unidentified;
 
@@ -606,12 +606,11 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 }
 
 // =============================================================================
+// TODO: what the heh?
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteObjects (QList<LDObject*> objs)
-{	for (LDObject * obj : objs)
-	{	getCurrentDocument()->forgetObject (obj);
-		delete obj;
-	}
+{	for (LDObject* obj : objs)
+		obj->deleteSelf();
 }
 
 // =============================================================================
@@ -785,7 +784,7 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 void makeColorComboBox (QComboBox* box)
 {	std::map<int, int> counts;
 
-	for (LDObject * obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{	if (!obj->isColored())
 			continue;
 
@@ -908,7 +907,7 @@ void ForgeWindow::refreshObjectList()
 	ui->objectList->clear();
 	LDDocument* f = getCurrentDocument();
 
-for (LDObject * obj : *f)
+for (LDObject* obj : *f)
 		ui->objectList->addItem (obj->qObjListEntry);
 
 #endif

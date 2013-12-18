@@ -535,7 +535,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 
 			for (LDObject * obj : objs)
 			{	calcObject (obj);
-				delete obj;
+				obj->deleteSelf();
 			}
 		}
 		break;

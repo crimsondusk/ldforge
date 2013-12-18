@@ -858,12 +858,11 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 
 	switch (obj->getType())
 	{	case LDObject::Line:
-			compileSubObject (obj, GL_LINES);
-			break;
+		{	compileSubObject (obj, GL_LINES);
+		} break;
 
 		case LDObject::CondLine:
-
-			// Draw conditional lines with a dash pattern - however, use a full
+		{	// Draw conditional lines with a dash pattern - however, use a full
 			// line when drawing a pick list to make selecting them easier.
 			if (list != GL::PickList)
 			{	glLineStipple (1, 0x6666);
@@ -873,15 +872,15 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			compileSubObject (obj, GL_LINES);
 
 			glDisable (GL_LINE_STIPPLE);
-			break;
+		} break;
 
 		case LDObject::Triangle:
-			compileSubObject (obj, GL_TRIANGLES);
-			break;
+		{	compileSubObject (obj, GL_TRIANGLES);
+		} break;
 
 		case LDObject::Quad:
-			compileSubObject (obj, GL_QUADS);
-			break;
+		{	compileSubObject (obj, GL_QUADS);
+		} break;
 
 		case LDObject::Subfile:
 		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
@@ -901,14 +900,13 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 
-		for (LDObject * obj : objs)
+			for (LDObject* obj : objs)
 			{	compileList (obj, list);
-				delete obj;
+				obj->deleteSelf();
 			}
 
 			g_glInvert = oldinvert;
-		}
-		break;
+		} break;
 
 		default:
 			break;
@@ -1250,6 +1248,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 
+		dlog ("idx: %1", idx);
 		LDObject* obj = LDObject::fromID (idx);
 
 		// If this is an additive single pick and the object is currently selected,
@@ -1557,7 +1556,7 @@ static QList<vertex> getVertices (LDObject* obj)
 
 		for (LDObject* obj : objs)
 		{	verts << getVertices (obj);
-			delete obj;
+			obj->deleteSelf();
 		}
 	}
 
@@ -1587,7 +1586,7 @@ void GLRenderer::compileObject (LDObject* obj)
 	m_knownVerts << verts;
 	removeDuplicates (m_knownVerts);
 
-	obj->m_glinit = true;
+	obj->setGLInit (true);
 }
 
 // =============================================================================
@@ -1627,13 +1626,13 @@ for (CameraIcon & icon : m_cameraIcons)
 // -----------------------------------------------------------------------------
 void GLRenderer::deleteLists (LDObject* obj)
 {	// Delete the lists but only if they have been initialized
-	if (!obj->m_glinit)
+	if (!obj->isGLInit())
 		return;
 
-for (const GL::ListType listType : g_glListTypes)
+	for (const GL::ListType listType : g_glListTypes)
 		glDeleteLists (obj->glLists[listType], 1);
 
-	obj->m_glinit = false;
+	obj->setGLInit (false);
 }
 
 // =============================================================================
@@ -1890,7 +1889,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 {	LDOverlay* ovlobj = null;
 
-	for (LDObject * obj : getFile()->getObjects())
+	for (LDObject* obj : getFile()->getObjects())
 	{	if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
 		{	ovlobj = static_cast<LDOverlay*> (obj);
 			break;
@@ -1936,14 +1935,11 @@ void GLRenderer::updateOverlayObjects()
 			LDObject* nextobj = ovlobj->next();
 
 			if (nextobj && nextobj->getType() == LDObject::Empty)
-			{	getFile()->forgetObject (nextobj);
-				delete nextobj;
-			}
+				nextobj->deleteSelf();
 
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
-			getFile()->forgetObject (ovlobj);
-			delete ovlobj;
+			ovlobj->deleteSelf();
 		} elif (meta.img && !ovlobj)
 		{	// Inverse case: image is there but the overlay object is
 			// not, thus create the object.

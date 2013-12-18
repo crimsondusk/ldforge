@@ -132,8 +132,7 @@ static void doInline (bool deep)
 		// Merge in the inlined objects
 		for (LDObject * inlineobj : objs)
 		{	str line = inlineobj->raw();
-			delete inlineobj;
-
+			inlineobj->deleteSelf();
 			LDObject* newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
@@ -141,8 +140,7 @@ static void doInline (bool deep)
 		}
 
 		// Delete the subfile now as it's been inlined.
-		getCurrentDocument()->forgetObject (obj);
-		delete obj;
+		obj->deleteSelf();
 	}
 
 	g_win->refresh();
@@ -183,7 +181,7 @@ DEFINE_ACTION (SplitQuads, 0)
 			g_win->R()->compileObject (t);
 
 		// Delete this quad now, it has been split.
-		delete obj;
+		obj->deleteSelf();
 
 		num++;
 	}

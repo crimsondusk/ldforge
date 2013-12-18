@@ -157,7 +157,7 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 			writeObjects (objs, f);
 
 			for (LDObject* obj : objs)
-				delete obj;
+				obj->deleteSelf();
 		}
 		else
 			f.write (obj->raw() + "\r\n");
@@ -282,7 +282,7 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 
 	for (LDObject * obj : objs)
 	{	if (!obj->isScemantic())
-		{	delete obj;
+		{	obj->deleteSelf();
 			continue;
 		}
 

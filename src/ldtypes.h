@@ -23,16 +23,17 @@
 #include "types.h"
 
 #define LDOBJ(T) \
-public: \
+protected: \
 	virtual ~LD##T() {} \
+	virtual LD##T* clone() override { \
+		return new LD##T (*this); \
+	} \
+public: \
 	virtual LDObject::Type getType() const override { \
 		return LDObject::T; \
 	} \
-	virtual str raw(); \
-	virtual LD##T* clone() { \
-		return new LD##T (*this); \
-	} \
-	virtual void invert();
+	virtual str raw() const override; \
+	virtual void invert() override;
 
 #define LDOBJ_NAME(N)          virtual str getTypeName() const override { return #N; }
 #define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
@@ -62,12 +63,13 @@ class LDSharedVertex;
 // sub-classes based on this enumerator.
 // =============================================================================
 class LDObject
-{	PROPERTY (public,		bool,			Hidden,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		bool,			Selected,	BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		LDObject*,	Parent,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,		File,			NO_OPS,		STOCK_WRITE)
-	PROPERTY	(private,	int32,		ID,			NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,		int,			Color,		NUM_OPS,		CUSTOM_WRITE)
+{	PROPERTY (public,		bool,				Hidden,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,				Selected,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		LDObject*,		Parent,		NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE) // TODO: rename~
+	PROPERTY	(private,	int32,			ID,			NUM_OPS,		STOCK_WRITE)
+	PROPERTY (public,		int,				Color,		NUM_OPS,		CUSTOM_WRITE)
+	PROPERTY (public,		bool,				GLInit,		BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		// Object type codes. Codes are sorted in order of significance.
@@ -76,7 +78,7 @@ class LDObject
 			Quad,           // Object represents a quadrilateral
 			Triangle,       // Object represents a triangle
 			Line,           // Object represents a line
-			CondLine,        // Object represents a conditional line
+			CondLine,       // Object represents a conditional line
 			Vertex,         // Object is a vertex, LDForge extension object
 			BFC,            // Object represents a BFC statement
 			Overlay,        // Object contains meta-info about an overlay image.
@@ -88,36 +90,85 @@ class LDObject
 		};
 
 		LDObject();
-		virtual ~LDObject();
 
-		virtual LDObject* clone()
-		{	return 0;   // Creates a new LDObject identical to this one.
-		}
-		long getIndex() const;                      // Index (i.e. line number) of this object
-		virtual LDObject::Type getType() const;     // Type enumerator of this object
-		const vertex& getVertex (int i) const;      // Get a vertex by index
-		virtual str getTypeName() const;            // Type name of this object
-		virtual bool hasMatrix() const;             // Does this object have a matrix and position? (see LDMatrixObject)
-		virtual void invert();                      // Inverts this object (winding is reversed)
-		virtual bool isColored() const;             // Is this object colored?
-		virtual bool isScemantic() const;           // Does this object have meaning in the part model?
-		void move (vertex vect);                    // Moves this object using the given vertex as a movement List
-		LDObject* next() const;                     // Object after this in the current file
-		LDObject* prev() const;                     // Object prior to this in the current file
-		virtual str raw() {	return ""; }            // This object as LDraw code
-		void replace (LDObject* other);             // Replace this LDObject with another LDObject. Object is deleted in the process.
-		void select();
-		void setVertex (int i, const vertex& vert); // Set a vertex to the given value
-		void setVertexCoord (int i, Axis ax, double value); // Set a single coordinate of a vertex
-		void swap (LDObject* other);                // Swap this object with another.
-		LDObject* topLevelParent();                 // What object in the current file ultimately references this?
-		void unselect();
-		virtual int vertices() const;             // Number of vertices this object has
+		// Makes a copy of this object
+		LDObject*					createCopy() const;
 
-		static str typeName (LDObject::Type type); // Get type name by enumerator
-		static LDObject* getDefault (const LDObject::Type type); // Returns a sample object by the given enumerator
-		static void moveObjects (QList<LDObject*> objs, const bool up); // TODO: move this to LDDocument?
-		static str describeObjects (const QList<LDObject*>& objs); // Get a description of a list of LDObjects
+		// Deletes this object
+		void							deleteSelf();
+
+		// Index (i.e. line number) of this object
+		long							getIndex() const;
+
+		// Type enumerator of this object
+		virtual LDObject::Type	getType() const;
+
+		// Get a vertex by index
+		const vertex&				getVertex (int i) const;
+
+		// Type name of this object
+		virtual str					getTypeName() const;
+
+		// Does this object have a matrix and position? (see LDMatrixObject)
+		virtual bool				hasMatrix() const;
+
+		// Inverts this object (winding is reversed)
+		virtual void				invert();
+
+		// Is this object colored?
+		virtual bool				isColored() const;
+
+		// Does this object have meaning in the part model?
+		virtual bool				isScemantic() const;
+
+		// Moves this object using the given vertex as a movement List
+		void							move (vertex vect);
+
+		// Object after this in the current file
+		LDObject*					next() const;
+
+		// Object prior to this in the current file
+		LDObject*					prev() const;
+
+		// This object as LDraw code
+		virtual						str raw() const = 0;
+
+		// Replace this LDObject with another LDObject. Object is deleted in the process.
+		void							replace (LDObject* other);
+
+		// Selects this object.
+		void							select();
+
+		// Set a vertex to the given value
+		void							setVertex (int i, const vertex& vert);
+
+		// Set a single coordinate of a vertex
+		void							setVertexCoord (int i, Axis ax, double value);
+
+		// Swap this object with another.
+		void							swap (LDObject* other);
+
+		// What object in the current file ultimately references this?
+		LDObject*					topLevelParent();
+
+		// Removes this object from selection // TODO: rename to deselect?
+		void							unselect();
+
+		// Number of vertices this object has // TODO: rename to getNumVertices
+		virtual int					vertices() const;
+
+		// Get type name by enumerator
+		static str typeName (LDObject::Type type);
+
+		// Returns a sample object by the given enumerator
+		// TODO: Use of this function only really results in hacks, get rid of it!
+		static LDObject* getDefault (const LDObject::Type type);
+
+		// TODO: move this to LDDocument?
+		static void moveObjects (QList<LDObject*> objs, const bool up);
+
+		// Get a description of a list of LDObjects
+		static str describeObjects (const QList<LDObject*>& objs);
 		static LDObject* fromID (int id);
 
 		// TODO: make these private!
@@ -128,10 +179,17 @@ class LDObject
 		QListWidgetItem* qObjListEntry;
 
 	protected:
-		bool m_glinit;
-		friend class GLRenderer;
+		// LDObjects are to be deleted with the deleteSelf() method, not with
+		// operator delete. This is because it seems virtual functions cannot
+		// be properly called from the destructor, thus a normal method must
+		// be used instead. The destructor also doesn't seem to be able to
+		// be private without causing a truckload of problems so it's protected
+		// instead.
+		virtual ~LDObject();
+		void chooseID();
 
 	private:
+		virtual LDObject* clone() = 0;
 		LDSharedVertex*	m_coords[4];
 };
 
@@ -338,7 +396,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 		}
 
 		// Inlines this subfile. Note that return type is an array of heap-allocated
-		// LDObject-clones, they must be deleted one way or another.
+		// LDObject copies, they must be deleted manually.
 		QList<LDObject*> inlineContents (InlineFlags flags);
 };
 
