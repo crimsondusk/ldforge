@@ -1651,7 +1651,7 @@ Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool GLRenderer::setupOverlay (EFixedCamera cam, str file, int x, int y, int w, int h)
-{	QImage* img = new QImage (file);
+{	QImage* img = new QImage (QImage (file).convertToFormat (QImage::Format_ARGB32));
 	LDGLOverlay& info = getOverlay (cam);
 
 	if (img->isNull())
