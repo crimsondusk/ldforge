@@ -876,6 +876,9 @@ void ForgeWindow::endAction()
 	// Update the list item of the current file - we may need to draw an icon
 	// now that marks it as having unsaved changes.
 	updateDocumentListItem (getCurrentDocument());
+
+	// We're done with the action, the history should stop ignoring now.
+	getCurrentDocument()->getHistory()->setIgnoring (false);
 }
 
 // =============================================================================

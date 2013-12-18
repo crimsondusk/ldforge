@@ -43,7 +43,6 @@ void History::undo()
 	// Iterate the list in reverse and undo all actions
 	for (int i = set.size() - 1; i >= 0; --i)
 	{	AbstractHistoryEntry* change = set[i];
-		dlog ("Undo change of type %1", change->getType());
 		change->undo();
 	}
 
@@ -55,6 +54,7 @@ void History::undo()
 		g_win->doFullRefresh();
 
 	g_win->updateActions();
+	dlog ("Position is now %1", getPosition());
 }
 
 // =============================================================================
@@ -97,6 +97,7 @@ void History::addStep()
 {	if (m_currentChangeset.isEmpty())
 		return;
 
+	dlog ("position: %1, size: %2\n", getPosition(), getSize());
 	while (getPosition() < getSize() - 1)
 	{	Changeset last = m_changesets.last();
 
@@ -117,7 +118,8 @@ void History::addStep()
 // -----------------------------------------------------------------------------
 void History::add (AbstractHistoryEntry* entry)
 {	if (isIgnoring())
-	{	delete entry;
+	{	dlog ("Ignored addition of history entry of type %1", entry->getTypeName());
+		delete entry;
 		return;
 	}
 
