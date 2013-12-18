@@ -241,6 +241,7 @@ class LDError : public LDObject
 // =============================================================================
 class LDEmpty : public LDObject
 {	LDOBJ (Empty)
+	LDOBJ_NAME (empty)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
