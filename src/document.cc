@@ -979,7 +979,7 @@ static void getFilesUsed (LDDocument* node, QList<LDDocument*>& filesUsed)
 // -----------------------------------------------------------------------------
 static bool g_closingUnusedFiles = false;
 
-void LDDocument::closeUnused()
+static void reallyCloseUnused()
 {	// Don't go here more than once at a time, otherwise we risk double-deletions
 	if (g_closingUnusedFiles)
 		return;
@@ -1008,6 +1008,15 @@ void LDDocument::closeUnused()
 			delete file;
 
 	g_closingUnusedFiles = false;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDDocument::closeUnused()
+{	// Close unused files later on in the event loop. This function sees a lot of
+	// calls, this reduces the amount of unneeded calls and prevents the engine
+	// from beginning to close unused files when it really shouldn't be doing that.
+	invokeLater (reallyCloseUnused);
 }
 
 // =============================================================================

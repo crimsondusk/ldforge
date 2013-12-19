@@ -310,15 +310,15 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
 {	Ui::AboutUI ui;
 	ui.setupUi (this);
-	ui.versionInfo->setText (fmt (tr ("LDForge %1"), fullVersionString()));
+	ui.versionInfo->setText (APPNAME " " + fullVersionString());
 
 	QPushButton* mailButton = new QPushButton;
-	mailButton->setText ("Contact");
+	mailButton->setText (tr ("Contact"));
 	mailButton->setIcon (getIcon ("mail"));
 	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
 	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
 
-	setWindowTitle ("About " APPNAME);
+	setWindowTitle (fmt (tr ("About %1"), APPNAME));
 }
 
 // =============================================================================

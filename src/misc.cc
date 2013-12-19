@@ -24,6 +24,7 @@
 #include "gui.h"
 #include "dialogs.h"
 #include "ui_rotpoint.h"
+#include "moc_misc.cpp"
 
 RingFinder g_RingFinder;
 
@@ -425,4 +426,30 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 void roundToDecimals (double& a, int decimals)
 {	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
 	a = round (a * g_e10[decimals]) / g_e10[decimals];
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+InvokationDeferer* g_invokationDeferer = new InvokationDeferer();
+
+InvokationDeferer::InvokationDeferer (QObject* parent) : QObject (parent)
+{	connect (this, SIGNAL (functionAdded()), this, SLOT (invokeFunctions()),
+		Qt::QueuedConnection);
+}
+
+void InvokationDeferer::addFunctionCall (InvokationDeferer::FunctionType func)
+{	m_funcs << func;
+	removeDuplicates (m_funcs);
+	emit functionAdded();
+}
+
+void InvokationDeferer::invokeFunctions()
+{	for (FunctionType func : m_funcs)
+		(*func)();
+
+	m_funcs.clear();
+}
+
+void invokeLater (InvokationDeferer::FunctionType func)
+{	g_invokationDeferer->addFunctionCall (func);
 }
