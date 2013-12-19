@@ -646,14 +646,40 @@ bool LDDocument::save (str savepath)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-#define CHECK_TOKEN_COUNT(N) \
-	if (tokens.size() != N) \
-		return new LDError (line, "Bad amount of tokens");
+class LDParseError : public std::exception
+{	PROPERTY (private, str,	Error,	STR_OPS, STOCK_WRITE)
+	PROPERTY (private, str,	Line,		STR_OPS,	STOCK_WRITE)
 
-#define CHECK_TOKEN_NUMBERS(MIN, MAX) \
-	for (int i = MIN; i <= MAX; ++i) \
-		if (!numeric (tokens[i])) \
-			return new LDError (line, fmt ("Token #%1 was `%2`, expected a number", (i + 1), tokens[i]));
+	public:
+		LDParseError (str line, str a) : m_Error (a), m_Line (line) {}
+
+		const char* what() const throw()
+		{	return getError().toLocal8Bit().constData();
+		}
+};
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void checkTokenCount (str line, const QStringList& tokens, int num)
+{	if (tokens.size() != num)
+		throw LDParseError (line, fmt ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void checkTokenNumbers (str line, const QStringList& tokens, int min, int max)
+{	bool ok;
+
+	// Check scientific notation, e.g. 7.99361e-15
+	QRegExp scient ("\\-?[0-9]+\\.[0-9]+e\\-[0-9]+");
+
+	for (int i = min; i <= max; ++i)
+	{	tokens[i].toDouble (&ok);
+
+		if (!ok && !scient.exactMatch (tokens[i]))
+			throw LDParseError (line, fmt ("Token #%1 was `%2`, expected a number (matched length: %3)", (i + 1), tokens[i], scient.matchedLength()));
+	}
+}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -672,165 +698,171 @@ static vertex parseVertex (QStringList& s, const int n)
 // the object will be LDError if it could not be parsed properly.
 // -----------------------------------------------------------------------------
 LDObject* parseLine (str line)
-{	QStringList tokens = line.split (" ", str::SkipEmptyParts);
+{	try
+	{	QStringList tokens = line.split (" ", str::SkipEmptyParts);
 
-	if (tokens.size() <= 0)
-	{	// Line was empty, or only consisted of whitespace
-		return new LDEmpty;
-	}
-
-	if (tokens[0].length() != 1 || tokens[0][0].isDigit() == false)
-		return new LDError (line, "Illogical line code");
-
-	int num = tokens[0][0].digitValue();
-
-	switch (num)
-	{	case 0:
-		{	// Comment
-			str comm = line.mid (line.indexOf ("0") + 1).simplified();
-
-			// Handle BFC statements
-			if (tokens.size() > 2 && tokens[1] == "BFC")
-			{	for (int i = 0; i < LDBFC::NumStatements; ++i)
-					if (comm == fmt ("BFC %1", LDBFC::statements [i]))
-						return new LDBFC ( (LDBFC::Type) i);
-
-				// MLCAD is notorious for stuffing these statements in parts it
-				// creates. The above block only handles valid statements, so we
-				// need to handle MLCAD-style invertnext, clip and noclip separately.
-				struct
-				{	str			a;
-					LDBFC::Type	b;
-				} BFCData[] =
-				{	{ "INVERTNEXT", LDBFC::InvertNext },
-					{ "NOCLIP", LDBFC::NoClip },
-					{ "CLIP", LDBFC::Clip }
-				};
-
-				for (const auto& i : BFCData)
-					if (comm == "BFC CERTIFY " + i.a)
-						return new LDBFC (i.b);
-			}
-
-			if (tokens.size() > 2 && tokens[1] == "!LDFORGE")
-			{	// Handle LDForge-specific types, they're embedded into comments too
-				if (tokens[2] == "VERTEX")
-				{	// Vertex (0 !LDFORGE VERTEX)
-					CHECK_TOKEN_COUNT (7)
-					CHECK_TOKEN_NUMBERS (3, 6)
-
-					LDVertex* obj = new LDVertex;
-					obj->setColor (tokens[3].toLong());
-
-					for_axes (ax)
-						obj->pos[ax] = tokens[4 + ax].toDouble(); // 4 - 6
-
-					return obj;
-				} elif (tokens[2] == "OVERLAY")
-				{	CHECK_TOKEN_COUNT (9);
-					CHECK_TOKEN_NUMBERS (5, 8)
-
-					LDOverlay* obj = new LDOverlay;
-					obj->setFileName (tokens[3]);
-					obj->setCamera (tokens[4].toLong());
-					obj->setX (tokens[5].toLong());
-					obj->setY (tokens[6].toLong());
-					obj->setWidth (tokens[7].toLong());
-					obj->setHeight (tokens[8].toLong());
-					return obj;
-				}
-			}
-
-			// Just a regular comment:
-			LDComment* obj = new LDComment;
-			obj->text = comm;
-			return obj;
+		if (tokens.size() <= 0)
+		{	// Line was empty, or only consisted of whitespace
+			return new LDEmpty;
 		}
 
-		case 1:
-		{	// Subfile
-			CHECK_TOKEN_COUNT (15)
-			CHECK_TOKEN_NUMBERS (1, 13)
+		if (tokens[0].length() != 1 || tokens[0][0].isDigit() == false)
+			throw LDParseError (line, "Illogical line code");
 
-			// Try open the file. Disable g_loadingMainFile temporarily since we're
-			// not loading the main file now, but the subfile in question.
-			bool tmp = g_loadingMainFile;
-			g_loadingMainFile = false;
-			LDDocument* load = getDocument (tokens[14]);
-			g_loadingMainFile = tmp;
+		int num = tokens[0][0].digitValue();
 
-			// If we cannot open the file, mark it an error
-			if (!load)
-			{	LDError* obj = new LDError (line, fmt ("Could not open %1", tokens[14]));
-				obj->setFileReferenced (tokens[14]);
+		switch (num)
+		{	case 0:
+			{	// Comment
+				str comm = line.mid (line.indexOf ("0") + 1).simplified();
+
+				// Handle BFC statements
+				if (tokens.size() > 2 && tokens[1] == "BFC")
+				{	for (int i = 0; i < LDBFC::NumStatements; ++i)
+						if (comm == fmt ("BFC %1", LDBFC::statements [i]))
+							return new LDBFC ( (LDBFC::Type) i);
+
+					// MLCAD is notorious for stuffing these statements in parts it
+					// creates. The above block only handles valid statements, so we
+					// need to handle MLCAD-style invertnext, clip and noclip separately.
+					struct
+					{	str			a;
+						LDBFC::Type	b;
+					} BFCData[] =
+					{	{ "INVERTNEXT", LDBFC::InvertNext },
+						{ "NOCLIP", LDBFC::NoClip },
+						{ "CLIP", LDBFC::Clip }
+					};
+
+					for (const auto& i : BFCData)
+						if (comm == "BFC CERTIFY " + i.a)
+							return new LDBFC (i.b);
+				}
+
+				if (tokens.size() > 2 && tokens[1] == "!LDFORGE")
+				{	// Handle LDForge-specific types, they're embedded into comments too
+					if (tokens[2] == "VERTEX")
+					{	// Vertex (0 !LDFORGE VERTEX)
+						checkTokenCount (line, tokens, 7);
+						checkTokenNumbers (line, tokens, 3, 6);
+
+						LDVertex* obj = new LDVertex;
+						obj->setColor (tokens[3].toLong());
+
+						for_axes (ax)
+							obj->pos[ax] = tokens[4 + ax].toDouble(); // 4 - 6
+
+						return obj;
+					} elif (tokens[2] == "OVERLAY")
+					{	checkTokenCount (line, tokens, 9);;
+						checkTokenNumbers (line, tokens, 5, 8);
+
+						LDOverlay* obj = new LDOverlay;
+						obj->setFileName (tokens[3]);
+						obj->setCamera (tokens[4].toLong());
+						obj->setX (tokens[5].toLong());
+						obj->setY (tokens[6].toLong());
+						obj->setWidth (tokens[7].toLong());
+						obj->setHeight (tokens[8].toLong());
+						return obj;
+					}
+				}
+
+				// Just a regular comment:
+				LDComment* obj = new LDComment;
+				obj->text = comm;
 				return obj;
 			}
 
-			LDSubfile* obj = new LDSubfile;
-			obj->setColor (tokens[1].toLong());
-			obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
+			case 1:
+			{	// Subfile
+				checkTokenCount (line, tokens, 15);
+				checkTokenNumbers (line, tokens, 1, 13);
 
-			matrix transform;
+				// Try open the file. Disable g_loadingMainFile temporarily since we're
+				// not loading the main file now, but the subfile in question.
+				bool tmp = g_loadingMainFile;
+				g_loadingMainFile = false;
+				LDDocument* load = getDocument (tokens[14]);
+				g_loadingMainFile = tmp;
 
-			for (int i = 0; i < 9; ++i)
-				transform[i] = tokens[i + 5].toDouble(); // 5 - 13
+				// If we cannot open the file, mark it an error. Note we cannot use LDParseError
+				// here because the error object needs the document reference.
+				if (!load)
+				{	LDError* obj = new LDError (line, fmt ("Could not open %1", tokens[14]));
+					obj->setFileReferenced (tokens[14]);
+					return obj;
+				}
 
-			obj->setTransform (transform);
-			obj->setFileInfo (load);
-			return obj;
+				LDSubfile* obj = new LDSubfile;
+				obj->setColor (tokens[1].toLong());
+				obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
+
+				matrix transform;
+
+				for (int i = 0; i < 9; ++i)
+					transform[i] = tokens[i + 5].toDouble(); // 5 - 13
+
+				obj->setTransform (transform);
+				obj->setFileInfo (load);
+				return obj;
+			}
+
+			case 2:
+			{	checkTokenCount (line, tokens, 8);
+				checkTokenNumbers (line, tokens, 1, 7);
+
+				// Line
+				LDLine* obj = new LDLine;
+				obj->setColor (tokens[1].toLong());
+
+				for (int i = 0; i < 2; ++i)
+					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 7
+
+				return obj;
+			}
+
+			case 3:
+			{	checkTokenCount (line, tokens, 11);
+				checkTokenNumbers (line, tokens, 1, 10);
+
+				// Triangle
+				LDTriangle* obj = new LDTriangle;
+				obj->setColor (tokens[1].toLong());
+
+				for (int i = 0; i < 3; ++i)
+					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 10
+
+				return obj;
+			}
+
+			case 4:
+			case 5:
+			{	checkTokenCount (line, tokens, 14);
+				checkTokenNumbers (line, tokens, 1, 13);
+
+				// Quadrilateral / Conditional line
+				LDObject* obj;
+
+				if (num == 4)
+					obj = new LDQuad;
+				else
+					obj = new LDCondLine;
+
+				obj->setColor (tokens[1].toLong());
+
+				for (int i = 0; i < 4; ++i)
+					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 13
+
+				return obj;
+			}
+
+			default: // Strange line we couldn't parse
+				throw LDError (line, "Unknown line code number");
 		}
-
-		case 2:
-		{	CHECK_TOKEN_COUNT (8)
-			CHECK_TOKEN_NUMBERS (1, 7)
-
-			// Line
-			LDLine* obj = new LDLine;
-			obj->setColor (tokens[1].toLong());
-
-			for (int i = 0; i < 2; ++i)
-				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 7
-
-			return obj;
-		}
-
-		case 3:
-		{	CHECK_TOKEN_COUNT (11)
-			CHECK_TOKEN_NUMBERS (1, 10)
-
-			// Triangle
-			LDTriangle* obj = new LDTriangle;
-			obj->setColor (tokens[1].toLong());
-
-			for (int i = 0; i < 3; ++i)
-				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 10
-
-			return obj;
-		}
-
-		case 4:
-		case 5:
-		{	CHECK_TOKEN_COUNT (14)
-			CHECK_TOKEN_NUMBERS (1, 13)
-
-			// Quadrilateral / Conditional line
-			LDObject* obj;
-
-			if (num == 4)
-				obj = new LDQuad;
-			else
-				obj = new LDCondLine;
-
-			obj->setColor (tokens[1].toLong());
-
-			for (int i = 0; i < 4; ++i)
-				obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 13
-
-			return obj;
-		}
-
-		default: // Strange line we couldn't parse
-			return new LDError (line, "Unknown line code number");
+	}
+	catch (LDParseError& e)
+	{	return new LDError (e.getLine(), e.getError());
 	}
 }
 

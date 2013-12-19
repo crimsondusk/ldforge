@@ -20,6 +20,7 @@
 	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
 - Implicitely-opened documents are now closed automatically when rendered unused, hopefully reducing memory
 	usage somewhat.
+- LDraw code parser no longer complains about scientific notation.
 - Changing to draw mode while in free camera now causes the camera to be changed to top.
 - Added config fields for default name/username/license. This data will be automatically filled
 	into forms that require such information.
