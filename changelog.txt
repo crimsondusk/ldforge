@@ -1,5 +1,10 @@
 =================================================
-== Changes since version 1.0
+== Changes in version 0.2.1
+=================================================
+- Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
+
+=================================================
+== Changes in version 0.2
 =================================================
 
 - Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.

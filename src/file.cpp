@@ -260,7 +260,7 @@ void FileLoader::work( ulong i ) {
 	
 	if( !done() ) {
 		if( concurrent() )
-			QMetaObject::invokeMethod( this, "work", Qt::QueuedConnection, Q_ARG( ulong, i + 1 ));
+			QMetaObject::invokeMethod( this, "work", Qt::QueuedConnection, Q_ARG( ulong, i ));
 		else
 			work( i + 1 );
 	}
