@@ -125,7 +125,7 @@ QString fullVersionString();
 #define properties private
 #define typedefs public
 #define methods
-#define for_axes(AX) for (const Axis ax : std::initializer_list<const Axis> ({X, Y, Z}))
+#define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
 
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:

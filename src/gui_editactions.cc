@@ -716,9 +716,9 @@ DEFINE_ACTION (AddHistoryLine, 0)
 
 	// Create the comment object based on input
 	str commentText = fmt ("!HISTORY %1 [%2] %3",
-						   ui->m_date->date().toString ("yyyy-MM-dd"),
-						   ui->m_username->text(),
-						   ui->m_comment->text());
+		ui->m_date->date().toString ("yyyy-MM-dd"),
+		ui->m_username->text(),
+		ui->m_comment->text());
 
 	LDComment* comm = new LDComment (commentText);
 
