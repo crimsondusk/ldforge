@@ -118,5 +118,10 @@ QString versionString()
 // =============================================================================
 // -----------------------------------------------------------------------------
 QString fullVersionString()
-{	return "v" + versionString();
+{
+#if BUILD_ID != BUILD_RELEASE && defined (GIT_DESCRIBE)
+	return GIT_DESCRIBE;
+#else
+	return "v" + versionString();
+#endif
 }

@@ -32,6 +32,8 @@ CONFIG (debug, debug|release) {
 	OBJECTS_DIR = ./build_release/
 }
 
+exists(.git): DEFINES += GIT_DESCRIBE="\\\"$$system(git describe --tags)\\\""
+
 unix {
 	LIBS += -lGLU
 }
