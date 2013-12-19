@@ -113,10 +113,18 @@ static bool checkProgPath (const extprog prog)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static str processErrorString (QProcess& proc)
+static str processErrorString (extprog prog, QProcess& proc)
 {	switch (proc.error())
 	{	case QProcess::FailedToStart:
-			return "Failed to start (check your permissions)";
+		{	str wineblurb;
+
+#ifndef _WIN32
+			if (g_extProgWine[prog])
+				wineblurb = "make sure Wine is installed and ";
+#endif
+
+			return fmt ("Program failed to start, %1check your permissions", wineblurb);
+		} break;
 
 		case QProcess::Crashed:
 			return "Crashed.";
@@ -177,6 +185,10 @@ static void writeObjects (const QList<LDObject*>& objects, str fname)
 
 	writeObjects (objects, f);
 	f.close();
+
+#ifdef DEBUG
+	QFile::copy (fname, "debug_lastInput");
+#endif
 }
 
 // =============================================================================
@@ -229,6 +241,11 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	proc.setStandardInputFile (inputname);
 	proc.start (path, argv);
 
+	if (!proc.waitForStarted())
+	{	critical (fmt ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
+		return false;
+	}
+
 	// Write an enter, the utility tools all expect one
 	stdinfp.write ("\n");
 
@@ -238,13 +255,13 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	str err = "";
 
 	if (proc.exitStatus() != QProcess::NormalExit)
-		err = processErrorString (proc);
+		err = processErrorString (prog, proc);
 
 	// Check the return code
 	if (proc.exitCode() != 0)
 		err = fmt ("Program exited abnormally (return code %1).",  proc.exitCode());
 
-	if (err.length() > 0)
+	if (!err.isEmpty())
 	{	critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
 		return false;
 	}
@@ -256,7 +273,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 // -----------------------------------------------------------------------------
 static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 {
-#ifndef RELEASE
+#ifdef DEBUG
 	QFile::copy (fname, "./debug_lastOutput");
 #endif // RELEASE
 

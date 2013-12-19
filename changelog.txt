@@ -10,6 +10,7 @@
 	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
 	lost during transition from version 0.2 and 0.3.
 - Added a new editing mode for drawing circles.
+- Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
 - Major corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
@@ -44,7 +45,8 @@
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
 - Color icon border now reflects the color's edge color.
-- Fixed: File loading would skip every 300th line.
+- [Linux] Fixed: If an external program is attempted to be launched requiring Wine but with Wine missing,
+	there was no error message and instead LDForge took this as no output from the program.
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
 
