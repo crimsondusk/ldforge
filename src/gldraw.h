@@ -221,9 +221,6 @@ class GLRenderer : public QGLWidget
 		// Convert a 3D point to a 2D point
 		QPoint         coordconv3_2 (const vertex& pos3d) const;
 
-		// Determine which color to draw text with
-		QColor         getTextPen() const;
-
 		// Perform object selection
 		void           pick (int mouseX, int mouseY);
 

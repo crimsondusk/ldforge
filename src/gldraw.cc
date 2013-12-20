@@ -48,23 +48,26 @@ static const LDFixedCameraInfo g_FixedCameras[6] =
 	{{  0, -1, 0 }, Z, Y, false,  true },
 };
 
+// Matrix templates for circle drawing. 2 is substituted with
+// the scale value, 1 is inverted to -1 if needed.
 static const matrix g_circleDrawTransforms[3] =
 {	{ 2, 0, 0, 0, 1, 0, 0, 0, 2 },
 	{ 2, 0, 0, 0, 0, 2, 0, 1, 0 },
 	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
 };
 
-cfg (String, gl_bgcolor, "#CCCCD9");
-cfg (String, gl_maincolor, "#707078");
-cfg (Float, gl_maincolor_alpha, 1.0);
-cfg (Int, gl_linethickness, 2);
-cfg (Bool, gl_colorbfc, false);
-cfg (Int, gl_camera, GLRenderer::EFreeCamera);
-cfg (Bool, gl_blackedges, false);
-cfg (Bool, gl_axes, false);
-cfg (Bool, gl_wireframe, false);
-cfg (Bool, gl_logostuds, false);
-cfg (Bool, gl_aa, true);
+cfg (String,	gl_bgcolor,				"#CCCCD9");
+cfg (String,	gl_maincolor,			"#707078");
+cfg (Float,		gl_maincolor_alpha,	1.0);
+cfg (Int,		gl_linethickness,		2);
+cfg (Bool,		gl_colorbfc,			false);
+cfg (Int,		gl_camera,				GLRenderer::EFreeCamera);
+cfg (Bool,		gl_blackedges,			false);
+cfg (Bool,		gl_axes,					false);
+cfg (Bool,		gl_wireframe,			false);
+cfg (Bool,		gl_logostuds,			false);
+cfg (Bool,		gl_aa,					true);
+cfg (Bool,		gl_linelengths,		true);
 
 // argh
 const char* g_CameraNames[7] =
@@ -87,13 +90,14 @@ const GL::EFixedCamera g_Cameras[7] =
 	GL::EFreeCamera
 };
 
+// Definitions for visual axes, drawn on the screen
 const struct LDGLAxis
 {	const QColor col;
 	const vertex vert;
 } g_GLAxes[3] =
-{	{ QColor (255,   0,   0), vertex (10000, 0, 0) },
-	{ QColor (80,  192,   0), vertex (0, 10000, 0) },
-	{ QColor (0,   160, 192), vertex (0, 0, 10000) },
+{	{ QColor (255,   0,   0), vertex (10000, 0, 0) }, // X
+	{ QColor (80,  192,   0), vertex (0, 10000, 0) }, // Y
+	{ QColor (0,   160, 192), vertex (0, 0, 10000) }, // Z
 };
 
 static bool g_glInvert = false;
@@ -489,10 +493,12 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	cx *= negXFac;
 	cy *= negYFac;
 
-	str tmp;
+	roundToDecimals (cx, 4);
+	roundToDecimals (cy, 4);
+
 	// Create the vertex from the coordinates
-	pos3d[axisX] = tmp.sprintf ("%.3f", cx).toDouble();
-	pos3d[axisY] = tmp.sprintf ("%.3f", cy).toDouble();
+	pos3d[axisX] = cx;
+	pos3d[axisY] = cy;
 	pos3d[3 - axisX - axisY] = getDepthValue();
 	return pos3d;
 }
@@ -500,7 +506,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Inverse operation for the above - convert a 3D position to a 2D screen
-// position
+// position. Don't ask me how this code manages to work, I don't even know.
 // -----------------------------------------------------------------------------
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 {	GLfloat m[16];
@@ -539,7 +545,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	initGLData();
 	drawGLScene();
 
-	const QPen textpen = getTextPen();
+	const QPen textpen (m_darkbg ? Qt::white : Qt::black);
 	const QBrush polybrush (QColor (64, 192, 0, 128));
 	QPainter paint (this);
 	QFontMetrics metrics = QFontMetrics (QFont());
@@ -568,7 +574,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 
-		paint.setPen (getTextPen());
+		paint.setPen (textpen);
 		paint.drawText (m_width - textSize.width(), m_height - 16, textSize.width(),
 			textSize.height(), Qt::AlignCenter, text);
 
@@ -585,39 +591,32 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 			if (numverts > 0)
 			{	QPoint poly[4];
-				vertex polyverts[4];
+				vertex poly3d[4];
 
 				if (!m_rectdraw)
-				{	uchar i = 0;
+				{	int i = 0;
 
 					for (vertex& vert : m_drawedVerts)
-					{	poly[i] = coordconv3_2 (vert);
-						polyverts[i] = vert;
-						++i;
-					}
+						poly3d[i++] = vert;
 
 					// Draw the cursor vertex as the last one in the list.
 					if (numverts <= 4)
-					{	poly[i] = coordconv3_2 (m_hoverpos);
-						polyverts[i] = m_hoverpos;
-					}
+						poly3d[i] = m_hoverpos;
 					else
-					{	numverts = 4;
-					}
+						numverts = 4;
 				}
 				else
-				{	if (m_drawedVerts.size() > 0)
-					{	// Get vertex information from m_rectverts
+				{	// Get vertex information from m_rectverts
+					if (m_drawedVerts.size() > 0)
 						for (int i = 0; i < numverts; ++i)
-						{	polyverts[i] = m_rectverts[i];
-							poly[i] = coordconv3_2 (polyverts[i]);
-						}
-					}
+							poly3d[i] = m_rectverts[i];
 					else
-					{	poly[0] = coordconv3_2 (m_hoverpos);
-						polyverts[0] = m_hoverpos;
-					}
+						poly3d[0] = m_hoverpos;
 				}
+
+				// convert to 2d
+				for (int i = 0; i < numverts; ++i)
+					poly[i] = coordconv3_2 (poly3d[i]);
 
 				// Draw the polygon-to-be
 				paint.setPen (linepen);
@@ -630,7 +629,19 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					drawBlip (paint, blip);
 
 					// Draw their coordinates
-					paint.drawText (blip.x(), blip.y() - 8, polyverts[i].stringRep (true));
+					paint.drawText (blip.x(), blip.y() - 8, poly3d[i].stringRep (true));
+				}
+
+				// Draw line lengths
+				if (numverts >= 2 && gl_linelengths)
+				{	int numlines = (m_drawedVerts.size() == 1) ? 1 : m_drawedVerts.size() + 1;
+
+					for (int i = 0; i < numlines; ++i)
+					{	const int j = (i + 1 < numverts) ? i + 1 : 0;
+						const str label = str::number (poly3d[i].distanceTo (poly3d[j]));
+						paint.setPen (textpen);
+						paint.drawText (QLineF (poly[i], poly[j]).pointAt (0.5), label);
+					}
 				}
 			}
 		}
@@ -761,7 +772,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	if (getMessageLog())
 	{	int y = 0;
 		const int margin = 2;
-		QColor penColor = getTextPen();
+		QColor penColor = textpen.color();
 
 		for (const MessageManager::Line& line : getMessageLog()->getLines())
 		{	penColor.setAlphaF (line.alpha);
@@ -797,12 +808,6 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 	paint.setPen (pen);
 	paint.setBrush (QColor (64, 192, 0));
 	paint.drawEllipse (pos.x() - blipsize / 2, pos.y() - blipsize / 2, blipsize, blipsize);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-QColor GLRenderer::getTextPen () const
-{	return m_darkbg ? Qt::white : Qt::black;
 }
 
 // =============================================================================

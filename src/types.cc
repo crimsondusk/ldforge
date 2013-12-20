@@ -56,6 +56,15 @@ void vertex::move (const vertex& other)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+double vertex::distanceTo (const vertex& other) const
+{	double dx = abs (x() - other.x());
+	double dy = abs (y() - other.y());
+	double dz = abs (z() - other.z());
+	return sqrt ((dx * dx) + (dy * dy) + (dz * dz));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 vertex vertex::midpoint (const vertex& other)
 {	vertex mid;
 

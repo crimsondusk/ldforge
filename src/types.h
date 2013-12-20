@@ -115,10 +115,24 @@ class vertex
 		vertex() {}
 		vertex (double x, double y, double z);
 
-		vertex          midpoint    (const vertex& other);
-		void            move        (const vertex& other);
-		str             stringRep   (bool mangled) const;
-		void            transform   (matrix matr, vertex pos);
+		double			distanceTo (const vertex& other) const;
+		vertex			midpoint (const vertex& other);
+		void				move (const vertex& other);
+		str				stringRep (bool mangled) const;
+		void				transform (matrix matr, vertex pos);
+
+		vertex&			operator+= (const vertex& other);
+		vertex			operator+ (const vertex& other) const;
+		vertex			operator/ (const double d) const;
+		vertex&			operator/= (const double d);
+		bool				operator== (const vertex& other) const;
+		bool				operator!= (const vertex& other) const;
+		vertex			operator-() const;
+		int				operator< (const vertex& other) const;
+		double&			operator[] (const Axis ax);
+		const double&	operator[] (const Axis ax) const;
+		double&			operator[] (const int ax);
+		const double&	operator[] (const int ax) const;
 
 		inline double& coord (int n)
 		{	return m_coords[n];
@@ -128,42 +142,29 @@ class vertex
 		{	return m_coords[n];
 		}
 
-		inline double& x ()
+		inline double& x()
 		{	return m_coords[X];
 		}
 
-		inline const double& x () const
+		inline const double& x() const
 		{	return m_coords[X];
 		}
 
-		inline double& y ()
+		inline double& y()
 		{	return m_coords[Y];
 		}
 
-		inline const double& y () const
+		inline const double& y() const
 		{	return m_coords[Y];
 		}
 
-		inline double& z ()
+		inline double& z()
 		{	return m_coords[Z];
 		}
 
-		inline const double& z () const
+		inline const double& z() const
 		{	return m_coords[Z];
 		}
-
-		vertex&			operator+=	(const vertex& other);
-		vertex			operator+	(const vertex& other) const;
-		vertex			operator/	(const double d) const;
-		vertex&			operator/=	(const double d);
-		bool			operator==	(const vertex& other) const;
-		bool			operator!=	(const vertex& other) const;
-		vertex			operator-	() const;
-		int				operator<	(const vertex& other) const;
-		double&			operator[]	(const Axis ax);
-		const double&	operator[]	(const Axis ax) const;
-		double&			operator[]	(const int ax);
-		const double&	operator[]	(const int ax) const;
 
 	private:
 		double m_coords[3];

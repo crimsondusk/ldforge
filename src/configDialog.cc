@@ -55,6 +55,7 @@ extern_cfg (String, net_downloadpath);
 extern_cfg (Bool, net_guesspaths);
 extern_cfg (Bool, net_autoclose);
 extern_cfg (Bool, gl_logostuds);
+extern_cfg (Bool,	gl_linelengths);
 extern_cfg (String, ld_defaultname);
 extern_cfg (String, ld_defaultuser);
 extern_cfg (Int, ld_defaultlicense);
@@ -107,6 +108,7 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->m_aa->setChecked (gl_aa);
 	ui->implicitFiles->setChecked (gui_implicitfiles);
 	ui->m_logostuds->setChecked (gl_logostuds);
+	ui->linelengths->setChecked (gl_linelengths);
 
 	int i = 0;
 #define act(N) addShortcut (key_##N, ACTION(N), i);
@@ -305,6 +307,7 @@ void ConfigDialog::applySettings()
 	net_guesspaths = ui->guessNetPaths->isChecked();
 	net_autoclose = ui->autoCloseNetPrompt->isChecked();
 	gl_logostuds = ui->m_logostuds->isChecked();
+	gl_linelengths = ui->linelengths->isChecked();
 	ld_defaultuser = ui->m_profileUsername->text();
 	ld_defaultname = ui->m_profileName->text();
 	ld_defaultlicense = ui->m_profileLicense->currentIndex();
