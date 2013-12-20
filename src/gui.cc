@@ -327,7 +327,7 @@ void ForgeWindow::buildObjList()
 			case LDObject::Subfile:
 			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->getFileInfo()->getName(), ref->getPosition().stringRep (true));
+				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().stringRep (true));
 
 				for (int i = 0; i < 9; ++i)
 					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");
@@ -354,7 +354,7 @@ void ForgeWindow::buildObjList()
 
 		QListWidgetItem* item = new QListWidgetItem (descr);
 		item->setIcon (getIcon (obj->getTypeName()));
-		
+
 		// Use italic font if hidden
 		if (obj->isHidden())
 		{	QFont font = item->font();

@@ -221,10 +221,13 @@ File* openLDrawFile (str relpath, bool subdirs)
 	relpath.replace ("\\", "/");
 #endif // WIN32
 
-	if (getCurrentDocument())
-	{	// First, try find the file in the current model's file path. We want a file
-		// in the immediate vicinity of the current model to override stock LDraw stuff.
-		str partpath = fmt ("%1" DIRSLASH "%2", dirname (getCurrentDocument()->getName()), relpath);
+	// Try find it relative to other currently open documents. We want a file
+	// in the immediate vicinity of a current model to override stock LDraw stuff.
+	for (LDDocument* doc : g_loadedFiles)
+	{	if (doc->getFullPath().isEmpty())
+			continue;
+
+		str partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
 
 		if (f->open (partpath, File::Read))
 			return f;
@@ -423,8 +426,10 @@ LDDocument* openDocument (str path, bool search)
 		return null;
 
 	LDDocument* load = new LDDocument;
-	load->setFullPath (path);
-	load->setName (LDDocument::shortenName (path));
+	load->setFullPath (f->getPath());
+	load->setName (LDDocument::shortenName (load->getFullPath()));
+	dlog ("name: %1 (%2)", load->getName(), load->getFullPath());
+	g_loadedFiles << load;
 
 	// Don't take the file loading as actual edits to the file
 	load->getHistory()->setIgnoring (true);
@@ -432,18 +437,15 @@ LDDocument* openDocument (str path, bool search)
 	int numWarnings;
 	bool ok;
 	QList<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
+	delete f;
 
 	if (!ok)
-	{	delete f;
+	{	g_loadedFiles.removeOne (load);
 		delete load;
 		return null;
 	}
 
-	for (LDObject* obj : objs)
-		load->addObject (obj);
-
-	delete f;
-	g_loadedFiles << load;
+	load->addObjects (objs);
 
 	if (g_loadingMainFile)
 	{	LDDocument::setCurrent (load);
@@ -891,7 +893,7 @@ void reloadAllSubfiles()
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDError (ref->raw(), "Could not open referred file"));
+				ref->replace (new LDError (ref->raw(), fmt ("Could not open %1", ref->getFileInfo()->getName())));
 		}
 
 		// Reparse gibberish files. It could be that they are invalid because

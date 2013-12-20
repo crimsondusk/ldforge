@@ -287,10 +287,13 @@ class File
 		bool         operator!() const;
 		operator bool() const;
 
+		inline str getPath() const { return m_path; }
+
 	private:
-		QFile*       m_file;
-		QTextStream* m_textstream;
-		iterator     m_endIterator;
+		QFile*			m_file;
+		QTextStream*	m_textstream;
+		iterator			m_endIterator;
+		str				m_path;
 };
 
 // =============================================================================

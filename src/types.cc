@@ -346,6 +346,7 @@ File::File()
 
 File::File (str path, OpenType rtype)
 {	m_file = null;
+	m_path = path;
 	open (path, rtype);
 }
 
@@ -393,6 +394,7 @@ bool File::open (str path, OpenType rtype, FILE* fp)
 
 	if (result)
 	{	m_textstream = new QTextStream (m_file);
+		m_path = path;
 		return true;
 	}
 
