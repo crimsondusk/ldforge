@@ -37,11 +37,12 @@
 #include "widgets.h"
 #include "colors.h"
 
-extern_cfg (Bool, gl_wireframe);
-extern_cfg (Bool, gl_colorbfc);
-extern_cfg (String, ld_defaultname);
-extern_cfg (String, ld_defaultuser);
-extern_cfg (Int, ld_defaultlicense);
+extern_cfg (Bool,		gl_wireframe);
+extern_cfg (Bool,		gl_colorbfc);
+extern_cfg (String,	ld_defaultname);
+extern_cfg (String,	ld_defaultuser);
+extern_cfg (Int,		ld_defaultlicense);
+extern_cfg (Bool,		gl_drawangles);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -483,7 +484,7 @@ DEFINE_ACTION (VisibilityToggle, 0)
 DEFINE_ACTION (VisibilityHide, 0)
 {	for (LDObject* obj : selection())
 		obj->setHidden (true);
-	
+
 	g_win->refresh();
 }
 
@@ -492,7 +493,6 @@ DEFINE_ACTION (VisibilityHide, 0)
 DEFINE_ACTION (VisibilityReveal, 0)
 {	for (LDObject* obj : selection())
 	obj->setHidden (false);
-	
 	g_win->refresh();
 }
 
@@ -537,6 +537,13 @@ DEFINE_ACTION (ModeDraw, CTRL (2))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeCircle, CTRL (3))
 {	g_win->R()->setEditMode (ECircleMode);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (DrawAngles, 0)
+{	gl_drawangles = !gl_drawangles;
+	g_win->R()->refresh();
 }
 
 // =============================================================================

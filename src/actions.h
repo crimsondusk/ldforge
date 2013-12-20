@@ -109,5 +109,6 @@ act (RotationPoint)
 act (AddHistoryLine)
 act (JumpTo)
 act (SubfileSelection)
+act (DrawAngles)
 
 #undef act

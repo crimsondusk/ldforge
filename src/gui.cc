@@ -55,12 +55,13 @@ static bool g_isSelectionLocked = false;
 cfg (Bool, lv_colorize, true);
 cfg (String, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
 cfg (Bool, gui_implicitfiles, false);
-extern_cfg (List, io_recentfiles);
-extern_cfg (Bool, gl_axes);
-extern_cfg (String, gl_maincolor);
-extern_cfg (Float, gl_maincolor_alpha);
-extern_cfg (Bool, gl_wireframe);
-extern_cfg (Bool, gl_colorbfc);
+extern_cfg (List,		io_recentfiles);
+extern_cfg (Bool,		gl_axes);
+extern_cfg (String,	gl_maincolor);
+extern_cfg (Float,	gl_maincolor_alpha);
+extern_cfg (Bool,		gl_wireframe);
+extern_cfg (Bool,		gl_colorbfc);
+extern_cfg (Bool,		gl_drawangles);
 
 #define act(N) extern_cfg (KeySequence, key_##N);
 #include "actions.h"
@@ -929,6 +930,7 @@ void ForgeWindow::updateActions()
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
 	ui->actionAxes->setChecked (gl_axes);
 	ui->actionBFCView->setChecked (gl_colorbfc);
+	ui->actionDrawAngles->setChecked (gl_drawangles);
 }
 
 QImage imageFromScreencap (uchar* data, int w, int h)

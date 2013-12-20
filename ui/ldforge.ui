@@ -116,6 +116,7 @@
     <addaction name="actionAxes"/>
     <addaction name="actionWireframe"/>
     <addaction name="actionBFCView"/>
+    <addaction name="actionDrawAngles"/>
     <addaction name="separator"/>
     <addaction name="actionSetOverlay"/>
     <addaction name="actionClearOverlay"/>
@@ -365,6 +366,7 @@
    <addaction name="actionAxes"/>
    <addaction name="actionWireframe"/>
    <addaction name="actionBFCView"/>
+   <addaction name="actionDrawAngles"/>
   </widget>
   <widget class="QToolBar" name="toolBar_7">
    <property name="windowTitle">
@@ -1343,6 +1345,21 @@
   <action name="actionSubfileSelection">
    <property name="text">
     <string>Subfile Selection</string>
+   </property>
+  </action>
+  <action name="actionDrawAngles">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../ldforge.qrc">
+     <normaloff>:/icons/mode-angle.png</normaloff>:/icons/mode-angle.png</iconset>
+   </property>
+   <property name="text">
+    <string>Draw Angles</string>
+   </property>
+   <property name="toolTip">
+    <string>Draw angle information when drawing lines</string>
    </property>
   </action>
  </widget>

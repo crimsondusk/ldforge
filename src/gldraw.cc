@@ -68,6 +68,7 @@ cfg (Bool,		gl_wireframe,			false);
 cfg (Bool,		gl_logostuds,			false);
 cfg (Bool,		gl_aa,					true);
 cfg (Bool,		gl_linelengths,		true);
+cfg (Bool,		gl_drawangles,			false);
 
 // argh
 const char* g_CameraNames[7] =
@@ -582,43 +583,41 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		linepen.setWidth (2);
 		linepen.setColor (luma (m_bgcolor) < 40 ? Qt::white : Qt::black);
 
-		// If we're drawing, draw the vertices onto the screen.
+		// Mode-specific rendering
 		if (getEditMode() == EDrawMode)
-		{	int numverts = 4;
+		{	QPoint poly[4];
+			vertex poly3d[4];
+			int numverts = 4;
 
+			// Calculate polygon data
 			if (!m_rectdraw)
-				numverts = m_drawedVerts.size() + 1;
+			{	numverts = m_drawedVerts.size() + 1;
+				int i = 0;
+
+				for (vertex& vert : m_drawedVerts)
+					poly3d[i++] = vert;
+
+				// Draw the cursor vertex as the last one in the list.
+				if (numverts <= 4)
+					poly3d[i] = m_hoverpos;
+				else
+					numverts = 4;
+			}
+			else
+			{	// Get vertex information from m_rectverts
+				if (m_drawedVerts.size() > 0)
+					for (int i = 0; i < numverts; ++i)
+						poly3d[i] = m_rectverts[i];
+				else
+					poly3d[0] = m_hoverpos;
+			}
+
+			// Convert to 2D
+			for (int i = 0; i < numverts; ++i)
+				poly[i] = coordconv3_2 (poly3d[i]);
 
 			if (numverts > 0)
-			{	QPoint poly[4];
-				vertex poly3d[4];
-
-				if (!m_rectdraw)
-				{	int i = 0;
-
-					for (vertex& vert : m_drawedVerts)
-						poly3d[i++] = vert;
-
-					// Draw the cursor vertex as the last one in the list.
-					if (numverts <= 4)
-						poly3d[i] = m_hoverpos;
-					else
-						numverts = 4;
-				}
-				else
-				{	// Get vertex information from m_rectverts
-					if (m_drawedVerts.size() > 0)
-						for (int i = 0; i < numverts; ++i)
-							poly3d[i] = m_rectverts[i];
-					else
-						poly3d[0] = m_hoverpos;
-				}
-
-				// convert to 2d
-				for (int i = 0; i < numverts; ++i)
-					poly[i] = coordconv3_2 (poly3d[i]);
-
-				// Draw the polygon-to-be
+			{	// Draw the polygon-to-be
 				paint.setPen (linepen);
 				paint.setBrush (polybrush);
 				paint.drawPolygon (poly, numverts);
@@ -632,15 +631,30 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					paint.drawText (blip.x(), blip.y() - 8, poly3d[i].stringRep (true));
 				}
 
-				// Draw line lengths
-				if (numverts >= 2 && gl_linelengths)
+				// Draw line lenghts and angle info if appropriate
+				if (numverts >= 2)
 				{	int numlines = (m_drawedVerts.size() == 1) ? 1 : m_drawedVerts.size() + 1;
+					paint.setPen (textpen);
 
 					for (int i = 0; i < numlines; ++i)
 					{	const int j = (i + 1 < numverts) ? i + 1 : 0;
-						const str label = str::number (poly3d[i].distanceTo (poly3d[j]));
-						paint.setPen (textpen);
-						paint.drawText (QLineF (poly[i], poly[j]).pointAt (0.5), label);
+						const int h = (i - 1 >= 0) ? i - 1 : numverts - 1;
+
+						if (gl_linelengths)
+						{	const str label = str::number (poly3d[i].distanceTo (poly3d[j]));
+							QPoint origin = QLineF (poly[i], poly[j]).pointAt (0.5).toPoint();
+							paint.drawText (origin, label);
+						}
+
+						if (gl_drawangles)
+						{	QLineF l0 (poly[h], poly[i]),
+								l1 (poly[i], poly[j]);
+							double angle = l0.angleTo (l1);
+							str label = str::number (angle) + str::fromUtf8 (QByteArray ("\302\260"));
+							QPoint pos = poly[i];
+							pos.setY (pos.y() + metrics.height());
+							paint.drawText (pos, label);
+						}
 					}
 				}
 			}
@@ -941,7 +955,7 @@ void GLRenderer::clampAngle (double& angle) const
 // -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos)
 {	// If we picked an already-existing vertex, stop drawing
-	if (getEditMode() != ECircleMode)
+	if (getEditMode() == EDrawMode)
 	{	for (vertex& vert : m_drawedVerts)
 		{	if (vert == pos)
 			{	endDraw (true);
@@ -1177,8 +1191,7 @@ void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::pick (int mouseX, int mouseY)
-{	GLint viewport[4];
-	makeCurrent();
+{	makeCurrent();
 
 	// Use particularly thick lines while picking ease up selecting lines.
 	glLineWidth (max<double> (gl_linethickness, 6.5f));
@@ -1197,10 +1210,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Paint the picking scene
 	glDisable (GL_DITHER);
 	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
-
 	drawGLScene();
-
-	glGetIntegerv (GL_VIEWPORT, viewport);
 
 	int x0 = mouseX,
 		  y0 = mouseY;
@@ -1229,7 +1239,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	y0 = max (0, y0);
 	x1 = min (x1, m_width);
 	y1 = min (y1, m_height);
-
 	const int areawidth = (x1 - x0);
 	const int areaheight = (y1 - y0);
 	const qint32 numpixels = areawidth * areaheight;
@@ -1238,10 +1247,8 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	uchar* const pixeldata = new uchar[4 * numpixels];
 	uchar* pixelptr = &pixeldata[0];
 
-	assert (viewport[3] == m_height);
-
 	// Read pixels from the color buffer.
-	glReadPixels (x0, viewport[3] - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
+	glReadPixels (x0, m_height - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
 
 	LDObject* removedObj = null;
 
