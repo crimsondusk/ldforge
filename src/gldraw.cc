@@ -649,7 +649,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 						if (gl_drawangles)
 						{	QLineF l0 (poly[h], poly[i]),
 								l1 (poly[i], poly[j]);
-							double angle = l0.angleTo (l1);
+							double angle = 180 - l0.angleTo (l1);
 							str label = str::number (angle) + str::fromUtf8 (QByteArray ("\302\260"));
 							QPoint pos = poly[i];
 							pos.setY (pos.y() + metrics.height());
