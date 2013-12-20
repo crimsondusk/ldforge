@@ -41,7 +41,7 @@ extern_cfg (String, net_downloadpath);
 extern_cfg (Bool, gl_logostuds);
 
 static bool g_loadingMainFile = false;
-static const int g_MaxRecentFiles = 5;
+static const int g_maxRecentFiles = 10;
 static bool g_aborted = false;
 static LDDocument* g_logoedStud = null;
 static LDDocument* g_logoedStud2 = null;
@@ -546,7 +546,7 @@ void addRecentFile (str path)
 	}
 
 	// If there's too many recent files, drop one out.
-	while (rfiles.size() > (g_MaxRecentFiles - 1))
+	while (rfiles.size() > (g_maxRecentFiles - 1))
 		rfiles.removeAt (0);
 
 	// Add the file

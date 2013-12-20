@@ -36,6 +36,7 @@
 - Added support for logoed studs, this should satisfy Steffen. :p
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
+- Increased the amount of recent file slots from 5 to 10.
 - The viewport now uses 7 sets of rotation/pan/zoom values, one for each camera. Changing these values
 	in one camera no longer affects other cameras.
 - When an external program is attempted to be used without a binary path defined, one will be asked
