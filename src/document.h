@@ -57,6 +57,7 @@ class LDDocument : public QObject
 		PROPERTY (private,	History*,			History,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,		str,					Name,				STR_OPS,		STOCK_WRITE)
+		PROPERTY (public,		str,					FullPath,		STR_OPS,		STOCK_WRITE)
 		PROPERTY (public,		str,					DefaultName,	STR_OPS,		STOCK_WRITE)
 		PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
@@ -72,7 +73,7 @@ class LDDocument : public QObject
 		void addObjects (const QList<LDObject*> objs);
 		void clearSelection();
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
-		str getShortName();
+		str getDisplayName();
 		const QList<LDObject*>& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document.have unsaved changes?
 		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
@@ -114,6 +115,9 @@ class LDDocument : public QObject
 		static void setCurrent (LDDocument* f);
 		static void closeInitialFile();
 		static int countExplicitFiles();
+
+		// Turns a full path into a relative path
+		static str shortenName (str a);
 
 	protected:
 		void addToSelection (LDObject* obj);

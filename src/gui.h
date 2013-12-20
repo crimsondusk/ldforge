@@ -112,7 +112,7 @@ class ForgeWindow : public QMainWindow
 		void deleteObjects (QList<LDObject*> objs);
 		int deleteSelection();
 		void deleteByColor (const int colnum);
-		void save (LDDocument* f, bool saveAs);
+		bool save (LDDocument* f, bool saveAs);
 		void updateActions();
 
 		inline GLRenderer* R()

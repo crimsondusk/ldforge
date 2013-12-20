@@ -15,6 +15,7 @@
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
 	- Added support for multiple spaces before the ring number.
+- Added an action for quickly subfiling the group of selected objects.
 - Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix.
 	Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234.
 	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.

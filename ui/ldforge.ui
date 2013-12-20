@@ -70,7 +70,7 @@
      <x>0</x>
      <y>0</y>
      <width>1010</width>
-     <height>25</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -1338,6 +1338,11 @@
    </property>
    <property name="toolTip">
     <string>Reveals objects. Undoes hiding.</string>
+   </property>
+  </action>
+  <action name="actionSubfileSelection">
+   <property name="text">
+    <string>Subfile Selection</string>
    </property>
   </action>
  </widget>

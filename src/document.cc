@@ -174,7 +174,7 @@ LDDocument::~LDDocument()
 // -----------------------------------------------------------------------------
 LDDocument* findDocument (str name)
 {	for (LDDocument * file : g_loadedFiles)
-		if (!file->getName().isEmpty() && file->getShortName() == name)
+		if (!file->getName().isEmpty() && file->getDisplayName() == name)
 			return file;
 
 	return null;
@@ -189,10 +189,8 @@ str dirname (str path)
 		return path.left (lastpos);
 
 #ifndef _WIN32
-
 	if (path[0] == DIRSLASH_CHAR)
 		return DIRSLASH;
-
 #endif // _WIN32
 
 	return "";
@@ -425,7 +423,8 @@ LDDocument* openDocument (str path, bool search)
 		return null;
 
 	LDDocument* load = new LDDocument;
-	load->setName (path);
+	load->setFullPath (path);
+	load->setName (LDDocument::shortenName (path));
 
 	// Don't take the file loading as actual edits to the file
 	load->getHistory()->setIgnoring (true);
@@ -615,13 +614,7 @@ bool LDDocument::save (str savepath)
 	{	fpathComment = static_cast<LDComment*> (first);
 
 		if (fpathComment->text.left (6) == "Name: ")
-		{	str newname;
-			str dir = basename (dirname (savepath));
-
-			if (dir == "s" || dir == "48")
-				newname = dir + "\\";
-
-			newname += basename (savepath);
+		{	str newname = shortenName (savepath);
 			fpathComment->text = fmt ("Name: %1", newname);
 			g_win->buildObjList();
 		}
@@ -637,7 +630,8 @@ bool LDDocument::save (str savepath)
 
 	// We have successfully saved, update the save position now.
 	setSavePosition (getHistory()->getPosition());
-	setName (savepath);
+	setFullPath (savepath);
+	setName (shortenName (savepath));
 
 	g_win->updateDocumentListItem (this);
 	g_win->updateTitle();
@@ -1074,12 +1068,12 @@ bool LDDocument::hasUnsavedChanges() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDDocument::getShortName()
+str LDDocument::getDisplayName()
 {	if (!getName().isEmpty())
-		return basename (getName());
+		return getName();
 
 	if (!getDefaultName().isEmpty())
-		return getDefaultName();
+		return "[" + getDefaultName() + "]";
 
 	return tr ("<anonymous>");
 }
@@ -1180,7 +1174,7 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->R()->setFile (f);
 		g_win->R()->resetAllAngles();
 		g_win->R()->repaint();
-		log ("Changed file to %1", f->getShortName());
+		log ("Changed file to %1", f->getDisplayName());
 	}
 }
 
@@ -1271,4 +1265,16 @@ void LDDocument::swapObjects (LDObject* one, LDObject* other)
 	m_Objects[b] = one;
 	m_Objects[a] = other;
 	addToHistory (new SwapHistory (one->getID(), other->getID()));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+str LDDocument::shortenName (str a) // [static]
+{	str shortname = basename (a);
+	str topdirname = basename (dirname (a));
+
+	if (topdirname == "s" || topdirname == "48")
+		shortname.prepend (topdirname + "\\");
+
+	return shortname;
 }

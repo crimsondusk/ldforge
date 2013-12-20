@@ -108,5 +108,6 @@ act (RotateZPos)
 act (RotationPoint)
 act (AddHistoryLine)
 act (JumpTo)
+act (SubfileSelection)
 
 #undef act

@@ -35,6 +35,7 @@
 #include "primitives.h"
 #include "ui_newpart.h"
 #include "widgets.h"
+#include "colors.h"
 
 extern_cfg (Bool, gl_wireframe);
 extern_cfg (Bool, gl_colorbfc);
@@ -631,4 +632,163 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 	getCurrentDocument()->clearSelection();
 	obj->select();
 	g_win->updateSelection();
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+DEFINE_ACTION (SubfileSelection, 0)
+{	if (selection().size() == 0)
+		return;
+
+	str			parentpath = getCurrentDocument()->getFullPath();
+
+	// BFC type of the new subfile - it shall inherit the BFC type of the parent document
+	LDBFC::Type	bfctype = LDBFC::NoCertify;
+
+	// Dirname of the new subfile
+	str			subdirname = dirname (parentpath);
+
+	// Title of the new subfile
+	str			subtitle;
+
+	// Comment containing the title of the parent document
+	LDComment*	titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
+
+	// License text for the subfile
+	str			license = getLicenseText (ld_defaultlicense);
+
+	// LDraw code body of the new subfile (i.e. code of the selection)
+	QStringList	code;
+
+	// Full path of the subfile to be
+	str			fullsubname;
+
+	// Where to insert the subfile reference?
+	int			refidx = selection()[0]->getIndex();
+
+	// Determine title of subfile
+	if (titleobj != null)
+		subtitle = "~" + titleobj->text;
+	else
+		subtitle = "~subfile";
+
+	// Remove duplicate tildes
+	while (subtitle[0] == '~' && subtitle[1] == '~')
+		subtitle.remove (0, 1);
+
+	// If this the parent document isn't already in s/, we need to stuff it into
+	// a subdirectory named s/. Ensure it exists!
+	str topdirname = basename (dirname (getCurrentDocument()->getFullPath()));
+	dlog ("topdirname: %1", topdirname);
+
+	if (topdirname != "s")
+	{	str desiredPath = subdirname + "/s";
+		str title = ForgeWindow::tr ("Create subfile directory?");
+		str text = fmt (ForgeWindow::tr ("The directory <b>%1</b> is suggested for "
+			"subfiles. This directory does not exist, create it?"), desiredPath);
+
+		if (QDir (desiredPath).exists() || confirm (title, text))
+		{	subdirname = desiredPath;
+			QDir().mkpath (subdirname);
+		}
+	}
+
+	// Determine the body of the name of the subfile
+	if (!parentpath.isEmpty())
+	{	if (parentpath.endsWith (".dat"))
+			parentpath.chop (4);
+
+		// Remove the s?? suffix if it's there, otherwise we'll get filenames
+		// like s01s01.dat when subfiling subfiles.
+		QRegExp subfilesuffix ("s[0-9][0-9]$");
+		if (subfilesuffix.indexIn (parentpath) != -1)
+			parentpath.chop (subfilesuffix.matchedLength());
+
+		int subidx = 1;
+		str digits;
+		QFile f;
+		str testfname;
+
+		do
+		{	digits.setNum (subidx++);
+
+			// pad it with a zero
+			if (digits.length() == 1)
+				digits.prepend ("0");
+
+			fullsubname = subdirname + "/" + basename (parentpath) + "s" + digits + ".dat";
+		} while (findDocument ("s\\" + basename (fullsubname)) != null || QFile (fullsubname).exists());
+	}
+
+	// Determine the BFC winding type used in the main document - it is to
+	// be carried over to the subfile.
+	for (LDObject* obj : getCurrentDocument()->getObjects())
+	{	LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
+
+		if (!bfc)
+			continue;
+
+		LDBFC::Type a = bfc->type;
+
+		if (a == LDBFC::CertifyCCW || a == LDBFC::CertifyCW || a == LDBFC::NoCertify)
+		{	bfctype = a;
+			break;
+		}
+	}
+
+	// Get the body of the document in LDraw code
+	for (LDObject* obj : selection())
+		code << obj->raw();
+
+	// Create the new subfile document
+	LDDocument* doc = new LDDocument;
+	doc->setImplicit (false);
+	doc->setFullPath (fullsubname);
+	doc->setName (LDDocument::shortenName (fullsubname));
+	doc->addObjects (
+	{	new LDComment (subtitle),
+		new LDComment ("Name: "),
+		new LDComment (fmt ("Author: %1 [%2]", ld_defaultname, ld_defaultuser)),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_Subpart")),
+		(license != "" ? new LDComment (license) : null),
+		new LDEmpty,
+		new LDBFC (bfctype),
+		new LDEmpty,
+	});
+
+	// Add the actual subfile code to the new document
+	for (str line : code)
+	{	LDObject* obj = parseLine (line);
+		doc->addObject (obj);
+	}
+
+	// Try save it
+	if (g_win->save (doc, true))
+	{	// Remove the selection now
+		for (LDObject* obj : selection())
+			obj->deleteSelf();
+
+		// Compile all objects in the new subfile
+		for (LDObject* obj : doc->getObjects())
+			g_win->R()->compileObject (obj);
+
+		g_loadedFiles << doc;
+
+		// Add a reference to the new subfile to where the selection was
+		LDSubfile* ref = new LDSubfile();
+		ref->setColor (maincolor);
+		ref->setFileInfo (doc);
+		ref->setPosition (g_origin);
+		ref->setTransform (g_identity);
+		getCurrentDocument()->insertObj (refidx, ref);
+		g_win->R()->compileObject (ref);
+
+		// Refresh stuff
+		g_win->updateDocumentList();
+		g_win->doFullRefresh();
+	}
+	else
+	{	// Failed to save.
+		delete doc;
+	}
 }

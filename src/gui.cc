@@ -597,6 +597,11 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 	contextMenu->addAction (ui->actionModeDraw);
 	contextMenu->addAction (ui->actionModeCircle);
 
+	if (selection().size() > 0)
+	{	contextMenu->addSeparator();
+		contextMenu->addAction (ui->actionSubfileSelection);
+	}
+
 	if (R()->camera() != GL::EFreeCamera)
 	{	contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSetDrawDepth);
@@ -682,47 +687,54 @@ void ForgeWindow::primitiveLoaderEnd()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::save (LDDocument* f, bool saveAs)
-{	str path = f->getName();
+bool ForgeWindow::save (LDDocument* f, bool saveAs)
+{	str path = f->getFullPath();
 
 	if (saveAs || path.isEmpty())
-	{	path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
-			(f->getName().isEmpty()) ? f->getName() : f->getDefaultName(),
-			tr ("LDraw files (*.dat *.ldr)"));
+	{	str name = f->getDefaultName();
+
+		if (!f->getFullPath().isEmpty()) 
+			name = f->getFullPath();
+		elif (!f->getName().isEmpty())
+			name = f->getName();
+
+		name.replace ("\\", "/");
+		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
+			name, tr ("LDraw files (*.dat *.ldr)"));
 
 		if (path.isEmpty())
 		{	// User didn't give a file name, abort.
-			return;
+			return false;
 		}
 	}
 
 	if (f->save (path))
-	{	f->setName (path);
-
-		if (f == getCurrentDocument())
-			g_win->updateTitle();
+	{	if (f == getCurrentDocument())
+			updateTitle();
 
 		log ("Saved to %1.", path);
 
 		// Add it to recent files
 		addRecentFile (path);
+		return true;
 	}
-	else
-	{	str message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
-		// Tell the user the save failed, and give the option for saving as with it.
-		QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
+	str message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
-		// Add a save-as button
-		QPushButton* saveAsBtn = new QPushButton (tr ("Save As"));
-		saveAsBtn->setIcon (getIcon ("file-save-as"));
-		dlg.addButton (saveAsBtn, QMessageBox::ActionRole);
-		dlg.setDefaultButton (QMessageBox::Close);
-		dlg.exec();
+	// Tell the user the save failed, and give the option for saving as with it.
+	QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
 
-		if (dlg.clickedButton() == saveAsBtn)
-			save (f, true); // yay recursion!
-	}
+	// Add a save-as button
+	QPushButton* saveAsBtn = new QPushButton (tr ("Save As"));
+	saveAsBtn->setIcon (getIcon ("file-save-as"));
+	dlg.addButton (saveAsBtn, QMessageBox::ActionRole);
+	dlg.setDefaultButton (QMessageBox::Close);
+	dlg.exec();
+
+	if (dlg.clickedButton() == saveAsBtn)
+		return save (f, true); // yay recursion!
+
+	return false;
 }
 
 void ForgeWindow::addMessage (str msg)
@@ -823,11 +835,14 @@ Ui_LDForgeUI* ForgeWindow::interface() const
 
 void ForgeWindow::updateDocumentList()
 {	ui->fileList->clear();
+	QStringList names;
 
 	for (LDDocument* f : g_loadedFiles)
 	{	// Don't list implicit files unless explicitly desired.
 		if (f->isImplicit() && !gui_implicitfiles)
+		{	dlog ("Skipped implicit file %1", f->getName());
 			continue;
+		}
 
 		// Add an item to the list for this file and store a pointer to it in
 		// the file, so we can find files by the list item.
@@ -835,8 +850,12 @@ void ForgeWindow::updateDocumentList()
 		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
 		f->setListItem (item);
 
+		names << f->getName();
+
 		updateDocumentListItem (f);
 	}
+
+	dlog ("Document list updated: %1", names);
 }
 
 void ForgeWindow::updateDocumentListItem (LDDocument* f)
@@ -857,7 +876,7 @@ void ForgeWindow::updateDocumentListItem (LDDocument* f)
 	if (f->isImplicit())
 		f->getListItem()->setForeground (QColor (96, 96, 96));
 
-	f->getListItem()->setText (f->getShortName());
+	f->getListItem()->setText (f->getDisplayName());
 
 	// If the document has unsaved changes, draw a little icon next to it to mark that.
 	f->getListItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
