@@ -174,7 +174,7 @@ LDDocument::~LDDocument()
 // -----------------------------------------------------------------------------
 LDDocument* findDocument (str name)
 {	for (LDDocument * file : g_loadedFiles)
-		if (!file->getName().isEmpty() && file->getDisplayName() == name)
+		if (!file->getName().isEmpty() && file->getName() == name)
 			return file;
 
 	return null;

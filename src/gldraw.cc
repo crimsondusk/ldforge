@@ -1256,7 +1256,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 
-		dlog ("idx: %1", idx);
 		LDObject* obj = LDObject::fromID (idx);
 
 		// If this is an additive single pick and the object is currently selected,

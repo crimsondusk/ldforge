@@ -679,7 +679,6 @@ DEFINE_ACTION (SubfileSelection, 0)
 	// If this the parent document isn't already in s/, we need to stuff it into
 	// a subdirectory named s/. Ensure it exists!
 	str topdirname = basename (dirname (getCurrentDocument()->getFullPath()));
-	dlog ("topdirname: %1", topdirname);
 
 	if (topdirname != "s")
 	{	str desiredPath = subdirname + "/s";

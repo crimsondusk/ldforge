@@ -835,27 +835,19 @@ Ui_LDForgeUI* ForgeWindow::interface() const
 
 void ForgeWindow::updateDocumentList()
 {	ui->fileList->clear();
-	QStringList names;
 
 	for (LDDocument* f : g_loadedFiles)
 	{	// Don't list implicit files unless explicitly desired.
 		if (f->isImplicit() && !gui_implicitfiles)
-		{	dlog ("Skipped implicit file %1", f->getName());
 			continue;
-		}
 
 		// Add an item to the list for this file and store a pointer to it in
 		// the file, so we can find files by the list item.
 		ui->fileList->addItem ("");
 		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
 		f->setListItem (item);
-
-		names << f->getName();
-
 		updateDocumentListItem (f);
 	}
-
-	dlog ("Document list updated: %1", names);
 }
 
 void ForgeWindow::updateDocumentListItem (LDDocument* f)
