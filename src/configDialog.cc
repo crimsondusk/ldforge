@@ -218,6 +218,11 @@ void ConfigDialog::initGrids()
 		// Add the widgets
 		for (int j = 0; j < 4; ++j)
 		{	dsb_gridData[i][j] = new QDoubleSpinBox;
+
+			// Set the maximum angle
+			if (j == 3)
+				dsb_gridData[i][j]->setMaximum (360);
+
 			dsb_gridData[i][j]->setValue (g_GridInfo[i].confs[j]->value);
 			gridlayout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
 		}

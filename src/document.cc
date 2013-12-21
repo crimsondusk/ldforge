@@ -223,6 +223,7 @@ File* openLDrawFile (str relpath, bool subdirs)
 
 	// Try find it relative to other currently open documents. We want a file
 	// in the immediate vicinity of a current model to override stock LDraw stuff.
+	str reltop = basename (dirname (relpath));
 	for (LDDocument* doc : g_loadedFiles)
 	{	if (doc->getFullPath().isEmpty())
 			continue;
@@ -230,7 +231,17 @@ File* openLDrawFile (str relpath, bool subdirs)
 		str partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
 
 		if (f->open (partpath, File::Read))
-			return f;
+		{	// ensure we don't mix subfiles and 48-primitives with non-subfiles and non-48
+			str proptop = basename (dirname (partpath));
+
+			bool bogus = (proptop == "s" && reltop != "s") ||
+				(proptop == "48" && reltop != "48") ||
+				(reltop == "s" && proptop != "s") ||
+				(reltop == "48" && proptop != "48");
+
+			if (!bogus)
+				return f;
+		}
 	}
 
 	if (f->open (relpath, File::Read))
