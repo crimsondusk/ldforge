@@ -367,7 +367,7 @@ void LDFileLoader::work (int i)
 		if (isOnForeground())
 			QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection, Q_ARG (int, i));
 		else
-			work (i + 1);
+			work (i);
 	}
 }
 
