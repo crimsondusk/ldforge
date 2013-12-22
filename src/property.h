@@ -94,6 +94,12 @@
 			set##NAME( tmp );											\
 		}																	\
 																			\
+		void removeFrom##NAME( const TYPE::value_type& a )	\
+		{	TYPE tmp( m_##NAME );									\
+			tmp.removeOne( a );										\
+			set##NAME( tmp );											\
+		}																	\
+																			\
 		inline void clear##NAME()									\
 		{	set##NAME( TYPE() );										\
 		}

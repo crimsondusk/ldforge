@@ -21,6 +21,7 @@
 
 #include "main.h"
 #include "types.h"
+#include "misc/documentPointer.h"
 
 #define LDOBJ(T) \
 protected: \
@@ -377,7 +378,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (public,	LDDocument*, FileInfo, NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDDocumentPointer, FileInfo, NO_OPS,	STOCK_WRITE)
 
 	public:
 		enum InlineFlag

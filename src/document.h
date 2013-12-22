@@ -26,6 +26,7 @@
 
 class History;
 class OpenProgressDialog;
+class LDDocumentPointer;
 
 namespace LDPaths
 {	void initPaths();
@@ -62,8 +63,7 @@ class LDDocument : public QObject
 		PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
-		PROPERTY (public,		QListWidgetItem*, ListItem,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	bool,					BeingDeleted,	BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,		QListWidgetItem*,	ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -84,6 +84,9 @@ class LDDocument : public QObject
 		void swapObjects (LDObject* one, LDObject* other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObject* obj);
+		void addReference (LDDocumentPointer* ptr);
+		void removeReference (LDDocumentPointer* ptr);
+		int numReferences() const { return m_refs.size(); }
 
 		inline LDDocument& operator<< (LDObject* obj)
 		{	addObject (obj);
@@ -125,9 +128,10 @@ class LDDocument : public QObject
 		friend class LDObject;
 
 	private:
-		QList<LDObject*>			m_sel;
+		QList<LDObject*>				m_sel;
+		QList<LDDocumentPointer*>	m_refs;
 
-		static LDDocument*		m_curdoc;
+		static LDDocument*			m_curdoc;
 };
 
 inline LDDocument* getCurrentDocument()

@@ -23,8 +23,11 @@
 #include "misc.h"
 #include "gui.h"
 #include "dialogs.h"
+#include "document.h"
 #include "ui_rotpoint.h"
 #include "moc_misc.cpp"
+
+#include "misc/documentPointer.cc"
 
 RingFinder g_RingFinder;
 

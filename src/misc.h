@@ -26,6 +26,7 @@
 
 #define NUM_PRIMES 500
 
+class LDDocument;
 class QColor;
 class QAction;
 

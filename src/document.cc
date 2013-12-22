@@ -14,11 +14,6 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *  =====================================================================
- *
- *  file.cpp: File I/O and management.
- *  - File loading, parsing, manipulation, saving, closing.
- *  - LDraw path verification.
  */
 
 #include <QMessageBox>
@@ -43,8 +38,8 @@ extern_cfg (Bool, gl_logostuds);
 static bool g_loadingMainFile = false;
 static const int g_maxRecentFiles = 10;
 static bool g_aborted = false;
-static LDDocument* g_logoedStud = null;
-static LDDocument* g_logoedStud2 = null;
+static LDDocumentPointer g_logoedStud = null;
+static LDDocumentPointer g_logoedStud2 = null;
 
 LDDocument* LDDocument::m_curdoc = null;
 
@@ -113,8 +108,7 @@ namespace LDPaths
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDDocument::LDDocument()
-{	setBeingDeleted (false);
-	setImplicit (true);
+{	setImplicit (true);
 	setSavePosition (-1);
 	setListItem (null);
 	setHistory (new History);
@@ -128,7 +122,6 @@ LDDocument::~LDDocument()
 	// a ton of other functions will think this file is still valid when it is not!
 	g_loadedFiles.removeOne (this);
 
-	setBeingDeleted (true);
 	m_History->setIgnoring (true);
 
 	// Clear everything from the model
@@ -165,7 +158,6 @@ LDDocument::~LDDocument()
 	elif (this == g_logoedStud2)
 		g_logoedStud2 = null;
 
-	closeUnused();
 	g_win->updateDocumentList();
 	log ("Closed %1", getName());
 }
@@ -912,9 +904,6 @@ void reloadAllSubfiles()
 		if (obj->getType() == LDObject::Error)
 			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
 	}
-
-	// Close all files left unused
-	LDDocument::closeUnused();
 }
 
 // =============================================================================
@@ -999,63 +988,12 @@ void LDDocument::setObject (int idx, LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-static void getFilesUsed (LDDocument* node, QList<LDDocument*>& filesUsed)
-{	filesUsed << node;
-
-	for (LDObject* obj : node->getObjects())
-	{	if (obj->getType() != LDObject::Subfile)
-			continue;
-
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
-		filesUsed << ref->getFileInfo();
-		getFilesUsed (ref->getFileInfo(), filesUsed);
-	}
-}
-
-// =============================================================================
-// Find out which files are unused and close them.
-// -----------------------------------------------------------------------------
-static bool g_closingUnusedFiles = false;
-
-static void reallyCloseUnused()
-{	// Don't go here more than once at a time, otherwise we risk double-deletions
-	if (g_closingUnusedFiles)
-		return;
-
-	QList<LDDocument*> filesUsed;
-	g_closingUnusedFiles = true;
-
-	// Anything that's explicitly opened must not be closed.
-	// Also do not close anything used by anything explicit
-	for (LDDocument* file : g_loadedFiles)
-		if (!file->isImplicit())
-			getFilesUsed (file, filesUsed);
-
-	// Savor the logoed studs if we use them
-	if (gl_logostuds && g_logoedStud && g_logoedStud2)
-	{	getFilesUsed (g_logoedStud, filesUsed);
-		getFilesUsed (g_logoedStud2, filesUsed);
-	}
-
-	// Remove duplicated entries
-	removeDuplicates (filesUsed);
-
-	// Close all open files that aren't in filesUsed
-	for (LDDocument* file : g_loadedFiles)
-		if (!filesUsed.contains (file))
-			delete file;
-
-	g_closingUnusedFiles = false;
-}
-
-// =============================================================================
+// Close all implicit files with no references
 // -----------------------------------------------------------------------------
 void LDDocument::closeUnused()
-{	// Close unused files later on in the event loop. This function sees a lot of
-	// calls, this reduces the amount of unneeded calls and prevents the engine
-	// from beginning to close unused files when it really shouldn't be doing that.
-	invokeLater (reallyCloseUnused);
+{	for (LDDocument* file : g_loadedFiles)
+		if (file->isImplicit() && file->numReferences() == 0)
+			delete file;
 }
 
 // =============================================================================
@@ -1290,4 +1228,19 @@ str LDDocument::shortenName (str a) // [static]
 		shortname.prepend (topdirname + "\\");
 
 	return shortname;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDDocument::addReference (LDDocumentPointer* ptr)
+{	m_refs << ptr;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDDocument::removeReference (LDDocumentPointer* ptr)
+{	m_refs.removeOne (ptr);
+
+	if (m_refs.size() == 0)
+		invokeLater (closeUnused);
 }

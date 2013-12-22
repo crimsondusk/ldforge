@@ -16,7 +16,7 @@ MOC_DIR         = ./build_shared/
 RCC_DIR         = ./build_shared/
 UI_DIR          = ./build_shared/
 SOURCES         = src/*.cc
-HEADERS         = src/*.h
+HEADERS         = src/*.h src/misc/*.h
 FORMS           = ui/*.ui
 QT             += opengl network
 QMAKE_CXXFLAGS += -std=c++0x
