@@ -43,6 +43,8 @@ static LDDocumentPointer g_logoedStud2 = null;
 
 LDDocument* LDDocument::m_curdoc = null;
 
+const QStringList g_specialSubdirectories ({ "s", "48", "8" });
+
 // =============================================================================
 // -----------------------------------------------------------------------------
 namespace LDPaths
@@ -226,10 +228,14 @@ File* openLDrawFile (str relpath, bool subdirs)
 		{	// ensure we don't mix subfiles and 48-primitives with non-subfiles and non-48
 			str proptop = basename (dirname (partpath));
 
-			bool bogus = (proptop == "s" && reltop != "s") ||
-				(proptop == "48" && reltop != "48") ||
-				(reltop == "s" && proptop != "s") ||
-				(reltop == "48" && proptop != "48");
+			bool bogus = false;
+
+			for (str s : g_specialSubdirectories)
+			{	if ((proptop == s && reltop != s) || (reltop == s && proptop != s))
+				{	bogus = true;
+					break;
+				}
+			}
 
 			if (!bogus)
 				return f;
@@ -610,8 +616,7 @@ bool LDDocument::save (str savepath)
 		return false;
 
 	// If the second object in the list holds the file name, update that now.
-	// Only do this if the file is explicitly open. If it's saved into a directory
-	// called "s" or "48", prepend that into the name.
+	// Only do this if the file is explicitly open.
 	LDComment* fpathComment = null;
 	LDObject* first = getObject (1);
 
@@ -1224,7 +1229,7 @@ str LDDocument::shortenName (str a) // [static]
 {	str shortname = basename (a);
 	str topdirname = basename (dirname (a));
 
-	if (topdirname == "s" || topdirname == "48")
+	if (g_specialSubdirectories.contains (topdirname))
 		shortname.prepend (topdirname + "\\");
 
 	return shortname;
