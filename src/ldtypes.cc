@@ -715,7 +715,6 @@ void LDObject::select()
 		return;
 	}
 
-	dlog ("Selected #%1\n", getID());
 	getFile()->addToSelection (this);
 }
 
