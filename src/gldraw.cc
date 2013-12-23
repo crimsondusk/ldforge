@@ -312,7 +312,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		}
 
 		if (obj->getColor() == edgecolor)
-		{	qcol = luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
+		{	qcol = (m_darkbg == false) ? Qt::black : Qt::white;
 			LDColor* col;
 
 			if (!gl_blackedges && obj->getParent() && (col = getColor (obj->getParent()->getColor())))
