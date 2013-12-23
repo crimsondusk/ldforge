@@ -44,6 +44,8 @@
 - When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
 	path now as well if necessary instead of just ignoring it and not adding the edgelines.
 - Added a configuration option for line anti-aliasing.
+- Added a configurable selected color to blend to objects when they are selected, instead of a simple
+	light-up. Defaults to a blue color.
 - BFC red/green view and black edges no longer default to true.
 - When the background is dark, the "black edges" option actually means "white edges" now.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for

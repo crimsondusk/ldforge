@@ -80,6 +80,7 @@ class ConfigDialog : public QDialog
 	private slots:
 		void slot_setGLBackground();
 		void slot_setGLForeground();
+		void slot_setGLSelectColor();
 		void slot_setShortcut();
 		void slot_resetShortcut();
 		void slot_clearShortcut();

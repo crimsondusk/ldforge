@@ -59,6 +59,7 @@ extern_cfg (Bool,	gl_linelengths);
 extern_cfg (String, ld_defaultname);
 extern_cfg (String, ld_defaultuser);
 extern_cfg (Int, ld_defaultlicense);
+extern_cfg (String, gl_selectcolor);
 extern_cfg (String, prog_ytruder);
 extern_cfg (String, prog_rectifier);
 extern_cfg (String, prog_intersector);
@@ -96,6 +97,10 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	setButtonBackground (ui->mainColorButton, gl_maincolor);
 	connect (ui->mainColorButton, SIGNAL (clicked()),
 			 this, SLOT (slot_setGLForeground()));
+
+	setButtonBackground (ui->selColorButton, gl_selectcolor);
+	connect (ui->selColorButton, SIGNAL (clicked()),
+			 this, SLOT (slot_setGLSelectColor()));
 
 	ui->mainColorAlpha->setValue (gl_maincolor_alpha * 10.0f);
 	ui->lineThickness->setValue (gl_linethickness);
@@ -529,6 +534,12 @@ void ConfigDialog::slot_setGLBackground()
 // -----------------------------------------------------------------------------
 void ConfigDialog::slot_setGLForeground()
 {	pickColor (gl_maincolor, ui->mainColorButton);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void ConfigDialog::slot_setGLSelectColor()
+{	pickColor (gl_selectcolor, ui->selColorButton);
 }
 
 // =============================================================================

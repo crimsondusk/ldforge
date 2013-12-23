@@ -59,6 +59,7 @@ static const matrix g_circleDrawTransforms[3] =
 cfg (String,	gl_bgcolor,				"#FFFFFF")
 cfg (String,	gl_maincolor,			"#A0A0A0")
 cfg (Float,		gl_maincolor_alpha,	1.0)
+cfg (String,	gl_selectcolor,		"#0080FF")
 cfg (Int,		gl_linethickness,		2)
 cfg (Bool,		gl_colorbfc,			false)
 cfg (Int,		gl_camera,				GLRenderer::EFreeCamera)
@@ -336,18 +337,17 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		}
 	}
 
-	long r = qcol.red(),
+	int r = qcol.red(),
 		 g = qcol.green(),
 		 b = qcol.blue(),
 		 a = qcol.alpha();
 
 	if (obj->topLevelParent()->isSelected())
 	{	// Brighten it up for the select list.
-		const uchar add = 51;
-
-		r = min (r + add, 255l);
-		g = min (g + add, 255l);
-		b = min (b + add, 255l);
+		QColor selcolor (gl_selectcolor);
+		r = (r + selcolor.red()) / 2;
+		g = (g + selcolor.green()) / 2;
+		b = (b + selcolor.blue()) / 2;
 	}
 
 	glColor4f (
