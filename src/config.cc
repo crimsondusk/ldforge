@@ -38,8 +38,10 @@
 # define EXTENSION ".cfg"
 #endif // _WIN32
 
-Config* g_configPointers[MAX_CONFIG];
-static int g_cfgPointerCursor = 0;
+Config*							g_configPointers[MAX_CONFIG];
+static int						g_cfgPointerCursor = 0;
+static QMap<str, Config*>	g_configsByName;
+static QList<Config*>		g_configs;
 
 // =============================================================================
 // Get the QSettings object.
@@ -48,8 +50,8 @@ static QSettings* getSettingsObject()
 {	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
 }
 
-Config::Config (const char* name, const char* defstring) :
-	name (name), m_defstring (defstring) {}
+Config::Config (str name) :
+	m_Name (name) {}
 
 // =============================================================================
 // Load the configuration from file
@@ -62,8 +64,10 @@ bool Config::load()
 	{	if (!cfg)
 			break;
 
-		QVariant val = settings->value (cfg->name, cfg->defaultVariant());
+		QVariant val = settings->value (cfg->getName(), cfg->getDefaultAsVariant());
 		cfg->loadFromVariant (val);
+		g_configsByName[cfg->getName()] = cfg;
+		g_configs << cfg;
 	}
 
 	settings->deleteLater();
@@ -77,15 +81,9 @@ bool Config::save()
 {	QSettings* settings = getSettingsObject();
 	log ("Saving configuration to %1...\n", settings->fileName());
 
-	for (Config* cfg : g_configPointers)
-	{	if (!cfg)
-			break;
-
-		if (cfg->isDefault())
-			continue;
-
-		settings->setValue (cfg->name, cfg->toVariant());
-	}
+	for (Config* cfg : g_configs)
+		if (!cfg->isDefault())
+			settings->setValue (cfg->getName(), cfg->toVariant());
 
 	settings->sync();
 	settings->deleteLater();
@@ -93,15 +91,11 @@ bool Config::save()
 }
 
 // =============================================================================
-// Reset configuration defaults.
+// Reset configuration to defaults.
 // -----------------------------------------------------------------------------
 void Config::reset()
-{	for (Config * cfg : g_configPointers)
-	{	if (!cfg)
-			break;
-
+{	for (Config* cfg : g_configs)
 		cfg->resetValue();
-	}
 }
 
 // =============================================================================
@@ -122,7 +116,7 @@ str Config::dirpath()
 // =============================================================================
 // We cannot just add config objects to a list or vector because that would rely
 // on the vector's c-tor being called before the configs' c-tors. With global
-// variables we cannot assume that!! Therefore we need to use a C-style array here.
+// variables we cannot assume that, therefore we need to use a C-style array here.
 // -----------------------------------------------------------------------------
 void Config::addToArray (Config* ptr)
 {	if (g_cfgPointerCursor == 0)
@@ -134,28 +128,29 @@ void Config::addToArray (Config* ptr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-template<class T> T& getConfigByName (str name, Config::Type type)
-{	for (Config* cfg : g_configPointers)
-	{	if (!cfg)
-			break;
+template<class T> T* getConfigByName (str name, Config::Type type)
+{	auto it = g_configsByName.find (name);
 
-		if (cfg->name == name)
-		{	if (cfg->getType() == type)
-				return *reinterpret_cast<T*> (cfg);
-			else
-			{	fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
-				abort();
-			}
-		}
+	if (it == g_configsByName.end())
+		return null;
+
+	Config* cfg = it.value();
+
+	if (cfg->getType() != type)
+	{	fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
+		abort();
 	}
 
-	fprint (stderr, "couldn't find a configuration element with name %1", name);
-	abort();
+	return reinterpret_cast<T*> (cfg);
 }
 
+// =============================================================================
+// -----------------------------------------------------------------------------
 #undef IMPLEMENT_CONFIG
 #define IMPLEMENT_CONFIG(NAME) \
-	NAME##Config& NAME##Config::getByName (str name) { return getConfigByName<NAME##Config> (name, NAME); }
+	NAME##Config* NAME##Config::getByName (str name)		\
+	{	return getConfigByName<NAME##Config> (name, NAME);	\
+	}
 
 IMPLEMENT_CONFIG (Int)
 IMPLEMENT_CONFIG (String)

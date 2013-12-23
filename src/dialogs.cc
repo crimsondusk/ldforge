@@ -324,7 +324,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AboutDialog::slot_mail()
-{	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <slatenails64@gmail.com>?subject=LDForge"));
+{	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge"));
 }
 
 // =============================================================================

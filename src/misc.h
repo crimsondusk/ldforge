@@ -46,7 +46,7 @@ str join (initlist<StringFormatArg> vals, str delim = " ");
 // Grid stuff
 struct gridinfo
 {	const char* const name;
-	FloatConfig* const confs[4];
+	float* const confs[4];
 };
 
 extern_cfg (Int, grid);

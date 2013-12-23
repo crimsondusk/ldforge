@@ -26,10 +26,6 @@
 #include "main.h"
 
 class LDObject;
-
-class StringConfig;
-class IntConfig;
-class FloatConfig;
 class QFile;
 class QTextStream;
 
@@ -204,9 +200,6 @@ class StringFormatArg
 		StringFormatArg (const vertex& v);
 		StringFormatArg (const matrix& v);
 		StringFormatArg (const char* v);
-		StringFormatArg (const StringConfig& v);
-		StringFormatArg (const IntConfig& v);
-		StringFormatArg (const FloatConfig& v);
 		StringFormatArg (const void* v);
 
 		template<class T> StringFormatArg (const QList<T>& v)

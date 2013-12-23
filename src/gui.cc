@@ -121,7 +121,7 @@ ForgeWindow::ForgeWindow()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-KeySequenceConfig& ForgeWindow::shortcutForAction (QAction* act)
+KeySequenceConfig* ForgeWindow::shortcutForAction (QAction* act)
 {	str keycfgname = fmt ("key_%1", act->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
@@ -130,8 +130,11 @@ KeySequenceConfig& ForgeWindow::shortcutForAction (QAction* act)
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateActionShortcuts()
 {	for (QAction* act : findChildren<QAction*>())
-		if (!act->objectName().isEmpty())
-			act->setShortcut (shortcutForAction (act));
+	{	KeySequenceConfig* cfg = shortcutForAction (act);
+
+		if (cfg)
+			act->setShortcut (cfg->getValue());
+	}
 }
 
 // =============================================================================
@@ -194,7 +197,7 @@ for (QAction * recent : m_recentFiles)
 QList<LDQuickColor> quickColorsFromConfig()
 {	QList<LDQuickColor> colors;
 
-	for (str colorname : gui_colortoolbar.value.split (":"))
+	for (str colorname : gui_colortoolbar.split (":"))
 	{	if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
 		else
@@ -795,7 +798,7 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 
 	if (colinfo->index == maincolor)
 	{	// Use the user preferences for main color here
-		col = gl_maincolor.value;
+		col = gl_maincolor;
 		col.setAlphaF (gl_maincolor_alpha);
 	}
 

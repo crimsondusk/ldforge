@@ -57,7 +57,7 @@ cfg (String, prog_ytruder, "");
 cfg (String, prog_rectifier, "");
 cfg (String, prog_edger2, "");
 
-StringConfig* const g_extProgPaths[] =
+str* const g_extProgPaths[] =
 {	&prog_isecalc,
 	&prog_intersector,
 	&prog_coverer,
@@ -74,7 +74,7 @@ cfg (Bool, prog_ytruder_wine, false);
 cfg (Bool, prog_rectifier_wine, false);
 cfg (Bool, prog_edger2_wine, false);
 
-BoolConfig* const g_extProgWine[] =
+bool* const g_extProgWine[] =
 {	&prog_isecalc_wine,
 	&prog_intersector_wine,
 	&prog_coverer_wine,
@@ -96,7 +96,7 @@ const char* g_extProgNames[] =
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool checkProgPath (const extprog prog)
-{	alias path = g_extProgPaths[prog]->value;
+{	str& path = *g_extProgPaths[prog];
 
 	if (path.length() > 0)
 		return true;
@@ -119,7 +119,7 @@ static str processErrorString (extprog prog, QProcess& proc)
 		{	str wineblurb;
 
 #ifndef _WIN32
-			if (g_extProgWine[prog])
+			if (*g_extProgWine[prog])
 				wineblurb = "make sure Wine is installed and ";
 #endif
 

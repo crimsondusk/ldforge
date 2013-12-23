@@ -130,7 +130,7 @@ class ForgeWindow : public QMainWindow
 		Ui_LDForgeUI* getInterface() const;
 		void refreshObjectList();
 		void updateActionShortcuts();
-		KeySequenceConfig& shortcutForAction (QAction* act);
+		KeySequenceConfig* shortcutForAction (QAction* act);
 		void endAction();
 
 	public slots:

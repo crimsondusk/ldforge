@@ -101,24 +101,23 @@ static const int32 g_e10[] =
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Grid stuff
-cfg (Int, grid, Grid::Medium);
-
-cfg (Float, grid_coarse_x,			5.0f);
-cfg (Float, grid_coarse_y,			5.0f);
-cfg (Float, grid_coarse_z,			5.0f);
-cfg (Float, grid_coarse_angle,	45.0f);
+cfg (Int,	grid,						Grid::Medium);
+cfg (Float,	grid_coarse_x,			5.0f);
+cfg (Float,	grid_coarse_y,			5.0f);
+cfg (Float,	grid_coarse_z,			5.0f);
+cfg (Float,	grid_coarse_angle,	45.0f);
 cfg (Float, grid_medium_x,			1.0f);
-cfg (Float, grid_medium_y,			1.0f);
-cfg (Float, grid_medium_z,			1.0f);
-cfg (Float, grid_medium_angle,	22.5f);
-cfg (Float, grid_fine_x,			0.1f);
-cfg (Float, grid_fine_y,			0.1f);
-cfg (Float, grid_fine_z,			0.1f);
-cfg (Float, grid_fine_angle,		7.5f);
-cfg (Int, edit_rotpoint, 0);
-cfg (Float, edit_rotpoint_x, 0.0f); // TODO: make a VertexConfig and use it here
-cfg (Float, edit_rotpoint_y, 0.0f);
-cfg (Float, edit_rotpoint_z, 0.0f);
+cfg (Float,	grid_medium_y,			1.0f);
+cfg (Float,	grid_medium_z,			1.0f);
+cfg (Float,	grid_medium_angle,	22.5f);
+cfg (Float,	grid_fine_x,			0.1f);
+cfg (Float,	grid_fine_y,			0.1f);
+cfg (Float,	grid_fine_z,			0.1f);
+cfg (Float,	grid_fine_angle,		7.5f);
+cfg (Int,	edit_rotpoint,			0);
+cfg (Float,	edit_rotpoint_x,		0.0f); // TODO: make a VertexConfig and use it here
+cfg (Float,	edit_rotpoint_y,		0.0f);
+cfg (Float,	edit_rotpoint_z, 		0.0f);
 
 const gridinfo g_GridInfo[3] =
 {	{ "Coarse", { &grid_coarse_x, &grid_coarse_y, &grid_coarse_z, &grid_coarse_angle }},
@@ -130,7 +129,7 @@ const gridinfo g_GridInfo[3] =
 // Snap the given coordinate value on the current grid's given axis.
 // -----------------------------------------------------------------------------
 double Grid::snap (double in, const Grid::Config axis)
-{	const double gridval = currentGrid().confs[axis]->value;
+{	const double gridval = *currentGrid().confs[axis];
 	const long mult = abs (in / gridval);
 	const bool neg = (in < 0);
 	double out = mult * gridval;

@@ -53,7 +53,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 	str authortext = ld_defaultname;
 
-	if (!ld_defaultuser.value.isEmpty())
+	if (!ld_defaultuser.isEmpty())
 		authortext.append (fmt (" [%1]", ld_defaultuser));
 
 	ui.le_author->setText (authortext);

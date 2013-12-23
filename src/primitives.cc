@@ -548,7 +548,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	str author = APPNAME;
 	str license = "";
 
-	if (ld_defaultname.value.isEmpty() == false)
+	if (ld_defaultname.isEmpty() == false)
 	{	license = getLicenseText (ld_defaultlicense);
 		author = fmt ("%1 [%2]", ld_defaultname, ld_defaultuser);
 	}

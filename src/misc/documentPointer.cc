@@ -64,4 +64,6 @@ LDDocumentPointer& LDDocumentPointer::operator= (LDDocument* ptr)
 		setPointer (ptr);
 		addReference();
 	}
+
+	return *this;
 }

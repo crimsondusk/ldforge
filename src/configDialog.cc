@@ -110,8 +110,11 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	int i = 0;
 
 	for (QAction* act : g_win->findChildren<QAction*>())
-		if (!act->objectName().isEmpty())
-			addShortcut (g_win->shortcutForAction (act), act, i);
+	{	KeySequenceConfig* cfg = g_win->shortcutForAction (act);
+
+		if (cfg)
+			addShortcut (*cfg, act, i);
+	}
 
 	ui->shortcutsList->setSortingEnabled (true);
 	ui->shortcutsList->sortItems();
@@ -222,7 +225,7 @@ void ConfigDialog::initGrids()
 			if (j == 3)
 				dsb_gridData[i][j]->setMaximum (360);
 
-			dsb_gridData[i][j]->setValue (g_GridInfo[i].confs[j]->value);
+			dsb_gridData[i][j]->setValue (*g_GridInfo[i].confs[j]);
 			gridlayout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
 		}
 	}
@@ -232,14 +235,15 @@ void ConfigDialog::initGrids()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static const struct LDExtProgInfo
-{	const str name, iconname;
-	StringConfig* const path;
-	mutable QLineEdit* input;
-	mutable QPushButton* setPathButton;
+static struct LDExtProgInfo
+{	const str		name,
+						iconname;
+	str* const		path;
+	QLineEdit*		input;
+	QPushButton*	setPathButton;
 #ifndef _WIN32
-	BoolConfig* const wine;
-	mutable QCheckBox* wineBox;
+	bool* const		wine;
+	QCheckBox*		wineBox;
 #endif // _WIN32
 } g_LDExtProgInfo[] =
 {
@@ -264,14 +268,14 @@ void ConfigDialog::initExtProgs()
 {	QGridLayout* pathsLayout = new QGridLayout;
 	int row = 0;
 
-	for (const LDExtProgInfo& info : g_LDExtProgInfo)
+	for (LDExtProgInfo& info : g_LDExtProgInfo)
 	{	QLabel* icon = new QLabel,
 		*progLabel = new QLabel (info.name);
 		QLineEdit* input = new QLineEdit;
 		QPushButton* setPathButton = new QPushButton;
 
 		icon->setPixmap (getIcon (info.iconname));
-		input->setText (info.path->value);
+		input->setText (*info.path);
 		setPathButton->setIcon (getIcon ("folder"));
 		info.input = input;
 		info.setPathButton = setPathButton;
@@ -324,7 +328,7 @@ void ConfigDialog::applySettings()
 	// Set the grid settings
 	for (int i = 0; i < g_NumGrids; ++i)
 		for (int j = 0; j < 4; ++j)
-			g_GridInfo[i].confs[j]->value = dsb_gridData[i][j]->value();
+			*g_GridInfo[i].confs[j] = dsb_gridData[i][j]->value();
 
 	// Apply key shortcuts
 	g_win->updateActionShortcuts();
@@ -500,15 +504,18 @@ void ConfigDialog::slot_clearColors()
 // =============================================================================
 // Pick a color and set the appropriate configuration option.
 // -----------------------------------------------------------------------------
-void ConfigDialog::pickColor (StringConfig& conf, QPushButton* button)
+void ConfigDialog::pickColor (str& conf, QPushButton* button)
 {	QColor col = QColorDialog::getColor (QColor (conf));
 
 	if (col.isValid())
-	{	uchar r = col.red(),
-				  g = col.green(),
-				  b = col.blue();
-		conf.value.sprintf ("#%.2X%.2X%.2X", r, g, b);
-		setButtonBackground (button, conf.value);
+	{	int r = col.red(),
+			g = col.green(),
+			b = col.blue();
+
+		str colname;
+		colname.sprintf ("#%.2X%.2X%.2X", r, g, b);
+		conf = colname;
+		setButtonBackground (button, colname);
 	}
 }
 
@@ -605,7 +612,7 @@ void ConfigDialog::slot_clearShortcut()
 {	QList<ShortcutListItem*> sel = getShortcutSelection();
 
 	for (ShortcutListItem* item : sel)
-	{	item->getKeyConfig()->value = QKeySequence();
+	{	item->getKeyConfig()->setValue (QKeySequence());
 		setShortcutText (item);
 	}
 }
@@ -646,7 +653,7 @@ void ConfigDialog::slot_findDownloadFolder()
 void ConfigDialog::setShortcutText (ShortcutListItem* item)
 {	QAction* act = item->getAction();
 	str label = act->iconText();
-	str keybind = item->getKeyConfig()->value.toString();
+	str keybind = item->getKeyConfig()->getValue().toString();
 	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
@@ -696,12 +703,12 @@ KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent, Qt::Win
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
-{	KeySequenceDialog dlg (cfg->value, parent);
+{	KeySequenceDialog dlg (cfg->getValue(), parent);
 
 	if (dlg.exec() == false)
 		return false;
 
-	cfg->value = dlg.seq;
+	cfg->setValue (dlg.seq);
 	return true;
 }
 

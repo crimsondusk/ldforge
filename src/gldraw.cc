@@ -56,19 +56,19 @@ static const matrix g_circleDrawTransforms[3] =
 	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
 };
 
-cfg (String,	gl_bgcolor,				"#CCCCD9");
-cfg (String,	gl_maincolor,			"#707078");
-cfg (Float,		gl_maincolor_alpha,	1.0);
-cfg (Int,		gl_linethickness,		2);
-cfg (Bool,		gl_colorbfc,			false);
-cfg (Int,		gl_camera,				GLRenderer::EFreeCamera);
-cfg (Bool,		gl_blackedges,			false);
-cfg (Bool,		gl_axes,					false);
-cfg (Bool,		gl_wireframe,			false);
-cfg (Bool,		gl_logostuds,			false);
-cfg (Bool,		gl_aa,					true);
-cfg (Bool,		gl_linelengths,		true);
-cfg (Bool,		gl_drawangles,			false);
+cfg (String,	gl_bgcolor,				"#FFFFFF")
+cfg (String,	gl_maincolor,			"#A0A0A0")
+cfg (Float,		gl_maincolor_alpha,	1.0)
+cfg (Int,		gl_linethickness,		2)
+cfg (Bool,		gl_colorbfc,			false)
+cfg (Int,		gl_camera,				GLRenderer::EFreeCamera)
+cfg (Bool,		gl_blackedges,			false)
+cfg (Bool,		gl_axes,					false)
+cfg (Bool,		gl_wireframe,			false)
+cfg (Bool,		gl_logostuds,			false)
+cfg (Bool,		gl_aa,					true)
+cfg (Bool,		gl_linelengths,		true)
+cfg (Bool,		gl_drawangles,			false)
 
 // argh
 const char* g_CameraNames[7] =
@@ -108,7 +108,7 @@ static QList<int> g_warnedColors;
 // -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 {	m_Picking = m_rangepick = false;
-	m_camera = (GL::EFixedCamera) gl_camera.value;
+	m_camera = (GL::EFixedCamera) gl_camera;
 	m_drawToolTip = false;
 	m_EditMode = ESelectMode;
 	m_rectdraw = false;

@@ -544,7 +544,7 @@ void newFile()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void addRecentFile (str path)
-{	auto& rfiles = io_recentfiles.value;
+{	auto& rfiles = io_recentfiles;
 	int idx = rfiles.indexOf (path);
 
 	// If this file already is in the list, pop it out.
