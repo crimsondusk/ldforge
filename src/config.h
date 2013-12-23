@@ -98,6 +98,7 @@ class Config
 	virtual QVariant toVariant() const override { return QVariant::fromValue<T> (value); } \
 	virtual QVariant defaultVariant() const override { return QVariant::fromValue<T> (defval); } \
 	virtual void loadFromVariant (const QVariant& val) override { value = val.value<T>(); } \
+	static NAME##Config& getByName (str name);
 
 #define DEFINE_UNARY_OPERATOR(T, OP) \
 	T operator OP() { \

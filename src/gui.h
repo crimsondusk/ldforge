@@ -25,6 +25,7 @@
 #include <QRadioButton>
 #include "config.h"
 #include "ldtypes.h"
+#include "ui_ldforge.h"
 
 class MessageManager;
 class ForgeWindow;
@@ -41,15 +42,13 @@ class Ui_LDForgeUI;
 	bbx_buttons = new QDialogButtonBox (QDialogButtonBox::Ok | QDialogButtonBox::Cancel); \
 	connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept())); \
 	connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject())); \
- 
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define DEFINE_ACTION(NAME, DEFSHORTCUT) \
-	cfg (KeySequence, key_##NAME, DEFSHORTCUT); \
-	void actiondef_##NAME()
-
-#define ACTION(N) g_win->action##N()
+	cfg (KeySequence, key_action##NAME, DEFSHORTCUT); \
+	void ForgeWindow::slot_action##NAME()
 
 // Convenience macros for key sequences.
 #define KEY(N) (Qt::Key_##N)
@@ -91,6 +90,9 @@ class ObjectList : public QListWidget
 class ForgeWindow : public QMainWindow
 {	Q_OBJECT
 
+	typedefs:
+		using ActionMethodType = void (ForgeWindow::*)();
+
 	public:
 		ForgeWindow();
 		void buildObjList();
@@ -125,13 +127,11 @@ class ForgeWindow : public QMainWindow
 
 		void setStatusBarText (str text);
 		void addMessage (str msg);
-		Ui_LDForgeUI* interface() const;
+		Ui_LDForgeUI* getInterface() const;
 		void refreshObjectList();
-		void beginAction (QAction* act);
+		void updateActionShortcuts();
+		KeySequenceConfig& shortcutForAction (QAction* act);
 		void endAction();
-
-#define act(N) QAction* action##N();
-#include "actions.h"
 
 	public slots:
 #if 0
@@ -139,8 +139,102 @@ class ForgeWindow : public QMainWindow
 		void primitiveLoaderUpdate (int prog);
 		void primitiveLoaderEnd();
 #endif // 0
-		void slot_action();
 		void changeCurrentFile();
+		void slot_action();
+		void slot_actionNew();
+		void slot_actionNewFile();
+		void slot_actionOpen();
+		void slot_actionDownloadFrom();
+		void slot_actionSave();
+		void slot_actionSaveAs();
+		void slot_actionSaveAll();
+		void slot_actionClose();
+		void slot_actionCloseAll();
+		void slot_actionInsertFrom();
+		void slot_actionExportTo();
+		void slot_actionSettings();
+		void slot_actionSetLDrawPath();
+		void slot_actionScanPrimitives();
+		void slot_actionExit();
+		void slot_actionResetView();
+		void slot_actionAxes();
+		void slot_actionWireframe();
+		void slot_actionBFCView();
+		void slot_actionSetOverlay();
+		void slot_actionClearOverlay();
+		void slot_actionScreenshot();
+		void slot_actionInsertRaw();
+		void slot_actionNewSubfile();
+		void slot_actionNewLine();
+		void slot_actionNewTriangle();
+		void slot_actionNewQuad();
+		void slot_actionNewCLine();
+		void slot_actionNewComment();
+		void slot_actionNewBFC();
+		void slot_actionNewVertex();
+		void slot_actionUndo();
+		void slot_actionRedo();
+		void slot_actionCut();
+		void slot_actionCopy();
+		void slot_actionPaste();
+		void slot_actionDelete();
+		void slot_actionSelectAll();
+		void slot_actionSelectByColor();
+		void slot_actionSelectByType();
+		void slot_actionModeDraw();
+		void slot_actionModeSelect();
+		void slot_actionModeCircle();
+		void slot_actionSetDrawDepth();
+		void slot_actionSetColor();
+		void slot_actionAutocolor();
+		void slot_actionUncolorize();
+		void slot_actionInline();
+		void slot_actionInlineDeep();
+		void slot_actionInvert();
+		void slot_actionMakePrimitive();
+		void slot_actionSplitQuads();
+		void slot_actionEditRaw();
+		void slot_actionBorders();
+		void slot_actionCornerVerts();
+		void slot_actionRoundCoordinates();
+		void slot_actionVisibilityHide();
+		void slot_actionVisibilityReveal();
+		void slot_actionVisibilityToggle();
+		void slot_actionReplaceCoords();
+		void slot_actionFlip();
+		void slot_actionDemote();
+		void slot_actionYtruder();
+		void slot_actionRectifier();
+		void slot_actionIntersector();
+		void slot_actionIsecalc();
+		void slot_actionCoverer();
+		void slot_actionEdger2();
+		void slot_actionHelp();
+		void slot_actionAbout();
+		void slot_actionAboutQt();
+		void slot_actionGridCoarse();
+		void slot_actionGridMedium();
+		void slot_actionGridFine();
+		void slot_actionEdit();
+		void slot_actionMoveUp();
+		void slot_actionMoveDown();
+		void slot_actionMoveXNeg();
+		void slot_actionMoveXPos();
+		void slot_actionMoveYNeg();
+		void slot_actionMoveYPos();
+		void slot_actionMoveZNeg();
+		void slot_actionMoveZPos();
+		void slot_actionRotateXNeg();
+		void slot_actionRotateXPos();
+		void slot_actionRotateYNeg();
+		void slot_actionRotateYPos();
+		void slot_actionRotateZNeg();
+		void slot_actionRotateZPos();
+		void slot_actionRotationPoint();
+		void slot_actionAddHistoryLine();
+		void slot_actionJumpTo();
+		void slot_actionSubfileSelection();
+		void slot_actionDrawAngles();
 
 	protected:
 		void closeEvent (QCloseEvent* ev);
@@ -156,9 +250,6 @@ class ForgeWindow : public QMainWindow
 		MessageManager* m_msglog;
 		Ui_LDForgeUI* ui;
 
-		void invokeAction (QAction* act, void (*func)());
-
-
 	private slots:
 		void slot_selectionChanged();
 		void slot_recentFile();
@@ -166,10 +257,6 @@ class ForgeWindow : public QMainWindow
 		void slot_lastSecondCleanup();
 		void slot_editObject (QListWidgetItem* listitem);
 };
-
-#define INVOKE_ACTION(N) actiondef_##N();
-#define act(N) void actiondef_##N();
-#include "actions.h"
 
 // -----------------------------------------------------------------------------
 // Pointer to the instance of ForgeWindow.

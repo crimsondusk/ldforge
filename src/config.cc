@@ -138,3 +138,31 @@ void Config::addToArray (Config* ptr)
 	assert (g_cfgPointerCursor < MAX_CONFIG);
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+template<class T> T& getConfigByName (str name, Config::Type type)
+{	for (Config* cfg : g_configPointers)
+	{	if (!cfg)
+			break;
+
+		if (cfg->name == name)
+		{	assert (cfg->getType() == type);
+			return *(reinterpret_cast<T*> (cfg));
+		}
+	}
+
+	qFatal ("couldn't find a configuration element with name %s", name.toLocal8Bit().constData());
+	abort();
+}
+
+#undef IMPLEMENT_CONFIG
+#define IMPLEMENT_CONFIG(NAME) \
+	NAME##Config& NAME##Config::getByName (str name) { return getConfigByName<NAME##Config> (name, NAME); }
+
+IMPLEMENT_CONFIG (Int)
+IMPLEMENT_CONFIG (String)
+IMPLEMENT_CONFIG (Bool)
+IMPLEMENT_CONFIG (Float)
+IMPLEMENT_CONFIG (List)
+IMPLEMENT_CONFIG (KeySequence)

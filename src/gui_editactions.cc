@@ -66,22 +66,22 @@ static int copyToClipboard()
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Cut, CTRL (X))
 {	int num = copyToClipboard();
-	g_win->deleteSelection();
-	log (ForgeWindow::tr ("%1 objects cut"), num);
+	deleteSelection();
+	log (tr ("%1 objects cut"), num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Copy, CTRL (C))
 {	int num = copyToClipboard();
-	log (ForgeWindow::tr ("%1 objects copied"), num);
+	log (tr ("%1 objects copied"), num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Paste, CTRL (V))
 {	const str clipboardText = qApp->clipboard()->text();
-	int idx = g_win->getInsertionPoint();
+	int idx = getInsertionPoint();
 	getCurrentDocument()->clearSelection();
 	int num = 0;
 
@@ -89,20 +89,20 @@ DEFINE_ACTION (Paste, CTRL (V))
 	{	LDObject* pasted = parseLine (line);
 		getCurrentDocument()->insertObj (idx++, pasted);
 		pasted->select();
-		g_win->R()->compileObject (pasted);
+		R()->compileObject (pasted);
 		++num;
 	}
 
-	log (ForgeWindow::tr ("%1 objects pasted"), num);
-	g_win->refresh();
-	g_win->scrollToSelection();
+	log (tr ("%1 objects pasted"), num);
+	refresh();
+	scrollToSelection();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Delete, KEY (Delete))
-{	int num = g_win->deleteSelection();
-	log (ForgeWindow::tr ("%1 objects deleted"), num);
+{	int num = deleteSelection();
+	log (tr ("%1 objects deleted"), num);
 }
 
 // =============================================================================
@@ -178,7 +178,7 @@ DEFINE_ACTION (SplitQuads, 0)
 		getCurrentDocument()->insertObj (index + 1, triangles[1]);
 
 		for (LDTriangle* t : triangles)
-			g_win->R()->compileObject (t);
+			R()->compileObject (t);
 
 		// Delete this quad now, it has been split.
 		obj->deleteSelf();
@@ -187,7 +187,7 @@ DEFINE_ACTION (SplitQuads, 0)
 	}
 
 	log ("%1 quadrilaterals split", num);
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
@@ -220,8 +220,8 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	oldobj->replace (obj);
 
 	// Refresh
-	g_win->R()->compileObject (obj);
-	g_win->refresh();
+	R()->compileObject (obj);
+	refresh();
 }
 
 // =============================================================================
@@ -237,7 +237,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	defcol = g_win->getSelectedColor();
+	defcol = getSelectedColor();
 
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelector::selectColor (colnum, defcol, g_win))
@@ -246,10 +246,10 @@ DEFINE_ACTION (SetColor, KEY (C))
 				continue;
 
 			obj->setColor (colnum);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 
-		g_win->refresh();
+		refresh();
 	}
 }
 
@@ -290,14 +290,14 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 
 			lines[i]->setColor (edgecolor);
 			getCurrentDocument()->insertObj (idx, lines[i]);
-			g_win->R()->compileObject (lines[i]);
+			R()->compileObject (lines[i]);
 		}
 
 		num += numLines;
 	}
 
-	log (ForgeWindow::tr ("Added %1 border lines"), num);
-	g_win->refresh();
+	log (tr ("Added %1 border lines"), num);
+	refresh();
 }
 
 // =============================================================================
@@ -317,13 +317,13 @@ DEFINE_ACTION (CornerVerts, 0)
 			vert->setColor (obj->getColor());
 
 			getCurrentDocument()->insertObj (++idx, vert);
-			g_win->R()->compileObject (vert);
+			R()->compileObject (vert);
 			++num;
 		}
 	}
 
-	log (ForgeWindow::tr ("Added %1 vertices"), num);
-	g_win->refresh();
+	log (tr ("Added %1 vertices"), num);
+	refresh();
 }
 
 // =============================================================================
@@ -403,10 +403,10 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 
 	for (LDObject* obj : sel)
 	{	obj->invert();
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 	}
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
@@ -533,15 +533,15 @@ DEFINE_ACTION (RoundCoordinates, 0)
 					roundToDecimals (v[ax], 3);
 
 				obj->setVertex (i, v);
-				g_win->R()->compileObject (obj);
+				R()->compileObject (obj);
 				num += 3;
 			}
 		}
 	}
 
-	log (ForgeWindow::tr ("Rounded %1 values"), num);
-	g_win->refreshObjectList();
-	g_win->refresh();
+	log (tr ("Rounded %1 values"), num);
+	refreshObjectList();
+	refresh();
 }
 
 // =============================================================================
@@ -559,12 +559,12 @@ DEFINE_ACTION (Uncolorize, 0)
 			col = edgecolor;
 
 		obj->setColor (col);
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 		num++;
 	}
 
-	log (ForgeWindow::tr ("%1 objects uncolored"), num);
-	g_win->refresh();
+	log (tr ("%1 objects uncolored"), num);
+	refresh();
 }
 
 // =============================================================================
@@ -606,12 +606,12 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 			}
 
 			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 	}
 
-	log (ForgeWindow::tr ("Altered %1 values"), num);
-	g_win->refresh();
+	log (tr ("Altered %1 values"), num);
+	refresh();
 }
 
 // =============================================================================
@@ -638,11 +638,11 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 				v[ax] *= -1;
 
 			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 	}
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
@@ -656,12 +656,12 @@ DEFINE_ACTION (Demote, 0)
 			continue;
 
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
-		g_win->R()->compileObject (repl);
+		R()->compileObject (repl);
 		++num;
 	}
 
-	log (ForgeWindow::tr ("Demoted %1 conditional lines"), num);
-	g_win->refresh();
+	log (tr ("Demoted %1 conditional lines"), num);
+	refresh();
 }
 
 // =============================================================================
@@ -683,7 +683,7 @@ DEFINE_ACTION (Autocolor, 0)
 		colnum++;
 
 	if (colnum >= MAX_COLORS)
-	{	log (ForgeWindow::tr ("Cannot auto-color: all colors are in use!"));
+	{	log (tr ("Cannot auto-color: all colors are in use!"));
 		return;
 	}
 
@@ -692,11 +692,11 @@ DEFINE_ACTION (Autocolor, 0)
 			continue;
 
 		obj->setColor (colnum);
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 	}
 
-	log (ForgeWindow::tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
-	g_win->refresh();
+	log (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
+	refresh();
 }
 
 // =============================================================================
@@ -752,6 +752,6 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	if (obj && obj->next() && obj->next()->isScemantic())
 		getCurrentDocument()->insertObj (idx, new LDEmpty);
 
-	g_win->buildObjList();
+	buildObjList();
 	delete ui;
 }

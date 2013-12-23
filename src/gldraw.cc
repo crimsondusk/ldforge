@@ -1526,9 +1526,7 @@ void GLRenderer::endDraw (bool accept)
 	}
 
 	if (objs.size() > 0)
-	{	g_win->beginAction (null);
-
-		for (LDObject* obj : objs)
+	{	for (LDObject* obj : objs)
 		{	getFile()->addObject (obj);
 			compileObject (obj);
 		}
@@ -1901,7 +1899,6 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 	if (selection().isEmpty())
 		return;
 
-	g_win->beginAction (null);
 	LDObject* obj = selection().first();
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 	g_win->endAction();

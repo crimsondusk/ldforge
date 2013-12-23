@@ -127,6 +127,12 @@ QString fullVersionString();
 #define methods
 #define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
 
+#ifndef IN_IDE_PARSER
+#define NORETURN [noreturn]
+#else
+#define NORETURN
+#endif
+
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
 # error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)

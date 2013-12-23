@@ -72,9 +72,6 @@ extern_cfg (Bool, prog_coverer_wine);
 extern_cfg (Bool, prog_isecalc_wine);
 extern_cfg (Bool, prog_edger2_wine);
 
-#define act(N) extern_cfg (KeySequence, key_##N);
-#include "actions.h"
-
 const char* g_extProgPathFilter =
 #ifdef _WIN32
 	"Applications (*.exe)(*.exe);;All files (*.*)(*.*)";
@@ -111,8 +108,10 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->linelengths->setChecked (gl_linelengths);
 
 	int i = 0;
-#define act(N) addShortcut (key_##N, ACTION(N), i);
-#include "actions.h"
+
+	for (QAction* act : g_win->findChildren<QAction*>())
+		if (!act->objectName().isEmpty())
+			addShortcut (g_win->shortcutForAction (act), act, i);
 
 	ui->shortcutsList->setSortingEnabled (true);
 	ui->shortcutsList->sortItems();
@@ -328,8 +327,7 @@ void ConfigDialog::applySettings()
 			g_GridInfo[i].confs[j]->value = dsb_gridData[i][j]->value();
 
 	// Apply key shortcuts
-#define act(N) ACTION(N)->setShortcut (key_##N);
-#include "actions.h"
+	g_win->updateActionShortcuts();
 
 	// Ext program settings
 	for (const LDExtProgInfo& info : g_LDExtProgInfo)

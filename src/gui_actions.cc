@@ -101,7 +101,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		new LDEmpty,
 	});
 
-	g_win->doFullRefresh();
+	doFullRefresh();
 }
 
 // =============================================================================
@@ -124,13 +124,13 @@ DEFINE_ACTION (Open, CTRL (O))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Save, CTRL (S))
-{	g_win->save (getCurrentDocument(), false);
+{	save (getCurrentDocument(), false);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
-{	g_win->save (getCurrentDocument(), true);
+{	save (getCurrentDocument(), true);
 }
 
 // =============================================================================
@@ -140,7 +140,7 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 	{	if (file->isImplicit())
 			continue;
 
-		g_win->save (file, false);
+		save (file, false);
 	}
 }
 
@@ -262,13 +262,13 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 {	for (LDObject* obj : getCurrentDocument()->getObjects())
 		obj->select();
 
-	g_win->updateSelection();
+	updateSelection();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
-{	int colnum = g_win->getSelectedColor();
+{	int colnum = getSelectedColor();
 
 	if (colnum == -1)
 		return; // no consensus on color
@@ -279,7 +279,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 		if (obj->getColor() == colnum)
 			obj->select();
 
-	g_win->updateSelection();
+	updateSelection();
 }
 
 // =============================================================================
@@ -288,7 +288,7 @@ DEFINE_ACTION (SelectByType, 0)
 {	if (selection().isEmpty())
 		return;
 
-	LDObject::Type type = g_win->getUniformSelectedType();
+	LDObject::Type type = getUniformSelectedType();
 
 	if (type == LDObject::Unidentified)
 		return;
@@ -317,38 +317,38 @@ DEFINE_ACTION (SelectByType, 0)
 		obj->select();
 	}
 
-	g_win->updateSelection();
+	updateSelection();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (GridCoarse, 0)
 {	grid = Grid::Coarse;
-	g_win->updateGridToolBar();
+	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridMedium, 0)
 {	grid = Grid::Medium;
-	g_win->updateGridToolBar();
+	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridFine, 0)
 {	grid = Grid::Fine;
-	g_win->updateGridToolBar();
+	updateGridToolBar();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ResetView, CTRL (0))
-{	g_win->R()->resetAngles();
-	g_win->R()->update();
+{	R()->resetAngles();
+	R()->update();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertFrom, 0)
 {	str fname = QFileDialog::getOpenFileName();
-	int idx = g_win->getInsertionPoint();
+	int idx = getInsertionPoint();
 
 	if (!fname.length())
 		return;
@@ -367,13 +367,13 @@ DEFINE_ACTION (InsertFrom, 0)
 	for (LDObject* obj : objs)
 	{	getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 
 		idx++;
 	}
 
-	g_win->refresh();
-	g_win->scrollToSelection();
+	refresh();
+	scrollToSelection();
 }
 
 // =============================================================================
@@ -405,7 +405,7 @@ DEFINE_ACTION (ExportTo, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertRaw, 0)
-{	int idx = g_win->getInsertionPoint();
+{	int idx = getInsertionPoint();
 
 	QDialog* const dlg = new QDialog;
 	QVBoxLayout* const layout = new QVBoxLayout;
@@ -429,12 +429,12 @@ DEFINE_ACTION (InsertRaw, 0)
 
 		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 		idx++;
 	}
 
-	g_win->refresh();
-	g_win->scrollToSelection();
+	refresh();
+	scrollToSelection();
 }
 
 // =============================================================================
@@ -443,7 +443,7 @@ DEFINE_ACTION (Screenshot, 0)
 {	setlocale (LC_ALL, "C");
 
 	int w, h;
-	uchar* imgdata = g_win->R()->getScreencap (w, h);
+	uchar* imgdata = R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
 	str root = basename (getCurrentDocument()->getName());
@@ -466,8 +466,8 @@ DEFINE_ACTION (Screenshot, 0)
 extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0)
 {	gl_axes = !gl_axes;
-	g_win->updateActions();
-	g_win->R()->update();
+	updateActions();
+	R()->update();
 }
 
 // =============================================================================
@@ -476,7 +476,7 @@ DEFINE_ACTION (VisibilityToggle, 0)
 {	for (LDObject* obj : selection())
 		obj->toggleHidden();
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
@@ -485,7 +485,7 @@ DEFINE_ACTION (VisibilityHide, 0)
 {	for (LDObject* obj : selection())
 		obj->setHidden (true);
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
@@ -493,14 +493,14 @@ DEFINE_ACTION (VisibilityHide, 0)
 DEFINE_ACTION (VisibilityReveal, 0)
 {	for (LDObject* obj : selection())
 	obj->setHidden (false);
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Wireframe, 0)
 {	gl_wireframe = !gl_wireframe;
-	g_win->R()->refresh();
+	R()->refresh();
 }
 
 // =============================================================================
@@ -511,54 +511,54 @@ DEFINE_ACTION (SetOverlay,  0)
 	if (!dlg.exec())
 		return;
 
-	g_win->R()->setupOverlay ((GL::EFixedCamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
+	R()->setupOverlay ((GL::EFixedCamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
 		dlg.ofsy(), dlg.lwidth(), dlg.lheight());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ClearOverlay, 0)
-{	g_win->R()->clearOverlay();
+{	R()->clearOverlay();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeSelect, CTRL (1))
-{	g_win->R()->setEditMode (ESelectMode);
+{	R()->setEditMode (ESelectMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeDraw, CTRL (2))
-{	g_win->R()->setEditMode (EDrawMode);
+{	R()->setEditMode (EDrawMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeCircle, CTRL (3))
-{	g_win->R()->setEditMode (ECircleMode);
+{	R()->setEditMode (ECircleMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (DrawAngles, 0)
 {	gl_drawangles = !gl_drawangles;
-	g_win->R()->refresh();
+	R()->refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetDrawDepth, 0)
-{	if (g_win->R()->camera() == GL::EFreeCamera)
+{	if (R()->camera() == GL::EFreeCamera)
 		return;
 
 	bool ok;
 	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
-											fmt ("Depth value for %1 Camera:", g_win->R()->getCameraName()),
-											g_win->R()->getDepthValue(), -10000.0f, 10000.0f, 3, &ok);
+											fmt ("Depth value for %1 Camera:", R()->getCameraName()),
+											R()->getDepthValue(), -10000.0f, 10000.0f, 3, &ok);
 
 	if (ok)
-		g_win->R()->setDepthValue (depth);
+		R()->setDepthValue (depth);
 }
 
 #if 0
@@ -616,8 +616,8 @@ DEFINE_ACTION (ScanPrimitives, 0)
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (BFCView, SHIFT (B))
 {	gl_colorbfc = !gl_colorbfc;
-	g_win->updateActions();
-	g_win->R()->refresh();
+	updateActions();
+	R()->refresh();
 }
 
 // =============================================================================
@@ -638,7 +638,7 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 
 	getCurrentDocument()->clearSelection();
 	obj->select();
-	g_win->updateSelection();
+	updateSelection();
 }
 
 // =============================================================================
@@ -689,8 +689,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	if (topdirname != "s")
 	{	str desiredPath = subdirname + "/s";
-		str title = ForgeWindow::tr ("Create subfile directory?");
-		str text = fmt (ForgeWindow::tr ("The directory <b>%1</b> is suggested for "
+		str title = tr ("Create subfile directory?");
+		str text = fmt (tr ("The directory <b>%1</b> is suggested for "
 			"subfiles. This directory does not exist, create it?"), desiredPath);
 
 		if (QDir (desiredPath).exists() || confirm (title, text))
@@ -769,14 +769,14 @@ DEFINE_ACTION (SubfileSelection, 0)
 	}
 
 	// Try save it
-	if (g_win->save (doc, true))
+	if (save (doc, true))
 	{	// Remove the selection now
 		for (LDObject* obj : selection())
 			obj->deleteSelf();
 
 		// Compile all objects in the new subfile
 		for (LDObject* obj : doc->getObjects())
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 
 		g_loadedFiles << doc;
 
@@ -787,11 +787,11 @@ DEFINE_ACTION (SubfileSelection, 0)
 		ref->setPosition (g_origin);
 		ref->setTransform (g_identity);
 		getCurrentDocument()->insertObj (refidx, ref);
-		g_win->R()->compileObject (ref);
+		R()->compileObject (ref);
 
 		// Refresh stuff
-		g_win->updateDocumentList();
-		g_win->doFullRefresh();
+		updateDocumentList();
+		doFullRefresh();
 	}
 	else
 	{	// Failed to save.

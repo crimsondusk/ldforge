@@ -34,6 +34,7 @@
 #include <QPushButton>
 #include <QCoreApplication>
 #include <QTimer>
+#include <QMetaMethod>
 
 #include "main.h"
 #include "gldraw.h"
@@ -62,9 +63,6 @@ extern_cfg (Float,	gl_maincolor_alpha);
 extern_cfg (Bool,		gl_wireframe);
 extern_cfg (Bool,		gl_colorbfc);
 extern_cfg (Bool,		gl_drawangles);
-
-#define act(N) extern_cfg (KeySequence, key_##N);
-#include "actions.h"
 
 // =============================================================================
 // -----------------------------------------------------------------------------
@@ -109,37 +107,57 @@ ForgeWindow::ForgeWindow()
 	updateRecentFilesMenu();
 	updateToolBars();
 	updateTitle();
+	updateActionShortcuts();
 
 	setMinimumSize (300, 200);
 
 	connect (qApp, SIGNAL (aboutToQuit()), this, SLOT (slot_lastSecondCleanup()));
 
-	// Connect all actions and set shortcuts
-#define act(N) \
-	connect (ui->action##N, SIGNAL (triggered()), this, SLOT (slot_action())); \
-	ui->action##N->setShortcut (key_##N);
-#include "actions.h"
+	// Connect all actions
+	for (QAction* act : findChildren<QAction*>())
+		if (!act->objectName().isEmpty())
+			connect (act, SIGNAL (triggered()), this, SLOT (slot_action()));
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+KeySequenceConfig& ForgeWindow::shortcutForAction (QAction* act)
+{	str keycfgname = fmt ("key_%1", act->objectName());
+	return KeySequenceConfig::getByName (keycfgname);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void ForgeWindow::updateActionShortcuts()
+{	for (QAction* act : findChildren<QAction*>())
+		if (!act->objectName().isEmpty())
+			act->setShortcut (shortcutForAction (act));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_action()
-{	// Find out which action triggered this
-#define act(N) if (sender() == ui->action##N) invokeAction (ui->action##N, &actiondef_##N);
-#include "actions.h"
+{	// Get the name of the sender object and use it to compose the slot name.
+	str methodName = fmt ("slot_%1", sender()->objectName());
+
+#ifdef DEBUG
+	log ("Action %1 triggered", sender()->objectName());
+#endif
+
+	// Now invoke this slot to call the action.
+	QMetaObject::invokeMethod (this, methodName.toAscii().constData(), Qt::DirectConnection);
+	endAction();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void ForgeWindow::invokeAction (QAction* act, void (*func)())
-{
-#ifdef DEBUG
-	log ("Action %1 triggered", act->iconText());
-#endif
+void ForgeWindow::endAction()
+{	// Add a step in the history now.
+	getCurrentDocument()->addHistoryStep();
 
-	beginAction (act);
-	(*func) ();
-	endAction();
+	// Update the list item of the current file - we may need to draw an icon
+	// now that marks it as having unsaved changes.
+	updateDocumentListItem (getCurrentDocument());
 }
 
 // =============================================================================
@@ -442,8 +460,7 @@ void ForgeWindow::slot_recentFile()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_quickColor()
-{	beginAction (null);
-	QToolButton* button = static_cast<QToolButton*> (sender());
+{	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 
 	for (const LDQuickColor & entry : m_quickColors)
@@ -466,8 +483,8 @@ void ForgeWindow::slot_quickColor()
 		R()->compileObject (obj);
 	}
 
-	refresh();
 	endAction();
+	refresh();
 }
 
 // =============================================================================
@@ -827,12 +844,9 @@ void ForgeWindow::setStatusBarText (str text)
 {	statusBar()->showMessage (text);
 }
 
-Ui_LDForgeUI* ForgeWindow::interface() const
+Ui_LDForgeUI* ForgeWindow::getInterface() const
 {	return ui;
 }
-
-#define act(N) QAction* ForgeWindow::action##N() { return ui->action##N; }
-#include "actions.h"
 
 void ForgeWindow::updateDocumentList()
 {	ui->fileList->clear();
@@ -873,17 +887,6 @@ void ForgeWindow::updateDocumentListItem (LDDocument* f)
 
 	// If the document has unsaved changes, draw a little icon next to it to mark that.
 	f->getListItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
-}
-
-void ForgeWindow::beginAction (QAction* act) {}
-
-void ForgeWindow::endAction()
-{	// Close the history now.
-	getCurrentDocument()->addHistoryStep();
-
-	// Update the list item of the current file - we may need to draw an icon
-	// now that marks it as having unsaved changes.
-	updateDocumentListItem (getCurrentDocument());
 }
 
 // =============================================================================
