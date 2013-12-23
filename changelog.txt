@@ -6,9 +6,6 @@
 		- Added close, close all and save all actions.
 - Added ability to download parts from the Parts Tracker or from a custom-specified URL. If the resulting
 	file contains references to unknown files, LDForge attempts to recursively download all of them.
-- Converted the configuration code to use QSettings, in practice this means the configuration file moved to
-	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
-	lost during transition from version 0.2 and 0.3.
 - Added a new editing mode for drawing circles.
 - Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
 - Major corrections to the primitive generator:

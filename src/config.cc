@@ -42,16 +42,10 @@ Config* g_configPointers[MAX_CONFIG];
 static int g_cfgPointerCursor = 0;
 
 // =============================================================================
-// Get the QSettings object. A portable build refers to a file in the current
-// directory, a non-portable build to ~/.config/LDForge or to registry.
+// Get the QSettings object.
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject()
-{
-#ifdef PORTABLE
-	return new QSettings (str (APPNAME).toLower() + EXTENSION, QSettings::IniFormat);
-#else
-	return new QSettings;
-#endif // PORTABLE
+{	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
 }
 
 Config::Config (const char* name, const char* defstring) :
@@ -111,15 +105,14 @@ void Config::reset()
 }
 
 // =============================================================================
-// Where is the configuration file located at? Note that the Windows build uses
-// the registry so only use this with PORTABLE code.
+// Where is the configuration file located at?
 // -----------------------------------------------------------------------------
 str Config::filepath (str file)
 {	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
-// Directory of the configuration file. PORTABLE code here as well.
+// Directory of the configuration file.
 // -----------------------------------------------------------------------------
 str Config::dirpath()
 {	QSettings* cfg = getSettingsObject();
@@ -147,12 +140,16 @@ template<class T> T& getConfigByName (str name, Config::Type type)
 			break;
 
 		if (cfg->name == name)
-		{	assert (cfg->getType() == type);
-			return *(reinterpret_cast<T*> (cfg));
+		{	if (cfg->getType() == type)
+				return *reinterpret_cast<T*> (cfg);
+			else
+			{	fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
+				abort();
+			}
 		}
 	}
 
-	qFatal ("couldn't find a configuration element with name %s", name.toLocal8Bit().constData());
+	fprint (stderr, "couldn't find a configuration element with name %1", name);
 	abort();
 }
 
