@@ -147,14 +147,11 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 	// ring counts, the solutions with lesser maximum rings should result
 	// in cleaner code and less new primitives, right?
 	int maxA = 0,
-	maxB = 0;
+		maxB = 0;
 
 	for (int i = 0; i < getComponents().size(); ++i)
-	{	if (getComponents()[i].num > maxA)
-			maxA = getComponents()[i].num;
-
-		if (other.getComponents()[i].num > maxB)
-			maxB = other.getComponents()[i].num;
+	{	maxA = max (getComponents()[i].num, maxA);
+		maxB = max (other.getComponents()[i].num, maxB);
 	}
 
 	if (maxA < maxB)
