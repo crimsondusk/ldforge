@@ -52,6 +52,8 @@
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
 - Color icon border now reflects the color's edge color.
+- Fixed: When rotating subfiles, the scale was treated incorrectly due to bad operand order in matrix
+	multiplication, causing unwanted morphing.
 - [Linux] Fixed: If an external program is attempted to be launched requiring Wine but with Wine missing,
 	there was no error message and instead LDForge took this as no output from the program.
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.

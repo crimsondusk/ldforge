@@ -461,7 +461,7 @@ static void doRotate (const int l, const int m, const int n)
 			*/
 
 			// Transform the matrix
-			mo->setTransform (mo->getTransform() * transform);
+			mo->setTransform (transform * mo->getTransform());
 		} elif (obj->getType() == LDObject::Vertex)
 		{	LDVertex* vert = static_cast<LDVertex*> (obj);
 			vertex v = vert->pos;
