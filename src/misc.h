@@ -85,62 +85,6 @@ namespace Grid
 	double snap (double value, const Grid::Config axis);
 }
 
-// =============================================================================
-// RingFinder
-//
-// Provides an algorithm for finding a solution of rings between radii r0 and r1.
-// =============================================================================
-class RingFinder
-{	public:
-		struct Component
-		{	int num;
-			double scale;
-		};
-
-		class Solution
-		{	public:
-				// Components of this solution
-				inline const QVector<Component>& getComponents() const
-				{	return m_components;
-				}
-
-				// Add a component to this solution
-				inline void addComponent (const Component& a)
-				{	m_components.push_back (a);
-				}
-
-				// Compare solutions
-				bool operator> (const Solution& other) const;
-
-			private:
-				QVector<Component> m_components;
-		};
-
-		RingFinder() {}
-		bool findRings (double r0, double r1);
-
-		inline const Solution* bestSolution()
-		{	return m_bestSolution;
-		}
-
-		inline const QVector<Solution>& allSolutions() const
-		{	return m_solutions;
-		}
-
-		inline bool operator() (double r0, double r1)
-		{	return findRings (r0, r1);
-		}
-
-	private:
-		QVector<Solution> m_solutions;
-		const Solution*   m_bestSolution;
-		int               m_stack;
-
-		bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
-};
-
-extern RingFinder g_RingFinder;
-
 // -----------------------------------------------------------------------------
 class InvokationDeferer : public QObject
 {	Q_OBJECT
