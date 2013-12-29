@@ -82,8 +82,11 @@ bool Config::save()
 	log ("Saving configuration to %1...\n", settings->fileName());
 
 	for (Config* cfg : g_configs)
-		if (!cfg->isDefault())
+	{	if (!cfg->isDefault())
 			settings->setValue (cfg->getName(), cfg->toVariant());
+		else
+			settings->remove (cfg->getName());
+	}
 
 	settings->sync();
 	settings->deleteLater();
