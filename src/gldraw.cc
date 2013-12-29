@@ -37,6 +37,7 @@
 #include "addObjectDialog.h"
 #include "messagelog.h"
 #include "primitives.h"
+#include "misc/ringFinder.h"
 #include "moc_gldraw.cpp"
 
 static const LDFixedCameraInfo g_FixedCameras[6] =
