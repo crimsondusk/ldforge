@@ -401,5 +401,5 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		getCurrentDocument()->insertObj (idx, obj);
 	}
 
-	g_win->doFullRefresh();
+	g_win->refresh();
 }

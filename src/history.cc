@@ -23,8 +23,6 @@
 #include "gui.h"
 #include "gldraw.h"
 
-bool g_fullRefresh = false;
-
 // =============================================================================
 // -----------------------------------------------------------------------------
 History::History() :
@@ -40,7 +38,6 @@ void History::undo()
 	setIgnoring (true);
 
 	const Changeset& set = getChangeset (getPosition());
-	g_fullRefresh = false;
 
 	// Iterate the list in reverse and undo all actions
 	for (int i = set.size() - 1; i >= 0; --i)
@@ -49,12 +46,7 @@ void History::undo()
 	}
 
 	decreasePosition();
-
-	if (!g_fullRefresh)
-		g_win->refresh();
-	else
-		g_win->doFullRefresh();
-
+	g_win->refresh();
 	g_win->updateActions();
 	dlog ("Position is now %1", getPosition());
 	setIgnoring (false);
@@ -68,19 +60,13 @@ void History::redo()
 
 	setIgnoring (true);
 	const Changeset& set = getChangeset (getPosition() + 1);
-	g_fullRefresh = false;
 
 	// Redo things - in the order as they were done in the first place
 	for (const AbstractHistoryEntry* change : set)
 		change->redo();
 
 	setPosition (getPosition() + 1);
-
-	if (!g_fullRefresh)
-		g_win->refresh();
-	else
-		g_win->doFullRefresh();
-
+	g_win->refresh();
 	g_win->updateActions();
 	dlog ("Position is now %1", getPosition());
 	setIgnoring (false);
@@ -137,7 +123,6 @@ void History::add (AbstractHistoryEntry* entry)
 void AddHistory::undo() const
 {	LDObject* obj = getParent()->getFile()->getObject (getIndex());
 	obj->deleteSelf();
-	g_fullRefresh = true;
 }
 
 // =============================================================================
@@ -168,7 +153,6 @@ void DelHistory::undo() const
 void DelHistory::redo() const
 {	LDObject* obj = getParent()->getFile()->getObject (getIndex());
 	obj->deleteSelf();
-	g_fullRefresh = true;
 }
 
 // =============================================================================
