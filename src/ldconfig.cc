@@ -26,7 +26,8 @@
 // Helper function for parseLDConfig
 // -----------------------------------------------------------------------------
 static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val)
-{	int pos;
+{
+	int pos;
 
 	// Try find the token and get its position
 	if (!pars.findToken (pos, tag, 1))
@@ -39,17 +40,20 @@ static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void parseLDConfig()
-{	File* f = openLDrawFile ("LDConfig.ldr", false);
+{
+	File* f = openLDrawFile ("LDConfig.ldr", false);
 
 	if (!f)
-	{	critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing: %1"),
+	{
+		critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing: %1"),
 			strerror (errno)));
 		return;
 	}
 
 	// Read in the lines
 	for (str line : *f)
-	{	if (line.length() == 0 || line[0] != '0')
+	{
+		if (line.length() == 0 || line[0] != '0')
 			continue; // empty or illogical
 
 		line.remove ('\r');
@@ -113,26 +117,30 @@ void parseLDConfig()
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDConfigParser::LDConfigParser (str inText, char sep)
-{	m_tokens = inText.split (sep, QString::SkipEmptyParts);
+{
+	m_tokens = inText.split (sep, QString::SkipEmptyParts);
 	m_pos = -1;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::isAtBeginning()
-{	return m_pos == -1;
+{
+	return m_pos == -1;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::isAtEnd()
-{	return m_pos == m_tokens.size() - 1;
+{
+	return m_pos == m_tokens.size() - 1;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::getToken (str& val, const int pos)
-{	if (pos >= m_tokens.size())
+{
+	if (pos >= m_tokens.size())
 		return false;
 
 	val = m_tokens[pos];
@@ -142,21 +150,26 @@ bool LDConfigParser::getToken (str& val, const int pos)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::getNextToken (str& val)
-{	return getToken (val, ++m_pos);
+{
+	return getToken (val, ++m_pos);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::peekNextToken (str& val)
-{	return getToken (val, m_pos + 1);
+{
+	return getToken (val, m_pos + 1);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::findToken (int& result, char const* needle, int args)
-{	for (int i = 0; i < (m_tokens.size() - args); ++i)
-	{	if (m_tokens[i] == needle)
-		{	result = i;
+{
+	for (int i = 0; i < (m_tokens.size() - args); ++i)
+	{
+		if (m_tokens[i] == needle)
+		{
+			result = i;
 			return true;
 		}
 	}
@@ -167,25 +180,29 @@ bool LDConfigParser::findToken (int& result, char const* needle, int args)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDConfigParser::rewind()
-{	m_pos = -1;
+{
+	m_pos = -1;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDConfigParser::seek (int amount, bool rel)
-{	m_pos = (rel ? m_pos : 0) + amount;
+{
+	m_pos = (rel ? m_pos : 0) + amount;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 int LDConfigParser::getSize()
-{	return m_tokens.size();
+{
+	return m_tokens.size();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool LDConfigParser::tokenCompare (int inPos, const char* sOther)
-{	str tok;
+{
+	str tok;
 
 	if (!getToken (tok, inPos))
 		return false;

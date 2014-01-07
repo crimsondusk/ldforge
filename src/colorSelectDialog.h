@@ -27,7 +27,8 @@ class Ui_ColorSelUI;
 class QGraphicsScene;
 
 class ColorSelector : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 	PROPERTY (private,	LDColor*,	Selection,	NO_OPS,	STOCK_WRITE)
 
 	public:

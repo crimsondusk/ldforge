@@ -32,25 +32,29 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 RadioGroup::RadioGroup (const QString& title, QWidget* parent) : QGroupBox (title, parent)
-{	init (Qt::Vertical);
+{
+	init (Qt::Vertical);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 QBoxLayout::Direction makeDirection (Qt::Orientation orient, bool invert = false)
-{	return (orient == (invert ? Qt::Vertical : Qt::Horizontal)) ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
+{
+	return (orient == (invert ? Qt::Vertical : Qt::Horizontal)) ? QBoxLayout::LeftToRight : QBoxLayout::TopToBottom;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool RadioGroup::isChecked (int n) const
-{	return m_buttonGroup->checkedId() == n;
+{
+	return m_buttonGroup->checkedId() == n;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::init (Qt::Orientation orient)
-{	m_vert = orient == Qt::Vertical;
+{
+	m_vert = orient == Qt::Vertical;
 
 	m_buttonGroup = new QButtonGroup;
 	m_oldId = m_curId = 0;
@@ -71,7 +75,8 @@ void RadioGroup::init (Qt::Orientation orient)
 RadioGroup::RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId, const Qt::Orientation orient, QWidget* parent) :
 		QGroupBox (title, parent),
 		m_defId (defaultId)
-{	init (orient);
+{
+	init (orient);
 	m_oldId = m_defId;
 
 	for (const char* entry : entries)
@@ -81,7 +86,8 @@ RadioGroup::RadioGroup (const QString& title, initlist<char const*> entries, int
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::rowBreak()
-{	QBoxLayout* newLayout = new QBoxLayout (m_vert ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
+{
+	QBoxLayout* newLayout = new QBoxLayout (m_vert ? QBoxLayout::TopToBottom : QBoxLayout::LeftToRight);
 	m_currentLayout = newLayout;
 	m_layouts << newLayout;
 
@@ -91,14 +97,16 @@ void RadioGroup::rowBreak()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::addButton (const char* entry)
-{	QRadioButton* button = new QRadioButton (entry);
+{
+	QRadioButton* button = new QRadioButton (entry);
 	addButton (button);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::addButton (QRadioButton* button)
-{	bool const selectThis = (m_curId == m_defId);
+{
+	bool const selectThis = (m_curId == m_defId);
 
 	m_objects << button;
 	m_buttonGroup->addButton (button, m_curId++);
@@ -111,45 +119,52 @@ void RadioGroup::addButton (QRadioButton* button)
 // =============================================================================
 // -----------------------------------------------------------------------------
 RadioGroup& RadioGroup::operator<< (QRadioButton* button)
-{	addButton (button);
+{
+	addButton (button);
 	return *this;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 RadioGroup& RadioGroup::operator<< (const char* entry)
-{	addButton (entry);
+{
+	addButton (entry);
 	return *this;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::setCurrentRow (int row)
-{	m_currentLayout = m_layouts[row];
+{
+	m_currentLayout = m_layouts[row];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 int RadioGroup::value() const
-{	return m_buttonGroup->checkedId();
+{
+	return m_buttonGroup->checkedId();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::setValue (int val)
-{	m_buttonGroup->button (val)->setChecked (true);
+{
+	m_buttonGroup->button (val)->setChecked (true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 QRadioButton* RadioGroup::operator[] (int n) const
-{	return m_objects[n];
+{
+	return m_objects[n];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::slot_buttonPressed (int btn)
-{	emit buttonPressed (btn);
+{
+	emit buttonPressed (btn);
 
 	m_oldId = m_buttonGroup->checkedId();
 }
@@ -157,7 +172,8 @@ void RadioGroup::slot_buttonPressed (int btn)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void RadioGroup::slot_buttonReleased (int btn)
-{	emit buttonReleased (btn);
+{
+	emit buttonReleased (btn);
 	int newid = m_buttonGroup->checkedId();
 
 	if (m_oldId != newid)
@@ -167,11 +183,13 @@ void RadioGroup::slot_buttonReleased (int btn)
 // =============================================================================
 // -----------------------------------------------------------------------------
 RadioGroup::Iterator RadioGroup::begin()
-{	return m_objects.begin();
+{
+	return m_objects.begin();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 RadioGroup::Iterator RadioGroup::end()
-{	return m_objects.end();
+{
+	return m_objects.end();
 }

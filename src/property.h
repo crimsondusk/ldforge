@@ -19,16 +19,17 @@
 #ifndef LDFORGE_PROPERTY_H
 #define LDFORGE_PROPERTY_H
 
-#define PROPERTY( ACCESS, TYPE, NAME, OPS, WRITETYPE )		\
-	private:																	\
-		TYPE m_##NAME;														\
-																				\
-	public:																	\
+#define PROPERTY( ACCESS, TYPE, NAME, OPS, WRITETYPE )			\
+	private:														\
+		TYPE m_##NAME;											\
+																\
+	public:														\
 		inline TYPE const& GET_READ_METHOD( NAME, OPS ) const	\
-		{	return m_##NAME; 												\
-		}																		\
-																				\
-	ACCESS:																	\
+		{														\
+			return m_##NAME; 									\
+		}														\
+																\
+	ACCESS:														\
 		DEFINE_WRITE_METHOD_##WRITETYPE( TYPE, NAME )			\
 		DEFINE_PROPERTY_##OPS( TYPE, NAME )
 
@@ -42,66 +43,76 @@
 #define GET_READ_METHOD_LIST_OPS( NAME ) get##NAME()
 
 #define DEFINE_WRITE_METHOD_STOCK_WRITE( TYPE, NAME )	\
-		inline void set##NAME( TYPE const& NAME##_ )		\
-		{	m_##NAME = NAME##_;									\
+		inline void set##NAME( TYPE const& NAME##_ )	\
+		{												\
+			m_##NAME = NAME##_;							\
 		}
 
 #define DEFINE_WRITE_METHOD_CUSTOM_WRITE( TYPE, NAME )	\
-		void set##NAME( TYPE const& NAME##_ );					\
+		void set##NAME( TYPE const& NAME##_ );			\
 
 #define DEFINE_WITH_CB( NAME ) void NAME##Changed();
 #define DEFINE_NO_CB( NAME )
 
 #define DEFINE_PROPERTY_NO_OPS( TYPE, NAME )
 
-#define DEFINE_PROPERTY_STR_OPS( TYPE, NAME )	\
-		void append##NAME( TYPE a )					\
-		{	TYPE tmp( m_##NAME );						\
-			tmp.append( a );								\
-			set##NAME( tmp );								\
-		}														\
-																\
+#define DEFINE_PROPERTY_STR_OPS( TYPE, NAME )			\
+		void append##NAME( TYPE a )						\
+		{												\
+			TYPE tmp( m_##NAME );						\
+			tmp.append( a );							\
+			set##NAME( tmp );							\
+		}												\
+														\
 		void prepend##NAME( TYPE a )					\
-		{	TYPE tmp( m_##NAME );						\
-			tmp.prepend( a );								\
-			set##NAME( tmp );								\
-		}														\
-																\
-		void replaceIn##NAME( TYPE a, TYPE b )		\
-		{	TYPE tmp( m_##NAME );						\
-			tmp.replace( a, b );							\
-			set##NAME( tmp );								\
+		{												\
+			TYPE tmp( m_##NAME );						\
+			tmp.prepend( a );							\
+			set##NAME( tmp );							\
+		}												\
+														\
+		void replaceIn##NAME( TYPE a, TYPE b )			\
+		{												\
+			TYPE tmp( m_##NAME );						\
+			tmp.replace( a, b );						\
+			set##NAME( tmp );							\
 		}
 
-#define DEFINE_PROPERTY_NUM_OPS( TYPE, NAME )	\
-		inline void increase##NAME( TYPE a = 1 )	\
-		{	set##NAME( m_##NAME + a );					\
-		}														\
-																\
-		inline void decrease##NAME( TYPE a = 1 )	\
-		{	set##NAME( m_##NAME - a );					\
+#define DEFINE_PROPERTY_NUM_OPS( TYPE, NAME )			\
+		inline void increase##NAME( TYPE a = 1 )			\
+		{												\
+			set##NAME( m_##NAME + a );					\
+		}												\
+														\
+		inline void decrease##NAME( TYPE a = 1 )		\
+		{												\
+			set##NAME( m_##NAME - a );					\
 		}
 
-#define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME )	\
-		inline void toggle##NAME()						\
-		{	set##NAME( !m_##NAME );						\
+#define DEFINE_PROPERTY_BOOL_OPS( TYPE, NAME )				\
+		inline void toggle##NAME()							\
+		{													\
+			set##NAME( !m_##NAME );							\
 		}
 
 #define DEFINE_PROPERTY_LIST_OPS( TYPE, NAME )				\
 		void pushTo##NAME( const TYPE::value_type& a )		\
-		{	TYPE tmp( m_##NAME );									\
-			tmp.push_back( a );										\
-			set##NAME( tmp );											\
-		}																	\
-																			\
+		{													\
+			TYPE tmp( m_##NAME );							\
+			tmp.push_back( a );								\
+			set##NAME( tmp );								\
+		}													\
+															\
 		void removeFrom##NAME( const TYPE::value_type& a )	\
-		{	TYPE tmp( m_##NAME );									\
-			tmp.removeOne( a );										\
-			set##NAME( tmp );											\
-		}																	\
-																			\
-		inline void clear##NAME()									\
-		{	set##NAME( TYPE() );										\
+		{													\
+			TYPE tmp( m_##NAME );							\
+			tmp.removeOne( a );								\
+			set##NAME( tmp );								\
+		}													\
+															\
+		inline void clear##NAME()							\
+		{													\
+			set##NAME( TYPE() );							\
 		}
 
 #endif // LDFORGE_PROPERTY_H

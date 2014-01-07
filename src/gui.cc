@@ -67,7 +67,8 @@ extern_cfg (Bool,		gl_drawangles);
 // =============================================================================
 // -----------------------------------------------------------------------------
 ForgeWindow::ForgeWindow()
-{	g_win = this;
+{
+	g_win = this;
 	m_renderer = new GLRenderer;
 
 	ui = new Ui_LDForgeUI;
@@ -122,15 +123,18 @@ ForgeWindow::ForgeWindow()
 // =============================================================================
 // -----------------------------------------------------------------------------
 KeySequenceConfig* ForgeWindow::shortcutForAction (QAction* act)
-{	str keycfgname = fmt ("key_%1", act->objectName());
+{
+	str keycfgname = fmt ("key_%1", act->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateActionShortcuts()
-{	for (QAction* act : findChildren<QAction*>())
-	{	KeySequenceConfig* cfg = shortcutForAction (act);
+{
+	for (QAction* act : findChildren<QAction*>())
+	{
+		KeySequenceConfig* cfg = shortcutForAction (act);
 
 		if (cfg)
 			act->setShortcut (cfg->getValue());
@@ -140,7 +144,8 @@ void ForgeWindow::updateActionShortcuts()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_action()
-{	// Get the name of the sender object and use it to compose the slot name.
+{
+	// Get the name of the sender object and use it to compose the slot name.
 	str methodName = fmt ("slot_%1", sender()->objectName());
 
 #ifdef DEBUG
@@ -155,7 +160,8 @@ void ForgeWindow::slot_action()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::endAction()
-{	// Add a step in the history now.
+{
+	// Add a step in the history now.
 	getCurrentDocument()->addHistoryStep();
 
 	// Update the list item of the current file - we may need to draw an icon
@@ -166,14 +172,16 @@ void ForgeWindow::endAction()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_lastSecondCleanup()
-{	delete m_renderer;
+{
+	delete m_renderer;
 	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateRecentFilesMenu()
-{	// First, clear any items in the recent files menu
+{
+	// First, clear any items in the recent files menu
 for (QAction * recent : m_recentFiles)
 		delete recent;
 
@@ -182,7 +190,8 @@ for (QAction * recent : m_recentFiles)
 	QAction* first = null;
 
 	for (const QVariant& it : io_recentfiles)
-	{	str file = it.toString();
+	{
+		str file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 
 		connect (recent, SIGNAL (triggered()), this, SLOT (slot_recentFile()));
@@ -195,13 +204,16 @@ for (QAction * recent : m_recentFiles)
 // =============================================================================
 // -----------------------------------------------------------------------------
 QList<LDQuickColor> quickColorsFromConfig()
-{	QList<LDQuickColor> colors;
+{
+	QList<LDQuickColor> colors;
 
 	for (str colorname : gui_colortoolbar.split (":"))
-	{	if (colorname == "|")
+	{
+		if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
 		else
-		{	LDColor* col = getColor (colorname.toLong());
+		{
+			LDColor* col = getColor (colorname.toLong());
 
 			if (col != null)
 				colors << LDQuickColor (col, null);
@@ -214,14 +226,17 @@ QList<LDQuickColor> quickColorsFromConfig()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateToolBars()
-{	m_colorButtons.clear();
+{
+	m_colorButtons.clear();
 	ui->colorToolbar->clear();
 
 	for (LDQuickColor& entry : m_quickColors)
-	{	if (entry.isSeparator())
+	{
+		if (entry.isSeparator())
 			ui->colorToolbar->addSeparator();
 		else
-		{	QToolButton* colorButton = new QToolButton;
+		{
+			QToolButton* colorButton = new QToolButton;
 			colorButton->setIcon (makeColorIcon (entry.getColor(), 22));
 			colorButton->setIconSize (QSize (22, 22));
 			colorButton->setToolTip (entry.getColor()->name);
@@ -240,7 +255,8 @@ void ForgeWindow::updateToolBars()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateGridToolBar()
-{	// Ensure that the current grid - and only the current grid - is selected.
+{
+	// Ensure that the current grid - and only the current grid - is selected.
 	ui->actionGridCoarse->setChecked (grid == Grid::Coarse);
 	ui->actionGridMedium->setChecked (grid == Grid::Medium);
 	ui->actionGridFine->setChecked (grid == Grid::Fine);
@@ -249,18 +265,21 @@ void ForgeWindow::updateGridToolBar()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateTitle()
-{	str title = fmt (APPNAME " %1", fullVersionString());
+{
+	str title = fmt (APPNAME " %1", fullVersionString());
 
 	// Append our current file if we have one
 	if (getCurrentDocument())
-	{	if (getCurrentDocument()->getName().length() > 0)
+	{
+		if (getCurrentDocument()->getName().length() > 0)
 			title += fmt (": %1", basename (getCurrentDocument()->getName()));
 		else
 			title += fmt (": <anonymous>");
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
 				getCurrentDocument()->getObject (0)->getType() == LDObject::Comment)
-		{	// Append title
+		{
+			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
 			title += fmt (": %1", comm->text);
 		}
@@ -281,7 +300,8 @@ void ForgeWindow::updateTitle()
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ForgeWindow::deleteSelection()
-{	if (selection().isEmpty())
+{
+	if (selection().isEmpty())
 		return 0;
 
 	QList<LDObject*> selCopy = selection();
@@ -297,7 +317,8 @@ int ForgeWindow::deleteSelection()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::buildObjList()
-{	if (!getCurrentDocument())
+{
+	if (!getCurrentDocument())
 		return;
 
 	// Lock the selection while we do this so that refreshing the object list
@@ -311,11 +332,14 @@ void ForgeWindow::buildObjList()
 	ui->objectList->clear();
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	str descr;
+	{
+		str descr;
 
 		switch (obj->getType())
-		{	case LDObject::Comment:
-			{	descr = static_cast<LDComment*> (obj)->text;
+		{
+			case LDObject::Comment:
+			{
+				descr = static_cast<LDComment*> (obj)->text;
 
 				// Remove leading whitespace
 				while (descr[0] == ' ')
@@ -329,8 +353,10 @@ void ForgeWindow::buildObjList()
 			case LDObject::Triangle:
 			case LDObject::Quad:
 			case LDObject::CondLine:
-			{	for (int i = 0; i < obj->vertices(); ++i)
-				{	if (i != 0)
+			{
+				for (int i = 0; i < obj->vertices(); ++i)
+				{
+					if (i != 0)
 						descr += ", ";
 
 					descr += obj->getVertex (i).stringRep (true);
@@ -338,15 +364,18 @@ void ForgeWindow::buildObjList()
 			} break;
 
 			case LDObject::Error:
-			{	descr = fmt ("ERROR: %1", obj->raw());
+			{
+				descr = fmt ("ERROR: %1", obj->raw());
 			} break;
 
 			case LDObject::Vertex:
-			{	descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
+			{
+				descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
 			} break;
 
 			case LDObject::Subfile:
-			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			{
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
 				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().stringRep (true));
 
@@ -357,11 +386,13 @@ void ForgeWindow::buildObjList()
 			} break;
 
 			case LDObject::BFC:
-			{	descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
+			{
+				descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
 			} break;
 
 			case LDObject::Overlay:
-			{	LDOverlay* ovl = static_cast<LDOverlay*> (obj);
+			{
+				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
 				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->getCamera()],
 					basename (ovl->getFileName()), ovl->getX(), ovl->getY(),
 					ovl->getWidth(), ovl->getHeight());
@@ -369,7 +400,8 @@ void ForgeWindow::buildObjList()
 			break;
 
 			default:
-			{	descr = obj->getTypeName();
+			{
+				descr = obj->getTypeName();
 			} break;
 		}
 
@@ -378,18 +410,21 @@ void ForgeWindow::buildObjList()
 
 		// Use italic font if hidden
 		if (obj->isHidden())
-		{	QFont font = item->font();
+		{
+			QFont font = item->font();
 			font.setItalic (true);
 			item->setFont (font);
 		}
 
 		// Color gibberish orange on red so it stands out.
 		if (obj->getType() == LDObject::Error)
-		{	item->setBackground (QColor ("#AA0000"));
+		{
+			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		}
 		elif (lv_colorize && obj->isColored() && obj->getColor() != maincolor && obj->getColor() != edgecolor)
-		{	// If the object isn't in the main or edge color, draw this
+		{
+			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
 			LDColor* col = getColor (obj->getColor());
 
@@ -409,7 +444,8 @@ void ForgeWindow::buildObjList()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::scrollToSelection()
-{	if (selection().isEmpty())
+{
+	if (selection().isEmpty())
 		return;
 
 	LDObject* obj = selection().last();
@@ -419,7 +455,8 @@ void ForgeWindow::scrollToSelection()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_selectionChanged()
-{	if (g_isSelectionLocked == true || getCurrentDocument() == null)
+{
+	if (g_isSelectionLocked == true || getCurrentDocument() == null)
 		return;
 
 	// Update the shared selection array, though don't do this if this was
@@ -435,9 +472,12 @@ void ForgeWindow::slot_selectionChanged()
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	for (QListWidgetItem* item : items)
-		{	if (item == obj->qObjListEntry)
-			{	obj->select();
+	{
+		for (QListWidgetItem* item : items)
+		{
+			if (item == obj->qObjListEntry)
+			{
+				obj->select();
 				break;
 			}
 		}
@@ -456,19 +496,23 @@ void ForgeWindow::slot_selectionChanged()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_recentFile()
-{	QAction* qAct = static_cast<QAction*> (sender());
+{
+	QAction* qAct = static_cast<QAction*> (sender());
 	openMainFile (qAct->text());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_quickColor()
-{	QToolButton* button = static_cast<QToolButton*> (sender());
+{
+	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 
 	for (const LDQuickColor & entry : m_quickColors)
-	{	if (entry.getToolButton() == button)
-		{	col = entry.getColor();
+	{
+		if (entry.getToolButton() == button)
+		{
+			col = entry.getColor();
 			break;
 		}
 	}
@@ -479,7 +523,8 @@ void ForgeWindow::slot_quickColor()
 	int newColor = col->index;
 
 	for (LDObject* obj : selection())
-	{	if (obj->isColored() == false)
+	{
+		if (obj->isColored() == false)
 			continue; // uncolored object
 
 		obj->setColor (newColor);
@@ -493,7 +538,8 @@ void ForgeWindow::slot_quickColor()
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ForgeWindow::getInsertionPoint()
-{	// If we have a selection, put the item after it.
+{
+	// If we have a selection, put the item after it.
 	if (!selection().isEmpty())
 		return selection().last()->getIndex() + 1;
 
@@ -504,21 +550,24 @@ int ForgeWindow::getInsertionPoint()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::doFullRefresh()
-{	buildObjList();
+{
+	buildObjList();
 	m_renderer->hardRefresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::refresh()
-{	buildObjList();
+{
+	buildObjList();
 	m_renderer->update();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateSelection()
-{	g_isSelectionLocked = true;
+{
+	g_isSelectionLocked = true;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 		obj->setSelected (false);
@@ -526,7 +575,8 @@ void ForgeWindow::updateSelection()
 	ui->objectList->clearSelection();
 
 	for (LDObject* obj : selection())
-	{	if (obj->qObjListEntry == null)
+	{
+		if (obj->qObjListEntry == null)
 			continue;
 
 		obj->qObjListEntry->setSelected (true);
@@ -540,10 +590,12 @@ void ForgeWindow::updateSelection()
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ForgeWindow::getSelectedColor()
-{	int result = -1;
+{
+	int result = -1;
 
 	for (LDObject* obj : selection())
-	{	if (obj->isColored() == false)
+	{
+		if (obj->isColored() == false)
 			continue; // doesn't use color
 
 		if (result != -1 && obj->getColor() != result)
@@ -559,10 +611,12 @@ int ForgeWindow::getSelectedColor()
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDObject::Type ForgeWindow::getUniformSelectedType()
-{	LDObject::Type result = LDObject::Unidentified;
+{
+	LDObject::Type result = LDObject::Unidentified;
 
 	for (LDObject* obj : selection())
-	{	if (result != LDObject::Unidentified && obj->getColor() != result)
+	{
+		if (result != LDObject::Unidentified && obj->getColor() != result)
 			return LDObject::Unidentified;
 
 		if (result == LDObject::Unidentified)
@@ -575,9 +629,11 @@ LDObject::Type ForgeWindow::getUniformSelectedType()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::closeEvent (QCloseEvent* ev)
-{	// Check whether it's safe to close all files.
+{
+	// Check whether it's safe to close all files.
 	if (!safeToCloseAll())
-	{	ev->ignore();
+	{
+		ev->ignore();
 		return;
 	}
 
@@ -591,13 +647,15 @@ void ForgeWindow::closeEvent (QCloseEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::spawnContextMenu (const QPoint pos)
-{	const bool single = (selection().size() == 1);
+{
+	const bool single = (selection().size() == 1);
 	LDObject* singleObj = (single) ? selection()[0] : null;
 
 	QMenu* contextMenu = new QMenu;
 
 	if (single && singleObj->getType() != LDObject::Empty)
-	{	contextMenu->addAction (ui->actionEdit);
+	{
+		contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();
 	}
 
@@ -619,12 +677,14 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 	contextMenu->addAction (ui->actionModeCircle);
 
 	if (selection().size() > 0)
-	{	contextMenu->addSeparator();
+	{
+		contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSubfileSelection);
 	}
 
 	if (R()->camera() != GL::EFreeCamera)
-	{	contextMenu->addSeparator();
+	{
+		contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSetDrawDepth);
 	}
 
@@ -635,17 +695,20 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 // TODO: what the heh?
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteObjects (QList<LDObject*> objs)
-{	for (LDObject* obj : objs)
+{
+	for (LDObject* obj : objs)
 		obj->deleteSelf();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteByColor (const int colnum)
-{	QList<LDObject*> objs;
+{
+	QList<LDObject*> objs;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	if (!obj->isColored() || obj->getColor() != colnum)
+	{
+		if (!obj->isColored() || obj->getColor() != colnum)
 			continue;
 
 		objs << obj;
@@ -657,7 +720,8 @@ void ForgeWindow::deleteByColor (const int colnum)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateEditModeActions()
-{	const EditMode mode = R()->getEditMode();
+{
+	const EditMode mode = R()->getEditMode();
 	ui->actionModeSelect->setChecked (mode == ESelectMode);
 	ui->actionModeDraw->setChecked (mode == EDrawMode);
 	ui->actionModeCircle->setChecked (mode == ECircleMode);
@@ -666,11 +730,14 @@ void ForgeWindow::updateEditModeActions()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
-{	LDObject* obj = null;
+{
+	LDObject* obj = null;
 
 	for (LDObject* it : getCurrentDocument()->getObjects())
-	{	if (it->qObjListEntry == listitem)
-		{	obj = it;
+	{
+		if (it->qObjListEntry == listitem)
+		{
+			obj = it;
 			break;
 		}
 	}
@@ -682,7 +749,8 @@ void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::primitiveLoaderStart (int max)
-{	m_primLoaderWidget->show();
+{
+	m_primLoaderWidget->show();
 	m_primLoaderBar->setRange (0, max);
 	m_primLoaderBar->setValue (0);
 	m_primLoaderBar->setFormat ("%p%");
@@ -691,13 +759,15 @@ void ForgeWindow::primitiveLoaderStart (int max)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::primitiveLoaderUpdate (int prog)
-{	m_primLoaderBar->setValue (prog);
+{
+	m_primLoaderBar->setValue (prog);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ForgeWindow::primitiveLoaderEnd()
-{	QTimer* hidetimer = new QTimer;
+{
+	QTimer* hidetimer = new QTimer;
 	connect (hidetimer, SIGNAL (timeout()), m_primLoaderWidget, SLOT (hide()));
 	hidetimer->setSingleShot (true);
 	hidetimer->start (1500);
@@ -709,10 +779,12 @@ void ForgeWindow::primitiveLoaderEnd()
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool ForgeWindow::save (LDDocument* f, bool saveAs)
-{	str path = f->getFullPath();
+{
+	str path = f->getFullPath();
 
 	if (saveAs || path.isEmpty())
-	{	str name = f->getDefaultName();
+	{
+		str name = f->getDefaultName();
 
 		if (!f->getFullPath().isEmpty()) 
 			name = f->getFullPath();
@@ -724,13 +796,15 @@ bool ForgeWindow::save (LDDocument* f, bool saveAs)
 			name, tr ("LDraw files (*.dat *.ldr)"));
 
 		if (path.isEmpty())
-		{	// User didn't give a file name, abort.
+		{
+			// User didn't give a file name, abort.
 			return false;
 		}
 	}
 
 	if (f->save (path))
-	{	if (f == getCurrentDocument())
+	{
+		if (f == getCurrentDocument())
 			updateTitle();
 
 		log ("Saved to %1.", path);
@@ -759,45 +833,53 @@ bool ForgeWindow::save (LDDocument* f, bool saveAs)
 }
 
 void ForgeWindow::addMessage (str msg)
-{	m_msglog->addLine (msg);
+{
+	m_msglog->addLine (msg);
 }
 
 // ============================================================================
 void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
-{	g_win->spawnContextMenu (ev->globalPos());
+{
+	g_win->spawnContextMenu (ev->globalPos());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 QPixmap getIcon (str iconName)
-{	return (QPixmap (fmt (":/icons/%1.png", iconName)));
+{
+	return (QPixmap (fmt (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
 bool confirm (str msg)
-{	return confirm (ForgeWindow::tr ("Confirm"), msg);
+{
+	return confirm (ForgeWindow::tr ("Confirm"), msg);
 }
 
 bool confirm (str title, str msg)
-{	return QMessageBox::question (g_win, title, msg,
+{
+	return QMessageBox::question (g_win, title, msg,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
 void critical (str msg)
-{	QMessageBox::critical (g_win, ForgeWindow::tr ("Error"), msg,
+{
+	QMessageBox::critical (g_win, ForgeWindow::tr ("Error"), msg,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 
 // =============================================================================
 QIcon makeColorIcon (LDColor* colinfo, const int size)
-{	// Create an image object and link a painter to it.
+{
+	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
 	QColor col = colinfo->faceColor;
 
 	if (colinfo->index == maincolor)
-	{	// Use the user preferences for main color here
+	{
+		// Use the user preferences for main color here
 		col = gl_maincolor;
 		col.setAlphaF (gl_maincolor_alpha);
 	}
@@ -815,10 +897,12 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 
 // =============================================================================
 void makeColorComboBox (QComboBox* box)
-{	std::map<int, int> counts;
+{
+	std::map<int, int> counts;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	if (!obj->isColored())
+	{
+		if (!obj->isColored())
 			continue;
 
 		if (counts.find (obj->getColor()) == counts.end())
@@ -831,7 +915,8 @@ void makeColorComboBox (QComboBox* box)
 	int row = 0;
 
 	for (const auto& pair : counts)
-	{	LDColor* col = getColor (pair.first);
+	{
+		LDColor* col = getColor (pair.first);
 		assert (col != null);
 
 		QIcon ico = makeColorIcon (col, 16);
@@ -844,18 +929,22 @@ void makeColorComboBox (QComboBox* box)
 }
 
 void ForgeWindow::setStatusBarText (str text)
-{	statusBar()->showMessage (text);
+{
+	statusBar()->showMessage (text);
 }
 
 Ui_LDForgeUI* ForgeWindow::getInterface() const
-{	return ui;
+{
+	return ui;
 }
 
 void ForgeWindow::updateDocumentList()
-{	ui->fileList->clear();
+{
+	ui->fileList->clear();
 
 	for (LDDocument* f : g_loadedFiles)
-	{	// Don't list implicit files unless explicitly desired.
+	{
+		// Don't list implicit files unless explicitly desired.
 		if (f->isImplicit() && !gui_implicitfiles)
 			continue;
 
@@ -869,8 +958,10 @@ void ForgeWindow::updateDocumentList()
 }
 
 void ForgeWindow::updateDocumentListItem (LDDocument* f)
-{	if (f->getListItem() == null)
-	{	// We don't have a list item for this file, so the list either doesn't
+{
+	if (f->getListItem() == null)
+	{
+		// We don't have a list item for this file, so the list either doesn't
 		// exist yet or is out of date. Build the list now.
 		updateDocumentList();
 		return;
@@ -896,13 +987,16 @@ void ForgeWindow::updateDocumentListItem (LDDocument* f)
 // A file is selected from the list of files on the left of the screen. Find out
 // which file was picked and change to it.
 void ForgeWindow::changeCurrentFile()
-{	LDDocument* f = null;
+{
+	LDDocument* f = null;
 	QListWidgetItem* item = ui->fileList->currentItem();
 
 	// Find the file pointer of the item that was selected.
 	for (LDDocument* it : g_loadedFiles)
-	{	if (it->getListItem() == item)
-		{	f = it;
+	{
+		if (it->getListItem() == item)
+		{
+			f = it;
 			break;
 		}
 	}
@@ -930,7 +1024,8 @@ for (LDObject* obj : *f)
 }
 
 void ForgeWindow::updateActions()
-{	History* his = getCurrentDocument()->getHistory();
+{
+	History* his = getCurrentDocument()->getHistory();
 	int pos = his->getPosition();
 	ui->actionUndo->setEnabled (pos != -1);
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
@@ -940,7 +1035,8 @@ void ForgeWindow::updateActions()
 }
 
 QImage imageFromScreencap (uchar* data, int w, int h)
-{	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
+{
+	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
 	return QImage (data, w, h, QImage::Format_ARGB32).rgbSwapped().mirrored();
 }
 
@@ -951,9 +1047,11 @@ LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
 	m_ToolButton (toolButton) {}
 
 LDQuickColor LDQuickColor::getSeparator()
-{	return LDQuickColor (null, null);
+{
+	return LDQuickColor (null, null);
 }
 
 bool LDQuickColor::isSeparator() const
-{	return getColor() == null;
+{
+	return getColor() == null;
 }

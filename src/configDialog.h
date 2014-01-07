@@ -28,7 +28,8 @@ class QDoubleSpinBox;
 
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem
-{	PROPERTY (public,	KeySequenceConfig*,	KeyConfig,	NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,	KeySequenceConfig*,	KeyConfig,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (public,	QAction*,				Action,		NO_OPS,	STOCK_WRITE)
 
 	public:
@@ -38,11 +39,13 @@ class ShortcutListItem : public QListWidgetItem
 
 // =============================================================================
 class ConfigDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		enum Tab
-		{	InterfaceTab,
+		{
+			InterfaceTab,
 			ProfileTab,
 			ShortcutsTab,
 			QuickColorsTab,
@@ -99,7 +102,8 @@ class ConfigDialog : public QDialog
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class KeySequenceDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);

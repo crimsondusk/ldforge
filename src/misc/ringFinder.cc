@@ -33,7 +33,8 @@ RingFinder g_RingFinder;
 // as it would fall into an infinite recursion.
 // -----------------------------------------------------------------------------
 bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolution)
-{	// Don't recurse too deep.
+{
+	// Don't recurse too deep.
 	if (m_stack >= 5)
 		return false;
 
@@ -44,7 +45,8 @@ bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolut
 
 	// If the ring number is integral, we have found a fitting ring to r0 -> r1!
 	if (isInteger (num))
-	{	Component cmp;
+	{
+		Component cmp;
 		cmp.scale = scale;
 		cmp.num = (int) round (num);
 		currentSolution.addComponent (cmp);
@@ -52,12 +54,14 @@ bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolut
 		// If we're still at the first recursion, this is the only
 		// ring and there's nothing left to do. Guess we found the winner.
 		if (m_stack == 0)
-		{	m_solutions.push_back (currentSolution);
+		{
+			m_solutions.push_back (currentSolution);
 			return true;
 		}
 	}
 	else
-	{	// Try find solutions by splitting the ring in various positions.
+	{
+		// Try find solutions by splitting the ring in various positions.
 		if (isZero (r1 - r0))
 			return false;
 
@@ -77,14 +81,16 @@ bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolut
 
 		// Now go through possible splits and try find rings for both segments.
 		for (double r = r0 + interval; r < r1; r += interval)
-		{	Solution sol = currentSolution;
+		{
+			Solution sol = currentSolution;
 
 			m_stack++;
 			bool res = findRingsRecursor (r0, r, sol) && findRingsRecursor (r, r1, sol);
 			m_stack--;
 
 			if (res)
-			{	// We succeeded in finding radii for this segment. If the stack is 0, this
+			{
+				// We succeeded in finding radii for this segment. If the stack is 0, this
 				// is the first recursion to this function. Thus there are no more ring segments
 				// to process and we can add the solution.
 				//
@@ -94,7 +100,8 @@ bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolut
 				if (m_stack == 0)
 					m_solutions.push_back (sol);
 				else
-				{	currentSolution = sol;
+				{
+					currentSolution = sol;
 					return true;
 				}
 			}
@@ -111,7 +118,8 @@ bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolut
 // for the solution that was presented.
 // -----------------------------------------------------------------------------
 bool RingFinder::findRings (double r0, double r1)
-{	m_solutions.clear();
+{
+	m_solutions.clear();
 	Solution sol;
 
 	// Recurse in and try find solutions.
@@ -122,7 +130,8 @@ bool RingFinder::findRings (double r0, double r1)
 	m_bestSolution = null;
 
 	for (QVector<Solution>::iterator solp = m_solutions.begin(); solp != m_solutions.end(); ++solp)
-	{	const Solution& sol = *solp;
+	{
+		const Solution& sol = *solp;
 
 		if (m_bestSolution == null || sol > *m_bestSolution)
 			m_bestSolution = &sol;
@@ -134,7 +143,8 @@ bool RingFinder::findRings (double r0, double r1)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
-{	// If this solution has less components than the other one, this one
+{
+	// If this solution has less components than the other one, this one
 	// is definitely better.
 	if (getComponents().size() < other.getComponents().size())
 		return true;
@@ -150,7 +160,8 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 		maxB = 0;
 
 	for (int i = 0; i < getComponents().size(); ++i)
-	{	maxA = max (getComponents()[i].num, maxA);
+	{
+		maxA = max (getComponents()[i].num, maxA);
 		maxB = max (other.getComponents()[i].num, maxB);
 	}
 

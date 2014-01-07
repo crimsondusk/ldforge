@@ -31,7 +31,8 @@ static const int g_fadeTime = 500; // msecs
 // -----------------------------------------------------------------------------
 MessageManager::MessageManager (QObject* parent) :
 			QObject (parent)
-{	m_ticker = new QTimer;
+{
+	m_ticker = new QTimer;
 	m_ticker->start (100);
 	connect (m_ticker, SIGNAL (timeout()), this, SLOT (tick()));
 }
@@ -49,18 +50,21 @@ MessageManager::Line::Line (str text) :
 // whether the line has somehow changed since the last update.
 // -----------------------------------------------------------------------------
 bool MessageManager::Line::update (bool& changed)
-{	changed = false;
+{
+	changed = false;
 	QDateTime now = QDateTime::currentDateTime();
 	int msec = now.msecsTo (expiry);
 
 	if (now >= expiry)
-	{	// Message line has expired
+	{
+		// Message line has expired
 		changed = true;
 		return false;
 	}
 
 	if (msec <= g_fadeTime)
-	{	// Message line has not expired but is fading out
+	{
+		// Message line has not expired but is fading out
 		alpha = ( (float) msec) / g_fadeTime;
 		changed = true;
 	}
@@ -72,7 +76,8 @@ bool MessageManager::Line::update (bool& changed)
 // Add a line to the message manager.
 // -----------------------------------------------------------------------------
 void MessageManager::addLine (str line)
-{	// If there's too many entries, pop the excess out
+{
+	// If there's too many entries, pop the excess out
 	while (m_lines.size() >= g_maxMessages)
 		m_lines.removeFirst();
 
@@ -88,13 +93,15 @@ void MessageManager::addLine (str line)
 // redrawn if something changed.
 // -----------------------------------------------------------------------------
 void MessageManager::tick()
-{	if (m_lines.isEmpty())
+{
+	if (m_lines.isEmpty())
 		return;
 
 	bool changed = false;
 
 	for (int i = 0; i < m_lines.size(); ++i)
-	{	bool lineChanged;
+	{
+		bool lineChanged;
 
 		if (!m_lines[i].update (lineChanged))
 			m_lines.removeAt (i--);
@@ -109,7 +116,8 @@ void MessageManager::tick()
 // =============================================================================
 // -----------------------------------------------------------------------------
 const QList<MessageManager::Line>& MessageManager::getLines() const
-{	return m_lines;
+{
+	return m_lines;
 }
 
 // =============================================================================
@@ -117,10 +125,12 @@ const QList<MessageManager::Line>& MessageManager::getLines() const
 // the main message manager.
 // -----------------------------------------------------------------------------
 void DoLog (std::initializer_list<StringFormatArg> args)
-{	const str msg = DoFormat (args);
+{
+	const str msg = DoFormat (args);
 
 	for (str& a : msg.split ("\n", QString::SkipEmptyParts))
-	{	if (g_win)
+	{
+		if (g_win)
 			g_win->addMessage (a);
 
 		// Also print it to stdout

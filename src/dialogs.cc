@@ -51,11 +51,13 @@ extern_cfg (String, io_ldpath);
 // =============================================================================
 // -----------------------------------------------------------------------------
 OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f)
-{	ui = new Ui_OverlayUI;
+{
+	ui = new Ui_OverlayUI;
 	ui->setupUi (this);
 
 	m_cameraArgs =
-	{	{ ui->top,    GL::ETopCamera },
+	{
+		{ ui->top,    GL::ETopCamera },
 		{ ui->bottom, GL::EBottomCamera },
 		{ ui->front,  GL::EFrontCamera },
 		{ ui->back,   GL::EBackCamera },
@@ -80,24 +82,28 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 // =============================================================================
 // -----------------------------------------------------------------------------
 OverlayDialog::~OverlayDialog()
-{	delete ui;
+{
+	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OverlayDialog::fillDefaults (int newcam)
-{	LDGLOverlay& info = g_win->R()->getOverlay (newcam);
+{
+	LDGLOverlay& info = g_win->R()->getOverlay (newcam);
 	radioDefault<int> (newcam, m_cameraArgs);
 
 	if (info.img != null)
-	{	ui->filename->setText (info.fname);
+	{
+		ui->filename->setText (info.fname);
 		ui->originX->setValue (info.ox);
 		ui->originY->setValue (info.oy);
 		ui->width->setValue (info.lw);
 		ui->height->setValue (info.lh);
 	}
 	else
-	{	ui->filename->setText ("");
+	{
+		ui->filename->setText ("");
 		ui->originX->setValue (0);
 		ui->originY->setValue (0);
 		ui->width->setValue (0.0f);
@@ -108,39 +114,48 @@ void OverlayDialog::fillDefaults (int newcam)
 // =============================================================================
 // -----------------------------------------------------------------------------
 str OverlayDialog::fpath() const
-{	return ui->filename->text();
+{
+	return ui->filename->text();
 }
 
 int OverlayDialog::ofsx() const
-{	return ui->originX->value();
+{
+	return ui->originX->value();
 }
 
 int OverlayDialog::ofsy() const
-{	return ui->originY->value();
+{
+	return ui->originY->value();
 }
 
 double OverlayDialog::lwidth() const
-{	return ui->width->value();
+{
+	return ui->width->value();
 }
 
 double OverlayDialog::lheight() const
-{	return ui->height->value();
+{
+	return ui->height->value();
 }
 
 int OverlayDialog::camera() const
-{	return radioSwitch<int> (GL::ETopCamera, m_cameraArgs);
+{
+	return radioSwitch<int> (GL::ETopCamera, m_cameraArgs);
 }
 
 void OverlayDialog::slot_fpath()
-{	ui->filename->setText (QFileDialog::getOpenFileName (null, "Overlay image"));
+{
+	ui->filename->setText (QFileDialog::getOpenFileName (null, "Overlay image"));
 }
 
 void OverlayDialog::slot_help()
-{	showDocumentation (g_docs_overlays);
+{
+	showDocumentation (g_docs_overlays);
 }
 
 void OverlayDialog::slot_dimensionsChanged()
-{	bool enable = (ui->width->value() != 0) || (ui->height->value() != 0);
+{
+	bool enable = (ui->width->value() != 0) || (ui->height->value() != 0);
 	ui->buttonBox->button (QDialogButtonBox::Ok)->setEnabled (enable);
 }
 
@@ -149,14 +164,16 @@ void OverlayDialog::slot_dimensionsChanged()
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	m_validDefault (validDefault)
-{	ui = new Ui_LDPathUI;
+{
+	ui = new Ui_LDPathUI;
 	ui->setupUi (this);
 	ui->status->setText ("---");
 
 	if (validDefault)
 		ui->heading->hide();
 	else
-	{	cancelButton()->setText ("Exit");
+	{
+		cancelButton()->setText ("Exit");
 		cancelButton()->setIcon (getIcon ("exit"));
 	}
 
@@ -176,32 +193,39 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDrawPathDialog::~LDrawPathDialog()
-{	delete ui;
+{
+	delete ui;
 }
 
 QPushButton* LDrawPathDialog::okButton()
-{	return ui->buttonBox->button (QDialogButtonBox::Ok);
+{
+	return ui->buttonBox->button (QDialogButtonBox::Ok);
 }
 
 QPushButton* LDrawPathDialog::cancelButton()
-{	return ui->buttonBox->button (QDialogButtonBox::Cancel);
+{
+	return ui->buttonBox->button (QDialogButtonBox::Cancel);
 }
 
 void LDrawPathDialog::setPath (str path)
-{	ui->path->setText (path);
+{
+	ui->path->setText (path);
 }
 
 str LDrawPathDialog::filename() const
-{	return ui->path->text();
+{
+	return ui->path->text();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_findPath()
-{	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
+{
+	str newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 
 	if (newpath.length() > 0 && newpath != filename())
-	{	setPath (newpath);
+	{
+		setPath (newpath);
 		slot_tryConfigure();
 	}
 }
@@ -209,14 +233,17 @@ void LDrawPathDialog::slot_findPath()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_exit()
-{	exit (0);
+{
+	exit (0);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_tryConfigure()
-{	if (LDPaths::tryConfigure (filename()) == false)
-	{	ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
+{
+	if (LDPaths::tryConfigure (filename()) == false)
+	{
+		ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
 		return;
 	}
@@ -228,14 +255,16 @@ void LDrawPathDialog::slot_tryConfigure()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDrawPathDialog::slot_accept()
-{	Config::save();
+{
+	Config::save();
 	accept();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f)
-{	ui = new Ui_OpenProgressUI;
+{
+	ui = new Ui_OpenProgressUI;
 	ui->setupUi (this);
 	ui->progressText->setText ("Parsing...");
 	setNumLines (0);
@@ -245,13 +274,15 @@ OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QD
 // =============================================================================
 // -----------------------------------------------------------------------------
 OpenProgressDialog::~OpenProgressDialog()
-{	delete ui;
+{
+	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OpenProgressDialog::setNumLines (int const& a)
-{	m_NumLines = a;
+{
+	m_NumLines = a;
 	ui->progressBar->setRange (0, getNumLines());
 	updateValues();
 }
@@ -259,14 +290,16 @@ void OpenProgressDialog::setNumLines (int const& a)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OpenProgressDialog::updateValues()
-{	ui->progressText->setText (fmt ("Parsing... %1 / %2", getProgress(), getNumLines()));
+{
+	ui->progressText->setText (fmt ("Parsing... %1 / %2", getProgress(), getNumLines()));
 	ui->progressBar->setValue (getProgress());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void OpenProgressDialog::updateProgress (int progress)
-{	setProgress (progress);
+{
+	setProgress (progress);
 	updateValues();
 }
 
@@ -286,13 +319,15 @@ ExtProgPathPrompt::ExtProgPathPrompt (str progName, QWidget* parent, Qt::WindowF
 // =============================================================================
 // -----------------------------------------------------------------------------
 ExtProgPathPrompt::~ExtProgPathPrompt()
-{	delete ui;
+{
+	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ExtProgPathPrompt::findPath()
-{	str path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
+{
+	str path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
 
 	if (!path.isEmpty())
 		ui->m_path->setText (path);
@@ -301,14 +336,16 @@ void ExtProgPathPrompt::findPath()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str ExtProgPathPrompt::getPath() const
-{	return ui->m_path->text();
+{
+	return ui->m_path->text();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
-{	Ui::AboutUI ui;
+{
+	Ui::AboutUI ui;
 	ui.setupUi (this);
 	ui.versionInfo->setText (APPNAME " " + fullVersionString());
 
@@ -324,13 +361,15 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AboutDialog::slot_mail()
-{	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge"));
+{
+	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge"));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void bombBox (const str& message)
-{	QDialog dlg (g_win);
+{
+	QDialog dlg (g_win);
 	Ui_BombBox ui;
 
 	ui.setupUi (&dlg);

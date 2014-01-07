@@ -33,15 +33,17 @@ class AbstractHistoryEntry;
 
 // =============================================================================
 class History
-{	PROPERTY (private,	int,				Position,	NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		bool,				Ignoring,	BOOL_OPS,	STOCK_WRITE)
+{
+	PROPERTY (private,	int,				Position,	NUM_OPS,		STOCK_WRITE)
+	PROPERTY (public,	LDDocument*,	File,		NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,	bool,			Ignoring,	BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
 
 		enum Type
-		{	Del,
+		{
+			Del,
 			Edit,
 			Add,
 			Move,
@@ -57,16 +59,19 @@ class History
 		void add (AbstractHistoryEntry* entry);
 
 		inline long getSize() const
-		{	return m_changesets.size();
+		{
+			return m_changesets.size();
 		}
 
 		inline History& operator<< (AbstractHistoryEntry* entry)
-		{	add (entry);
+		{
+			add (entry);
 			return *this;
 		}
 
 		inline const Changeset& getChangeset (long pos) const
-		{	return m_changesets[pos];
+		{
+			return m_changesets[pos];
 		}
 
 	private:
@@ -78,7 +83,8 @@ class History
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AbstractHistoryEntry
-{	PROPERTY (public,	History*,	Parent,	NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,	History*,	Parent,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		virtual ~AbstractHistoryEntry() {}
@@ -86,11 +92,13 @@ class AbstractHistoryEntry
 		virtual void redo() const {}
 
 		virtual History::Type getType() const
-		{	return (History::Type) 0;
+		{
+			return (History::Type) 0;
 		}
 
 		virtual const char* getTypeName() const
-		{	return "";
+		{
+			return "";
 		}
 };
 
@@ -98,7 +106,8 @@ class AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class DelHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
@@ -110,7 +119,8 @@ class DelHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int, Index,		NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (private,	int, Index,		NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	str, OldCode,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	str, NewCode,	NO_OPS,	STOCK_WRITE)
 
@@ -127,7 +137,8 @@ class EditHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class AddHistory : public AbstractHistoryEntry
-{	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
@@ -142,7 +153,8 @@ class AddHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class MoveHistory : public AbstractHistoryEntry
-{	public:
+{
+	public:
 		IMPLEMENT_HISTORY_TYPE (Move)
 
 		QList<int> indices;
@@ -157,7 +169,8 @@ class MoveHistory : public AbstractHistoryEntry
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class SwapHistory : public AbstractHistoryEntry
-{	public:
+{
+	public:
 		IMPLEMENT_HISTORY_TYPE (Swap)
 
 		SwapHistory (int a, int b) :

@@ -48,7 +48,8 @@ cfg (Bool, firststart, true);
 // =============================================================================
 // -----------------------------------------------------------------------------
 int main (int argc, char* argv[])
-{	QApplication app (argc, argv);
+{
+	QApplication app (argc, argv);
 	app.setOrganizationName (APPNAME);
 	app.setApplicationName (APPNAME);
 	g_app = &app;
@@ -58,7 +59,8 @@ int main (int argc, char* argv[])
 
 	// Load or create the configuration
 	if (!Config::load())
-	{	log ("Creating configuration file...\n");
+	{
+		log ("Creating configuration file...\n");
 
 		if (Config::save())
 			log ("Configuration file successfully created.\n");
@@ -75,7 +77,8 @@ int main (int argc, char* argv[])
 	// If this is the first start, get the user to configuration. Especially point
 	// them to the profile tab, it's the most important form to fill in.
 	if (firststart)
-	{	(new ConfigDialog (ConfigDialog::ProfileTab))->exec();
+	{
+		(new ConfigDialog (ConfigDialog::ProfileTab))->exec();
 		firststart = false;
 		Config::save();
 	}
@@ -87,7 +90,8 @@ int main (int argc, char* argv[])
 // =============================================================================
 // -----------------------------------------------------------------------------
 void doPrint (File& f, initlist<StringFormatArg> args)
-{	str msg = DoFormat (args);
+{
+	str msg = DoFormat (args);
 	f.write (msg.toUtf8());
 	f.flush();
 }
@@ -95,7 +99,8 @@ void doPrint (File& f, initlist<StringFormatArg> args)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void doPrint (FILE* fp, initlist<StringFormatArg> args)
-{	str msg = DoFormat (args);
+{
+	str msg = DoFormat (args);
 	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
 	fflush (fp);
 }
@@ -103,7 +108,8 @@ void doPrint (FILE* fp, initlist<StringFormatArg> args)
 // =============================================================================
 // -----------------------------------------------------------------------------
 QString versionString()
-{	if (g_versionString.length() == 0)
+{
+	if (g_versionString.length() == 0)
 	{
 #if VERSION_PATCH == 0
 		g_versionString = fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);

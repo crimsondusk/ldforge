@@ -41,7 +41,8 @@ class Ui_LDPathUI;
 class Ui_OpenProgressUI;
 
 class OverlayDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
@@ -67,7 +68,8 @@ class OverlayDialog : public QDialog
 
 // =============================================================================
 class LDrawPathDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
@@ -91,7 +93,8 @@ class LDrawPathDialog : public QDialog
 
 // =============================================================================
 class OpenProgressDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 	PROPERTY (public,	int, Progress,	NUM_OPS,	STOCK_WRITE)
 	PROPERTY (public,	int, NumLines,	NUM_OPS,	CUSTOM_WRITE)
 
@@ -110,7 +113,8 @@ class OpenProgressDialog : public QDialog
 
 // =============================================================================
 class ExtProgPathPrompt : public QDialog
-{		Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit ExtProgPathPrompt (str progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
@@ -126,7 +130,8 @@ class ExtProgPathPrompt : public QDialog
 
 // =============================================================================
 class AboutDialog : public QDialog
-{		Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);

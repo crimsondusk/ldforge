@@ -38,13 +38,15 @@ class QTimer;
  * repainting.
  */
 class MessageManager : public QObject
-{	Q_OBJECT
+{
+	Q_OBJECT
 	PROPERTY (public,	GLRenderer*,	Renderer,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		// Single line of the message log.
 		class Line
-		{	public:
+		{
+			public:
 				Line (str text);
 				bool update (bool& changed);
 

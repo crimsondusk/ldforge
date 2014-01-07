@@ -47,7 +47,8 @@ static QList<Config*>		g_configs;
 // Get the QSettings object.
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject()
-{	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
+{
+	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
 }
 
 Config::Config (str name) :
@@ -57,11 +58,13 @@ Config::Config (str name) :
 // Load the configuration from file
 // -----------------------------------------------------------------------------
 bool Config::load()
-{	QSettings* settings = getSettingsObject();
+{
+	QSettings* settings = getSettingsObject();
 	log ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
-	{	if (!cfg)
+	{
+		if (!cfg)
 			break;
 
 		QVariant val = settings->value (cfg->getName(), cfg->getDefaultAsVariant());
@@ -78,11 +81,13 @@ bool Config::load()
 // Save the configuration to disk
 // -----------------------------------------------------------------------------
 bool Config::save()
-{	QSettings* settings = getSettingsObject();
+{
+	QSettings* settings = getSettingsObject();
 	log ("Saving configuration to %1...\n", settings->fileName());
 
 	for (Config* cfg : g_configs)
-	{	if (!cfg->isDefault())
+	{
+		if (!cfg->isDefault())
 			settings->setValue (cfg->getName(), cfg->toVariant());
 		else
 			settings->remove (cfg->getName());
@@ -97,7 +102,8 @@ bool Config::save()
 // Reset configuration to defaults.
 // -----------------------------------------------------------------------------
 void Config::reset()
-{	for (Config* cfg : g_configs)
+{
+	for (Config* cfg : g_configs)
 		cfg->resetValue();
 }
 
@@ -105,14 +111,16 @@ void Config::reset()
 // Where is the configuration file located at?
 // -----------------------------------------------------------------------------
 str Config::filepath (str file)
-{	return Config::dirpath() + DIRSLASH + file;
+{
+	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
 // Directory of the configuration file.
 // -----------------------------------------------------------------------------
 str Config::dirpath()
-{	QSettings* cfg = getSettingsObject();
+{
+	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
@@ -122,7 +130,8 @@ str Config::dirpath()
 // variables we cannot assume that, therefore we need to use a C-style array here.
 // -----------------------------------------------------------------------------
 void Config::addToArray (Config* ptr)
-{	if (g_cfgPointerCursor == 0)
+{
+	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
 
 	assert (g_cfgPointerCursor < MAX_CONFIG);
@@ -132,7 +141,8 @@ void Config::addToArray (Config* ptr)
 // =============================================================================
 // -----------------------------------------------------------------------------
 template<class T> T* getConfigByName (str name, Config::Type type)
-{	auto it = g_configsByName.find (name);
+{
+	auto it = g_configsByName.find (name);
 
 	if (it == g_configsByName.end())
 		return null;
@@ -140,7 +150,8 @@ template<class T> T* getConfigByName (str name, Config::Type type)
 	Config* cfg = it.value();
 
 	if (cfg->getType() != type)
-	{	fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
+	{
+		fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
 		abort();
 	}
 
@@ -150,9 +161,10 @@ template<class T> T* getConfigByName (str name, Config::Type type)
 // =============================================================================
 // -----------------------------------------------------------------------------
 #undef IMPLEMENT_CONFIG
-#define IMPLEMENT_CONFIG(NAME) \
-	NAME##Config* NAME##Config::getByName (str name)		\
-	{	return getConfigByName<NAME##Config> (name, NAME);	\
+#define IMPLEMENT_CONFIG(NAME)								\
+	NAME##Config* NAME##Config::getByName (str name)			\
+	{														\
+		return getConfigByName<NAME##Config> (name, NAME);	\
 	}
 
 IMPLEMENT_CONFIG (Int)

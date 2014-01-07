@@ -46,10 +46,12 @@ static QList<int> g_signalsToCatch ({
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void handleCrash (int sig)
-{	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
+{
+	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
 
 	if (g_crashCatcherActive)
-	{	printf ("caught signal while crash catcher is active!\n");
+	{
+		printf ("caught signal while crash catcher is active!\n");
 		exit (149);
 	}
 
@@ -60,7 +62,8 @@ static void handleCrash (int sig)
 	g_crashCatcherActive = true;
 
 	if (commandsFile.open())
-	{	commandsFile.write (fmt ("attach %1\n", pid).toLocal8Bit());
+	{
+		commandsFile.write (fmt ("attach %1\n", pid).toLocal8Bit());
 		commandsFile.write (str ("backtrace full\n").toLocal8Bit());
 		commandsFile.write (str ("detach\n").toLocal8Bit());
 		commandsFile.write (str ("quit").toLocal8Bit());
@@ -91,7 +94,8 @@ static void handleCrash (int sig)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void initCrashCatcher()
-{	struct sigaction sighandler;
+{
+	struct sigaction sighandler;
 	sighandler.sa_handler = &handleCrash;
 	sighandler.sa_flags = 0;
 	sigemptyset (&sighandler.sa_mask);
@@ -110,7 +114,8 @@ void initCrashCatcher()
 // Said prompt will embed the assertion failure information.
 // -----------------------------------------------------------------------------
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
-{	str errmsg = fmt (
+{
+	str errmsg = fmt (
 		"<p><b>File</b>: <tt>%1</tt><br />"
 		"<b>Line</b>: <tt>%2</tt><br />"
 		"<b>Function:</b> <tt>%3</tt></p>"

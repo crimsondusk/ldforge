@@ -33,14 +33,16 @@ class LDDocument;
 class QTimer;
 
 enum EditMode
-{	ESelectMode,
+{
+	ESelectMode,
 	EDrawMode,
 	ECircleMode,
 };
 
 // Meta for overlays
 struct LDGLOverlay
-{	vertex	v0,
+{
+	vertex	v0,
 				v1;
 	int		ox,
 				oy;
@@ -51,7 +53,8 @@ struct LDGLOverlay
 };
 
 struct LDFixedCameraInfo
-{	const char glrotate[3];
+{
+	const char glrotate[3];
 	const Axis axisX, axisY;
 	const bool negX, negY;
 };
@@ -64,9 +67,11 @@ struct LDFixedCameraInfo
 // g_win->R()
 // =============================================================================
 class GLRenderer : public QGLWidget
-{	typedefs:
+{
+	typedefs:
 		enum EFixedCamera
-		{	ETopCamera,
+		{
+			ETopCamera,
 			EFrontCamera,
 			ELeftCamera,
 			EBottomCamera,
@@ -76,7 +81,8 @@ class GLRenderer : public QGLWidget
 		};
 
 		enum ListType
-		{	NormalList,
+		{
+			NormalList,
 			PickList,
 			BFCFrontList,
 			BFCBackList
@@ -86,7 +92,8 @@ class GLRenderer : public QGLWidget
 		// initialized before program gets to main() and constructs a QApplication
 		// and Qt doesn't like that.
 		struct CameraIcon
-		{	QPixmap*			img;
+		{
+			QPixmap*			img;
 			QRect				srcRect,
 								destRect,
 								selRect;
@@ -101,12 +108,13 @@ class GLRenderer : public QGLWidget
 		PROPERTY (public,		LDDocument*,		File,			NO_OPS,		CUSTOM_WRITE)
 		PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
 
-	public methods:
+	public:
 		GLRenderer (QWidget* parent = null);
 		~GLRenderer();
 
 		inline EFixedCamera camera() const
-		{	return m_camera;
+		{
+			return m_camera;
 		}
 
 		void           clearOverlay();
@@ -137,7 +145,7 @@ class GLRenderer : public QGLWidget
 
 		static void    deleteLists (LDObject* obj);
 
-	protected methods:
+	protected:
 		void           contextMenuEvent (QContextMenuEvent* ev);
 		void           initializeGL();
 		void           keyPressEvent (QKeyEvent* ev);
@@ -154,36 +162,36 @@ class GLRenderer : public QGLWidget
 	private:
 		CameraIcon					m_cameraIcons[7];
 		QTimer*						m_toolTipTimer;
-		Qt::MouseButtons			m_lastButtons;
-		Qt::KeyboardModifiers	m_keymods;
+		Qt::MouseButtons				m_lastButtons;
+		Qt::KeyboardModifiers		m_keymods;
 		vertex						m_hoverpos;
 		double						m_virtWidth,
-										m_virtHeight,
-										m_rotX[7],
-										m_rotY[7],
-										m_rotZ[7],
-										m_panX[7],
-										m_panY[7],
-										m_zoom[7];
-		bool							m_darkbg,
-										m_rangepick,
-										m_addpick,
-										m_drawToolTip,
-										m_screencap,
-										m_panning;
+									m_virtHeight,
+									m_rotX[7],
+									m_rotY[7],
+									m_rotZ[7],
+									m_panX[7],
+									m_panY[7],
+									m_zoom[7];
+		bool						m_darkbg,
+									m_rangepick,
+									m_addpick,
+									m_drawToolTip,
+									m_screencap,
+									m_panning;
 		QPoint						m_pos,
-										m_globalpos,
-										m_rangeStart;
-		QPen							m_thickBorderPen,
-										m_thinBorderPen;
+									m_globalpos,
+									m_rangeStart;
+		QPen						m_thickBorderPen,
+									m_thinBorderPen;
 		EFixedCamera				m_camera,
-										m_toolTipCamera;
+									m_toolTipCamera;
 		GLuint						m_axeslist;
 		int							m_width,
-										m_height,
-										m_totalmove;
+									m_height,
+									m_totalmove;
 		QList<vertex>				m_drawedVerts;
-		bool							m_rectdraw;
+		bool						m_rectdraw;
 		vertex						m_rectverts[4];
 		QColor						m_bgcolor;
 		double						m_depthValues[6];
@@ -229,7 +237,8 @@ class GLRenderer : public QGLWidget
 
 		// Get a rotation value
 		inline double& rot (Axis ax)
-		{	return
+		{
+			return
 				(ax == X) ? m_rotX[camera()] :
 				(ax == Y) ? m_rotY[camera()] :
 				            m_rotZ[camera()];
@@ -237,17 +246,20 @@ class GLRenderer : public QGLWidget
 
 		// Get a panning value
 		inline double& pan (Axis ax)
-		{	return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+		{
+			return (ax == X) ? m_panX[camera()] : m_panY[camera()];
 		}
 
 		// Same except const (can be used in const methods)
 		inline const double& pan (Axis ax) const
-		{	return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+		{
+			return (ax == X) ? m_panX[camera()] : m_panY[camera()];
 		}
 
 		// Get the zoom value
 		inline double& zoom()
-		{	return m_zoom[camera()];
+		{
+			return m_zoom[camera()];
 		}
 
 	private slots:
@@ -258,7 +270,8 @@ class GLRenderer : public QGLWidget
 typedef GLRenderer GL;
 
 static const GLRenderer::ListType g_glListTypes[] =
-{	GL::NormalList,
+{
+	GL::NormalList,
 	GL::PickList,
 	GL::BFCFrontList,
 	GL::BFCBackList,

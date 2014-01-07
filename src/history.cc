@@ -31,7 +31,8 @@ History::History() :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::undo()
-{	if (m_changesets.isEmpty() || getPosition() == -1)
+{
+	if (m_changesets.isEmpty() || getPosition() == -1)
 		return;
 
 	// Don't take the changes done here as actual edits to the document
@@ -41,7 +42,8 @@ void History::undo()
 
 	// Iterate the list in reverse and undo all actions
 	for (int i = set.size() - 1; i >= 0; --i)
-	{	AbstractHistoryEntry* change = set[i];
+	{
+		AbstractHistoryEntry* change = set[i];
 		change->undo();
 	}
 
@@ -55,7 +57,8 @@ void History::undo()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::redo()
-{	if (getPosition() == m_changesets.size())
+{
+	if (getPosition() == m_changesets.size())
 		return;
 
 	setIgnoring (true);
@@ -75,7 +78,8 @@ void History::redo()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::clear()
-{	for (Changeset set : m_changesets)
+{
+	for (Changeset set : m_changesets)
 		for (AbstractHistoryEntry* change : set)
 			delete change;
 
@@ -86,11 +90,13 @@ void History::clear()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::addStep()
-{	if (m_currentChangeset.isEmpty())
+{
+	if (m_currentChangeset.isEmpty())
 		return;
 
 	while (getPosition() < getSize() - 1)
-	{	Changeset last = m_changesets.last();
+	{
+		Changeset last = m_changesets.last();
 
 		for (AbstractHistoryEntry* entry : last)
 			delete entry;
@@ -108,8 +114,10 @@ void History::addStep()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void History::add (AbstractHistoryEntry* entry)
-{	if (isIgnoring())
-	{	delete entry;
+{
+	if (isIgnoring())
+	{
+		delete entry;
 		return;
 	}
 
@@ -121,14 +129,16 @@ void History::add (AbstractHistoryEntry* entry)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddHistory::undo() const
-{	LDObject* obj = getParent()->getFile()->getObject (getIndex());
+{
+	LDObject* obj = getParent()->getFile()->getObject (getIndex());
 	obj->deleteSelf();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddHistory::redo() const
-{	LDObject* obj = parseLine (getCode());
+{
+	LDObject* obj = parseLine (getCode());
 	getParent()->getFile()->insertObj (getIndex(), obj);
 	g_win->R()->compileObject (obj);
 }
@@ -143,7 +153,8 @@ DelHistory::DelHistory (int idx, LDObject* obj) :
 // heh
 // -----------------------------------------------------------------------------
 void DelHistory::undo() const
-{	LDObject* obj = parseLine (getCode());
+{
+	LDObject* obj = parseLine (getCode());
 	getParent()->getFile()->insertObj (getIndex(), obj);
 	g_win->R()->compileObject (obj);
 }
@@ -151,14 +162,16 @@ void DelHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void DelHistory::redo() const
-{	LDObject* obj = getParent()->getFile()->getObject (getIndex());
+{
+	LDObject* obj = getParent()->getFile()->getObject (getIndex());
 	obj->deleteSelf();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void EditHistory::undo() const
-{	LDObject* obj = getCurrentDocument()->getObject (getIndex());
+{
+	LDObject* obj = getCurrentDocument()->getObject (getIndex());
 	LDObject* newobj = parseLine (getOldCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);
@@ -167,7 +180,8 @@ void EditHistory::undo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void EditHistory::redo() const
-{	LDObject* obj = getCurrentDocument()->getObject (getIndex());
+{
+	LDObject* obj = getCurrentDocument()->getObject (getIndex());
 	LDObject* newobj = parseLine (getNewCode());
 	obj->replace (newobj);
 	g_win->R()->compileObject (newobj);
@@ -176,9 +190,11 @@ void EditHistory::redo() const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void SwapHistory::undo() const
-{	LDObject::fromID (a)->swap (LDObject::fromID (b));
+{
+	LDObject::fromID (a)->swap (LDObject::fromID (b));
 }
 
 void SwapHistory::redo() const
-{	undo(); // :v
+{
+	undo(); // :v
 }

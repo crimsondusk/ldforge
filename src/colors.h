@@ -25,7 +25,8 @@
 #define MAX_COLORS 512
 
 class LDColor
-{	public:
+{
+	public:
 		str name, hexcode;
 		QColor faceColor, edgeColor;
 		int index;

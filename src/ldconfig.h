@@ -28,7 +28,8 @@
 // String parsing utility for parsing ldconfig.ldr
 // =============================================================================
 class LDConfigParser
-{	public:
+{
+	public:
 		LDConfigParser (str inText, char sep);
 
 		bool isAtEnd();
@@ -42,8 +43,9 @@ class LDConfigParser
 		void seek (int amount, bool rel);
 		bool tokenCompare (int inPos, const char* sOther);
 
-		str operator[] (const int idx)
-		{	return m_tokens[idx];
+		inline str operator[] (const int idx)
+		{
+			return m_tokens[idx];
 		}
 
 	private:

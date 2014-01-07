@@ -41,11 +41,13 @@ typedef QString str;
 
 // =========================================================
 class Config
-{	PROPERTY (private, str, Name, STR_OPS, STOCK_WRITE)
+{
+	PROPERTY (private, str, Name, STR_OPS, STOCK_WRITE)
 
 	public:
 		enum Type
-		{	Int,
+		{
+			Int,
 			String,
 			Float,
 			Bool,
@@ -81,88 +83,104 @@ class Config
 };
 
 // =============================================================================
-#define IMPLEMENT_CONFIG(NAME)												\
-public:																				\
-	using ValueType = Config::NAME##Type;									\
-																						\
-	NAME##Config (ValueType* valueptr, str name, ValueType def) :	\
-		Config (name),																\
+#define IMPLEMENT_CONFIG(NAME)													\
+public:																			\
+	using ValueType = Config::NAME##Type;										\
+																				\
+	NAME##Config (ValueType* valueptr, str name, ValueType def) :				\
+		Config (name),															\
 		m_valueptr (valueptr),													\
 		m_default (def)															\
-	{	Config::addToArray (this);												\
+	{																			\
+		Config::addToArray (this);												\
 		*m_valueptr = def;														\
-	}																					\
-																						\
-	inline ValueType getValue() const										\
-	{	return *m_valueptr;														\
-	}																					\
-																						\
-	inline void setValue (ValueType val)									\
-	{	*m_valueptr = val;														\
-	}																					\
-																						\
-	virtual Config::Type getType() const									\
-	{	return Config::NAME;														\
-	}																					\
-																						\
+	}																			\
+																				\
+	inline ValueType getValue() const											\
+	{																			\
+		return *m_valueptr;														\
+	}																			\
+																				\
+	inline void setValue (ValueType val)											\
+	{																			\
+		*m_valueptr = val;														\
+	}																			\
+																				\
+	virtual Config::Type getType() const											\
+	{																			\
+		return Config::NAME;														\
+	}																			\
+																				\
 	virtual void resetValue()													\
-	{	*m_valueptr = m_default;												\
-	}																					\
-																						\
-	virtual const ValueType& getDefault() const							\
-	{	return m_default;															\
-	}																					\
-																						\
-	virtual bool isDefault() const											\
-	{	return *m_valueptr == m_default;										\
-	}																					\
-																						\
-	virtual void loadFromVariant (const QVariant& val)					\
-	{	*m_valueptr = val.value<ValueType>();								\
-	}																					\
-																						\
-	virtual QVariant toVariant() const										\
-	{	return QVariant::fromValue<ValueType> (*m_valueptr);			\
-	}																					\
-																						\
-	virtual QVariant getDefaultAsVariant() const							\
-	{	return QVariant::fromValue<ValueType> (m_default);				\
-	}																					\
-																						\
-	static NAME##Config* getByName (str name);							\
-																						\
-private:																				\
+	{																			\
+		*m_valueptr = m_default;												\
+	}																			\
+																				\
+	virtual const ValueType& getDefault() const									\
+	{																			\
+		return m_default;														\
+	}																			\
+																				\
+	virtual bool isDefault() const												\
+	{																			\
+		return *m_valueptr == m_default;											\
+	}																			\
+																				\
+	virtual void loadFromVariant (const QVariant& val)							\
+	{																			\
+		*m_valueptr = val.value<ValueType>();									\
+	}																			\
+																				\
+	virtual QVariant toVariant() const											\
+	{																			\
+		return QVariant::fromValue<ValueType> (*m_valueptr);						\
+	}																			\
+																				\
+	virtual QVariant getDefaultAsVariant() const									\
+	{																			\
+		return QVariant::fromValue<ValueType> (m_default);						\
+	}																			\
+																				\
+	static NAME##Config* getByName (str name);									\
+																				\
+private:																			\
 	ValueType*	m_valueptr;														\
 	ValueType	m_default;
 
 // =============================================================================
 class IntConfig : public Config
-{	IMPLEMENT_CONFIG (Int)
+{
+	IMPLEMENT_CONFIG (Int)
 };
 
 // =============================================================================
 class StringConfig : public Config
-{	IMPLEMENT_CONFIG (String)
+{
+	IMPLEMENT_CONFIG (String)
 };
 
 // =============================================================================
 class FloatConfig : public Config
-{	IMPLEMENT_CONFIG (Float)
+{
+	IMPLEMENT_CONFIG (Float)
 };
 
 // =============================================================================
 class BoolConfig : public Config
-{	IMPLEMENT_CONFIG (Bool)
+{
+	IMPLEMENT_CONFIG (Bool)
 };
 
 // =============================================================================
 class KeySequenceConfig : public Config
-{	IMPLEMENT_CONFIG (KeySequence)
+{
+	IMPLEMENT_CONFIG (KeySequence)
 };
 
 // =============================================================================
 class ListConfig : public Config
-{	IMPLEMENT_CONFIG (List)
+{
+	IMPLEMENT_CONFIG (List)
 };
 
 #endif // LDFORGE_CONFIG_H

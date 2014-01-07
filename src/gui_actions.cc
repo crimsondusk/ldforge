@@ -47,7 +47,8 @@ extern_cfg (Bool,		gl_drawangles);
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (New, CTRL_SHIFT (N))
-{	QDialog* dlg = new QDialog (g_win);
+{
+	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
 
@@ -59,7 +60,8 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 	ui.le_author->setText (authortext);
 
 	switch (ld_defaultlicense)
-	{	case 0:
+	{
+		case 0:
 			ui.rb_license_ca->setChecked (true);
 			break;
 
@@ -91,7 +93,8 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
 
 	getCurrentDocument()->addObjects (
-	{	new LDComment (ui.le_title->text()),
+	{
+		new LDComment (ui.le_title->text()),
 		new LDComment ("Name: <untitled>.dat"),
 		new LDComment (fmt ("Author: %1", ui.le_author->text())),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
@@ -107,13 +110,15 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewFile, CTRL (N))
-{	newFile();
+{
+	newFile();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Open, CTRL (O))
-{	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
+{
+	str name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 
 	if (name.length() == 0)
 		return;
@@ -124,20 +129,24 @@ DEFINE_ACTION (Open, CTRL (O))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Save, CTRL (S))
-{	save (getCurrentDocument(), false);
+{
+	save (getCurrentDocument(), false);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
-{	save (getCurrentDocument(), true);
+{
+	save (getCurrentDocument(), true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SaveAll, CTRL (L))
-{	for (LDDocument* file : g_loadedFiles)
-	{	if (file->isImplicit())
+{
+	for (LDDocument* file : g_loadedFiles)
+	{
+		if (file->isImplicit())
 			continue;
 
 		save (file, false);
@@ -147,7 +156,8 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Close, CTRL (W))
-{	if (!getCurrentDocument()->isSafeToClose())
+{
+	if (!getCurrentDocument()->isSafeToClose())
 		return;
 
 	delete getCurrentDocument();
@@ -156,7 +166,8 @@ DEFINE_ACTION (Close, CTRL (W))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (CloseAll, 0)
-{	if (!safeToCloseAll())
+{
+	if (!safeToCloseAll())
 		return;
 
 	closeAll();
@@ -165,73 +176,85 @@ DEFINE_ACTION (CloseAll, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Settings, 0)
-{	(new ConfigDialog)->exec();
+{
+	(new ConfigDialog)->exec();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetLDrawPath, 0)
-{	(new LDrawPathDialog (true))->exec();
+{
+	(new LDrawPathDialog (true))->exec();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Exit, CTRL (Q))
-{	exit (0);
+{
+	exit (0);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewSubfile, 0)
-{	AddObjectDialog::staticDialog (LDObject::Subfile, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Subfile, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewLine, 0)
-{	AddObjectDialog::staticDialog (LDObject::Line, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Line, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewTriangle, 0)
-{	AddObjectDialog::staticDialog (LDObject::Triangle, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Triangle, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewQuad, 0)
-{	AddObjectDialog::staticDialog (LDObject::Quad, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Quad, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewCLine, 0)
-{	AddObjectDialog::staticDialog (LDObject::CondLine, null);
+{
+	AddObjectDialog::staticDialog (LDObject::CondLine, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewComment, 0)
-{	AddObjectDialog::staticDialog (LDObject::Comment, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Comment, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewBFC, 0)
-{	AddObjectDialog::staticDialog (LDObject::BFC, null);
+{
+	AddObjectDialog::staticDialog (LDObject::BFC, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewVertex, 0)
-{	AddObjectDialog::staticDialog (LDObject::Vertex, null);
+{
+	AddObjectDialog::staticDialog (LDObject::Vertex, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Edit, 0)
-{	if (selection().size() != 1)
+{
+	if (selection().size() != 1)
 		return;
 
 	LDObject* obj = selection() [0];
@@ -247,19 +270,22 @@ DEFINE_ACTION (Help, KEY (F1))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (About, 0)
-{	AboutDialog().exec();
+{
+	AboutDialog().exec();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (AboutQt, 0)
-{	QMessageBox::aboutQt (g_win);
+{
+	QMessageBox::aboutQt (g_win);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectAll, CTRL (A))
-{	for (LDObject* obj : getCurrentDocument()->getObjects())
+{
+	for (LDObject* obj : getCurrentDocument()->getObjects())
 		obj->select();
 
 	updateSelection();
@@ -268,7 +294,8 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
-{	int colnum = getSelectedColor();
+{
+	int colnum = getSelectedColor();
 
 	if (colnum == -1)
 		return; // no consensus on color
@@ -285,7 +312,8 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SelectByType, 0)
-{	if (selection().isEmpty())
+{
+	if (selection().isEmpty())
 		return;
 
 	LDObject::Type type = getUniformSelectedType();
@@ -298,7 +326,8 @@ DEFINE_ACTION (SelectByType, 0)
 	str refName;
 
 	if (type == LDObject::Subfile)
-	{	refName = static_cast<LDSubfile*> (selection()[0])->getFileInfo()->getName();
+	{
+		refName = static_cast<LDSubfile*> (selection()[0])->getFileInfo()->getName();
 
 		for (LDObject* obj : selection())
 			if (static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
@@ -308,7 +337,8 @@ DEFINE_ACTION (SelectByType, 0)
 	getCurrentDocument()->clearSelection();
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	if (obj->getType() != type)
+	{
+		if (obj->getType() != type)
 			continue;
 
 		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
@@ -323,31 +353,36 @@ DEFINE_ACTION (SelectByType, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (GridCoarse, 0)
-{	grid = Grid::Coarse;
+{
+	grid = Grid::Coarse;
 	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridMedium, 0)
-{	grid = Grid::Medium;
+{
+	grid = Grid::Medium;
 	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridFine, 0)
-{	grid = Grid::Fine;
+{
+	grid = Grid::Fine;
 	updateGridToolBar();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ResetView, CTRL (0))
-{	R()->resetAngles();
+{
+	R()->resetAngles();
 	R()->update();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertFrom, 0)
-{	str fname = QFileDialog::getOpenFileName();
+{
+	str fname = QFileDialog::getOpenFileName();
 	int idx = getInsertionPoint();
 
 	if (!fname.length())
@@ -356,7 +391,8 @@ DEFINE_ACTION (InsertFrom, 0)
 	File f (fname, File::Read);
 
 	if (!f)
-	{	critical (fmt ("Couldn't open %1 (%2)", fname, strerror (errno)));
+	{
+		critical (fmt ("Couldn't open %1 (%2)", fname, strerror (errno)));
 		return;
 	}
 
@@ -365,7 +401,8 @@ DEFINE_ACTION (InsertFrom, 0)
 	getCurrentDocument()->clearSelection();
 
 	for (LDObject* obj : objs)
-	{	getCurrentDocument()->insertObj (idx, obj);
+	{
+		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
 		R()->compileObject (obj);
 
@@ -379,7 +416,8 @@ DEFINE_ACTION (InsertFrom, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ExportTo, 0)
-{	if (selection().isEmpty())
+{
+	if (selection().isEmpty())
 		return;
 
 	str fname = QFileDialog::getSaveFileName();
@@ -390,12 +428,14 @@ DEFINE_ACTION (ExportTo, 0)
 	QFile file (fname);
 
 	if (!file.open (QIODevice::WriteOnly | QIODevice::Text))
-	{	critical (fmt ("Unable to open %1 for writing (%2)", fname, strerror (errno)));
+	{
+		critical (fmt ("Unable to open %1 for writing (%2)", fname, strerror (errno)));
 		return;
 	}
 
 	for (LDObject* obj : selection())
-	{	str contents = obj->raw();
+	{
+		str contents = obj->raw();
 		QByteArray data = contents.toUtf8();
 		file.write (data, data.size());
 		file.write ("\r\n", 2);
@@ -405,7 +445,8 @@ DEFINE_ACTION (ExportTo, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (InsertRaw, 0)
-{	int idx = getInsertionPoint();
+{
+	int idx = getInsertionPoint();
 
 	QDialog* const dlg = new QDialog;
 	QVBoxLayout* const layout = new QVBoxLayout;
@@ -425,7 +466,8 @@ DEFINE_ACTION (InsertRaw, 0)
 	getCurrentDocument()->clearSelection();
 
 	for (str line : str (te_edit->toPlainText()).split ("\n"))
-	{	LDObject* obj = parseLine (line);
+	{
+		LDObject* obj = parseLine (line);
 
 		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
@@ -440,7 +482,8 @@ DEFINE_ACTION (InsertRaw, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Screenshot, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	int w, h;
 	uchar* imgdata = R()->getScreencap (w, h);
@@ -465,7 +508,8 @@ DEFINE_ACTION (Screenshot, 0)
 // -----------------------------------------------------------------------------
 extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0)
-{	gl_axes = !gl_axes;
+{
+	gl_axes = !gl_axes;
 	updateActions();
 	R()->update();
 }
@@ -473,7 +517,8 @@ DEFINE_ACTION (Axes, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (VisibilityToggle, 0)
-{	for (LDObject* obj : selection())
+{
+	for (LDObject* obj : selection())
 		obj->toggleHidden();
 
 	refresh();
@@ -482,7 +527,8 @@ DEFINE_ACTION (VisibilityToggle, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (VisibilityHide, 0)
-{	for (LDObject* obj : selection())
+{
+	for (LDObject* obj : selection())
 		obj->setHidden (true);
 
 	refresh();
@@ -491,7 +537,8 @@ DEFINE_ACTION (VisibilityHide, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (VisibilityReveal, 0)
-{	for (LDObject* obj : selection())
+{
+	for (LDObject* obj : selection())
 	obj->setHidden (false);
 	refresh();
 }
@@ -499,14 +546,16 @@ DEFINE_ACTION (VisibilityReveal, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Wireframe, 0)
-{	gl_wireframe = !gl_wireframe;
+{
+	gl_wireframe = !gl_wireframe;
 	R()->refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetOverlay,  0)
-{	OverlayDialog dlg;
+{
+	OverlayDialog dlg;
 
 	if (!dlg.exec())
 		return;
@@ -518,38 +567,44 @@ DEFINE_ACTION (SetOverlay,  0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ClearOverlay, 0)
-{	R()->clearOverlay();
+{
+	R()->clearOverlay();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeSelect, CTRL (1))
-{	R()->setEditMode (ESelectMode);
+{
+	R()->setEditMode (ESelectMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeDraw, CTRL (2))
-{	R()->setEditMode (EDrawMode);
+{
+	R()->setEditMode (EDrawMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ModeCircle, CTRL (3))
-{	R()->setEditMode (ECircleMode);
+{
+	R()->setEditMode (ECircleMode);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (DrawAngles, 0)
-{	gl_drawangles = !gl_drawangles;
+{
+	gl_drawangles = !gl_drawangles;
 	R()->refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetDrawDepth, 0)
-{	if (R()->camera() == GL::EFreeCamera)
+{
+	if (R()->camera() == GL::EFreeCamera)
 		return;
 
 	bool ok;
@@ -566,11 +621,13 @@ DEFINE_ACTION (SetDrawDepth, 0)
 // but I can't figure how to generate these pictures properly. Multi-threading
 // these is an immense pain.
 DEFINE_ACTION (testpic, "Test picture", "", "", (0))
-{	LDDocument* file = getFile ("axle.dat");
+{
+	LDDocument* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 
 	if (!file)
-	{	critical ("couldn't load axle.dat");
+	{
+		critical ("couldn't load axle.dat");
 		return;
 	}
 
@@ -590,10 +647,12 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 	QImage img = imageFromScreencap (imgdata, w, h);
 
 	if (img.isNull())
-	{	critical ("Failed to create the image!\n");
+	{
+		critical ("Failed to create the image!\n");
 	}
 	else
-	{	QLabel* label = new QLabel;
+	{
+		QLabel* label = new QLabel;
 		QDialog* dlg = new QDialog;
 		label->setPixmap (QPixmap::fromImage (img));
 		QVBoxLayout* layout = new QVBoxLayout (dlg);
@@ -609,13 +668,15 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ScanPrimitives, 0)
-{	PrimitiveLister::start();
+{
+	PrimitiveLister::start();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (BFCView, SHIFT (B))
-{	gl_colorbfc = !gl_colorbfc;
+{
+	gl_colorbfc = !gl_colorbfc;
 	updateActions();
 	R()->refresh();
 }
@@ -623,7 +684,8 @@ DEFINE_ACTION (BFCView, SHIFT (B))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (JumpTo, CTRL (G))
-{	bool ok;
+{
+	bool ok;
 	int defval = 0;
 	LDObject* obj;
 
@@ -644,7 +706,8 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SubfileSelection, 0)
-{	if (selection().size() == 0)
+{
+	if (selection().size() == 0)
 		return;
 
 	str			parentpath = getCurrentDocument()->getFullPath();
@@ -688,20 +751,23 @@ DEFINE_ACTION (SubfileSelection, 0)
 	str topdirname = basename (dirname (getCurrentDocument()->getFullPath()));
 
 	if (topdirname != "s")
-	{	str desiredPath = subdirname + "/s";
+	{
+		str desiredPath = subdirname + "/s";
 		str title = tr ("Create subfile directory?");
 		str text = fmt (tr ("The directory <b>%1</b> is suggested for "
 			"subfiles. This directory does not exist, create it?"), desiredPath);
 
 		if (QDir (desiredPath).exists() || confirm (title, text))
-		{	subdirname = desiredPath;
+		{
+			subdirname = desiredPath;
 			QDir().mkpath (subdirname);
 		}
 	}
 
 	// Determine the body of the name of the subfile
 	if (!parentpath.isEmpty())
-	{	if (parentpath.endsWith (".dat"))
+	{
+		if (parentpath.endsWith (".dat"))
 			parentpath.chop (4);
 
 		// Remove the s?? suffix if it's there, otherwise we'll get filenames
@@ -716,7 +782,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 		str testfname;
 
 		do
-		{	digits.setNum (subidx++);
+		{
+			digits.setNum (subidx++);
 
 			// pad it with a zero
 			if (digits.length() == 1)
@@ -729,7 +796,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 	// Determine the BFC winding type used in the main document - it is to
 	// be carried over to the subfile.
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
+	{
+		LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
 
 		if (!bfc)
 			continue;
@@ -737,7 +805,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 		LDBFC::Type a = bfc->type;
 
 		if (a == LDBFC::CertifyCCW || a == LDBFC::CertifyCW || a == LDBFC::NoCertify)
-		{	bfctype = a;
+		{
+			bfctype = a;
 			break;
 		}
 	}
@@ -752,7 +821,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 	doc->setFullPath (fullsubname);
 	doc->setName (LDDocument::shortenName (fullsubname));
 	doc->addObjects (
-	{	new LDComment (subtitle),
+	{
+		new LDComment (subtitle),
 		new LDComment ("Name: "),
 		new LDComment (fmt ("Author: %1 [%2]", ld_defaultname, ld_defaultuser)),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_Subpart")),
@@ -764,13 +834,15 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// Add the actual subfile code to the new document
 	for (str line : code)
-	{	LDObject* obj = parseLine (line);
+	{
+		LDObject* obj = parseLine (line);
 		doc->addObject (obj);
 	}
 
 	// Try save it
 	if (save (doc, true))
-	{	// Remove the selection now
+	{
+		// Remove the selection now
 		for (LDObject* obj : selection())
 			obj->deleteSelf();
 
@@ -794,7 +866,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 		doFullRefresh();
 	}
 	else
-	{	// Failed to save.
+	{
+		// Failed to save.
 		delete doc;
 	}
 }

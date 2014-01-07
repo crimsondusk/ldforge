@@ -40,7 +40,8 @@
 #include "dialogs.h"
 
 enum extprog
-{	Isecalc,
+{
+	Isecalc,
 	Intersector,
 	Coverer,
 	Ytruder,
@@ -58,7 +59,8 @@ cfg (String, prog_rectifier, "");
 cfg (String, prog_edger2, "");
 
 str* const g_extProgPaths[] =
-{	&prog_isecalc,
+{
+	&prog_isecalc,
 	&prog_intersector,
 	&prog_coverer,
 	&prog_ytruder,
@@ -75,7 +77,8 @@ cfg (Bool, prog_rectifier_wine, false);
 cfg (Bool, prog_edger2_wine, false);
 
 bool* const g_extProgWine[] =
-{	&prog_isecalc_wine,
+{
+	&prog_isecalc_wine,
 	&prog_intersector_wine,
 	&prog_coverer_wine,
 	&prog_ytruder_wine,
@@ -85,7 +88,8 @@ bool* const g_extProgWine[] =
 #endif // _WIN32
 
 const char* g_extProgNames[] =
-{	"Isecalc",
+{
+	"Isecalc",
 	"Intersector",
 	"Coverer",
 	"Ytruder",
@@ -96,7 +100,8 @@ const char* g_extProgNames[] =
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool checkProgPath (const extprog prog)
-{	str& path = *g_extProgPaths[prog];
+{
+	str& path = *g_extProgPaths[prog];
 
 	if (path.length() > 0)
 		return true;
@@ -104,7 +109,8 @@ static bool checkProgPath (const extprog prog)
 	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
 
 	if (dlg->exec() && !dlg->getPath().isEmpty())
-	{	path = dlg->getPath();
+	{
+		path = dlg->getPath();
 		return true;
 	}
 
@@ -114,9 +120,12 @@ static bool checkProgPath (const extprog prog)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static str processErrorString (extprog prog, QProcess& proc)
-{	switch (proc.error())
-	{	case QProcess::FailedToStart:
-		{	str wineblurb;
+{
+	switch (proc.error())
+	{
+		case QProcess::FailedToStart:
+		{
+			str wineblurb;
 
 #ifndef _WIN32
 			if (*g_extProgWine[prog])
@@ -146,7 +155,8 @@ static str processErrorString (extprog prog, QProcess& proc)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static bool mkTempFile (QTemporaryFile& tmp, str& fname)
-{	if (!tmp.open())
+{
+	if (!tmp.open())
 		return false;
 
 	fname = tmp.fileName();
@@ -157,9 +167,12 @@ static bool mkTempFile (QTemporaryFile& tmp, str& fname)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void writeObjects (const QList<LDObject*>& objects, File& f)
-{	for (LDObject* obj : objects)
-	{	if (obj->getType() == LDObject::Subfile)
-		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
+{
+	for (LDObject* obj : objects)
+	{
+		if (obj->getType() == LDObject::Subfile)
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
 
 			writeObjects (objs, f);
@@ -175,11 +188,13 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void writeObjects (const QList<LDObject*>& objects, str fname)
-{	// Write the input file
+{
+	// Write the input file
 	File f (fname, File::Write);
 
 	if (!f)
-	{	critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
+	{
+		critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
 		return;
 	}
 
@@ -194,16 +209,19 @@ static void writeObjects (const QList<LDObject*>& objects, str fname)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void writeSelection (str fname)
-{	writeObjects (selection(), fname);
+{
+	writeObjects (selection(), fname);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void writeColorGroup (const int colnum, str fname)
-{	QList<LDObject*> objects;
+{
+	QList<LDObject*> objects;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{	if (obj->isColored() == false || obj->getColor() != colnum)
+	{
+		if (obj->isColored() == false || obj->getColor() != colnum)
 			continue;
 
 		objects << obj;
@@ -215,13 +233,15 @@ void writeColorGroup (const int colnum, str fname)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool runUtilityProcess (extprog prog, str path, str argvstr)
-{	QTemporaryFile input, output;
+{
+	QTemporaryFile input, output;
 	str inputname, outputname;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 
 #ifndef _WIN32
 	if (*g_extProgWine[prog])
-	{	argv.insert (0, path);
+	{
+		argv.insert (0, path);
 		path = "wine";
 	}
 #endif // _WIN32
@@ -242,7 +262,8 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	proc.start (path, argv);
 
 	if (!proc.waitForStarted())
-	{	critical (fmt ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
+	{
+		critical (fmt ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
 		return false;
 	}
 
@@ -262,7 +283,8 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 		err = fmt ("Program exited abnormally (return code %1).",  proc.exitCode());
 
 	if (!err.isEmpty())
-	{	critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
+	{
+		critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
 		return false;
 	}
 
@@ -281,7 +303,8 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 	File f (fname, File::Read);
 
 	if (!f)
-	{	critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
+	{
+		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
 	}
 
@@ -298,8 +321,10 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 	getCurrentDocument()->clearSelection();
 
 	for (LDObject * obj : objs)
-	{	if (!obj->isScemantic())
-		{	obj->deleteSelf();
+	{
+		if (!obj->isScemantic())
+		{
+			obj->deleteSelf();
 			continue;
 		}
 
@@ -314,7 +339,8 @@ static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
 // Interface for Ytruder
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Ytruder, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Ytruder))
 		return;
@@ -348,7 +374,8 @@ DEFINE_ACTION (Ytruder, 0)
 
 	// Compose the command-line arguments
 	str argv = join (
-	{	(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
+	{
+		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
 		depth,
 		"-a",
@@ -369,7 +396,8 @@ DEFINE_ACTION (Ytruder, 0)
 // Rectifier interface
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Rectifier, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Rectifier))
 		return;
@@ -390,7 +418,8 @@ DEFINE_ACTION (Rectifier, 0)
 
 	// Compose arguments
 	str argv = join (
-	{	(!ui.cb_condense->isChecked()) ? "-q" : "",
+	{
+		(!ui.cb_condense->isChecked()) ? "-q" : "",
 		(!ui.cb_subst->isChecked()) ? "-r" : "",
 		(ui.cb_condlineCheck->isChecked()) ? "-a" : "",
 		(ui.cb_colorize->isChecked()) ? "-c" : "",
@@ -412,7 +441,8 @@ DEFINE_ACTION (Rectifier, 0)
 // Intersector interface
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Intersector, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Intersector))
 		return;
@@ -431,14 +461,16 @@ DEFINE_ACTION (Intersector, 0)
 	const bool repeatInverse = ui.cb_repeat->isChecked();
 
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex()).toInt();
 		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex()).toInt();
 
 		if (inCol == cutCol)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -457,25 +489,29 @@ DEFINE_ACTION (Intersector, 0)
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (cutdat, cutDATName) ||
 			!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
 			!mkTempFile (edgesdat, edgesDATName))
-	{	return;
+	{
+		return;
 	}
 
 	str parms = join (
-	{	(ui.cb_colorize->isChecked()) ? "-c" : "",
+	{
+		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		(ui.cb_nocondense->isChecked()) ? "-t" : "",
 		"-s",
 		ui.dsb_prescale->value()
 	});
 
 	str argv_normal = join (
-	{	parms,
+	{
+		parms,
 		inDATName,
 		cutDATName,
 		outDATName
 	});
 
 	str argv_inverse = join (
-	{	parms,
+	{
+		parms,
 		cutDATName,
 		inDATName,
 		outDAT2Name
@@ -503,7 +539,8 @@ DEFINE_ACTION (Intersector, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Coverer, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Coverer))
 		return;
@@ -517,14 +554,16 @@ DEFINE_ACTION (Coverer, 0)
 	int in1Col, in2Col;
 
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt();
 		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt();
 
 		if (in1Col == in2Col)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -538,7 +577,8 @@ DEFINE_ACTION (Coverer, 0)
 		return;
 
 	str argv = join (
-	{	(ui.cb_oldsweep->isChecked() ? "-s" : ""),
+	{
+		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
 		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
 		(ui.sb_bias->value() != 0 ? fmt ("-s %1", ui.sb_bias->value()) : ""),
@@ -559,7 +599,8 @@ DEFINE_ACTION (Coverer, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Isecalc, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Isecalc))
 		return;
@@ -575,14 +616,16 @@ DEFINE_ACTION (Isecalc, 0)
 
 	// Run the dialog and validate input
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt(),
 		in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex()).toInt();
 
 		if (in1Col == in2Col)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -596,7 +639,8 @@ DEFINE_ACTION (Isecalc, 0)
 		return;
 
 	str argv = join (
-	{	in1DATName,
+	{
+		in1DATName,
 		in2DATName,
 		outDATName
 	});
@@ -610,7 +654,8 @@ DEFINE_ACTION (Isecalc, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Edger2, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Edger2))
 		return;
@@ -631,7 +676,8 @@ DEFINE_ACTION (Edger2, 0)
 	int unmatched = ui.unmatched->currentIndex();
 
 	str argv = join (
-	{	fmt ("-p %1", ui.precision->value()),
+	{
+		fmt ("-p %1", ui.precision->value()),
 		fmt ("-af %1", ui.flatAngle->value()),
 		fmt ("-ac %1", ui.condAngle->value()),
 		fmt ("-ae %1", ui.edgeAngle->value()),

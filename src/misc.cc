@@ -32,7 +32,8 @@
 
 // Prime number table.
 const int g_primes[NUM_PRIMES] =
-{	2,    3,    5,    7,   11,   13,   17,   19,   23,   29,
+{
+	2,    3,    5,    7,   11,   13,   17,   19,   23,   29,
 	31,   37,   41,   43,   47,   53,   59,   61,   67,   71,
 	73,   79,   83,   89,   97,  101,  103,  107,  109,  113,
 	127,  131,  137,  139,  149,  151,  157,  163,  167,  173,
@@ -85,7 +86,8 @@ const int g_primes[NUM_PRIMES] =
 };
 
 static const int32 g_e10[] =
-{	1,
+{
+	1,
 	10,
 	100,
 	1000,
@@ -119,7 +121,8 @@ cfg (Float,	edit_rotpoint_y,		0.0f);
 cfg (Float,	edit_rotpoint_z, 		0.0f);
 
 const gridinfo g_GridInfo[3] =
-{	{ "Coarse", { &grid_coarse_x, &grid_coarse_y, &grid_coarse_z, &grid_coarse_angle }},
+{
+	{ "Coarse", { &grid_coarse_x, &grid_coarse_y, &grid_coarse_z, &grid_coarse_angle }},
 	{ "Medium", { &grid_medium_x, &grid_medium_y, &grid_medium_z, &grid_medium_angle }},
 	{ "Fine",   { &grid_fine_x,   &grid_fine_y,   &grid_fine_z,   &grid_fine_angle   }}
 };
@@ -128,7 +131,8 @@ const gridinfo g_GridInfo[3] =
 // Snap the given coordinate value on the current grid's given axis.
 // -----------------------------------------------------------------------------
 double Grid::snap (double in, const Grid::Config axis)
-{	const double gridval = *currentGrid().confs[axis];
+{
+	const double gridval = *currentGrid().confs[axis];
 	const long mult = abs (in / gridval);
 	const bool neg = (in < 0);
 	double out = mult * gridval;
@@ -145,10 +149,12 @@ double Grid::snap (double in, const Grid::Config axis)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool numeric (const str& tok)
-{	bool gotDot = false;
+{
+	bool gotDot = false;
 
 	for (int i = 0; i < tok.length(); ++i)
-	{	const QChar c = tok[i];
+	{
+		const QChar c = tok[i];
 
 		// Allow leading hyphen for negatives
 		if (i == 0 && c == '-')
@@ -156,7 +162,8 @@ bool numeric (const str& tok)
 
 		// Check for decimal point
 		if (!gotDot && c == '.')
-		{	gotDot = true;
+		{
+			gotDot = true;
 			continue;
 		}
 
@@ -174,19 +181,23 @@ bool numeric (const str& tok)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void simplify (int& numer, int& denom)
-{	bool repeat;
+{
+	bool repeat;
 
 	do
-	{	repeat = false;
+	{
+		repeat = false;
 
 		for (int x = 0; x < NUM_PRIMES; x++)
-		{	const int prime = g_primes[NUM_PRIMES - x - 1];
+		{
+			const int prime = g_primes[NUM_PRIMES - x - 1];
 
 			if (numer <= prime || denom <= prime)
 				continue;
 
 			if ( (numer % prime == 0) && (denom % prime == 0))
-			{	numer /= prime;
+			{
+				numer /= prime;
 				denom /= prime;
 				repeat = true;
 				break;
@@ -199,11 +210,14 @@ void simplify (int& numer, int& denom)
 // =============================================================================
 // -----------------------------------------------------------------------------
 vertex rotPoint (const QList<LDObject*>& objs)
-{	LDBoundingBox box;
+{
+	LDBoundingBox box;
 
 	switch (edit_rotpoint)
-	{	case ObjectOrigin:
-		{	// Calculate center vertex
+	{
+		case ObjectOrigin:
+		{
+			// Calculate center vertex
 			for (LDObject* obj : objs)
 				if (obj->hasMatrix())
 					box << dynamic_cast<LDMatrixObject*> (obj)->getPosition();
@@ -214,11 +228,13 @@ vertex rotPoint (const QList<LDObject*>& objs)
 		}
 
 		case WorldOrigin:
-		{	return g_origin;
+		{
+			return g_origin;
 		}
 
 		case CustomPoint:
-		{	return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+		{
+			return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
 		}
 	}
 
@@ -228,12 +244,14 @@ vertex rotPoint (const QList<LDObject*>& objs)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void configRotationPoint()
-{	QDialog* dlg = new QDialog;
+{
+	QDialog* dlg = new QDialog;
 	Ui::RotPointUI ui;
 	ui.setupUi (dlg);
 
 	switch (edit_rotpoint)
-	{	case ObjectOrigin:
+	{
+		case ObjectOrigin:
 			ui.objectPoint->setChecked (true);
 			break;
 
@@ -266,7 +284,8 @@ void configRotationPoint()
 // =============================================================================
 // -----------------------------------------------------------------------------
 str join (initlist<StringFormatArg> vals, str delim)
-{	QStringList list;
+{
+	QStringList list;
 
 	for (const StringFormatArg& arg : vals)
 		list << arg.value();
@@ -277,7 +296,8 @@ str join (initlist<StringFormatArg> vals, str delim)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void roundToDecimals (double& a, int decimals)
-{	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
+{
+	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
 	a = round (a * g_e10[decimals]) / g_e10[decimals];
 }
 
@@ -286,23 +306,27 @@ void roundToDecimals (double& a, int decimals)
 InvokationDeferer* g_invokationDeferer = new InvokationDeferer();
 
 InvokationDeferer::InvokationDeferer (QObject* parent) : QObject (parent)
-{	connect (this, SIGNAL (functionAdded()), this, SLOT (invokeFunctions()),
+{
+	connect (this, SIGNAL (functionAdded()), this, SLOT (invokeFunctions()),
 		Qt::QueuedConnection);
 }
 
 void InvokationDeferer::addFunctionCall (InvokationDeferer::FunctionType func)
-{	m_funcs << func;
+{
+	m_funcs << func;
 	removeDuplicates (m_funcs);
 	emit functionAdded();
 }
 
 void InvokationDeferer::invokeFunctions()
-{	for (FunctionType func : m_funcs)
+{
+	for (FunctionType func : m_funcs)
 		(*func)();
 
 	m_funcs.clear();
 }
 
 void invokeLater (InvokationDeferer::FunctionType func)
-{	g_invokationDeferer->addFunctionCall (func);
+{
+	g_invokationDeferer->addFunctionCall (func);
 }

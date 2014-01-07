@@ -35,20 +35,24 @@ class QAbstractButton;
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloader : public QDialog
-{	typedefs:
+{
+	typedefs:
 		enum Source
-		{	PartsTracker,
+		{
+			PartsTracker,
 			CustomURL,
 		};
 
 		enum Button
-		{	Download,
+		{
+			Download,
 			Abort,
 			Close
 		};
 
 		enum TableColumn
-		{	PartLabelColumn,
+		{
+			PartLabelColumn,
 			ProgressColumn,
 		};
 
@@ -56,38 +60,40 @@ class PartDownloader : public QDialog
 
 	properties:
 		Q_OBJECT
-		PROPERTY (public,		LDDocument*, 			PrimaryFile,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,		bool,					Aborted,				BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,	LDDocument*, 		PrimaryFile,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	bool,				Aborted,			BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (private,	Ui_DownloadFrom*,	Interface,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QStringList,		FilesToDownload,	LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QStringList,			FilesToDownload,		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (private,	RequestList,		Requests,			LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QPushButton*,		DownloadButton,	NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QPushButton*,		DownloadButton,		NO_OPS,		STOCK_WRITE)
 
-	public methods:
-		explicit			PartDownloader (QWidget* parent = null);
+	public:
+		explicit		PartDownloader (QWidget* parent = null);
 		virtual			~PartDownloader();
 
-		void				downloadFile (str dest, str url, bool primary);
-		QPushButton*	getButton (Button i);
+		void			downloadFile (str dest, str url, bool primary);
+		QPushButton*		getButton (Button i);
 		str				getURL() const;
 		Source			getSource() const;
-		void				modifyDestination (str& dest) const;
+		void			modifyDestination (str& dest) const;
 
 		static str		getDownloadPath();
 		static void		staticBegin();
 
 	public slots:
-		void				buttonClicked (QAbstractButton* btn);
-		void				checkIfFinished();
-		void				sourceChanged (int i);
+		void			buttonClicked (QAbstractButton* btn);
+		void			checkIfFinished();
+		void			sourceChanged (int i);
 };
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloadRequest : public QObject
-{	typedefs:
+{
+	typedefs:
 		enum EState
-		{	ERequesting,
+		{
+			ERequesting,
 			EDownloading,
 			EFinished,
 			EFailed,
@@ -95,21 +101,21 @@ class PartDownloadRequest : public QObject
 
 	properties:
 		Q_OBJECT
-		PROPERTY (public,		int,							TableRow,		NUM_OPS,		STOCK_WRITE)
-		PROPERTY (private,	EState,						State,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	int,						TableRow,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	EState,					State,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	PartDownloader*,			Prompt,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	str,							URL,				STR_OPS,		STOCK_WRITE)
-		PROPERTY (private,	str,							Destinaton,		STR_OPS,		STOCK_WRITE)
-		PROPERTY (private,	str,							FilePath,		STR_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QNetworkAccessManager*,	NAM,				NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	str,					URL,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	str,					Destinaton,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	str,					FilePath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QNetworkAccessManager*,	NAM,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QNetworkReply*,			Reply,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	bool,							FirstUpdate,	BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (private,	int64,						BytesRead,		NUM_OPS,		STOCK_WRITE)
-		PROPERTY (private,	int64,						BytesTotal,		NUM_OPS,		STOCK_WRITE)
-		PROPERTY (private,	bool,							Primary,			BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QFile*,						FilePointer,	NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	bool,					FirstUpdate,	BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (private,	int64,					BytesRead,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	int64,					BytesTotal,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	bool,					Primary,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QFile*,					FilePointer,	NO_OPS,		STOCK_WRITE)
 
-	public methods:
+	public:
 		explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent);
 		PartDownloadRequest (const PartDownloadRequest&) = delete;
 		virtual ~PartDownloadRequest();

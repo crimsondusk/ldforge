@@ -32,7 +32,8 @@ class QTreeWidget;
 class QDoubleSpinBox;
 
 class AddObjectDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent = null);

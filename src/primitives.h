@@ -28,22 +28,26 @@ class LDDocument;
 class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive
-{	str name, title;
+{
+	str name, title;
 	PrimitiveCategory* cat;
 };
 
 class PrimitiveCategory : public QObject
-{	Q_OBJECT
+{
+	Q_OBJECT
 	PROPERTY (public,	str,	Name,	STR_OPS,	STOCK_WRITE)
 
 	public:
 		enum ERegexType
-		{	EFilenameRegex,
+		{
+			EFilenameRegex,
 			ETitleRegex
 		};
 
 		struct RegexEntry
-		{	QRegExp		regex;
+		{
+			QRegExp		regex;
 			ERegexType	type;
 		};
 
@@ -66,7 +70,8 @@ class PrimitiveCategory : public QObject
 // builds an index of them.
 // =============================================================================
 class PrimitiveLister : public QObject
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit PrimitiveLister (QObject* parent = 0);
@@ -94,7 +99,8 @@ void loadPrimitives();
 PrimitiveLister* getPrimitiveLister();
 
 enum PrimitiveType
-{	Circle,
+{
+	Circle,
 	Cylinder,
 	Disc,
 	DiscNeg,
@@ -104,7 +110,8 @@ enum PrimitiveType
 
 // =============================================================================
 class PrimitivePrompt : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit PrimitivePrompt (QWidget* parent = null, Qt::WindowFlags f = 0);

@@ -37,17 +37,20 @@ class QRadioButton;
 // Convenience widget - is a groupbox of radio buttons.
 // =============================================================================
 class RadioGroup : public QGroupBox
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		typedef QList<QRadioButton*>::Iterator Iterator;
 
 		explicit RadioGroup()
-		{	init (Qt::Vertical);
+		{
+			init (Qt::Vertical);
 		}
 
 		explicit RadioGroup (QWidget* parent = null) : QGroupBox (parent)
-		{	init (Qt::Vertical);
+		{
+			init (Qt::Vertical);
 		}
 
 		explicit RadioGroup (const QString& title, QWidget* parent = null);

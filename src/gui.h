@@ -58,7 +58,8 @@ class Ui_LDForgeUI;
 
 // =============================================================================
 class LDQuickColor
-{	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	STOCK_WRITE)
 	PROPERTY (public,	QToolButton*,	ToolButton,	NO_OPS,	STOCK_WRITE)
 
 	public:
@@ -74,7 +75,8 @@ class LDQuickColor
 // Object list class for ForgeWindow
 // =============================================================================
 class ObjectList : public QListWidget
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	protected:
 		void contextMenuEvent (QContextMenuEvent* ev);
@@ -88,7 +90,8 @@ class ObjectList : public QListWidget
 // Large and in charge.
 // =============================================================================
 class ForgeWindow : public QMainWindow
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	typedefs:
 		using ActionMethodType = void (ForgeWindow::*)();
@@ -118,11 +121,13 @@ class ForgeWindow : public QMainWindow
 		void updateActions();
 
 		inline GLRenderer* R()
-		{	return m_renderer;
+		{
+			return m_renderer;
 		}
 
 		inline void setQuickColors (QList<LDQuickColor>& colors)
-		{	m_quickColors = colors;
+		{
+			m_quickColors = colors;
 		}
 
 		void setStatusBarText (str text);
@@ -280,7 +285,8 @@ QImage imageFromScreencap (uchar* data, int w, int h);
 // =============================================================================
 template<class T>
 T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
-{	for (pair<QRadioButton*, const T&> i : haystack)
+{
+	for (pair<QRadioButton*, const T&> i : haystack)
 		if (i.first->isChecked())
 			return i.second;
 
@@ -294,9 +300,12 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 // =============================================================================
 template<class T>
 void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
-{	for (pair<QRadioButton*, const T&> i : haystack)
-	{	if (i.second == expr)
-		{	i.first->setChecked (true);
+{
+	for (pair<QRadioButton*, const T&> i : haystack)
+	{
+		if (i.second == expr)
+		{
+			i.first->setChecked (true);
 			return;
 		}
 	}

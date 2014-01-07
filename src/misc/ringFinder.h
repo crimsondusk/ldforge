@@ -27,22 +27,27 @@
 // Provides an algorithm for finding a solution of rings between radii r0 and r1.
 // =============================================================================
 class RingFinder
-{	public:
+{
+	public:
 		struct Component
-		{	int num;
+		{
+			int num;
 			double scale;
 		};
 
 		class Solution
-		{	public:
+		{
+			public:
 				// Components of this solution
 				inline const QVector<Component>& getComponents() const
-				{	return m_components;
+				{
+					return m_components;
 				}
 
 				// Add a component to this solution
 				inline void addComponent (const Component& a)
-				{	m_components.push_back (a);
+				{
+					m_components.push_back (a);
 				}
 
 				// Compare solutions
@@ -56,15 +61,18 @@ class RingFinder
 		bool findRings (double r0, double r1);
 
 		inline const Solution* bestSolution()
-		{	return m_bestSolution;
+		{
+			return m_bestSolution;
 		}
 
 		inline const QVector<Solution>& allSolutions() const
-		{	return m_solutions;
+		{
+			return m_solutions;
 		}
 
 		inline bool operator() (double r0, double r1)
-		{	return findRings (r0, r1);
+		{
+			return findRings (r0, r1);
 		}
 
 	private:

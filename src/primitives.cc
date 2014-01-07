@@ -37,7 +37,8 @@ extern_cfg (String, ld_defaultuser);
 extern_cfg (Int, ld_defaultlicense);
 
 static const str g_radialNameRoots[] =
-{	"edge",
+{
+	"edge",
 	"cyli",
 	"disc",
 	"ndis",
@@ -46,26 +47,31 @@ static const str g_radialNameRoots[] =
 };
 
 PrimitiveLister* getPrimitiveLister()
-{	return g_activePrimLister;
+{
+	return g_activePrimLister;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadPrimitives()
-{	log ("Loading primitives...\n");
+{
+	log ("Loading primitives...\n");
 	PrimitiveCategory::loadCategories();
 
 	// Try to load prims.cfg
 	File conf (Config::filepath ("prims.cfg"), File::Read);
 
 	if (!conf)
-	{	// No prims.cfg, build it
+	{
+		// No prims.cfg, build it
 		PrimitiveLister::start();
 	}
 	else
-	{	// Read primitives from prims.cfg
+	{
+		// Read primitives from prims.cfg
 		for (str line : conf)
-		{	int space = line.indexOf (" ");
+		{
+			int space = line.indexOf (" ");
 
 			if (space == -1)
 				continue;
@@ -83,10 +89,12 @@ void loadPrimitives()
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void recursiveGetFilenames (QDir dir, QList<str>& fnames)
-{	QFileInfoList flist = dir.entryInfoList();
+{
+	QFileInfoList flist = dir.entryInfoList();
 
 	for (const QFileInfo & info : flist)
-	{	if (info.fileName() == "." || info.fileName() == "..")
+	{
+		if (info.fileName() == "." || info.fileName() == "..")
 			continue; // skip . and ..
 
 		if (info.isDir())
@@ -101,7 +109,8 @@ static void recursiveGetFilenames (QDir dir, QList<str>& fnames)
 PrimitiveLister::PrimitiveLister (QObject* parent) :
 	QObject (parent),
 	m_i (0)
-{	g_activePrimLister = this;
+{
+	g_activePrimLister = this;
 	QDir dir (LDPaths::prims());
 	assert (dir.exists());
 	m_baselen = dir.absolutePath().length();
@@ -112,17 +121,20 @@ PrimitiveLister::PrimitiveLister (QObject* parent) :
 // =============================================================================
 // -----------------------------------------------------------------------------
 PrimitiveLister::~PrimitiveLister()
-{	g_activePrimLister = null;
+{
+	g_activePrimLister = null;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PrimitiveLister::work()
-{	int j = min (m_i + 300, m_files.size());
+{
+	int j = min (m_i + 300, m_files.size());
 	log ("PrimitiveLister::work: %1 -> %2\n", m_i, j);
 
 	for (; m_i < j; ++m_i)
-	{	str fname = m_files[m_i];
+	{
+		str fname = m_files[m_i];
 		File f (fname, File::Read);
 		Primitive info;
 		info.name = fname.mid (m_baselen + 1);  // make full path relative
@@ -135,7 +147,8 @@ void PrimitiveLister::work()
 		info.title = info.title.simplified();
 
 		if (info.title[0] == '0')
-		{	info.title.remove (0, 1);  // remove 0
+		{
+			info.title.remove (0, 1);  // remove 0
 			info.title = info.title.simplified();
 		}
 
@@ -143,7 +156,8 @@ void PrimitiveLister::work()
 	}
 
 	if (m_i == m_files.size())
-	{	// Done with primitives, now save to a config file
+	{
+		// Done with primitives, now save to a config file
 		File conf (Config::filepath ("prims.cfg"), File::Write);
 
 		for (Primitive& info : m_prims)
@@ -159,7 +173,8 @@ void PrimitiveLister::work()
 		deleteLater();
 	}
 	else
-	{	// Defer to event loop, pick up the work later
+	{
+		// Defer to event loop, pick up the work later
 		emit update (m_i);
 		QMetaObject::invokeMethod (this, "work", Qt::QueuedConnection);
 	}
@@ -168,7 +183,8 @@ void PrimitiveLister::work()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PrimitiveLister::start()
-{	if (g_activePrimLister)
+{
+	if (g_activePrimLister)
 		return;
 
 	PrimitiveLister* lister = new PrimitiveLister;
@@ -189,32 +205,40 @@ PrimitiveCategory::PrimitiveCategory (str name, QObject* parent) :
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PrimitiveCategory::populateCategories()
-{	for (PrimitiveCategory* cat : g_PrimitiveCategories)
+{
+	for (PrimitiveCategory* cat : g_PrimitiveCategories)
 		cat->prims.clear();
 
 
 	for (Primitive& prim : g_primitives)
-	{	bool matched = false;
+	{
+		bool matched = false;
 		prim.cat = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
 		for (PrimitiveCategory* cat : g_PrimitiveCategories)
-		{	for (RegexEntry& entry : cat->regexes)
-			{	switch (entry.type)
-				{	case EFilenameRegex:
-					{	// f-regex, check against filename
+		{
+			for (RegexEntry& entry : cat->regexes)
+			{
+				switch (entry.type)
+				{
+					case EFilenameRegex:
+					{
+						// f-regex, check against filename
 						matched = entry.regex.exactMatch (prim.name);
 					} break;
 
 					case ETitleRegex:
-					{	// t-regex, check against title
+					{
+						// t-regex, check against title
 						matched = entry.regex.exactMatch (prim.title);
 					} break;
 				}
 
 				if (matched)
-				{	prim.cat = cat;
+				{
+					prim.cat = cat;
 					break;
 				}
 			}
@@ -236,7 +260,8 @@ void PrimitiveCategory::populateCategories()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PrimitiveCategory::loadCategories()
-{	for (PrimitiveCategory* cat : g_PrimitiveCategories)
+{
+	for (PrimitiveCategory* cat : g_PrimitiveCategories)
 		delete cat;
 
 	g_PrimitiveCategories.clear();
@@ -246,27 +271,32 @@ void PrimitiveCategory::loadCategories()
 		f.open (":/data/primitive-categories.cfg", File::Read);
 
 	if (!f)
-	{	critical (QObject::tr ("Failed to open primitive categories!"));
+	{
+		critical (QObject::tr ("Failed to open primitive categories!"));
 		return;
 	}
 
 	if (f)
-	{	PrimitiveCategory* cat = null;
+	{
+		PrimitiveCategory* cat = null;
 
 		for (str line : f)
-		{	int colon;
+		{
+			int colon;
 
 			if (line.length() == 0 || line[0] == '#')
 				continue;
 
 			if ((colon = line.indexOf (":")) == -1)
-			{	if (cat && cat->isValidToInclude())
+			{
+				if (cat && cat->isValidToInclude())
 					g_PrimitiveCategories << cat;
 
 				cat = new PrimitiveCategory (line);
 			}
 			elif (cat != null)
-			{	str cmd = line.left (colon);
+			{
+				str cmd = line.left (colon);
 				ERegexType type = EFilenameRegex;
 
 				if (cmd == "f")
@@ -274,7 +304,8 @@ void PrimitiveCategory::loadCategories()
 				elif (cmd == "t")
 					type = ETitleRegex;
 				else
-				{	log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
+				{
+					log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
 					continue;
 				}
 
@@ -300,8 +331,10 @@ void PrimitiveCategory::loadCategories()
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool PrimitiveCategory::isValidToInclude()
-{	if (regexes.size() == 0)
-	{	log (tr ("Warning: category \"%1\" left without patterns"), getName());
+{
+	if (regexes.size() == 0)
+	{
+		log (tr ("Warning: category \"%1\" left without patterns"), getName());
 		deleteLater();
 		return false;
 	}
@@ -312,20 +345,24 @@ bool PrimitiveCategory::isValidToInclude()
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool isPrimitiveLoaderBusy()
-{	return g_activePrimLister != null;
+{
+	return g_activePrimLister != null;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 static double radialPoint (int i, int divs, double (*func) (double))
-{	return (*func) ((i * 2 * pi) / divs);
+{
+	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
-{	for (int i = 0; i < segs; ++i)
-	{	double x0 = radius * radialPoint (i, divs, cos),
+{
+	for (int i = 0; i < segs; ++i)
+	{
+		double x0 = radius * radialPoint (i, divs, cos),
 			x1 = radius * radialPoint (i + 1, divs, cos),
 			z0 = radius * radialPoint (i, divs, sin),
 			z1 = radius * radialPoint (i + 1, divs, sin);
@@ -337,21 +374,25 @@ void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 // =============================================================================
 // -----------------------------------------------------------------------------
 QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
-{	QList<LDObject*> objs;
+{
+	QList<LDObject*> objs;
 	QList<int> condLineSegs;
 	QList<QLineF> circle;
 
 	makeCircle (segs, divs, 1, circle);
 
 	for (int i = 0; i < segs; ++i)
-	{	double x0 = circle[i].x1(),
+	{
+		double x0 = circle[i].x1(),
 				   x1 = circle[i].x2(),
 				   z0 = circle[i].y1(),
 				   z1 = circle[i].y2();
 
 		switch (type)
-		{	case Circle:
-			{	vertex v0 (x0, 0.0f, z0),
+		{
+			case Circle:
+			{
+				vertex v0 (x0, 0.0f, z0),
 				  v1 (x1, 0.0f, z1);
 
 				LDLine* line = new LDLine;
@@ -364,11 +405,13 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 			case Cylinder:
 			case Ring:
 			case Cone:
-			{	double x2, x3, z2, z3;
+			{
+				double x2, x3, z2, z3;
 				double y0, y1, y2, y3;
 
 				if (type == Cylinder)
-				{	x2 = x1;
+				{
+					x2 = x1;
 					x3 = x0;
 					z2 = z1;
 					z3 = z0;
@@ -377,7 +420,8 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 					y2 = y3 = 1.0f;
 				}
 				else
-				{	x2 = x1 * (num + 1);
+				{
+					x2 = x1 * (num + 1);
 					x3 = x0 * (num + 1);
 					z2 = z1 * (num + 1);
 					z3 = z0 * (num + 1);
@@ -390,7 +434,8 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 					if (type == Ring)
 						y0 = y1 = y2 = y3 = 0.0f;
 					else
-					{	y0 = y1 = 1.0f;
+					{
+						y0 = y1 = 1.0f;
 						y2 = y3 = 0.0f;
 					}
 				}
@@ -418,12 +463,14 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 			case Disc:
 			case DiscNeg:
-			{	double x2, z2;
+			{
+				double x2, z2;
 
 				if (type == Disc)
 					x2 = z2 = 0.0f;
 				else
-				{	x2 = (x0 >= 0.0f) ? 1.0f : -1.0f;
+				{
+					x2 = (x0 >= 0.0f) ? 1.0f : -1.0f;
 					z2 = (z0 >= 0.0f) ? 1.0f : -1.0f;
 				}
 
@@ -449,7 +496,8 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 		condLineSegs << segs;
 
 	for (int i : condLineSegs)
-	{	vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
+	{
+		vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
 		  v1,
 		  v2 (radialPoint (i + 1, divs, cos), 0.0f, radialPoint (i + 1, divs, sin)),
 		  v3 (radialPoint (i - 1, divs, cos), 0.0f, radialPoint (i - 1, divs, sin));
@@ -457,7 +505,8 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 		if (type == Cylinder)
 			v1 = vertex (v0[X], 1.0f, v0[Z]);
 		elif (type == Cone)
-		{	v1 = vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
+		{
+			v1 = vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
 			v0[X] *= num;
 			v0[Y] = 1.0f;
 			v0[Z] *= num;
@@ -478,7 +527,8 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 // =============================================================================
 // -----------------------------------------------------------------------------
 static str primitiveTypeName (PrimitiveType type)
-{	// Not translated as primitives are in English.
+{
+	// Not translated as primitives are in English.
 	return type == Circle   ? "Circle" :
 		   type == Cylinder ? "Cylinder" :
 		   type == Disc     ? "Disc" :
@@ -489,14 +539,16 @@ static str primitiveTypeName (PrimitiveType type)
 // =============================================================================
 // -----------------------------------------------------------------------------
 str radialFileName (PrimitiveType type, int segs, int divs, int num)
-{	int numer = segs,
+{
+	int numer = segs,
 			denom = divs;
 
 	// Simplify the fractional part, but the denominator must be at least 4.
 	simplify (numer, denom);
 
 	if (denom < 4)
-	{	const int factor = 4 / denom;
+	{
+		const int factor = 4 / denom;
 		numer *= factor;
 		denom *= factor;
 	}
@@ -519,7 +571,8 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
-{	// Make the description
+{
+	// Make the description
 	str frac = str::number ((float) segs / divs);
 	str name = radialFileName (type, segs, divs, num);
 	str descr;
@@ -529,7 +582,8 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 		frac += ".0";
 
 	if (type == Ring || type == Cone)
-	{	str spacing =
+	{
+		str spacing =
 			(num < 10) ? "  " :
 			(num < 100) ? " "  : "";
 
@@ -549,12 +603,14 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	str license = "";
 
 	if (ld_defaultname.isEmpty() == false)
-	{	license = getLicenseText (ld_defaultlicense);
+	{
+		license = getLicenseText (ld_defaultlicense);
 		author = fmt ("%1 [%2]", ld_defaultname, ld_defaultuser);
 	}
 
 	f->addObjects (
-	{	new LDComment (descr),
+	{
+		new LDComment (descr),
 		new LDComment (fmt ("Name: %1", name)),
 		new LDComment (fmt ("Author: %1", author)),
 		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
@@ -571,7 +627,8 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
-{	str name = radialFileName (type, segs, divs, num);
+{
+	str name = radialFileName (type, segs, divs, num);
 	LDDocument* f = getDocument (name);
 
 	if (f != null)
@@ -584,7 +641,8 @@ LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 // -----------------------------------------------------------------------------
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
-{	ui = new Ui_MakePrimUI;
+{
+	ui = new Ui_MakePrimUI;
 	ui->setupUi (this);
 	connect (ui->cb_hires, SIGNAL (toggled (bool)), this, SLOT (hiResToggled (bool)));
 }
@@ -592,13 +650,15 @@ PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 // =============================================================================
 // -----------------------------------------------------------------------------
 PrimitivePrompt::~PrimitivePrompt()
-{	delete ui;
+{
+	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PrimitivePrompt::hiResToggled (bool on)
-{	ui->sb_segs->setMaximum (on ? hires : lores);
+{
+	ui->sb_segs->setMaximum (on ? hires : lores);
 
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
@@ -609,7 +669,8 @@ void PrimitivePrompt::hiResToggled (bool on)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (MakePrimitive, 0)
-{	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
+{
+	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 
 	if (!dlg->exec())
 		return;

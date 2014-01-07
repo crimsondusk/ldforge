@@ -39,7 +39,8 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 class SubfileListItem : public QTreeWidgetItem
-{	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	STOCK_WRITE)
 
 	public:
 		SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
@@ -55,14 +56,17 @@ class SubfileListItem : public QTreeWidgetItem
 // -----------------------------------------------------------------------------
 AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
 	QDialog (parent)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	int coordCount = 0;
 	str typeName = LDObject::typeName (type);
 
 	switch (type)
-	{	case LDObject::Comment:
-		{	le_comment = new QLineEdit;
+	{
+		case LDObject::Comment:
+		{
+			le_comment = new QLineEdit;
 
 			if (obj)
 				le_comment->setText (static_cast<LDComment*> (obj)->text);
@@ -71,27 +75,33 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		} break;
 
 		case LDObject::Line:
-		{	coordCount = 6;
+		{
+			coordCount = 6;
 		} break;
 
 		case LDObject::Triangle:
-		{	coordCount = 9;
+		{
+			coordCount = 9;
 		} break;
 
 		case LDObject::Quad:
 		case LDObject::CondLine:
-		{	coordCount = 12;
+		{
+			coordCount = 12;
 		} break;
 
 		case LDObject::Vertex:
-		{	coordCount = 3;
+		{
+			coordCount = 3;
 		} break;
 
 		case LDObject::BFC:
-		{	rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
+		{
+			rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
 
 			for (int i = 0; i < LDBFC::NumStatements; ++i)
-			{	// Separate these in two columns
+			{
+				// Separate these in two columns
 				if (i == LDBFC::NumStatements / 2)
 					rb_bfcType->rowBreak();
 
@@ -103,17 +113,20 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		} break;
 
 		case LDObject::Subfile:
-		{	coordCount = 3;
+		{
+			coordCount = 3;
 			tw_subfileList = new QTreeWidget();
 			tw_subfileList->setHeaderLabel (tr ("Primitives"));
 
 			for (PrimitiveCategory* cat : g_PrimitiveCategories)
-			{	SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
+			{
+				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
 				parentItem->setText (0, cat->getName());
 				QList<QTreeWidgetItem*> subfileItems;
 
 				for (Primitive& prim : cat->prims)
-				{	SubfileListItem* item = new SubfileListItem (parentItem, &prim);
+				{
+					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
 					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
 					subfileItems << item;
 
@@ -132,13 +145,15 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			le_subfileName->setFocus();
 
 			if (obj)
-			{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			{
+				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 				le_subfileName->setText (ref->getFileInfo()->getName());
 			}
 		} break;
 
 		default:
-		{	critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
+		{
+			critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
 		} return;
 	}
 
@@ -150,7 +165,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	// Show a color edit dialog for the types that actually use the color
 	if (defaults->isColored())
-	{	if (obj != null)
+	{
+		if (obj != null)
 			colnum = obj->getColor();
 		else
 			colnum = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
@@ -161,7 +177,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	}
 
 	for (int i = 0; i < coordCount; ++i)
-	{	dsb_coords[i] = new QDoubleSpinBox;
+	{
+		dsb_coords[i] = new QDoubleSpinBox;
 		dsb_coords[i]->setDecimals (5);
 		dsb_coords[i]->setMinimum (-10000.0);
 		dsb_coords[i]->setMaximum (10000.0);
@@ -171,14 +188,16 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	layout->addWidget (lb_typeIcon, 0, 0);
 
 	switch (type)
-	{	case LDObject::Line:
+	{
+		case LDObject::Line:
 		case LDObject::CondLine:
 		case LDObject::Triangle:
 		case LDObject::Quad:
 
 			// Apply coordinates
 			if (obj)
-			{	for (int i = 0; i < coordCount / 3; ++i)
+			{
+				for (int i = 0; i < coordCount / 3; ++i)
 					for (int j = 0; j < 3; ++j)
 						dsb_coords[ (i * 3) + j]->setValue (obj->getVertex (i).coord (j));
 			}
@@ -204,7 +223,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	}
 
 	if (defaults->hasMatrix())
-	{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+	{
+		LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
@@ -212,7 +232,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		matrix defaultMatrix = g_identity;
 
 		if (mo)
-		{	for_axes (ax)
+		{
+			for_axes (ax)
 				dsb_coords[ax]->setValue (mo->getPosition()[ax]);
 
 			defaultMatrix = mo->getTransform();
@@ -227,7 +248,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		layout->addWidget (pb_color, 1, 0);
 
 	if (coordCount > 0)
-	{	QGridLayout* const qCoordLayout = new QGridLayout;
+	{
+		QGridLayout* const qCoordLayout = new QGridLayout;
 
 		for (int i = 0; i < coordCount; ++i)
 			qCoordLayout->addWidget (dsb_coords[i], (i / 3), (i % 3));
@@ -249,7 +271,8 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
-{	LDColor* col = getColor (colnum);
+{
+	LDColor* col = getColor (colnum);
 
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
@@ -261,7 +284,8 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 // =============================================================================
 // -----------------------------------------------------------------------------
 str AddObjectDialog::currentSubfileName()
-{	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
+{
+	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
 
 	if (item->getPrimitiveInfo() == null)
 		return ""; // selected a heading
@@ -272,14 +296,16 @@ str AddObjectDialog::currentSubfileName()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddObjectDialog::slot_colorButtonClicked()
-{	ColorSelector::selectColor (colnum, colnum, this);
+{
+	ColorSelector::selectColor (colnum, colnum, this);
 	setButtonBackground (pb_color, colnum);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddObjectDialog::slot_subfileTypeChanged()
-{	str name = currentSubfileName();
+{
+	str name = currentSubfileName();
 
 	if (name.length() > 0)
 		le_subfileName->setText (name);
@@ -288,7 +314,8 @@ void AddObjectDialog::slot_subfileTypeChanged()
 // =============================================================================
 // -----------------------------------------------------------------------------
 template<class T> static T* initObj (LDObject*& obj)
-{	if (obj == null)
+{
+	if (obj == null)
 		obj = new T;
 
 	return static_cast<T*> (obj);
@@ -297,7 +324,8 @@ template<class T> static T* initObj (LDObject*& obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	// FIXME: Redirect to Edit Raw
 	if (obj && obj->getType() == LDObject::Error)
@@ -316,10 +344,12 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		return;
 
 	if (type == LDObject::Subfile)
-	{	QStringList matrixstrvals = dlg.le_matrix->text().split (" ", QString::SkipEmptyParts);
+	{
+		QStringList matrixstrvals = dlg.le_matrix->text().split (" ", QString::SkipEmptyParts);
 
 		if (matrixstrvals.size() == 9)
-		{	double matrixvals[9];
+		{
+			double matrixvals[9];
 			int i = 0;
 
 			for (str val : matrixstrvals)
@@ -330,8 +360,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	}
 
 	switch (type)
-	{	case LDObject::Comment:
-		{	LDComment* comm = initObj<LDComment> (obj);
+	{
+		case LDObject::Comment:
+		{
+			LDComment* comm = initObj<LDComment> (obj);
 			comm->text = dlg.le_comment->text();
 		}
 		break;
@@ -340,11 +372,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::Triangle:
 		case LDObject::Quad:
 		case LDObject::CondLine:
-		{	if (!obj)
+		{
+			if (!obj)
 				obj = LDObject::getDefault (type);
 
 			for (int i = 0; i < obj->vertices(); ++i)
-			{	vertex v;
+			{
+				vertex v;
 
 				for_axes (ax)
 					v[ax] = dlg.dsb_coords[ (i * 3) + ax]->value();
@@ -354,12 +388,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		} break;
 
 		case LDObject::BFC:
-		{	LDBFC* bfc = initObj<LDBFC> (obj);
+		{
+			LDBFC* bfc = initObj<LDBFC> (obj);
 			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value();
 		} break;
 
 		case LDObject::Vertex:
-		{	LDVertex* vert = initObj<LDVertex> (obj);
+		{
+			LDVertex* vert = initObj<LDVertex> (obj);
 
 			for_axes (ax)
 				vert->pos[ax] = dlg.dsb_coords[ax]->value();
@@ -367,7 +403,8 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		break;
 
 		case LDObject::Subfile:
-		{	str name = dlg.le_subfileName->text();
+		{
+			str name = dlg.le_subfileName->text();
 
 			if (name.length() == 0)
 				return; // no subfile filename
@@ -375,7 +412,8 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			LDDocument* file = getDocument (name);
 
 			if (!file)
-			{	critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
+			{
+				critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
 				return;
 			}
 
@@ -397,7 +435,8 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		obj->setColor (dlg.colnum);
 
 	if (newObject)
-	{	int idx = g_win->getInsertionPoint();
+	{
+		int idx = g_win->getInsertionPoint();
 		getCurrentDocument()->insertObj (idx, obj);
 	}
 

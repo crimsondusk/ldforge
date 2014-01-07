@@ -45,7 +45,8 @@ str join (initlist<StringFormatArg> vals, str delim = " ");
 
 // Grid stuff
 struct gridinfo
-{	const char* const name;
+{
+	const char* const name;
 	float* const confs[4];
 };
 
@@ -54,12 +55,14 @@ static const int g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
 inline const gridinfo& currentGrid()
-{	return g_GridInfo[grid];
+{
+	return g_GridInfo[grid];
 }
 
 // =============================================================================
 enum RotationPoint
-{	ObjectOrigin,
+{
+	ObjectOrigin,
 	WorldOrigin,
 	CustomPoint
 };
@@ -69,14 +72,17 @@ void configRotationPoint();
 
 // =============================================================================
 namespace Grid
-{	enum Type
-	{	Coarse,
+{
+	enum Type
+	{
+		Coarse,
 		Medium,
 		Fine
 	};
 
 	enum Config
-	{	X,
+	{
+		X,
 		Y,
 		Z,
 		Angle
@@ -87,7 +93,8 @@ namespace Grid
 
 // -----------------------------------------------------------------------------
 class InvokationDeferer : public QObject
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		using FunctionType = void(*)();
@@ -110,40 +117,48 @@ void invokeLater (InvokationDeferer::FunctionType func);
 // -----------------------------------------------------------------------------
 // Plural expression
 template<class T> static inline const char* plural (T n)
-{	return (n != 1) ? "s" : "";
+{
+	return (n != 1) ? "s" : "";
 }
 
 // -----------------------------------------------------------------------------
 // Templated clamp
 template<class T> static inline T clamp (T a, T min, T max)
-{	return (a > max) ? max : (a < min) ? min : a;
+{
+	return (a > max) ? max : (a < min) ? min : a;
 }
 
 // Templated minimum
 template<class T> static inline T min (T a, T b)
-{	return (a < b) ? a : b;
+{
+	return (a < b) ? a : b;
 }
 
 // Templated maximum
 template<class T> static inline T max (T a, T b)
-{	return (a > b) ? a : b;
+{
+	return (a > b) ? a : b;
 }
 
 // Templated absolute value
 template<class T> static inline T abs (T a)
-{	return (a >= 0) ? a : -a;
+{
+	return (a >= 0) ? a : -a;
 }
 
 template<class T> inline bool isZero (T a)
-{	return abs<T> (a) < 0.0001;
+{
+	return abs<T> (a) < 0.0001;
 }
 
 template<class T> inline bool isInteger (T a)
-{	return isZero (a - (int) a);
+{
+	return isZero (a - (int) a);
 }
 
 template<class T> void removeDuplicates (QList<T>& a)
-{	std::sort (a.begin(), a.end());
+{
+	std::sort (a.begin(), a.end());
 	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
 

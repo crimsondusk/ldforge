@@ -26,9 +26,11 @@
 // =============================================================================
 // -----------------------------------------------------------------------------
 class DocumentViewer : public QDialog
-{	public:
+{
+	public:
 		explicit DocumentViewer (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f)
-		{	te_text = new QTextEdit (this);
+		{
+			te_text = new QTextEdit (this);
 			te_text->setMinimumSize (QSize (400, 300));
 			te_text->setReadOnly (true);
 
@@ -41,7 +43,8 @@ class DocumentViewer : public QDialog
 		}
 
 		void setText (const char* text)
-		{	te_text->setText (text);
+		{
+			te_text->setText (text);
 		}
 
 	private:
@@ -66,7 +69,8 @@ const char* g_docs_overlays =
 // =============================================================================
 // -----------------------------------------------------------------------------
 void showDocumentation (const char* text)
-{	DocumentViewer dlg;
+{
+	DocumentViewer dlg;
 	dlg.setText (text);
 	dlg.exec();
 }

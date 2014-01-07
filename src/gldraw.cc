@@ -41,7 +41,8 @@
 #include "moc_gldraw.cpp"
 
 static const LDFixedCameraInfo g_FixedCameras[6] =
-{	{{  1,  0, 0 }, X, Z, false, false },
+{
+	{{  1,  0, 0 }, X, Z, false, false },
 	{{  0,  0, 0 }, X, Y, false,  true },
 	{{  0,  1, 0 }, Z, Y,  true,  true },
 	{{ -1,  0, 0 }, X, Z, false,  true },
@@ -52,7 +53,8 @@ static const LDFixedCameraInfo g_FixedCameras[6] =
 // Matrix templates for circle drawing. 2 is substituted with
 // the scale value, 1 is inverted to -1 if needed.
 static const matrix g_circleDrawTransforms[3] =
-{	{ 2, 0, 0, 0, 1, 0, 0, 0, 2 },
+{
+	{ 2, 0, 0, 0, 1, 0, 0, 0, 2 },
 	{ 2, 0, 0, 0, 0, 2, 0, 1, 0 },
 	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
 };
@@ -74,7 +76,8 @@ cfg (Bool,		gl_drawangles,			false)
 
 // argh
 const char* g_CameraNames[7] =
-{	QT_TRANSLATE_NOOP ("GLRenderer",  "Top"),
+{
+	QT_TRANSLATE_NOOP ("GLRenderer",  "Top"),
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Front"),
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Left"),
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Bottom"),
@@ -84,7 +87,8 @@ const char* g_CameraNames[7] =
 };
 
 const GL::EFixedCamera g_Cameras[7] =
-{	GL::ETopCamera,
+{
+	GL::ETopCamera,
 	GL::EFrontCamera,
 	GL::ELeftCamera,
 	GL::EBottomCamera,
@@ -95,10 +99,12 @@ const GL::EFixedCamera g_Cameras[7] =
 
 // Definitions for visual axes, drawn on the screen
 const struct LDGLAxis
-{	const QColor col;
+{
+	const QColor col;
 	const vertex vert;
 } g_GLAxes[3] =
-{	{ QColor (255,   0,   0), vertex (10000, 0, 0) }, // X
+{
+	{ QColor (255,   0,   0), vertex (10000, 0, 0) }, // X
 	{ QColor (80,  192,   0), vertex (0, 10000, 0) }, // Y
 	{ QColor (0,   160, 192), vertex (0, 0, 10000) }, // Z
 };
@@ -109,7 +115,8 @@ static QList<int> g_warnedColors;
 // =============================================================================
 // -----------------------------------------------------------------------------
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
-{	m_Picking = m_rangepick = false;
+{
+	m_Picking = m_rangepick = false;
 	m_camera = (GL::EFixedCamera) gl_camera;
 	m_drawToolTip = false;
 	m_EditMode = ESelectMode;
@@ -131,7 +138,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 
 	// Init camera icons
 	for (const GL::EFixedCamera cam : g_Cameras)
-	{	str iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower());
+	{
+		str iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower());
 
 		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
@@ -139,7 +147,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	}
 
 	for (int i = 0; i < 6; ++i)
-	{	m_overlays[i].img = null;
+	{
+		m_overlays[i].img = null;
 		m_depthValues[i] = 0.0f;
 	}
 
@@ -149,7 +158,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 // =============================================================================
 // -----------------------------------------------------------------------------
 GLRenderer::~GLRenderer()
-{	for (int i = 0; i < 6; ++i)
+{
+	for (int i = 0; i < 6; ++i)
 		delete m_overlays[i].img;
 
 	for (CameraIcon& info : m_cameraIcons)
@@ -161,10 +171,12 @@ GLRenderer::~GLRenderer()
 // cursor is pointing at the camera icon.
 // -----------------------------------------------------------------------------
 void GLRenderer::calcCameraIcons()
-{	int i = 0;
+{
+	int i = 0;
 
 	for (CameraIcon& info : m_cameraIcons)
-	{	// MATH
+	{
+		// MATH
 		const long x1 = (m_width - (info.cam != EFreeCamera ? 48 : 16)) + ((i % 3) * 16) - 1,
 			y1 = ((i / 3) * 16) + 1;
 
@@ -184,7 +196,8 @@ void GLRenderer::calcCameraIcons()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::initGLData()
-{	glEnable (GL_BLEND);
+{
+	glEnable (GL_BLEND);
 	glBlendFunc (GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable (GL_POLYGON_OFFSET_FILL);
 	glPolygonOffset (1.0f, 1.0f);
@@ -194,12 +207,14 @@ void GLRenderer::initGLData()
 	glEnable (GL_MULTISAMPLE);
 
 	if (gl_aa)
-	{	glEnable (GL_LINE_SMOOTH);
+	{
+		glEnable (GL_LINE_SMOOTH);
 		glEnable (GL_POLYGON_SMOOTH);
 		glHint (GL_LINE_SMOOTH_HINT, GL_NICEST);
 		glHint (GL_POLYGON_SMOOTH_HINT, GL_NICEST);
 	} else
-	{	glDisable (GL_LINE_SMOOTH);
+	{
+		glDisable (GL_LINE_SMOOTH);
 		glDisable (GL_POLYGON_SMOOTH);
 	}
 }
@@ -207,7 +222,8 @@ void GLRenderer::initGLData()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resetAngles()
-{	rot (X) = 30.0f;
+{
+	rot (X) = 30.0f;
 	rot (Y) = 325.f;
 	pan (X) = pan (Y) = rot (Z) = 0.0f;
 	zoomToFit();
@@ -216,11 +232,13 @@ void GLRenderer::resetAngles()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resetAllAngles()
-{	/*
+{
+	/*
 	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
-	{	setCamera ((EFixedCamera) i);
+	{
+		setCamera ((EFixedCamera) i);
 		resetAngles();
 	}
 
@@ -232,7 +250,8 @@ void GLRenderer::resetAllAngles()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::initializeGL()
-{	setBackground();
+{
+	setBackground();
 
 	glLineWidth (gl_linethickness);
 
@@ -245,7 +264,8 @@ void GLRenderer::initializeGL()
 // =============================================================================
 // -----------------------------------------------------------------------------
 QColor GLRenderer::getMainColor()
-{	QColor col (gl_maincolor);
+{
+	QColor col (gl_maincolor);
 
 	if (!col.isValid())
 		return QColor (0, 0, 0);
@@ -257,7 +277,8 @@ QColor GLRenderer::getMainColor()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setBackground()
-{	QColor col (gl_bgcolor);
+{
+	QColor col (gl_bgcolor);
 
 	if (!col.isValid())
 		return;
@@ -272,13 +293,15 @@ void GLRenderer::setBackground()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
-{	QColor qcol;
+{
+	QColor qcol;
 
 	if (!obj->isColored())
 		return;
 
 	if (list == GL::PickList)
-	{	// Make the color by the object's ID if we're picking, so we can make the
+	{
+		// Make the color by the object's ID if we're picking, so we can make the
 		// ID again from the color we get from the picking results. Be sure to use
 		// the top level parent's index since we want a subfile's children point
 		// to the subfile itself.
@@ -298,23 +321,27 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 	if ((list == BFCFrontList || list == BFCBackList) &&
 		obj->getType() != LDObject::Line &&
 		obj->getType() != LDObject::CondLine)
-	{	if (list == GL::BFCFrontList)
+	{
+		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
 		else
 			qcol = QColor (224, 0, 0);
 	}
 	else
-	{	if (obj->getColor() == maincolor)
+	{
+		if (obj->getColor() == maincolor)
 			qcol = getMainColor();
 		else
-		{	LDColor* col = getColor (obj->getColor());
+		{
+			LDColor* col = getColor (obj->getColor());
 
 			if (col)
 				qcol = col->faceColor;
 		}
 
 		if (obj->getColor() == edgecolor)
-		{	qcol = (m_darkbg == false) ? Qt::black : Qt::white;
+		{
+			qcol = (m_darkbg == false) ? Qt::black : Qt::white;
 			LDColor* col;
 
 			if (!gl_blackedges && obj->getParent() && (col = getColor (obj->getParent()->getColor())))
@@ -322,7 +349,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		}
 
 		if (qcol.isValid() == false)
-		{	// The color was unknown. Use main color to make the object at least
+		{
+			// The color was unknown. Use main color to make the object at least
 			// not appear pitch-black.
 			if (obj->getColor() != edgecolor)
 				qcol = getMainColor();
@@ -344,7 +372,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		 a = qcol.alpha();
 
 	if (obj->topLevelParent()->isSelected())
-	{	// Brighten it up for the select list.
+	{
+		// Brighten it up for the select list.
 		QColor selcolor (gl_selectcolor);
 		r = (r + selcolor.red()) / 2;
 		g = (g + selcolor.green()) / 2;
@@ -361,14 +390,16 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::refresh()
-{	update();
+{
+	update();
 	swapBuffers();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::hardRefresh()
-{	compileAllObjects();
+{
+	compileAllObjects();
 	refresh();
 
 	glLineWidth (gl_linethickness);
@@ -377,7 +408,8 @@ void GLRenderer::hardRefresh()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::resizeGL (int w, int h)
-{	m_width = w;
+{
+	m_width = w;
 	m_height = h;
 
 	calcCameraIcons();
@@ -392,7 +424,8 @@ void GLRenderer::resizeGL (int w, int h)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::drawGLScene()
-{	if (getFile() == null)
+{
+	if (getFile() == null)
 		return;
 
 	if (gl_wireframe && !isPicking())
@@ -402,7 +435,8 @@ void GLRenderer::drawGLScene()
 	glEnable (GL_DEPTH_TEST);
 
 	if (m_camera != EFreeCamera)
-	{	glMatrixMode (GL_PROJECTION);
+	{
+		glMatrixMode (GL_PROJECTION);
 		glPushMatrix();
 
 		glLoadIdentity();
@@ -410,19 +444,22 @@ void GLRenderer::drawGLScene()
 		glTranslatef (pan (X), pan (Y), 0.0f);
 
 		if (m_camera != EFrontCamera && m_camera != EBackCamera)
-		{	glRotatef (90.0f, g_FixedCameras[camera()].glrotate[0],
+		{
+			glRotatef (90.0f, g_FixedCameras[camera()].glrotate[0],
 				g_FixedCameras[camera()].glrotate[1],
 				g_FixedCameras[camera()].glrotate[2]);
 		}
 
 		// Back camera needs to be handled differently
 		if (m_camera == GLRenderer::EBackCamera)
-		{	glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
+		{
+			glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
 			glRotatef (180.0f, 0.0f, 0.0f, 1.0f);
 		}
 	}
 	else
-	{	glMatrixMode (GL_MODELVIEW);
+	{
+		glMatrixMode (GL_MODELVIEW);
 		glPushMatrix();
 		glLoadIdentity();
 
@@ -436,10 +473,12 @@ void GLRenderer::drawGLScene()
 	const GL::ListType list = (!isDrawOnly() && isPicking()) ? PickList : NormalList;
 
 	if (gl_colorbfc && !isPicking() && !isDrawOnly())
-	{	glEnable (GL_CULL_FACE);
+	{
+		glEnable (GL_CULL_FACE);
 
 		for (LDObject* obj : getFile()->getObjects())
-		{	if (obj->isHidden())
+		{
+			if (obj->isHidden())
 				continue;
 
 			glCullFace (GL_BACK);
@@ -452,8 +491,10 @@ void GLRenderer::drawGLScene()
 		glDisable (GL_CULL_FACE);
 	}
 	else
-	{	for (LDObject* obj : getFile()->getObjects())
-		{	if (obj->isHidden())
+	{
+		for (LDObject* obj : getFile()->getObjects())
+		{
+			if (obj->isHidden())
 				continue;
 
 			glCallList (obj->glLists[list]);
@@ -474,7 +515,8 @@ void GLRenderer::drawGLScene()
 // is true, the 3D point will snap to the current grid.
 // -----------------------------------------------------------------------------
 vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
-{	assert (camera() != EFreeCamera);
+{
+	assert (camera() != EFreeCamera);
 
 	vertex pos3d;
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
@@ -488,7 +530,8 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	double cy = (m_virtHeight - ((2 * pos2d.y() * m_virtHeight) / m_height) - pan (Y));
 
 	if (snap)
-	{	cx = Grid::snap (cx, (Grid::Config) axisX);
+	{
+		cx = Grid::snap (cx, (Grid::Config) axisX);
 		cy = Grid::snap (cy, (Grid::Config) axisY);
 	}
 
@@ -511,7 +554,8 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 // position. Don't ask me how this code manages to work, I don't even know.
 // -----------------------------------------------------------------------------
 QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
-{	GLfloat m[16];
+{
+	GLfloat m[16];
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
@@ -538,7 +582,8 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::paintEvent (QPaintEvent* ev)
-{	Q_UNUSED (ev)
+{
+	Q_UNUSED (ev)
 
 	makeCurrent();
 	m_virtWidth = zoom();
@@ -558,11 +603,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		return;
 
 	if (m_camera != EFreeCamera && !isPicking())
-	{	// Paint the overlay image if we have one
+	{
+		// Paint the overlay image if we have one
 		const LDGLOverlay& overlay = m_overlays[m_camera];
 
 		if (overlay.img != null)
-		{	QPoint v0 = coordconv3_2 (m_overlays[m_camera].v0),
+		{
+			QPoint v0 = coordconv3_2 (m_overlays[m_camera].v0),
 					   v1 = coordconv3_2 (m_overlays[m_camera].v1);
 
 			QRect targRect (v0.x(), v0.y(), abs (v1.x() - v0.x()), abs (v1.y() - v0.y())),
@@ -586,13 +633,15 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 		// Mode-specific rendering
 		if (getEditMode() == EDrawMode)
-		{	QPoint poly[4];
+		{
+			QPoint poly[4];
 			vertex poly3d[4];
 			int numverts = 4;
 
 			// Calculate polygon data
 			if (!m_rectdraw)
-			{	numverts = m_drawedVerts.size() + 1;
+			{
+				numverts = m_drawedVerts.size() + 1;
 				int i = 0;
 
 				for (vertex& vert : m_drawedVerts)
@@ -605,7 +654,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					numverts = 4;
 			}
 			else
-			{	// Get vertex information from m_rectverts
+			{
+				// Get vertex information from m_rectverts
 				if (m_drawedVerts.size() > 0)
 					for (int i = 0; i < numverts; ++i)
 						poly3d[i] = m_rectverts[i];
@@ -618,14 +668,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				poly[i] = coordconv3_2 (poly3d[i]);
 
 			if (numverts > 0)
-			{	// Draw the polygon-to-be
+			{
+				// Draw the polygon-to-be
 				paint.setPen (linepen);
 				paint.setBrush (polybrush);
 				paint.drawPolygon (poly, numverts);
 
 				// Draw vertex blips
 				for (int i = 0; i < numverts; ++i)
-				{	QPoint& blip = poly[i];
+				{
+					QPoint& blip = poly[i];
 					drawBlip (paint, blip);
 
 					// Draw their coordinates
@@ -634,21 +686,25 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 				// Draw line lenghts and angle info if appropriate
 				if (numverts >= 2)
-				{	int numlines = (m_drawedVerts.size() == 1) ? 1 : m_drawedVerts.size() + 1;
+				{
+					int numlines = (m_drawedVerts.size() == 1) ? 1 : m_drawedVerts.size() + 1;
 					paint.setPen (textpen);
 
 					for (int i = 0; i < numlines; ++i)
-					{	const int j = (i + 1 < numverts) ? i + 1 : 0;
+					{
+						const int j = (i + 1 < numverts) ? i + 1 : 0;
 						const int h = (i - 1 >= 0) ? i - 1 : numverts - 1;
 
 						if (gl_linelengths)
-						{	const str label = str::number (poly3d[i].distanceTo (poly3d[j]));
+						{
+							const str label = str::number (poly3d[i].distanceTo (poly3d[j]));
 							QPoint origin = QLineF (poly[i], poly[j]).pointAt (0.5).toPoint();
 							paint.drawText (origin, label);
 						}
 
 						if (gl_drawangles)
-						{	QLineF l0 (poly[h], poly[i]),
+						{
+							QLineF l0 (poly[h], poly[i]),
 								l1 (poly[i], poly[j]);
 
 							double angle = 180 - l0.angleTo (l1);
@@ -667,11 +723,13 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 			}
 		}
 		elif (getEditMode() == ECircleMode)
-		{	// If we have not specified the center point of the circle yet, preview it on the screen.
+		{
+			// If we have not specified the center point of the circle yet, preview it on the screen.
 			if (m_drawedVerts.isEmpty())
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
 			else
-			{	QVector<vertex> verts, verts2;
+			{
+				QVector<vertex> verts, verts2;
 				const double dist0 = getCircleDrawDist (0),
 					dist1 = (m_drawedVerts.size() >= 2) ? getCircleDrawDist (1) : -1;
 				const int segs = lores;
@@ -683,13 +741,15 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 				// Calculate the preview positions of vertices
 				for (int i = 0; i < segs; ++i)
-				{	vertex v = g_origin;
+				{
+					vertex v = g_origin;
 					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0);
 					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist0);
 					verts << v;
 
 					if (dist1 != -1)
-					{	v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist1);
+					{
+						v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist1);
 						v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist1);
 						verts2 << v;
 					}
@@ -697,7 +757,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 				int i = 0;
 				for (const vertex& v : verts + verts2)
-				{	// Calculate the 2D point of the vertex
+				{
+					// Calculate the 2D point of the vertex
 					QPoint point = coordconv3_2 (v);
 
 					// Draw a green blip at where it is
@@ -743,7 +804,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 					paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y(), label);
 
 					if (m_drawedVerts.size() >= 2)
-					{	label = str::number (dist1);
+					{
+						label = str::number (dist1);
 						paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y() + metrics.height(), label);
 					}
 				}
@@ -753,14 +815,16 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 	// Camera icons
 	if (!isPicking())
-	{	// Draw a background for the selected camera
+	{
+		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
 		paint.setBrush (QBrush (QColor (0, 128, 160, 128)));
 		paint.drawRect (m_cameraIcons[camera()].selRect);
 
 		// Draw the actual icons
 		for (CameraIcon& info : m_cameraIcons)
-		{	// Don't draw the free camera icon when in draw mode
+		{
+			// Don't draw the free camera icon when in draw mode
 			if (&info == &m_cameraIcons[GL::EFreeCamera] && getEditMode() != ESelectMode)
 				continue;
 
@@ -770,7 +834,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		str fmtstr = tr ("%1 Camera");
 
 		// Draw a label for the current camera in the bottom left corner
-		{	const int margin = 4;
+		{
+			const int margin = 4;
 
 			str label;
 			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
@@ -780,10 +845,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 		// Tool tips
 		if (m_drawToolTip)
-		{	if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
+		{
+			if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
 				m_drawToolTip = false;
 			else
-			{	str label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
+			{
+				str label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
 				QToolTip::showText (m_globalpos, label);
 			}
 		}
@@ -791,12 +858,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 	// Message log
 	if (getMessageLog())
-	{	int y = 0;
+	{
+		int y = 0;
 		const int margin = 2;
 		QColor penColor = textpen.color();
 
 		for (const MessageManager::Line& line : getMessageLog()->getLines())
-		{	penColor.setAlphaF (line.alpha);
+		{
+			penColor.setAlphaF (line.alpha);
 			paint.setPen (penColor);
 			paint.drawText (QPoint (margin, y + margin + metrics.ascent()), line.text);
 			y += metrics.height();
@@ -805,7 +874,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 	// If we're range-picking, draw a rectangle encompassing the selection area.
 	if (m_rangepick && !isPicking() && m_totalmove >= 10)
-	{	int x0 = m_rangeStart.x(),
+	{
+		int x0 = m_rangeStart.x(),
 			y0 = m_rangeStart.y(),
 			x1 = m_pos.x(),
 			y1 = m_pos.y();
@@ -823,7 +893,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
-{	QPen pen = m_thinBorderPen;
+{
+	QPen pen = m_thinBorderPen;
 	const int blipsize = 8;
 	pen.setWidth (1);
 	paint.setPen (pen);
@@ -834,7 +905,8 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileAllObjects()
-{	if (!getFile())
+{
+	if (!getFile())
 		return;
 
 	// Compiling all is a big job, use a busy cursor
@@ -852,7 +924,8 @@ void GLRenderer::compileAllObjects()
 	glBegin (GL_LINES);
 
 	for (const LDGLAxis& ax : g_GLAxes)
-	{	qglColor (ax.col);
+	{
+		qglColor (ax.col);
 		compileVertex (ax.vert);
 		compileVertex (-ax.vert);
 	}
@@ -866,7 +939,8 @@ void GLRenderer::compileAllObjects()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
-{	glBegin (gltype);
+{
+	glBegin (gltype);
 
 	const int numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
 
@@ -883,18 +957,23 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
-{	setObjectColor (obj, list);
+{
+	setObjectColor (obj, list);
 
 	switch (obj->getType())
-	{	case LDObject::Line:
-		{	compileSubObject (obj, GL_LINES);
+	{
+		case LDObject::Line:
+		{
+			compileSubObject (obj, GL_LINES);
 		} break;
 
 		case LDObject::CondLine:
-		{	// Draw conditional lines with a dash pattern - however, use a full
+		{
+			// Draw conditional lines with a dash pattern - however, use a full
 			// line when drawing a pick list to make selecting them easier.
 			if (list != GL::PickList)
-			{	glLineStipple (1, 0x6666);
+			{
+				glLineStipple (1, 0x6666);
 				glEnable (GL_LINE_STIPPLE);
 			}
 
@@ -904,15 +983,18 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 		} break;
 
 		case LDObject::Triangle:
-		{	compileSubObject (obj, GL_TRIANGLES);
+		{
+			compileSubObject (obj, GL_TRIANGLES);
 		} break;
 
 		case LDObject::Quad:
-		{	compileSubObject (obj, GL_QUADS);
+		{
+			compileSubObject (obj, GL_QUADS);
 		} break;
 
 		case LDObject::Subfile:
-		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs;
 
 			objs = ref->inlineContents (
@@ -930,7 +1012,8 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 				g_glInvert = !g_glInvert;
 
 			for (LDObject* obj : objs)
-			{	compileList (obj, list);
+			{
+				compileList (obj, list);
 				obj->deleteSelf();
 			}
 
@@ -945,13 +1028,15 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileVertex (const vertex& vrt)
-{	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
+{
+	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::clampAngle (double& angle) const
-{	while (angle < 0)
+{
+	while (angle < 0)
 		angle += 360.0;
 
 	while (angle > 360.0)
@@ -961,11 +1046,15 @@ void GLRenderer::clampAngle (double& angle) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::addDrawnVertex (vertex pos)
-{	// If we picked an already-existing vertex, stop drawing
+{
+	// If we picked an already-existing vertex, stop drawing
 	if (getEditMode() == EDrawMode)
-	{	for (vertex& vert : m_drawedVerts)
-		{	if (vert == pos)
-			{	endDraw (true);
+	{
+		for (vertex& vert : m_drawedVerts)
+		{
+			if (vert == pos)
+			{
+				endDraw (true);
 				return;
 			}
 		}
@@ -977,7 +1066,8 @@ void GLRenderer::addDrawnVertex (vertex pos)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
-{	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && ! (ev->buttons() & Qt::LeftButton),
+{
+	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && ! (ev->buttons() & Qt::LeftButton),
 				   wasRight = (m_lastButtons & Qt::RightButton) && ! (ev->buttons() & Qt::RightButton),
 				   wasMid = (m_lastButtons & Qt::MidButton) && ! (ev->buttons() & Qt::MidButton);
 
@@ -985,32 +1075,43 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		m_panning = false;
 
 	if (wasLeft)
-	{	// Check if we selected a camera icon
+	{
+		// Check if we selected a camera icon
 		if (!m_rangepick)
-		{	for (CameraIcon & info : m_cameraIcons)
-			{	if (info.destRect.contains (ev->pos()))
-				{	setCamera (info.cam);
+		{
+			for (CameraIcon & info : m_cameraIcons)
+			{
+				if (info.destRect.contains (ev->pos()))
+				{
+					setCamera (info.cam);
 					goto end;
 				}
 			}
 		}
 
 		switch (getEditMode())
-		{	case EDrawMode:
-			{	if (m_rectdraw)
-				{	if (m_drawedVerts.size() == 2)
-					{	endDraw (true);
+		{
+			case EDrawMode:
+			{
+				if (m_rectdraw)
+				{
+					if (m_drawedVerts.size() == 2)
+					{
+						endDraw (true);
 						return;
 					}
 				} else
-				{	// If we have 4 verts, stop drawing.
+				{
+					// If we have 4 verts, stop drawing.
 					if (m_drawedVerts.size() >= 4)
-					{	endDraw (true);
+					{
+						endDraw (true);
 						return;
 					}
 
 					if (m_drawedVerts.isEmpty() && ev->modifiers() & Qt::ShiftModifier)
-					{	m_rectdraw = true;
+					{
+						m_rectdraw = true;
 						updateRectVerts();
 					}
 				}
@@ -1019,8 +1120,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			} break;
 
 			case ECircleMode:
-			{	if (m_drawedVerts.size() == 3)
-				{	endDraw (true);
+			{
+				if (m_drawedVerts.size() == 3)
+				{
+					endDraw (true);
 					return;
 				}
 
@@ -1028,8 +1131,10 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			} break;
 
 			case ESelectMode:
-			{	if (!isDrawOnly())
-				{	if (m_totalmove < 10)
+			{
+				if (!isDrawOnly())
+				{
+					if (m_totalmove < 10)
 						m_rangepick = false;
 
 					if (!m_rangepick)
@@ -1045,7 +1150,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	}
 
 	if (wasMid && getEditMode() != ESelectMode && m_drawedVerts.size() < 4 && m_totalmove < 10)
-	{	// Find the closest vertex to our cursor
+	{
+		// Find the closest vertex to our cursor
 		double mindist = 1024.0f;
 		vertex closest;
 		bool valid = false;
@@ -1053,7 +1159,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		QPoint curspos = coordconv3_2 (m_hoverpos);
 
 		for (const vertex& pos3d: m_knownVerts)
-		{	QPoint pos2d = coordconv3_2 (pos3d);
+		{
+			QPoint pos2d = coordconv3_2 (pos3d);
 
 			// Measure squared distance
 			const double dx = abs (pos2d.x() - curspos.x()),
@@ -1064,7 +1171,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				continue; // too far away
 
 			if (distsq < mindist)
-			{	mindist = distsq;
+			{
+				mindist = distsq;
 				closest = pos3d;
 				valid = true;
 
@@ -1079,7 +1187,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	}
 
 	if (wasRight && !m_drawedVerts.isEmpty())
-	{	// Remove the last vertex
+	{
+		// Remove the last vertex
 		m_drawedVerts.removeLast();
 
 		if (m_drawedVerts.isEmpty())
@@ -1094,10 +1203,12 @@ end:
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::mousePressEvent (QMouseEvent* ev)
-{	m_totalmove = 0;
+{
+	m_totalmove = 0;
 
 	if (ev->modifiers() & Qt::ControlModifier)
-	{	m_rangepick = true;
+	{
+		m_rangepick = true;
 		m_rangeStart.setX (ev->x());
 		m_rangeStart.setY (ev->y());
 		m_addpick = (m_keymods & Qt::AltModifier);
@@ -1111,7 +1222,8 @@ void GLRenderer::mousePressEvent (QMouseEvent* ev)
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
-{	int dx = ev->x() - m_pos.x();
+{
+	int dx = ev->x() - m_pos.x();
 	int dy = ev->y() - m_pos.y();
 	m_totalmove += abs (dx) + abs (dy);
 
@@ -1120,11 +1232,13 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 			   shift = ev->modifiers() & Qt::ShiftModifier;
 
 	if (mid || (left && shift))
-	{	pan (X) += 0.03f * dx * (zoom() / 7.5f);
+	{
+		pan (X) += 0.03f * dx * (zoom() / 7.5f);
 		pan (Y) -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
 	} elif (left && !m_rangepick && camera() == EFreeCamera)
-	{	rot (X) = rot (X) + dy;
+	{
+		rot (X) = rot (X) + dy;
 		rot (Y) = rot (Y) + dx;
 
 		clampAngle (rot (X));
@@ -1151,19 +1265,22 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::keyPressEvent (QKeyEvent* ev)
-{	m_keymods = ev->modifiers();
+{
+	m_keymods = ev->modifiers();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::keyReleaseEvent (QKeyEvent* ev)
-{	m_keymods = ev->modifiers();
+{
+	m_keymods = ev->modifiers();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::wheelEvent (QWheelEvent* ev)
-{	makeCurrent();
+{
+	makeCurrent();
 
 	zoomNotch (ev->delta() > 0);
 	zoom() = clamp (zoom(), 0.01, 10000.0);
@@ -1175,7 +1292,8 @@ void GLRenderer::wheelEvent (QWheelEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::leaveEvent (QEvent* ev)
-{	(void) ev;
+{
+	(void) ev;
 	m_drawToolTip = false;
 	m_toolTipTimer->stop();
 	update();
@@ -1184,13 +1302,15 @@ void GLRenderer::leaveEvent (QEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::contextMenuEvent (QContextMenuEvent* ev)
-{	g_win->spawnContextMenu (ev->globalPos());
+{
+	g_win->spawnContextMenu (ev->globalPos());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
-{	m_camera = cam;
+{
+	m_camera = cam;
 	gl_camera = (int) cam;
 	g_win->updateEditModeActions();
 }
@@ -1198,14 +1318,16 @@ void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::pick (int mouseX, int mouseY)
-{	makeCurrent();
+{
+	makeCurrent();
 
 	// Use particularly thick lines while picking ease up selecting lines.
 	glLineWidth (max<double> (gl_linethickness, 6.5f));
 
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick)
-	{	QList<LDObject*> oldsel = selection();
+	{
+		QList<LDObject*> oldsel = selection();
 		getCurrentDocument()->clearSelection();
 
 		for (LDObject* obj : oldsel)
@@ -1226,11 +1348,13 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Determine how big an area to read - with range picking, we pick by
 	// the area given, with single pixel picking, we use an 1 x 1 area.
 	if (m_rangepick)
-	{	x1 = m_rangeStart.x();
+	{
+		x1 = m_rangeStart.x();
 		y1 = m_rangeStart.y();
 	}
 	else
-	{	x1 = x0 + 1;
+	{
+		x1 = x0 + 1;
 		y1 = y0 + 1;
 	}
 
@@ -1261,7 +1385,8 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	// Go through each pixel read and add them to the selection.
 	for (qint32 i = 0; i < numpixels; ++i)
-	{	qint32 idx =
+	{
+		qint32 idx =
 			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x00100) +
 			(*(pixelptr + 2) * 0x00001);
@@ -1275,8 +1400,10 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
 		if (!m_rangepick && m_addpick)
-		{	if (obj->isSelected())
-			{	obj->unselect();
+		{
+			if (obj->isSelected())
+			{
+				obj->unselect();
 				removedObj = obj;
 				break;
 			}
@@ -1311,17 +1438,21 @@ void GLRenderer::pick (int mouseX, int mouseY)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setEditMode (EditMode const& a)
-{	m_EditMode = a;
+{
+	m_EditMode = a;
 
 	switch (a)
-	{	case ESelectMode:
-		{	unsetCursor();
+	{
+		case ESelectMode:
+		{
+			unsetCursor();
 			setContextMenuPolicy (Qt::DefaultContextMenu);
 		} break;
 
 		case EDrawMode:
 		case ECircleMode:
-		{	// Cannot draw into the free camera - use top instead.
+		{
+			// Cannot draw into the free camera - use top instead.
 			if (m_camera == EFreeCamera)
 				setCamera (ETopCamera);
 
@@ -1349,7 +1480,8 @@ void GLRenderer::setEditMode (EditMode const& a)
 }
 
 void GLRenderer::setFile (LDDocument* const& a)
-{	m_File = a;
+{
+	m_File = a;
 
 	if (a != null)
 		initOverlaysFromObjects();
@@ -1358,10 +1490,12 @@ void GLRenderer::setFile (LDDocument* const& a)
 // =============================================================================
 // -----------------------------------------------------------------------------
 matrix GLRenderer::getCircleDrawMatrix (double scale)
-{	matrix transform = g_circleDrawTransforms[camera() % 3];
+{
+	matrix transform = g_circleDrawTransforms[camera() % 3];
 
 	for (int i = 0; i < 9; ++i)
-	{	if (transform[i] == 2)
+	{
+		if (transform[i] == 2)
 			transform[i] = scale;
 		elif (transform[i] == 1 && camera() >= 3)
 			transform[i] = -1;
@@ -1373,16 +1507,20 @@ matrix GLRenderer::getCircleDrawMatrix (double scale)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::endDraw (bool accept)
-{	(void) accept;
+{
+	(void) accept;
 
 	// Clean the selection and create the object
 	QList<vertex>& verts = m_drawedVerts;
 	QList<LDObject*> objs;
 
 	switch (getEditMode())
-	{	case EDrawMode:
-		{	if (m_rectdraw)
-			{	LDQuad* quad = new LDQuad;
+	{
+		case EDrawMode:
+		{
+			if (m_rectdraw)
+			{
+				LDQuad* quad = new LDQuad;
 
 				// Copy the vertices from m_rectverts
 				updateRectVerts();
@@ -1394,9 +1532,12 @@ void GLRenderer::endDraw (bool accept)
 				objs << quad;
 			}
 			else
-			{	switch (verts.size())
-				{	case 1:
-					{	// 1 vertex - add a vertex object
+			{
+				switch (verts.size())
+				{
+					case 1:
+					{
+						// 1 vertex - add a vertex object
 						LDVertex* obj = new LDVertex;
 						obj->pos = verts[0];
 						obj->setColor (maincolor);
@@ -1404,7 +1545,8 @@ void GLRenderer::endDraw (bool accept)
 					} break;
 
 					case 2:
-					{	// 2 verts - make a line
+					{
+						// 2 verts - make a line
 						LDLine* obj = new LDLine (verts[0], verts[1]);
 						obj->setColor (edgecolor);
 						objs << obj;
@@ -1412,7 +1554,8 @@ void GLRenderer::endDraw (bool accept)
 
 					case 3:
 					case 4:
-					{	LDObject* obj = (verts.size() == 3) ?
+					{
+						LDObject* obj = (verts.size() == 3) ?
 							  static_cast<LDObject*> (new LDTriangle) :
 							  static_cast<LDObject*> (new LDQuad);
 
@@ -1428,7 +1571,8 @@ void GLRenderer::endDraw (bool accept)
 		} break;
 
 		case ECircleMode:
-		{	const int segs = lores, divs = lores; // TODO: make customizable
+		{
+			const int segs = lores, divs = lores; // TODO: make customizable
 			double dist0 = getCircleDrawDist (0),
 				dist1 = getCircleDrawDist (1);
 			LDDocument* refFile = null;
@@ -1439,24 +1583,29 @@ void GLRenderer::endDraw (bool accept)
 				std::swap<double> (dist0, dist1);
 
 			if (dist0 == dist1)
-			{	// If the radii are the same, there's no ring space to fill. Use a circle.
+			{
+				// If the radii are the same, there's no ring space to fill. Use a circle.
 				refFile = ::getDocument ("4-4edge.dat");
 				transform = getCircleDrawMatrix (dist0);
 				circleOrDisc = true;
 			}
 			elif (dist0 == 0 || dist1 == 0)
-			{	// If either radii is 0, use a disc.
+			{
+				// If either radii is 0, use a disc.
 				refFile = ::getDocument ("4-4disc.dat");
 				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
 				circleOrDisc = true;
 			}
 			elif (g_RingFinder (dist0, dist1))
-			{	// The ring finder found a solution, use that. Add the component rings to the file.
+			{
+				// The ring finder found a solution, use that. Add the component rings to the file.
 				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
-				{	// Get a ref file for this primitive. If we cannot find it in the
+				{
+					// Get a ref file for this primitive. If we cannot find it in the
 					// LDraw library, generate it.
 					if ((refFile = ::getDocument (radialFileName (::Ring, lores, lores, cmp.num))) == null)
-					{	refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
+					{
+						refFile = generatePrimitive (::Ring, lores, lores, cmp.num);
 						refFile->setImplicit (false);
 					}
 
@@ -1469,7 +1618,8 @@ void GLRenderer::endDraw (bool accept)
 				}
 			}
 			else
-			{	// Ring finder failed, last resort: draw the ring with quads
+			{
+				// Ring finder failed, last resort: draw the ring with quads
 				QList<QLineF> c0, c1;
 				Axis relX, relY, relZ;
 				getRelativeAxes (relX, relY);
@@ -1487,7 +1637,8 @@ void GLRenderer::endDraw (bool accept)
 				makeCircle (segs, divs, dist1, c1);
 
 				for (int i = 0; i < segs; ++i)
-				{	vertex v0, v1, v2, v3;
+				{
+					vertex v0, v1, v2, v3;
 					v0 = v1 = v2 = v3 = templ;
 					v0[relX] += c0[i].x1();
 					v0[relY] += c0[i].y1();
@@ -1510,7 +1661,8 @@ void GLRenderer::endDraw (bool accept)
 			}
 
 			if (circleOrDisc)
-			{	LDSubfile* ref = new LDSubfile;
+			{
+				LDSubfile* ref = new LDSubfile;
 				ref->setFileInfo (refFile);
 				ref->setTransform (transform);
 				ref->setPosition (m_drawedVerts[0]);
@@ -1520,15 +1672,18 @@ void GLRenderer::endDraw (bool accept)
 		} break;
 
 		case ESelectMode:
-		{	// this shouldn't happen
+		{
+			// this shouldn't happen
 			assert (false);
 			return;
 		} break;
 	}
 
 	if (objs.size() > 0)
-	{	for (LDObject* obj : objs)
-		{	getFile()->addObject (obj);
+	{
+		for (LDObject* obj : objs)
+		{
+			getFile()->addObject (obj);
 			compileObject (obj);
 		}
 
@@ -1543,7 +1698,8 @@ void GLRenderer::endDraw (bool accept)
 // =============================================================================
 // -----------------------------------------------------------------------------
 double GLRenderer::getCircleDrawDist (int pos) const
-{	assert (m_drawedVerts.size() >= pos + 1);
+{
+	assert (m_drawedVerts.size() >= pos + 1);
 	const vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
 	Axis relX, relY;
 	getRelativeAxes (relX, relY);
@@ -1556,7 +1712,8 @@ double GLRenderer::getCircleDrawDist (int pos) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
-{	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
+{
+	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	relX = cam->axisX;
 	relY = cam->axisY;
 }
@@ -1564,17 +1721,21 @@ void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
 // =============================================================================
 // -----------------------------------------------------------------------------
 static QList<vertex> getVertices (LDObject* obj)
-{	QList<vertex> verts;
+{
+	QList<vertex> verts;
 
 	if (obj->vertices() >= 2)
-	{	for (int i = 0; i < obj->vertices(); ++i)
+	{
+		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
 	} elif (obj->getType() == LDObject::Subfile)
-	{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
+	{
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
 		for (LDObject* obj : objs)
-		{	verts << getVertices (obj);
+		{
+			verts << getVertices (obj);
 			obj->deleteSelf();
 		}
 	}
@@ -1585,10 +1746,12 @@ static QList<vertex> getVertices (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::compileObject (LDObject* obj)
-{	deleteLists (obj);
+{
+	deleteLists (obj);
 
 	for (const GL::ListType listType : g_glListTypes)
-	{	if (isDrawOnly() && listType != GL::NormalList)
+	{
+		if (isDrawOnly() && listType != GL::NormalList)
 			continue;
 
 		GLuint list = glGenLists (1);
@@ -1611,7 +1774,8 @@ void GLRenderer::compileObject (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 uchar* GLRenderer::getScreencap (int& w, int& h)
-{	w = m_width;
+{
+	w = m_width;
 	h = m_height;
 	uchar* cap = new uchar[4 * w * h];
 
@@ -1628,12 +1792,15 @@ uchar* GLRenderer::getScreencap (int& w, int& h)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::slot_toolTipTimer()
-{	// We come here if the cursor has stayed in one place for longer than a
+{
+	// We come here if the cursor has stayed in one place for longer than a
 	// a second. Check if we're holding it over a camera icon - if so, draw
 	// a tooltip.
 for (CameraIcon & icon : m_cameraIcons)
-	{	if (icon.destRect.contains (m_pos))
-		{	m_toolTipCamera = icon.cam;
+	{
+		if (icon.destRect.contains (m_pos))
+		{
+			m_toolTipCamera = icon.cam;
 			m_drawToolTip = true;
 			update();
 			break;
@@ -1644,7 +1811,8 @@ for (CameraIcon & icon : m_cameraIcons)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::deleteLists (LDObject* obj)
-{	// Delete the lists but only if they have been initialized
+{
+	// Delete the lists but only if they have been initialized
 	if (!obj->isGLInit())
 		return;
 
@@ -1657,7 +1825,8 @@ void GLRenderer::deleteLists (LDObject* obj)
 // =============================================================================
 // -----------------------------------------------------------------------------
 Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
-{	if (camid == (GL::EFixedCamera) - 1)
+{
+	if (camid == (GL::EFixedCamera) - 1)
 		camid = m_camera;
 
 	const LDFixedCameraInfo* cam = &g_FixedCameras[camid];
@@ -1667,11 +1836,13 @@ Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
 // =============================================================================
 // -----------------------------------------------------------------------------
 bool GLRenderer::setupOverlay (EFixedCamera cam, str file, int x, int y, int w, int h)
-{	QImage* img = new QImage (QImage (file).convertToFormat (QImage::Format_ARGB32));
+{
+	QImage* img = new QImage (QImage (file).convertToFormat (QImage::Format_ARGB32));
 	LDGLOverlay& info = getOverlay (cam);
 
 	if (img->isNull())
-	{	critical (tr ("Failed to load overlay image!"));
+	{
+		critical (tr ("Failed to load overlay image!"));
 		delete img;
 		return false;
 	}
@@ -1704,7 +1875,8 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, str file, int x, int y, int w, 
 	// Set alpha of all pixels to 0.5
 	for (long i = 0; i < img->width(); ++i)
 		for (long j = 0; j < img->height(); ++j)
-		{	uint32 pixel = img->pixel (i, j);
+		{
+			uint32 pixel = img->pixel (i, j);
 			img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
 		}
 
@@ -1715,7 +1887,8 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, str file, int x, int y, int w, 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::clearOverlay()
-{	if (camera() == EFreeCamera)
+{
+	if (camera() == EFreeCamera)
 		return;
 
 	LDGLOverlay& info = m_overlays[camera()];
@@ -1728,33 +1901,38 @@ void GLRenderer::clearOverlay()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::setDepthValue (double depth)
-{	assert (camera() < EFreeCamera);
+{
+	assert (camera() < EFreeCamera);
 	m_depthValues[camera()] = depth;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 double GLRenderer::getDepthValue() const
-{	assert (camera() < EFreeCamera);
+{
+	assert (camera() < EFreeCamera);
 	return m_depthValues[camera()];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 const char* GLRenderer::getCameraName() const
-{	return g_CameraNames[camera()];
+{
+	return g_CameraNames[camera()];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDGLOverlay& GLRenderer::getOverlay (int newcam)
-{	return m_overlays[newcam];
+{
+	return m_overlays[newcam];
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomNotch (bool inward)
-{	if (zoom() > 15)
+{
+	if (zoom() > 15)
 		zoom() *= inward ? 0.833f : 1.2f;
 	else
 		zoom() += inward ? -1.2f : 1.2f;
@@ -1763,8 +1941,10 @@ void GLRenderer::zoomNotch (bool inward)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomToFit()
-{	if (getFile() == null || m_width == -1 || m_height == -1)
-	{	zoom() = 30.0f;
+{
+	if (getFile() == null || m_width == -1 || m_height == -1)
+	{
+		zoom() = 30.0f;
 		return;
 	}
 
@@ -1782,8 +1962,10 @@ void GLRenderer::zoomToFit()
 	setPicking (true);
 
 	for (;;)
-	{	if (zoom() > 10000.0 || zoom() < 0.0)
-		{	// Obviously, there's nothing to draw if we get here.
+	{
+		if (zoom() > 10000.0 || zoom() < 0.0)
+		{
+			// Obviously, there's nothing to draw if we get here.
 			// Default to 30.0f and break out.
 			zoom() = 30.0;
 			break;
@@ -1810,17 +1992,20 @@ void GLRenderer::zoomToFit()
 		delete[] cap;
 
 		if (firstrun)
-		{	// If this is the first run, we don't know enough to determine
+		{
+			// If this is the first run, we don't know enough to determine
 			// whether the zoom was to fit, so we mark in our knowledge so
 			// far and start over.
 			inward = !filled;
 			firstrun = false;
 		}
 		else
-		{	// If this run filled the screen and the last one did not, the
+		{
+			// If this run filled the screen and the last one did not, the
 			// last run had ideal zoom - zoom a bit back and we should reach it.
 			if (filled && !lastfilled)
-			{	zoomNotch (false);
+			{
+				zoomNotch (false);
 				break;
 			}
 
@@ -1842,11 +2027,13 @@ void GLRenderer::zoomToFit()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::zoomAllToFit()
-{	/*
+{
+	/*
 	EFixedCamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
-	{	setCamera ((EFixedCamera) i);
+	{
+		setCamera ((EFixedCamera) i);
 		zoomToFit();
 	}
 
@@ -1859,11 +2046,13 @@ void GLRenderer::zoomAllToFit()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::updateRectVerts()
-{	if (!m_rectdraw)
+{
+	if (!m_rectdraw)
 		return;
 
 	if (m_drawedVerts.isEmpty())
-	{	for (int i = 0; i < 4; ++i)
+	{
+		for (int i = 0; i < 4; ++i)
 			m_rectverts[i] = m_hoverpos;
 
 		return;
@@ -1892,7 +2081,8 @@ void GLRenderer::updateRectVerts()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
-{	if (!(ev->buttons() & Qt::LeftButton) || getEditMode() != ESelectMode)
+{
+	if (!(ev->buttons() & Qt::LeftButton) || getEditMode() != ESelectMode)
 		return;
 
 	pick (ev->x(), ev->y());
@@ -1909,11 +2099,14 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
-{	LDOverlay* ovlobj = null;
+{
+	LDOverlay* ovlobj = null;
 
 	for (LDObject* obj : getFile()->getObjects())
-	{	if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
-		{	ovlobj = static_cast<LDOverlay*> (obj);
+	{
+		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
+		{
+			ovlobj = static_cast<LDOverlay*> (obj);
 			break;
 		}
 	}
@@ -1926,15 +2119,18 @@ LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 // Read in overlays from the current file and update overlay info accordingly.
 // -----------------------------------------------------------------------------
 void GLRenderer::initOverlaysFromObjects()
-{	for (EFixedCamera cam : g_Cameras)
-	{	if (cam == EFreeCamera)
+{
+	for (EFixedCamera cam : g_Cameras)
+	{
+		if (cam == EFreeCamera)
 			continue;
 
 		LDGLOverlay& meta = m_overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!ovlobj && meta.img)
-		{	delete meta.img;
+		{
+			delete meta.img;
 			meta.img = null;
 		} elif (ovlobj && (!meta.img || meta.fname != ovlobj->getFileName()))
 			setupOverlay (cam, ovlobj->getFileName(), ovlobj->getX(),
@@ -1945,15 +2141,18 @@ void GLRenderer::initOverlaysFromObjects()
 // =============================================================================
 // -----------------------------------------------------------------------------
 void GLRenderer::updateOverlayObjects()
-{	for (EFixedCamera cam : g_Cameras)
-	{	if (cam == EFreeCamera)
+{
+	for (EFixedCamera cam : g_Cameras)
+	{
+		if (cam == EFreeCamera)
 			continue;
 
 		LDGLOverlay& meta = m_overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!meta.img && ovlobj)
-		{	// If this is the last overlay image, we need to remove the empty space after it as well.
+		{
+			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
 
 			if (nextobj && nextobj->getType() == LDObject::Empty)
@@ -1963,7 +2162,8 @@ void GLRenderer::updateOverlayObjects()
 			// not, remove the object.
 			ovlobj->deleteSelf();
 		} elif (meta.img && !ovlobj)
-		{	// Inverse case: image is there but the overlay object is
+		{
+			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
 			ovlobj = new LDOverlay;
 
@@ -1977,10 +2177,12 @@ void GLRenderer::updateOverlayObjects()
 			bool found = false;
 
 			for (i = 0; i < getFile()->getObjectCount(); ++i)
-			{	LDObject* obj = getFile()->getObject (i);
+			{
+				LDObject* obj = getFile()->getObject (i);
 
 				if (obj->isScemantic())
-				{	found = true;
+				{
+					found = true;
 					break;
 				}
 
@@ -1991,7 +2193,8 @@ void GLRenderer::updateOverlayObjects()
 			if (lastOverlay != -1)
 				getFile()->insertObj (lastOverlay + 1, ovlobj);
 			else
-			{	getFile()->insertObj (i, ovlobj);
+			{
+				getFile()->insertObj (i, ovlobj);
 
 				if (found)
 					getFile()->insertObj (i + 1, new LDEmpty);
@@ -1999,7 +2202,8 @@ void GLRenderer::updateOverlayObjects()
 		}
 
 		if (meta.img && ovlobj)
-		{	ovlobj->setCamera (cam);
+		{
+			ovlobj->setCamera (cam);
 			ovlobj->setFileName (meta.fname);
 			ovlobj->setX (meta.ox);
 			ovlobj->setY (meta.oy);

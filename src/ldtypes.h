@@ -23,16 +23,19 @@
 #include "types.h"
 #include "misc/documentPointer.h"
 
-#define LDOBJ(T) \
-protected: \
-	virtual LD##T* clone() override { \
-		return new LD##T (*this); \
-	} \
-public: \
-	virtual LDObject::Type getType() const override { \
-		return LDObject::T; \
-	} \
-	virtual str raw() const override; \
+#define LDOBJ(T)										\
+protected:												\
+	virtual LD##T* clone() override						\
+	{													\
+		return new LD##T (*this);						\
+	}													\
+														\
+public:													\
+	virtual LDObject::Type getType() const override		\
+	{													\
+		return LDObject::T;								\
+	}													\
+	virtual str raw() const override;					\
 	virtual void invert() override;
 
 #define LDOBJ_NAME(N)          virtual str getTypeName() const override { return #N; }
@@ -63,18 +66,20 @@ class LDSharedVertex;
 // sub-classes based on this enumerator.
 // =============================================================================
 class LDObject
-{	PROPERTY (public,		bool,				Hidden,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		bool,				Selected,	BOOL_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,		bool,			Hidden,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,			Selected,	BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (public,		LDObject*,		Parent,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE) // TODO: rename~
-	PROPERTY	(private,	int32,			ID,			NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,		int,				Color,		NUM_OPS,		CUSTOM_WRITE)
-	PROPERTY (public,		bool,				GLInit,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,	File,		NO_OPS,		STOCK_WRITE) // TODO: rename~
+	PROPERTY (private,		int,				ID,			NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,		int,				Color,		NUM_OPS,	CUSTOM_WRITE)
+	PROPERTY (public,		bool,			GLInit,		BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		// Object type codes. Codes are sorted in order of significance.
 		enum Type
-		{	Subfile,        // Object represents a sub-file reference
+		{
+			Subfile,        // Object represents a sub-file reference
 			Quad,           // Object represents a quadrilateral
 			Triangle,       // Object represents a triangle
 			Line,           // Object represents a line
@@ -199,13 +204,16 @@ class LDObject
 // For use as coordinates of LDObjects. Keeps count of references.
 // -----------------------------------------------------------------------------
 class LDSharedVertex
-{	public:
+{
+	public:
 		inline const vertex& data() const
-		{	return m_data;
+		{
+			return m_data;
 		}
 
 		inline operator const vertex&() const
-		{	return m_data;
+		{
+			return m_data;
 		}
 
 		void addRef (LDObject* a);
@@ -237,7 +245,8 @@ class LDSharedVertex
 // this class distinct in case I get new extension ideas. :)
 // =============================================================================
 class LDMatrixObject
-{	PROPERTY (public,	LDObject*,			LinkPointer,	NO_OPS,	STOCK_WRITE)
+{
+	PROPERTY (public,	LDObject*,			LinkPointer,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (public,	matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
 
 	public:
@@ -249,11 +258,13 @@ class LDMatrixObject
 			m_Position (LDSharedVertex::getSharedVertex (pos)) {}
 
 		inline const vertex& getPosition() const
-		{	return m_Position->data();
+		{
+			return m_Position->data();
 		}
 
 		void setCoordinate (const Axis ax, double value)
-		{	vertex v = getPosition();
+		{
+			vertex v = getPosition();
 			v[ax] = value;
 			setPosition (v);
 		}
@@ -273,7 +284,8 @@ class LDMatrixObject
 // zContent contains the contents of the unparsable line.
 // =============================================================================
 class LDError : public LDObject
-{	LDOBJ (Error)
+{
+	LDOBJ (Error)
 	LDOBJ_NAME (error)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -298,7 +310,8 @@ class LDError : public LDObject
 // Represents an empty line in the LDraw code file.
 // =============================================================================
 class LDEmpty : public LDObject
-{	LDOBJ (Empty)
+{
+	LDOBJ (Empty)
 	LDOBJ_NAME (empty)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -313,7 +326,8 @@ class LDEmpty : public LDObject
 // the text of the comment.
 // =============================================================================
 class LDComment : public LDObject
-{	LDOBJ (Comment)
+{
+	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED
@@ -334,9 +348,11 @@ class LDComment : public LDObject
 // of this statement.
 // =============================================================================
 class LDBFC : public LDObject
-{	public:
+{
+	public:
 		enum Type
-		{	CertifyCCW,
+		{
+			CertifyCCW,
 			CCW,
 			CertifyCW,
 			CW,
@@ -372,7 +388,8 @@ class LDBFC : public LDObject
 // Represents a single code-1 subfile reference.
 // =============================================================================
 class LDSubfile : public LDObject, public LDMatrixObject
-{	LDOBJ (Subfile)
+{
+	LDOBJ (Subfile)
 	LDOBJ_NAME (subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
@@ -382,7 +399,8 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 	public:
 		enum InlineFlag
-		{	DeepInline     = (1 << 0),
+		{
+			DeepInline     = (1 << 0),
 			CacheInline    = (1 << 1),
 			RendererInline = (1 << 2),
 
@@ -392,7 +410,8 @@ class LDSubfile : public LDObject, public LDMatrixObject
 		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
 
 		LDSubfile()
-		{	setLinkPointer (this);
+		{
+			setLinkPointer (this);
 		}
 
 		// Inlines this subfile. Note that return type is an array of heap-allocated
@@ -413,7 +432,8 @@ Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)
 // set.
 // =============================================================================
 class LDLine : public LDObject
-{	LDOBJ (Line)
+{
+	LDOBJ (Line)
 	LDOBJ_NAME (line)
 	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
@@ -432,7 +452,8 @@ class LDLine : public LDObject
 // inherited from LDLine, c0 and c1 are the control points of this line.
 // =============================================================================
 class LDCondLine : public LDLine
-{	LDOBJ (CondLine)
+{
+	LDOBJ (CondLine)
 	LDOBJ_NAME (condline)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
@@ -452,7 +473,8 @@ class LDCondLine : public LDLine
 // triangle is colored with.
 // =============================================================================
 class LDTriangle : public LDObject
-{	LDOBJ (Triangle)
+{
+	LDOBJ (Triangle)
 	LDOBJ_NAME (triangle)
 	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
@@ -462,7 +484,8 @@ class LDTriangle : public LDObject
 	public:
 		LDTriangle() {}
 		LDTriangle (vertex v0, vertex v1, vertex v2)
-		{	setVertex (0, v0);
+		{
+			setVertex (0, v0);
 			setVertex (1, v1);
 			setVertex (2, v2);
 		}
@@ -475,7 +498,8 @@ class LDTriangle : public LDObject
 // of the quad, dColor is the color used for the quad.
 // =============================================================================
 class LDQuad : public LDObject
-{	LDOBJ (Quad)
+{
+	LDOBJ (Quad)
 	LDOBJ_NAME (quad)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
@@ -499,7 +523,8 @@ class LDQuad : public LDObject
 // finished parts.
 // =============================================================================
 class LDVertex : public LDObject
-{	LDOBJ (Vertex)
+{
+	LDOBJ (Vertex)
 	LDOBJ_NAME (vertex)
 	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
 	LDOBJ_COLORED
@@ -519,7 +544,8 @@ class LDVertex : public LDObject
 // information.
 // =============================================================================
 class LDOverlay : public LDObject
-{	LDOBJ (Overlay)
+{
+	LDOBJ (Overlay)
 	LDOBJ_NAME (overlay)
 	LDOBJ_VERTICES (0)
 	LDOBJ_UNCOLORED

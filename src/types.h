@@ -46,7 +46,8 @@ template<class T, class R>
 using pair = std::pair<T, R>;
 
 enum Axis
-{	X,
+{
+	X,
 	Y,
 	Z
 };
@@ -59,7 +60,8 @@ enum Axis
 // A mathematical 3 x 3 matrix
 // =============================================================================
 class matrix
-{	public:
+{
+	public:
 		matrix() {}
 		matrix (initlist<double> vals);
 		matrix (double fillval);
@@ -73,23 +75,28 @@ class matrix
 		matrix&			operator= (matrix other);
 
 		inline double& val (int idx)
-		{	return m_vals[idx];
+		{
+			return m_vals[idx];
 		}
 
 		inline const double& val (int idx) const
-		{	return m_vals[idx];
+		{
+			return m_vals[idx];
 		}
 
 		inline matrix operator* (matrix other) const
-		{	return mult (other);
+		{
+			return mult (other);
 		}
 
 		inline double& operator[] (int idx)
-		{	return val (idx);
+		{
+			return val (idx);
 		}
 
 		inline const double& operator[] (int idx) const
-		{	return val (idx);
+		{
+			return val (idx);
 		}
 
 		bool operator== (const matrix& other) const;
@@ -107,7 +114,8 @@ class matrix
 // LDVertex, which is a vertex used in an LDraw part file.
 // =============================================================================
 class vertex
-{	public:
+{
+	public:
 		vertex() {}
 		vertex (double x, double y, double z);
 
@@ -131,35 +139,43 @@ class vertex
 		const double&	operator[] (const int ax) const;
 
 		inline double& coord (int n)
-		{	return m_coords[n];
+		{
+			return m_coords[n];
 		}
 
 		inline const double& coord (int n) const
-		{	return m_coords[n];
+		{
+			return m_coords[n];
 		}
 
 		inline double& x()
-		{	return m_coords[X];
+		{
+			return m_coords[X];
 		}
 
 		inline const double& x() const
-		{	return m_coords[X];
+		{
+			return m_coords[X];
 		}
 
 		inline double& y()
-		{	return m_coords[Y];
+		{
+			return m_coords[Y];
 		}
 
 		inline const double& y() const
-		{	return m_coords[Y];
+		{
+			return m_coords[Y];
 		}
 
 		inline double& z()
-		{	return m_coords[Z];
+		{
+			return m_coords[Z];
 		}
 
 		inline const double& z() const
-		{	return m_coords[Z];
+		{
+			return m_coords[Z];
 		}
 
 	private:
@@ -175,7 +191,8 @@ class vertex
 // Used as the argument type to the formatting functions, hence its name.
 // =============================================================================
 class StringFormatArg
-{	public:
+{
+	public:
 		StringFormatArg (const str& v);
 		StringFormatArg (const char& v);
 		StringFormatArg (const uchar& v);
@@ -203,12 +220,14 @@ class StringFormatArg
 		StringFormatArg (const void* v);
 
 		template<class T> StringFormatArg (const QList<T>& v)
-		{	m_val = "{ ";
+		{
+			m_val = "{ ";
 
 			int i = 0;
 
 			for (const T& it : v)
-			{	if (i++)
+			{
+				if (i++)
 					m_val += ", ";
 
 				StringFormatArg arg (it);
@@ -222,7 +241,8 @@ class StringFormatArg
 		}
 
 		str value() const
-		{	return m_val;
+		{
+			return m_val;
 		}
 	private:
 		str m_val;
@@ -236,10 +256,12 @@ class StringFormatArg
 // A file interface with simple interface and support for range-for-loops.
 // =============================================================================
 class File
-{	private:
+{
+	private:
 		// Iterator class to enable range-for-loop support. Rough hack.. don't use directly!
 		class iterator
-		{	public:
+		{
+			public:
 				iterator() : m_file (null) {} // end iterator has m_file == null
 				iterator (File* f);
 				void operator++();
@@ -255,7 +277,8 @@ class File
 
 	public:
 		enum OpenType
-		{	Read,
+		{
+			Read,
 			Write,
 			Append
 		};
@@ -296,7 +319,8 @@ class File
 // v0 is the minimum vertex, v1 is the maximum vertex.
 // =============================================================================
 class LDBoundingBox
-{	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	STOCK_WRITE)
+{
+	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (private,	vertex,	Vertex0,	NO_OPS,		STOCK_WRITE)
 	PROPERTY (private,	vertex,	Vertex1,	NO_OPS,		STOCK_WRITE)
 

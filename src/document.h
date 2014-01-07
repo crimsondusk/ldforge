@@ -29,7 +29,8 @@ class OpenProgressDialog;
 class LDDocumentPointer;
 
 namespace LDPaths
-{	void initPaths();
+{
+	void initPaths();
 	bool tryConfigure (str path);
 
 	str ldconfig();
@@ -52,18 +53,19 @@ namespace LDPaths
 // primitive generator uses this to give initial names to primitives.
 // =============================================================================
 class LDDocument : public QObject
-{	properties:
+{
+	properties:
 		Q_OBJECT
 		PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	History*,			History,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	History*,			History,		NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,		str,					Name,				STR_OPS,		STOCK_WRITE)
-		PROPERTY (public,		str,					FullPath,		STR_OPS,		STOCK_WRITE)
-		PROPERTY (public,		str,					DefaultName,	STR_OPS,		STOCK_WRITE)
-		PROPERTY (public,		bool,					Implicit,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,		QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,		long,					SavePosition,	NUM_OPS,		STOCK_WRITE)
-		PROPERTY (public,		QListWidgetItem*,	ListItem,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	str,				Name,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	str,				FullPath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	str,				DefaultName,	STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	bool,				Implicit,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	long,				SavePosition,	NUM_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QListWidgetItem*,	ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -89,28 +91,34 @@ class LDDocument : public QObject
 		int numReferences() const { return m_refs.size(); }
 
 		inline LDDocument& operator<< (LDObject* obj)
-		{	addObject (obj);
+		{
+			addObject (obj);
 			return *this;
 		}
 
 		inline void addHistoryStep()
-		{	m_History->addStep();
+		{
+			m_History->addStep();
 		}
 
 		inline void undo()
-		{	m_History->undo();
+		{
+			m_History->undo();
 		}
 
 		inline void redo()
-		{	m_History->redo();
+		{
+			m_History->redo();
 		}
 
 		inline void clearHistory()
-		{	m_History->clear();
+		{
+			m_History->clear();
 		}
 
 		inline void addToHistory (AbstractHistoryEntry* entry)
-		{	*m_History << entry;
+		{
+			*m_History << entry;
 		}
 
 		static void closeUnused();
@@ -135,7 +143,8 @@ class LDDocument : public QObject
 };
 
 inline LDDocument* getCurrentDocument()
-{	return LDDocument::current();
+{
+	return LDDocument::current();
 }
 
 // Close all current loaded files and start off blank.
@@ -175,7 +184,8 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
 extern QList<LDDocument*> g_loadedFiles;
 
 inline const QList<LDObject*>& selection()
-{	return getCurrentDocument()->getSelection();
+{
+	return getCurrentDocument()->getSelection();
 }
 
 void addRecentFile (str path);
@@ -195,7 +205,8 @@ extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files
 // event loop, allowing the program to maintain responsivity during loading.
 // =============================================================================
 class LDFileLoader : public QObject
-{	Q_OBJECT
+{
+	Q_OBJECT
 	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		STOCK_WRITE)
 	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (private,	int,					Progress,		NUM_OPS,		STOCK_WRITE)
