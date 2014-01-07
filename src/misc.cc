@@ -209,7 +209,7 @@ void simplify (int& numer, int& denom)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-vertex rotPoint (const QList<LDObject*>& objs)
+Vertex rotPoint (const QList<LDObject*>& objs)
 {
 	LDBoundingBox box;
 
@@ -234,11 +234,11 @@ vertex rotPoint (const QList<LDObject*>& objs)
 
 		case CustomPoint:
 		{
-			return vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+			return Vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
 		}
 	}
 
-	return vertex();
+	return Vertex();
 }
 
 // =============================================================================

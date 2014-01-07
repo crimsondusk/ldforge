@@ -51,11 +51,11 @@
 #include "config.h"
 
 #define APPNAME			"LDForge"
-#define UNIXNAME			"ldforge"
+#define UNIXNAME		"ldforge"
 #define VERSION_MAJOR	0
 #define VERSION_MINOR	2
 #define VERSION_PATCH	999
-#define BUILD_ID			BUILD_INTERNAL
+#define BUILD_ID		BUILD_INTERNAL
 
 #define BUILD_INTERNAL	0
 #define BUILD_RELEASE	1

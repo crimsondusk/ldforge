@@ -198,56 +198,56 @@ DEFINE_ACTION (Exit, CTRL (Q))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewSubfile, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Subfile, null);
+	AddObjectDialog::staticDialog (LDObject::ESubfile, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Line, null);
+	AddObjectDialog::staticDialog (LDObject::ELine, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewTriangle, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Triangle, null);
+	AddObjectDialog::staticDialog (LDObject::ETriangle, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewQuad, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Quad, null);
+	AddObjectDialog::staticDialog (LDObject::EQuad, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewCLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::CondLine, null);
+	AddObjectDialog::staticDialog (LDObject::ECondLine, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewComment, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Comment, null);
+	AddObjectDialog::staticDialog (LDObject::EComment, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewBFC, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::BFC, null);
+	AddObjectDialog::staticDialog (LDObject::EBFC, null);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (NewVertex, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::Vertex, null);
+	AddObjectDialog::staticDialog (LDObject::EVertex, null);
 }
 
 // =============================================================================
@@ -318,14 +318,14 @@ DEFINE_ACTION (SelectByType, 0)
 
 	LDObject::Type type = getUniformSelectedType();
 
-	if (type == LDObject::Unidentified)
+	if (type == LDObject::EUnidentified)
 		return;
 
 	// If we're selecting subfile references, the reference filename must also
 	// be uniform.
 	str refName;
 
-	if (type == LDObject::Subfile)
+	if (type == LDObject::ESubfile)
 	{
 		refName = static_cast<LDSubfile*> (selection()[0])->getFileInfo()->getName();
 
@@ -341,7 +341,7 @@ DEFINE_ACTION (SelectByType, 0)
 		if (obj->getType() != type)
 			continue;
 
-		if (type == LDObject::Subfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
+		if (type == LDObject::ESubfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
 			continue;
 
 		obj->select();

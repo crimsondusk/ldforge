@@ -57,14 +57,14 @@
 #define DEFINE_PROPERTY_NO_OPS( TYPE, NAME )
 
 #define DEFINE_PROPERTY_STR_OPS( TYPE, NAME )			\
-		void append##NAME( TYPE a )						\
+		void appendTo##NAME( TYPE a )					\
 		{												\
 			TYPE tmp( m_##NAME );						\
-			tmp.append( a );							\
+			tmp.append( a );								\
 			set##NAME( tmp );							\
 		}												\
 														\
-		void prepend##NAME( TYPE a )					\
+		void prependTo##NAME( TYPE a )					\
 		{												\
 			TYPE tmp( m_##NAME );						\
 			tmp.prepend( a );							\

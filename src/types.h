@@ -59,20 +59,20 @@ enum Axis
 //
 // A mathematical 3 x 3 matrix
 // =============================================================================
-class matrix
+class Matrix
 {
 	public:
-		matrix() {}
-		matrix (initlist<double> vals);
-		matrix (double fillval);
-		matrix (double vals[]);
+		Matrix() {}
+		Matrix (initlist<double> vals);
+		Matrix (double fillval);
+		Matrix (double vals[]);
 
 		double			getDeterminant() const;
-		matrix			mult (matrix other) const;
+		Matrix			mult (Matrix other) const;
 		void				puts() const;
 		str				stringRep() const;
 		void				zero();
-		matrix&			operator= (matrix other);
+		Matrix&			operator= (Matrix other);
 
 		inline double& val (int idx)
 		{
@@ -84,7 +84,7 @@ class matrix
 			return m_vals[idx];
 		}
 
-		inline matrix operator* (matrix other) const
+		inline Matrix operator* (Matrix other) const
 		{
 			return mult (other);
 		}
@@ -99,7 +99,7 @@ class matrix
 			return val (idx);
 		}
 
-		bool operator== (const matrix& other) const;
+		bool operator== (const Matrix& other) const;
 
 	private:
 		double m_vals[9];
@@ -108,31 +108,31 @@ class matrix
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// vertex
+// Vertex
 //
 // Vertex class, contains a single point in 3D space. Not to be confused with
 // LDVertex, which is a vertex used in an LDraw part file.
 // =============================================================================
-class vertex
+class Vertex
 {
 	public:
-		vertex() {}
-		vertex (double x, double y, double z);
+		Vertex() {}
+		Vertex (double x, double y, double z);
 
-		double			distanceTo (const vertex& other) const;
-		vertex			midpoint (const vertex& other);
-		void				move (const vertex& other);
+		double			distanceTo (const Vertex& other) const;
+		Vertex			midpoint (const Vertex& other);
+		void			move (const Vertex& other);
 		str				stringRep (bool mangled) const;
-		void				transform (matrix matr, vertex pos);
+		void			transform (Matrix matr, Vertex pos);
 
-		vertex&			operator+= (const vertex& other);
-		vertex			operator+ (const vertex& other) const;
-		vertex			operator/ (const double d) const;
-		vertex&			operator/= (const double d);
-		bool				operator== (const vertex& other) const;
-		bool				operator!= (const vertex& other) const;
-		vertex			operator-() const;
-		int				operator< (const vertex& other) const;
+		Vertex&			operator+= (const Vertex& other);
+		Vertex			operator+ (const Vertex& other) const;
+		Vertex			operator/ (const double d) const;
+		Vertex&			operator/= (const double d);
+		bool			operator== (const Vertex& other) const;
+		bool			operator!= (const Vertex& other) const;
+		Vertex			operator-() const;
+		int				operator< (const Vertex& other) const;
 		double&			operator[] (const Axis ax);
 		const double&	operator[] (const Axis ax) const;
 		double&			operator[] (const int ax);
@@ -214,8 +214,8 @@ class StringFormatArg
 
 		StringFormatArg (const float& v);
 		StringFormatArg (const double& v);
-		StringFormatArg (const vertex& v);
-		StringFormatArg (const matrix& v);
+		StringFormatArg (const Vertex& v);
+		StringFormatArg (const Matrix& v);
 		StringFormatArg (const char* v);
 		StringFormatArg (const void* v);
 
@@ -321,8 +321,8 @@ class File
 class LDBoundingBox
 {
 	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (private,	vertex,	Vertex0,	NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	vertex,	Vertex1,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	Vertex,	Vertex0,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	Vertex,	Vertex1,	NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDBoundingBox();
@@ -330,11 +330,11 @@ class LDBoundingBox
 		void calculate();
 		double size() const;
 		void calcObject (LDObject* obj);
-		void calcVertex (const vertex& v);
-		vertex center() const;
+		void calcVertex (const Vertex& v);
+		Vertex center() const;
 
 		LDBoundingBox& operator<< (LDObject* obj);
-		LDBoundingBox& operator<< (const vertex& v);
+		LDBoundingBox& operator<< (const Vertex& v);
 };
 
 // Formatter function
@@ -361,8 +361,8 @@ void log (const char* fmtstr, ...);
 
 extern File g_file_stdout;
 extern File g_file_stderr;
-extern const vertex g_origin; // Vertex at (0, 0, 0)
-extern const matrix g_identity; // Identity matrix
+extern const Vertex g_origin; // Vertex at (0, 0, 0)
+extern const Matrix g_identity; // Identity matrix
 
 static const double pi = 3.14159265358979323846;
 

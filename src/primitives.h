@@ -74,17 +74,17 @@ class PrimitiveLister : public QObject
 	Q_OBJECT
 
 	public:
-		explicit PrimitiveLister (QObject* parent = 0);
-		virtual ~PrimitiveLister();
-		static void start();
+		explicit			PrimitiveLister (QObject* parent = 0);
+		virtual				~PrimitiveLister();
+		static void			start();
 
 	public slots:
-		void work();
+		void				work();
 
 	signals:
-		void starting (int num);
-		void workDone();
-		void update (int i);
+		void				starting (int num);
+		void				workDone();
+		void				update (int i);
 
 	private:
 		QList<Primitive>	m_prims;

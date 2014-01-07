@@ -51,7 +51,7 @@ class RingFinder
 				}
 
 				// Compare solutions
-				bool operator> (const Solution& other) const;
+				bool isBetterThan (const Solution* other) const;
 
 			private:
 				QVector<Component> m_components;

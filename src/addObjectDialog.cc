@@ -64,7 +64,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	switch (type)
 	{
-		case LDObject::Comment:
+		case LDObject::EComment:
 		{
 			le_comment = new QLineEdit;
 
@@ -74,28 +74,28 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			le_comment->setMinimumWidth (384);
 		} break;
 
-		case LDObject::Line:
+		case LDObject::ELine:
 		{
 			coordCount = 6;
 		} break;
 
-		case LDObject::Triangle:
+		case LDObject::ETriangle:
 		{
 			coordCount = 9;
 		} break;
 
-		case LDObject::Quad:
-		case LDObject::CondLine:
+		case LDObject::EQuad:
+		case LDObject::ECondLine:
 		{
 			coordCount = 12;
 		} break;
 
-		case LDObject::Vertex:
+		case LDObject::EVertex:
 		{
 			coordCount = 3;
 		} break;
 
-		case LDObject::BFC:
+		case LDObject::EBFC:
 		{
 			rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
 
@@ -112,7 +112,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				rb_bfcType->setValue ( (int) static_cast<LDBFC*> (obj)->type);
 		} break;
 
-		case LDObject::Subfile:
+		case LDObject::ESubfile:
 		{
 			coordCount = 3;
 			tw_subfileList = new QTreeWidget();
@@ -169,7 +169,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		if (obj != null)
 			colnum = obj->getColor();
 		else
-			colnum = (type == LDObject::CondLine || type == LDObject::Line) ? edgecolor : maincolor;
+			colnum = (type == LDObject::ECondLine || type == LDObject::ELine) ? edgecolor : maincolor;
 
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, colnum);
@@ -189,10 +189,10 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	switch (type)
 	{
-		case LDObject::Line:
-		case LDObject::CondLine:
-		case LDObject::Triangle:
-		case LDObject::Quad:
+		case LDObject::ELine:
+		case LDObject::ECondLine:
+		case LDObject::ETriangle:
+		case LDObject::EQuad:
 
 			// Apply coordinates
 			if (obj)
@@ -204,15 +204,15 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			break;
 
-		case LDObject::Comment:
+		case LDObject::EComment:
 			layout->addWidget (le_comment, 0, 1);
 			break;
 
-		case LDObject::BFC:
+		case LDObject::EBFC:
 			layout->addWidget (rb_bfcType, 0, 1);
 			break;
 
-		case LDObject::Subfile:
+		case LDObject::ESubfile:
 			layout->addWidget (tw_subfileList, 1, 1, 1, 2);
 			layout->addWidget (lb_subfileName, 2, 1);
 			layout->addWidget (le_subfileName, 2, 2);
@@ -229,7 +229,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
 		// le_matrix->setValidator (new QDoubleValidator);
-		matrix defaultMatrix = g_identity;
+		Matrix defaultMatrix = g_identity;
 
 		if (mo)
 		{
@@ -328,14 +328,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	setlocale (LC_ALL, "C");
 
 	// FIXME: Redirect to Edit Raw
-	if (obj && obj->getType() == LDObject::Error)
+	if (obj && obj->getType() == LDObject::EError)
 		return;
 
-	if (type == LDObject::Empty)
+	if (type == LDObject::EEmpty)
 		return; // Nothing to edit with empties
 
 	const bool newObject = (obj == null);
-	matrix transform = g_identity;
+	Matrix transform = g_identity;
 	AddObjectDialog dlg (type, obj);
 
 	assert (!obj || obj->getType() == type);
@@ -343,7 +343,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	if (dlg.exec() == false)
 		return;
 
-	if (type == LDObject::Subfile)
+	if (type == LDObject::ESubfile)
 	{
 		QStringList matrixstrvals = dlg.le_matrix->text().split (" ", QString::SkipEmptyParts);
 
@@ -355,30 +355,30 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			for (str val : matrixstrvals)
 				matrixvals[i++] = val.toFloat();
 
-			transform = matrix (matrixvals);
+			transform = Matrix (matrixvals);
 		}
 	}
 
 	switch (type)
 	{
-		case LDObject::Comment:
+		case LDObject::EComment:
 		{
 			LDComment* comm = initObj<LDComment> (obj);
 			comm->text = dlg.le_comment->text();
 		}
 		break;
 
-		case LDObject::Line:
-		case LDObject::Triangle:
-		case LDObject::Quad:
-		case LDObject::CondLine:
+		case LDObject::ELine:
+		case LDObject::ETriangle:
+		case LDObject::EQuad:
+		case LDObject::ECondLine:
 		{
 			if (!obj)
 				obj = LDObject::getDefault (type);
 
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				vertex v;
+				Vertex v;
 
 				for_axes (ax)
 					v[ax] = dlg.dsb_coords[ (i * 3) + ax]->value();
@@ -387,13 +387,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			}
 		} break;
 
-		case LDObject::BFC:
+		case LDObject::EBFC:
 		{
 			LDBFC* bfc = initObj<LDBFC> (obj);
 			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value();
 		} break;
 
-		case LDObject::Vertex:
+		case LDObject::EVertex:
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
 
@@ -402,7 +402,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		}
 		break;
 
-		case LDObject::Subfile:
+		case LDObject::ESubfile:
 		{
 			str name = dlg.le_subfileName->text();
 

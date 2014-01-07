@@ -277,7 +277,7 @@ void ForgeWindow::updateTitle()
 			title += fmt (": <anonymous>");
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
-				getCurrentDocument()->getObject (0)->getType() == LDObject::Comment)
+				getCurrentDocument()->getObject (0)->getType() == LDObject::EComment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
@@ -337,7 +337,7 @@ void ForgeWindow::buildObjList()
 
 		switch (obj->getType())
 		{
-			case LDObject::Comment:
+			case LDObject::EComment:
 			{
 				descr = static_cast<LDComment*> (obj)->text;
 
@@ -346,13 +346,13 @@ void ForgeWindow::buildObjList()
 					descr.remove (0, 1);
 			} break;
 
-			case LDObject::Empty:
+			case LDObject::EEmpty:
 				break; // leave it empty
 
-			case LDObject::Line:
-			case LDObject::Triangle:
-			case LDObject::Quad:
-			case LDObject::CondLine:
+			case LDObject::ELine:
+			case LDObject::ETriangle:
+			case LDObject::EQuad:
+			case LDObject::ECondLine:
 			{
 				for (int i = 0; i < obj->vertices(); ++i)
 				{
@@ -363,17 +363,17 @@ void ForgeWindow::buildObjList()
 				}
 			} break;
 
-			case LDObject::Error:
+			case LDObject::EError:
 			{
 				descr = fmt ("ERROR: %1", obj->raw());
 			} break;
 
-			case LDObject::Vertex:
+			case LDObject::EVertex:
 			{
 				descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
 			} break;
 
-			case LDObject::Subfile:
+			case LDObject::ESubfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
@@ -385,12 +385,12 @@ void ForgeWindow::buildObjList()
 				descr += ')';
 			} break;
 
-			case LDObject::BFC:
+			case LDObject::EBFC:
 			{
 				descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
 			} break;
 
-			case LDObject::Overlay:
+			case LDObject::EOverlay:
 			{
 				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
 				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->getCamera()],
@@ -417,7 +417,7 @@ void ForgeWindow::buildObjList()
 		}
 
 		// Color gibberish orange on red so it stands out.
-		if (obj->getType() == LDObject::Error)
+		if (obj->getType() == LDObject::EError)
 		{
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
@@ -612,14 +612,14 @@ int ForgeWindow::getSelectedColor()
 // -----------------------------------------------------------------------------
 LDObject::Type ForgeWindow::getUniformSelectedType()
 {
-	LDObject::Type result = LDObject::Unidentified;
+	LDObject::Type result = LDObject::EUnidentified;
 
 	for (LDObject* obj : selection())
 	{
-		if (result != LDObject::Unidentified && obj->getColor() != result)
-			return LDObject::Unidentified;
+		if (result != LDObject::EUnidentified && obj->getColor() != result)
+			return LDObject::EUnidentified;
 
-		if (result == LDObject::Unidentified)
+		if (result == LDObject::EUnidentified)
 			result = obj->getType();
 	}
 
@@ -653,7 +653,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 
 	QMenu* contextMenu = new QMenu;
 
-	if (single && singleObj->getType() != LDObject::Empty)
+	if (single && singleObj->getType() != LDObject::EEmpty)
 	{
 		contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();
@@ -926,16 +926,6 @@ void makeColorComboBox (QComboBox* box)
 
 		++row;
 	}
-}
-
-void ForgeWindow::setStatusBarText (str text)
-{
-	statusBar()->showMessage (text);
-}
-
-Ui_LDForgeUI* ForgeWindow::getInterface() const
-{
-	return ui;
 }
 
 void ForgeWindow::updateDocumentList()

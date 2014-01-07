@@ -40,8 +40,8 @@ File g_file_stdout (stdout, File::Write);
 File g_file_stderr (stderr, File::Write);
 static str g_versionString, g_fullVersionString;
 
-const vertex g_origin (0.0f, 0.0f, 0.0f);
-const matrix g_identity ( {1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
+const Vertex g_origin (0.0f, 0.0f, 0.0f);
+const Matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
 
 cfg (Bool, firststart, true);
 

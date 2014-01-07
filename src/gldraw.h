@@ -42,7 +42,7 @@ enum EditMode
 // Meta for overlays
 struct LDGLOverlay
 {
-	vertex	v0,
+	Vertex	v0,
 				v1;
 	int		ox,
 				oy;
@@ -164,7 +164,7 @@ class GLRenderer : public QGLWidget
 		QTimer*						m_toolTipTimer;
 		Qt::MouseButtons				m_lastButtons;
 		Qt::KeyboardModifiers		m_keymods;
-		vertex						m_hoverpos;
+		Vertex						m_hoverpos;
 		double						m_virtWidth,
 									m_virtHeight,
 									m_rotX[7],
@@ -190,19 +190,19 @@ class GLRenderer : public QGLWidget
 		int							m_width,
 									m_height,
 									m_totalmove;
-		QList<vertex>				m_drawedVerts;
+		QList<Vertex>				m_drawedVerts;
 		bool						m_rectdraw;
-		vertex						m_rectverts[4];
+		Vertex						m_rectverts[4];
 		QColor						m_bgcolor;
 		double						m_depthValues[6];
 		LDGLOverlay					m_overlays[6];
-		QList<vertex>				m_knownVerts;
+		QList<Vertex>				m_knownVerts;
 
-		void           addDrawnVertex (vertex m_hoverpos);
+		void           addDrawnVertex (Vertex m_hoverpos);
 		LDOverlay*     findOverlayObject (EFixedCamera cam);
 		void           updateRectVerts();
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
-		matrix         getCircleDrawMatrix (double scale);
+		Matrix         getCircleDrawMatrix (double scale);
 		void           drawBlip (QPainter& paint, QPoint pos) const;
 
 		// Compute geometry for camera icons
@@ -221,13 +221,13 @@ class GLRenderer : public QGLWidget
 		void           compileSubObject (LDObject* obj, const GLenum gltype);
 
 		// Compile a single vertex to a list
-		void           compileVertex (const vertex& vrt);
+		void           compileVertex (const Vertex& vrt);
 
 		// Convert a 2D point to a 3D point
-		vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
+		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
 		// Convert a 3D point to a 2D point
-		QPoint         coordconv3_2 (const vertex& pos3d) const;
+		QPoint         coordconv3_2 (const Vertex& pos3d) const;
 
 		// Perform object selection
 		void           pick (int mouseX, int mouseY);

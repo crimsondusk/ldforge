@@ -33,7 +33,7 @@ protected:												\
 public:													\
 	virtual LDObject::Type getType() const override		\
 	{													\
-		return LDObject::T;								\
+		return LDObject::E##T;							\
 	}													\
 	virtual str raw() const override;					\
 	virtual void invert() override;
@@ -79,19 +79,19 @@ class LDObject
 		// Object type codes. Codes are sorted in order of significance.
 		enum Type
 		{
-			Subfile,        // Object represents a sub-file reference
-			Quad,           // Object represents a quadrilateral
-			Triangle,       // Object represents a triangle
-			Line,           // Object represents a line
-			CondLine,       // Object represents a conditional line
-			Vertex,         // Object is a vertex, LDForge extension object
-			BFC,            // Object represents a BFC statement
-			Overlay,        // Object contains meta-info about an overlay image.
-			Comment,        // Object represents a comment
-			Error,          // Object is the result of failed parsing
-			Empty,          // Object represents an empty line
-			Unidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
-			NumTypes        // Amount of object types
+			ESubfile,        // Object represents a sub-file reference
+			EQuad,           // Object represents a quadrilateral
+			ETriangle,       // Object represents a triangle
+			ELine,           // Object represents a line
+			ECondLine,       // Object represents a conditional line
+			EVertex,         // Object is a vertex, LDForge extension object
+			EBFC,            // Object represents a BFC statement
+			EOverlay,        // Object contains meta-info about an overlay image.
+			EComment,        // Object represents a comment
+			EError,          // Object is the result of failed parsing
+			EEmpty,          // Object represents an empty line
+			EUnidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
+			ENumTypes        // Amount of object types
 		};
 
 		LDObject();
@@ -109,7 +109,7 @@ class LDObject
 		virtual LDObject::Type	getType() const;
 
 		// Get a vertex by index
-		const vertex&				getVertex (int i) const;
+		const Vertex&				getVertex (int i) const;
 
 		// Type name of this object
 		virtual str					getTypeName() const;
@@ -127,7 +127,7 @@ class LDObject
 		virtual bool				isScemantic() const;
 
 		// Moves this object using the given vertex as a movement List
-		void							move (vertex vect);
+		void							move (Vertex vect);
 
 		// Object after this in the current file
 		LDObject*					next() const;
@@ -145,7 +145,7 @@ class LDObject
 		void							select();
 
 		// Set a vertex to the given value
-		void							setVertex (int i, const vertex& vert);
+		void							setVertex (int i, const Vertex& vert);
 
 		// Set a single coordinate of a vertex
 		void							setVertexCoord (int i, Axis ax, double value);
@@ -165,8 +165,7 @@ class LDObject
 		// Get type name by enumerator
 		static str typeName (LDObject::Type type);
 
-		// Returns a sample object by the given enumerator
-		// TODO: Use of this function only really results in hacks, get rid of it!
+		// Returns a default-constructed LDObject by the given type
 		static LDObject* getDefault (const LDObject::Type type);
 
 		// TODO: move this to LDDocument?
@@ -206,12 +205,12 @@ class LDObject
 class LDSharedVertex
 {
 	public:
-		inline const vertex& data() const
+		inline const Vertex& data() const
 		{
 			return m_data;
 		}
 
-		inline operator const vertex&() const
+		inline operator const Vertex&() const
 		{
 			return m_data;
 		}
@@ -219,14 +218,14 @@ class LDSharedVertex
 		void addRef (LDObject* a);
 		void delRef (LDObject* a);
 
-		static LDSharedVertex* getSharedVertex (const vertex& a);
+		static LDSharedVertex* getSharedVertex (const Vertex& a);
 
 	protected:
-		LDSharedVertex (const vertex& a) : m_data (a) {}
+		LDSharedVertex (const Vertex& a) : m_data (a) {}
 
 	private:
 		QList<LDObject*> m_refs;
-		vertex m_data;
+		Vertex m_data;
 };
 
 // =============================================================================
@@ -247,29 +246,29 @@ class LDSharedVertex
 class LDMatrixObject
 {
 	PROPERTY (public,	LDObject*,			LinkPointer,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (public,	matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
+	PROPERTY (public,	Matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
 
 	public:
 		LDMatrixObject() :
 			m_Position (LDSharedVertex::getSharedVertex (g_origin)) {}
 
-		LDMatrixObject (const matrix& transform, const vertex& pos) :
+		LDMatrixObject (const Matrix& transform, const Vertex& pos) :
 			m_Transform (transform),
 			m_Position (LDSharedVertex::getSharedVertex (pos)) {}
 
-		inline const vertex& getPosition() const
+		inline const Vertex& getPosition() const
 		{
 			return m_Position->data();
 		}
 
 		void setCoordinate (const Axis ax, double value)
 		{
-			vertex v = getPosition();
+			Vertex v = getPosition();
 			v[ax] = value;
 			setPosition (v);
 		}
 
-		void setPosition (const vertex& a);
+		void setPosition (const Vertex& a);
 
 	private:
 		LDSharedVertex*	m_Position;
@@ -442,7 +441,7 @@ class LDLine : public LDObject
 
 	public:
 		LDLine() {}
-		LDLine (vertex v1, vertex v2);
+		LDLine (Vertex v1, Vertex v2);
 };
 
 // =============================================================================
@@ -483,7 +482,7 @@ class LDTriangle : public LDObject
 
 	public:
 		LDTriangle() {}
-		LDTriangle (vertex v0, vertex v1, vertex v2)
+		LDTriangle (Vertex v0, Vertex v1, Vertex v2)
 		{
 			setVertex (0, v0);
 			setVertex (1, v1);
@@ -508,7 +507,7 @@ class LDQuad : public LDObject
 
 	public:
 		LDQuad() {}
-		LDQuad (const vertex& v0, const vertex& v1, const vertex& v2, const vertex& v3);
+		LDQuad (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3);
 
 		// Split this quad into two triangles (note: heap-allocated)
 		QList<LDTriangle*> splitToTriangles();
@@ -534,7 +533,7 @@ class LDVertex : public LDObject
 	public:
 		LDVertex() {}
 
-		vertex pos;
+		Vertex pos;
 };
 
 // =============================================================================

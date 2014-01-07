@@ -158,9 +158,9 @@ class MoveHistory : public AbstractHistoryEntry
 		IMPLEMENT_HISTORY_TYPE (Move)
 
 		QList<int> indices;
-		vertex dest;
+		Vertex dest;
 
-		MoveHistory (QList<int> indices, vertex dest) :
+		MoveHistory (QList<int> indices, Vertex dest) :
 				indices (indices),
 				dest (dest) {}
 };

@@ -360,7 +360,7 @@ void LDFileLoader::work (int i)
 		LDObject* obj = parseLine (line);
 
 		// Check for parse errors and warn about tthem
-		if (obj->getType() == LDObject::Error)
+		if (obj->getType() == LDObject::EError)
 		{
 			log ("Couldn't parse line #%1: %2", getProgress() + 1, static_cast<LDError*> (obj)->reason);
 
@@ -677,7 +677,7 @@ bool LDDocument::save (str savepath)
 	LDComment* fpathComment = null;
 	LDObject* first = getObject (1);
 
-	if (!isImplicit() && first != null && first->getType() == LDObject::Comment)
+	if (!isImplicit() && first != null && first->getType() == LDObject::EComment)
 	{
 		fpathComment = static_cast<LDComment*> (first);
 
@@ -751,9 +751,9 @@ void checkTokenNumbers (str line, const QStringList& tokens, int min, int max)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static vertex parseVertex (QStringList& s, const int n)
+static Vertex parseVertex (QStringList& s, const int n)
 {
-	vertex v;
+	Vertex v;
 
 	for_axes (ax)
 		v[ax] = s[n + ax].toDouble();
@@ -880,7 +880,7 @@ LDObject* parseLine (str line)
 				obj->setColor (tokens[1].toLong());
 				obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
 
-				matrix transform;
+				Matrix transform;
 
 				for (int i = 0; i < 9; ++i)
 					transform[i] = tokens[i + 5].toDouble(); // 5 - 13
@@ -979,7 +979,7 @@ void reloadAllSubfiles()
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{
-		if (obj->getType() == LDObject::Subfile)
+		if (obj->getType() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDDocument* fileInfo = getDocument (ref->getFileInfo()->getName());
@@ -992,7 +992,7 @@ void reloadAllSubfiles()
 
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
-		if (obj->getType() == LDObject::Error)
+		if (obj->getType() == LDObject::EError)
 			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
 	}
 }
@@ -1004,7 +1004,7 @@ int LDDocument::addObject (LDObject* obj)
 	getHistory()->add (new AddHistory (getObjects().size(), obj));
 	m_Objects << obj;
 
-	if (obj->getType() == LDObject::Vertex)
+	if (obj->getType() == LDObject::EVertex)
 		m_Vertices << obj;
 
 #ifdef DEBUG
@@ -1175,7 +1175,7 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 			// Got another sub-file reference, inline it if we're deep-inlining. If not,
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
-			if (deep && obj->getType() == LDObject::Subfile)
+			if (deep && obj->getType() == LDObject::ESubfile)
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 

@@ -392,7 +392,7 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 		{
 			case Circle:
 			{
-				vertex v0 (x0, 0.0f, z0),
+				Vertex v0 (x0, 0.0f, z0),
 				  v1 (x1, 0.0f, z1);
 
 				LDLine* line = new LDLine;
@@ -440,7 +440,7 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 					}
 				}
 
-				vertex v0 (x0, y0, z0),
+				Vertex v0 (x0, y0, z0),
 					   v1 (x1, y1, z1),
 					   v2 (x2, y2, z2),
 					   v3 (x3, y3, z3);
@@ -474,7 +474,7 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 					z2 = (z0 >= 0.0f) ? 1.0f : -1.0f;
 				}
 
-				vertex v0 (x0, 0.0f, z0),
+				Vertex v0 (x0, 0.0f, z0),
 					   v1 (x1, 0.0f, z1),
 					   v2 (x2, 0.0f, z2);
 
@@ -497,16 +497,16 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 	for (int i : condLineSegs)
 	{
-		vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
+		Vertex v0 (radialPoint (i, divs, cos), 0.0f, radialPoint (i, divs, sin)),
 		  v1,
 		  v2 (radialPoint (i + 1, divs, cos), 0.0f, radialPoint (i + 1, divs, sin)),
 		  v3 (radialPoint (i - 1, divs, cos), 0.0f, radialPoint (i - 1, divs, sin));
 
 		if (type == Cylinder)
-			v1 = vertex (v0[X], 1.0f, v0[Z]);
+			v1 = Vertex (v0[X], 1.0f, v0[Z]);
 		elif (type == Cone)
 		{
-			v1 = vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
+			v1 = Vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
 			v0[X] *= num;
 			v0[Y] = 1.0f;
 			v0[Z] *= num;

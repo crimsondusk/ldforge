@@ -52,7 +52,7 @@ static const LDFixedCameraInfo g_FixedCameras[6] =
 
 // Matrix templates for circle drawing. 2 is substituted with
 // the scale value, 1 is inverted to -1 if needed.
-static const matrix g_circleDrawTransforms[3] =
+static const Matrix g_circleDrawTransforms[3] =
 {
 	{ 2, 0, 0, 0, 1, 0, 0, 0, 2 },
 	{ 2, 0, 0, 0, 0, 2, 0, 1, 0 },
@@ -101,12 +101,12 @@ const GL::EFixedCamera g_Cameras[7] =
 const struct LDGLAxis
 {
 	const QColor col;
-	const vertex vert;
+	const Vertex vert;
 } g_GLAxes[3] =
 {
-	{ QColor (255,   0,   0), vertex (10000, 0, 0) }, // X
-	{ QColor (80,  192,   0), vertex (0, 10000, 0) }, // Y
-	{ QColor (0,   160, 192), vertex (0, 0, 10000) }, // Z
+	{ QColor (255,   0,   0), Vertex (10000, 0, 0) }, // X
+	{ QColor (80,  192,   0), Vertex (0, 10000, 0) }, // Y
+	{ QColor (0,   160, 192), Vertex (0, 0, 10000) }, // Z
 };
 
 static bool g_glInvert = false;
@@ -319,8 +319,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 	}
 
 	if ((list == BFCFrontList || list == BFCBackList) &&
-		obj->getType() != LDObject::Line &&
-		obj->getType() != LDObject::CondLine)
+		obj->getType() != LDObject::ELine &&
+		obj->getType() != LDObject::ECondLine)
 	{
 		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
@@ -514,11 +514,11 @@ void GLRenderer::drawGLScene()
 // This converts a 2D point on the screen to a 3D point in the model. If 'snap'
 // is true, the 3D point will snap to the current grid.
 // -----------------------------------------------------------------------------
-vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
+Vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 {
 	assert (camera() != EFreeCamera);
 
-	vertex pos3d;
+	Vertex pos3d;
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
@@ -553,7 +553,7 @@ vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 // Inverse operation for the above - convert a 3D position to a 2D screen
 // position. Don't ask me how this code manages to work, I don't even know.
 // -----------------------------------------------------------------------------
-QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
+QPoint GLRenderer::coordconv3_2 (const Vertex& pos3d) const
 {
 	GLfloat m[16];
 	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
@@ -568,7 +568,7 @@ QPoint GLRenderer::coordconv3_2 (const vertex& pos3d) const
 	const double y = pos3d.y();
 	const double z = pos3d.z();
 
-	vertex transformed;
+	Vertex transformed;
 	transformed[X] = (m[0] * x) + (m[1] * y) + (m[2] * z) + m[3];
 	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
 	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
@@ -635,7 +635,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		if (getEditMode() == EDrawMode)
 		{
 			QPoint poly[4];
-			vertex poly3d[4];
+			Vertex poly3d[4];
 			int numverts = 4;
 
 			// Calculate polygon data
@@ -644,7 +644,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				numverts = m_drawedVerts.size() + 1;
 				int i = 0;
 
-				for (vertex& vert : m_drawedVerts)
+				for (Vertex& vert : m_drawedVerts)
 					poly3d[i++] = vert;
 
 				// Draw the cursor vertex as the last one in the list.
@@ -729,7 +729,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				drawBlip (paint, coordconv3_2 (m_hoverpos));
 			else
 			{
-				QVector<vertex> verts, verts2;
+				QVector<Vertex> verts, verts2;
 				const double dist0 = getCircleDrawDist (0),
 					dist1 = (m_drawedVerts.size() >= 2) ? getCircleDrawDist (1) : -1;
 				const int segs = lores;
@@ -742,7 +742,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				// Calculate the preview positions of vertices
 				for (int i = 0; i < segs; ++i)
 				{
-					vertex v = g_origin;
+					Vertex v = g_origin;
 					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0);
 					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist0);
 					verts << v;
@@ -756,7 +756,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				}
 
 				int i = 0;
-				for (const vertex& v : verts + verts2)
+				for (const Vertex& v : verts + verts2)
 				{
 					// Calculate the 2D point of the vertex
 					QPoint point = coordconv3_2 (v);
@@ -942,7 +942,7 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 {
 	glBegin (gltype);
 
-	const int numverts = (obj->getType() != LDObject::CondLine) ? obj->vertices() : 2;
+	const int numverts = (obj->getType() != LDObject::ECondLine) ? obj->vertices() : 2;
 
 	if (g_glInvert == false)
 		for (int i = 0; i < numverts; ++i)
@@ -962,12 +962,12 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 
 	switch (obj->getType())
 	{
-		case LDObject::Line:
+		case LDObject::ELine:
 		{
 			compileSubObject (obj, GL_LINES);
 		} break;
 
-		case LDObject::CondLine:
+		case LDObject::ECondLine:
 		{
 			// Draw conditional lines with a dash pattern - however, use a full
 			// line when drawing a pick list to make selecting them easier.
@@ -982,17 +982,17 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			glDisable (GL_LINE_STIPPLE);
 		} break;
 
-		case LDObject::Triangle:
+		case LDObject::ETriangle:
 		{
 			compileSubObject (obj, GL_TRIANGLES);
 		} break;
 
-		case LDObject::Quad:
+		case LDObject::EQuad:
 		{
 			compileSubObject (obj, GL_QUADS);
 		} break;
 
-		case LDObject::Subfile:
+		case LDObject::ESubfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs;
@@ -1008,7 +1008,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 
 			LDObject* prev = ref->prev();
 
-			if (prev && prev->getType() == LDObject::BFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+			if (prev && prev->getType() == LDObject::EBFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 
 			for (LDObject* obj : objs)
@@ -1027,7 +1027,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void GLRenderer::compileVertex (const vertex& vrt)
+void GLRenderer::compileVertex (const Vertex& vrt)
 {
 	glVertex3d (vrt[X], -vrt[Y], -vrt[Z]);
 }
@@ -1045,12 +1045,12 @@ void GLRenderer::clampAngle (double& angle) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void GLRenderer::addDrawnVertex (vertex pos)
+void GLRenderer::addDrawnVertex (Vertex pos)
 {
 	// If we picked an already-existing vertex, stop drawing
 	if (getEditMode() == EDrawMode)
 	{
-		for (vertex& vert : m_drawedVerts)
+		for (Vertex& vert : m_drawedVerts)
 		{
 			if (vert == pos)
 			{
@@ -1153,12 +1153,12 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	{
 		// Find the closest vertex to our cursor
 		double mindist = 1024.0f;
-		vertex closest;
+		Vertex closest;
 		bool valid = false;
 
 		QPoint curspos = coordconv3_2 (m_hoverpos);
 
-		for (const vertex& pos3d: m_knownVerts)
+		for (const Vertex& pos3d: m_knownVerts)
 		{
 			QPoint pos2d = coordconv3_2 (pos3d);
 
@@ -1489,9 +1489,9 @@ void GLRenderer::setFile (LDDocument* const& a)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-matrix GLRenderer::getCircleDrawMatrix (double scale)
+Matrix GLRenderer::getCircleDrawMatrix (double scale)
 {
-	matrix transform = g_circleDrawTransforms[camera() % 3];
+	Matrix transform = g_circleDrawTransforms[camera() % 3];
 
 	for (int i = 0; i < 9; ++i)
 	{
@@ -1511,7 +1511,7 @@ void GLRenderer::endDraw (bool accept)
 	(void) accept;
 
 	// Clean the selection and create the object
-	QList<vertex>& verts = m_drawedVerts;
+	QList<Vertex>& verts = m_drawedVerts;
 	QList<LDObject*> objs;
 
 	switch (getEditMode())
@@ -1576,7 +1576,7 @@ void GLRenderer::endDraw (bool accept)
 			double dist0 = getCircleDrawDist (0),
 				dist1 = getCircleDrawDist (1);
 			LDDocument* refFile = null;
-			matrix transform;
+			Matrix transform;
 			bool circleOrDisc = false;
 
 			if (dist1 < dist0)
@@ -1627,7 +1627,7 @@ void GLRenderer::endDraw (bool accept)
 				double x0 = m_drawedVerts[0][relX],
 					y0 = m_drawedVerts[0][relY];
 
-				vertex templ;
+				Vertex templ;
 				templ[relX] = x0;
 				templ[relY] = y0;
 				templ[relZ] = getDepthValue();
@@ -1638,7 +1638,7 @@ void GLRenderer::endDraw (bool accept)
 
 				for (int i = 0; i < segs; ++i)
 				{
-					vertex v0, v1, v2, v3;
+					Vertex v0, v1, v2, v3;
 					v0 = v1 = v2 = v3 = templ;
 					v0[relX] += c0[i].x1();
 					v0[relY] += c0[i].y1();
@@ -1700,7 +1700,7 @@ void GLRenderer::endDraw (bool accept)
 double GLRenderer::getCircleDrawDist (int pos) const
 {
 	assert (m_drawedVerts.size() >= pos + 1);
-	const vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
+	const Vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
 	Axis relX, relY;
 	getRelativeAxes (relX, relY);
 
@@ -1720,15 +1720,15 @@ void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static QList<vertex> getVertices (LDObject* obj)
+static QList<Vertex> getVertices (LDObject* obj)
 {
-	QList<vertex> verts;
+	QList<Vertex> verts;
 
 	if (obj->vertices() >= 2)
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
-	} elif (obj->getType() == LDObject::Subfile)
+	} elif (obj->getType() == LDObject::ESubfile)
 	{
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
@@ -1764,7 +1764,7 @@ void GLRenderer::compileObject (LDObject* obj)
 	}
 
 	// Mark in known vertices of this object
-	QList<vertex> verts = getVertices (obj);
+	QList<Vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
 	removeDuplicates (m_knownVerts);
 
@@ -2058,7 +2058,7 @@ void GLRenderer::updateRectVerts()
 		return;
 	}
 
-	vertex v0 = m_drawedVerts[0],
+	Vertex v0 = m_drawedVerts[0],
 		   v1 = (m_drawedVerts.size() >= 2) ? m_drawedVerts[1] : m_hoverpos;
 
 	const Axis ax = getCameraAxis (false),
@@ -2104,7 +2104,7 @@ LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 
 	for (LDObject* obj : getFile()->getObjects())
 	{
-		if (obj->getType() == LDObject::Overlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
+		if (obj->getType() == LDObject::EOverlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
 		{
 			ovlobj = static_cast<LDOverlay*> (obj);
 			break;
@@ -2155,7 +2155,7 @@ void GLRenderer::updateOverlayObjects()
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
 
-			if (nextobj && nextobj->getType() == LDObject::Empty)
+			if (nextobj && nextobj->getType() == LDObject::EEmpty)
 				nextobj->deleteSelf();
 
 			// If the overlay object was there and the overlay itself is
@@ -2186,7 +2186,7 @@ void GLRenderer::updateOverlayObjects()
 					break;
 				}
 
-				if (obj->getType() == LDObject::Overlay)
+				if (obj->getType() == LDObject::EOverlay)
 					lastOverlay = i;
 			}
 

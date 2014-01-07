@@ -170,7 +170,7 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 {
 	for (LDObject* obj : objects)
 	{
-		if (obj->getType() == LDObject::Subfile)
+		if (obj->getType() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);

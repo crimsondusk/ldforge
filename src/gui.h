@@ -93,9 +93,6 @@ class ForgeWindow : public QMainWindow
 {
 	Q_OBJECT
 
-	typedefs:
-		using ActionMethodType = void (ForgeWindow::*)();
-
 	public:
 		ForgeWindow();
 		void buildObjList();
@@ -130,9 +127,7 @@ class ForgeWindow : public QMainWindow
 			m_quickColors = colors;
 		}
 
-		void setStatusBarText (str text);
 		void addMessage (str msg);
-		Ui_LDForgeUI* getInterface() const;
 		void refreshObjectList();
 		void updateActionShortcuts();
 		KeySequenceConfig* shortcutForAction (QAction* act);

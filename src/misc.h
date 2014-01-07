@@ -46,8 +46,8 @@ str join (initlist<StringFormatArg> vals, str delim = " ");
 // Grid stuff
 struct gridinfo
 {
-	const char* const name;
-	float* const confs[4];
+	const char* const	name;
+	float* const			confs[4];
 };
 
 extern_cfg (Int, grid);
@@ -67,7 +67,7 @@ enum RotationPoint
 	CustomPoint
 };
 
-vertex rotPoint (const QList<LDObject*>& objs);
+Vertex rotPoint (const QList<LDObject*>& objs);
 void configRotationPoint();
 
 // =============================================================================

@@ -129,7 +129,7 @@ static void doInline (bool deep)
 
 		QList<LDObject*> objs;
 
-		if (obj->getType() == LDObject::Subfile)
+		if (obj->getType() == LDObject::ESubfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (
 					   (LDSubfile::InlineFlags)
 					   ( (deep) ? LDSubfile::DeepInline : 0) |
@@ -175,7 +175,7 @@ DEFINE_ACTION (SplitQuads, 0)
 
 	for (LDObject* obj : objs)
 	{
-		if (obj->getType() != LDObject::Quad)
+		if (obj->getType() != LDObject::EQuad)
 			continue;
 
 		// Find the index of this quad
@@ -218,7 +218,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	ui.setupUi (dlg);
 	ui.code->setText (obj->raw());
 
-	if (obj->getType() == LDObject::Error)
+	if (obj->getType() == LDObject::EError)
 		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
 	else
 	{
@@ -282,13 +282,13 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 	for (LDObject* obj : objs)
 	{
 		const LDObject::Type type = obj->getType();
-		if (type != LDObject::Quad && type != LDObject::Triangle)
+		if (type != LDObject::EQuad && type != LDObject::ETriangle)
 			continue;
 
 		int numLines;
 		LDLine* lines[4];
 
-		if (type == LDObject::Quad)
+		if (type == LDObject::EQuad)
 		{
 			numLines = 4;
 
@@ -388,7 +388,7 @@ DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void doMoveObjects (vertex vect)
+void doMoveObjects (Vertex vect)
 {
 	// Apply the grid values
 	vect[X] *= *currentGrid().confs[Grid::X];
@@ -453,7 +453,7 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& transform)
+static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& transform)
 {
 	v.move (-rotpoint);
 	v.transform (transform, g_origin);
@@ -465,14 +465,14 @@ static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& trans
 static void doRotate (const int l, const int m, const int n)
 {
 	QList<LDObject*> sel = selection();
-	QList<vertex*> queue;
-	const vertex rotpoint = rotPoint (sel);
+	QList<Vertex*> queue;
+	const Vertex rotpoint = rotPoint (sel);
 	const double angle = (pi * *currentGrid().confs[Grid::Angle]) / 180,
 				 cosangle = cos (angle),
 				 sinangle = sin (angle);
 
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
-	matrix transform (
+	Matrix transform (
 	{
 		(l* l * (1 - cosangle)) + cosangle,
 		(m* l * (1 - cosangle)) - (n* sinangle),
@@ -494,7 +494,7 @@ static void doRotate (const int l, const int m, const int n)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				vertex v = obj->getVertex (i);
+				Vertex v = obj->getVertex (i);
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
@@ -511,10 +511,10 @@ static void doRotate (const int l, const int m, const int n)
 
 			// Transform the matrix
 			mo->setTransform (transform * mo->getTransform());
-		} elif (obj->getType() == LDObject::Vertex)
+		} elif (obj->getType() == LDObject::EVertex)
 		{
 			LDVertex* vert = static_cast<LDVertex*> (obj);
-			vertex v = vert->pos;
+			Vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
 		}
@@ -570,8 +570,8 @@ DEFINE_ACTION (RoundCoordinates, 0)
 
 		if (mo != null)
 		{
-			vertex v = mo->getPosition();
-			matrix t = mo->getTransform();
+			Vertex v = mo->getPosition();
+			Matrix t = mo->getTransform();
 
 			for_axes (ax)
 				roundToDecimals (v[ax], 3);
@@ -589,7 +589,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				vertex v = obj->getVertex (i);
+				Vertex v = obj->getVertex (i);
 
 				for_axes (ax)
 					roundToDecimals (v[ax], 3);
@@ -619,7 +619,7 @@ DEFINE_ACTION (Uncolorize, 0)
 
 		int col = maincolor;
 
-		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CondLine)
+		if (obj->getType() == LDObject::ELine || obj->getType() == LDObject::ECondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
@@ -658,7 +658,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			vertex v = obj->getVertex (i);
+			Vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
 			{
@@ -704,7 +704,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			vertex v = obj->getVertex (i);
+			Vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
 				v[ax] *= -1;
@@ -726,7 +726,7 @@ DEFINE_ACTION (Demote, 0)
 
 	for (LDObject* obj : sel)
 	{
-		if (obj->getType() != LDObject::CondLine)
+		if (obj->getType() != LDObject::ECondLine)
 			continue;
 
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();

@@ -133,7 +133,7 @@ bool RingFinder::findRings (double r0, double r1)
 	{
 		const Solution& sol = *solp;
 
-		if (m_bestSolution == null || sol > *m_bestSolution)
+		if (m_bestSolution == null || sol.isBetterThan (m_bestSolution))
 			m_bestSolution = &sol;
 	}
 
@@ -142,15 +142,15 @@ bool RingFinder::findRings (double r0, double r1)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
+bool RingFinder::Solution::isBetterThan (const Solution* other) const
 {
 	// If this solution has less components than the other one, this one
 	// is definitely better.
-	if (getComponents().size() < other.getComponents().size())
+	if (getComponents().size() < other->getComponents().size())
 		return true;
 
 	// vice versa
-	if (other.getComponents().size() < getComponents().size())
+	if (other->getComponents().size() < getComponents().size())
 		return false;
 
 	// Calculate the maximum ring number. Since the solutions have equal
@@ -162,7 +162,7 @@ bool RingFinder::Solution::operator> (const RingFinder::Solution& other) const
 	for (int i = 0; i < getComponents().size(); ++i)
 	{
 		maxA = max (getComponents()[i].num, maxA);
-		maxB = max (other.getComponents()[i].num, maxB);
+		maxB = max (other->getComponents()[i].num, maxB);
 	}
 
 	if (maxA < maxB)
