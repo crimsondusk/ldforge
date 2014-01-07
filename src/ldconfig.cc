@@ -25,7 +25,7 @@
 // =============================================================================
 // Helper function for parseLDConfig
 // -----------------------------------------------------------------------------
-static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, str& val)
+static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, QString& val)
 {
 	int pos;
 
@@ -51,7 +51,7 @@ void parseLDConfig()
 	}
 
 	// Read in the lines
-	for (str line : *f)
+	for (QString line : *f)
 	{
 		if (line.length() == 0 || line[0] != '0')
 			continue; // empty or illogical
@@ -63,7 +63,7 @@ void parseLDConfig()
 		LDConfigParser pars (line, ' ');
 
 		int code = 0, alpha = 255;
-		str name, facename, edgename, valuestr;
+		QString name, facename, edgename, valuestr;
 
 		// Check 0 !COLOUR, parse the name
 		if (!pars.tokenCompare (0, "0") || !pars.tokenCompare (1, "!COLOUR") || !pars.getToken (name, 2))
@@ -116,7 +116,7 @@ void parseLDConfig()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDConfigParser::LDConfigParser (str inText, char sep)
+LDConfigParser::LDConfigParser (QString inText, char sep)
 {
 	m_tokens = inText.split (sep, QString::SkipEmptyParts);
 	m_pos = -1;
@@ -138,7 +138,7 @@ bool LDConfigParser::isAtEnd()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::getToken (str& val, const int pos)
+bool LDConfigParser::getToken (QString& val, const int pos)
 {
 	if (pos >= m_tokens.size())
 		return false;
@@ -149,14 +149,14 @@ bool LDConfigParser::getToken (str& val, const int pos)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::getNextToken (str& val)
+bool LDConfigParser::getNextToken (QString& val)
 {
 	return getToken (val, ++m_pos);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDConfigParser::peekNextToken (str& val)
+bool LDConfigParser::peekNextToken (QString& val)
 {
 	return getToken (val, m_pos + 1);
 }
@@ -202,7 +202,7 @@ int LDConfigParser::getSize()
 // -----------------------------------------------------------------------------
 bool LDConfigParser::tokenCompare (int inPos, const char* sOther)
 {
-	str tok;
+	QString tok;
 
 	if (!getToken (tok, inPos))
 		return false;

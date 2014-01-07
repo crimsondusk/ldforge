@@ -124,7 +124,7 @@ ForgeWindow::ForgeWindow()
 // -----------------------------------------------------------------------------
 KeySequenceConfig* ForgeWindow::shortcutForAction (QAction* act)
 {
-	str keycfgname = fmt ("key_%1", act->objectName());
+	QString keycfgname = fmt ("key_%1", act->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
 
@@ -146,7 +146,7 @@ void ForgeWindow::updateActionShortcuts()
 void ForgeWindow::slot_action()
 {
 	// Get the name of the sender object and use it to compose the slot name.
-	str methodName = fmt ("slot_%1", sender()->objectName());
+	QString methodName = fmt ("slot_%1", sender()->objectName());
 
 #ifdef DEBUG
 	log ("Action %1 triggered", sender()->objectName());
@@ -191,7 +191,7 @@ for (QAction * recent : m_recentFiles)
 
 	for (const QVariant& it : io_recentfiles)
 	{
-		str file = it.toString();
+		QString file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 
 		connect (recent, SIGNAL (triggered()), this, SLOT (slot_recentFile()));
@@ -207,7 +207,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 {
 	QList<LDQuickColor> colors;
 
-	for (str colorname : gui_colortoolbar.split (":"))
+	for (QString colorname : gui_colortoolbar.split (":"))
 	{
 		if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
@@ -266,7 +266,7 @@ void ForgeWindow::updateGridToolBar()
 // -----------------------------------------------------------------------------
 void ForgeWindow::updateTitle()
 {
-	str title = fmt (APPNAME " %1", fullVersionString());
+	QString title = fmt (APPNAME " %1", fullVersionString());
 
 	// Append our current file if we have one
 	if (getCurrentDocument())
@@ -333,7 +333,7 @@ void ForgeWindow::buildObjList()
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{
-		str descr;
+		QString descr;
 
 		switch (obj->getType())
 		{
@@ -780,11 +780,11 @@ void ForgeWindow::primitiveLoaderEnd()
 // -----------------------------------------------------------------------------
 bool ForgeWindow::save (LDDocument* f, bool saveAs)
 {
-	str path = f->getFullPath();
+	QString path = f->getFullPath();
 
 	if (saveAs || path.isEmpty())
 	{
-		str name = f->getDefaultName();
+		QString name = f->getDefaultName();
 
 		if (!f->getFullPath().isEmpty()) 
 			name = f->getFullPath();
@@ -814,7 +814,7 @@ bool ForgeWindow::save (LDDocument* f, bool saveAs)
 		return true;
 	}
 
-	str message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
+	QString message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
 	// Tell the user the save failed, and give the option for saving as with it.
 	QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
@@ -832,7 +832,7 @@ bool ForgeWindow::save (LDDocument* f, bool saveAs)
 	return false;
 }
 
-void ForgeWindow::addMessage (str msg)
+void ForgeWindow::addMessage (QString msg)
 {
 	m_msglog->addLine (msg);
 }
@@ -845,25 +845,25 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QPixmap getIcon (str iconName)
+QPixmap getIcon (QString iconName)
 {
 	return (QPixmap (fmt (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
-bool confirm (str msg)
+bool confirm (QString msg)
 {
 	return confirm (ForgeWindow::tr ("Confirm"), msg);
 }
 
-bool confirm (str title, str msg)
+bool confirm (QString title, QString msg)
 {
 	return QMessageBox::question (g_win, title, msg,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
-void critical (str msg)
+void critical (QString msg)
 {
 	QMessageBox::critical (g_win, ForgeWindow::tr ("Error"), msg,
 		(QMessageBox::Close), QMessageBox::Close);

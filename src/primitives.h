@@ -29,14 +29,14 @@ class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive
 {
-	str name, title;
+	QString name, title;
 	PrimitiveCategory* cat;
 };
 
 class PrimitiveCategory : public QObject
 {
 	Q_OBJECT
-	PROPERTY (public,	str,	Name,	STR_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QString,	Name,	STR_OPS,	STOCK_WRITE)
 
 	public:
 		enum ERegexType
@@ -54,7 +54,7 @@ class PrimitiveCategory : public QObject
 		QList<RegexEntry> regexes;
 		QList<Primitive> prims;
 
-		explicit PrimitiveCategory (str name, QObject* parent = 0);
+		explicit PrimitiveCategory (QString name, QObject* parent = 0);
 		bool isValidToInclude();
 
 		static void loadCategories();
@@ -129,6 +129,6 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 // be automatically generated.
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
-str radialFileName (PrimitiveType type, int segs, int divs, int num);
+QString radialFileName (PrimitiveType type, int segs, int divs, int num);
 
 #endif // LDFORGE_PRIMITIVES_H

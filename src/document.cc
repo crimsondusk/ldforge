@@ -49,12 +49,12 @@ const QStringList g_specialSubdirectories ({ "s", "48", "8" });
 // -----------------------------------------------------------------------------
 namespace LDPaths
 {
-	static str pathError;
+	static QString pathError;
 
 	struct
 	{
-		str LDConfigPath;
-		str partsPath, primsPath;
+		QString LDConfigPath;
+		QString partsPath, primsPath;
 	} pathInfo;
 
 	void initPaths()
@@ -70,7 +70,7 @@ namespace LDPaths
 		}
 	}
 
-	bool tryConfigure (str path)
+	bool tryConfigure (QString path)
 	{
 		QDir dir;
 
@@ -97,22 +97,22 @@ namespace LDPaths
 	}
 
 	// Accessors
-	str getError()
+	QString getError()
 	{
 		return pathError;
 	}
 
-	str ldconfig()
+	QString ldconfig()
 	{
 		return pathInfo.LDConfigPath;
 	}
 
-	str prims()
+	QString prims()
 	{
 		return pathInfo.primsPath;
 	}
 
-	str parts()
+	QString parts()
 	{
 		return pathInfo.partsPath;
 	}
@@ -182,7 +182,7 @@ LDDocument::~LDDocument()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDDocument* findDocument (str name)
+LDDocument* findDocument (QString name)
 {
 	for (LDDocument * file : g_loadedFiles)
 		if (!file->getName().isEmpty() && file->getName() == name)
@@ -193,7 +193,7 @@ LDDocument* findDocument (str name)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str dirname (str path)
+QString dirname (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 
@@ -210,7 +210,7 @@ str dirname (str path)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str basename (str path)
+QString basename (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 
@@ -222,11 +222,11 @@ str basename (str path)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-File* openLDrawFile (str relpath, bool subdirs)
+File* openLDrawFile (QString relpath, bool subdirs)
 {
 	log ("Opening %1...\n", relpath);
 	File* f = new File;
-	str fullPath;
+	QString fullPath;
 
 	// LDraw models use Windows-style path separators. If we're not on Windows,
 	// replace the path separator now before opening any files. Qt expects
@@ -237,22 +237,22 @@ File* openLDrawFile (str relpath, bool subdirs)
 
 	// Try find it relative to other currently open documents. We want a file
 	// in the immediate vicinity of a current model to override stock LDraw stuff.
-	str reltop = basename (dirname (relpath));
+	QString reltop = basename (dirname (relpath));
 	for (LDDocument* doc : g_loadedFiles)
 	{
 		if (doc->getFullPath().isEmpty())
 			continue;
 
-		str partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
+		QString partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
 
 		if (f->open (partpath, File::Read))
 		{
 			// ensure we don't mix subfiles and 48-primitives with non-subfiles and non-48
-			str proptop = basename (dirname (partpath));
+			QString proptop = basename (dirname (partpath));
 
 			bool bogus = false;
 
-			for (str s : g_specialSubdirectories)
+			for (QString s : g_specialSubdirectories)
 			{
 				if ((proptop == s && reltop != s) || (reltop == s && proptop != s))
 				{
@@ -279,9 +279,9 @@ File* openLDrawFile (str relpath, bool subdirs)
 	{
 		// Look in sub-directories: parts and p. Also look in net_downloadpath, since that's
 		// where we download parts from the PT to.
-		for (const str& topdir : initlist<str> ({ io_ldpath, net_downloadpath }))
+		for (const QString& topdir : initlist<QString> ({ io_ldpath, net_downloadpath }))
 		{
-			for (const str& subdir : initlist<str> ({ "parts", "p" }))
+			for (const QString& subdir : initlist<QString> ({ "parts", "p" }))
 			{
 				fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 
@@ -349,7 +349,7 @@ void LDFileLoader::work (int i)
 
 	for (; i < max && i < (int) getLines().size(); ++i)
 	{
-		str line = getLines()[i];
+		QString line = getLines()[i];
 
 		// Trim the trailing newline
 		QChar c;
@@ -418,14 +418,14 @@ void LDFileLoader::abort()
 // -----------------------------------------------------------------------------
 QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 {
-	QList<str> lines;
+	QList<QString> lines;
 	QList<LDObject*> objs;
 
 	if (numWarnings)
 		*numWarnings = 0;
 
 	// Read in the lines
-	for (str line : *f)
+	for (QString line : *f)
 		lines << line;
 
 	LDFileLoader* loader = new LDFileLoader;
@@ -451,7 +451,7 @@ QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDDocument* openDocument (str path, bool search)
+LDDocument* openDocument (QString path, bool search)
 {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
@@ -518,7 +518,7 @@ bool LDDocument::isSafeToClose()
 	// If we have unsaved changes, warn and give the option of saving.
 	if (hasUnsavedChanges())
 	{
-		str message = fmt (tr ("There are unsaved changes to %1. Should it be saved?"),
+		QString message = fmt (tr ("There are unsaved changes to %1. Should it be saved?"),
 			(getName().length() > 0) ? getName() : tr ("<anonymous>"));
 
 		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
@@ -531,7 +531,7 @@ bool LDDocument::isSafeToClose()
 				// If we don't have a file path yet, we have to ask the user for one.
 				if (getName().length() == 0)
 				{
-					str newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
+					QString newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
 						getCurrentDocument()->getName(), tr ("LDraw files (*.dat *.ldr)"));
 
 					if (newpath.length() == 0)
@@ -594,7 +594,7 @@ void newFile()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void addRecentFile (str path)
+void addRecentFile (QString path)
 {
 	auto& rfiles = io_recentfiles;
 	int idx = rfiles.indexOf (path);
@@ -623,7 +623,7 @@ void addRecentFile (str path)
 // =============================================================================
 // Open an LDraw file and set it as the main model
 // -----------------------------------------------------------------------------
-void openMainFile (str path)
+void openMainFile (QString path)
 {
 	g_loadingMainFile = true;
 	LDDocument* file = openDocument (path, false);
@@ -662,7 +662,7 @@ void openMainFile (str path)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool LDDocument::save (str savepath)
+bool LDDocument::save (QString savepath)
 {
 	if (!savepath.length())
 		savepath = getName();
@@ -683,7 +683,7 @@ bool LDDocument::save (str savepath)
 
 		if (fpathComment->text.left (6) == "Name: ")
 		{
-			str newname = shortenName (savepath);
+			QString newname = shortenName (savepath);
 			fpathComment->text = fmt ("Name: %1", newname);
 			g_win->buildObjList();
 		}
@@ -711,11 +711,11 @@ bool LDDocument::save (str savepath)
 // -----------------------------------------------------------------------------
 class LDParseError : public std::exception
 {
-	PROPERTY (private, str,	Error,	STR_OPS, STOCK_WRITE)
-	PROPERTY (private, str,	Line,		STR_OPS,	STOCK_WRITE)
+	PROPERTY (private, QString,	Error,	STR_OPS, STOCK_WRITE)
+	PROPERTY (private, QString,	Line,		STR_OPS,	STOCK_WRITE)
 
 	public:
-		LDParseError (str line, str a) : m_Error (a), m_Line (line) {}
+		LDParseError (QString line, QString a) : m_Error (a), m_Line (line) {}
 
 		const char* what() const throw()
 		{
@@ -725,7 +725,7 @@ class LDParseError : public std::exception
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void checkTokenCount (str line, const QStringList& tokens, int num)
+void checkTokenCount (QString line, const QStringList& tokens, int num)
 {
 	if (tokens.size() != num)
 		throw LDParseError (line, fmt ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
@@ -733,7 +733,7 @@ void checkTokenCount (str line, const QStringList& tokens, int num)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void checkTokenNumbers (str line, const QStringList& tokens, int min, int max)
+void checkTokenNumbers (QString line, const QStringList& tokens, int min, int max)
 {
 	bool ok;
 
@@ -766,11 +766,11 @@ static Vertex parseVertex (QStringList& s, const int n)
 // code and returns the object parsed from it. parseLine never returns null,
 // the object will be LDError if it could not be parsed properly.
 // -----------------------------------------------------------------------------
-LDObject* parseLine (str line)
+LDObject* parseLine (QString line)
 {
 	try
 	{
-		QStringList tokens = line.split (" ", str::SkipEmptyParts);
+		QStringList tokens = line.split (" ", QString::SkipEmptyParts);
 
 		if (tokens.size() <= 0)
 		{
@@ -788,7 +788,7 @@ LDObject* parseLine (str line)
 			case 0:
 			{
 				// Comment
-				str comm = line.mid (line.indexOf ("0") + 1).simplified();
+				QString comm = line.mid (line.indexOf ("0") + 1).simplified();
 
 				// Handle BFC statements
 				if (tokens.size() > 2 && tokens[1] == "BFC")
@@ -802,7 +802,7 @@ LDObject* parseLine (str line)
 					// need to handle MLCAD-style invertnext, clip and noclip separately.
 					struct
 					{
-						str			a;
+						QString			a;
 						LDBFC::Type	b;
 					} BFCData[] =
 					{
@@ -954,7 +954,7 @@ LDObject* parseLine (str line)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDDocument* getDocument (str filename)
+LDDocument* getDocument (QString filename)
 {
 	// Try find the file in the list of loaded files
 	LDDocument* doc = findDocument (filename);
@@ -1074,8 +1074,8 @@ void LDDocument::setObject (int idx, LDObject* obj)
 	// Mark this change to history
 	if (!m_History->isIgnoring())
 	{
-		str oldcode = getObject (idx)->raw();
-		str newcode = obj->raw();
+		QString oldcode = getObject (idx)->raw();
+		QString newcode = obj->raw();
 		*m_History << new EditHistory (idx, oldcode, newcode);
 	}
 
@@ -1121,7 +1121,7 @@ bool LDDocument::hasUnsavedChanges() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDDocument::getDisplayName()
+QString LDDocument::getDisplayName()
 {
 	if (!getName().isEmpty())
 		return getName();
@@ -1342,10 +1342,10 @@ void LDDocument::swapObjects (LDObject* one, LDObject* other)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str LDDocument::shortenName (str a) // [static]
+QString LDDocument::shortenName (QString a) // [static]
 {
-	str shortname = basename (a);
-	str topdirname = basename (dirname (a));
+	QString shortname = basename (a);
+	QString topdirname = basename (dirname (a));
 
 	if (g_specialSubdirectories.contains (topdirname))
 		shortname.prepend (topdirname + "\\");

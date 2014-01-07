@@ -71,13 +71,13 @@ class PartDownloader : public QDialog
 		explicit		PartDownloader (QWidget* parent = null);
 		virtual			~PartDownloader();
 
-		void			downloadFile (str dest, str url, bool primary);
+		void			downloadFile (QString dest, QString url, bool primary);
 		QPushButton*		getButton (Button i);
-		str				getURL() const;
+		QString				getURL() const;
 		Source			getSource() const;
-		void			modifyDestination (str& dest) const;
+		void			modifyDestination (QString& dest) const;
 
-		static str		getDownloadPath();
+		static QString		getDownloadPath();
 		static void		staticBegin();
 
 	public slots:
@@ -104,9 +104,9 @@ class PartDownloadRequest : public QObject
 		PROPERTY (public,	int,						TableRow,		NUM_OPS,	STOCK_WRITE)
 		PROPERTY (private,	EState,					State,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	PartDownloader*,			Prompt,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	str,					URL,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (private,	str,					Destinaton,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (private,	str,					FilePath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QString,					URL,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QString,					Destinaton,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QString,					FilePath,		STR_OPS,	STOCK_WRITE)
 		PROPERTY (private,	QNetworkAccessManager*,	NAM,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QNetworkReply*,			Reply,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	bool,					FirstUpdate,	BOOL_OPS,	STOCK_WRITE)
@@ -116,7 +116,7 @@ class PartDownloadRequest : public QObject
 		PROPERTY (private,	QFile*,					FilePointer,	NO_OPS,		STOCK_WRITE)
 
 	public:
-		explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent);
+		explicit PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent);
 		PartDownloadRequest (const PartDownloadRequest&) = delete;
 		virtual ~PartDownloadRequest();
 		void updateToTable();

@@ -34,14 +34,14 @@ class QAction;
 extern const int g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
-bool numeric (const str& tok);
+bool numeric (const QString& tok);
 
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);
 
 void roundToDecimals (double& a, int decimals);
 
-str join (initlist<StringFormatArg> vals, str delim = " ");
+QString join (initlist<StringFormatArg> vals, QString delim = " ");
 
 // Grid stuff
 struct gridinfo

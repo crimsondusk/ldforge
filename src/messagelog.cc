@@ -39,7 +39,7 @@ MessageManager::MessageManager (QObject* parent) :
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-MessageManager::Line::Line (str text) :
+MessageManager::Line::Line (QString text) :
 			text (text),
 			alpha (1.0f),
 			expiry (QDateTime::currentDateTime().addSecs (g_expiry)) {}
@@ -75,7 +75,7 @@ bool MessageManager::Line::update (bool& changed)
 // =============================================================================
 // Add a line to the message manager.
 // -----------------------------------------------------------------------------
-void MessageManager::addLine (str line)
+void MessageManager::addLine (QString line)
 {
 	// If there's too many entries, pop the excess out
 	while (m_lines.size() >= g_maxMessages)
@@ -126,9 +126,9 @@ const QList<MessageManager::Line>& MessageManager::getLines() const
 // -----------------------------------------------------------------------------
 void DoLog (std::initializer_list<StringFormatArg> args)
 {
-	const str msg = DoFormat (args);
+	const QString msg = DoFormat (args);
 
-	for (str& a : msg.split ("\n", QString::SkipEmptyParts))
+	for (QString& a : msg.split ("\n", QString::SkipEmptyParts))
 	{
 		if (g_win)
 			g_win->addMessage (a);

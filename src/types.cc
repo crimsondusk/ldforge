@@ -29,10 +29,10 @@
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str DoFormat (QList<StringFormatArg> args)
+QString DoFormat (QList<StringFormatArg> args)
 {
 	assert (args.size() >= 1);
-	str text = args[0].value();
+	QString text = args[0].value();
 
 	for (uchar i = 1; i < args.size(); ++i)
 		text = text.arg (args[i].value());
@@ -81,9 +81,9 @@ Vertex Vertex::midpoint (const Vertex& other)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str Vertex::stringRep (bool mangled) const
+QString Vertex::stringRep (bool mangled) const
 {
-	str fmtstr = "%1 %2 %3";
+	QString fmtstr = "%1 %2 %3";
 
 	if (mangled)
 		fmtstr = "(%1, %2, %3)";
@@ -245,16 +245,16 @@ void Matrix::puts() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str Matrix::stringRep() const
+QString Matrix::stringRep() const
 {
-	str val;
+	QString val;
 
 	for (int i = 0; i < 9; ++i)
 	{
 		if (i > 0)
 			val += ' ';
 
-		val += str::number (m_vals[i]);
+		val += QString::number (m_vals[i]);
 	}
 
 	return val;
@@ -315,7 +315,7 @@ bool Matrix::operator== (const Matrix& other) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-StringFormatArg::StringFormatArg (const str& v)
+StringFormatArg::StringFormatArg (const QString& v)
 {
 	m_val = v;
 }
@@ -337,12 +337,12 @@ StringFormatArg::StringFormatArg (const QChar& v)
 
 StringFormatArg::StringFormatArg (const float& v)
 {
-	m_val = str::number (v);
+	m_val = QString::number (v);
 }
 
 StringFormatArg::StringFormatArg (const double& v)
 {
-	m_val = str::number (v);
+	m_val = QString::number (v);
 }
 
 StringFormatArg::StringFormatArg (const Vertex& v)
@@ -374,7 +374,7 @@ File::File()
 	m_textstream = null;
 }
 
-File::File (str path, OpenType rtype)
+File::File (QString path, OpenType rtype)
 {
 	m_file = null;
 	m_path = path;
@@ -408,7 +408,7 @@ bool File::open (FILE* fp, OpenType rtype)
 	return open ("", rtype, fp);
 }
 
-bool File::open (str path, OpenType rtype, FILE* fp)
+bool File::open (QString path, OpenType rtype, FILE* fp)
 {
 	close();
 
@@ -454,14 +454,14 @@ File::iterator& File::end()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void File::write (str msg)
+void File::write (QString msg)
 {
 	m_file->write (msg.toUtf8(), msg.length());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool File::readLine (str& line)
+bool File::readLine (QString& line)
 {
 	if (!m_textstream || m_textstream->atEnd())
 		return false;
@@ -544,7 +544,7 @@ void File::iterator::operator++()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str File::iterator::operator*()
+QString File::iterator::operator*()
 {
 	return m_text;
 }

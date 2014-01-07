@@ -127,7 +127,7 @@ class ForgeWindow : public QMainWindow
 			m_quickColors = colors;
 		}
 
-		void addMessage (str msg);
+		void addMessage (QString msg);
 		void refreshObjectList();
 		void updateActionShortcuts();
 		KeySequenceConfig* shortcutForAction (QAction* act);
@@ -264,11 +264,11 @@ extern ForgeWindow* g_win;
 
 // -----------------------------------------------------------------------------
 // Other GUI-related stuff not directly part of ForgeWindow:
-QPixmap getIcon (str iconName); // Get an icon from the resource dir
+QPixmap getIcon (QString iconName); // Get an icon from the resource dir
 QList<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
-bool confirm (str title, str msg); // Generic confirm prompt
-bool confirm (str msg); // Generic confirm prompt
-void critical (str msg); // Generic error prompt
+bool confirm (QString title, QString msg); // Generic confirm prompt
+bool confirm (QString msg); // Generic confirm prompt
+void critical (QString msg); // Generic error prompt
 QIcon makeColorIcon (LDColor* colinfo, const int size); // Makes an icon for the given color
 void makeColorComboBox (QComboBox* box); // Fills the given combo-box with color information
 QImage imageFromScreencap (uchar* data, int w, int h);

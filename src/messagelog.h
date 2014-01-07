@@ -47,16 +47,16 @@ class MessageManager : public QObject
 		class Line
 		{
 			public:
-				Line (str text);
+				Line (QString text);
 				bool update (bool& changed);
 
-				str text;
+				QString text;
 				float alpha;
 				QDateTime expiry;
 		};
 
 		explicit MessageManager (QObject* parent = 0);
-		void addLine (str line);
+		void addLine (QString line);
 		const QList<Line>& getLines() const;
 
 	private:

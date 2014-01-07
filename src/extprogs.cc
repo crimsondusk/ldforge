@@ -58,7 +58,7 @@ cfg (String, prog_ytruder, "");
 cfg (String, prog_rectifier, "");
 cfg (String, prog_edger2, "");
 
-str* const g_extProgPaths[] =
+QString* const g_extProgPaths[] =
 {
 	&prog_isecalc,
 	&prog_intersector,
@@ -101,7 +101,7 @@ const char* g_extProgNames[] =
 // -----------------------------------------------------------------------------
 static bool checkProgPath (const extprog prog)
 {
-	str& path = *g_extProgPaths[prog];
+	QString& path = *g_extProgPaths[prog];
 
 	if (path.length() > 0)
 		return true;
@@ -119,13 +119,13 @@ static bool checkProgPath (const extprog prog)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static str processErrorString (extprog prog, QProcess& proc)
+static QString processErrorString (extprog prog, QProcess& proc)
 {
 	switch (proc.error())
 	{
 		case QProcess::FailedToStart:
 		{
-			str wineblurb;
+			QString wineblurb;
 
 #ifndef _WIN32
 			if (*g_extProgWine[prog])
@@ -154,7 +154,7 @@ static str processErrorString (extprog prog, QProcess& proc)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static bool mkTempFile (QTemporaryFile& tmp, str& fname)
+static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
 {
 	if (!tmp.open())
 		return false;
@@ -187,7 +187,7 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, str fname)
+static void writeObjects (const QList<LDObject*>& objects, QString fname)
 {
 	// Write the input file
 	File f (fname, File::Write);
@@ -208,14 +208,14 @@ static void writeObjects (const QList<LDObject*>& objects, str fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeSelection (str fname)
+void writeSelection (QString fname)
 {
 	writeObjects (selection(), fname);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeColorGroup (const int colnum, str fname)
+void writeColorGroup (const int colnum, QString fname)
 {
 	QList<LDObject*> objects;
 
@@ -232,10 +232,10 @@ void writeColorGroup (const int colnum, str fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool runUtilityProcess (extprog prog, str path, str argvstr)
+bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 {
 	QTemporaryFile input, output;
-	str inputname, outputname;
+	QString inputname, outputname;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 
 #ifndef _WIN32
@@ -273,7 +273,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 	// Wait while it runs
 	proc.waitForFinished();
 
-	str err = "";
+	QString err = "";
 
 	if (proc.exitStatus() != QProcess::NormalExit)
 		err = processErrorString (prog, proc);
@@ -293,7 +293,7 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void insertOutput (str fname, bool replace, QList<int> colorsToReplace)
+static void insertOutput (QString fname, bool replace, QList<int> colorsToReplace)
 {
 #ifdef DEBUG
 	QFile::copy (fname, "./debug_lastOutput");
@@ -366,14 +366,14 @@ DEFINE_ACTION (Ytruder, 0)
 				 condAngle = ui.condAngle->value();
 
 	QTemporaryFile indat, outdat;
-	str inDATName, outDATName;
+	QString inDATName, outDATName;
 
 	// Make temp files for the input and output files
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 
 	// Compose the command-line arguments
-	str argv = join (
+	QString argv = join (
 	{
 		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
@@ -410,14 +410,14 @@ DEFINE_ACTION (Rectifier, 0)
 		return;
 
 	QTemporaryFile indat, outdat;
-	str inDATName, outDATName;
+	QString inDATName, outDATName;
 
 	// Make temp files for the input and output files
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 
 	// Compose arguments
-	str argv = join (
+	QString argv = join (
 	{
 		(!ui.cb_condense->isChecked()) ? "-q" : "",
 		(!ui.cb_subst->isChecked()) ? "-r" : "",
@@ -484,7 +484,7 @@ DEFINE_ACTION (Intersector, 0)
 	// outdat2 = inverse output
 	// edgesdat = edges output (isecalc)
 	QTemporaryFile indat, cutdat, outdat, outdat2, edgesdat;
-	str inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
+	QString inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
 
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (cutdat, cutDATName) ||
 			!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
@@ -493,7 +493,7 @@ DEFINE_ACTION (Intersector, 0)
 		return;
 	}
 
-	str parms = join (
+	QString parms = join (
 	{
 		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		(ui.cb_nocondense->isChecked()) ? "-t" : "",
@@ -501,7 +501,7 @@ DEFINE_ACTION (Intersector, 0)
 		ui.dsb_prescale->value()
 	});
 
-	str argv_normal = join (
+	QString argv_normal = join (
 	{
 		parms,
 		inDATName,
@@ -509,7 +509,7 @@ DEFINE_ACTION (Intersector, 0)
 		outDATName
 	});
 
-	str argv_inverse = join (
+	QString argv_inverse = join (
 	{
 		parms,
 		cutDATName,
@@ -571,12 +571,12 @@ DEFINE_ACTION (Coverer, 0)
 	}
 
 	QTemporaryFile in1dat, in2dat, outdat;
-	str in1DATName, in2DATName, outDATName;
+	QString in1DATName, in2DATName, outDATName;
 
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 
-	str argv = join (
+	QString argv = join (
 	{
 		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
@@ -633,12 +633,12 @@ DEFINE_ACTION (Isecalc, 0)
 	}
 
 	QTemporaryFile in1dat, in2dat, outdat;
-	str in1DATName, in2DATName, outDATName;
+	QString in1DATName, in2DATName, outDATName;
 
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 
-	str argv = join (
+	QString argv = join (
 	{
 		in1DATName,
 		in2DATName,
@@ -668,14 +668,14 @@ DEFINE_ACTION (Edger2, 0)
 		return;
 
 	QTemporaryFile in, out;
-	str inName, outName;
+	QString inName, outName;
 
 	if (!mkTempFile (in, inName) || !mkTempFile (out, outName))
 		return;
 
 	int unmatched = ui.unmatched->currentIndex();
 
-	str argv = join (
+	QString argv = join (
 	{
 		fmt ("-p %1", ui.precision->value()),
 		fmt ("-af %1", ui.flatAngle->value()),

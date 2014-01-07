@@ -28,7 +28,7 @@
 class QSettings;
 
 typedef QChar QChar;
-typedef QString str;
+typedef QString QString;
 
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
@@ -42,7 +42,7 @@ typedef QString str;
 // =========================================================
 class Config
 {
-	PROPERTY (private, str, Name, STR_OPS, STOCK_WRITE)
+	PROPERTY (private, QString, Name, STR_OPS, STOCK_WRITE)
 
 	public:
 		enum Type
@@ -55,14 +55,14 @@ class Config
 			List,
 		};
 
-		using IntType = int;
-		using StringType = QString;
-		using FloatType = float;
-		using BoolType = bool;
-		using KeySequenceType = QKeySequence;
-		using ListType = QList<QVariant>;
+		using IntType			= int;
+		using StringType		= QString;
+		using FloatType			= float;
+		using BoolType			= bool;
+		using KeySequenceType	= QKeySequence;
+		using ListType			= QList<QVariant>;
 
-		Config (str name);
+		Config (QString name);
 
 		virtual QVariant	getDefaultAsVariant() const = 0;
 		virtual Type		getType() const = 0;
@@ -75,8 +75,8 @@ class Config
 		static bool load();
 		static bool save();
 		static void reset();
-		static str dirpath();
-		static str filepath (str file);
+		static QString dirpath();
+		static QString filepath (QString file);
 
 	protected:
 		static void addToArray (Config* ptr);
@@ -87,7 +87,7 @@ class Config
 public:																			\
 	using ValueType = Config::NAME##Type;										\
 																				\
-	NAME##Config (ValueType* valueptr, str name, ValueType def) :				\
+	NAME##Config (ValueType* valueptr, QString name, ValueType def) :			\
 		Config (name),															\
 		m_valueptr (valueptr),													\
 		m_default (def)															\
@@ -141,7 +141,7 @@ public:																			\
 		return QVariant::fromValue<ValueType> (m_default);						\
 	}																			\
 																				\
-	static NAME##Config* getByName (str name);									\
+	static NAME##Config* getByName (QString name);								\
 																				\
 private:																			\
 	ValueType*	m_valueptr;														\

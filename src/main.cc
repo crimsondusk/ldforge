@@ -38,7 +38,7 @@ ForgeWindow* g_win = null;
 const QApplication* g_app = null;
 File g_file_stdout (stdout, File::Write);
 File g_file_stderr (stderr, File::Write);
-static str g_versionString, g_fullVersionString;
+static QString g_versionString, g_fullVersionString;
 
 const Vertex g_origin (0.0f, 0.0f, 0.0f);
 const Matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f});
@@ -91,7 +91,7 @@ int main (int argc, char* argv[])
 // -----------------------------------------------------------------------------
 void doPrint (File& f, initlist<StringFormatArg> args)
 {
-	str msg = DoFormat (args);
+	QString msg = DoFormat (args);
 	f.write (msg.toUtf8());
 	f.flush();
 }
@@ -100,7 +100,7 @@ void doPrint (File& f, initlist<StringFormatArg> args)
 // -----------------------------------------------------------------------------
 void doPrint (FILE* fp, initlist<StringFormatArg> args)
 {
-	str msg = DoFormat (args);
+	QString msg = DoFormat (args);
 	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
 	fflush (fp);
 }

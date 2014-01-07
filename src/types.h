@@ -29,7 +29,6 @@ class LDObject;
 class QFile;
 class QTextStream;
 
-using str = QString;
 using int8 = qint8;
 using int16 = qint16;
 using int32 = qint32;
@@ -70,7 +69,7 @@ class Matrix
 		double			getDeterminant() const;
 		Matrix			mult (Matrix other) const;
 		void				puts() const;
-		str				stringRep() const;
+		QString				stringRep() const;
 		void				zero();
 		Matrix&			operator= (Matrix other);
 
@@ -122,7 +121,7 @@ class Vertex
 		double			distanceTo (const Vertex& other) const;
 		Vertex			midpoint (const Vertex& other);
 		void			move (const Vertex& other);
-		str				stringRep (bool mangled) const;
+		QString				stringRep (bool mangled) const;
 		void			transform (Matrix matr, Vertex pos);
 
 		Vertex&			operator+= (const Vertex& other);
@@ -193,7 +192,7 @@ class Vertex
 class StringFormatArg
 {
 	public:
-		StringFormatArg (const str& v);
+		StringFormatArg (const QString& v);
 		StringFormatArg (const char& v);
 		StringFormatArg (const uchar& v);
 		StringFormatArg (const QChar& v);
@@ -240,12 +239,12 @@ class StringFormatArg
 			m_val += "}";
 		}
 
-		str value() const
+		QString value() const
 		{
 			return m_val;
 		}
 	private:
-		str m_val;
+		QString m_val;
 };
 
 // =============================================================================
@@ -265,13 +264,13 @@ class File
 				iterator() : m_file (null) {} // end iterator has m_file == null
 				iterator (File* f);
 				void operator++();
-				str  operator*();
+				QString  operator*();
 				bool operator== (iterator& other);
 				bool operator!= (iterator& other);
 
 			private:
 				File* m_file;
-				str m_text;
+				QString m_text;
 				bool m_gotdata = false;
 		};
 
@@ -284,7 +283,7 @@ class File
 		};
 
 		File();
-		File (str path, File::OpenType rtype);
+		File (QString path, File::OpenType rtype);
 		File (FILE* fp, File::OpenType rtype);
 		~File();
 
@@ -294,22 +293,22 @@ class File
 		iterator&    end();
 		bool         flush();
 		bool         isNull() const;
-		bool         readLine (str& line);
+		bool         readLine (QString& line);
 		void         rewind();
 		bool         open (FILE* fp, OpenType rtype);
-		bool         open (str path, OpenType rtype, FILE* fp = null);
-		void         write (str msg);
+		bool         open (QString path, OpenType rtype, FILE* fp = null);
+		void         write (QString msg);
 
 		bool         operator!() const;
 		operator bool() const;
 
-		inline str getPath() const { return m_path; }
+		inline QString getPath() const { return m_path; }
 
 	private:
 		QFile*			m_file;
 		QTextStream*	m_textstream;
 		iterator			m_endIterator;
-		str				m_path;
+		QString				m_path;
 };
 
 // =============================================================================
@@ -338,7 +337,7 @@ class LDBoundingBox
 };
 
 // Formatter function
-str DoFormat (QList<StringFormatArg> args);
+QString DoFormat (QList<StringFormatArg> args);
 
 // printf replacement
 void doPrint (File& f, initlist<StringFormatArg> args);
@@ -354,7 +353,7 @@ void DoLog (std::initializer_list<StringFormatArg> args);
 # define fprint(F, ...) doPrint (F, {__VA_ARGS__})
 # define log(...) DoLog({ __VA_ARGS__ })
 #else
-str fmt (const char* fmtstr, ...);
+QString fmt (const char* fmtstr, ...);
 void fprint (File& f, const char* fmtstr, ...);
 void log (const char* fmtstr, ...);
 #endif

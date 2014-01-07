@@ -31,12 +31,12 @@ class LDDocumentPointer;
 namespace LDPaths
 {
 	void initPaths();
-	bool tryConfigure (str path);
+	bool tryConfigure (QString path);
 
-	str ldconfig();
-	str prims();
-	str parts();
-	str getError();
+	QString ldconfig();
+	QString prims();
+	QString parts();
+	QString getError();
 }
 
 // =============================================================================
@@ -59,9 +59,9 @@ class LDDocument : public QObject
 		PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	History*,			History,		NO_OPS,		STOCK_WRITE)
 		PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,	str,				Name,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	str,				FullPath,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	str,				DefaultName,	STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,				Name,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,				FullPath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,				DefaultName,	STR_OPS,	STOCK_WRITE)
 		PROPERTY (public,	bool,				Implicit,		BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,	long,				SavePosition,	NUM_OPS,	STOCK_WRITE)
@@ -75,14 +75,14 @@ class LDDocument : public QObject
 		void addObjects (const QList<LDObject*> objs);
 		void clearSelection();
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
-		str getDisplayName();
+		QString getDisplayName();
 		const QList<LDObject*>& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document.have unsaved changes?
 		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
 		int getObjectCount() const;
 		LDObject* getObject (int pos) const;
-		bool save (str path = ""); // Saves this file to disk.
+		bool save (QString path = ""); // Saves this file to disk.
 		void swapObjects (LDObject* one, LDObject* other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObject* obj);
@@ -128,7 +128,7 @@ class LDDocument : public QObject
 		static int countExplicitFiles();
 
 		// Turns a full path into a relative path
-		static str shortenName (str a);
+		static QString shortenName (QString a);
 
 	protected:
 		void addToSelection (LDObject* obj);
@@ -151,27 +151,27 @@ inline LDDocument* getCurrentDocument()
 void newFile();
 
 // Opens the given file as the main file. Everything is closed first.
-void openMainFile (str path);
+void openMainFile (QString path);
 
 // Finds an OpenFile by name or null if not open
-LDDocument* findDocument (str name);
+LDDocument* findDocument (QString name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDDocument* openDocument (str path, bool search);
+LDDocument* openDocument (QString path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
-File* openLDrawFile (str relpath, bool subdirs);
+File* openLDrawFile (QString relpath, bool subdirs);
 
 // Close all open files, whether user-opened or subfile caches.
 void closeAll();
 
 // Parses a string line containing an LDraw object and returns the object parsed.
-LDObject* parseLine (str line);
+LDObject* parseLine (QString line);
 
 // Retrieves the pointer to the given document by file name. Document is loaded
 // from file if necessary. Can return null if neither succeeds.
-LDDocument* getDocument (str filename);
+LDDocument* getDocument (QString filename);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles();
@@ -188,10 +188,10 @@ inline const QList<LDObject*>& selection()
 	return getCurrentDocument()->getSelection();
 }
 
-void addRecentFile (str path);
+void addRecentFile (QString path);
 void loadLogoedStuds();
-str basename (str path);
-str dirname (str path);
+QString basename (QString path);
+QString dirname (QString path);
 
 extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files.
 

@@ -108,7 +108,7 @@ class AbstractHistoryEntry
 class DelHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
@@ -121,13 +121,13 @@ class DelHistory : public AbstractHistoryEntry
 class EditHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int, Index,		NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	str, OldCode,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	str, NewCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString, OldCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString, NewCode,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
 
-		EditHistory (int idx, str oldCode, str newCode) :
+		EditHistory (int idx, QString oldCode, QString newCode) :
 				m_Index (idx),
 				m_OldCode (oldCode),
 				m_NewCode (newCode) {}
@@ -139,7 +139,7 @@ class EditHistory : public AbstractHistoryEntry
 class AddHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	str,	Code,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)

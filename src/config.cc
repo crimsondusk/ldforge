@@ -40,7 +40,7 @@
 
 Config*							g_configPointers[MAX_CONFIG];
 static int						g_cfgPointerCursor = 0;
-static QMap<str, Config*>	g_configsByName;
+static QMap<QString, Config*>	g_configsByName;
 static QList<Config*>		g_configs;
 
 // =============================================================================
@@ -51,7 +51,7 @@ static QSettings* getSettingsObject()
 	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
 }
 
-Config::Config (str name) :
+Config::Config (QString name) :
 	m_Name (name) {}
 
 // =============================================================================
@@ -110,7 +110,7 @@ void Config::reset()
 // =============================================================================
 // Where is the configuration file located at?
 // -----------------------------------------------------------------------------
-str Config::filepath (str file)
+QString Config::filepath (QString file)
 {
 	return Config::dirpath() + DIRSLASH + file;
 }
@@ -118,7 +118,7 @@ str Config::filepath (str file)
 // =============================================================================
 // Directory of the configuration file.
 // -----------------------------------------------------------------------------
-str Config::dirpath()
+QString Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
@@ -140,7 +140,7 @@ void Config::addToArray (Config* ptr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-template<class T> T* getConfigByName (str name, Config::Type type)
+template<class T> T* getConfigByName (QString name, Config::Type type)
 {
 	auto it = g_configsByName.find (name);
 
@@ -162,7 +162,7 @@ template<class T> T* getConfigByName (str name, Config::Type type)
 // -----------------------------------------------------------------------------
 #undef IMPLEMENT_CONFIG
 #define IMPLEMENT_CONFIG(NAME)								\
-	NAME##Config* NAME##Config::getByName (str name)			\
+	NAME##Config* NAME##Config::getByName (QString name)		\
 	{														\
 		return getConfigByName<NAME##Config> (name, NAME);	\
 	}

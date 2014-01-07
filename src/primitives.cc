@@ -36,7 +36,7 @@ extern_cfg (String, ld_defaultname);
 extern_cfg (String, ld_defaultuser);
 extern_cfg (Int, ld_defaultlicense);
 
-static const str g_radialNameRoots[] =
+static const QStringList g_radialNameRoots =
 {
 	"edge",
 	"cyli",
@@ -69,7 +69,7 @@ void loadPrimitives()
 	else
 	{
 		// Read primitives from prims.cfg
-		for (str line : conf)
+		for (QString line : conf)
 		{
 			int space = line.indexOf (" ");
 
@@ -88,7 +88,7 @@ void loadPrimitives()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void recursiveGetFilenames (QDir dir, QList<str>& fnames)
+static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 {
 	QFileInfoList flist = dir.entryInfoList();
 
@@ -134,7 +134,7 @@ void PrimitiveLister::work()
 
 	for (; m_i < j; ++m_i)
 	{
-		str fname = m_files[m_i];
+		QString fname = m_files[m_i];
 		File f (fname, File::Read);
 		Primitive info;
 		info.name = fname.mid (m_baselen + 1);  // make full path relative
@@ -198,7 +198,7 @@ void PrimitiveLister::start()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PrimitiveCategory::PrimitiveCategory (str name, QObject* parent) :
+PrimitiveCategory::PrimitiveCategory (QString name, QObject* parent) :
 	QObject (parent),
 	m_Name (name) {}
 
@@ -280,7 +280,7 @@ void PrimitiveCategory::loadCategories()
 	{
 		PrimitiveCategory* cat = null;
 
-		for (str line : f)
+		for (QString line : f)
 		{
 			int colon;
 
@@ -296,7 +296,7 @@ void PrimitiveCategory::loadCategories()
 			}
 			elif (cat != null)
 			{
-				str cmd = line.left (colon);
+				QString cmd = line.left (colon);
 				ERegexType type = EFilenameRegex;
 
 				if (cmd == "f")
@@ -526,7 +526,7 @@ QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static str primitiveTypeName (PrimitiveType type)
+static QString primitiveTypeName (PrimitiveType type)
 {
 	// Not translated as primitives are in English.
 	return type == Circle   ? "Circle" :
@@ -538,7 +538,7 @@ static str primitiveTypeName (PrimitiveType type)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str radialFileName (PrimitiveType type, int segs, int divs, int num)
+QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 {
 	int numer = segs,
 			denom = divs;
@@ -554,10 +554,10 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 	}
 
 	// Compose some general information: prefix, fraction, root, ring number
-	str prefix = (divs == lores) ? "" : fmt ("%1/", divs);
-	str frac = fmt ("%1-%2", numer, denom);
-	str root = g_radialNameRoots[type];
-	str numstr = (type == Ring || type == Cone) ? fmt ("%1", num) : "";
+	QString prefix = (divs == lores) ? "" : fmt ("%1/", divs);
+	QString frac = fmt ("%1-%2", numer, denom);
+	QString root = g_radialNameRoots[type];
+	QString numstr = (type == Ring || type == Cone) ? fmt ("%1", num) : "";
 
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
@@ -573,9 +573,9 @@ str radialFileName (PrimitiveType type, int segs, int divs, int num)
 LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	// Make the description
-	str frac = str::number ((float) segs / divs);
-	str name = radialFileName (type, segs, divs, num);
-	str descr;
+	QString frac = QString::number ((float) segs / divs);
+	QString name = radialFileName (type, segs, divs, num);
+	QString descr;
 
 	// Ensure that there's decimals, even if they're 0.
 	if (frac.indexOf (".") == -1)
@@ -583,7 +583,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 	if (type == Ring || type == Cone)
 	{
-		str spacing =
+		QString spacing =
 			(num < 10) ? "  " :
 			(num < 100) ? " "  : "";
 
@@ -599,8 +599,8 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	LDDocument* f = new LDDocument;
 	f->setDefaultName (name);
 
-	str author = APPNAME;
-	str license = "";
+	QString author = APPNAME;
+	QString license = "";
 
 	if (ld_defaultname.isEmpty() == false)
 	{
@@ -628,7 +628,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 // -----------------------------------------------------------------------------
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {
-	str name = radialFileName (type, segs, divs, num);
+	QString name = radialFileName (type, segs, divs, num);
 	LDDocument* f = getDocument (name);
 
 	if (f != null)

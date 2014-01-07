@@ -27,7 +27,7 @@
 class LDColor
 {
 	public:
-		str name, hexcode;
+		QString name, hexcode;
 		QColor faceColor, edgeColor;
 		int index;
 };

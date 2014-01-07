@@ -35,13 +35,13 @@ cfg (String,	net_downloadpath,	"");
 cfg (Bool,		net_guesspaths,	true);
 cfg (Bool,		net_autoclose,		true);
 
-const str g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
+const QString g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void PartDownloader::staticBegin()
 {
-	str path = getDownloadPath();
+	QString path = getDownloadPath();
 
 	if (path == "" || QDir (path).exists() == false)
 	{
@@ -58,9 +58,9 @@ void PartDownloader::staticBegin()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str PartDownloader::getDownloadPath()
+QString PartDownloader::getDownloadPath()
 {
-	str path = net_downloadpath;
+	QString path = net_downloadpath;
 
 #if DIRSLASH_CHAR != '/'
 	path.replace (DIRSLASH, "/");
@@ -97,10 +97,10 @@ PartDownloader::~PartDownloader()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str PartDownloader::getURL() const
+QString PartDownloader::getURL() const
 {
 	const Source src = getSource();
-	str dest;
+	QString dest;
 
 	switch (src)
 	{
@@ -119,7 +119,7 @@ str PartDownloader::getURL() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloader::modifyDestination (str& dest) const
+void PartDownloader::modifyDestination (QString& dest) const
 {
 	dest = dest.simplified();
 
@@ -165,8 +165,8 @@ void PartDownloader::modifyDestination (str& dest) const
 	   Subfiles (usually) have an s** prefix, in which case we use parts/s/.
 	   Note that the regex starts with a '^' so it won't catch already fully
 	   given part file names. */
-	str partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
-	str subpartRegex = partRegex + "s[0-9][0-9]+";
+	QString partRegex = "^u?[0-9]+(c[0-9][0-9]+)*(d[0-9][0-9]+)*[a-z]?(p[0-9a-z][0-9a-z]+)*";
+	QString subpartRegex = partRegex + "s[0-9][0-9]+";
 
 	partRegex += "\\.dat$";
 	subpartRegex += "\\.dat$";
@@ -213,7 +213,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 	}
 	elif (btn == getButton (Download))
 	{
-		str dest = getInterface()->fname->text();
+		QString dest = getInterface()->fname->text();
 		setPrimaryFile (null);
 		setAborted (false);
 
@@ -224,7 +224,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 
 		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest))
 		{
-			const str overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+			const QString overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
 			if (!confirm (tr ("Overwrite?"), overwritemsg))
 				return;
 		}
@@ -242,7 +242,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PartDownloader::downloadFile (str dest, str url, bool primary)
+void PartDownloader::downloadFile (QString dest, QString url, bool primary)
 {
 	const int row = getInterface()->progress->rowCount();
 
@@ -325,7 +325,7 @@ QPushButton* PartDownloader::getButton (PartDownloader::Button i)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent) :
+PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent) :
 	QObject (parent),
 	m_State (ERequesting),
 	m_Prompt (parent),
@@ -338,7 +338,7 @@ PartDownloadRequest::PartDownloadRequest (str url, str dest, bool primary, PartD
 	m_FilePointer (null)
 {
 	// Make sure that we have a valid destination.
-	str dirpath = dirname (getFilePath());
+	QString dirpath = dirname (getFilePath());
 
 	QDir dir (dirpath);
 
@@ -390,7 +390,7 @@ void PartDownloadRequest::updateToTable()
 		case EFinished:
 		case EFailed:
 		{
-			const str text = (getState() == EFinished)
+			const QString text = (getState() == EFinished)
 				? "<b><span style=\"color: #080\">FINISHED</span></b>"
 				: "<b><span style=\"color: #800\">FAILED</span></b>";
 
@@ -467,7 +467,7 @@ void PartDownloadRequest::downloadFinished()
 		if (!err || err->getFileReferenced().isEmpty())
 			continue;
 
-		str dest = err->getFileReferenced();
+		QString dest = err->getFileReferenced();
 		getPrompt()->modifyDestination (dest);
 		getPrompt()->downloadFile (dest, g_unofficialLibraryURL + dest, false);
 	}

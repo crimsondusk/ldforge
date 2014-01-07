@@ -35,10 +35,10 @@ public:													\
 	{													\
 		return LDObject::E##T;							\
 	}													\
-	virtual str raw() const override;					\
+	virtual QString raw() const override;				\
 	virtual void invert() override;
 
-#define LDOBJ_NAME(N)          virtual str getTypeName() const override { return #N; }
+#define LDOBJ_NAME(N)          virtual QString getTypeName() const override { return #N; }
 #define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
@@ -112,7 +112,7 @@ class LDObject
 		const Vertex&				getVertex (int i) const;
 
 		// Type name of this object
-		virtual str					getTypeName() const;
+		virtual QString					getTypeName() const;
 
 		// Does this object have a matrix and position? (see LDMatrixObject)
 		virtual bool				hasMatrix() const;
@@ -136,7 +136,7 @@ class LDObject
 		LDObject*					prev() const;
 
 		// This object as LDraw code
-		virtual						str raw() const = 0;
+		virtual						QString raw() const = 0;
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
 		void							replace (LDObject* other);
@@ -163,7 +163,7 @@ class LDObject
 		virtual int					vertices() const;
 
 		// Get type name by enumerator
-		static str typeName (LDObject::Type type);
+		static QString typeName (LDObject::Type type);
 
 		// Returns a default-constructed LDObject by the given type
 		static LDObject* getDefault (const LDObject::Type type);
@@ -172,7 +172,7 @@ class LDObject
 		static void moveObjects (QList<LDObject*> objs, const bool up);
 
 		// Get a description of a list of LDObjects
-		static str describeObjects (const QList<LDObject*>& objs);
+		static QString describeObjects (const QList<LDObject*>& objs);
 		static LDObject* fromID (int id);
 
 		// TODO: make these private!
@@ -290,17 +290,17 @@ class LDError : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	str, FileReferenced, STR_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QString, FileReferenced, STR_OPS,	STOCK_WRITE)
 
 	public:
 		LDError();
-		LDError (str contents, str reason) : contents (contents), reason (reason) {}
+		LDError (QString contents, QString reason) : contents (contents), reason (reason) {}
 
 		// Content of this unknown line
-		str contents;
+		QString contents;
 
 		// Why is this gibberish?
-		str reason;
+		QString reason;
 };
 
 // =============================================================================
@@ -335,9 +335,9 @@ class LDComment : public LDObject
 
 	public:
 		LDComment() {}
-		LDComment (str text) : text (text) {}
+		LDComment (QString text) : text (text) {}
 
-		str text; // The text of this comment
+		QString text; // The text of this comment
 };
 
 // =============================================================================
@@ -555,15 +555,15 @@ class LDOverlay : public LDObject
 	PROPERTY (public,	int, Y,			NUM_OPS,	STOCK_WRITE)
 	PROPERTY (public,	int, Width,		NUM_OPS,	STOCK_WRITE)
 	PROPERTY (public,	int, Height,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	str, FileName,	STR_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QString, FileName,	STR_OPS,	STOCK_WRITE)
 };
 
 // Other common LDraw stuff
-static const str CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
+static const QString CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
 				 NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
 static const int lores = 16;
 static const int hires = 48;
 
-str getLicenseText (int id);
+QString getLicenseText (int id);
 
 #endif // LDFORGE_LDTYPES_H

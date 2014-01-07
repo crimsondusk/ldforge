@@ -148,7 +148,7 @@ double Grid::snap (double in, const Grid::Config axis)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool numeric (const str& tok)
+bool numeric (const QString& tok)
 {
 	bool gotDot = false;
 
@@ -283,7 +283,7 @@ void configRotationPoint()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-str join (initlist<StringFormatArg> vals, str delim)
+QString join (initlist<StringFormatArg> vals, QString delim)
 {
 	QStringList list;
 

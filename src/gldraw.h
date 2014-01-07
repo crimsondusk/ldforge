@@ -48,7 +48,7 @@ struct LDGLOverlay
 				oy;
 	double	lw,
 				lh;
-	str		fname;
+	QString		fname;
 	QImage*	img;
 };
 
@@ -137,7 +137,7 @@ class GLRenderer : public QGLWidget
 		void           setBackground();
 		void           setCamera (const EFixedCamera cam);
 		void           setDepthValue (double depth);
-		bool           setupOverlay (EFixedCamera cam, str file, int x, int y, int w, int h);
+		bool           setupOverlay (EFixedCamera cam, QString file, int x, int y, int w, int h);
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 		void           zoomToFit();

@@ -219,7 +219,7 @@ void ConfigDialog::initGrids()
 	{
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%1", str (g_GridInfo[i].name).toLower())));
+		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%1", QString (g_GridInfo[i].name).toLower())));
 
 		// Text label
 		lb_gridLabels[i] = new QLabel (fmt ("%1:", g_GridInfo[i].name));
@@ -250,9 +250,9 @@ void ConfigDialog::initGrids()
 // -----------------------------------------------------------------------------
 static struct LDExtProgInfo
 {
-	const str		name,
+	const QString		name,
 						iconname;
-	str* const		path;
+	QString* const		path;
 	QLineEdit*		input;
 	QPushButton*	setPathButton;
 #ifndef _WIN32
@@ -540,7 +540,7 @@ void ConfigDialog::slot_clearColors()
 // =============================================================================
 // Pick a color and set the appropriate configuration option.
 // -----------------------------------------------------------------------------
-void ConfigDialog::pickColor (str& conf, QPushButton* button)
+void ConfigDialog::pickColor (QString& conf, QPushButton* button)
 {
 	QColor col = QColorDialog::getColor (QColor (conf));
 
@@ -550,7 +550,7 @@ void ConfigDialog::pickColor (str& conf, QPushButton* button)
 			g = col.green(),
 			b = col.blue();
 
-		str colname;
+		QString colname;
 		colname.sprintf ("#%.2X%.2X%.2X", r, g, b);
 		conf = colname;
 		setButtonBackground (button, colname);
@@ -581,7 +581,7 @@ void ConfigDialog::slot_setGLSelectColor()
 // =============================================================================
 // Sets background color of a given button.
 // -----------------------------------------------------------------------------
-void ConfigDialog::setButtonBackground (QPushButton* button, str value)
+void ConfigDialog::setButtonBackground (QPushButton* button, QString value)
 {
 	button->setIcon (getIcon ("colorselect"));
 	button->setAutoFillBackground (true);
@@ -691,7 +691,7 @@ void ConfigDialog::slot_setExtProgPath()
 	}
 
 	assert (info != null);
-	str fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
+	QString fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
 
 	if (fpath.isEmpty())
 		return;
@@ -704,7 +704,7 @@ void ConfigDialog::slot_setExtProgPath()
 // -----------------------------------------------------------------------------
 void ConfigDialog::slot_findDownloadFolder()
 {
-	str dpath = QFileDialog::getExistingDirectory();
+	QString dpath = QFileDialog::getExistingDirectory();
 	ui->downloadPath->setText (dpath);
 }
 
@@ -714,17 +714,17 @@ void ConfigDialog::slot_findDownloadFolder()
 void ConfigDialog::setShortcutText (ShortcutListItem* item)
 {
 	QAction* act = item->getAction();
-	str label = act->iconText();
-	str keybind = item->getKeyConfig()->getValue().toString();
+	QString label = act->iconText();
+	QString keybind = item->getKeyConfig()->getValue().toString();
 	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
 // =============================================================================
 // Gets the configuration string of the quick color toolbar
 // -----------------------------------------------------------------------------
-str ConfigDialog::quickColorString()
+QString ConfigDialog::quickColorString()
 {
-	str val;
+	QString val;
 
 	for (const LDQuickColor& entry : quickColors)
 	{
@@ -782,12 +782,12 @@ bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
 // -----------------------------------------------------------------------------
 void KeySequenceDialog::updateOutput()
 {
-	str shortcut = seq.toString();
+	QString shortcut = seq.toString();
 
 	if (seq == QKeySequence())
 		shortcut = "&lt;empty&gt;";
 
-	str text = fmt ("<center><b>%1</b></center>", shortcut);
+	QString text = fmt ("<center><b>%1</b></center>", shortcut);
 	lb_output->setText (text);
 }
 

@@ -98,7 +98,7 @@ static const std::nullptr_t null = nullptr;
 void dlog(void, ...) {}
 #else
 # ifdef DEBUG
-#  define dlog(...) log( str( __PRETTY_FUNCTION__ ) + ": " __VA_ARGS__)
+#  define dlog(...) log (QString (__PRETTY_FUNCTION__) + ": " __VA_ARGS__)
 # else
 #  define dlog(...)
 # endif // DEBUG
