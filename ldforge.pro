@@ -32,7 +32,7 @@ CONFIG (debug, debug|release) {
 	OBJECTS_DIR = ./build_release/
 }
 
-exists(.git): DEFINES += GIT_DESCRIBE="\\\"$$system(git describe --tags)\\\""
+exists(.git): DEFINES += GIT_DESCRIBE="\\\"$$system(git describe --tags --long)\\\""
 
 unix {
 	LIBS += -lGLU
