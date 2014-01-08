@@ -67,11 +67,11 @@ class Matrix
 		Matrix (double vals[]);
 
 		double			getDeterminant() const;
-		Matrix			mult (Matrix other) const;
-		void				puts() const;
-		QString				stringRep() const;
-		void				zero();
-		Matrix&			operator= (Matrix other);
+		Matrix			mult (const Matrix& other) const;
+		void			puts() const;
+		QString			stringRep() const;
+		void			zero();
+		Matrix&			operator= (const Matrix& other);
 
 		inline double& val (int idx)
 		{
@@ -83,7 +83,7 @@ class Matrix
 			return m_vals[idx];
 		}
 
-		inline Matrix operator* (Matrix other) const
+		inline Matrix operator* (const Matrix& other) const
 		{
 			return mult (other);
 		}
@@ -192,57 +192,46 @@ class Vertex
 class StringFormatArg
 {
 	public:
-		StringFormatArg (const QString& v);
-		StringFormatArg (const char& v);
-		StringFormatArg (const uchar& v);
-		StringFormatArg (const QChar& v);
+		StringFormatArg (const QString& a) : m_val (a) {}
+		StringFormatArg (const char& a) : m_val (a) {}
+		StringFormatArg (const uchar& a) : m_val (a) {}
+		StringFormatArg (const QChar& a) : m_val (a) {}
+		StringFormatArg (int a) : m_val (QString::number (a)) {}
+		StringFormatArg (const float& a) : m_val (QString::number (a)) {}
+		StringFormatArg (const double& a) : m_val (QString::number (a)) {}
+		StringFormatArg (const Vertex& a) : m_val (a.stringRep (false)) {}
+		StringFormatArg (const Matrix& a) : m_val (a.stringRep()) {}
+		StringFormatArg (const char* a) : m_val (a) {}
 
-#define NUMERIC_FORMAT_ARG(T,C) \
-	StringFormatArg (const T& v) { \
-		char valstr[32]; \
-		sprintf (valstr, "%" #C, v); \
-		m_val = valstr; \
-	}
+		StringFormatArg (const void* a)
+		{
+			m_val.sprintf ("%p", a);
+		}
 
-		NUMERIC_FORMAT_ARG (int, d)
-		NUMERIC_FORMAT_ARG (short, d)
-		NUMERIC_FORMAT_ARG (long, ld)
-		NUMERIC_FORMAT_ARG (uint, u)
-		NUMERIC_FORMAT_ARG (ushort, u)
-		NUMERIC_FORMAT_ARG (ulong, lu)
-
-		StringFormatArg (const float& v);
-		StringFormatArg (const double& v);
-		StringFormatArg (const Vertex& v);
-		StringFormatArg (const Matrix& v);
-		StringFormatArg (const char* v);
-		StringFormatArg (const void* v);
-
-		template<class T> StringFormatArg (const QList<T>& v)
+		template<class T> StringFormatArg (const QList<T>& a)
 		{
 			m_val = "{ ";
 
-			int i = 0;
-
-			for (const T& it : v)
+			for (const T& it : a)
 			{
-				if (i++)
+				if (&it != &a.first())
 					m_val += ", ";
 
 				StringFormatArg arg (it);
 				m_val += arg.value();
 			}
 
-			if (i)
+			if (!a.isEmpty())
 				m_val += " ";
 
 			m_val += "}";
 		}
 
-		QString value() const
+		inline QString value() const
 		{
 			return m_val;
 		}
+
 	private:
 		QString m_val;
 };
@@ -255,9 +244,9 @@ class StringFormatArg
 // =============================================================================
 class LDBoundingBox
 {
-	PROPERTY (private,	bool,		Empty,	BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (private,	Vertex,	Vertex0,	NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	Vertex,	Vertex1,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	bool,		Empty,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	Vertex,		Vertex0,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	Vertex,		Vertex1,	NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDBoundingBox();

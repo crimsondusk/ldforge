@@ -713,7 +713,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	QString			parentpath = getCurrentDocument()->getFullPath();
 
 	// BFC type of the new subfile - it shall inherit the BFC type of the parent document
-	LDBFC::Type	bfctype = LDBFC::NoCertify;
+	LDBFC::Type		bfctype = LDBFC::NoCertify;
 
 	// Dirname of the new subfile
 	QString			subdirname = dirname (parentpath);
@@ -722,19 +722,19 @@ DEFINE_ACTION (SubfileSelection, 0)
 	QString			subtitle;
 
 	// Comment containing the title of the parent document
-	LDComment*	titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
+	LDComment*		titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
 
 	// License text for the subfile
 	QString			license = getLicenseText (ld_defaultlicense);
 
 	// LDraw code body of the new subfile (i.e. code of the selection)
-	QStringList	code;
+	QStringList		code;
 
 	// Full path of the subfile to be
 	QString			fullsubname;
 
 	// Where to insert the subfile reference?
-	int			refidx = selection()[0]->getIndex();
+	int				refidx = selection()[0]->getIndex();
 
 	// Determine title of subfile
 	if (titleobj != null)

@@ -137,7 +137,7 @@ void PrimitiveLister::work()
 		QString fname = m_files[m_i];
 		QFile f (fname);
 
-		if (f.open (QIODevice::ReadOnly))
+		if (!f.open (QIODevice::ReadOnly))
 			continue;
 
 		Primitive info;
@@ -151,7 +151,7 @@ void PrimitiveLister::work()
 
 		info.title = info.title.simplified();
 
-		if (info.title[0] == '0')
+		if (Q_LIKELY (info.title[0] == '0'))
 		{
 			info.title.remove (0, 1);  // remove 0
 			info.title = info.title.simplified();

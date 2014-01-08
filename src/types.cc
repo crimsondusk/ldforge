@@ -269,7 +269,7 @@ void Matrix::zero()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Matrix Matrix::mult (Matrix other) const
+Matrix Matrix::mult (const Matrix& other) const
 {
 	Matrix val;
 	val.zero();
@@ -284,7 +284,7 @@ Matrix Matrix::mult (Matrix other) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Matrix& Matrix::operator= (Matrix other)
+Matrix& Matrix::operator= (const Matrix& other)
 {
 	memcpy (&m_vals[0], &other.m_vals[0], sizeof m_vals);
 	return *this;
@@ -311,58 +311,6 @@ bool Matrix::operator== (const Matrix& other) const
 			return false;
 
 	return true;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-StringFormatArg::StringFormatArg (const QString& v)
-{
-	m_val = v;
-}
-
-StringFormatArg::StringFormatArg (const char& v)
-{
-	m_val = v;
-}
-
-StringFormatArg::StringFormatArg (const uchar& v)
-{
-	m_val = v;
-}
-
-StringFormatArg::StringFormatArg (const QChar& v)
-{
-	m_val = v;
-}
-
-StringFormatArg::StringFormatArg (const float& v)
-{
-	m_val = QString::number (v);
-}
-
-StringFormatArg::StringFormatArg (const double& v)
-{
-	m_val = QString::number (v);
-}
-
-StringFormatArg::StringFormatArg (const Vertex& v)
-{
-	m_val = v.stringRep (false);
-}
-
-StringFormatArg::StringFormatArg (const Matrix& v)
-{
-	m_val = v.stringRep();
-}
-
-StringFormatArg::StringFormatArg (const char* v)
-{
-	m_val = v;
-}
-
-StringFormatArg::StringFormatArg (const void* v)
-{
-	m_val.sprintf ("%p", v);
 }
 
 // =============================================================================
