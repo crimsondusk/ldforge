@@ -59,9 +59,9 @@ void loadPrimitives()
 	PrimitiveCategory::loadCategories();
 
 	// Try to load prims.cfg
-	File conf (Config::filepath ("prims.cfg"), File::Read);
+	QFile conf (Config::filepath ("prims.cfg"));
 
-	if (!conf)
+	if (!conf.open (QIODevice::ReadOnly))
 	{
 		// No prims.cfg, build it
 		PrimitiveLister::start();
@@ -69,8 +69,9 @@ void loadPrimitives()
 	else
 	{
 		// Read primitives from prims.cfg
-		for (QString line : conf)
+		while (conf.atEnd() == false)
 		{
+			QString line = conf.readLine();
 			int space = line.indexOf (" ");
 
 			if (space == -1)
@@ -129,20 +130,24 @@ PrimitiveLister::~PrimitiveLister()
 // -----------------------------------------------------------------------------
 void PrimitiveLister::work()
 {
-	int j = min (m_i + 300, m_files.size());
-	log ("PrimitiveLister::work: %1 -> %2\n", m_i, j);
+	int j = min (m_i + 100, m_files.size());
 
 	for (; m_i < j; ++m_i)
 	{
 		QString fname = m_files[m_i];
-		File f (fname, File::Read);
+		QFile f (fname);
+
+		if (f.open (QIODevice::ReadOnly))
+			continue;
+
 		Primitive info;
 		info.name = fname.mid (m_baselen + 1);  // make full path relative
 		info.name.replace ('/', '\\');  // use DOS backslashes, they're expected
 		info.cat = null;
+		QByteArray titledata = f.readLine();
 
-		if (!f.readLine (info.title))
-			info.title = "";
+		if (titledata != QByteArray())
+			info.title = QString::fromUtf8 (titledata);
 
 		info.title = info.title.simplified();
 
@@ -158,12 +163,18 @@ void PrimitiveLister::work()
 	if (m_i == m_files.size())
 	{
 		// Done with primitives, now save to a config file
-		File conf (Config::filepath ("prims.cfg"), File::Write);
+		QString path = Config::filepath ("prims.cfg");
+		QFile conf (path);
 
-		for (Primitive& info : m_prims)
-			fprint (conf, "%1 %2\n", info.name, info.title);
+		if (!conf.open (QIODevice::WriteOnly | QIODevice::Text))
+			critical (fmt ("Couldn't write %1: %2", path, conf.errorString()));
+		else
+		{
+			for (Primitive& info : m_prims)
+				fprint (conf, "%1 %2\n", info.name, info.title);
 
-		conf.close();
+			conf.close();
+		}
 
 		g_primitives = m_prims;
 		PrimitiveCategory::populateCategories();
@@ -265,67 +276,71 @@ void PrimitiveCategory::loadCategories()
 		delete cat;
 
 	g_PrimitiveCategories.clear();
-	File f (Config::dirpath() + "primregexps.cfg", File::Read);
+	QString path = Config::dirpath() + "primregexps.cfg";
 
-	if (!f)
-		f.open (":/data/primitive-categories.cfg", File::Read);
+	if (!QFile::exists (path))
+		path = ":/data/primitive-categories.cfg";
 
-	if (!f)
+	QFile f (path);
+
+	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (QObject::tr ("Failed to open primitive categories!"));
+		critical (fmt (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
 		return;
 	}
 
-	if (f)
+	PrimitiveCategory* cat = null;
+
+	while (f.atEnd() == false)
 	{
-		PrimitiveCategory* cat = null;
+		QString line = f.readLine();
+		int colon;
 
-		for (QString line : f)
+		if (line.endsWith ("\n"))
+			line.chop (1);
+
+		if (line.length() == 0 || line[0] == '#')
+			continue;
+
+		if ((colon = line.indexOf (":")) == -1)
 		{
-			int colon;
+			if (cat && cat->isValidToInclude())
+				g_PrimitiveCategories << cat;
 
-			if (line.length() == 0 || line[0] == '#')
-				continue;
-
-			if ((colon = line.indexOf (":")) == -1)
-			{
-				if (cat && cat->isValidToInclude())
-					g_PrimitiveCategories << cat;
-
-				cat = new PrimitiveCategory (line);
-			}
-			elif (cat != null)
-			{
-				QString cmd = line.left (colon);
-				ERegexType type = EFilenameRegex;
-
-				if (cmd == "f")
-					type = EFilenameRegex;
-				elif (cmd == "t")
-					type = ETitleRegex;
-				else
-				{
-					log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
-					continue;
-				}
-
-				QRegExp regex (line.mid (colon + 1));
-				RegexEntry entry = { regex, type };
-				cat->regexes << entry;
-			}
-			else
-				log ("Warning: Rules given before the first category name");
+			cat = new PrimitiveCategory (line);
 		}
+		elif (cat != null)
+		{
+			QString cmd = line.left (colon);
+			ERegexType type = EFilenameRegex;
 
-		if (cat->isValidToInclude())
-			g_PrimitiveCategories << cat;
+			if (cmd == "f")
+				type = EFilenameRegex;
+			elif (cmd == "t")
+				type = ETitleRegex;
+			else
+			{
+				log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
+				continue;
+			}
+
+			QRegExp regex (line.mid (colon + 1));
+			RegexEntry entry = { regex, type };
+			cat->regexes << entry;
+		}
+		else
+			log ("Warning: Rules given before the first category name");
 	}
+
+	if (cat->isValidToInclude())
+		g_PrimitiveCategories << cat;
 
 	// Add a category for unmatched primitives.
 	// Note: if this function is called the second time, g_unmatched has been
 	// deleted at the beginning of the function and is dangling at this point.
 	g_unmatched = new PrimitiveCategory (tr ("Other"));
 	g_PrimitiveCategories << g_unmatched;
+	f.close();
 }
 
 // =============================================================================

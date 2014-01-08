@@ -16,6 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <QFile>
 #include "document.h"
 #include "ldconfig.h"
 #include "gui.h"
@@ -41,19 +42,20 @@ static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, QString& va
 // -----------------------------------------------------------------------------
 void parseLDConfig()
 {
-	File* f = openLDrawFile ("LDConfig.ldr", false);
+	QFile* fp = openLDrawFile ("LDConfig.ldr", false);
 
-	if (!f)
+	if (!fp)
 	{
-		critical (fmt (QObject::tr ("Unable to open LDConfig.ldr for parsing: %1"),
-			strerror (errno)));
+		critical (QObject::tr ("Unable to open LDConfig.ldr for parsing."));
 		return;
 	}
 
 	// Read in the lines
-	for (QString line : *f)
+	while (fp->atEnd() == false)
 	{
-		if (line.length() == 0 || line[0] != '0')
+		QString line = QString::fromUtf8 (fp->readLine());
+
+		if (line.isEmpty() || line[0] != '0')
 			continue; // empty or illogical
 
 		line.remove ('\r');
@@ -111,7 +113,8 @@ void parseLDConfig()
 		setColor (code, col);
 	}
 
-	delete f;
+	fp->close();
+	fp->deleteLater();
 }
 
 // =============================================================================

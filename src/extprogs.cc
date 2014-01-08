@@ -99,6 +99,18 @@ const char* g_extProgNames[] =
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
+{
+	if (!tmp.open())
+		return false;
+
+	fname = tmp.fileName();
+	tmp.close();
+	return true;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 static bool checkProgPath (const extprog prog)
 {
 	QString& path = *g_extProgPaths[prog];
@@ -154,19 +166,7 @@ static QString processErrorString (extprog prog, QProcess& proc)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
-{
-	if (!tmp.open())
-		return false;
-
-	fname = tmp.fileName();
-	tmp.close();
-	return true;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, File& f)
+static void writeObjects (const QList<LDObject*>& objects, QFile& f)
 {
 	for (LDObject* obj : objects)
 	{
@@ -181,7 +181,7 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 				obj->deleteSelf();
 		}
 		else
-			f.write (obj->raw() + "\r\n");
+			f.write ((obj->raw() + "\r\n").toUtf8());
 	}
 }
 
@@ -190,11 +190,11 @@ static void writeObjects (const QList<LDObject*>& objects, File& f)
 static void writeObjects (const QList<LDObject*>& objects, QString fname)
 {
 	// Write the input file
-	File f (fname, File::Write);
+	QFile f (fname);
 
-	if (!f)
+	if (!f.open (QIODevice::WriteOnly | QIODevice::Text))
 	{
-		critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
+		critical (fmt ("Couldn't open temporary file %1 for writing: %2\n", fname, f.errorString()));
 		return;
 	}
 
@@ -234,8 +234,7 @@ void writeColorGroup (const int colnum, QString fname)
 // -----------------------------------------------------------------------------
 bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 {
-	QTemporaryFile input, output;
-	QString inputname, outputname;
+	QTemporaryFile input;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 
 #ifndef _WIN32
@@ -248,17 +247,13 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 
 	log ("cmdline: %1 %2\n", path, argv.join (" "));
 
-	// Temporary files for stdin and stdout
-	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
+	if (!input.open())
 		return false;
 
 	QProcess proc;
 
-	// Init stdin
-	File stdinfp (inputname, File::Write);
-
 	// Begin!
-	proc.setStandardInputFile (inputname);
+	proc.setStandardInputFile (input.fileName());
 	proc.start (path, argv);
 
 	if (!proc.waitForStarted())
@@ -268,7 +263,7 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 	}
 
 	// Write an enter, the utility tools all expect one
-	stdinfp.write ("\n");
+	input.write ("\n");
 
 	// Wait while it runs
 	proc.waitForFinished();
@@ -300,9 +295,9 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 #endif // RELEASE
 
 	// Read the output file
-	File f (fname, File::Read);
+	QFile f (fname);
 
-	if (!f)
+	if (!f.open (QIODevice::ReadOnly))
 	{
 		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
@@ -314,13 +309,13 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 	if (replace)
 		g_win->deleteSelection();
 
-	for (const int colnum : colorsToReplace)
+	for (int colnum : colorsToReplace)
 		g_win->deleteByColor (colnum);
 
 	// Insert the new objects
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject * obj : objs)
+	for (LDObject* obj : objs)
 	{
 		if (!obj->isScemantic())
 		{

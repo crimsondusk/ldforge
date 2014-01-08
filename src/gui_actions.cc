@@ -388,11 +388,11 @@ DEFINE_ACTION (InsertFrom, 0)
 	if (!fname.length())
 		return;
 
-	File f (fname, File::Read);
+	QFile f (fname);
 
-	if (!f)
+	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (fmt ("Couldn't open %1 (%2)", fname, strerror (errno)));
+		critical (fmt ("Couldn't open %1 (%2)", fname, f.errorString()));
 		return;
 	}
 
@@ -429,7 +429,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 	if (!file.open (QIODevice::WriteOnly | QIODevice::Text))
 	{
-		critical (fmt ("Unable to open %1 for writing (%2)", fname, strerror (errno)));
+		critical (fmt ("Unable to open %1 for writing (%2)", fname, file.errorString()));
 		return;
 	}
 

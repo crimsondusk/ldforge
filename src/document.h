@@ -164,7 +164,7 @@ LDDocument* findDocument (QString name);
 LDDocument* openDocument (QString path, bool search);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
-File* openLDrawFile (QString relpath, bool subdirs);
+QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer = null);
 
 // Close all open files, whether user-opened or subfile caches.
 void closeAll();
@@ -182,7 +182,7 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok = null);
+QList<LDObject*> loadFileContents (QFile* f, int* numWarnings, bool* ok = null);
 
 extern QList<LDDocument*> g_loadedFiles;
 

@@ -222,10 +222,8 @@ QString basename (QString path)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-File* openLDrawFile (QString relpath, bool subdirs)
+static QString findLDrawFilePath (QString relpath, bool subdirs)
 {
-	log ("Opening %1...\n", relpath);
-	File* f = new File;
 	QString fullPath;
 
 	// LDraw models use Windows-style path separators. If we're not on Windows,
@@ -238,14 +236,16 @@ File* openLDrawFile (QString relpath, bool subdirs)
 	// Try find it relative to other currently open documents. We want a file
 	// in the immediate vicinity of a current model to override stock LDraw stuff.
 	QString reltop = basename (dirname (relpath));
+
 	for (LDDocument* doc : g_loadedFiles)
 	{
 		if (doc->getFullPath().isEmpty())
 			continue;
 
 		QString partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
+		QFile f (partpath);
 
-		if (f->open (partpath, File::Read))
+		if (f.exists())
 		{
 			// ensure we don't mix subfiles and 48-primitives with non-subfiles and non-48
 			QString proptop = basename (dirname (partpath));
@@ -262,18 +262,18 @@ File* openLDrawFile (QString relpath, bool subdirs)
 			}
 
 			if (!bogus)
-				return f;
+				return partpath;
 		}
 	}
 
-	if (f->open (relpath, File::Read))
-		return f;
+	if (QFile::exists (relpath))
+		return relpath;
 
 	// Try with just the LDraw path first
 	fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
 
-	if (f->open (fullPath, File::Read))
-		return f;
+	if (QFile::exists (fullPath))
+		return fullPath;
 
 	if (subdirs)
 	{
@@ -285,15 +285,33 @@ File* openLDrawFile (QString relpath, bool subdirs)
 			{
 				fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 
-				if (f->open (fullPath, File::Read))
-					return f;
+				if (QFile::exists (fullPath))
+					return fullPath;
 			}
 		}
 	}
 
 	// Did not find the file.
-	log ("Could not find %1.\n", relpath);
-	delete f;
+	return "";
+}
+
+QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer)
+{
+	log ("Opening %1...\n", relpath);
+	QString path = findLDrawFilePath (relpath, subdirs);
+
+	if (pathpointer != null)
+		*pathpointer = path;
+
+	if (path.isEmpty())
+		return null;
+
+	QFile* fp = new QFile (path);
+
+	if (fp->open (QIODevice::ReadOnly))
+		return fp;
+
+	fp->deleteLater();
 	return null;
 }
 
@@ -416,17 +434,17 @@ void LDFileLoader::abort()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> loadFileContents (File* f, int* numWarnings, bool* ok)
+QList<LDObject*> loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 {
-	QList<QString> lines;
+	QStringList lines;
 	QList<LDObject*> objs;
 
 	if (numWarnings)
 		*numWarnings = 0;
 
 	// Read in the lines
-	for (QString line : *f)
-		lines << line;
+	while (fp->atEnd() == false)
+		lines << QString::fromUtf8 (fp->readLine());
 
 	LDFileLoader* loader = new LDFileLoader;
 	loader->setWarnings (numWarnings);
@@ -456,26 +474,28 @@ LDDocument* openDocument (QString path, bool search)
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
-	File* f;
+	QFile* fp;
+	QString fullpath;
 
 	if (search)
-		f = openLDrawFile (path.toLower(), true);
+		fp = openLDrawFile (path.toLower(), true, &fullpath);
 	else
 	{
-		f = new File (path, File::Read);
+		fp = new QFile (path);
+		fullpath = path;
 
-		if (!*f)
+		if (!fp->open (QIODevice::ReadOnly))
 		{
-			delete f;
+			delete fp;
 			return null;
 		}
 	}
 
-	if (!f)
+	if (!fp)
 		return null;
 
 	LDDocument* load = new LDDocument;
-	load->setFullPath (f->getPath());
+	load->setFullPath (fullpath);
 	load->setName (LDDocument::shortenName (load->getFullPath()));
 	dlog ("name: %1 (%2)", load->getName(), load->getFullPath());
 	g_loadedFiles << load;
@@ -485,8 +505,9 @@ LDDocument* openDocument (QString path, bool search)
 
 	int numWarnings;
 	bool ok;
-	QList<LDObject*> objs = loadFileContents (f, &numWarnings, &ok);
-	delete f;
+	QList<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
+	fp->close();
+	fp->deleteLater();
 
 	if (!ok)
 	{
@@ -703,24 +724,23 @@ bool LDDocument::save (QString savepath)
 	if (!savepath.length())
 		savepath = getFullPath();
 
-	File f (savepath, File::Write);
+	QFile f (savepath);
 
-	if (!f)
+	if (!f.open (QIODevice::WriteOnly))
 		return false;
 
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open.
-	LDComment* fpathComment = null;
-	LDObject* first = getObject (1);
+	LDObject* nameObject = getObject (1);
 
-	if (!isImplicit() && first != null && first->getType() == LDObject::EComment)
+	if (!isImplicit() && nameObject != null && nameObject->getType() == LDObject::EComment)
 	{
-		fpathComment = static_cast<LDComment*> (first);
+		LDComment* nameComment = static_cast<LDComment*> (nameObject);
 
-		if (fpathComment->text.left (6) == "Name: ")
+		if (nameComment->text.left (6) == "Name: ")
 		{
 			QString newname = shortenName (savepath);
-			fpathComment->text = fmt ("Name: %1", newname);
+			nameComment->text = fmt ("Name: %1", newname);
 			g_win->buildObjList();
 		}
 	}
@@ -728,7 +748,7 @@ bool LDDocument::save (QString savepath)
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
 	for (LDObject* obj : getObjects())
-		f.write (obj->raw() + "\r\n");
+		f.write ((obj->raw() + "\r\n").toUtf8());
 
 	// File is saved, now clean up.
 	f.close();

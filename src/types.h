@@ -248,70 +248,6 @@ class StringFormatArg
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// File
-//
-// A file interface with simple interface and support for range-for-loops.
-// =============================================================================
-class File
-{
-	private:
-		// Iterator class to enable range-for-loop support. Rough hack.. don't use directly!
-		class iterator
-		{
-			public:
-				iterator() : m_file (null) {} // end iterator has m_file == null
-				iterator (File* f);
-				void operator++();
-				QString  operator*();
-				bool operator== (iterator& other);
-				bool operator!= (iterator& other);
-
-			private:
-				File* m_file;
-				QString m_text;
-				bool m_gotdata = false;
-		};
-
-	public:
-		enum OpenType
-		{
-			Read,
-			Write,
-			Append
-		};
-
-		File();
-		File (QString path, File::OpenType rtype);
-		File (FILE* fp, File::OpenType rtype);
-		~File();
-
-		bool         atEnd() const;
-		iterator     begin();
-		void         close();
-		iterator&    end();
-		bool         flush();
-		bool         isNull() const;
-		bool         readLine (QString& line);
-		void         rewind();
-		bool         open (FILE* fp, OpenType rtype);
-		bool         open (QString path, OpenType rtype, FILE* fp = null);
-		void         write (QString msg);
-
-		bool         operator!() const;
-		operator bool() const;
-
-		inline QString getPath() const { return m_path; }
-
-	private:
-		QFile*			m_file;
-		QTextStream*	m_textstream;
-		iterator			m_endIterator;
-		QString				m_path;
-};
-
-// =============================================================================
 // LDBoundingBox
 //
 // The bounding box is the box that encompasses a given set of objects.
@@ -340,8 +276,8 @@ class LDBoundingBox
 QString DoFormat (QList<StringFormatArg> args);
 
 // printf replacement
-void doPrint (File& f, initlist<StringFormatArg> args);
-void doPrint (FILE* f, initlist<StringFormatArg> args); // heh
+void doPrint (QFile& f, QList<StringFormatArg> args);
+void doPrint (FILE* fp, QList<StringFormatArg> args);
 
 // log() - universal access to the message log. Defined here so that I don't have
 // to include messagelog.h here and recompile everything every time that file changes.
@@ -354,12 +290,11 @@ void DoLog (std::initializer_list<StringFormatArg> args);
 # define log(...) DoLog({ __VA_ARGS__ })
 #else
 QString fmt (const char* fmtstr, ...);
-void fprint (File& f, const char* fmtstr, ...);
+void fprint (QFile& f, const char* fmtstr, ...);
+void fprint (FILE* fp, const char* fmtstr, ...);
 void log (const char* fmtstr, ...);
 #endif
 
-extern File g_file_stdout;
-extern File g_file_stderr;
 extern const Vertex g_origin; // Vertex at (0, 0, 0)
 extern const Matrix g_identity; // Identity matrix
 

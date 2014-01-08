@@ -36,8 +36,6 @@
 QList<LDDocument*> g_loadedFiles;
 ForgeWindow* g_win = null;
 const QApplication* g_app = null;
-File g_file_stdout (stdout, File::Write);
-File g_file_stderr (stderr, File::Write);
 static QString g_versionString, g_fullVersionString;
 
 const Vertex g_origin (0.0f, 0.0f, 0.0f);
@@ -89,7 +87,7 @@ int main (int argc, char* argv[])
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void doPrint (File& f, initlist<StringFormatArg> args)
+void doPrint (QFile& f, QList<StringFormatArg> args)
 {
 	QString msg = DoFormat (args);
 	f.write (msg.toUtf8());
@@ -98,7 +96,7 @@ void doPrint (File& f, initlist<StringFormatArg> args)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void doPrint (FILE* fp, initlist<StringFormatArg> args)
+void doPrint (FILE* fp, QList<StringFormatArg> args)
 {
 	QString msg = DoFormat (args);
 	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
