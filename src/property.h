@@ -113,6 +113,12 @@
 		inline void clear##NAME()							\
 		{													\
 			set##NAME( TYPE() );							\
+		}													\
+															\
+	public:													\
+		inline int count##NAME()							\
+		{													\
+			return get##NAME().size();						\
 		}
 
 #endif // LDFORGE_PROPERTY_H

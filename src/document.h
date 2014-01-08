@@ -56,16 +56,17 @@ class LDDocument : public QObject
 {
 	properties:
 		Q_OBJECT
-		PROPERTY (private,	QList<LDObject*>,	Objects, 		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	History*,			History,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QList<LDObject*>,	Vertices,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,	QString,				Name,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,				FullPath,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,				DefaultName,	STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	bool,				Implicit,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QList<LDObject*>,	Cache,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,	long,				SavePosition,	NUM_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QListWidgetItem*,	ListItem,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QList<LDObject*>,			Objects, 		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	History*,					History,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QList<LDObject*>,			Vertices,		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QList<LDDocumentPointer*>,	References,		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,					Name,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,					FullPath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QString,					DefaultName,	STR_OPS,	STOCK_WRITE)
+		PROPERTY (public,	bool,						Implicit,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QList<LDObject*>,			Cache,			LIST_OPS,	STOCK_WRITE)
+		PROPERTY (public,	long,						SavePosition,	NUM_OPS,	STOCK_WRITE)
+		PROPERTY (public,	QListWidgetItem*,			ListItem,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -88,7 +89,6 @@ class LDDocument : public QObject
 		void setObject (int idx, LDObject* obj);
 		void addReference (LDDocumentPointer* ptr);
 		void removeReference (LDDocumentPointer* ptr);
-		int numReferences() const { return m_refs.size(); }
 
 		inline LDDocument& operator<< (LDObject* obj)
 		{
@@ -136,8 +136,11 @@ class LDDocument : public QObject
 		friend class LDObject;
 
 	private:
-		QList<LDObject*>				m_sel;
-		QList<LDDocumentPointer*>	m_refs;
+		QList<LDObject*>			m_sel;
+
+		// If set to true, next inline of this document discards the cache and
+		// re-builds it.
+		bool						m_needsCache;
 
 		static LDDocument*			m_curdoc;
 };

@@ -21,11 +21,12 @@
 
 #include "../main.h"
 
+class LDSubfile;
 class LDDocument;
 
 class LDDocumentPointer
 {
-	PROPERTY (private, LDDocument*, Pointer, NO_OPS, STOCK_WRITE)
+	PROPERTY (private, LDDocument*,			Pointer,	NO_OPS, STOCK_WRITE)
 
 	public:
 		LDDocumentPointer();

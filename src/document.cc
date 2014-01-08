@@ -626,6 +626,20 @@ void addRecentFile (QString path)
 void openMainFile (QString path)
 {
 	g_loadingMainFile = true;
+
+	// If there's already a file with the same name, this file must replace it.
+	LDDocument* documentToReplace = null;
+	QString shortName = LDDocument::shortenName (path);
+
+	for (LDDocument* doc : g_loadedFiles)
+	{
+		if (doc->getName() == shortName)
+		{
+			documentToReplace = doc;
+			break;
+		}
+	}
+
 	LDDocument* file = openDocument (path, false);
 
 	if (!file)
@@ -646,6 +660,19 @@ void openMainFile (QString path)
 	}
 
 	file->setImplicit (false);
+
+	// Replace references to the old file with the new file.
+	if (documentToReplace != null)
+	{
+		for (LDDocumentPointer* ptr : documentToReplace->getReferences())
+		{	dlog ("ptr: %1 (%2)\n",
+				ptr, ptr->getPointer() ? ptr->getPointer()->getName() : "<null>");
+
+			ptr->operator= (file);
+		}
+
+		assert (documentToReplace->countReferences() == 0);
+	}
 
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
@@ -1091,7 +1118,7 @@ void LDDocument::setObject (int idx, LDObject* obj)
 void LDDocument::closeUnused()
 {
 	for (LDDocument* file : g_loadedFiles)
-		if (file->isImplicit() && file->numReferences() == 0)
+		if (file->isImplicit() && file->countReferences() == 0)
 			delete file;
 }
 
@@ -1155,8 +1182,14 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 	bool deep = flags & LDSubfile::DeepInline,
 		 doCache = flags & LDSubfile::CacheInline;
 
+	if (m_needsCache)
+	{
+		clearCache();
+		doCache = true;
+	}
+
 	// If we have this cached, just create a copy of that
-	if (deep && getCache().size())
+	if (deep && getCache().isEmpty() == false)
 	{
 		for (LDObject* obj : getCache())
 			objs << obj->createCopy();
@@ -1357,15 +1390,15 @@ QString LDDocument::shortenName (QString a) // [static]
 // -----------------------------------------------------------------------------
 void LDDocument::addReference (LDDocumentPointer* ptr)
 {
-	m_refs << ptr;
+	pushToReferences (ptr);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void LDDocument::removeReference (LDDocumentPointer* ptr)
 {
-	m_refs.removeOne (ptr);
+	removeFromReferences (ptr);
 
-	if (m_refs.size() == 0)
+	if (getReferences().size() == 0)
 		invokeLater (closeUnused);
 }

@@ -67,13 +67,13 @@ class LDSharedVertex;
 // =============================================================================
 class LDObject
 {
-	PROPERTY (public,		bool,			Hidden,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		bool,			Selected,	BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		LDObject*,		Parent,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,	File,		NO_OPS,		STOCK_WRITE) // TODO: rename~
-	PROPERTY (private,		int,				ID,			NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,		int,				Color,		NUM_OPS,	CUSTOM_WRITE)
-	PROPERTY (public,		bool,			GLInit,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,			Hidden,			BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,			Selected,		BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		LDObject*,		Parent,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE) // TODO: rename~
+	PROPERTY (private,		int,				ID,				NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,		int,				Color,			NUM_OPS,	CUSTOM_WRITE)
+	PROPERTY (public,		bool,			GLInit,			BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		// Object type codes. Codes are sorted in order of significance.

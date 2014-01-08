@@ -997,10 +997,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs;
 
-			objs = ref->inlineContents (
-					   LDSubfile::DeepInline |
-					   LDSubfile::CacheInline |
-					   LDSubfile::RendererInline);
+			objs = ref->inlineContents (LDSubfile::DeepInline | LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
 
 			if (ref->getTransform().getDeterminant() < 0)
@@ -1396,6 +1393,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 			continue; // White is background; skip
 
 		LDObject* obj = LDObject::fromID (idx);
+		assert (obj != null);
 
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.

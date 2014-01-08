@@ -18,9 +18,9 @@
 
 #include "documentPointer.h"
 #include "../document.h"
+#include "../misc.h"
 
 LDDocumentPointer::LDDocumentPointer()  : m_Pointer (null) {}
-
 
 // =============================================================================
 // -----------------------------------------------------------------------------
