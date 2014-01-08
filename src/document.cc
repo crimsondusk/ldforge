@@ -640,6 +640,14 @@ void openMainFile (QString path)
 		}
 	}
 
+	// We cannot open this file if the document this would replace is not
+	// safe to close.
+	if (documentToReplace != null && documentToReplace->isSafeToClose() == false)
+	{
+		g_loadingMainFile = false;
+		return;
+	}
+
 	LDDocument* file = openDocument (path, false);
 
 	if (!file)
@@ -672,6 +680,7 @@ void openMainFile (QString path)
 		}
 
 		assert (documentToReplace->countReferences() == 0);
+		delete documentToReplace;
 	}
 
 	// If we have an anonymous, unchanged file open as the only open file
@@ -692,7 +701,7 @@ void openMainFile (QString path)
 bool LDDocument::save (QString savepath)
 {
 	if (!savepath.length())
-		savepath = getName();
+		savepath = getFullPath();
 
 	File f (savepath, File::Write);
 
