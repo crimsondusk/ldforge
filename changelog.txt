@@ -7,7 +7,6 @@
 - Added ability to download parts from the Parts Tracker or from a custom-specified URL. If the resulting
 	file contains references to unknown files, LDForge attempts to recursively download all of them.
 - Added a new editing mode for drawing circles.
-- Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
 - Major corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
@@ -60,6 +59,11 @@
 	there was no error message and instead LDForge took this as no output from the program.
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
+
+=================================================
+== Changes in version 0.2.1
+=================================================
+- Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
 
 =================================================
 == Changes in version 0.2
