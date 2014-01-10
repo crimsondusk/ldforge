@@ -396,7 +396,7 @@ DEFINE_ACTION (InsertFrom, 0)
 		return;
 	}
 
-	QList<LDObject*> objs = loadFileContents (&f, null);
+	LDObjectList objs = loadFileContents (&f, null);
 
 	getCurrentDocument()->clearSelection();
 

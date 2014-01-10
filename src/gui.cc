@@ -299,7 +299,7 @@ int ForgeWindow::deleteSelection()
 	if (selection().isEmpty())
 		return 0;
 
-	QList<LDObject*> selCopy = selection();
+	LDObjectList selCopy = selection();
 
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy)
@@ -460,7 +460,7 @@ void ForgeWindow::slot_selectionChanged()
 	if (m_renderer->isPicking())
 		return;
 
-	QList<LDObject*> priorSelection = selection();
+	LDObjectList priorSelection = selection();
 
 	// Get the objects from the object list selection
 	getCurrentDocument()->clearSelection();
@@ -479,7 +479,7 @@ void ForgeWindow::slot_selectionChanged()
 	}
 
 	// Update the GL renderer
-	QList<LDObject*> compound = priorSelection + selection();
+	LDObjectList compound = priorSelection + selection();
 	removeDuplicates (compound);
 
 	for (LDObject* obj : compound)
@@ -689,7 +689,7 @@ void ForgeWindow::spawnContextMenu (const QPoint pos)
 // =============================================================================
 // TODO: what the heh?
 // -----------------------------------------------------------------------------
-void ForgeWindow::deleteObjects (QList<LDObject*> objs)
+void ForgeWindow::deleteObjects (LDObjectList objs)
 {
 	for (LDObject* obj : objs)
 		obj->deleteSelf();
@@ -699,7 +699,7 @@ void ForgeWindow::deleteObjects (QList<LDObject*> objs)
 // -----------------------------------------------------------------------------
 void ForgeWindow::deleteByColor (const int colnum)
 {
-	QList<LDObject*> objs;
+	LDObjectList objs;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{

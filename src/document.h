@@ -56,15 +56,15 @@ class LDDocument : public QObject
 {
 	properties:
 		Q_OBJECT
-		PROPERTY (private,	QList<LDObject*>,			Objects, 		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,			Objects, 		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (private,	History*,					History,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QList<LDObject*>,			Vertices,		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,			Vertices,		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (private,	QList<LDDocumentPointer*>,	References,		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QString,					Name,			STR_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QString,					FullPath,		STR_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QString,					DefaultName,	STR_OPS,	STOCK_WRITE)
 		PROPERTY (public,	bool,						Implicit,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QList<LDObject*>,			Cache,			LIST_OPS,	STOCK_WRITE)
+		PROPERTY (public,	LDObjectList,			Cache,			LIST_OPS,	STOCK_WRITE)
 		PROPERTY (public,	long,						SavePosition,	NUM_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QListWidgetItem*,			ListItem,		NO_OPS,		STOCK_WRITE)
 
@@ -73,13 +73,13 @@ class LDDocument : public QObject
 		~LDDocument();
 
 		int addObject (LDObject* obj); // Adds an object to this file at the end of the file.
-		void addObjects (const QList<LDObject*> objs);
+		void addObjects (const LDObjectList objs);
 		void clearSelection();
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
 		QString getDisplayName();
-		const QList<LDObject*>& getSelection() const;
+		const LDObjectList& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document.have unsaved changes?
-		QList<LDObject*> inlineContents (LDSubfile::InlineFlags flags);
+		LDObjectList inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
 		int getObjectCount() const;
 		LDObject* getObject (int pos) const;
@@ -136,7 +136,7 @@ class LDDocument : public QObject
 		friend class LDObject;
 
 	private:
-		QList<LDObject*>			m_sel;
+		LDObjectList			m_sel;
 
 		// If set to true, next inline of this document discards the cache and
 		// re-builds it.
@@ -182,11 +182,11 @@ void reloadAllSubfiles();
 // Is it safe to close all files?
 bool safeToCloseAll();
 
-QList<LDObject*> loadFileContents (QFile* f, int* numWarnings, bool* ok = null);
+LDObjectList loadFileContents (QFile* f, int* numWarnings, bool* ok = null);
 
 extern QList<LDDocument*> g_loadedFiles;
 
-inline const QList<LDObject*>& selection()
+inline const LDObjectList& selection()
 {
 	return getCurrentDocument()->getSelection();
 }
@@ -210,7 +210,7 @@ extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files
 class LDFileLoader : public QObject
 {
 	Q_OBJECT
-	PROPERTY (private,	QList<LDObject*>,	Objects,			NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	LDObjectList,	Objects,			NO_OPS,		STOCK_WRITE)
 	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
 	PROPERTY (private,	int,					Progress,		NUM_OPS,		STOCK_WRITE)
 	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	STOCK_WRITE)

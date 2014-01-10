@@ -169,10 +169,10 @@ class LDObject
 		static LDObject* getDefault (const LDObject::Type type);
 
 		// TODO: move this to LDDocument?
-		static void moveObjects (QList<LDObject*> objs, const bool up);
+		static void moveObjects (LDObjectList objs, const bool up);
 
 		// Get a description of a list of LDObjects
-		static QString describeObjects (const QList<LDObject*>& objs);
+		static QString describeObjects (const LDObjectList& objs);
 		static LDObject* fromID (int id);
 
 		// TODO: make these private!
@@ -224,7 +224,7 @@ class LDSharedVertex
 		LDSharedVertex (const Vertex& a) : m_data (a) {}
 
 	private:
-		QList<LDObject*> m_refs;
+		LDObjectList m_refs;
 		Vertex m_data;
 };
 
@@ -415,7 +415,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 		// Inlines this subfile. Note that return type is an array of heap-allocated
 		// LDObject copies, they must be deleted manually.
-		QList<LDObject*> inlineContents (InlineFlags flags);
+		LDObjectList inlineContents (InlineFlags flags);
 
 	protected:
 		~LDSubfile();

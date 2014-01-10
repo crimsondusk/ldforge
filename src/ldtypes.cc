@@ -30,7 +30,7 @@ cfg (String, ld_defaultuser, "");
 cfg (Int, ld_defaultlicense, 0);
 
 // List of all LDObjects
-static QList<LDObject*> g_LDObjects;
+static LDObjectList g_LDObjects;
 
 // =============================================================================
 // LDObject constructors
@@ -354,9 +354,9 @@ static void transformObject (LDObject* obj, Matrix transform, Vertex pos, int pa
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> LDSubfile::inlineContents (InlineFlags flags)
+LDObjectList LDSubfile::inlineContents (InlineFlags flags)
 {
-	QList<LDObject*> objs = getFileInfo()->inlineContents (flags);
+	LDObjectList objs = getFileInfo()->inlineContents (flags);
 
 	// Transform the objects
 	for (LDObject* obj : objs)
@@ -384,7 +384,7 @@ long LDObject::getIndex() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
+void LDObject::moveObjects (LDObjectList objs, const bool up)
 {
 	if (objs.isEmpty())
 		return;
@@ -393,7 +393,7 @@ void LDObject::moveObjects (QList<LDObject*> objs, const bool up)
 	const long start = up ? 0 : (objs.size() - 1);
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
-	QList<LDObject*> objsToCompile;
+	LDObjectList objsToCompile;
 	LDDocument* file = objs[0]->getFile();
 
 	for (long i = start; i != end; i += incr)
@@ -438,7 +438,7 @@ QString LDObject::typeName (LDObject::Type type)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QString LDObject::describeObjects (const QList<LDObject*>& objs)
+QString LDObject::describeObjects (const LDObjectList& objs)
 {
 	bool firstDetails = true;
 	QString text = "";

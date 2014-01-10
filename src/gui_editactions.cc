@@ -42,7 +42,7 @@ extern_cfg (String, ld_defaultuser);
 // -----------------------------------------------------------------------------
 static int copyToClipboard()
 {
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 	int num = 0;
 
 	// Clear the clipboard first.
@@ -116,7 +116,7 @@ DEFINE_ACTION (Delete, KEY (Delete))
 // -----------------------------------------------------------------------------
 static void doInline (bool deep)
 {
-	QList<LDObject*> sel = selection();
+	LDObjectList sel = selection();
 
 	for (LDObject* obj : sel)
 	{
@@ -127,7 +127,7 @@ static void doInline (bool deep)
 		if (idx == -1)
 			continue;
 
-		QList<LDObject*> objs;
+		LDObjectList objs;
 
 		if (obj->getType() == LDObject::ESubfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (
@@ -170,7 +170,7 @@ DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SplitQuads, 0)
 {
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 	int num = 0;
 
 	for (LDObject* obj : objs)
@@ -250,7 +250,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 	int colnum;
 	int defcol = -1;
 
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
@@ -276,7 +276,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 {
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 	int num = 0;
 
 	for (LDObject* obj : objs)
@@ -357,7 +357,7 @@ DEFINE_ACTION (CornerVerts, 0)
 // -----------------------------------------------------------------------------
 static void doMoveSelection (const bool up)
 {
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 	LDObject::moveObjects (objs, up);
 	g_win->buildObjList();
 }
@@ -440,7 +440,7 @@ DEFINE_ACTION (MoveZPos, KEY (Up))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 {
-	QList<LDObject*> sel = selection();
+	LDObjectList sel = selection();
 
 	for (LDObject* obj : sel)
 	{
@@ -464,7 +464,7 @@ static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& trans
 // -----------------------------------------------------------------------------
 static void doRotate (const int l, const int m, const int n)
 {
-	QList<LDObject*> sel = selection();
+	LDObjectList sel = selection();
 	QList<Vertex*> queue;
 	const Vertex rotpoint = rotPoint (sel);
 	const double angle = (pi * *currentGrid().confs[Grid::Angle]) / 180,
@@ -721,7 +721,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Demote, 0)
 {
-	QList<LDObject*> sel = selection();
+	LDObjectList sel = selection();
 	int num = 0;
 
 	for (LDObject* obj : sel)

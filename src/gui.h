@@ -111,7 +111,7 @@ class ForgeWindow : public QMainWindow
 		LDObject::Type getUniformSelectedType();
 		void scrollToSelection();
 		void spawnContextMenu (const QPoint pos);
-		void deleteObjects (QList<LDObject*> objs);
+		void deleteObjects (LDObjectList objs);
 		int deleteSelection();
 		void deleteByColor (const int colnum);
 		bool save (LDDocument* f, bool saveAs);
@@ -236,7 +236,7 @@ class ForgeWindow : public QMainWindow
 
 	private:
 		GLRenderer* m_renderer;
-		QList<LDObject*> m_sel;
+		LDObjectList m_sel;
 		QList<LDQuickColor> m_quickColors;
 		QList<QToolButton*> m_colorButtons;
 		QList<QAction*> m_recentFiles;

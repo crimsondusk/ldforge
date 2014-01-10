@@ -67,7 +67,7 @@ enum RotationPoint
 	CustomPoint
 };
 
-Vertex rotPoint (const QList<LDObject*>& objs);
+Vertex rotPoint (const LDObjectList& objs);
 void configRotationPoint();
 
 // =============================================================================

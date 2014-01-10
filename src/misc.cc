@@ -209,7 +209,7 @@ void simplify (int& numer, int& denom)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-Vertex rotPoint (const QList<LDObject*>& objs)
+Vertex rotPoint (const LDObjectList& objs)
 {
 	switch (edit_rotpoint)
 	{

@@ -166,14 +166,14 @@ static QString processErrorString (extprog prog, QProcess& proc)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, QFile& f)
+static void writeObjects (const LDObjectList& objects, QFile& f)
 {
 	for (LDObject* obj : objects)
 	{
 		if (obj->getType() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
+			LDObjectList objs = ref->inlineContents (LDSubfile::DeepInline);
 
 			writeObjects (objs, f);
 
@@ -187,7 +187,7 @@ static void writeObjects (const QList<LDObject*>& objects, QFile& f)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, QString fname)
+static void writeObjects (const LDObjectList& objects, QString fname)
 {
 	// Write the input file
 	QFile f (fname);
@@ -217,7 +217,7 @@ void writeSelection (QString fname)
 // -----------------------------------------------------------------------------
 void writeColorGroup (const int colnum, QString fname)
 {
-	QList<LDObject*> objects;
+	LDObjectList objects;
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{
@@ -303,7 +303,7 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 		return;
 	}
 
-	QList<LDObject*> objs = loadFileContents (&f, null);
+	LDObjectList objs = loadFileContents (&f, null);
 
 	// If we replace the objects, delete the selection now.
 	if (replace)

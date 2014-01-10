@@ -351,7 +351,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 		case LDObject::ESubfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
+			LDObjectList objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
 			for (LDObject * obj : objs)
 			{

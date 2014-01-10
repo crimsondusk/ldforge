@@ -995,7 +995,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 		case LDObject::ESubfile:
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			QList<LDObject*> objs;
+			LDObjectList objs;
 
 			objs = ref->inlineContents (LDSubfile::DeepCacheInline | LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
@@ -1324,7 +1324,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Clear the selection if we do not wish to add to it.
 	if (!m_addpick)
 	{
-		QList<LDObject*> oldsel = selection();
+		LDObjectList oldsel = selection();
 		getCurrentDocument()->clearSelection();
 
 		for (LDObject* obj : oldsel)
@@ -1462,7 +1462,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 			setCursor (Qt::CrossCursor);
 
 			// Clear the selection when beginning to draw.
-			QList<LDObject*> priorsel = selection();
+			LDObjectList priorsel = selection();
 			getCurrentDocument()->clearSelection();
 
 			for (LDObject* obj : priorsel)
@@ -1510,7 +1510,7 @@ void GLRenderer::endDraw (bool accept)
 
 	// Clean the selection and create the object
 	QList<Vertex>& verts = m_drawedVerts;
-	QList<LDObject*> objs;
+	LDObjectList objs;
 
 	switch (getEditMode())
 	{
@@ -1729,7 +1729,7 @@ static QList<Vertex> getVertices (LDObject* obj)
 	} elif (obj->getType() == LDObject::ESubfile)
 	{
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
-		QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepCacheInline);
+		LDObjectList objs = ref->inlineContents (LDSubfile::DeepCacheInline);
 
 		for (LDObject* obj : objs)
 		{

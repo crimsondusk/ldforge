@@ -385,9 +385,9 @@ void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> makePrimitive (PrimitiveType type, int segs, int divs, int num)
+LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
-	QList<LDObject*> objs;
+	LDObjectList objs;
 	QList<int> condLineSegs;
 	QList<QLineF> circle;
 

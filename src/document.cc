@@ -434,10 +434,10 @@ void LDFileLoader::abort()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> loadFileContents (QFile* fp, int* numWarnings, bool* ok)
+LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 {
 	QStringList lines;
-	QList<LDObject*> objs;
+	LDObjectList objs;
 
 	if (numWarnings)
 		*numWarnings = 0;
@@ -505,7 +505,7 @@ LDDocument* openDocument (QString path, bool search)
 
 	int numWarnings;
 	bool ok;
-	QList<LDObject*> objs = loadFileContents (fp, &numWarnings, &ok);
+	LDObjectList objs = loadFileContents (fp, &numWarnings, &ok);
 	fp->close();
 	fp->deleteLater();
 
@@ -1074,7 +1074,7 @@ int LDDocument::addObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void LDDocument::addObjects (const QList<LDObject*> objs)
+void LDDocument::addObjects (const LDObjectList objs)
 {
 	for (LDObject* obj : objs)
 		if (obj)
@@ -1190,7 +1190,7 @@ QString LDDocument::getDisplayName()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
+LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 {
 	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
@@ -1206,7 +1206,7 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 			return g_logoedStud2->inlineContents (flags);
 	}
 
-	QList<LDObject*> objs, objcache;
+	LDObjectList objs, objcache;
 
 	bool deep = flags & LDSubfile::DeepInline,
 		 doCache = flags & LDSubfile::CacheInline;
@@ -1243,7 +1243,7 @@ QList<LDObject*> LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 
 				// We only want to cache immediate subfiles, so shed the caching
 				// flag when recursing deeper in hierarchy.
-				QList<LDObject*> otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
+				LDObjectList otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
 
 				for (LDObject* otherobj : otherobjs)
 				{
@@ -1385,7 +1385,7 @@ void LDDocument::clearSelection()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const QList<LDObject*>& LDDocument::getSelection() const
+const LDObjectList& LDDocument::getSelection() const
 {
 	return m_sel;
 }
