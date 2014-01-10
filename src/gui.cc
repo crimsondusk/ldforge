@@ -285,7 +285,9 @@ void ForgeWindow::updateTitle()
 	title += " [pre-release build]";
 #endif // DEBUG
 
+#ifdef COMPILE_DATE
 	title += " (built " COMPILE_DATE ")";
+#endif // COMPILE_DATE
 
 	setWindowTitle (title);
 }

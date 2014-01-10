@@ -388,11 +388,8 @@ void LDBoundingBox::calcVertex (const Vertex& v)
 {
 	for_axes (ax)
 	{
-		if (v[ax] < m_Vertex0[ax])
-			m_Vertex0[ax] = v[ax];
-
-		if (v[ax] > m_Vertex1[ax])
-			m_Vertex1[ax] = v[ax];
+		m_Vertex0[ax] = min (v[ax], m_Vertex0[ax]);
+		m_Vertex1[ax] = max (v[ax], m_Vertex1[ax]);
 	}
 
 	setEmpty (false);
@@ -402,9 +399,8 @@ void LDBoundingBox::calcVertex (const Vertex& v)
 // -----------------------------------------------------------------------------
 void LDBoundingBox::reset()
 {
-	m_Vertex0[X] = m_Vertex0[Y] = m_Vertex0[Z] = 0x7FFFFFFF;
-	m_Vertex1[X] = m_Vertex1[Y] = m_Vertex1[Z] = 0xFFFFFFFF;
-
+	m_Vertex0[X] = m_Vertex0[Y] = m_Vertex0[Z] = 10000.0;
+	m_Vertex1[X] = m_Vertex1[Y] = m_Vertex1[Z] = -10000.0;
 	setEmpty (true);
 }
 

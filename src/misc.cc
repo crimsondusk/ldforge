@@ -211,18 +211,20 @@ void simplify (int& numer, int& denom)
 // -----------------------------------------------------------------------------
 Vertex rotPoint (const QList<LDObject*>& objs)
 {
-	LDBoundingBox box;
-
 	switch (edit_rotpoint)
 	{
 		case ObjectOrigin:
 		{
+			LDBoundingBox box;
+
 			// Calculate center vertex
 			for (LDObject* obj : objs)
+			{
 				if (obj->hasMatrix())
 					box << dynamic_cast<LDMatrixObject*> (obj)->getPosition();
 				else
 					box << obj;
+			}
 
 			return box.center();
 		}

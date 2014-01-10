@@ -25,8 +25,8 @@ CONFIG (debug, debug|release) {
 }
 
 exists(.git): DEFINES += GIT_DESCRIBE="\"\\\"$$system(git describe --tags --long)\\\"\""
-DEFINES += COMPILE_DATE="\"\\\"$$system(LC_ALL=C date \"+%d %h %Y %H:%M:%S\")\\\"\""
 
 unix {
 	LIBS += -lGLU
+	DEFINES += COMPILE_DATE="\"\\\"$$system(LC_ALL=C date \"+%d %h %Y %H:%M:%S\")\\\"\""
 }

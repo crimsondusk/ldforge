@@ -471,6 +471,8 @@ static void doRotate (const int l, const int m, const int n)
 				 cosangle = cos (angle),
 				 sinangle = sin (angle);
 
+	log ("rotpoint: %1", rotpoint);
+
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	Matrix transform (
 	{

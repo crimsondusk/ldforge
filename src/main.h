@@ -44,11 +44,6 @@
 #define BUILD_RELEASE	1
 
 // =============================================
-#ifndef COMPILE_DATE
-# error COMPILE_DATE is not set (qmake should have done this)
-#endif // COMPILE_DATE
-
-// =============================================
 #ifdef DEBUG
 # undef RELEASE
 #endif // DEBUG
