@@ -471,8 +471,6 @@ static void doRotate (const int l, const int m, const int n)
 				 cosangle = cos (angle),
 				 sinangle = sin (angle);
 
-	log ("rotpoint: %1", rotpoint);
-
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
 	Matrix transform (
 	{
@@ -500,20 +498,20 @@ static void doRotate (const int l, const int m, const int n)
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
-		} elif (obj->hasMatrix())
+		}
+		elif (obj->hasMatrix())
 		{
 			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
-			/*
-			vertex v = mo->getPosition();
+			Vertex v = mo->getPosition();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
-			*/
 
 			// Transform the matrix
 			mo->setTransform (transform * mo->getTransform());
-		} elif (obj->getType() == LDObject::EVertex)
+		}
+		elif (obj->getType() == LDObject::EVertex)
 		{
 			LDVertex* vert = static_cast<LDVertex*> (obj);
 			Vertex v = vert->pos;
