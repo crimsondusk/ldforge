@@ -70,6 +70,10 @@ void loadPrimitives()
 		while (conf.atEnd() == false)
 		{
 			QString line = conf.readLine();
+
+			if (line.endsWith ("\n"))
+				line.chop (1);
+
 			int space = line.indexOf (" ");
 
 			if (space == -1)
@@ -81,6 +85,7 @@ void loadPrimitives()
 			g_primitives << info;
 		}
 
+		PrimitiveCategory::populateCategories();
 		log ("%1 primitives loaded.\n", g_primitives.size());
 	}
 }

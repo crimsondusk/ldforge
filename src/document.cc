@@ -372,7 +372,7 @@ void LDFileLoader::work (int i)
 		// Trim the trailing newline
 		QChar c;
 
-		while (!line.isEmpty() && ((c = line[line.length() - 1]) == '\n' || c == '\r'))
+		while (line.endsWith ("\n") || line.endsWith ("\r"))
 			line.chop (1);
 
 		LDObject* obj = parseLine (line);

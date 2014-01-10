@@ -48,12 +48,7 @@ static QList<Config*>		g_configs;
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject()
 {
-	QString path = getApplicationDirectory() + DIRSLASH UNIXNAME EXTENSION;
-
-#if DIRSLASH_CHAR != '/'
-	path.replace (DIRSLASH, "/");
-#endif
-
+	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
 	return new QSettings (path, QSettings::IniFormat);
 }
 

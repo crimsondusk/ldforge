@@ -43,18 +43,6 @@ const Matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 
 cfg (Bool, firststart, true);
 
-static QString g_argv0;
-
-QString getApplicationDirectory()
-{
-	assert (g_argv0.isEmpty() == false);
-
-	if (g_argv0.indexOf (DIRSLASH) != -1)
-		return dirname (g_argv0);
-
-	return ".";
-}
-
 // =============================================================================
 // -----------------------------------------------------------------------------
 int main (int argc, char* argv[])
@@ -62,7 +50,6 @@ int main (int argc, char* argv[])
 	QApplication app (argc, argv);
 	app.setOrganizationName (APPNAME);
 	app.setApplicationName (APPNAME);
-	g_argv0 = argv[0];
 	initCrashCatcher();
 	LDDocument::setCurrent (null);
 

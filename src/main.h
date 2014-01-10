@@ -44,6 +44,11 @@
 #define BUILD_RELEASE	1
 
 // =============================================
+#ifndef COMPILE_DATE
+# error COMPILE_DATE is not set (qmake should have done this)
+#endif // COMPILE_DATE
+
+// =============================================
 #ifdef DEBUG
 # undef RELEASE
 #endif // DEBUG
@@ -99,8 +104,6 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 QString versionString();
 QString fullVersionString();
 
-QString getApplicationDirectory();
-
 #define properties private
 #define typedefs public
 #define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
@@ -108,6 +111,7 @@ QString getApplicationDirectory();
 // -----------------------------------------------------------------------------
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
 # error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
+# define COMPILE_DATE "14-01-10 10:31:09"
 
 # ifndef va_start
 #  define va_start(va, arg)
