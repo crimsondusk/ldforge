@@ -669,7 +669,7 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ScanPrimitives, 0)
 {
-	PrimitiveLister::start();
+	PrimitiveScanner::start();
 }
 
 // =============================================================================

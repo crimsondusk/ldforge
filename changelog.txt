@@ -18,6 +18,7 @@
 	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
 - Implicitely-opened documents are now closed automatically when rendered unused, hopefully reducing memory
 	usage somewhat.
+- Configuration is now always situated and read from the application working directory
 - LDraw code parser no longer complains about scientific notation.
 - Changing to draw mode while in free camera now causes the camera to be changed to top.
 - When drawing polygons, line lengths are now displayed. Added a configuration option to toggle this behavior.

@@ -64,18 +64,18 @@ class PrimitiveCategory : public QObject
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
-// PrimitiveLister
+// PrimitiveScanner
 //
 // Worker object that scans the primitives folder for primitives and
 // builds an index of them.
 // =============================================================================
-class PrimitiveLister : public QObject
+class PrimitiveScanner : public QObject
 {
 	Q_OBJECT
 
 	public:
-		explicit			PrimitiveLister (QObject* parent = 0);
-		virtual				~PrimitiveLister();
+		explicit			PrimitiveScanner (QObject* parent = 0);
+		virtual				~PrimitiveScanner();
 		static void			start();
 
 	public slots:
@@ -96,7 +96,7 @@ class PrimitiveLister : public QObject
 extern QList<PrimitiveCategory*> g_PrimitiveCategories;
 
 void loadPrimitives();
-PrimitiveLister* getPrimitiveLister();
+PrimitiveScanner* getActivePrimitiveScanner();
 
 enum PrimitiveType
 {

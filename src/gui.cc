@@ -90,15 +90,6 @@ ForgeWindow::ForgeWindow()
 	slot_selectionChanged();
 	setStatusBar (new QStatusBar);
 
-	// Init primitive loader task stuff
-	m_primLoaderBar = new QProgressBar;
-	m_primLoaderWidget = new QWidget;
-	QHBoxLayout* primLoaderLayout = new QHBoxLayout (m_primLoaderWidget);
-	primLoaderLayout->addWidget (new QLabel ("Loading primitives:"));
-	primLoaderLayout->addWidget (m_primLoaderBar);
-	statusBar()->addPermanentWidget (m_primLoaderWidget);
-	m_primLoaderWidget->hide();
-
 	// Make certain actions checkable
 	ui->actionAxes->setChecked (gl_axes);
 	ui->actionWireframe->setChecked (gl_wireframe);
@@ -508,7 +499,7 @@ void ForgeWindow::slot_quickColor()
 	QToolButton* button = static_cast<QToolButton*> (sender());
 	LDColor* col = null;
 
-	for (const LDQuickColor & entry : m_quickColors)
+	for (const LDQuickColor& entry : m_quickColors)
 	{
 		if (entry.getToolButton() == button)
 		{
@@ -744,37 +735,6 @@ void ForgeWindow::slot_editObject (QListWidgetItem* listitem)
 
 	AddObjectDialog::staticDialog (obj->getType(), obj);
 }
-
-#if 0
-// =============================================================================
-// -----------------------------------------------------------------------------
-void ForgeWindow::primitiveLoaderStart (int max)
-{
-	m_primLoaderWidget->show();
-	m_primLoaderBar->setRange (0, max);
-	m_primLoaderBar->setValue (0);
-	m_primLoaderBar->setFormat ("%p%");
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void ForgeWindow::primitiveLoaderUpdate (int prog)
-{
-	m_primLoaderBar->setValue (prog);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void ForgeWindow::primitiveLoaderEnd()
-{
-	QTimer* hidetimer = new QTimer;
-	connect (hidetimer, SIGNAL (timeout()), m_primLoaderWidget, SLOT (hide()));
-	hidetimer->setSingleShot (true);
-	hidetimer->start (1500);
-	m_primLoaderBar->setFormat (tr ("Done"));
-	log (tr ("Primitives scanned: %1 primitives listed"), m_primLoaderBar->value());
-}
-#endif
 
 // =============================================================================
 // -----------------------------------------------------------------------------

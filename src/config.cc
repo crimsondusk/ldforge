@@ -48,7 +48,13 @@ static QList<Config*>		g_configs;
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject()
 {
-	return new QSettings (UNIXNAME EXTENSION, QSettings::IniFormat);
+	QString path = getApplicationDirectory() + DIRSLASH UNIXNAME EXTENSION;
+
+#if DIRSLASH_CHAR != '/'
+	path.replace (DIRSLASH, "/");
+#endif
+
+	return new QSettings (path, QSettings::IniFormat);
 }
 
 Config::Config (QString name) :
@@ -161,8 +167,9 @@ template<class T> T* getConfigByName (QString name, Config::Type type)
 // =============================================================================
 // -----------------------------------------------------------------------------
 #undef IMPLEMENT_CONFIG
+
 #define IMPLEMENT_CONFIG(NAME)								\
-	NAME##Config* NAME##Config::getByName (QString name)		\
+	NAME##Config* NAME##Config::getByName (QString name)	\
 	{														\
 		return getConfigByName<NAME##Config> (name, NAME);	\
 	}

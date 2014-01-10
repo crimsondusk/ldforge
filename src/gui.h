@@ -134,11 +134,6 @@ class ForgeWindow : public QMainWindow
 		void endAction();
 
 	public slots:
-#if 0
-		void primitiveLoaderStart (int max);
-		void primitiveLoaderUpdate (int prog);
-		void primitiveLoaderEnd();
-#endif // 0
 		void changeCurrentFile();
 		void slot_action();
 		void slot_actionNew();
@@ -241,8 +236,6 @@ class ForgeWindow : public QMainWindow
 
 	private:
 		GLRenderer* m_renderer;
-		QProgressBar* m_primLoaderBar;
-		QWidget* m_primLoaderWidget;
 		QList<LDObject*> m_sel;
 		QList<LDQuickColor> m_quickColors;
 		QList<QToolButton*> m_colorButtons;

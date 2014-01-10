@@ -29,7 +29,7 @@
 
 QList<PrimitiveCategory*> g_PrimitiveCategories;
 QList<Primitive> g_primitives;
-static PrimitiveLister* g_activePrimLister = null;
+static PrimitiveScanner* g_activeScanner = null;
 PrimitiveCategory* g_unmatched = null;
 
 extern_cfg (String, ld_defaultname);
@@ -46,16 +46,15 @@ static const QStringList g_radialNameRoots =
 	"con"
 };
 
-PrimitiveLister* getPrimitiveLister()
+PrimitiveScanner* getActivePrimitiveScanner()
 {
-	return g_activePrimLister;
+	return g_activeScanner;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void loadPrimitives()
 {
-	log ("Loading primitives...\n");
 	PrimitiveCategory::loadCategories();
 
 	// Try to load prims.cfg
@@ -64,11 +63,10 @@ void loadPrimitives()
 	if (!conf.open (QIODevice::ReadOnly))
 	{
 		// No prims.cfg, build it
-		PrimitiveLister::start();
+		PrimitiveScanner::start();
 	}
 	else
 	{
-		// Read primitives from prims.cfg
 		while (conf.atEnd() == false)
 		{
 			QString line = conf.readLine();
@@ -83,7 +81,7 @@ void loadPrimitives()
 			g_primitives << info;
 		}
 
-		PrimitiveCategory::populateCategories();
+		log ("%1 primitives loaded.\n", g_primitives.size());
 	}
 }
 
@@ -91,13 +89,10 @@ void loadPrimitives()
 // -----------------------------------------------------------------------------
 static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 {
-	QFileInfoList flist = dir.entryInfoList();
+	QFileInfoList flist = dir.entryInfoList (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
 
-	for (const QFileInfo & info : flist)
+	for (const QFileInfo& info : flist)
 	{
-		if (info.fileName() == "." || info.fileName() == "..")
-			continue; // skip . and ..
-
 		if (info.isDir())
 			recursiveGetFilenames (QDir (info.absoluteFilePath()), fnames);
 		else
@@ -107,28 +102,29 @@ static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PrimitiveLister::PrimitiveLister (QObject* parent) :
+PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 	QObject (parent),
 	m_i (0)
 {
-	g_activePrimLister = this;
+	g_activeScanner = this;
 	QDir dir (LDPaths::prims());
 	assert (dir.exists());
 	m_baselen = dir.absolutePath().length();
 	recursiveGetFilenames (dir, m_files);
 	emit starting (m_files.size());
+	log ("Scanning primitives...");
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-PrimitiveLister::~PrimitiveLister()
+PrimitiveScanner::~PrimitiveScanner()
 {
-	g_activePrimLister = null;
+	g_activeScanner = null;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PrimitiveLister::work()
+void PrimitiveScanner::work()
 {
 	int j = min (m_i + 100, m_files.size());
 
@@ -167,19 +163,20 @@ void PrimitiveLister::work()
 		QFile conf (path);
 
 		if (!conf.open (QIODevice::WriteOnly | QIODevice::Text))
-			critical (fmt ("Couldn't write %1: %2", path, conf.errorString()));
+			critical (fmt ("Couldn't write primitive list %1: %2",
+				path, conf.errorString()));
 		else
 		{
 			for (Primitive& info : m_prims)
-				fprint (conf, "%1 %2\n", info.name, info.title);
+				fprint (conf, "%1 %2\r\n", info.name, info.title);
 
 			conf.close();
 		}
 
 		g_primitives = m_prims;
 		PrimitiveCategory::populateCategories();
-		log ("%1 primitives listed", g_primitives.size());
-		g_activePrimLister = null;
+		log ("%1 primitives scanned", g_primitives.size());
+		g_activeScanner = null;
 		emit workDone();
 		deleteLater();
 	}
@@ -193,18 +190,13 @@ void PrimitiveLister::work()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void PrimitiveLister::start()
+void PrimitiveScanner::start()
 {
-	if (g_activePrimLister)
+	if (g_activeScanner)
 		return;
 
-	PrimitiveLister* lister = new PrimitiveLister;
-	/*
-	connect (lister, SIGNAL (starting (int)), g_win, SLOT (primitiveLoaderStart (int)));
-	connect (lister, SIGNAL (update (int)), g_win, SLOT (primitiveLoaderUpdate (int)));
-	connect (lister, SIGNAL (workDone()), g_win, SLOT (primitiveLoaderEnd()));
-	*/
-	lister->work();
+	PrimitiveScanner* scanner = new PrimitiveScanner;
+	scanner->work();
 }
 
 // =============================================================================
@@ -361,7 +353,7 @@ bool PrimitiveCategory::isValidToInclude()
 // -----------------------------------------------------------------------------
 bool isPrimitiveLoaderBusy()
 {
-	return g_activePrimLister != null;
+	return g_activeScanner != null;
 }
 
 // =============================================================================

@@ -23,23 +23,6 @@
 #ifndef LDFORGE_MAIN_H
 #define LDFORGE_MAIN_H
 
-// Hack to make KDevelop parse QString properly. Q_REQUIRED_RESULT expands into
-// an __attribute__((warn_unused_result)) KDevelop's lexer doesn't seem to
-// understand, yielding an error and leaving some methods unlexed.
-//
-// The following first includes <QChar> to get Q_REQUIRED_RESULT defined first,
-// then re-defining it as nothing. This causes Q_REQUIRED_RESULT to essentially
-// "vanish" from QString's methods when KDevelop lexes them.
-//
-// Similar reasoning for Q_DECL_HIDDEN, except with Q_OBJECT this time.
-#ifdef IN_IDE_PARSER
-# include <QChar>
-# undef Q_REQUIRED_RESULT
-# undef Q_DECL_HIDDEN
-# define Q_REQUIRED_RESULT
-# define Q_DECL_HIDDEN
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -84,10 +67,6 @@ static const std::nullptr_t null = nullptr;
 # define DIRSLASH_CHAR '/'
 #endif // WIN32
 
-#ifdef null
-#undef null
-#endif // null
-
 #ifdef __GNUC__
 #define FUNCNAME __PRETTY_FUNCTION__
 #else
@@ -108,9 +87,7 @@ void dlog(void, ...) {}
 // On Windows I just can't get the actual error messages otherwise.
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
 
-#ifdef assert
-# undef assert
-#endif // assert
+#undef assert
 
 #ifdef DEBUG
 # define assert(N) { ((N) ? (void) 0 : assertionFailure (__FILE__, __LINE__, FUNCNAME, #N)); }
@@ -121,6 +98,8 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 // Version string identifier
 QString versionString();
 QString fullVersionString();
+
+QString getApplicationDirectory();
 
 #define properties private
 #define typedefs public
