@@ -997,7 +997,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			QList<LDObject*> objs;
 
-			objs = ref->inlineContents (LDSubfile::DeepInline | LDSubfile::RendererInline);
+			objs = ref->inlineContents (LDSubfile::DeepCacheInline | LDSubfile::RendererInline);
 			bool oldinvert = g_glInvert;
 
 			if (ref->getTransform().getDeterminant() < 0)
