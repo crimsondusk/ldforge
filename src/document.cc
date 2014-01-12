@@ -120,7 +120,8 @@ namespace LDPaths
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDDocument::LDDocument()
+LDDocument::LDDocument() :
+	m_gldata (new LDGLData)
 {
 	setImplicit (true);
 	setSavePosition (-1);
@@ -148,6 +149,7 @@ LDDocument::~LDDocument()
 		obj->deleteSelf();
 
 	delete m_History;
+	delete m_gldata;
 
 	// If we just closed the current file, we need to set the current
 	// file as something else.
@@ -1281,7 +1283,7 @@ LDDocument* LDDocument::current()
 // Sets the given file as the current one on display. At some point in time this
 // was an operation completely unheard of. ;)
 //
-// FIXME: f can be temporarily null. This probably should not be the case.
+// TODO: f can be temporarily null. This probably should not be the case.
 // -----------------------------------------------------------------------------
 void LDDocument::setCurrent (LDDocument* f)
 {
@@ -1299,7 +1301,6 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->buildObjList();
 		g_win->updateTitle();
 		g_win->R()->setFile (f);
-		g_win->R()->resetAllAngles();
 		g_win->R()->repaint();
 		log ("Changed file to %1", f->getDisplayName());
 	}

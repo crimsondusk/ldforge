@@ -22,6 +22,7 @@
 #include <QGLWidget>
 #include "main.h"
 #include "ldtypes.h"
+#include "document.h"
 
 class MessageManager;
 class QDialogButtonBox;
@@ -29,7 +30,6 @@ class RadioGroup;
 class QDoubleSpinBox;
 class QSpinBox;
 class QLineEdit;
-class LDDocument;
 class QTimer;
 
 enum EditMode
@@ -42,30 +42,57 @@ enum EditMode
 // Meta for overlays
 struct LDGLOverlay
 {
-	Vertex	v0,
-				v1;
-	int		ox,
-				oy;
-	double	lw,
-				lh;
-	QString		fname;
-	QImage*	img;
+	Vertex			v0,
+					v1;
+	int				ox,
+					oy;
+	double			lw,
+					lh;
+	QString			fname;
+	QImage*			img;
 };
 
 struct LDFixedCameraInfo
 {
-	const char glrotate[3];
-	const Axis axisX, axisY;
-	const bool negX, negY;
+	const char		glrotate[3];
+	const Axis		axisX,
+					axisY;
+	const bool		negX,
+					negY;
 };
 
 // =============================================================================
-// GLRenderer
+// Document-specific data
 //
+struct LDGLData
+{
+	double			rotX,
+					rotY,
+					rotZ,
+					panX[7],
+					panY[7],
+					zoom[7];
+	double			depthValues[6];
+	LDGLOverlay		overlays[6];
+	bool			init;
+
+	LDGLData()
+	{
+		for (int i = 0; i < 6; ++i)
+		{
+			overlays[i].img = null;
+			depthValues[i] = 0.0f;
+		}
+
+		init = false;
+	}
+};
+
+// =============================================================================
 // The main renderer object, draws the brick on the screen, manages the camera
 // and selection picking. The instance of GLRenderer is accessible as
 // g_win->R()
-// =============================================================================
+//
 class GLRenderer : public QGLWidget
 {
 	typedefs:
@@ -166,13 +193,7 @@ class GLRenderer : public QGLWidget
 		Qt::KeyboardModifiers		m_keymods;
 		Vertex						m_hoverpos;
 		double						m_virtWidth,
-									m_virtHeight,
-									m_rotX[7],
-									m_rotY[7],
-									m_rotZ[7],
-									m_panX[7],
-									m_panY[7],
-									m_zoom[7];
+									m_virtHeight;
 		bool						m_darkbg,
 									m_rangepick,
 									m_addpick,
@@ -194,8 +215,6 @@ class GLRenderer : public QGLWidget
 		bool						m_rectdraw;
 		Vertex						m_rectverts[4];
 		QColor						m_bgcolor;
-		double						m_depthValues[6];
-		LDGLOverlay					m_overlays[6];
 		QList<Vertex>				m_knownVerts;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
@@ -235,31 +254,38 @@ class GLRenderer : public QGLWidget
 		// Set the color to an object list
 		void           setObjectColor (LDObject* obj, const ListType list);
 
+		LDGLData& currentDocumentData() const
+		{
+			return *getFile()->getGLData();
+		}
+
 		// Get a rotation value
 		inline double& rot (Axis ax)
 		{
 			return
-				(ax == X) ? m_rotX[camera()] :
-				(ax == Y) ? m_rotY[camera()] :
-				            m_rotZ[camera()];
+				(ax == X) ? currentDocumentData().rotX :
+				(ax == Y) ? currentDocumentData().rotY :
+				            currentDocumentData().rotZ;
 		}
 
 		// Get a panning value
 		inline double& pan (Axis ax)
 		{
-			return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+			return (ax == X) ? currentDocumentData().panX[camera()] :
+				currentDocumentData().panY[camera()];
 		}
 
 		// Same except const (can be used in const methods)
 		inline const double& pan (Axis ax) const
 		{
-			return (ax == X) ? m_panX[camera()] : m_panY[camera()];
+			return (ax == X) ? currentDocumentData().panX[camera()] :
+				currentDocumentData().panY[camera()];
 		}
 
 		// Get the zoom value
 		inline double& zoom()
 		{
-			return m_zoom[camera()];
+			return currentDocumentData().zoom[camera()];
 		}
 
 	private slots:

@@ -19,14 +19,15 @@
 #ifndef LDFORGE_DOCUMENT_H
 #define LDFORGE_DOCUMENT_H
 
+#include <QObject>
 #include "main.h"
 #include "ldtypes.h"
 #include "history.h"
-#include <QObject>
 
 class History;
 class OpenProgressDialog;
 class LDDocumentPointer;
+struct LDGLData;
 
 namespace LDPaths
 {
@@ -133,16 +134,24 @@ class LDDocument : public QObject
 	protected:
 		void addToSelection (LDObject* obj);
 		void removeFromSelection (LDObject* obj);
+
+		LDGLData* getGLData()
+		{
+			return m_gldata;
+		}
+
 		friend class LDObject;
+		friend class GLRenderer;
 
 	private:
 		LDObjectList			m_sel;
+		LDGLData*				m_gldata;
 
 		// If set to true, next inline of this document discards the cache and
 		// re-builds it.
-		bool						m_needsCache;
+		bool					m_needsCache;
 
-		static LDDocument*			m_curdoc;
+		static LDDocument*		m_curdoc;
 };
 
 inline LDDocument* getCurrentDocument()

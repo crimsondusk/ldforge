@@ -146,12 +146,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 		info->cam = cam;
 	}
 
-	for (int i = 0; i < 6; ++i)
-	{
-		m_overlays[i].img = null;
-		m_depthValues[i] = 0.0f;
-	}
-
 	calcCameraIcons();
 }
 
@@ -160,7 +154,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 GLRenderer::~GLRenderer()
 {
 	for (int i = 0; i < 6; ++i)
-		delete m_overlays[i].img;
+		delete currentDocumentData().overlays[i].img;
 
 	for (CameraIcon& info : m_cameraIcons)
 		delete info.img;
@@ -605,12 +599,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	if (m_camera != EFreeCamera && !isPicking())
 	{
 		// Paint the overlay image if we have one
-		const LDGLOverlay& overlay = m_overlays[m_camera];
+		const LDGLOverlay& overlay = currentDocumentData().overlays[m_camera];
 
 		if (overlay.img != null)
 		{
-			QPoint v0 = coordconv3_2 (m_overlays[m_camera].v0),
-					   v1 = coordconv3_2 (m_overlays[m_camera].v1);
+			QPoint v0 = coordconv3_2 (currentDocumentData().overlays[m_camera].v0),
+					   v1 = coordconv3_2 (currentDocumentData().overlays[m_camera].v1);
 
 			QRect targRect (v0.x(), v0.y(), abs (v1.x() - v0.x()), abs (v1.y() - v0.y())),
 				  srcRect (0, 0, overlay.img->width(), overlay.img->height());
@@ -1434,7 +1428,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLRenderer::setEditMode (EditMode const& a)
 {
 	m_EditMode = a;
@@ -1477,16 +1471,26 @@ void GLRenderer::setEditMode (EditMode const& a)
 	update();
 }
 
+// =============================================================================
+//
 void GLRenderer::setFile (LDDocument* const& a)
 {
 	m_File = a;
 
 	if (a != null)
+	{
 		initOverlaysFromObjects();
+
+		if (currentDocumentData().init == false)
+		{
+			resetAllAngles();
+			currentDocumentData().init = true;
+		}
+	}
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Matrix GLRenderer::getCircleDrawMatrix (double scale)
 {
 	Matrix transform = g_circleDrawTransforms[camera() % 3];
@@ -1503,7 +1507,7 @@ Matrix GLRenderer::getCircleDrawMatrix (double scale)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLRenderer::endDraw (bool accept)
 {
 	(void) accept;
@@ -1889,7 +1893,7 @@ void GLRenderer::clearOverlay()
 	if (camera() == EFreeCamera)
 		return;
 
-	LDGLOverlay& info = m_overlays[camera()];
+	LDGLOverlay& info = currentDocumentData().overlays[camera()];
 	delete info.img;
 	info.img = null;
 
@@ -1901,7 +1905,7 @@ void GLRenderer::clearOverlay()
 void GLRenderer::setDepthValue (double depth)
 {
 	assert (camera() < EFreeCamera);
-	m_depthValues[camera()] = depth;
+	currentDocumentData().depthValues[camera()] = depth;
 }
 
 // =============================================================================
@@ -1909,7 +1913,7 @@ void GLRenderer::setDepthValue (double depth)
 double GLRenderer::getDepthValue() const
 {
 	assert (camera() < EFreeCamera);
-	return m_depthValues[camera()];
+	return currentDocumentData().depthValues[camera()];
 }
 
 // =============================================================================
@@ -1923,7 +1927,7 @@ const char* GLRenderer::getCameraName() const
 // -----------------------------------------------------------------------------
 LDGLOverlay& GLRenderer::getOverlay (int newcam)
 {
-	return m_overlays[newcam];
+	return currentDocumentData().overlays[newcam];
 }
 
 // =============================================================================
@@ -2123,7 +2127,7 @@ void GLRenderer::initOverlaysFromObjects()
 		if (cam == EFreeCamera)
 			continue;
 
-		LDGLOverlay& meta = m_overlays[cam];
+		LDGLOverlay& meta = currentDocumentData().overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!ovlobj && meta.img)
@@ -2145,7 +2149,7 @@ void GLRenderer::updateOverlayObjects()
 		if (cam == EFreeCamera)
 			continue;
 
-		LDGLOverlay& meta = m_overlays[cam];
+		LDGLOverlay& meta = currentDocumentData().overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
 		if (!meta.img && ovlobj)
