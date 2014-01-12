@@ -613,10 +613,8 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 		// Paint the coordinates onto the screen.
 		QString text = fmt (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
-
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
-
 		paint.setPen (textpen);
 		paint.drawText (m_width - textSize.width(), m_height - 16, textSize.width(),
 			textSize.height(), Qt::AlignCenter, text);
@@ -664,7 +662,6 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 			if (numverts > 0)
 			{
 				// Draw the polygon-to-be
-				paint.setPen (linepen);
 				paint.setBrush (polybrush);
 				paint.drawPolygon (poly, numverts);
 
@@ -672,9 +669,11 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				for (int i = 0; i < numverts; ++i)
 				{
 					QPoint& blip = poly[i];
+					paint.setPen (linepen);
 					drawBlip (paint, blip);
 
 					// Draw their coordinates
+					paint.setPen (textpen);
 					paint.drawText (blip.x(), blip.y() - 8, poly3d[i].stringRep (true));
 				}
 
