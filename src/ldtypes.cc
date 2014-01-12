@@ -66,41 +66,6 @@ void LDObject::chooseID()
 }
 
 // =============================================================================
-// Default implementations for LDObject's virtual methods. These should never be
-// actually called, for a subclass-less LDObject should never come into existance.
-// These exist only to satisfy the linker.
-// -----------------------------------------------------------------------------
-LDObject::Type LDObject::getType() const
-{
-	return LDObject::EUnidentified;
-}
-
-bool LDObject::hasMatrix() const
-{
-	return false;
-}
-
-bool LDObject::isColored() const
-{
-	return false;
-}
-
-bool LDObject::isScemantic() const
-{
-	return false;
-}
-
-QString LDObject::getTypeName() const
-{
-	return "";
-}
-
-int LDObject::vertices() const
-{
-	return 0;
-}
-
-// =============================================================================
 // -----------------------------------------------------------------------------
 void LDObject::setVertexCoord (int i, Axis ax, double value)
 {

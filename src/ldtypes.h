@@ -76,7 +76,7 @@ class LDObject
 	PROPERTY (public,		bool,			GLInit,			BOOL_OPS,	STOCK_WRITE)
 
 	public:
-		// Object type codes. Codes are sorted in order of significance.
+		// Object type codes.
 		enum Type
 		{
 			ESubfile,        // Object represents a sub-file reference
@@ -90,7 +90,7 @@ class LDObject
 			EComment,        // Object represents a comment
 			EError,          // Object is the result of failed parsing
 			EEmpty,          // Object represents an empty line
-			EUnidentified,   // Object is an uninitialized (SHOULD NEVER HAPPEN)
+			EUnidentified,   // Unknown object type (some functions return this; TODO: they probably should not)
 			ENumTypes        // Amount of object types
 		};
 
@@ -100,34 +100,34 @@ class LDObject
 		LDObject*					createCopy() const;
 
 		// Deletes this object
-		void							deleteSelf();
+		void						deleteSelf();
 
 		// Index (i.e. line number) of this object
-		long							getIndex() const;
+		long						getIndex() const;
 
 		// Type enumerator of this object
-		virtual LDObject::Type	getType() const;
+		virtual Type				getType() const = 0;
 
 		// Get a vertex by index
 		const Vertex&				getVertex (int i) const;
 
 		// Type name of this object
-		virtual QString					getTypeName() const;
+		virtual QString				getTypeName() const = 0;
 
 		// Does this object have a matrix and position? (see LDMatrixObject)
-		virtual bool				hasMatrix() const;
+		virtual bool				hasMatrix() const = 0;
 
 		// Inverts this object (winding is reversed)
-		virtual void				invert();
+		virtual void				invert() = 0;
 
 		// Is this object colored?
-		virtual bool				isColored() const;
+		virtual bool				isColored() const = 0;
 
 		// Does this object have meaning in the part model?
-		virtual bool				isScemantic() const;
+		virtual bool				isScemantic() const = 0;
 
 		// Moves this object using the given vertex as a movement List
-		void							move (Vertex vect);
+		void						move (Vertex vect);
 
 		// Object after this in the current file
 		LDObject*					next() const;
@@ -139,28 +139,28 @@ class LDObject
 		virtual						QString raw() const = 0;
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
-		void							replace (LDObject* other);
+		void						replace (LDObject* other);
 
 		// Selects this object.
-		void							select();
+		void						select();
 
 		// Set a vertex to the given value
-		void							setVertex (int i, const Vertex& vert);
+		void						setVertex (int i, const Vertex& vert);
 
 		// Set a single coordinate of a vertex
-		void							setVertexCoord (int i, Axis ax, double value);
+		void						setVertexCoord (int i, Axis ax, double value);
 
 		// Swap this object with another.
-		void							swap (LDObject* other);
+		void						swap (LDObject* other);
 
 		// What object in the current file ultimately references this?
 		LDObject*					topLevelParent();
 
 		// Removes this object from selection // TODO: rename to deselect?
-		void							unselect();
+		void						unselect();
 
 		// Number of vertices this object has // TODO: rename to getNumVertices
-		virtual int					vertices() const;
+		virtual int					vertices() const = 0;
 
 		// Get type name by enumerator
 		static QString typeName (LDObject::Type type);
@@ -373,7 +373,8 @@ class LDBFC : public LDObject
 
 	public:
 		LDBFC() {}
-		LDBFC (const LDBFC::Type type) : type (type) {}
+		LDBFC (const LDBFC::Type type) :
+			type (type) {}
 
 		// Statement strings
 		static const char* statements[];
@@ -550,11 +551,11 @@ class LDOverlay : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	int, Camera,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int, X,			NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int, Y,			NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int, Width,		NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int, Height,	NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 Camera,	NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 X,			NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 Y,			NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 Width,		NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 Height,	NUM_OPS,	STOCK_WRITE)
 	PROPERTY (public,	QString, FileName,	STR_OPS,	STOCK_WRITE)
 };
 
