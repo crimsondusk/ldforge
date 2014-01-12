@@ -11,3 +11,4 @@ ldforge_debug
 debug_lastOutput
 debug_lastInput
 .kdev_include_paths
+*.cfg
