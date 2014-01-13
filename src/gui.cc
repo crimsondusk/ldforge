@@ -54,7 +54,7 @@
 static bool g_isSelectionLocked = false;
 
 cfg (Bool, lv_colorize, true);
-cfg (String, gui_colortoolbar, "16:24:|:1:2:4:14:0:15:|:33:34:36:46");
+cfg (String, gui_colortoolbar, "16:24:|:4:25:14:27:2:3:11:1:22:|:0:72:71:15");
 cfg (Bool, gui_implicitfiles, false);
 extern_cfg (List,		io_recentfiles);
 extern_cfg (Bool,		gl_axes);
