@@ -25,17 +25,16 @@
 #include "dialogs.h"
 #include "document.h"
 #include "ui_rotpoint.h"
-#include "moc_misc.cpp"
-
 #include "misc/documentPointer.cc"
 #include "misc/ringFinder.cc"
+#include "misc/invokationDeferer.cc"
 
 // Prime number table.
 const int g_primes[NUM_PRIMES] =
 {
-	2,    3,    5,    7,   11,   13,   17,   19,   23,   29,
+	2,    3,    5,    7,    11,   13,   17,   19,   23,   29,
 	31,   37,   41,   43,   47,   53,   59,   61,   67,   71,
-	73,   79,   83,   89,   97,  101,  103,  107,  109,  113,
+	73,   79,   83,   89,   97,   101,  103,  107,  109,  113,
 	127,  131,  137,  139,  149,  151,  157,  163,  167,  173,
 	179,  181,  191,  193,  197,  199,  211,  223,  227,  229,
 	233,  239,  241,  251,  257,  263,  269,  271,  277,  281,
@@ -85,40 +84,38 @@ const int g_primes[NUM_PRIMES] =
 	3517, 3527, 3529, 3533, 3539, 3541, 3547, 3557, 3559, 3571,
 };
 
-static const int32 g_e10[] =
+static const long g_e10[] =
 {
-	1,
-	10,
-	100,
-	1000,
-	10000,
-	100000,
-	1000000,
-	10000000,
-	100000000,
-	1000000000,
+	1l,
+	10l,
+	100l,
+	1000l,
+	10000l,
+	100000l,
+	1000000l,
+	10000000l,
+	100000000l,
+	1000000000l,
 };
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 // Grid stuff
-cfg (Int,	grid,						Grid::Medium);
-cfg (Float,	grid_coarse_x,			5.0f);
-cfg (Float,	grid_coarse_y,			5.0f);
-cfg (Float,	grid_coarse_z,			5.0f);
-cfg (Float,	grid_coarse_angle,	45.0f);
-cfg (Float, grid_medium_x,			1.0f);
-cfg (Float,	grid_medium_y,			1.0f);
-cfg (Float,	grid_medium_z,			1.0f);
-cfg (Float,	grid_medium_angle,	22.5f);
-cfg (Float,	grid_fine_x,			0.1f);
-cfg (Float,	grid_fine_y,			0.1f);
-cfg (Float,	grid_fine_z,			0.1f);
-cfg (Float,	grid_fine_angle,		7.5f);
-cfg (Int,	edit_rotpoint,			0);
-cfg (Float,	edit_rotpoint_x,		0.0f); // TODO: make a VertexConfig and use it here
-cfg (Float,	edit_rotpoint_y,		0.0f);
-cfg (Float,	edit_rotpoint_z, 		0.0f);
+cfg (Int,		grid,					Grid::Medium);
+cfg (Float,		grid_coarse_x,			5.0f);
+cfg (Float,		grid_coarse_y,			5.0f);
+cfg (Float,		grid_coarse_z,			5.0f);
+cfg (Float,		grid_coarse_angle,		45.0f);
+cfg (Float, 	grid_medium_x,			1.0f);
+cfg (Float,		grid_medium_y,			1.0f);
+cfg (Float,		grid_medium_z,			1.0f);
+cfg (Float,		grid_medium_angle,		22.5f);
+cfg (Float,		grid_fine_x,			0.1f);
+cfg (Float,		grid_fine_y,			0.1f);
+cfg (Float,		grid_fine_z,			0.1f);
+cfg (Float,		grid_fine_angle,		7.5f);
+cfg (Int,		edit_rotpoint,			0);
+cfg (Vertex,	edit_customrotpoint,	g_origin);
 
 const gridinfo g_GridInfo[3] =
 {
@@ -195,7 +192,7 @@ void simplify (int& numer, int& denom)
 			if (numer <= prime || denom <= prime)
 				continue;
 
-			if ( (numer % prime == 0) && (denom % prime == 0))
+			if ((numer % prime == 0) && (denom % prime == 0))
 			{
 				numer /= prime;
 				denom /= prime;
@@ -211,9 +208,9 @@ void simplify (int& numer, int& denom)
 // -----------------------------------------------------------------------------
 Vertex rotPoint (const LDObjectList& objs)
 {
-	switch (edit_rotpoint)
+	switch ((ERotationPoint) edit_rotpoint)
 	{
-		case ObjectOrigin:
+		case EObjectOrigin:
 		{
 			LDBoundingBox box;
 
@@ -229,14 +226,14 @@ Vertex rotPoint (const LDObjectList& objs)
 			return box.center();
 		}
 
-		case WorldOrigin:
+		case EWorldOrigin:
 		{
 			return g_origin;
 		}
 
-		case CustomPoint:
+		case ECustomPoint:
 		{
-			return Vertex (edit_rotpoint_x, edit_rotpoint_y, edit_rotpoint_z);
+			return edit_customrotpoint;
 		}
 	}
 
@@ -251,36 +248,36 @@ void configRotationPoint()
 	Ui::RotPointUI ui;
 	ui.setupUi (dlg);
 
-	switch (edit_rotpoint)
+	switch ((ERotationPoint) edit_rotpoint)
 	{
-		case ObjectOrigin:
+		case EObjectOrigin:
 			ui.objectPoint->setChecked (true);
 			break;
 
-		case WorldOrigin:
+		case EWorldOrigin:
 			ui.worldPoint->setChecked (true);
 			break;
 
-		case CustomPoint:
+		case ECustomPoint:
 			ui.customPoint->setChecked (true);
 			break;
 	}
 
-	ui.customX->setValue (edit_rotpoint_x);
-	ui.customY->setValue (edit_rotpoint_y);
-	ui.customZ->setValue (edit_rotpoint_z);
+	ui.customX->setValue (edit_customrotpoint.x());
+	ui.customY->setValue (edit_customrotpoint.y());
+	ui.customZ->setValue (edit_customrotpoint.z());
 
 	if (!dlg->exec())
 		return;
 
 	edit_rotpoint =
-		(ui.objectPoint->isChecked()) ? ObjectOrigin :
-		(ui.worldPoint->isChecked())  ? WorldOrigin :
-		CustomPoint;
+		(ui.objectPoint->isChecked()) ? EObjectOrigin :
+		(ui.worldPoint->isChecked())  ? EWorldOrigin :
+		ECustomPoint;
 
-	edit_rotpoint_x = ui.customX->value();
-	edit_rotpoint_y = ui.customY->value();
-	edit_rotpoint_z = ui.customZ->value();
+	edit_customrotpoint.x() = ui.customX->value();
+	edit_customrotpoint.y() = ui.customY->value();
+	edit_customrotpoint.z() = ui.customZ->value();
 }
 
 // =============================================================================
@@ -301,34 +298,4 @@ void roundToDecimals (double& a, int decimals)
 {
 	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
 	a = round (a * g_e10[decimals]) / g_e10[decimals];
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-InvokationDeferer* g_invokationDeferer = new InvokationDeferer();
-
-InvokationDeferer::InvokationDeferer (QObject* parent) : QObject (parent)
-{
-	connect (this, SIGNAL (functionAdded()), this, SLOT (invokeFunctions()),
-		Qt::QueuedConnection);
-}
-
-void InvokationDeferer::addFunctionCall (InvokationDeferer::FunctionType func)
-{
-	m_funcs << func;
-	removeDuplicates (m_funcs);
-	emit functionAdded();
-}
-
-void InvokationDeferer::invokeFunctions()
-{
-	for (FunctionType func : m_funcs)
-		(*func)();
-
-	m_funcs.clear();
-}
-
-void invokeLater (InvokationDeferer::FunctionType func)
-{
-	g_invokationDeferer->addFunctionCall (func);
 }

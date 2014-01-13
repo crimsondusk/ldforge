@@ -60,11 +60,11 @@ inline const gridinfo& currentGrid()
 }
 
 // =============================================================================
-enum RotationPoint
+enum ERotationPoint
 {
-	ObjectOrigin,
-	WorldOrigin,
-	CustomPoint
+	EObjectOrigin,
+	EWorldOrigin,
+	ECustomPoint
 };
 
 Vertex rotPoint (const LDObjectList& objs);
@@ -90,29 +90,6 @@ namespace Grid
 
 	double snap (double value, const Grid::Config axis);
 }
-
-// -----------------------------------------------------------------------------
-class InvokationDeferer : public QObject
-{
-	Q_OBJECT
-
-	public:
-		using FunctionType = void(*)();
-
-		explicit InvokationDeferer (QObject* parent = 0);
-		void addFunctionCall (FunctionType func);
-
-	signals:
-		void functionAdded();
-
-	private:
-		QList<FunctionType>	m_funcs;
-
-	private slots:
-		void invokeFunctions();
-};
-
-void invokeLater (InvokationDeferer::FunctionType func);
 
 // -----------------------------------------------------------------------------
 // Plural expression

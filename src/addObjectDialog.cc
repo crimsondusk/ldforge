@@ -199,7 +199,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			{
 				for (int i = 0; i < coordCount / 3; ++i)
 					for (int j = 0; j < 3; ++j)
-						dsb_coords[ (i * 3) + j]->setValue (obj->getVertex (i).coord (j));
+						dsb_coords[ (i * 3) + j]->setValue (obj->getVertex (i).getCoordinate (j));
 			}
 
 			break;
@@ -239,7 +239,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			defaultMatrix = mo->getTransform();
 		}
 
-		le_matrix->setText (defaultMatrix.stringRep());
+		le_matrix->setText (defaultMatrix.toString());
 		layout->addWidget (lb_matrix, 4, 1);
 		layout->addWidget (le_matrix, 4, 2, 1, 3);
 	}

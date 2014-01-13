@@ -20,6 +20,7 @@
 #define LDFORGE_CONFIG_H
 
 #include "property.h"
+#include "types.h"
 
 // =============================================================================
 #include <QString>
@@ -47,12 +48,13 @@ class Config
 	public:
 		enum Type
 		{
-			Int,
-			String,
-			Float,
-			Bool,
-			KeySequence,
-			List,
+			EIntType,
+			EStringType,
+			EFloatType,
+			EBoolType,
+			EKeySequenceType,
+			EListType,
+			EVertexType,
 		};
 
 		using IntType			= int;
@@ -61,6 +63,7 @@ class Config
 		using BoolType			= bool;
 		using KeySequenceType	= QKeySequence;
 		using ListType			= QList<QVariant>;
+		using VertexType		= Vertex;
 
 		Config (QString name);
 
@@ -101,14 +104,14 @@ public:																			\
 		return *m_valueptr;														\
 	}																			\
 																				\
-	inline void setValue (ValueType val)											\
+	inline void setValue (ValueType val)										\
 	{																			\
 		*m_valueptr = val;														\
 	}																			\
 																				\
-	virtual Config::Type getType() const											\
+	virtual Config::Type getType() const										\
 	{																			\
-		return Config::NAME;														\
+		return Config::E##NAME##Type;											\
 	}																			\
 																				\
 	virtual void resetValue()													\
@@ -123,7 +126,7 @@ public:																			\
 																				\
 	virtual bool isDefault() const												\
 	{																			\
-		return *m_valueptr == m_default;											\
+		return *m_valueptr == m_default;										\
 	}																			\
 																				\
 	virtual void loadFromVariant (const QVariant& val)							\
@@ -133,17 +136,17 @@ public:																			\
 																				\
 	virtual QVariant toVariant() const											\
 	{																			\
-		return QVariant::fromValue<ValueType> (*m_valueptr);						\
+		return QVariant::fromValue<ValueType> (*m_valueptr);					\
 	}																			\
 																				\
-	virtual QVariant getDefaultAsVariant() const									\
+	virtual QVariant getDefaultAsVariant() const								\
 	{																			\
 		return QVariant::fromValue<ValueType> (m_default);						\
 	}																			\
 																				\
 	static NAME##Config* getByName (QString name);								\
 																				\
-private:																			\
+private:																		\
 	ValueType*	m_valueptr;														\
 	ValueType	m_default;
 
@@ -181,6 +184,12 @@ class KeySequenceConfig : public Config
 class ListConfig : public Config
 {
 	IMPLEMENT_CONFIG (List)
+};
+
+// =============================================================================
+class VertexConfig : public Config
+{
+	IMPLEMENT_CONFIG (Vertex)
 };
 
 #endif // LDFORGE_CONFIG_H

@@ -28,6 +28,7 @@
 #include "history.h"
 #include "dialogs.h"
 #include "gldraw.h"
+#include "misc/invokationDeferer.h"
 #include "moc_document.cpp"
 
 cfg (String, io_ldpath, "");
@@ -127,7 +128,7 @@ LDDocument::LDDocument() :
 	setSavePosition (-1);
 	setListItem (null);
 	setHistory (new History);
-	m_History->setFile (this);
+	m_History->setDocument (this);
 }
 
 // =============================================================================

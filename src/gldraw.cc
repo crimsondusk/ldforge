@@ -674,7 +674,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 					// Draw their coordinates
 					paint.setPen (textpen);
-					paint.drawText (blip.x(), blip.y() - 8, poly3d[i].stringRep (true));
+					paint.drawText (blip.x(), blip.y() - 8, poly3d[i].toString (true));
 				}
 
 				// Draw line lenghts and angle info if appropriate

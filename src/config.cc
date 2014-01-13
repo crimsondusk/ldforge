@@ -41,7 +41,7 @@
 Config*							g_configPointers[MAX_CONFIG];
 static int						g_cfgPointerCursor = 0;
 static QMap<QString, Config*>	g_configsByName;
-static QList<Config*>		g_configs;
+static QList<Config*>			g_configs;
 
 // =============================================================================
 // Get the QSettings object.
@@ -163,10 +163,10 @@ template<class T> T* getConfigByName (QString name, Config::Type type)
 // -----------------------------------------------------------------------------
 #undef IMPLEMENT_CONFIG
 
-#define IMPLEMENT_CONFIG(NAME)								\
-	NAME##Config* NAME##Config::getByName (QString name)	\
-	{														\
-		return getConfigByName<NAME##Config> (name, NAME);	\
+#define IMPLEMENT_CONFIG(NAME)										\
+	NAME##Config* NAME##Config::getByName (QString name)			\
+	{																\
+		return getConfigByName<NAME##Config> (name, E##NAME##Type);	\
 	}
 
 IMPLEMENT_CONFIG (Int)
@@ -175,3 +175,4 @@ IMPLEMENT_CONFIG (Bool)
 IMPLEMENT_CONFIG (Float)
 IMPLEMENT_CONFIG (List)
 IMPLEMENT_CONFIG (KeySequence)
+IMPLEMENT_CONFIG (Vertex)

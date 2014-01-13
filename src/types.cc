@@ -74,26 +74,26 @@ Vertex Vertex::midpoint (const Vertex& other)
 	Vertex mid;
 
 	for_axes (ax)
-		mid[ax] = (m_coords[ax] + other[ax]) / 2;
+		mid[ax] = (getCoordinate (ax) + other[ax]) / 2;
 
 	return mid;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QString Vertex::stringRep (bool mangled) const
+QString Vertex::toString (bool mangled) const
 {
 	QString fmtstr = "%1 %2 %3";
 
 	if (mangled)
 		fmtstr = "(%1, %2, %3)";
 
-	return fmt (fmtstr, coord (X), coord (Y), coord (Z));
+	return fmt (fmtstr, x(), y(), z());
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void Vertex::transform (Matrix matr, Vertex pos)
+void Vertex::transform (const Matrix& matr, const Vertex& pos)
 {
 	double x2 = (matr[0] * x()) + (matr[1] * y()) + (matr[2] * z()) + pos[X];
 	double y2 = (matr[3] * x()) + (matr[4] * y()) + (matr[5] * z()) + pos[Y];
@@ -120,33 +120,11 @@ bool Vertex::operator!= (const Vertex& other) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-double& Vertex::operator[] (const Axis ax)
-{
-	return coord ( (int) ax);
-}
-
-const double& Vertex::operator[] (const Axis ax) const
-{
-	return coord ( (int) ax);
-}
-
-double& Vertex::operator[] (const int ax)
-{
-	return coord (ax);
-}
-
-const double& Vertex::operator[] (const int ax) const
-{
-	return coord (ax);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 bool Vertex::operator== (const Vertex& other) const
 {
-	return coord (X) == other[X] &&
-		   coord (Y) == other[Y] &&
-		   coord (Z) == other[Z];
+	return getCoordinate (X) == other[X] &&
+		   getCoordinate (Y) == other[Y] &&
+		   getCoordinate (Z) == other[Z];
 }
 
 // =============================================================================
@@ -191,19 +169,19 @@ int Vertex::operator< (const Vertex& other) const
 	if (operator== (other))
 		return false;
 
-	if (coord (X) < other[X])
+	if (getCoordinate (X) < other[X])
 		return true;
 
-	if (coord (X) > other[X])
+	if (getCoordinate (X) > other[X])
 		return false;
 
-	if (coord (Y) < other[Y])
+	if (getCoordinate (Y) < other[Y])
 		return true;
 
-	if (coord (Y) > other[Y])
+	if (getCoordinate (Y) > other[Y])
 		return false;
 
-	return coord (Z) < other[Z];
+	return getCoordinate (Z) < other[Z];
 }
 
 // =============================================================================
@@ -245,7 +223,7 @@ void Matrix::puts() const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QString Matrix::stringRep() const
+QString Matrix::toString() const
 {
 	QString val;
 

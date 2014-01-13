@@ -354,7 +354,7 @@ void ForgeWindow::buildObjList()
 					if (i != 0)
 						descr += ", ";
 
-					descr += obj->getVertex (i).stringRep (true);
+					descr += obj->getVertex (i).toString (true);
 				}
 			} break;
 
@@ -365,14 +365,14 @@ void ForgeWindow::buildObjList()
 
 			case LDObject::EVertex:
 			{
-				descr = static_cast<LDVertex*> (obj)->pos.stringRep (true);
+				descr = static_cast<LDVertex*> (obj)->pos.toString (true);
 			} break;
 
 			case LDObject::ESubfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().stringRep (true));
+				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().toString (true));
 
 				for (int i = 0; i < 9; ++i)
 					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");

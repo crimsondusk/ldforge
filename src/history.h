@@ -22,32 +22,40 @@
 #include "main.h"
 #include "ldtypes.h"
 
-#define IMPLEMENT_HISTORY_TYPE(N) \
-	virtual ~N##History(){} \
-	virtual void undo() const override; \
-	virtual void redo() const override; \
-	virtual History::Type getType() const override { return History::N; } \
-	virtual const char* getTypeName() const { return #N; }
+#define IMPLEMENT_HISTORY_TYPE(N)							\
+	virtual ~N##History() {}								\
+	virtual void undo() const override;						\
+	virtual void redo() const override;						\
+															\
+	virtual History::EHistoryType getType() const override	\
+	{														\
+		return History::E##N##History;						\
+	}														\
+															\
+	virtual QString getTypeName() const						\
+	{														\
+		return #N;											\
+	}
 
 class AbstractHistoryEntry;
 
 // =============================================================================
 class History
 {
-	PROPERTY (private,	int,				Position,	NUM_OPS,		STOCK_WRITE)
-	PROPERTY (public,	LDDocument*,	File,		NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	int,			Position,	NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDDocument*,	Document,	NO_OPS,		STOCK_WRITE)
 	PROPERTY (public,	bool,			Ignoring,	BOOL_OPS,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
 
-		enum Type
+		enum EHistoryType
 		{
-			Del,
-			Edit,
-			Add,
-			Move,
-			Swap,
+			EDelHistory,
+			EEditHistory,
+			EAddHistory,
+			EMoveHistory,
+			ESwapHistory,
 		};
 
 		History();
@@ -88,18 +96,10 @@ class AbstractHistoryEntry
 
 	public:
 		virtual ~AbstractHistoryEntry() {}
-		virtual void undo() const {}
-		virtual void redo() const {}
-
-		virtual History::Type getType() const
-		{
-			return (History::Type) 0;
-		}
-
-		virtual const char* getTypeName() const
-		{
-			return "";
-		}
+		virtual void undo() const = 0;
+		virtual void redo() const = 0;
+		virtual History::EHistoryType getType() const = 0;
+		virtual QString getTypeName() const = 0;
 };
 
 // =============================================================================
@@ -107,7 +107,7 @@ class AbstractHistoryEntry
 // =============================================================================
 class DelHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,		Index,		NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:
@@ -120,9 +120,9 @@ class DelHistory : public AbstractHistoryEntry
 // =============================================================================
 class EditHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int, Index,		NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString, OldCode,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString, NewCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int, 		Index,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString,	OldCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	QString,	NewCode,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
@@ -138,7 +138,7 @@ class EditHistory : public AbstractHistoryEntry
 // =============================================================================
 class AddHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int,	Index,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,		Index,	NO_OPS,	STOCK_WRITE)
 	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
 
 	public:

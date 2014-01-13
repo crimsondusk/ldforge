@@ -88,7 +88,7 @@ QString LDComment::raw() const
 QString LDSubfile::raw() const
 {
 	QString val = fmt ("1 %1 %2 ", getColor(), getPosition());
-	val += getTransform().stringRep();
+	val += getTransform().toString();
 	val += ' ';
 	val += getFileInfo()->getName();
 	return val;

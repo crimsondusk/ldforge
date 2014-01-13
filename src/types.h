@@ -22,8 +22,8 @@
 #include <QString>
 #include <QObject>
 #include <QStringList>
-#include <deque>
-#include "main.h"
+#include <QMetaType>
+#include "property.h"
 
 class LDObject;
 class QFile;
@@ -74,7 +74,7 @@ class Matrix
 		double			getDeterminant() const;
 		Matrix			mult (const Matrix& other) const;
 		void			puts() const;
-		QString			stringRep() const;
+		QString			toString() const;
 		void			zero();
 		Matrix&			operator= (const Matrix& other);
 
@@ -126,8 +126,8 @@ class Vertex
 		double			distanceTo (const Vertex& other) const;
 		Vertex			midpoint (const Vertex& other);
 		void			move (const Vertex& other);
-		QString				stringRep (bool mangled) const;
-		void			transform (Matrix matr, Vertex pos);
+		QString			toString (bool mangled) const;
+		void			transform (const Matrix& matr, const Vertex& pos);
 
 		Vertex&			operator+= (const Vertex& other);
 		Vertex			operator+ (const Vertex& other) const;
@@ -137,17 +137,33 @@ class Vertex
 		bool			operator!= (const Vertex& other) const;
 		Vertex			operator-() const;
 		int				operator< (const Vertex& other) const;
-		double&			operator[] (const Axis ax);
-		const double&	operator[] (const Axis ax) const;
-		double&			operator[] (const int ax);
-		const double&	operator[] (const int ax) const;
 
-		inline double& coord (int n)
+		inline double& operator[] (const Axis ax)
+		{
+			return getCoordinate ((int) ax);
+		}
+
+		inline const double& operator[] (const Axis ax) const
+		{
+			return getCoordinate ((int) ax);
+		}
+
+		inline double& operator[] (const int ax)
+		{
+			return getCoordinate (ax);
+		}
+
+		inline const double& operator[] (const int ax) const
+		{
+			return getCoordinate (ax);
+		}
+
+		inline double& getCoordinate (int n)
 		{
 			return m_coords[n];
 		}
 
-		inline const double& coord (int n) const
+		inline const double& getCoordinate (int n) const
 		{
 			return m_coords[n];
 		}
@@ -186,6 +202,8 @@ class Vertex
 		double m_coords[3];
 };
 
+Q_DECLARE_METATYPE (Vertex)
+
 // =============================================================================
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
@@ -204,8 +222,8 @@ class StringFormatArg
 		StringFormatArg (int a) : m_val (QString::number (a)) {}
 		StringFormatArg (const float& a) : m_val (QString::number (a)) {}
 		StringFormatArg (const double& a) : m_val (QString::number (a)) {}
-		StringFormatArg (const Vertex& a) : m_val (a.stringRep (false)) {}
-		StringFormatArg (const Matrix& a) : m_val (a.stringRep()) {}
+		StringFormatArg (const Vertex& a) : m_val (a.toString (false)) {}
+		StringFormatArg (const Matrix& a) : m_val (a.toString()) {}
 		StringFormatArg (const char* a) : m_val (a) {}
 
 		StringFormatArg (const void* a)
