@@ -28,9 +28,6 @@
 #include <QKeySequence>
 class QSettings;
 
-typedef QChar QChar;
-typedef QString QString;
-
 #define MAX_INI_LINE 512
 #define MAX_CONFIG 512
 
