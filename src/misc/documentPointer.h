@@ -16,31 +16,43 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_COLORS_H
-#define LDFORGE_COLORS_H
+#ifndef LDFORGE_DOCUMENT_POINTER_H
+#define LDFORGE_DOCUMENT_POINTER_H
 
-#include <QColor>
-#include "main.h"
+#include "../main.h"
 
-#define MAX_COLORS 512
+class LDSubfile;
+class LDDocument;
 
-class LDColor
+class LDDocumentPointer
 {
+	PROPERTY (private, LDDocument*,			Pointer,	NO_OPS, STOCK_WRITE)
+
 	public:
-		QString name, hexcode;
-		QColor faceColor, edgeColor;
-		int index;
+		LDDocumentPointer();
+		LDDocumentPointer (LDDocument* ptr);
+		LDDocumentPointer (const LDDocumentPointer& other);
+		~LDDocumentPointer();
+		LDDocumentPointer& operator= (LDDocument* ptr);
+
+		inline LDDocumentPointer& operator= (LDDocumentPointer& other)
+		{
+			return operator= (other.getPointer());
+		}
+
+		inline LDDocument* operator->() const
+		{
+			return getPointer();
+		}
+
+		inline operator LDDocument*() const
+		{
+			return getPointer();
+		}
+
+	private:
+		void addReference();
+		void removeReference();
 };
 
-void initColors();
-int luma (QColor& col);
-
-// Safely gets a color with the given number or null if no such color.
-LDColor* getColor (int colnum);
-void setColor (int colnum, LDColor* col);
-
-// Main and edge color identifiers
-static const int maincolor = 16;
-static const int edgecolor = 24;
-
-#endif // LDFORGE_COLORS_H
+#endif // LDFORGE_DOCUMENT_POINTER_H

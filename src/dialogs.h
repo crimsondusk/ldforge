@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,7 +20,7 @@
 #define LDFORGE_DIALOGS_H
 
 #include <QDialog>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class Ui_ExtProgPath;
@@ -41,13 +41,14 @@ class Ui_LDPathUI;
 class Ui_OpenProgressUI;
 
 class OverlayDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 		virtual ~OverlayDialog();
 
-		str         fpath() const;
+		QString         fpath() const;
 		int         ofsx() const;
 		int         ofsy() const;
 		double      lwidth() const;
@@ -67,13 +68,14 @@ class OverlayDialog : public QDialog
 
 // =============================================================================
 class LDrawPathDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
 		virtual ~LDrawPathDialog();
-		str filename() const;
-		void setPath (str path);
+		QString filename() const;
+		void setPath (QString path);
 
 	private:
 		Q_DISABLE_COPY (LDrawPathDialog)
@@ -91,9 +93,10 @@ class LDrawPathDialog : public QDialog
 
 // =============================================================================
 class OpenProgressDialog : public QDialog
-{	Q_OBJECT
-	READ_PROPERTY (int, progress, setProgress)
-	DECLARE_PROPERTY (int, numLines, setNumLines)
+{
+	Q_OBJECT
+	PROPERTY (public,	int, Progress,	NUM_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int, NumLines,	NUM_OPS,	CUSTOM_WRITE)
 
 	public:
 		explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
@@ -110,12 +113,13 @@ class OpenProgressDialog : public QDialog
 
 // =============================================================================
 class ExtProgPathPrompt : public QDialog
-{		Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
-		explicit ExtProgPathPrompt (str progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
+		explicit ExtProgPathPrompt (QString progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
 		virtual ~ExtProgPathPrompt();
-		str getPath() const;
+		QString getPath() const;
 
 	public slots:
 		void findPath();
@@ -126,7 +130,8 @@ class ExtProgPathPrompt : public QDialog
 
 // =============================================================================
 class AboutDialog : public QDialog
-{		Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		AboutDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
@@ -135,6 +140,6 @@ class AboutDialog : public QDialog
 		void slot_mail();
 };
 
-void bombBox (const str& message);
+void bombBox (const QString& message);
 
 #endif // LDFORGE_DIALOGS_H

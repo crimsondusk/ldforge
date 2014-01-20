@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
  *  =====================================================================
  *
  *  config.cpp: Configuration management. I don't like how unsafe QSettings
- *  is so this implements a type-safer and idenitifer-safer wrapping system of
+ *  is so this implements a type-safer and identifer-safer wrapping system of
  *  configuration variables. QSettings is used underlyingly, this is a matter
  *  of interface.
  */
@@ -26,49 +26,52 @@
 #include <QDir>
 #include <QTextStream>
 #include <QSettings>
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "misc.h"
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 
-Config* g_configPointers[MAX_CONFIG];
-static int g_cfgPointerCursor = 0;
+#ifdef _WIN32
+# define EXTENSION ".ini"
+#else
+# define EXTENSION ".cfg"
+#endif // _WIN32
+
+Config*							g_configPointers[MAX_CONFIG];
+static int						g_cfgPointerCursor = 0;
+static QMap<QString, Config*>	g_configsByName;
+static QList<Config*>			g_configs;
 
 // =============================================================================
-// Get the QSettings object. A portable build refers to a file in the current
-// directory, a non-portable build to ~/.config/LDForge or to registry.
+// Get the QSettings object.
 // -----------------------------------------------------------------------------
 static QSettings* getSettingsObject()
 {
-#ifdef PORTABLE
-# ifdef _WIN32
-#  define EXTENSION ".ini"
-# else
-#  define EXTENSION ".cfg"
-# endif // _WIN32
-	return new QSettings (str (APPNAME).toLower() + EXTENSION, QSettings::IniFormat);
-#else
-	return new QSettings;
-#endif // PORTABLE
+	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
+	return new QSettings (path, QSettings::IniFormat);
 }
 
-Config::Config (const char* name, const char* defstring) :
-	name (name), m_defstring (defstring) {}
+Config::Config (QString name) :
+	m_Name (name) {}
 
 // =============================================================================
 // Load the configuration from file
 // -----------------------------------------------------------------------------
 bool Config::load()
-{	QSettings* settings = getSettingsObject();
+{
+	QSettings* settings = getSettingsObject();
 	log ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
-	{	if (!cfg)
+	{
+		if (!cfg)
 			break;
 
-		QVariant val = settings->value (cfg->name, cfg->defaultVariant());
+		QVariant val = settings->value (cfg->getName(), cfg->getDefaultAsVariant());
 		cfg->loadFromVariant (val);
+		g_configsByName[cfg->getName()] = cfg;
+		g_configs << cfg;
 	}
 
 	settings->deleteLater();
@@ -79,17 +82,16 @@ bool Config::load()
 // Save the configuration to disk
 // -----------------------------------------------------------------------------
 bool Config::save()
-{	QSettings* settings = getSettingsObject();
+{
+	QSettings* settings = getSettingsObject();
 	log ("Saving configuration to %1...\n", settings->fileName());
 
-	for (Config* cfg : g_configPointers)
-	{	if (!cfg)
-			break;
-
-		if (cfg->isDefault())
-			continue;
-
-		settings->setValue (cfg->name, cfg->toVariant());
+	for (Config* cfg : g_configs)
+	{
+		if (!cfg->isDefault())
+			settings->setValue (cfg->getName(), cfg->toVariant());
+		else
+			settings->remove (cfg->getName());
 	}
 
 	settings->sync();
@@ -98,42 +100,79 @@ bool Config::save()
 }
 
 // =============================================================================
-// Reset configuration defaults.
+// Reset configuration to defaults.
 // -----------------------------------------------------------------------------
 void Config::reset()
-{	for (Config * cfg : g_configPointers)
-	{	if (!cfg)
-			break;
-
+{
+	for (Config* cfg : g_configs)
 		cfg->resetValue();
-	}
 }
 
 // =============================================================================
-// Where is the configuration file located at? Note that the Windows build uses
-// the registry so only use this with PORTABLE code.
+// Where is the configuration file located at?
 // -----------------------------------------------------------------------------
-str Config::filepath (str file)
-{	return Config::dirpath() + DIRSLASH + file;
+QString Config::filepath (QString file)
+{
+	return Config::dirpath() + DIRSLASH + file;
 }
 
 // =============================================================================
-// Directory of the configuration file. PORTABLE code here as well.
+// Directory of the configuration file.
 // -----------------------------------------------------------------------------
-str Config::dirpath()
-{	QSettings* cfg = getSettingsObject();
+QString Config::dirpath()
+{
+	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
 // =============================================================================
 // We cannot just add config objects to a list or vector because that would rely
 // on the vector's c-tor being called before the configs' c-tors. With global
-// variables we cannot assume that!! Therefore we need to use a C-style array here.
+// variables we cannot assume that, therefore we need to use a C-style array here.
 // -----------------------------------------------------------------------------
 void Config::addToArray (Config* ptr)
-{	if (g_cfgPointerCursor == 0)
+{
+	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
 
 	assert (g_cfgPointerCursor < MAX_CONFIG);
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+template<class T> T* getConfigByName (QString name, Config::Type type)
+{
+	auto it = g_configsByName.find (name);
+
+	if (it == g_configsByName.end())
+		return null;
+
+	Config* cfg = it.value();
+
+	if (cfg->getType() != type)
+	{
+		fprint (stderr, "type of %1 is %2, not %3\n", name, cfg->getType(), type);
+		abort();
+	}
+
+	return reinterpret_cast<T*> (cfg);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+#undef IMPLEMENT_CONFIG
+
+#define IMPLEMENT_CONFIG(NAME)										\
+	NAME##Config* NAME##Config::getByName (QString name)			\
+	{																\
+		return getConfigByName<NAME##Config> (name, E##NAME##Type);	\
+	}
+
+IMPLEMENT_CONFIG (Int)
+IMPLEMENT_CONFIG (String)
+IMPLEMENT_CONFIG (Bool)
+IMPLEMENT_CONFIG (Float)
+IMPLEMENT_CONFIG (List)
+IMPLEMENT_CONFIG (KeySequence)
+IMPLEMENT_CONFIG (Vertex)

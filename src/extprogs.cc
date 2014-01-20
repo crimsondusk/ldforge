@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,11 +24,11 @@
 #include <QCheckBox>
 #include <QComboBox>
 #include <QGridLayout>
-#include "common.h"
+#include "main.h"
 #include "config.h"
 #include "misc.h"
 #include "gui.h"
-#include "file.h"
+#include "document.h"
 #include "widgets.h"
 #include "history.h"
 #include "ui_ytruder.h"
@@ -40,7 +40,8 @@
 #include "dialogs.h"
 
 enum extprog
-{	Isecalc,
+{
+	Isecalc,
 	Intersector,
 	Coverer,
 	Ytruder,
@@ -57,8 +58,9 @@ cfg (String, prog_ytruder, "");
 cfg (String, prog_rectifier, "");
 cfg (String, prog_edger2, "");
 
-StringConfig* const g_extProgPaths[] =
-{	&prog_isecalc,
+QString* const g_extProgPaths[] =
+{
+	&prog_isecalc,
 	&prog_intersector,
 	&prog_coverer,
 	&prog_ytruder,
@@ -74,8 +76,9 @@ cfg (Bool, prog_ytruder_wine, false);
 cfg (Bool, prog_rectifier_wine, false);
 cfg (Bool, prog_edger2_wine, false);
 
-BoolConfig* const g_extProgWine[] =
-{	&prog_isecalc_wine,
+bool* const g_extProgWine[] =
+{
+	&prog_isecalc_wine,
 	&prog_intersector_wine,
 	&prog_coverer_wine,
 	&prog_ytruder_wine,
@@ -85,7 +88,8 @@ BoolConfig* const g_extProgWine[] =
 #endif // _WIN32
 
 const char* g_extProgNames[] =
-{	"Isecalc",
+{
+	"Isecalc",
 	"Intersector",
 	"Coverer",
 	"Ytruder",
@@ -95,8 +99,21 @@ const char* g_extProgNames[] =
 
 // =============================================================================
 // -----------------------------------------------------------------------------
+static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
+{
+	if (!tmp.open())
+		return false;
+
+	fname = tmp.fileName();
+	tmp.close();
+	return true;
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
 static bool checkProgPath (const extprog prog)
-{	alias path = g_extProgPaths[prog]->value;
+{
+	QString& path = *g_extProgPaths[prog];
 
 	if (path.length() > 0)
 		return true;
@@ -104,7 +121,8 @@ static bool checkProgPath (const extprog prog)
 	ExtProgPathPrompt* dlg = new ExtProgPathPrompt (g_extProgNames[prog]);
 
 	if (dlg->exec() && !dlg->getPath().isEmpty())
-	{	path = dlg->getPath();
+	{
+		path = dlg->getPath();
 		return true;
 	}
 
@@ -113,10 +131,21 @@ static bool checkProgPath (const extprog prog)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static str processErrorString (QProcess& proc)
-{	switch (proc.error())
-	{	case QProcess::FailedToStart:
-			return "Failed to start (check your permissions)";
+static QString processErrorString (extprog prog, QProcess& proc)
+{
+	switch (proc.error())
+	{
+		case QProcess::FailedToStart:
+		{
+			QString wineblurb;
+
+#ifndef _WIN32
+			if (*g_extProgWine[prog])
+				wineblurb = "make sure Wine is installed and ";
+#endif
+
+			return fmt ("Program failed to start, %1check your permissions", wineblurb);
+		} break;
 
 		case QProcess::Crashed:
 			return "Crashed.";
@@ -137,61 +166,62 @@ static str processErrorString (QProcess& proc)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static bool mkTempFile (QTemporaryFile& tmp, str& fname)
-{	if (!tmp.open())
-		return false;
-
-	fname = tmp.fileName();
-	tmp.close();
-	return true;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, File& f)
-{	for (LDObject* obj : objects)
-	{	if (obj->getType() == LDObject::Subfile)
-		{	LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			QList<LDObject*> objs = ref->inlineContents (LDSubfile::DeepInline);
+static void writeObjects (const LDObjectList& objects, QFile& f)
+{
+	for (LDObject* obj : objects)
+	{
+		if (obj->getType() == LDObject::ESubfile)
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDObjectList objs = ref->inlineContents (LDSubfile::DeepInline);
 
 			writeObjects (objs, f);
 
 			for (LDObject* obj : objs)
-				delete obj;
+				obj->deleteSelf();
 		}
 		else
-			f.write (obj->raw() + "\r\n");
+			f.write ((obj->raw() + "\r\n").toUtf8());
 	}
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void writeObjects (const QList<LDObject*>& objects, str fname)
-{	// Write the input file
-	File f (fname, File::Write);
+static void writeObjects (const LDObjectList& objects, QString fname)
+{
+	// Write the input file
+	QFile f (fname);
 
-	if (!f)
-	{	critical (fmt ("Couldn't open temporary file %1 for writing.\n", fname));
+	if (!f.open (QIODevice::WriteOnly | QIODevice::Text))
+	{
+		critical (fmt ("Couldn't open temporary file %1 for writing: %2\n", fname, f.errorString()));
 		return;
 	}
 
 	writeObjects (objects, f);
 	f.close();
+
+#ifdef DEBUG
+	QFile::copy (fname, "debug_lastInput");
+#endif
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeSelection (str fname)
-{	writeObjects (selection(), fname);
+void writeSelection (QString fname)
+{
+	writeObjects (selection(), fname);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void writeColorGroup (const short colnum, str fname)
-{	QList<LDObject*> objects;
+void writeColorGroup (const int colnum, QString fname)
+{
+	LDObjectList objects;
 
-	for (LDObject* obj : LDFile::current()->objects())
-	{	if (obj->isColored() == false || obj->color() != colnum)
+	for (LDObject* obj : getCurrentDocument()->getObjects())
+	{
+		if (obj->isColored() == false || obj->getColor() != colnum)
 			continue;
 
 		objects << obj;
@@ -202,50 +232,54 @@ void writeColorGroup (const short colnum, str fname)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool runUtilityProcess (extprog prog, str path, str argvstr)
-{	QTemporaryFile input, output;
-	str inputname, outputname;
+bool runUtilityProcess (extprog prog, QString path, QString argvstr)
+{
+	QTemporaryFile input;
 	QStringList argv = argvstr.split (" ", QString::SkipEmptyParts);
 
 #ifndef _WIN32
 	if (*g_extProgWine[prog])
-	{	argv.insert (0, path);
+	{
+		argv.insert (0, path);
 		path = "wine";
 	}
 #endif // _WIN32
 
 	log ("cmdline: %1 %2\n", path, argv.join (" "));
 
-	// Temporary files for stdin and stdout
-	if (!mkTempFile (input, inputname) || !mkTempFile (output, outputname))
+	if (!input.open())
 		return false;
 
 	QProcess proc;
 
-	// Init stdin
-	File stdinfp (inputname, File::Write);
-
 	// Begin!
-	proc.setStandardInputFile (inputname);
+	proc.setStandardInputFile (input.fileName());
 	proc.start (path, argv);
 
+	if (!proc.waitForStarted())
+	{
+		critical (fmt ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
+		return false;
+	}
+
 	// Write an enter, the utility tools all expect one
-	stdinfp.write ("\n");
+	input.write ("\n");
 
 	// Wait while it runs
 	proc.waitForFinished();
 
-	str err = "";
+	QString err = "";
 
 	if (proc.exitStatus() != QProcess::NormalExit)
-		err = processErrorString (proc);
+		err = processErrorString (prog, proc);
 
 	// Check the return code
 	if (proc.exitCode() != 0)
 		err = fmt ("Program exited abnormally (return code %1).",  proc.exitCode());
 
-	if (err.length() > 0)
-	{	critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
+	if (!err.isEmpty())
+	{
+		critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
 		return false;
 	}
 
@@ -254,50 +288,54 @@ bool runUtilityProcess (extprog prog, str path, str argvstr)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void insertOutput (str fname, bool replace, QList<short> colorsToReplace)
+static void insertOutput (QString fname, bool replace, QList<int> colorsToReplace)
 {
-#ifndef RELEASE
+#ifdef DEBUG
 	QFile::copy (fname, "./debug_lastOutput");
 #endif // RELEASE
 
 	// Read the output file
-	File f (fname, File::Read);
+	QFile f (fname);
 
-	if (!f)
-	{	critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
+	if (!f.open (QIODevice::ReadOnly))
+	{
+		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
 	}
 
-	QList<LDObject*> objs = loadFileContents (&f, null);
+	LDObjectList objs = loadFileContents (&f, null);
 
 	// If we replace the objects, delete the selection now.
 	if (replace)
 		g_win->deleteSelection();
 
-	for (const short colnum : colorsToReplace)
+	for (int colnum : colorsToReplace)
 		g_win->deleteByColor (colnum);
 
 	// Insert the new objects
-	LDFile::current()->clearSelection();
+	getCurrentDocument()->clearSelection();
 
-	for (LDObject * obj : objs)
-	{	if (!obj->isScemantic())
-		{	delete obj;
+	for (LDObject* obj : objs)
+	{
+		if (!obj->isScemantic())
+		{
+			obj->deleteSelf();
 			continue;
 		}
 
-		LDFile::current()->addObject (obj);
+		getCurrentDocument()->addObject (obj);
 		obj->select();
 	}
 
-	g_win->fullRefresh();
+	g_win->doFullRefresh();
 }
 
 // =============================================================================
 // Interface for Ytruder
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Ytruder, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Ytruder))
 		return;
@@ -323,15 +361,16 @@ DEFINE_ACTION (Ytruder, 0)
 				 condAngle = ui.condAngle->value();
 
 	QTemporaryFile indat, outdat;
-	str inDATName, outDATName;
+	QString inDATName, outDATName;
 
 	// Make temp files for the input and output files
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 
 	// Compose the command-line arguments
-	str argv = join (
-	{	(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
+	QString argv = join (
+	{
+		(axis == X) ? "-x" : (axis == Y) ? "-y" : "-z",
 		(mode == Distance) ? "-d" : (mode == Symmetry) ? "-s" : (mode == Projection) ? "-p" : "-r",
 		depth,
 		"-a",
@@ -352,7 +391,8 @@ DEFINE_ACTION (Ytruder, 0)
 // Rectifier interface
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Rectifier, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Rectifier))
 		return;
@@ -365,15 +405,16 @@ DEFINE_ACTION (Rectifier, 0)
 		return;
 
 	QTemporaryFile indat, outdat;
-	str inDATName, outDATName;
+	QString inDATName, outDATName;
 
 	// Make temp files for the input and output files
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (outdat, outDATName))
 		return;
 
 	// Compose arguments
-	str argv = join (
-	{	(!ui.cb_condense->isChecked()) ? "-q" : "",
+	QString argv = join (
+	{
+		(!ui.cb_condense->isChecked()) ? "-q" : "",
 		(!ui.cb_subst->isChecked()) ? "-r" : "",
 		(ui.cb_condlineCheck->isChecked()) ? "-a" : "",
 		(ui.cb_colorize->isChecked()) ? "-c" : "",
@@ -395,7 +436,8 @@ DEFINE_ACTION (Rectifier, 0)
 // Intersector interface
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Intersector, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Intersector))
 		return;
@@ -404,24 +446,26 @@ DEFINE_ACTION (Intersector, 0)
 	Ui::IntersectorUI ui;
 	ui.setupUi (dlg);
 
-	makeColorSelector (ui.cmb_incol);
-	makeColorSelector (ui.cmb_cutcol);
+	makeColorComboBox (ui.cmb_incol);
+	makeColorComboBox (ui.cmb_cutcol);
 	ui.cb_repeat->setWhatsThis ("If this is set, " APPNAME " runs Intersector a second time with inverse files to cut the "
 								" cutter group with the input group. Both groups are cut by the intersection.");
 	ui.cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 
-	short inCol, cutCol;
+	int inCol, cutCol;
 	const bool repeatInverse = ui.cb_repeat->isChecked();
 
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex()).toInt();
 		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex()).toInt();
 
 		if (inCol == cutCol)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -435,30 +479,34 @@ DEFINE_ACTION (Intersector, 0)
 	// outdat2 = inverse output
 	// edgesdat = edges output (isecalc)
 	QTemporaryFile indat, cutdat, outdat, outdat2, edgesdat;
-	str inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
+	QString inDATName, cutDATName, outDATName, outDAT2Name, edgesDATName;
 
 	if (!mkTempFile (indat, inDATName) || !mkTempFile (cutdat, cutDATName) ||
 			!mkTempFile (outdat, outDATName) || !mkTempFile (outdat2, outDAT2Name) ||
 			!mkTempFile (edgesdat, edgesDATName))
-	{	return;
+	{
+		return;
 	}
 
-	str parms = join (
-	{	(ui.cb_colorize->isChecked()) ? "-c" : "",
+	QString parms = join (
+	{
+		(ui.cb_colorize->isChecked()) ? "-c" : "",
 		(ui.cb_nocondense->isChecked()) ? "-t" : "",
 		"-s",
 		ui.dsb_prescale->value()
 	});
 
-	str argv_normal = join (
-	{	parms,
+	QString argv_normal = join (
+	{
+		parms,
 		inDATName,
 		cutDATName,
 		outDATName
 	});
 
-	str argv_inverse = join (
-	{	parms,
+	QString argv_inverse = join (
+	{
+		parms,
 		cutDATName,
 		inDATName,
 		outDAT2Name
@@ -486,7 +534,8 @@ DEFINE_ACTION (Intersector, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Coverer, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Coverer))
 		return;
@@ -494,20 +543,22 @@ DEFINE_ACTION (Coverer, 0)
 	QDialog* dlg = new QDialog;
 	Ui::CovererUI ui;
 	ui.setupUi (dlg);
-	makeColorSelector (ui.cmb_col1);
-	makeColorSelector (ui.cmb_col2);
+	makeColorComboBox (ui.cmb_col1);
+	makeColorComboBox (ui.cmb_col2);
 
-	short in1Col, in2Col;
+	int in1Col, in2Col;
 
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt();
 		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt();
 
 		if (in1Col == in2Col)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -515,13 +566,14 @@ DEFINE_ACTION (Coverer, 0)
 	}
 
 	QTemporaryFile in1dat, in2dat, outdat;
-	str in1DATName, in2DATName, outDATName;
+	QString in1DATName, in2DATName, outDATName;
 
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 
-	str argv = join (
-	{	(ui.cb_oldsweep->isChecked() ? "-s" : ""),
+	QString argv = join (
+	{
+		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
 		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
 		(ui.sb_bias->value() != 0 ? fmt ("-s %1", ui.sb_bias->value()) : ""),
@@ -542,7 +594,8 @@ DEFINE_ACTION (Coverer, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Isecalc, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Isecalc))
 		return;
@@ -551,21 +604,23 @@ DEFINE_ACTION (Isecalc, 0)
 	QDialog* dlg = new QDialog;
 	ui.setupUi (dlg);
 
-	makeColorSelector (ui.cmb_col1);
-	makeColorSelector (ui.cmb_col2);
+	makeColorComboBox (ui.cmb_col1);
+	makeColorComboBox (ui.cmb_col2);
 
-	short in1Col, in2Col;
+	int in1Col, in2Col;
 
 	// Run the dialog and validate input
 	forever
-	{	if (!dlg->exec())
+	{
+		if (!dlg->exec())
 			return;
 
 		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt(),
 		in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex()).toInt();
 
 		if (in1Col == in2Col)
-		{	critical ("Cannot use the same color group for both input and cutter!");
+		{
+			critical ("Cannot use the same color group for both input and cutter!");
 			continue;
 		}
 
@@ -573,13 +628,14 @@ DEFINE_ACTION (Isecalc, 0)
 	}
 
 	QTemporaryFile in1dat, in2dat, outdat;
-	str in1DATName, in2DATName, outDATName;
+	QString in1DATName, in2DATName, outDATName;
 
 	if (!mkTempFile (in1dat, in1DATName) || !mkTempFile (in2dat, in2DATName) || !mkTempFile (outdat, outDATName))
 		return;
 
-	str argv = join (
-	{	in1DATName,
+	QString argv = join (
+	{
+		in1DATName,
 		in2DATName,
 		outDATName
 	});
@@ -593,7 +649,8 @@ DEFINE_ACTION (Isecalc, 0)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Edger2, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 
 	if (!checkProgPath (Edger2))
 		return;
@@ -606,15 +663,16 @@ DEFINE_ACTION (Edger2, 0)
 		return;
 
 	QTemporaryFile in, out;
-	str inName, outName;
+	QString inName, outName;
 
 	if (!mkTempFile (in, inName) || !mkTempFile (out, outName))
 		return;
 
 	int unmatched = ui.unmatched->currentIndex();
 
-	str argv = join (
-	{	fmt ("-p %1", ui.precision->value()),
+	QString argv = join (
+	{
+		fmt ("-p %1", ui.precision->value()),
 		fmt ("-af %1", ui.flatAngle->value()),
 		fmt ("-ac %1", ui.condAngle->value()),
 		fmt ("-ae %1", ui.edgeAngle->value()),

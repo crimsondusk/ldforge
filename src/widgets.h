@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,7 +22,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 #include <map>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class QIcon;
@@ -37,17 +37,20 @@ class QRadioButton;
 // Convenience widget - is a groupbox of radio buttons.
 // =============================================================================
 class RadioGroup : public QGroupBox
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		typedef QList<QRadioButton*>::Iterator Iterator;
 
 		explicit RadioGroup()
-		{	init (Qt::Vertical);
+		{
+			init (Qt::Vertical);
 		}
 
 		explicit RadioGroup (QWidget* parent = null) : QGroupBox (parent)
-		{	init (Qt::Vertical);
+		{
+			init (Qt::Vertical);
 		}
 
 		explicit RadioGroup (const QString& title, QWidget* parent = null);

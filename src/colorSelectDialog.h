@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,20 +20,21 @@
 #define LDFORGE_COLORSELECTOR_H
 
 #include <QDialog>
-#include "common.h"
+#include "main.h"
 
 class LDColor;
 class Ui_ColorSelUI;
 class QGraphicsScene;
 
 class ColorSelector : public QDialog
-{	Q_OBJECT
-	READ_PROPERTY (LDColor*, sel, setSelection)
+{
+	Q_OBJECT
+	PROPERTY (private,	LDColor*,	Selection,	NO_OPS,	STOCK_WRITE)
 
 	public:
-		explicit ColorSelector (short defval = -1, QWidget* parent = null);
+		explicit ColorSelector (int defval = -1, QWidget* parent = null);
 		virtual ~ColorSelector();
-		static bool getColor (short& val, short defval = -1, QWidget* parent = null);
+		static bool selectColor (int& val, int defval = -1, QWidget* parent = null);
 
 	protected:
 		void mousePressEvent (QMouseEvent* event);

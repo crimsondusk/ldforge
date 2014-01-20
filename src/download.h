@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,10 +20,10 @@
 #define LDFORGE_DOWNLOAD_H
 
 #include <QDialog>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
-class LDFile;
+class LDDocument;
 class QFile;
 class PartDownloadRequest;
 class Ui_DownloadFrom;
@@ -35,74 +35,92 @@ class QAbstractButton;
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloader : public QDialog
-{		Q_OBJECT
-		PROPERTY (LDFile*, primaryFile, setPrimaryFile)
-		PROPERTY (bool, aborted, setAborted)
-
-	public:
-		constexpr static const char* k_UnofficialURL = "http://ldraw.org/library/unofficial/";
-
+{
+	typedefs:
 		enum Source
-		{	PartsTracker,
+		{
+			PartsTracker,
 			CustomURL,
 		};
 
 		enum Button
-		{	Download,
+		{
+			Download,
 			Abort,
 			Close
 		};
 
 		enum TableColumn
-		{	PartLabelColumn,
+		{
+			PartLabelColumn,
 			ProgressColumn,
 		};
 
-		explicit PartDownloader (QWidget* parent = null);
-		virtual ~PartDownloader();
-		str getURL() const;
-		static str getDownloadPath();
-		Source getSource() const;
-		void downloadFile (str dest, str url, bool primary);
-		void modifyDest (str& dest) const;
-		QPushButton* getButton (Button i);
-		static void k_download();
+		using RequestList = QList<PartDownloadRequest*>;
+
+	properties:
+		Q_OBJECT
+		PROPERTY (public,	LDDocument*, 		PrimaryFile,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	bool,				Aborted,			BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (private,	Ui_DownloadFrom*,	Interface,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QStringList,			FilesToDownload,		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	RequestList,		Requests,			LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QPushButton*,		DownloadButton,		NO_OPS,		STOCK_WRITE)
+
+	public:
+		explicit		PartDownloader (QWidget* parent = null);
+		virtual			~PartDownloader();
+
+		void			downloadFile (QString dest, QString url, bool primary);
+		QPushButton*		getButton (Button i);
+		QString				getURL() const;
+		Source			getSource() const;
+		void			modifyDestination (QString& dest) const;
+
+		static QString		getDownloadPath();
+		static void		staticBegin();
 
 	public slots:
-		void sourceChanged (int i);
-		void checkIfFinished();
-		void buttonClicked (QAbstractButton* btn);
-
-	protected:
-		Ui_DownloadFrom* ui;
-		friend class PartDownloadRequest;
-
-	private:
-		QList<str> m_filesToDownload;
-		QList<PartDownloadRequest*> m_requests;
-		QPushButton* m_downloadButton;
+		void			buttonClicked (QAbstractButton* btn);
+		void			checkIfFinished();
+		void			sourceChanged (int i);
 };
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 class PartDownloadRequest : public QObject
-{	Q_OBJECT
-	PROPERTY (int, tableRow, setTableRow)
-
-	public:
-		enum State
-		{	Requesting,
-			Downloading,
-			Finished,
-			Failed,
+{
+	typedefs:
+		enum EState
+		{
+			ERequesting,
+			EDownloading,
+			EFinished,
+			EFailed,
 		};
 
-		explicit PartDownloadRequest (str url, str dest, bool primary, PartDownloader* parent);
+	properties:
+		Q_OBJECT
+		PROPERTY (public,	int,						TableRow,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	EState,					State,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	PartDownloader*,			Prompt,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QString,					URL,			STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QString,					Destinaton,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QString,					FilePath,		STR_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QNetworkAccessManager*,	NAM,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	QNetworkReply*,			Reply,			NO_OPS,		STOCK_WRITE)
+		PROPERTY (private,	bool,					FirstUpdate,	BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (private,	int64,					BytesRead,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	int64,					BytesTotal,		NUM_OPS,	STOCK_WRITE)
+		PROPERTY (private,	bool,					Primary,		BOOL_OPS,	STOCK_WRITE)
+		PROPERTY (private,	QFile*,					FilePointer,	NO_OPS,		STOCK_WRITE)
+
+	public:
+		explicit PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent);
 		PartDownloadRequest (const PartDownloadRequest&) = delete;
 		virtual ~PartDownloadRequest();
 		void updateToTable();
 		bool isFinished() const;
-		const State& state() const;
 
 		void operator= (const PartDownloadRequest&) = delete;
 
@@ -111,17 +129,6 @@ class PartDownloadRequest : public QObject
 		void readyRead();
 		void downloadProgress (qint64 recv, qint64 total);
 		void abort();
-
-	private:
-		PartDownloader* m_prompt;
-		str m_url, m_dest, m_fpath;
-		QNetworkAccessManager* m_nam;
-		QNetworkReply* m_reply;
-		bool m_firstUpdate;
-		State m_state;
-		int64 m_bytesRead, m_bytesTotal;
-		bool m_primary;
-		QFile* m_fp;
 };
 
 #endif // LDFORGE_DOWNLOAD_H

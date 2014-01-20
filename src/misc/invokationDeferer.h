@@ -16,31 +16,31 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_COLORS_H
-#define LDFORGE_COLORS_H
+#ifndef LDFORGE_MISC_INVOKATION_DEFERER_H
+#define LDFORGE_MISC_INVOKATION_DEFERER_H
 
-#include <QColor>
-#include "main.h"
+#include <QObject>
 
-#define MAX_COLORS 512
-
-class LDColor
+class InvokationDeferer : public QObject
 {
+	Q_OBJECT
+
 	public:
-		QString name, hexcode;
-		QColor faceColor, edgeColor;
-		int index;
+		using FunctionType = void(*)();
+
+		explicit InvokationDeferer (QObject* parent = 0);
+		void addFunctionCall (FunctionType func);
+
+	signals:
+		void functionAdded();
+
+	private:
+		QList<FunctionType>	m_funcs;
+
+	private slots:
+		void invokeFunctions();
 };
 
-void initColors();
-int luma (QColor& col);
+void invokeLater (InvokationDeferer::FunctionType func);
 
-// Safely gets a color with the given number or null if no such color.
-LDColor* getColor (int colnum);
-void setColor (int colnum, LDColor* col);
-
-// Main and edge color identifiers
-static const int maincolor = 16;
-static const int edgecolor = 24;
-
-#endif // LDFORGE_COLORS_H
+#endif // LDFORGE_MISC_INVOKATION_DEFERER_H

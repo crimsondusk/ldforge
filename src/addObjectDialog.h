@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -32,7 +32,8 @@ class QTreeWidget;
 class QDoubleSpinBox;
 
 class AddObjectDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent = null);
@@ -59,10 +60,10 @@ class AddObjectDialog : public QDialog
 		QLineEdit* le_matrix;
 
 	private:
-		void setButtonBackground (QPushButton* button, short color);
-		str currentSubfileName();
+		void setButtonBackground (QPushButton* button, int color);
+		QString currentSubfileName();
 
-		short colnum;
+		int colnum;
 
 	private slots:
 		void slot_colorButtonClicked();

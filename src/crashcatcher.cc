@@ -1,3 +1,21 @@
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013, 2014 Santeri Piippo
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #ifdef __unix__
 
 #include <QString>
@@ -15,7 +33,7 @@
 static bool g_crashCatcherActive = false;
 
 // If an assertion failed, what was it?
-static str g_assertionFailure;
+static QString g_assertionFailure;
 
 // List of signals to catch and crash on
 static QList<int> g_signalsToCatch ({
@@ -28,10 +46,12 @@ static QList<int> g_signalsToCatch ({
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void handleCrash (int sig)
-{	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
+{
+	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
 
 	if (g_crashCatcherActive)
-	{	printf ("caught signal while crash catcher is active!\n");
+	{
+		printf ("caught signal while crash catcher is active!\n");
 		exit (149);
 	}
 
@@ -42,10 +62,11 @@ static void handleCrash (int sig)
 	g_crashCatcherActive = true;
 
 	if (commandsFile.open())
-	{	commandsFile.write (fmt ("attach %1\n", pid).toLocal8Bit());
-		commandsFile.write (str ("backtrace full\n").toLocal8Bit());
-		commandsFile.write (str ("detach\n").toLocal8Bit());
-		commandsFile.write (str ("quit").toLocal8Bit());
+	{
+		commandsFile.write (fmt ("attach %1\n", pid).toLocal8Bit());
+		commandsFile.write (QString ("backtrace full\n").toLocal8Bit());
+		commandsFile.write (QString ("detach\n").toLocal8Bit());
+		commandsFile.write (QString ("quit").toLocal8Bit());
 		commandsFile.flush();
 		commandsFile.close();
 	}
@@ -60,8 +81,8 @@ static void handleCrash (int sig)
 	prctl (PR_SET_PTRACER, proc.pid(), 0, 0, 0);
 
 	proc.waitForFinished (1000);
-	str output = QString (proc.readAllStandardOutput());
-	str err = QString (proc.readAllStandardError());
+	QString output = QString (proc.readAllStandardOutput());
+	QString err = QString (proc.readAllStandardError());
 
 	bombBox (fmt ("<h3>Program crashed with signal %1</h3>\n\n"
 		"%2"
@@ -73,7 +94,8 @@ static void handleCrash (int sig)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void initCrashCatcher()
-{	struct sigaction sighandler;
+{
+	struct sigaction sighandler;
 	sighandler.sa_handler = &handleCrash;
 	sighandler.sa_flags = 0;
 	sigemptyset (&sighandler.sa_mask);
@@ -92,7 +114,8 @@ void initCrashCatcher()
 // Said prompt will embed the assertion failure information.
 // -----------------------------------------------------------------------------
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
-{	str errmsg = fmt (
+{
+	QString errmsg = fmt (
 		"<p><b>File</b>: <tt>%1</tt><br />"
 		"<b>Line</b>: <tt>%2</tt><br />"
 		"<b>Function:</b> <tt>%3</tt></p>"

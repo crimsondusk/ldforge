@@ -1,25 +1,33 @@
 =================================================
-== Changes in version 0.3-alpha
+== Changes in version 0.3
 =================================================
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
 		- Added close, close all and save all actions.
 - Added ability to download parts from the Parts Tracker or from a custom-specified URL. If the resulting
 	file contains references to unknown files, LDForge attempts to recursively download all of them.
-- Converted the configuration code to use QSettings, in practice this means the configuration file moved to
-	the registry under Windows and into ~/.config/LDForge under Linux. Unfortunately this means settings get
-	lost during transition from version 0.2 and 0.3.
 - Added a new editing mode for drawing circles.
-- Corrections to the primitive generator:
+- Major corrections to the primitive generator:
 	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
 	- Added support for multiple spaces before the ring number.
+- Added an action for quickly subfiling the group of selected objects.
+- Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix.
+	Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234.
+	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
+- Implicitely-opened documents are now closed automatically when rendered unused, hopefully reducing memory
+	usage somewhat.
+- Configuration is now always situated and read from the application working directory
+- LDraw code parser no longer complains about scientific notation.
 - Changing to draw mode while in free camera now causes the camera to be changed to top.
+- When drawing polygons, line lengths are now displayed. Added a configuration option to toggle this behavior.
+- Added an option for drawing line angles similarly.
 - Added config fields for default name/username/license. This data will be automatically filled
 	into forms that require such information.
 - Upon first start the configuration prompt pops up on its own, defaulting on the profile tab. This
 	way the user can fill in the profile data on the first start and get that out of the way (and
 	gives the opportunity to see the other config fields)
+- Now recognizes "8\" as a special subdirectory alongside "48\" and "s\"
 - Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
 - Added new action "Go to line", default shortcut Ctrl-G. It should be obvious what it does.
 - Added new actions "Hide" and "Reveal" which allow direct setting of objects' visibility setting instead of
@@ -27,6 +35,9 @@
 - Added support for logoed studs, this should satisfy Steffen. :p
 - Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
 	syntax ('0 BFC CERTIFY CLIP').
+- Increased the amount of recent file slots from 5 to 10.
+- Added Ball Joint-8 primitives to the primitive categories.
+- Fixed: Configuration window did not allow for grid angle values higher than 99.99
 - The viewport now uses 7 sets of rotation/pan/zoom values, one for each camera. Changing these values
 	in one camera no longer affects other cameras.
 - When an external program is attempted to be used without a binary path defined, one will be asked
@@ -34,17 +45,29 @@
 - When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
 	path now as well if necessary instead of just ignoring it and not adding the edgelines.
 - Added a configuration option for line anti-aliasing.
+- Added a configurable selected color to blend to objects when they are selected, instead of a simple
+	light-up. Defaults to a blue color.
 - BFC red/green view and black edges no longer default to true.
+- When the background is dark, the "black edges" option actually means "white edges" now.
 - If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
 	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
 - The camera icons now draw real tooltips instead of emulated ones.
 - Color icon border now reflects the color's edge color.
-- Fixed: File loading would skip every 300th line.
+- Changed the default color toolbar to have a wider range of colors. No need for transparent ones.
+- Fixed: When rotating subfiles, the scale was treated incorrectly due to bad operand order in matrix
+	multiplication, causing unwanted morphing.
+- [Linux] Fixed: If an external program is attempted to be launched requiring Wine but with Wine missing,
+	there was no error message and instead LDForge took this as no output from the program.
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
 
 =================================================
-== Changes in version 0.2-alpha
+== Changes in version 0.2.1
+=================================================
+- Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
+
+=================================================
+== Changes in version 0.2
 =================================================
 
 - Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.

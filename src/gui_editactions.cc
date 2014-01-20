@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -22,8 +22,8 @@
 #include <QClipboard>
 
 #include "gui.h"
-#include "common.h"
-#include "file.h"
+#include "main.h"
+#include "document.h"
 #include "colorSelectDialog.h"
 #include "misc.h"
 #include "widgets.h"
@@ -41,17 +41,19 @@ extern_cfg (String, ld_defaultuser);
 // =============================================================================
 // -----------------------------------------------------------------------------
 static int copyToClipboard()
-{	QList<LDObject*> objs = selection();
+{
+	LDObjectList objs = selection();
 	int num = 0;
 
 	// Clear the clipboard first.
 	qApp->clipboard()->clear();
 
 	// Now, copy the contents into the clipboard.
-	str data;
+	QString data;
 
 	for (LDObject* obj : objs)
-	{	if (data.length() > 0)
+	{
+		if (data.length() > 0)
 			data += "\n";
 
 		data += obj->raw();
@@ -65,62 +67,69 @@ static int copyToClipboard()
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Cut, CTRL (X))
-{	int num = copyToClipboard();
-	g_win->deleteSelection();
-	log (ForgeWindow::tr ("%1 objects cut"), num);
+{
+	int num = copyToClipboard();
+	deleteSelection();
+	log (tr ("%1 objects cut"), num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Copy, CTRL (C))
-{	int num = copyToClipboard();
-	log (ForgeWindow::tr ("%1 objects copied"), num);
+{
+	int num = copyToClipboard();
+	log (tr ("%1 objects copied"), num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Paste, CTRL (V))
-{	const str clipboardText = qApp->clipboard()->text();
-	int idx = g_win->getInsertionPoint();
-	LDFile::current()->clearSelection();
+{
+	const QString clipboardText = qApp->clipboard()->text();
+	int idx = getInsertionPoint();
+	getCurrentDocument()->clearSelection();
 	int num = 0;
 
-	for (str line : clipboardText.split ("\n"))
-	{	LDObject* pasted = parseLine (line);
-		LDFile::current()->insertObj (idx++, pasted);
+	for (QString line : clipboardText.split ("\n"))
+	{
+		LDObject* pasted = parseLine (line);
+		getCurrentDocument()->insertObj (idx++, pasted);
 		pasted->select();
-		g_win->R()->compileObject (pasted);
+		R()->compileObject (pasted);
 		++num;
 	}
 
-	log (ForgeWindow::tr ("%1 objects pasted"), num);
-	g_win->refresh();
-	g_win->scrollToSelection();
+	log (tr ("%1 objects pasted"), num);
+	refresh();
+	scrollToSelection();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Delete, KEY (Delete))
-{	int num = g_win->deleteSelection();
-	log (ForgeWindow::tr ("%1 objects deleted"), num);
+{
+	int num = deleteSelection();
+	log (tr ("%1 objects deleted"), num);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void doInline (bool deep)
-{	QList<LDObject*> sel = selection();
+{
+	LDObjectList sel = selection();
 
 	for (LDObject* obj : sel)
-	{	// Get the index of the subfile so we know where to insert the
+	{
+		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
 		long idx = obj->getIndex();
 
 		if (idx == -1)
 			continue;
 
-		QList<LDObject*> objs;
+		LDObjectList objs;
 
-		if (obj->getType() == LDObject::Subfile)
+		if (obj->getType() == LDObject::ESubfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (
 					   (LDSubfile::InlineFlags)
 					   ( (deep) ? LDSubfile::DeepInline : 0) |
@@ -131,39 +140,42 @@ static void doInline (bool deep)
 
 		// Merge in the inlined objects
 		for (LDObject * inlineobj : objs)
-		{	str line = inlineobj->raw();
-			delete inlineobj;
-
+		{
+			QString line = inlineobj->raw();
+			inlineobj->deleteSelf();
 			LDObject* newobj = parseLine (line);
-			LDFile::current()->insertObj (idx++, newobj);
+			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
 			g_win->R()->compileObject (newobj);
 		}
 
 		// Delete the subfile now as it's been inlined.
-		LDFile::current()->forgetObject (obj);
-		delete obj;
+		obj->deleteSelf();
 	}
 
 	g_win->refresh();
 }
 
 DEFINE_ACTION (Inline, CTRL (I))
-{	doInline (false);
+{
+	doInline (false);
 }
 
 DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I))
-{	doInline (true);
+{
+	doInline (true);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SplitQuads, 0)
-{	QList<LDObject*> objs = selection();
+{
+	LDObjectList objs = selection();
 	int num = 0;
 
 	for (LDObject* obj : objs)
-	{	if (obj->getType() != LDObject::Quad)
+	{
+		if (obj->getType() != LDObject::EQuad)
 			continue;
 
 		// Find the index of this quad
@@ -176,26 +188,27 @@ DEFINE_ACTION (SplitQuads, 0)
 
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
-		LDFile::current()->setObject (index, triangles[0]);
-		LDFile::current()->insertObj (index + 1, triangles[1]);
+		getCurrentDocument()->setObject (index, triangles[0]);
+		getCurrentDocument()->insertObj (index + 1, triangles[1]);
 
 		for (LDTriangle* t : triangles)
-			g_win->R()->compileObject (t);
+			R()->compileObject (t);
 
 		// Delete this quad now, it has been split.
-		delete obj;
+		obj->deleteSelf();
 
 		num++;
 	}
 
 	log ("%1 quadrilaterals split", num);
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (EditRaw, KEY (F9))
-{	if (selection().size() != 1)
+{
+	if (selection().size() != 1)
 		return;
 
 	LDObject* obj = selection()[0];
@@ -205,10 +218,11 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	ui.setupUi (dlg);
 	ui.code->setText (obj->raw());
 
-	if (obj->getType() == LDObject::Error)
+	if (obj->getType() == LDObject::EError)
 		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
 	else
-	{	ui.errorDescription->hide();
+	{
+		ui.errorDescription->hide();
 		ui.errorIcon->hide();
 	}
 
@@ -222,55 +236,61 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	oldobj->replace (obj);
 
 	// Refresh
-	g_win->R()->compileObject (obj);
-	g_win->refresh();
+	R()->compileObject (obj);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (SetColor, KEY (C))
-{	if (selection().isEmpty())
+{
+	if (selection().isEmpty())
 		return;
 
-	short colnum;
-	short defcol = -1;
+	int colnum;
+	int defcol = -1;
 
-	QList<LDObject*> objs = selection();
+	LDObjectList objs = selection();
 
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	defcol = g_win->getSelectedColor();
+	defcol = getSelectedColor();
 
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelector::getColor (colnum, defcol, g_win))
-	{	for (LDObject* obj : objs)
-		{	if (obj->isColored() == false)
+	if (ColorSelector::selectColor (colnum, defcol, g_win))
+	{
+		for (LDObject* obj : objs)
+		{
+			if (obj->isColored() == false)
 				continue;
 
 			obj->setColor (colnum);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 
-		g_win->refresh();
+		refresh();
 	}
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Borders, CTRL_SHIFT (B))
-{	QList<LDObject*> objs = selection();
+{
+	LDObjectList objs = selection();
 	int num = 0;
 
 	for (LDObject* obj : objs)
-	{	const LDObject::Type type = obj->getType();
-		if (type != LDObject::Quad && type != LDObject::Triangle)
+	{
+		const LDObject::Type type = obj->getType();
+		if (type != LDObject::EQuad && type != LDObject::ETriangle)
 			continue;
 
-		short numLines;
+		int numLines;
 		LDLine* lines[4];
 
-		if (type == LDObject::Quad)
-		{	numLines = 4;
+		if (type == LDObject::EQuad)
+		{
+			numLines = 4;
 
 			LDQuad* quad = static_cast<LDQuad*> (obj);
 			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
@@ -279,7 +299,8 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
 		}
 		else
-		{	numLines = 3;
+		{
+			numLines = 3;
 
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
 			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
@@ -287,51 +308,56 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
 		}
 
-		for (short i = 0; i < numLines; ++i)
-		{	long idx = obj->getIndex() + i + 1;
+		for (int i = 0; i < numLines; ++i)
+		{
+			long idx = obj->getIndex() + i + 1;
 
 			lines[i]->setColor (edgecolor);
-			LDFile::current()->insertObj (idx, lines[i]);
-			g_win->R()->compileObject (lines[i]);
+			getCurrentDocument()->insertObj (idx, lines[i]);
+			R()->compileObject (lines[i]);
 		}
 
 		num += numLines;
 	}
 
-	log (ForgeWindow::tr ("Added %1 border lines"), num);
-	g_win->refresh();
+	log (tr ("Added %1 border lines"), num);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (CornerVerts, 0)
-{	int num = 0;
+{
+	int num = 0;
 
 	for (LDObject* obj : selection())
-	{	if (obj->vertices() < 2)
+	{
+		if (obj->vertices() < 2)
 			continue;
 
 		int idx = obj->getIndex();
 
 		for (int i = 0; i < obj->vertices(); ++i)
-		{	LDVertex* vert = new LDVertex;
+		{
+			LDVertex* vert = new LDVertex;
 			vert->pos = obj->getVertex (i);
-			vert->setColor (obj->color());
+			vert->setColor (obj->getColor());
 
-			LDFile::current()->insertObj (++idx, vert);
-			g_win->R()->compileObject (vert);
+			getCurrentDocument()->insertObj (++idx, vert);
+			R()->compileObject (vert);
 			++num;
 		}
 	}
 
-	log (ForgeWindow::tr ("Added %1 vertices"), num);
-	g_win->refresh();
+	log (tr ("Added %1 vertices"), num);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 static void doMoveSelection (const bool up)
-{	QList<LDObject*> objs = selection();
+{
+	LDObjectList objs = selection();
 	LDObject::moveObjects (objs, up);
 	g_win->buildObjList();
 }
@@ -339,33 +365,39 @@ static void doMoveSelection (const bool up)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (MoveUp, KEY (PageUp))
-{	doMoveSelection (true);
+{
+	doMoveSelection (true);
 }
 
 DEFINE_ACTION (MoveDown, KEY (PageDown))
-{	doMoveSelection (false);
+{
+	doMoveSelection (false);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Undo, CTRL (Z))
-{	LDFile::current()->undo();
+{
+	getCurrentDocument()->undo();
 }
 
 DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
-{	LDFile::current()->redo();
+{
+	getCurrentDocument()->redo();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void doMoveObjects (vertex vect)
-{	// Apply the grid values
-	vect[X] *= currentGrid().confs[Grid::X]->value;
-	vect[Y] *= currentGrid().confs[Grid::Y]->value;
-	vect[Z] *= currentGrid().confs[Grid::Z]->value;
+void doMoveObjects (Vertex vect)
+{
+	// Apply the grid values
+	vect[X] *= *currentGrid().confs[Grid::X];
+	vect[Y] *= *currentGrid().confs[Grid::Y];
+	vect[Z] *= *currentGrid().confs[Grid::Z];
 
 	for (LDObject* obj : selection())
-	{	obj->move (vect);
+	{
+		obj->move (vect);
 		g_win->R()->compileObject (obj);
 	}
 
@@ -375,63 +407,74 @@ void doMoveObjects (vertex vect)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (MoveXNeg, KEY (Left))
-{	doMoveObjects ( { -1, 0, 0});
+{
+	doMoveObjects ({ -1, 0, 0});
 }
 
 DEFINE_ACTION (MoveYNeg, KEY (Home))
-{	doMoveObjects ( {0, -1, 0});
+{
+	doMoveObjects ({0, -1, 0});
 }
 
 DEFINE_ACTION (MoveZNeg, KEY (Down))
-{	doMoveObjects ( {0, 0, -1});
+{
+	doMoveObjects ({0, 0, -1});
 }
 
 DEFINE_ACTION (MoveXPos, KEY (Right))
-{	doMoveObjects ( {1, 0, 0});
+{
+	doMoveObjects ({1, 0, 0});
 }
 
 DEFINE_ACTION (MoveYPos, KEY (End))
-{	doMoveObjects ( {0, 1, 0});
+{
+	doMoveObjects ({0, 1, 0});
 }
 
 DEFINE_ACTION (MoveZPos, KEY (Up))
-{	doMoveObjects ( {0, 0, 1});
+{
+	doMoveObjects ({0, 0, 1});
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Invert, CTRL_SHIFT (W))
-{	QList<LDObject*> sel = selection();
+{
+	LDObjectList sel = selection();
 
 	for (LDObject* obj : sel)
-	{	obj->invert();
-		g_win->R()->compileObject (obj);
+	{
+		obj->invert();
+		R()->compileObject (obj);
 	}
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void rotateVertex (vertex& v, const vertex& rotpoint, const matrix& transform)
-{	v.move (-rotpoint);
+static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& transform)
+{
+	v.move (-rotpoint);
 	v.transform (transform, g_origin);
 	v.move (rotpoint);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static void doRotate (const short l, const short m, const short n)
-{	QList<LDObject*> sel = selection();
-	QList<vertex*> queue;
-	const vertex rotpoint = rotPoint (sel);
-	const double angle = (pi * currentGrid().confs[Grid::Angle]->value) / 180,
+static void doRotate (const int l, const int m, const int n)
+{
+	LDObjectList sel = selection();
+	QList<Vertex*> queue;
+	const Vertex rotpoint = rotPoint (sel);
+	const double angle = (pi * *currentGrid().confs[Grid::Angle]) / 180,
 				 cosangle = cos (angle),
 				 sinangle = sin (angle);
 
 	// ref: http://en.wikipedia.org/wiki/Transformation_matrix#Rotation_2
-	matrix transform (
-	{	(l* l * (1 - cosangle)) + cosangle,
+	Matrix transform (
+	{
+		(l* l * (1 - cosangle)) + cosangle,
 		(m* l * (1 - cosangle)) - (n* sinangle),
 		(n* l * (1 - cosangle)) + (m* sinangle),
 
@@ -446,26 +489,32 @@ static void doRotate (const short l, const short m, const short n)
 
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel)
-	{	if (obj->vertices())
-		{	for (short i = 0; i < obj->vertices(); ++i)
-			{	vertex v = obj->getVertex (i);
+	{
+		if (obj->vertices())
+		{
+			for (int i = 0; i < obj->vertices(); ++i)
+			{
+				Vertex v = obj->getVertex (i);
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
-		} elif (obj->hasMatrix())
-
-		{	LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+		}
+		elif (obj->hasMatrix())
+		{
+			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
-			vertex v = mo->position();
+			Vertex v = mo->getPosition();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
 
 			// Transform the matrix
-			mo->setTransform (mo->transform() * transform);
-		} elif (obj->getType() == LDObject::Vertex)
-		{	LDVertex* vert = static_cast<LDVertex*> (obj);
-			vertex v = vert->pos;
+			mo->setTransform (transform * mo->getTransform());
+		}
+		elif (obj->getType() == LDObject::EVertex)
+		{
+			LDVertex* vert = static_cast<LDVertex*> (obj);
+			Vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
 		}
@@ -479,82 +528,114 @@ static void doRotate (const short l, const short m, const short n)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (RotateXPos, CTRL (Right))
-{	doRotate (1, 0, 0);
+{
+	doRotate (1, 0, 0);
 }
 DEFINE_ACTION (RotateYPos, CTRL (End))
-{	doRotate (0, 1, 0);
+{
+	doRotate (0, 1, 0);
 }
 DEFINE_ACTION (RotateZPos, CTRL (Up))
-{	doRotate (0, 0, 1);
+{
+	doRotate (0, 0, 1);
 }
 DEFINE_ACTION (RotateXNeg, CTRL (Left))
-{	doRotate (-1, 0, 0);
+{
+	doRotate (-1, 0, 0);
 }
 DEFINE_ACTION (RotateYNeg, CTRL (Home))
-{	doRotate (0, -1, 0);
+{
+	doRotate (0, -1, 0);
 }
 DEFINE_ACTION (RotateZNeg, CTRL (Down))
-{	doRotate (0, 0, -1);
+{
+	doRotate (0, 0, -1);
 }
 
 DEFINE_ACTION (RotationPoint, (0))
-{	configRotationPoint();
+{
+	configRotationPoint();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (RoundCoordinates, 0)
-{	setlocale (LC_ALL, "C");
+{
+	setlocale (LC_ALL, "C");
 	int num = 0;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
-		{	vertex v = obj->getVertex (i);
+	{
+		LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
-			for (const Axis ax : g_Axes)
-			{	// HACK: .. should find a better way to do this
-				str valstr;
-				valstr.sprintf ("%.3f", v[ax]);
-				v[ax] = valstr.toDouble();
+		if (mo != null)
+		{
+			Vertex v = mo->getPosition();
+			Matrix t = mo->getTransform();
+
+			for_axes (ax)
+				roundToDecimals (v[ax], 3);
+
+			// Let matrix values be rounded to 4 decimals,
+			// they need that extra precision
+			for (int i = 0; i < 9; ++i)
+				roundToDecimals (t[i], 4);
+
+			mo->setPosition (v);
+			mo->setTransform (t);
+			num += 10;
+		}
+		else
+		{
+			for (int i = 0; i < obj->vertices(); ++i)
+			{
+				Vertex v = obj->getVertex (i);
+
+				for_axes (ax)
+					roundToDecimals (v[ax], 3);
+
+				obj->setVertex (i, v);
+				R()->compileObject (obj);
+				num += 3;
 			}
-
-			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
-			num += 3;
 		}
 	}
 
-	log (ForgeWindow::tr ("Rounded %1 coordinates"), num);
-	g_win->refresh();
+	log (tr ("Rounded %1 values"), num);
+	refreshObjectList();
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Uncolorize, 0)
-{	int num = 0;
+{
+	int num = 0;
 
 	for (LDObject* obj : selection())
-	{	if (obj->isColored() == false)
+	{
+		if (obj->isColored() == false)
 			continue;
 
 		int col = maincolor;
 
-		if (obj->getType() == LDObject::Line || obj->getType() == LDObject::CndLine)
+		if (obj->getType() == LDObject::ELine || obj->getType() == LDObject::ECondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 		num++;
 	}
 
-	log (ForgeWindow::tr ("%1 objects uncolored"), num);
-	g_win->refresh();
+	log (tr ("%1 objects uncolored"), num);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (ReplaceCoords, CTRL (R))
-{	QDialog* dlg = new QDialog (g_win);
+{
+	QDialog* dlg = new QDialog (g_win);
 	Ui::ReplaceCoordsUI ui;
 	ui.setupUi (dlg);
 
@@ -574,14 +655,18 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	if (ui.z->isChecked()) sel << Z;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
-		{	vertex v = obj->getVertex (i);
+	{
+		for (int i = 0; i < obj->vertices(); ++i)
+		{
+			Vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
-			{	double& coord = v[ax];
+			{
+				double& coord = v[ax];
 
 				if (any || coord == search)
-				{	if (!rel)
+				{
+					if (!rel)
 						coord = 0;
 
 					coord += replacement;
@@ -590,18 +675,19 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 			}
 
 			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 	}
 
-	log (ForgeWindow::tr ("Altered %1 values"), num);
-	g_win->refresh();
+	log (tr ("Altered %1 values"), num);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Flip, CTRL_SHIFT (F))
-{	QDialog* dlg = new QDialog;
+{
+	QDialog* dlg = new QDialog;
 	Ui::FlipUI ui;
 	ui.setupUi (dlg);
 
@@ -615,44 +701,49 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	if (ui.z->isChecked()) sel << Z;
 
 	for (LDObject* obj : selection())
-	{	for (short i = 0; i < obj->vertices(); ++i)
-		{	vertex v = obj->getVertex (i);
+	{
+		for (int i = 0; i < obj->vertices(); ++i)
+		{
+			Vertex v = obj->getVertex (i);
 
 			for (Axis ax : sel)
 				v[ax] *= -1;
 
 			obj->setVertex (i, v);
-			g_win->R()->compileObject (obj);
+			R()->compileObject (obj);
 		}
 	}
 
-	g_win->refresh();
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Demote, 0)
-{	QList<LDObject*> sel = selection();
+{
+	LDObjectList sel = selection();
 	int num = 0;
 
 	for (LDObject* obj : sel)
-	{	if (obj->getType() != LDObject::CndLine)
+	{
+		if (obj->getType() != LDObject::ECondLine)
 			continue;
 
-		LDLine* repl = static_cast<LDCndLine*> (obj)->demote();
-		g_win->R()->compileObject (repl);
+		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
+		R()->compileObject (repl);
 		++num;
 	}
 
-	log (ForgeWindow::tr ("Demoted %1 conditional lines"), num);
-	g_win->refresh();
+	log (tr ("Demoted %1 conditional lines"), num);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-static bool isColorUsed (short colnum)
-{	for (LDObject* obj : LDFile::current()->objects())
-		if (obj->isColored() && obj->color() == colnum)
+static bool isColorUsed (int colnum)
+{
+	for (LDObject* obj : getCurrentDocument()->getObjects())
+		if (obj->isColored() && obj->getColor() == colnum)
 			return true;
 
 	return false;
@@ -661,32 +752,36 @@ static bool isColorUsed (short colnum)
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (Autocolor, 0)
-{	short colnum = 0;
+{
+	int colnum = 0;
 
 	while (colnum < MAX_COLORS && (getColor (colnum) == null || isColorUsed (colnum)))
 		colnum++;
 
 	if (colnum >= MAX_COLORS)
-	{	log (ForgeWindow::tr ("Cannot auto-color: all colors are in use!"));
+	{
+		log (tr ("Cannot auto-color: all colors are in use!"));
 		return;
 	}
 
 	for (LDObject* obj : selection())
-	{	if (obj->isColored() == false)
+	{
+		if (obj->isColored() == false)
 			continue;
 
 		obj->setColor (colnum);
-		g_win->R()->compileObject (obj);
+		R()->compileObject (obj);
 	}
 
-	log (ForgeWindow::tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
-	g_win->refresh();
+	log (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
+	refresh();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 DEFINE_ACTION (AddHistoryLine, 0)
-{	LDObject* obj;
+{
+	LDObject* obj;
 	bool ishistory = false,
 		 prevIsHistory = false;
 
@@ -701,26 +796,28 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		return;
 
 	// Create the comment object based on input
-	str commentText = fmt ("!HISTORY %1 [%2] %3",
-						   ui->m_date->date().toString ("yyyy-MM-dd"),
-						   ui->m_username->text(),
-						   ui->m_comment->text());
+	QString commentText = fmt ("!HISTORY %1 [%2] %3",
+		ui->m_date->date().toString ("yyyy-MM-dd"),
+		ui->m_username->text(),
+		ui->m_comment->text());
 
 	LDComment* comm = new LDComment (commentText);
 
 	// Find a spot to place the new comment
 	for (
-		obj = LDFile::current()->object (0);
+		obj = getCurrentDocument()->getObject (0);
 		obj && obj->next() && !obj->next()->isScemantic();
 		obj = obj->next()
 	)
-	{	LDComment* comm = dynamic_cast<LDComment*> (obj);
+	{
+		LDComment* comm = dynamic_cast<LDComment*> (obj);
 
 		if (comm && comm->text.startsWith ("!HISTORY "))
 			ishistory = true;
 
 		if (prevIsHistory && !ishistory)
-		{	// Last line was history, this isn't, thus insert the new history
+		{
+			// Last line was history, this isn't, thus insert the new history
 			// line here.
 			break;
 		}
@@ -729,13 +826,13 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	}
 
 	int idx = obj ? obj->getIndex() : 0;
-	LDFile::current()->insertObj (idx++, comm);
+	getCurrentDocument()->insertObj (idx++, comm);
 
 	// If we're adding a history line right before a scemantic object, pad it
 	// an empty line
 	if (obj && obj->next() && obj->next()->isScemantic())
-		LDFile::current()->insertObj (idx, new LDEmpty);
+		getCurrentDocument()->insertObj (idx, new LDEmpty);
 
-	g_win->buildObjList();
+	buildObjList();
 	delete ui;
 }

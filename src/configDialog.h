@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@ class QDoubleSpinBox;
 
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem
-{	PROPERTY (KeySequenceConfig*, keyConfig, setKeyConfig)
-	PROPERTY (QAction*, action, setAction)
+{
+	PROPERTY (public,	KeySequenceConfig*,	KeyConfig,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QAction*,				Action,		NO_OPS,	STOCK_WRITE)
 
 	public:
 		explicit ShortcutListItem (QListWidget* view = null, int type = Type) :
@@ -38,11 +39,13 @@ class ShortcutListItem : public QListWidgetItem
 
 // =============================================================================
 class ConfigDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		enum Tab
-		{	InterfaceTab,
+		{
+			InterfaceTab,
 			ProfileTab,
 			ShortcutsTab,
 			QuickColorsTab,
@@ -66,12 +69,12 @@ class ConfigDialog : public QDialog
 
 		void applySettings();
 		void addShortcut (KeySequenceConfig& cfg, QAction* act, int& i);
-		void setButtonBackground (QPushButton* button, str value);
-		void pickColor (StringConfig& cfg, QPushButton* button);
+		void setButtonBackground (QPushButton* button, QString value);
+		void pickColor (QString& conf, QPushButton* button);
 		void updateQuickColorList (LDQuickColor* sel = null);
 		void setShortcutText (ShortcutListItem* item);
 		int getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack);
-		str quickColorString();
+		QString quickColorString();
 		QListWidgetItem* getSelectedQuickColor();
 		QList<ShortcutListItem*> getShortcutSelection();
 		void initGrids();
@@ -80,6 +83,7 @@ class ConfigDialog : public QDialog
 	private slots:
 		void slot_setGLBackground();
 		void slot_setGLForeground();
+		void slot_setGLSelectColor();
 		void slot_setShortcut();
 		void slot_resetShortcut();
 		void slot_clearShortcut();
@@ -98,7 +102,8 @@ class ConfigDialog : public QDialog
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 class KeySequenceDialog : public QDialog
-{	Q_OBJECT
+{
+	Q_OBJECT
 
 	public:
 		explicit KeySequenceDialog (QKeySequence seq, QWidget* parent = null, Qt::WindowFlags f = 0);

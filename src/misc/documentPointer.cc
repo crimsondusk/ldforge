@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -14,65 +14,63 @@
  *
  *  You should have received a copy of the GNU General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *  =====================================================================
- *
- *  colors.cpp: LDraw color management. LDConfig.ldr parsing is not here!
- *  TODO: Make LDColor more full-fledged, add support for direct colors.
- *  TODO: g_LDColors should probably be a map.
  */
 
-#include "common.h"
-#include "colors.h"
-#include "file.h"
-#include "misc.h"
-#include "gui.h"
-#include "ldconfig.h"
-#include <QColor>
+#include "documentPointer.h"
+#include "../document.h"
+#include "../misc.h"
 
-static LDColor* g_LDColors[MAX_COLORS];
+LDDocumentPointer::LDDocumentPointer()  : m_Pointer (null) {}
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void initColors()
-{	LDColor* col;
-	log ("%1: initializing color information.\n", __func__);
-
-	// Always make sure there's 16 and 24 available. They're special like that.
-	col = new LDColor;
-	col->faceColor = col->hexcode = "#AAAAAA";
-	col->edgeColor = Qt::black;
-	g_LDColors[maincolor] = col;
-
-	col = new LDColor;
-	col->faceColor = col->edgeColor = col->hexcode = "#000000";
-	g_LDColors[edgecolor] = col;
-
-	parseLDConfig();
+LDDocumentPointer::LDDocumentPointer (LDDocument* ptr) :
+	m_Pointer (ptr)
+{
+	addReference ();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDColor* getColor (short colnum)
-{	// Check bounds
-	if (colnum < 0 || colnum >= MAX_COLORS)
-		return null;
-
-	return g_LDColors[colnum];
+LDDocumentPointer::LDDocumentPointer (const LDDocumentPointer& other) :
+	m_Pointer (other.getPointer())
+{
+	addReference ();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void setColor (short colnum, LDColor* col)
-{	if (colnum < 0 || colnum >= MAX_COLORS)
-		return;
-
-	g_LDColors[colnum] = col;
+LDDocumentPointer::~LDDocumentPointer()
+{
+	removeReference();
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-int luma (QColor& col)
-{	return (0.2126f * col.red()) +
-		   (0.7152f * col.green()) +
-		   (0.0722f * col.blue());
+void LDDocumentPointer::addReference()
+{
+	if (getPointer() != null)
+		getPointer()->addReference (this);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+void LDDocumentPointer::removeReference()
+{
+	if (getPointer() != null)
+		getPointer()->removeReference (this);
+}
+
+// =============================================================================
+// -----------------------------------------------------------------------------
+LDDocumentPointer& LDDocumentPointer::operator= (LDDocument* ptr)
+{
+	if (ptr != getPointer())
+	{
+		removeReference();
+		setPointer (ptr);
+		addReference();
+	}
+
+	return *this;
 }

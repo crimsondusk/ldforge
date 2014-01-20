@@ -38,7 +38,7 @@
       <string/>
      </property>
      <property name="pixmap">
-      <pixmap resource="../../ldforge.qrc">:/icons/ldforge.png</pixmap>
+      <pixmap resource="../ldforge.qrc">:/icons/ldforge.png</pixmap>
      </property>
      <property name="scaledContents">
       <bool>false</bool>
@@ -64,7 +64,7 @@
    <item>
     <widget class="QLabel" name="label_2">
      <property name="text">
-      <string>Copyright (C) 2013 Santeri Piippo</string>
+      <string>Copyright (C) 2013, 2014 Santeri Piippo</string>
      </property>
      <property name="alignment">
       <set>Qt::AlignCenter</set>
@@ -116,6 +116,7 @@
   </layout>
  </widget>
  <resources>
+  <include location="../ldforge.qrc"/>
   <include location="../../ldforge.qrc"/>
  </resources>
  <connections>

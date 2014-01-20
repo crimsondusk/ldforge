@@ -4,34 +4,29 @@
 
 TEMPLATE        = app
 TARGET          = ldforge
-SUBDIRS        += ./src
-
-TARGET          = ldforge
-DEPENDPATH     += .
-INCLUDEPATH    += . ./build/
 RC_FILE         = ldforge.rc
 RESOURCES       = ldforge.qrc
-RCC_DIR         = ./build/
-MOC_DIR         = ./build/
-RCC_DIR         = ./build/
-UI_DIR          = ./build/
-SOURCES         = src/*.cpp
-HEADERS         = src/*.h
+RCC_DIR         = ./build_shared/
+MOC_DIR         = ./build_shared/
+UI_DIR          = ./build_shared/
+SOURCES         = src/*.cc
+HEADERS         = src/*.h src/misc/*.h
 FORMS           = ui/*.ui
 QT             += opengl network
 QMAKE_CXXFLAGS += -std=c++0x
 CONFIG         += debug_and_release
 
 CONFIG (debug, debug|release) {
-	TARGET   = ldforge_debug
 	DEFINES += DEBUG
 	OBJECTS_DIR = ./build_debug/
 } else {
-	TARGET = ldforge
 	DEFINES += RELEASE
 	OBJECTS_DIR = ./build_release/
 }
 
+exists(.git): DEFINES += GIT_DESCRIBE="\"\\\"$$system(git describe --tags --long)\\\"\""
+
 unix {
 	LIBS += -lGLU
+	DEFINES += COMPILE_DATE="\"\\\"$$system(LC_ALL=C date \"+%d %h %Y %H:%M:%S\")\\\"\""
 }

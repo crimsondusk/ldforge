@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,12 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MESSAGELOG_H
-#define MESSAGELOG_H
+#ifndef LDFORGE_MESSAGELOG_H
+#define LDFORGE_MESSAGELOG_H
 
 #include <QObject>
 #include <QDate>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 class GLRenderer;
@@ -38,23 +38,25 @@ class QTimer;
  * repainting.
  */
 class MessageManager : public QObject
-{		Q_OBJECT
-		PROPERTY (GLRenderer*, renderer, setRenderer)
+{
+	Q_OBJECT
+	PROPERTY (public,	GLRenderer*,	Renderer,	NO_OPS,	STOCK_WRITE)
 
 	public:
 		// Single line of the message log.
 		class Line
-		{	public:
-				Line (str text);
+		{
+			public:
+				Line (QString text);
 				bool update (bool& changed);
 
-				str text;
+				QString text;
 				float alpha;
 				QDateTime expiry;
 		};
 
 		explicit MessageManager (QObject* parent = 0);
-		void addLine (str line);
+		void addLine (QString line);
 		const QList<Line>& getLines() const;
 
 	private:
@@ -65,4 +67,4 @@ class MessageManager : public QObject
 		void tick();
 };
 
-#endif // MESSAGELOG_H
+#endif // LDFORGE_MESSAGELOG_H

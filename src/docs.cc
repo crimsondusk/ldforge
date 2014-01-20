@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -20,15 +20,17 @@
 #include <QTextEdit>
 #include <QDialogButtonBox>
 #include <QBoxLayout>
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 class DocumentViewer : public QDialog
-{	public:
+{
+	public:
 		explicit DocumentViewer (QWidget* parent = null, Qt::WindowFlags f = 0) : QDialog (parent, f)
-		{	te_text = new QTextEdit (this);
+		{
+			te_text = new QTextEdit (this);
 			te_text->setMinimumSize (QSize (400, 300));
 			te_text->setReadOnly (true);
 
@@ -41,7 +43,8 @@ class DocumentViewer : public QDialog
 		}
 
 		void setText (const char* text)
-		{	te_text->setText (text);
+		{
+			te_text->setText (text);
 		}
 
 	private:
@@ -66,7 +69,8 @@ const char* g_docs_overlays =
 // =============================================================================
 // -----------------------------------------------------------------------------
 void showDocumentation (const char* text)
-{	DocumentViewer dlg;
+{
+	DocumentViewer dlg;
 	dlg.setText (text);
 	dlg.exec();
 }

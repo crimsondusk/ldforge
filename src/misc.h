@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -16,16 +16,17 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MISC_H
-#define MISC_H
+#ifndef LDFORGE_MISC_H
+#define LDFORGE_MISC_H
 
 #include <QVector>
 #include "config.h"
-#include "common.h"
+#include "main.h"
 #include "types.h"
 
 #define NUM_PRIMES 500
 
+class LDDocument;
 class QColor;
 class QAction;
 
@@ -33,17 +34,20 @@ class QAction;
 extern const int g_primes[NUM_PRIMES];
 
 // Returns whether a given string represents a floating point number.
-bool numeric (const str& tok);
+bool numeric (const QString& tok);
 
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);
 
-str join (initlist<StringFormatArg> vals, str delim = " ");
+void roundToDecimals (double& a, int decimals);
+
+QString join (initlist<StringFormatArg> vals, QString delim = " ");
 
 // Grid stuff
 struct gridinfo
-{	const char* const name;
-	FloatConfig* const confs[4];
+{
+	const char* const	name;
+	float* const			confs[4];
 };
 
 extern_cfg (Int, grid);
@@ -51,29 +55,34 @@ static const int g_NumGrids = 3;
 extern const gridinfo g_GridInfo[3];
 
 inline const gridinfo& currentGrid()
-{	return g_GridInfo[grid];
+{
+	return g_GridInfo[grid];
 }
 
 // =============================================================================
-enum RotationPoint
-{	ObjectOrigin,
-	WorldOrigin,
-	CustomPoint
+enum ERotationPoint
+{
+	EObjectOrigin,
+	EWorldOrigin,
+	ECustomPoint
 };
 
-vertex rotPoint (const QList<LDObject*>& objs);
+Vertex rotPoint (const LDObjectList& objs);
 void configRotationPoint();
 
 // =============================================================================
 namespace Grid
-{	enum Type
-	{	Coarse,
+{
+	enum Type
+	{
+		Coarse,
 		Medium,
 		Fine
 	};
 
 	enum Config
-	{	X,
+	{
+		X,
 		Y,
 		Z,
 		Angle
@@ -82,108 +91,52 @@ namespace Grid
 	double snap (double value, const Grid::Config axis);
 }
 
-// =============================================================================
-// RingFinder
-//
-// Provides an algorithm for finding a solution of rings between radii r0 and r1.
-// =============================================================================
-class RingFinder
-{	public:
-	struct Component
-	{	int num;
-		double scale;
-	};
-
-	class Solution
-	{	public:
-			// Components of this solution
-			inline const QVector<Component>& components() const
-			{	return m_components;
-			}
-
-			// Add a component to this solution
-			void addComponent (const Component& a)
-			{	m_components.push_back (a);
-			}
-
-			// Compare solutions
-			bool operator> (const Solution& other) const;
-
-	private:
-		QVector<Component> m_components;
-	};
-
-	RingFinder() {}
-	bool findRings (double r0, double r1);
-
-	inline const Solution* bestSolution()
-	{	return m_bestSolution;
-	}
-
-	inline const QVector<Solution>& allSolutions() const
-	{	return m_solutions;
-	}
-
-	inline bool operator() (double r0, double r1)
-	{	return findRings (r0, r1);
-	}
-
-private:
-	QVector<Solution> m_solutions;
-	const Solution*   m_bestSolution;
-	int               m_stack;
-
-	bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
-};
-
-extern RingFinder g_RingFinder;
-
-// =============================================================================
-template<class T> void dataswap (T& a, T& b)
-{	T c = a;
-	a = b;
-	b = c;
-}
-
 // -----------------------------------------------------------------------------
 // Plural expression
 template<class T> static inline const char* plural (T n)
-{	return (n != 1) ? "s" : "";
+{
+	return (n != 1) ? "s" : "";
 }
 
 // -----------------------------------------------------------------------------
 // Templated clamp
 template<class T> static inline T clamp (T a, T min, T max)
-{	return (a > max) ? max : (a < min) ? min : a;
+{
+	return (a > max) ? max : (a < min) ? min : a;
 }
 
 // Templated minimum
 template<class T> static inline T min (T a, T b)
-{	return (a < b) ? a : b;
+{
+	return (a < b) ? a : b;
 }
 
 // Templated maximum
 template<class T> static inline T max (T a, T b)
-{	return (a > b) ? a : b;
+{
+	return (a > b) ? a : b;
 }
 
 // Templated absolute value
 template<class T> static inline T abs (T a)
-{	return (a >= 0) ? a : -a;
+{
+	return (a >= 0) ? a : -a;
 }
 
 template<class T> inline bool isZero (T a)
-{	return abs<T> (a) < 0.0001;
+{
+	return abs<T> (a) < 0.0001;
 }
 
 template<class T> inline bool isInteger (T a)
-{	return isZero (a - (int) a);
+{
+	return isZero (a - (int) a);
 }
 
 template<class T> void removeDuplicates (QList<T>& a)
-{	std::sort (a.begin(), a.end());
-	typename QList<T>::iterator pos = std::unique (a.begin(), a.end());
-	a.erase (pos, a.end());
+{
+	std::sort (a.begin(), a.end());
+	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
 
-#endif // MISC_H
+#endif // LDFORGE_MISC_H

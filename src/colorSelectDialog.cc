@@ -1,6 +1,6 @@
 /*
  *  LDForge: LDraw parts authoring CAD
- *  Copyright (C) 2013 Santeri Piippo
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
@@ -24,7 +24,7 @@
 #include <QMouseEvent>
 #include <QScrollBar>
 
-#include "common.h"
+#include "main.h"
 #include "gui.h"
 #include "colorSelectDialog.h"
 #include "colors.h"
@@ -34,16 +34,17 @@
 #include "moc_colorSelectDialog.cpp"
 
 static const int g_numColumns = 16;
-static const short g_squareSize = 32;
+static const int g_squareSize = 32;
 
 extern_cfg (String, gl_maincolor);
 extern_cfg (Float, gl_maincolor_alpha);
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent)
-{	// Remove the default color if it's invalid
-	if (!::getColor (defval))
+ColorSelector::ColorSelector (int defval, QWidget* parent) : QDialog (parent)
+{
+	// Remove the default color if it's invalid
+	if (!getColor (defval))
 		defval = -1;
 
 	m_firstResize = true;
@@ -52,7 +53,7 @@ ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent)
 
 	m_scene = new QGraphicsScene;
 	ui->viewport->setScene (m_scene);
-	setSelection (::getColor (defval));
+	setSelection (getColor (defval));
 
 	// not really an icon but eh
 	m_scene->setBackgroundBrush (getIcon ("checkerboard"));
@@ -68,13 +69,15 @@ ColorSelector::ColorSelector (short defval, QWidget* parent) : QDialog (parent)
 // =============================================================================
 // -----------------------------------------------------------------------------
 ColorSelector::~ColorSelector()
-{	delete ui;
+{
+	delete ui;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ColorSelector::drawScene()
-{	const int numCols = g_numColumns;
+{
+	const int numCols = g_numColumns;
 	const int square = g_squareSize;
 	const int g_maxHeight = (numRows() * square);
 	QRect sceneRect (0, 0, viewportWidth(), g_maxHeight);
@@ -87,8 +90,9 @@ void ColorSelector::drawScene()
 	// Draw the color rectangles.
 	m_scene->clear();
 
-	for (short i = 0; i < MAX_COLORS; ++i)
-	{	LDColor* info = ::getColor (i);
+	for (int i = 0; i < MAX_COLORS; ++i)
+	{
+		LDColor* info = ::getColor (i);
 
 		if (!info)
 			continue;
@@ -100,7 +104,8 @@ void ColorSelector::drawScene()
 		QColor col = info->faceColor;
 
 		if (i == maincolor)
-		{	// Use the user preferences for main color here
+		{
+			// Use the user preferences for main color here
 			col = QColor (gl_maincolor);
 			col.setAlpha (gl_maincolor_alpha * 255.0f);
 		}
@@ -111,8 +116,9 @@ void ColorSelector::drawScene()
 		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 
-		if (sel() && i == sel()->index)
-		{	auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
+		if (getSelection() && i == getSelection()->index)
+		{
+			auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
 			curspic->setPos (x, y);
 		}
 	}
@@ -121,37 +127,44 @@ void ColorSelector::drawScene()
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ColorSelector::numRows() const
-{	return (MAX_COLORS / g_numColumns);
+{
+	return (MAX_COLORS / g_numColumns);
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 int ColorSelector::viewportWidth() const
-{	return g_numColumns * g_squareSize + 21;
+{
+	return g_numColumns * g_squareSize + 21;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ColorSelector::drawColorInfo()
-{	if (!sel())
-	{	ui->colorLabel->setText ("---");
+{
+	if (!getSelection())
+	{
+		ui->colorLabel->setText ("---");
 		return;
 	}
 
-	ui->colorLabel->setText (fmt ("%1 - %2", sel()->index, sel()->name));
+	ui->colorLabel->setText (fmt ("%1 - %2", getSelection()->index, getSelection()->name));
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ColorSelector::resizeEvent (QResizeEvent* ev)
-{	// If this is the first resize, check if we need to scroll down to see the
+{
+	// If this is the first resize, check if we need to scroll down to see the
 	// currently selected color. We cannot do this in the constructor because the
 	// height is not set properly there.
 	if (m_firstResize)
-	{	int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
+	{
+		int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
 
-		if (sel() && sel()->index >= visibleColors)
-		{	int y = (sel()->index / g_numColumns) * g_squareSize;
+		if (getSelection() && getSelection()->index >= visibleColors)
+		{
+			int y = (getSelection()->index / g_numColumns) * g_squareSize;
 			ui->viewport->verticalScrollBar()->setValue (y);
 		}
 
@@ -165,7 +178,8 @@ void ColorSelector::resizeEvent (QResizeEvent* ev)
 // =============================================================================
 // -----------------------------------------------------------------------------
 void ColorSelector::mousePressEvent (QMouseEvent* event)
-{	QPointF scenepos = ui->viewport->mapToScene (event->pos());
+{
+	QPointF scenepos = ui->viewport->mapToScene (event->pos());
 
 	int x = (scenepos.x() - (g_squareSize / 2)) / g_squareSize;
 	int y = (scenepos.y() - (g_squareSize / 2)) / g_squareSize;
@@ -183,11 +197,13 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-bool ColorSelector::getColor (short& val, short int defval, QWidget* parent)
-{	ColorSelector dlg (defval, parent);
+bool ColorSelector::selectColor (int& val, int defval, QWidget* parent)
+{
+	ColorSelector dlg (defval, parent);
 
-	if (dlg.exec() && dlg.sel() != null)
-	{	val = dlg.sel()->index;
+	if (dlg.exec() && dlg.getSelection() != null)
+	{
+		val = dlg.getSelection()->index;
 		return true;
 	}
 
