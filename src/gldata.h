@@ -6,10 +6,6 @@
 #include <QMap>
 #include <QRgb>
 
-class QColor;
-class LDTriangle;
-class LDFile;
-
 /* =============================================================================
  * -----------------------------------------------------------------------------
  * VertexCompiler
@@ -38,31 +34,36 @@ class LDFile;
  */
 
 class VertexCompiler
-{	public:
+{
+	public:
 		enum ColorType
-		{	Normal,
+		{
+			Normal,
 			BFCFront,
 			BFCBack,
 			PickColor,
 		};
 
 		struct CompiledTriangle
-		{	vertex    verts[3];
-			uint8     numVerts;    // 2 if a line
-			QRgb      rgb;         // Color of this poly normally
-			QRgb      pickrgb;     // Color of this poly while picking
-			bool      isCondLine;  // Is this a conditional line?
-			LDObject* obj;         // Pointer to the object this poly represents
+		{
+			::Vertex	verts[3];
+			uint8		numVerts;	// 2 if a line
+			QRgb		rgb;		// Color of this poly normally
+			QRgb		pickrgb;	// Color of this poly while picking
+			bool		isCondLine;	// Is this a conditional line?
+			LDObject*	obj;		// Pointer to the object this poly represents
 		};
 
 		struct Vertex
-		{	float x, y, z;
+		{
+			float x, y, z;
 			uint32 color;
 			float pad[4];
 		};
 
 		class Array
-		{	public:
+		{
+			public:
 				typedef int32 Size;
 
 				Array();
@@ -86,8 +87,8 @@ class VertexCompiler
 
 		VertexCompiler();
 		~VertexCompiler();
-		void setFile (LDFile* file);
-		void compileFile();
+		void setFile (LDDocument* file);
+		void compileDocument();
 		void forgetObject (LDObject* obj);
 		void initObject (LDObject* obj);
 		const Array* getMergedBuffer (GL::VAOType type);
@@ -103,12 +104,12 @@ class VertexCompiler
 		void compileSubObject (LDObject* obj, LDObject* topobj, QList<CompiledTriangle>& data);
 		Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
 
-		QMap<LDObject*, Array*> m_objArrays;
-		QMap<LDFile*, Array*> m_fileCache;
-		Array m_mainArrays[GL::NumArrays];
-		LDFile* m_file;
-		bool m_changed[GL::NumArrays];
-		QList<LDObject*> m_staged;
+		QMap<LDObject*, Array*>	m_objArrays;
+		QMap<LDDocument*, Array*>	m_fileCache;
+		Array					m_mainArrays[GL::NumArrays];
+		LDDocument*					m_file;
+		bool					m_changed[GL::NumArrays];
+		LDObjectList			m_staged;
 };
 
 extern VertexCompiler g_vertexCompiler;

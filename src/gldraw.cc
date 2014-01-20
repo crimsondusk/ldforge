@@ -249,7 +249,7 @@ void GLRenderer::initializeGL()
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
 	
-	g_vertexCompiler.compileFile();
+	g_vertexCompiler.compileDocument();
 }
 
 // =============================================================================
@@ -293,7 +293,7 @@ void GLRenderer::refresh()
 // -----------------------------------------------------------------------------
 void GLRenderer::hardRefresh()
 {
-	g_vertexCompiler.compileFile();
+	g_vertexCompiler.compileDocument();
 	refresh();
 
 	glLineWidth (gl_linethickness);
@@ -798,7 +798,7 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 //
 void GLRenderer::compileAllObjects()
 {
-	g_vertexCompiler.compileFile();
+	g_vertexCompiler.compileDocument();
 }
 
 // =============================================================================
