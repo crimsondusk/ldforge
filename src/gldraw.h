@@ -117,13 +117,13 @@ class GLRenderer : public QGLWidget
 
 		enum VAOType
 		{
-			MainArray,
-			EdgeArray,
-			CondEdgeArray,
-			BFCArray,
-			PickArray,
-			EdgePickArray,
-			NumArrays
+			ESurfaceArray,
+			EEdgeArray,
+			ECondEdgeArray,
+			EBFCArray,
+			EPickArray,
+			EEdgePickArray,
+			ENumArrays
 		};
 
 		// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets

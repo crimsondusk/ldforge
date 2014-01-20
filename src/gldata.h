@@ -27,7 +27,7 @@
  *
  * There are also these same 5 arrays for every LDObject compiled. The main
  * arrays are generated on demand from the ones in the current file's
- * LDObjects and stored in cache for faster rendering.
+ * LDObjects and stored in cache for faster renmm dering.
  *
  * The nested Array class contains a vector-like buffer of the Vertex structs,
  * these structs are the VAOs that get passed to the renderer.
@@ -48,8 +48,8 @@ class VertexCompiler
 		{
 			::Vertex	verts[3];
 			uint8		numVerts;	// 2 if a line
-			QRgb		rgb;		// Color of this poly normally
-			QRgb		pickrgb;	// Color of this poly while picking
+			uint32		rgb;		// Color of this poly normally
+			uint32		pickrgb;	// Color of this poly while picking
 			bool		isCondLine;	// Is this a conditional line?
 			LDObject*	obj;		// Pointer to the object this poly represents
 		};
@@ -61,29 +61,8 @@ class VertexCompiler
 			float pad[4];
 		};
 
-		class Array
-		{
-			public:
-				typedef int32 Size;
-
-				Array();
-				Array (const Array& other) = delete;
-				~Array();
-
-				void clear();
-				void merge (Array* other);
-				void resizeToFit (Size newSize);
-				const Size& allocatedSize() const;
-				Size writtenSize() const;
-				const Vertex* data() const;
-				void write (const VertexCompiler::Vertex& f);
-				Array& operator= (const Array& other) = delete;
-
-			private:
-				Vertex* m_data;
-				Vertex* m_ptr;
-				Size m_size;
-		};
+		using PolygonList = QList<CompiledTriangle>;
+		using Array = QVector<VertexCompiler::Vertex>;
 
 		VertexCompiler();
 		~VertexCompiler();
@@ -96,20 +75,19 @@ class VertexCompiler
 		void needMerge();
 		void stageForCompilation (LDObject* obj);
 
-		static uint32 getColorRGB (QColor& color);
+		static uint32 getColorRGB (const QColor& color);
 
 	private:
-		void compilePolygon (LDObject* drawobj, LDObject* trueobj, QList<CompiledTriangle>& data);
+		void compilePolygon (LDObject* drawobj, LDObject* trueobj, PolygonList& data);
 		void compileObject (LDObject* obj);
-		void compileSubObject (LDObject* obj, LDObject* topobj, QList<CompiledTriangle>& data);
-		Array* postprocess (const CompiledTriangle& i, GL::VAOType type);
+		void compileSubObject (LDObject* obj, LDObject* topobj, PolygonList& data);
+		Array* postprocess (const VertexCompiler::CompiledTriangle& i, GLRenderer::VAOType type);
 
-		QMap<LDObject*, Array*>	m_objArrays;
-		QMap<LDDocument*, Array*>	m_fileCache;
-		Array					m_mainArrays[GL::NumArrays];
-		LDDocument*					m_file;
-		bool					m_changed[GL::NumArrays];
-		LDObjectList			m_staged;
+		QMap<LDObject*, Array*>				m_objArrays;
+		Array								m_mainArrays[GL::ENumArrays];
+		LDDocument*							m_file;
+		bool								m_changed[GL::ENumArrays];
+		LDObjectList						m_staged; // Objects that need to be compiled
 };
 
 extern VertexCompiler g_vertexCompiler;

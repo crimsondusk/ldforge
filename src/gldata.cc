@@ -15,104 +15,6 @@ VertexCompiler g_vertexCompiler;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-VertexCompiler::Array::Array() :
-	m_data (null)
-{
-	clear();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-VertexCompiler::Array::~Array()
-{
-	delete[] m_data;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void VertexCompiler::Array::clear()
-{
-	delete[] m_data;
-
-	m_data = new Vertex[64];
-	m_size = 64;
-	m_ptr = &m_data[0];
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void VertexCompiler::Array::resizeToFit (Size newSize)
-{
-	if (allocatedSize() >= newSize)
-		return;
-
-	int32 cachedWriteSize = writtenSize();
-
-	// Add some lee-way space to reduce the amount of resizing.
-	newSize += 256;
-
-	const Size oldSize = allocatedSize();
-
-	// We need to back up the data first
-	Vertex* copy = new Vertex[oldSize];
-	memcpy (copy, m_data, oldSize);
-
-	// Re-create the buffer
-	delete[] m_data;
-	m_data = new Vertex[newSize];
-	m_size = newSize;
-	m_ptr = &m_data[cachedWriteSize / sizeof (Vertex)];
-
-	// Copy the data back
-	memcpy (m_data, copy, oldSize);
-	delete[] copy;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-const VertexCompiler::Vertex* VertexCompiler::Array::data() const
-{
-	return m_data;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-const VertexCompiler::Array::Size& VertexCompiler::Array::allocatedSize() const
-{
-	return m_size;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-VertexCompiler::Array::Size VertexCompiler::Array::writtenSize() const
-{
-	return (m_ptr - m_data) * sizeof (Vertex);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void VertexCompiler::Array::write (const Vertex& f)
-{
-	// Ensure there's enoughspace for the new vertex
-	resizeToFit (writtenSize() + sizeof f);
-
-	// Write the float in
-	*m_ptr++ = f;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void VertexCompiler::Array::merge (Array* other)
-{
-	// Ensure there's room for both buffers
-	resizeToFit (writtenSize() + other->writtenSize());
-
-	memcpy (m_ptr, other->data(), other->writtenSize());
-	m_ptr += other->writtenSize() / sizeof (Vertex);
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
 VertexCompiler::VertexCompiler() :
 	m_file (null)
 {
@@ -136,7 +38,7 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList
 
 	if (type == LDObject::EQuad)
 	{
-		for (LDTriangle * t : static_cast<LDQuad*> (drawobj)->splitToTriangles())
+		for (LDTriangle* t : static_cast<LDQuad*> (drawobj)->splitToTriangles())
 			objs << t;
 	}
 	else
@@ -152,8 +54,8 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList
 		assert (isline || objtype == LDObject::ETriangle);
 
 		CompiledTriangle a;
-		a.rgb = normalColor.rgb();
-		a.pickrgb = pickColor.rgb();
+		a.rgb = getColorRGB (normalColor);
+		a.pickrgb = getColorRGB (pickColor);
 		a.numVerts = verts;
 		a.obj = trueobj;
 		a.isCondLine = (objtype == LDObject::ECondLine);
@@ -177,8 +79,10 @@ void VertexCompiler::compileObject (LDObject* obj)
 	QList<CompiledTriangle> data;
 	QTime t0;
 
-	for (int i = 0; i < GL::NumArrays; ++i)
+	t0 = QTime::currentTime();
+	for (int i = 0; i < GL::ENumArrays; ++i)
 		m_objArrays[obj][i].clear();
+	DEBUG_PRINT ("INIT: %1ms\n", t0.msecsTo (QTime::currentTime()));
 
 	t0 = QTime::currentTime();
 	compileSubObject (obj, obj, data);
@@ -186,10 +90,10 @@ void VertexCompiler::compileObject (LDObject* obj)
 
 	t0 = QTime::currentTime();
 
-	for (int i = 0; i < GL::NumArrays; ++i)
+	for (int i = 0; i < GL::ENumArrays; ++i)
 	{
 		GL::VAOType type = (GL::VAOType) i;
-		const bool islinearray = (type == GL::EdgeArray || type == GL::EdgePickArray);
+		const bool islinearray = (type == GL::EEdgeArray || type == GL::EEdgePickArray);
 
 		for (const CompiledTriangle & poly : data)
 		{
@@ -197,7 +101,7 @@ void VertexCompiler::compileObject (LDObject* obj)
 			{
 				// Conditional lines go to the edge pick array and the array
 				// specifically designated for conditional lines and nowhere else.
-				if (type != GL::EdgePickArray && type != GL::CondEdgeArray)
+				if (type != GL::EEdgePickArray && type != GL::ECondEdgeArray)
 					continue;
 			}
 			else
@@ -207,12 +111,12 @@ void VertexCompiler::compileObject (LDObject* obj)
 					continue;
 
 				// Only conditional lines go into the conditional line array
-				if (type == GL::CondEdgeArray)
+				if (type == GL::ECondEdgeArray)
 					continue;
 			}
 
 			Array* verts = postprocess (poly, type);
-			m_objArrays[obj][type].merge (verts);
+			m_objArrays[obj][type] += *verts;
 			delete verts;
 		}
 	}
@@ -224,7 +128,7 @@ void VertexCompiler::compileObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, QList< VertexCompiler::CompiledTriangle >& data)
+void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, VertexCompiler::PolygonList& data)
 {
 	LDObjectList objs;
 
@@ -239,8 +143,10 @@ void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, QList< V
 
 		case LDObject::EQuad:
 		{
-			for (LDTriangle * triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
+			QTime t0 = QTime::currentTime();
+			for (LDTriangle* triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
 				compilePolygon (triangle, topobj, data);
+			DEBUG_PRINT ("\t- QUAD COMPILE: %1ms\n", t0.msecsTo (QTime::currentTime()));
 		} break;
 
 		case LDObject::ESubfile:
@@ -306,7 +212,7 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type)
 		m_staged.clear();
 	}
 
-	assert (type < GL::NumArrays);
+	assert (type < GL::ENumArrays);
 
 	if (m_changed[type])
 	{
@@ -321,10 +227,10 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type)
 			auto it = m_objArrays.find (obj);
 
 			if (it != m_objArrays.end())
-				m_mainArrays[type].merge (& (*it) [type]);
+				m_mainArrays[type] += (*it)[type];
 		}
 
-		DEBUG_PRINT ("merged array %1: %2 bytes\n", (int) type, m_mainArrays[type].writtenSize());
+		DEBUG_PRINT ("merged array %1: %2 entries\n", (int) type, m_mainArrays[type].size());
 	}
 
 	return &m_mainArrays[type];
@@ -333,14 +239,14 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type)
 // =============================================================================
 // This turns a compiled triangle into usable VAO vertices
 // -----------------------------------------------------------------------------
-VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& triangle, GL::VAOType type)
+VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& poly, GLRenderer::VAOType type)
 {
 	Array* va = new Array;
 	QList<Vertex> verts;
 
-	for (int i = 0; i < triangle.numVerts; ++i)
+	for (int i = 0; i < poly.numVerts; ++i)
 	{
-		alias v0 = triangle.verts[i];
+		alias v0 = poly.verts[i];
 		Vertex v;
 		v.x = v0.x();
 		v.y = v0.y();
@@ -348,50 +254,50 @@ VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& tria
 
 		switch (type)
 		{
-			case GL::MainArray:
-			case GL::EdgeArray:
-			case GL::CondEdgeArray:
+			case GL::ESurfaceArray:
+			case GL::EEdgeArray:
+			case GL::ECondEdgeArray:
 			{
-				v.color = triangle.rgb;
+				v.color = poly.rgb;
 			} break;
 
-			case GL::PickArray:
-			case GL::EdgePickArray:
+			case GL::EPickArray:
+			case GL::EEdgePickArray:
 			{
-				v.color = triangle.pickrgb;
+				v.color = poly.pickrgb;
 			} break;
 
-			case GL::BFCArray:
-			case GL::NumArrays:
+			case GL::EBFCArray:
+			case GL::ENumArrays:
 				break; // handled separately
 		}
 
 		verts << v;
 	}
 
-	if (type == GL::BFCArray)
+	if (type == GL::EBFCArray)
 	{
-		int32 rgb = getObjectColor (triangle.obj, BFCFront).rgb();
+		int32 rgb = getColorRGB (getObjectColor (poly.obj, BFCFront));
 
 		for (Vertex v : verts)
 		{
 			v.color = rgb;
-			va->write (v);
+			*va << v;
 		}
 
-		rgb = getObjectColor (triangle.obj, BFCBack).rgb();
+		rgb = getColorRGB (getObjectColor (poly.obj, BFCBack));
 
 		for (int i = verts.size() - 1; i >= 0; --i)
 		{
 			Vertex v = verts[i];
 			v.color = rgb;
-			va->write (v);
+			*va << v;
 		}
 	}
 	else
 	{
 		for (Vertex v : verts)
-			va->write (v);
+			*va << v;
 	}
 
 	return va;
@@ -399,7 +305,7 @@ VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& tria
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-uint32 VertexCompiler::getColorRGB (QColor& color)
+uint32 VertexCompiler::getColorRGB (const QColor& color)
 {
 	return
 		(color.red()   & 0xFF) << 0x00 |
@@ -428,9 +334,9 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 		// Calculate a color based from this index. This method caters for
 		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
 		// ATM biggest is 53588.dat with 12600 lines.
-		int r = (i / (256 * 256)) % 256,
-			g = (i / 256) % 256,
-			b = i % 256;
+		int r = (i / 0x10000) % 0x100,
+			g = (i / 0x100) % 0x100,
+			b = i % 0x100;
 
 		return QColor (r, g, b);
 	}
@@ -512,7 +418,7 @@ void VertexCompiler::needMerge()
 void VertexCompiler::initObject (LDObject* obj)
 {
 	if (m_objArrays.find (obj) == m_objArrays.end())
-		m_objArrays[obj] = new Array[GL::NumArrays];
+		m_objArrays[obj] = new Array[GL::ENumArrays];
 }
 
 // =============================================================================

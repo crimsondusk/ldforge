@@ -248,7 +248,7 @@ void GLRenderer::initializeGL()
 	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
-	
+
 	g_vertexCompiler.compileDocument();
 }
 
@@ -375,8 +375,8 @@ void GLRenderer::drawGLScene()
 	} else
 		glDisable (GL_CULL_FACE);
 
-	drawVAOs ((isPicking() ? PickArray : gl_colorbfc ? BFCArray : MainArray), GL_TRIANGLES);
-	drawVAOs ((isPicking() ? EdgePickArray : EdgeArray), GL_LINES);
+	drawVAOs ((isPicking() ? EPickArray : gl_colorbfc ? EBFCArray : ESurfaceArray), GL_TRIANGLES);
+	drawVAOs ((isPicking() ? EEdgePickArray : EEdgeArray), GL_LINES);
 
 	// Draw conditional lines. Note that conditional lines are drawn into
 	// EdgePickArray in the picking scene, so when picking, don't do anything
@@ -384,11 +384,12 @@ void GLRenderer::drawGLScene()
 	if (!isPicking())
 	{
 		glEnable (GL_LINE_STIPPLE);
-		drawVAOs (CondEdgeArray, GL_LINES);
+		drawVAOs (ECondEdgeArray, GL_LINES);
 		glDisable (GL_LINE_STIPPLE);
 	}
 
 	glPopMatrix();
+	glDisable (GL_CULL_FACE);
 	glMatrixMode (GL_MODELVIEW);
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -400,7 +401,7 @@ void GLRenderer::drawVAOs (VAOType arrayType, GLenum type)
 	const VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (arrayType);
 	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
 	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
-	glDrawArrays (type, 0, array->writtenSize() / sizeof (VertexCompiler::Vertex));
+	glDrawArrays (type, 0, array->size());
 }
 
 // =============================================================================
@@ -1157,8 +1158,8 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	{
 		qint32 idx =
 			(*(pixelptr + 0) * 0x10000) +
-			(*(pixelptr + 1) * 0x00100) +
-			(*(pixelptr + 2) * 0x00001);
+			(*(pixelptr + 1) * 0x100) +
+			*(pixelptr + 2);
 		pixelptr += 4;
 
 		if (idx == 0xFFFFFF)
