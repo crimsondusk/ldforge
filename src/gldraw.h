@@ -23,6 +23,7 @@
 #include "main.h"
 #include "ldtypes.h"
 #include "document.h"
+#include "GLShared.h"
 
 class MessageManager;
 class QDialogButtonBox;
@@ -113,17 +114,6 @@ class GLRenderer : public QGLWidget
 			PickList,
 			BFCFrontList,
 			BFCBackList
-		};
-
-		enum VAOType
-		{
-			ESurfaceArray,
-			EEdgeArray,
-			ECondEdgeArray,
-			EBFCArray,
-			EPickArray,
-			EEdgePickArray,
-			ENumArrays
 		};
 
 		// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
@@ -257,7 +247,7 @@ class GLRenderer : public QGLWidget
 		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
 		// Draw a VAO array
-		void           drawVAOs (VAOType arrayType, GLenum type);
+		void           drawVAOs (E_VertexArrayType arrayType, GLenum type);
 
 		// Determine which color to draw text with
 		QColor         getTextPen() const;

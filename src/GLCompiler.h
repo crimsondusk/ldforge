@@ -1,52 +1,71 @@
-#ifndef LDFORGE_GLDATA_H
-#define LDFORGE_GLDATA_H
-
-#include "types.h"
-#include "gldraw.h"
-#include <QMap>
-#include <QRgb>
-
-/* =============================================================================
- * -----------------------------------------------------------------------------
- * GLCompiler
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013, 2014 Santeri Piippo
  *
- * This class manages vertex arrays for the GL renderer, compiling vertices into
- * VAO-readable triangles which can be requested with getMergedBuffer.
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
  *
- * There are 5 main array types:
- * - the normal polygon array, for triangles
- * - edge line array, for lines
- * - BFC array, this is the same as the normal polygon array except that the
- * -     polygons are listed twice, once normally and green and once reversed
- * -     and red, this allows BFC red/green view.
- * - Picking array, this is the samea s the normal polygon array except the
- * -     polygons are compiled with their index color, this way the picking
- * -     method is capable of determining which object was selected by pixel
- * -     color.
- * - Edge line picking array, the pick array version of the edge line array.
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
  *
- * There are also these same 5 arrays for every LDObject compiled. The main
- * arrays are generated on demand from the ones in the current file's
- * LDObjects and stored in cache for faster renmm dering.
- *
- * The nested Array class contains a vector-like buffer of the Vertex structs,
- * these structs are the VAOs that get passed to the renderer.
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#ifndef LDFORGE_GLCOMPILER_H
+#define LDFORGE_GLCOMPILER_H
+
+#include "main.h"
+#include "gldraw.h"
+#include "GLShared.h"
+#include <QMap>
+
+// =============================================================================
+// GLCompiler
+//
+// This class manages vertex arrays for the GL renderer, compiling vertices into
+// VAO-readable triangles which can be requested with getMergedBuffer.
+//
+// There are 6 main array types:
+// - the normal polygon array, for triangles
+// - edge line array, for lines
+// - conditional line array, for conditional lines. Kept separate so that they
+//       can be drawn as dashed liness
+// - BFC array, this is the same as the normal polygon array except that the
+//       polygons are listed twice, once normally and green and once reversed
+//       and red, this allows BFC red/green view.
+// - Picking array, this is the same as the normal polygon array except the
+//       polygons are compiled with their index color, this way the picking
+//       method is capable of determining which object was selected by pixel
+//       color.
+// - Edge line picking array, the pick array version of the edge line array.
+//       Conditional lines are grouped with normal edgelines here.
+//
+// There are also these same 5 arrays for every LDObject compiled. The main
+// arrays are generated on demand from the ones in the current file's
+// LDObjects and stored in cache for faster renmm dering.
+//
+// The nested Array class contains a vector-like buffer of the Vertex structs,
+// these structs are the VAOs that get passed to the renderer.
+//
 class GLCompiler
 {
 	public:
-		enum ColorType
+		enum E_ColorType
 		{
-			Normal,
-			BFCFront,
-			BFCBack,
-			PickColor,
+			E_NormalColor,
+			E_BFCFrontColor,
+			E_BFCBackColor,
+			E_PickColor,
 		};
 
 		struct CompiledTriangle
 		{
-			Vertex	verts[3];
+			Vertex		verts[3];
 			uint8		numVerts;	// 2 if a line
 			uint32		rgb;		// Color of this poly normally
 			uint32		pickrgb;	// Color of this poly while picking
@@ -62,7 +81,7 @@ class GLCompiler
 		};
 
 		using PolygonList = QList<CompiledTriangle>;
-		using Array = QVector<VAO>;
+		using VertexArray = QVector<VAO>;
 
 		GLCompiler();
 		~GLCompiler();
@@ -70,8 +89,8 @@ class GLCompiler
 		void compileDocument();
 		void forgetObject (LDObject* obj);
 		void initObject (LDObject* obj);
-		const Array* getMergedBuffer (GL::VAOType type);
-		QColor getObjectColor (LDObject* obj, ColorType list) const;
+		const VertexArray* getMergedBuffer (E_VertexArrayType type);
+		QColor getObjectColor (LDObject* obj, E_ColorType colortype) const;
 		void needMerge();
 		void stageForCompilation (LDObject* obj);
 
@@ -81,15 +100,15 @@ class GLCompiler
 		void compilePolygon (LDObject* drawobj, LDObject* trueobj, PolygonList& data);
 		void compileObject (LDObject* obj);
 		void compileSubObject (LDObject* obj, LDObject* topobj, PolygonList& data);
-		Array* postprocess (const GLCompiler::CompiledTriangle& i, GLRenderer::VAOType type);
+		VertexArray* postprocess (const CompiledTriangle& poly, E_VertexArrayType type);
 
-		QMap<LDObject*, Array*>				m_objArrays;
-		Array								m_mainArrays[GL::ENumArrays];
+		QMap<LDObject*, VertexArray*>				m_objArrays;
+		VertexArray								m_mainArrays[E_NumVertexArrays];
 		LDDocument*							m_file;
-		bool								m_changed[GL::ENumArrays];
+		bool								m_changed[E_NumVertexArrays];
 		LDObjectList						m_staged; // Objects that need to be compiled
 };
 
 extern GLCompiler g_vertexCompiler;
 
-#endif // LDFORGE_GLDATA_H
+#endif // LDFORGE_GLCOMPILER_H

@@ -375,16 +375,16 @@ void GLRenderer::drawGLScene()
 	} else
 		glDisable (GL_CULL_FACE);
 
-	drawVAOs ((isPicking() ? EPickArray : gl_colorbfc ? EBFCArray : ESurfaceArray), GL_TRIANGLES);
-	drawVAOs ((isPicking() ? EEdgePickArray : EEdgeArray), GL_LINES);
+	drawVAOs ((isPicking() ? E_PickArray : gl_colorbfc ? E_BFCArray : E_SurfaceArray), GL_TRIANGLES);
+	drawVAOs ((isPicking() ? E_EdgePickArray : E_EdgeArray), GL_LINES);
 
 	// Draw conditional lines. Note that conditional lines are drawn into
-	// EdgePickArray in the picking scene, so when picking, don't do anything
-	// here.
+	// EdgePickArray in the picking scene so we only draw this array when
+	// not using the pick scene.
 	if (!isPicking())
 	{
 		glEnable (GL_LINE_STIPPLE);
-		drawVAOs (ECondEdgeArray, GL_LINES);
+		drawVAOs (E_CondEdgeArray, GL_LINES);
 		glDisable (GL_LINE_STIPPLE);
 	}
 
@@ -396,11 +396,11 @@ void GLRenderer::drawGLScene()
 
 // =============================================================================
 //
-void GLRenderer::drawVAOs (VAOType arrayType, GLenum type)
+void GLRenderer::drawVAOs (E_VertexArrayType arrayType, GLenum type)
 {
-	const GLCompiler::Array* array = g_vertexCompiler.getMergedBuffer (arrayType);
-	glVertexPointer (3, GL_FLOAT, sizeof (GLCompiler::Vertex), &array->data()[0].x);
-	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::Vertex), &array->data()[0].color);
+	const GLCompiler::VertexArray* array = g_vertexCompiler.getMergedBuffer (arrayType);
+	glVertexPointer (3, GL_FLOAT, sizeof (GLCompiler::VAO), &array->data()[0].x);
+	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::VAO), &array->data()[0].color);
 	glDrawArrays (type, 0, array->size());
 }
 

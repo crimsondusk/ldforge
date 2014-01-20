@@ -7,7 +7,7 @@
 #include "gldraw.h"
 #include <QDate>
 
-#define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
+#define DE_BUG_PRINT(...) fprint (stdout, __VA_ARGS__)
 
 extern_cfg (Bool, gl_blackedges);
 static QList<short> g_warnedColors;
@@ -30,7 +30,7 @@ GLCompiler::~GLCompiler() {}
 //
 void GLCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< GLCompiler::CompiledTriangle >& data)
 {
-	const QColor pickColor = getObjectColor (trueobj, PickColor);
+	const QColor pickColor = getObjectColor (trueobj, E_PickColor);
 	LDObject::Type type = drawobj->getType();
 	LDObjectList objs;
 
@@ -49,7 +49,7 @@ void GLCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< GL
 		const LDObject::Type objtype = obj->getType();
 		const bool isline = (objtype == LDObject::ELine || objtype == LDObject::ECondLine);
 		const int verts = isline ? 2 : obj->vertices();
-		QColor normalColor = getObjectColor (obj, Normal);
+		QColor normalColor = getObjectColor (obj, E_NormalColor);
 
 		assert (isline || objtype == LDObject::ETriangle);
 
@@ -80,20 +80,20 @@ void GLCompiler::compileObject (LDObject* obj)
 	QTime t0;
 
 	t0 = QTime::currentTime();
-	for (int i = 0; i < GL::ENumArrays; ++i)
+	for (int i = 0; i < E_NumVertexArrays; ++i)
 		m_objArrays[obj][i].clear();
-	DEBUG_PRINT ("INIT: %1ms\n", t0.msecsTo (QTime::currentTime()));
+	DE_BUG_PRINT ("INIT: %1ms\n", t0.msecsTo (QTime::currentTime()));
 
 	t0 = QTime::currentTime();
 	compileSubObject (obj, obj, data);
-	DEBUG_PRINT ("COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
+	DE_BUG_PRINT ("COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
 
 	t0 = QTime::currentTime();
 
-	for (int i = 0; i < GL::ENumArrays; ++i)
+	for (int i = 0; i < E_NumVertexArrays; ++i)
 	{
-		GL::VAOType type = (GL::VAOType) i;
-		const bool islinearray = (type == GL::EEdgeArray || type == GL::EEdgePickArray);
+		E_VertexArrayType type = (E_VertexArrayType) i;
+		const bool islinearray = (type == E_EdgeArray || type == E_EdgePickArray);
 
 		for (const CompiledTriangle& poly : data)
 		{
@@ -101,29 +101,36 @@ void GLCompiler::compileObject (LDObject* obj)
 			{
 				// Conditional lines go to the edge pick array and the array
 				// specifically designated for conditional lines and nowhere else.
-				if (type != GL::EEdgePickArray && type != GL::ECondEdgeArray)
+				// They are kept separate from the regular edge array so that
+				// they can be drawn as dashed lines.
+				//
+				// However we don't need nor desire that behavior for the pick
+				// scene, so they can be grouped with normal edgelines for that.
+				if (type != E_EdgePickArray && type != E_CondEdgeArray)
 					continue;
 			}
 			else
 			{
-				// Lines and only lines go to the line array and only to the line array.
-				if ( (poly.numVerts == 2) ^ islinearray)
+				// Lines and only lines go to line arrays and only to line arrays.
+				if ((poly.numVerts == 2) ^ islinearray)
 					continue;
 
 				// Only conditional lines go into the conditional line array
-				if (type == GL::ECondEdgeArray)
+				if (type == E_CondEdgeArray)
 					continue;
 			}
 
-			Array* verts = postprocess (poly, type);
+			// Postprocess the polygon into a VAO and add it in
+			VertexArray* verts = postprocess (poly, type);
 			m_objArrays[obj][type] += *verts;
+
+			// The array is changed, it needs a merge now.
+			m_changed[type] = true;
 			delete verts;
 		}
 	}
 
-	DEBUG_PRINT ("POST-PROCESS: %1ms\n", t0.msecsTo (QTime::currentTime()));
-
-	needMerge();
+	DE_BUG_PRINT ("POST-PROCE_SS: %1ms\n", t0.msecsTo (QTime::currentTime()));
 }
 
 // =============================================================================
@@ -146,15 +153,15 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::
 			QTime t0 = QTime::currentTime();
 			for (LDTriangle* triangle : static_cast<LDQuad*> (obj)->splitToTriangles())
 				compilePolygon (triangle, topobj, data);
-			DEBUG_PRINT ("\t- QUAD COMPILE: %1ms\n", t0.msecsTo (QTime::currentTime()));
+			DE_BUG_PRINT ("\t- QUAD COMPILE: %1ms\n", t0.msecsTo (QTime::currentTime()));
 		} break;
 
 		case LDObject::ESubfile:
 		{
 			QTime t0 = QTime::currentTime();
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (LDSubfile::RendererInline | LDSubfile::DeepCacheInline);
-			DEBUG_PRINT ("\t- INLINE: %1ms\n", t0.msecsTo (QTime::currentTime()));
-			DEBUG_PRINT ("\t- %1 objects\n", objs.size());
+			DE_BUG_PRINT ("\t- INLINE: %1ms\n", t0.msecsTo (QTime::currentTime()));
+			DE_BUG_PRINT ("\t- %1 objects\n", objs.size());
 
 			t0 = QTime::currentTime();
 
@@ -164,7 +171,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::
 				obj->deleteSelf();
 			}
 
-			DEBUG_PRINT ("\t- SUB-COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
+			DE_BUG_PRINT ("\t- SUB-COMPILATION: %1ms\n", t0.msecsTo (QTime::currentTime()));
 		} break;
 
 		default:
@@ -201,7 +208,7 @@ void GLCompiler::setFile (LDDocument* file)
 
 // =============================================================================
 //
-const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
+const GLCompiler::VertexArray* GLCompiler::getMergedBuffer (E_VertexArrayType type)
 {
 	// If there are objects staged for compilation, compile them now.
 	if (m_staged.size() > 0)
@@ -212,7 +219,7 @@ const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 		m_staged.clear();
 	}
 
-	assert (type < GL::ENumArrays);
+	assert (type < E_NumVertexArrays);
 
 	if (m_changed[type])
 	{
@@ -230,7 +237,7 @@ const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 				m_mainArrays[type] += (*it)[type];
 		}
 
-		DEBUG_PRINT ("merged array %1: %2 entries\n", (int) type, m_mainArrays[type].size());
+		DE_BUG_PRINT ("merged array %1: %2 entries\n", (int) type, m_mainArrays[type].size());
 	}
 
 	return &m_mainArrays[type];
@@ -239,45 +246,45 @@ const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 // =============================================================================
 // This turns a compiled triangle into usable VAO vertices
 //
-GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRenderer::VAOType type)
+GLCompiler::VertexArray* GLCompiler::postprocess (const CompiledTriangle& poly, E_VertexArrayType type)
 {
-	Array* va = new Array;
-	Array verts;
+	VertexArray* va = new VertexArray;
+	VertexArray verts;
 
 	for (int i = 0; i < poly.numVerts; ++i)
 	{
-		alias v0 = poly.verts[i];
-		VAO v;
-		v.x = v0.x();
-		v.y = v0.y();
-		v.z = v0.z();
+		VAO vao;
+		const auto& v0 = poly.verts[i];
+		vao.x = v0.x();
+		vao.y = v0.y();
+		vao.z = v0.z();
 
 		switch (type)
 		{
-			case GL::ESurfaceArray:
-			case GL::EEdgeArray:
-			case GL::ECondEdgeArray:
+			case E_SurfaceArray:
+			case E_EdgeArray:
+			case E_CondEdgeArray:
 			{
-				v.color = poly.rgb;
+				vao.color = poly.rgb;
 			} break;
 
-			case GL::EPickArray:
-			case GL::EEdgePickArray:
+			case E_PickArray:
+			case E_EdgePickArray:
 			{
-				v.color = poly.pickrgb;
+				vao.color = poly.pickrgb;
 			} break;
 
-			case GL::EBFCArray:
-			case GL::ENumArrays:
-				break; // handled separately
+			case E_BFCArray:
+			case E_NumVertexArrays:
+				break;
 		}
 
-		verts << v;
+		verts << vao;
 	}
 
-	if (type == GL::EBFCArray)
+	if (type == E_BFCArray)
 	{
-		int32 rgb = getColorRGB (getObjectColor (poly.obj, BFCFront));
+		int32 rgb = getColorRGB (getObjectColor (poly.obj, E_BFCFrontColor));
 
 		for (VAO vao : verts)
 		{
@@ -285,7 +292,7 @@ GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRend
 			*va << vao;
 		}
 
-		rgb = getColorRGB (getObjectColor (poly.obj, BFCBack));
+		rgb = getColorRGB (getObjectColor (poly.obj, E_BFCBackColor));
 
 		for (int i = verts.size() - 1; i >= 0; --i)
 		{
@@ -313,14 +320,14 @@ uint32 GLCompiler::getColorRGB (const QColor& color)
 
 // =============================================================================
 //
-QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
+QColor GLCompiler::getObjectColor (LDObject* obj, GLCompiler::E_ColorType colortype) const
 {
 	QColor qcol;
 
 	if (!obj->isColored())
 		return QColor();
 
-	if (colotype == PickColor)
+	if (colortype == E_PickColor)
 	{
 		// Make the color by the object's ID if we're picking, so we can make the
 		// ID again from the color we get from the picking results. Be sure to use
@@ -338,12 +345,11 @@ QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 		return QColor (r, g, b);
 	}
 
-	if ( (colotype == BFCFront || colotype == BFCBack) &&
-			obj->getType() != LDObject::ELine &&
-			obj->getType() != LDObject::ECondLine
-	   )
+	if ((colortype == E_BFCFrontColor || colortype == E_BFCBackColor) &&
+		obj->getType() != LDObject::ELine &&
+		obj->getType() != LDObject::ECondLine)
 	{
-		if (colotype == BFCFront)
+		if (colortype == E_BFCFrontColor)
 			qcol = QColor (40, 192, 0);
 		else
 			qcol = QColor (224, 0, 0);
@@ -351,7 +357,7 @@ QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 	else
 	{
 		if (obj->getColor() == maincolor)
-			qcol = GL::getMainColor();
+			qcol = GLRenderer::getMainColor();
 		else
 		{
 			LDColor* col = getColor (obj->getColor());
@@ -374,7 +380,7 @@ QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 			// The color was unknown. Use main color to make the object at least
 			// not appear pitch-black.
 			if (obj->getColor() != edgecolor)
-				qcol = GL::getMainColor();
+				qcol = GLRenderer::getMainColor();
 			else
 				qcol = Qt::black;
 
@@ -415,7 +421,7 @@ void GLCompiler::needMerge()
 void GLCompiler::initObject (LDObject* obj)
 {
 	if (m_objArrays.find (obj) == m_objArrays.end())
-		m_objArrays[obj] = new Array[GL::ENumArrays];
+		m_objArrays[obj] = new VertexArray[E_NumVertexArrays];
 }
 
 // =============================================================================
