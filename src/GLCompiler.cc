@@ -14,7 +14,7 @@ static QList<short> g_warnedColors;
 GLCompiler g_vertexCompiler;
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 GLCompiler::GLCompiler() :
 	m_file (null)
 {
@@ -27,7 +27,7 @@ GLCompiler::~GLCompiler() {}
 // Note: we use the top level object's color but the draw object's vertices.
 // This is so that the index color is generated correctly - it has to reference
 // the top level object's ID. This is crucial for picking to work.
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< GLCompiler::CompiledTriangle >& data)
 {
 	const QColor pickColor = getObjectColor (trueobj, PickColor);
@@ -72,7 +72,7 @@ void GLCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< GL
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::compileObject (LDObject* obj)
 {
 	initObject (obj);
@@ -127,7 +127,7 @@ void GLCompiler::compileObject (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::PolygonList& data)
 {
 	LDObjectList objs;
@@ -173,7 +173,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::compileDocument()
 {
 	for (LDObject * obj : m_file->getObjects())
@@ -181,7 +181,7 @@ void GLCompiler::compileDocument()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::forgetObject (LDObject* obj)
 {
 	auto it = m_objArrays.find (obj);
@@ -193,14 +193,14 @@ void GLCompiler::forgetObject (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::setFile (LDDocument* file)
 {
 	m_file = file;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 {
 	// If there are objects staged for compilation, compile them now.
@@ -238,7 +238,7 @@ const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 
 // =============================================================================
 // This turns a compiled triangle into usable VAO vertices
-// -----------------------------------------------------------------------------
+//
 GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRenderer::VAOType type)
 {
 	Array* va = new Array;
@@ -247,7 +247,7 @@ GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRend
 	for (int i = 0; i < poly.numVerts; ++i)
 	{
 		alias v0 = poly.verts[i];
-		Vertex v;
+		VAO v;
 		v.x = v0.x();
 		v.y = v0.y();
 		v.z = v0.z();
@@ -279,19 +279,19 @@ GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRend
 	{
 		int32 rgb = getColorRGB (getObjectColor (poly.obj, BFCFront));
 
-		for (Vertex v : verts)
+		for (VAO vao : verts)
 		{
-			v.color = rgb;
-			*va << v;
+			vao.color = rgb;
+			*va << vao;
 		}
 
 		rgb = getColorRGB (getObjectColor (poly.obj, BFCBack));
 
 		for (int i = verts.size() - 1; i >= 0; --i)
 		{
-			Vertex v = verts[i];
-			v.color = rgb;
-			*va << v;
+			VAO vao = verts[i];
+			vao.color = rgb;
+			*va << vao;
 		}
 	}
 	else
@@ -301,7 +301,7 @@ GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRend
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 uint32 GLCompiler::getColorRGB (const QColor& color)
 {
 	return
@@ -312,7 +312,7 @@ uint32 GLCompiler::getColorRGB (const QColor& color)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 {
 	QColor qcol;
@@ -403,7 +403,7 @@ QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::needMerge()
 {
 	// Set all of m_changed to true
@@ -411,7 +411,7 @@ void GLCompiler::needMerge()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::initObject (LDObject* obj)
 {
 	if (m_objArrays.find (obj) == m_objArrays.end())
@@ -419,7 +419,7 @@ void GLCompiler::initObject (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLCompiler::stageForCompilation (LDObject* obj)
 {
 	m_staged << obj;

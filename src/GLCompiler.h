@@ -46,7 +46,7 @@ class GLCompiler
 
 		struct CompiledTriangle
 		{
-			::Vertex	verts[3];
+			Vertex	verts[3];
 			uint8		numVerts;	// 2 if a line
 			uint32		rgb;		// Color of this poly normally
 			uint32		pickrgb;	// Color of this poly while picking
@@ -54,7 +54,7 @@ class GLCompiler
 			LDObject*	obj;		// Pointer to the object this poly represents
 		};
 
-		struct Vertex
+		struct VAO
 		{
 			float x, y, z;
 			uint32 color;
@@ -62,7 +62,7 @@ class GLCompiler
 		};
 
 		using PolygonList = QList<CompiledTriangle>;
-		using Array = QVector<GLCompiler::Vertex>;
+		using Array = QVector<VAO>;
 
 		GLCompiler();
 		~GLCompiler();
