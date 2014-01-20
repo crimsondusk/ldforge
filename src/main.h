@@ -83,6 +83,12 @@ void dlog(void, ...) {}
 # endif // DEBUG
 #endif // IN_IDE_PARSER
 
+#ifndef IN_IDE_PARSER
+void dvalof (void a); // #define dvalof(A) dlog ("value of '%1' = %2\n", #A, A)
+#else
+# define dvalof(A) dlog ("value of '%1' = %2\n", #A, A)
+#endif
+
 // Replace assert with a version that shows a GUI dialog if possible.
 // On Windows I just can't get the actual error messages otherwise.
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
