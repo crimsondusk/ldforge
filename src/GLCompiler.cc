@@ -1,5 +1,5 @@
 #include <cstring>
-#include "gldata.h"
+#include "GLCompiler.h"
 #include "ldtypes.h"
 #include "colors.h"
 #include "document.h"
@@ -11,24 +11,24 @@
 
 extern_cfg (Bool, gl_blackedges);
 static QList<short> g_warnedColors;
-VertexCompiler g_vertexCompiler;
+GLCompiler g_vertexCompiler;
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-VertexCompiler::VertexCompiler() :
+GLCompiler::GLCompiler() :
 	m_file (null)
 {
 	needMerge();
 }
 
-VertexCompiler::~VertexCompiler() {}
+GLCompiler::~GLCompiler() {}
 
 // =============================================================================
 // Note: we use the top level object's color but the draw object's vertices.
 // This is so that the index color is generated correctly - it has to reference
 // the top level object's ID. This is crucial for picking to work.
 // -----------------------------------------------------------------------------
-void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< VertexCompiler::CompiledTriangle >& data)
+void GLCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList< GLCompiler::CompiledTriangle >& data)
 {
 	const QColor pickColor = getObjectColor (trueobj, PickColor);
 	LDObject::Type type = drawobj->getType();
@@ -73,7 +73,7 @@ void VertexCompiler::compilePolygon (LDObject* drawobj, LDObject* trueobj, QList
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileObject (LDObject* obj)
+void GLCompiler::compileObject (LDObject* obj)
 {
 	initObject (obj);
 	QList<CompiledTriangle> data;
@@ -95,7 +95,7 @@ void VertexCompiler::compileObject (LDObject* obj)
 		GL::VAOType type = (GL::VAOType) i;
 		const bool islinearray = (type == GL::EEdgeArray || type == GL::EEdgePickArray);
 
-		for (const CompiledTriangle & poly : data)
+		for (const CompiledTriangle& poly : data)
 		{
 			if (poly.isCondLine)
 			{
@@ -128,7 +128,7 @@ void VertexCompiler::compileObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, VertexCompiler::PolygonList& data)
+void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::PolygonList& data)
 {
 	LDObjectList objs;
 
@@ -174,7 +174,7 @@ void VertexCompiler::compileSubObject (LDObject* obj, LDObject* topobj, VertexCo
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::compileDocument()
+void GLCompiler::compileDocument()
 {
 	for (LDObject * obj : m_file->getObjects())
 		compileObject (obj);
@@ -182,7 +182,7 @@ void VertexCompiler::compileDocument()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::forgetObject (LDObject* obj)
+void GLCompiler::forgetObject (LDObject* obj)
 {
 	auto it = m_objArrays.find (obj);
 
@@ -194,14 +194,14 @@ void VertexCompiler::forgetObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::setFile (LDDocument* file)
+void GLCompiler::setFile (LDDocument* file)
 {
 	m_file = file;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type)
+const GLCompiler::Array* GLCompiler::getMergedBuffer (GL::VAOType type)
 {
 	// If there are objects staged for compilation, compile them now.
 	if (m_staged.size() > 0)
@@ -239,10 +239,10 @@ const VertexCompiler::Array* VertexCompiler::getMergedBuffer (GL::VAOType type)
 // =============================================================================
 // This turns a compiled triangle into usable VAO vertices
 // -----------------------------------------------------------------------------
-VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& poly, GLRenderer::VAOType type)
+GLCompiler::Array* GLCompiler::postprocess (const CompiledTriangle& poly, GLRenderer::VAOType type)
 {
 	Array* va = new Array;
-	QList<Vertex> verts;
+	Array verts;
 
 	for (int i = 0; i < poly.numVerts; ++i)
 	{
@@ -295,17 +295,14 @@ VertexCompiler::Array* VertexCompiler::postprocess (const CompiledTriangle& poly
 		}
 	}
 	else
-	{
-		for (Vertex v : verts)
-			*va << v;
-	}
+		*va = verts;
 
 	return va;
 }
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-uint32 VertexCompiler::getColorRGB (const QColor& color)
+uint32 GLCompiler::getColorRGB (const QColor& color)
 {
 	return
 		(color.red()   & 0xFF) << 0x00 |
@@ -316,7 +313,7 @@ uint32 VertexCompiler::getColorRGB (const QColor& color)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
+QColor GLCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 {
 	QColor qcol;
 
@@ -407,7 +404,7 @@ QColor VertexCompiler::getObjectColor (LDObject* obj, ColorType colotype) const
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::needMerge()
+void GLCompiler::needMerge()
 {
 	// Set all of m_changed to true
 	memset (m_changed, 0xFF, sizeof m_changed);
@@ -415,7 +412,7 @@ void VertexCompiler::needMerge()
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::initObject (LDObject* obj)
+void GLCompiler::initObject (LDObject* obj)
 {
 	if (m_objArrays.find (obj) == m_objArrays.end())
 		m_objArrays[obj] = new Array[GL::ENumArrays];
@@ -423,7 +420,7 @@ void VertexCompiler::initObject (LDObject* obj)
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-void VertexCompiler::stageForCompilation (LDObject* obj)
+void GLCompiler::stageForCompilation (LDObject* obj)
 {
 	m_staged << obj;
 	removeDuplicates (m_staged);

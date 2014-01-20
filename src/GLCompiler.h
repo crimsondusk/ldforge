@@ -8,7 +8,7 @@
 
 /* =============================================================================
  * -----------------------------------------------------------------------------
- * VertexCompiler
+ * GLCompiler
  *
  * This class manages vertex arrays for the GL renderer, compiling vertices into
  * VAO-readable triangles which can be requested with getMergedBuffer.
@@ -33,7 +33,7 @@
  * these structs are the VAOs that get passed to the renderer.
  */
 
-class VertexCompiler
+class GLCompiler
 {
 	public:
 		enum ColorType
@@ -62,10 +62,10 @@ class VertexCompiler
 		};
 
 		using PolygonList = QList<CompiledTriangle>;
-		using Array = QVector<VertexCompiler::Vertex>;
+		using Array = QVector<GLCompiler::Vertex>;
 
-		VertexCompiler();
-		~VertexCompiler();
+		GLCompiler();
+		~GLCompiler();
 		void setFile (LDDocument* file);
 		void compileDocument();
 		void forgetObject (LDObject* obj);
@@ -81,7 +81,7 @@ class VertexCompiler
 		void compilePolygon (LDObject* drawobj, LDObject* trueobj, PolygonList& data);
 		void compileObject (LDObject* obj);
 		void compileSubObject (LDObject* obj, LDObject* topobj, PolygonList& data);
-		Array* postprocess (const VertexCompiler::CompiledTriangle& i, GLRenderer::VAOType type);
+		Array* postprocess (const GLCompiler::CompiledTriangle& i, GLRenderer::VAOType type);
 
 		QMap<LDObject*, Array*>				m_objArrays;
 		Array								m_mainArrays[GL::ENumArrays];
@@ -90,6 +90,6 @@ class VertexCompiler
 		LDObjectList						m_staged; // Objects that need to be compiled
 };
 
-extern VertexCompiler g_vertexCompiler;
+extern GLCompiler g_vertexCompiler;
 
 #endif // LDFORGE_GLDATA_H

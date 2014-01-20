@@ -36,7 +36,7 @@
 #include "dialogs.h"
 #include "addObjectDialog.h"
 #include "messagelog.h"
-#include "gldata.h"
+#include "GLCompiler.h"
 #include "primitives.h"
 #include "misc/ringFinder.h"
 #include "moc_gldraw.cpp"
@@ -398,9 +398,9 @@ void GLRenderer::drawGLScene()
 //
 void GLRenderer::drawVAOs (VAOType arrayType, GLenum type)
 {
-	const VertexCompiler::Array* array = g_vertexCompiler.getMergedBuffer (arrayType);
-	glVertexPointer (3, GL_FLOAT, sizeof (VertexCompiler::Vertex), &array->data()[0].x);
-	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (VertexCompiler::Vertex), &array->data()[0].color);
+	const GLCompiler::Array* array = g_vertexCompiler.getMergedBuffer (arrayType);
+	glVertexPointer (3, GL_FLOAT, sizeof (GLCompiler::Vertex), &array->data()[0].x);
+	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::Vertex), &array->data()[0].color);
 	glDrawArrays (type, 0, array->size());
 }
 
