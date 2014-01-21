@@ -1,10 +1,9 @@
-#include <cstring>
 #include "GLCompiler.h"
-#include "ldtypes.h"
-#include "colors.h"
-#include "document.h"
-#include "misc.h"
-#include "gldraw.h"
+#include "LDObject.h"
+#include "Colors.h"
+#include "Document.h"
+#include "Misc.h"
+#include "GLRenderer.h"
 #include <QDate>
 
 #define DE_BUG_PRINT(...) fprint (stdout, __VA_ARGS__)

@@ -19,8 +19,8 @@
 #ifndef LDFORGE_GLCOMPILER_H
 #define LDFORGE_GLCOMPILER_H
 
-#include "main.h"
-#include "gldraw.h"
+#include "Main.h"
+#include "GLRenderer.h"
 #include "GLShared.h"
 #include <QMap>
 
