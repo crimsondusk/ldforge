@@ -23,8 +23,6 @@ GLCompiler::GLCompiler() :
 	m_Document (null)
 {
 	glGenBuffers (VBO_NumArrays, &m_mainVBOIndices[0]);
-	for (int i = 0; i < 8; ++i)
-		printf ("%d. %u\n", i, m_mainVBOIndices[i]);
 	needMerge();
 }
 
