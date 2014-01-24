@@ -246,8 +246,8 @@ class GLRenderer : public QGLWidget
 		// Convert a 2D point to a 3D point
 		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
-		// Draw a VAO array
-		void           drawVAOs (E_VertexArrayType arrayType, GLenum type);
+		// Draw a VBO array
+		void           drawVBOs (E_VBOArray arrayType, GLenum type);
 
 		// Determine which color to draw text with
 		QColor         getTextPen() const;

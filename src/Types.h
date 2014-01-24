@@ -23,6 +23,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QMetaType>
+#include <QVector>
 #include "PropertyMacro.h"
 
 class LDObject;
@@ -231,11 +232,11 @@ class StringFormatArg
 			m_val.sprintf ("%p", a);
 		}
 
-		template<class T> StringFormatArg (const QList<T>& a)
+		template<class T, class R> void initFromList (const T& a)
 		{
 			m_val = "{ ";
 
-			for (const T& it : a)
+			for (const R& it : a)
 			{
 				if (&it != &a.first())
 					m_val += ", ";
@@ -248,6 +249,16 @@ class StringFormatArg
 				m_val += " ";
 
 			m_val += "}";
+		}
+
+		template<class T> StringFormatArg (const QList<T>& a)
+		{
+			initFromList<QList<T>, T> (a);
+		}
+
+		template<class T> StringFormatArg (const QVector<T>& a)
+		{
+			initFromList<QVector<T>, T> (a);
 		}
 
 		inline QString value() const

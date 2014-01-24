@@ -19,15 +19,17 @@
 #ifndef LDFORGE_GLSHARED_H
 #define LDFORGE_GLSHARED_H
 
-enum E_VertexArrayType
+enum E_VBOArray
 {
-	E_SurfaceArray,
-	E_EdgeArray,
-	E_CondEdgeArray,
-	E_BFCArray,
-	E_PickArray,
-	E_EdgePickArray,
-	E_NumVertexArrays
+	VBO_Quads,
+	VBO_Triangles,
+	VBO_Lines,
+	VBO_CondLines,
+	VBO_NormalColors,
+	VBO_BFCFrontColors,
+	VBO_BFCBackColors,
+	VBO_PickColors,
+	VBO_NumArrays
 };
 
 #endif // LDFORGE_GLSHARED_H

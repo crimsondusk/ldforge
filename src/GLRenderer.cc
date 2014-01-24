@@ -16,6 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#define GL_GLEXT_PROTOTYPES
+#include <GL/glu.h>
+#include <GL/glext.h>
 #include <QGLWidget>
 #include <QWheelEvent>
 #include <QMouseEvent>
@@ -23,8 +26,6 @@
 #include <QInputDialog>
 #include <QToolTip>
 #include <QTimer>
-#include <GL/glu.h>
-
 #include "Main.h"
 #include "Configuration.h"
 #include "Document.h"
@@ -98,17 +99,21 @@ const GL::EFixedCamera g_Cameras[7] =
 	GL::EFreeCamera
 };
 
-// Definitions for visual axes, drawn on the screen
-const struct LDGLAxis
+struct LDGLAxis
 {
 	const QColor col;
 	const Vertex vert;
-} g_GLAxes[3] =
+};
+
+// Definitions for visual axes, drawn on the screen
+static const LDGLAxis g_GLAxes[3] =
 {
 	{ QColor (255,   0,   0), Vertex (10000, 0, 0) }, // X
 	{ QColor (80,  192,   0), Vertex (0, 10000, 0) }, // Y
 	{ QColor (0,   160, 192), Vertex (0, 0, 10000) }, // Z
 };
+
+static GLuint g_GLAxes_VBO;
 
 // =============================================================================
 //
@@ -143,6 +148,32 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
 	}
+
+	// Init VBO for axes
+	float axesdata[18];
+	memset (axesdata, 0, sizeof axesdata);
+	float colordata[18];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			axesdata[(i * 6) + j] = g_GLAxes[i].vert.getCoordinate (j);
+			axesdata[(i * 6) + 3 + j] = -g_GLAxes[i].vert.getCoordinate (j);
+		}
+
+		for (int j = 0; j < 2; ++j)
+		{
+			colordata[(i * 6) + (j * 3) + 0] = g_GLAxes[i].col.red();
+			colordata[(i * 6) + (j * 3) + 1] = g_GLAxes[i].col.green();
+			colordata[(i * 6) + (j * 3) + 2] = g_GLAxes[i].col.blue();
+		}
+	}
+
+	glGenBuffers (1, &g_GLAxes_VBO);
+	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+	glBufferData (GL_ARRAY_BUFFER, sizeof axesdata, axesdata, GL_STATIC_DRAW);
+	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
 
 	calcCameraIcons();
 }
@@ -364,31 +395,22 @@ void GLRenderer::drawGLScene()
 		glRotatef (rot (Z), 0.0f, 0.0f, 1.0f);
 	}
 
-	// Draw the VAOs now
 	glEnableClientState (GL_VERTEX_ARRAY);
-	glEnableClientState (GL_COLOR_ARRAY);
-	glDisableClientState (GL_NORMAL_ARRAY);
 
-	if (gl_colorbfc) {
-		glEnable (GL_CULL_FACE);
-		glCullFace (GL_CCW);
-	} else
-		glDisable (GL_CULL_FACE);
-
-	drawVAOs ((isPicking() ? E_PickArray : gl_colorbfc ? E_BFCArray : E_SurfaceArray), GL_TRIANGLES);
-	drawVAOs ((isPicking() ? E_EdgePickArray : E_EdgeArray), GL_LINES);
-
-	// Draw conditional lines. Note that conditional lines are drawn into
-	// EdgePickArray in the picking scene so we only draw this array when
-	// not using the pick scene.
-	if (!isPicking())
+	if (gl_axes)
 	{
-		glEnable (GL_LINE_STIPPLE);
-		drawVAOs (E_CondEdgeArray, GL_LINES);
-		glDisable (GL_LINE_STIPPLE);
+		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+		glVertexPointer (3, GL_FLOAT, 0, NULL);
+		glDrawArrays (GL_LINES, 0, 6);
 	}
 
+	drawVBOs (VBO_Triangles, GL_TRIANGLES);
+	drawVBOs (VBO_Quads, GL_QUADS);
+	drawVBOs (VBO_Lines, GL_LINES);
+	drawVBOs (VBO_CondLines, GL_LINES);
+
 	glPopMatrix();
+	glDisableClientState (GL_VERTEX_ARRAY);
 	glDisable (GL_CULL_FACE);
 	glMatrixMode (GL_MODELVIEW);
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -396,12 +418,20 @@ void GLRenderer::drawGLScene()
 
 // =============================================================================
 //
-void GLRenderer::drawVAOs (E_VertexArrayType arrayType, GLenum type)
+void GLRenderer::drawVBOs (E_VBOArray arrayType, GLenum type)
 {
-	const GLCompiler::VertexArray* array = g_vertexCompiler.getMergedBuffer (arrayType);
-	glVertexPointer (3, GL_FLOAT, sizeof (GLCompiler::VAO), &array->data()[0].x);
-	glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::VAO), &array->data()[0].color);
-	glDrawArrays (type, 0, array->size());
+	g_vertexCompiler.prepareVBOArray (arrayType);
+	GLuint idx = g_vertexCompiler.getVBOIndex (arrayType);
+	GLsizei count = g_vertexCompiler.getVBOCount (arrayType);
+
+	if (count > 0)
+	{
+		glBindBuffer (GL_ARRAY_BUFFER, idx);
+		glVertexPointer (3, GL_FLOAT, 0, null);
+		// glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::VAO), &array->data()[0].color);
+		// glVertexAttribPointer (idx, 3, GL_FLOAT, GL_FALSE, 0, null);
+		glDrawArrays (type, 0, count);
+	}
 }
 
 // =============================================================================
@@ -1255,7 +1285,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 void GLRenderer::setFile (LDDocument* const& a)
 {
 	m_File = a;
-	g_vertexCompiler.setFile (a);
+	g_vertexCompiler.setDocument (a);
 
 	if (a != null)
 	{
@@ -1526,7 +1556,7 @@ static QList<Vertex> getVertices (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLRenderer::compileObject (LDObject* obj)
 {
 	g_vertexCompiler.stageForCompilation (obj);
@@ -1564,7 +1594,7 @@ void GLRenderer::slot_toolTipTimer()
 	// We come here if the cursor has stayed in one place for longer than a
 	// a second. Check if we're holding it over a camera icon - if so, draw
 	// a tooltip.
-for (CameraIcon & icon : m_cameraIcons)
+	for (CameraIcon & icon : m_cameraIcons)
 	{
 		if (icon.destRect.contains (m_pos))
 		{

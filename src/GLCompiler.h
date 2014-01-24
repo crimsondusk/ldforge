@@ -54,58 +54,47 @@
 //
 class GLCompiler
 {
+	PROPERTY (public,	LDDocumentPointer,	Document,	NO_OPS,	STOCK_WRITE)
+
 	public:
 		enum E_ColorType
 		{
 			E_NormalColor,
-			E_BFCFrontColor,
-			E_BFCBackColor,
 			E_PickColor,
 		};
 
-		struct CompiledTriangle
-		{
-			Vertex		verts[3];
-			uint8		numVerts;	// 2 if a line
-			uint32		rgb;		// Color of this poly normally
-			uint32		pickrgb;	// Color of this poly while picking
-			bool		isCondLine;	// Is this a conditional line?
-			LDObject*	obj;		// Pointer to the object this poly represents
-		};
-
-		struct VAO
-		{
-			float x, y, z;
-			uint32 color;
-			float pad[4];
-		};
-
-		using PolygonList = QList<CompiledTriangle>;
-		using VertexArray = QVector<VAO>;
-
 		GLCompiler();
 		~GLCompiler();
-		void setFile (LDDocument* file);
-		void compileDocument();
-		void forgetObject (LDObject* obj);
-		void initObject (LDObject* obj);
-		const VertexArray* getMergedBuffer (E_VertexArrayType type);
-		QColor getObjectColor (LDObject* obj, E_ColorType colortype) const;
-		void needMerge();
-		void stageForCompilation (LDObject* obj);
+		void			compileDocument();
+		void			forgetObject (LDObject* obj);
+		void			initObject (LDObject* obj);
+		QColor			getObjectColor (LDObject* obj, E_ColorType colortype) const;
+		void			needMerge();
+		void			prepareVBOArray (E_VBOArray type);
+		void			stageForCompilation (LDObject* obj);
 
-		static uint32 getColorRGB (const QColor& color);
+		static uint32	getColorRGB (const QColor& color);
+
+		inline GLuint	getVBOIndex (E_VBOArray array) const
+		{
+			return m_mainVBOIndices[array];
+		}
+
+		inline int		getVBOCount (E_VBOArray array) const
+		{
+			return m_mainArrays[array].size() / 3;
+		}
 
 	private:
-		void compilePolygon (LDObject* drawobj, LDObject* trueobj, PolygonList& data);
-		void compileObject (LDObject* obj);
-		void compileSubObject (LDObject* obj, LDObject* topobj, PolygonList& data);
-		VertexArray* postprocess (const CompiledTriangle& poly, E_VertexArrayType type);
+		void			compileStaged();
+		void			compileObject (LDObject* obj);
+		void			compileSubObject (LDObject* obj, LDObject* topobj);
+		void			writeColor (QVector< float >& array, const QColor& color);
 
-		QMap<LDObject*, VertexArray*>				m_objArrays;
-		VertexArray								m_mainArrays[E_NumVertexArrays];
-		LDDocument*							m_file;
-		bool								m_changed[E_NumVertexArrays];
+		QMap<LDObject*, QVector<float>*>	m_objArrays;
+		QVector<float>						m_mainArrays[VBO_NumArrays];
+		GLuint								m_mainVBOIndices[VBO_NumArrays];
+		bool								m_changed[VBO_NumArrays];
 		LDObjectList						m_staged; // Objects that need to be compiled
 };
 
