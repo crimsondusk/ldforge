@@ -77,12 +77,12 @@ class GLCompiler
 
 		inline GLuint	getVBOIndex (E_VBOArray array) const
 		{
-			return m_mainVBOIndices[array];
+			return m_mainVBOs[array];
 		}
 
 		inline int		getVBOCount (E_VBOArray array) const
 		{
-			return m_mainArrays[array].size() / 3;
+			return m_mainVBOData[array].size() / 3;
 		}
 
 	private:
@@ -92,8 +92,8 @@ class GLCompiler
 		void			writeColor (QVector< float >& array, const QColor& color);
 
 		QMap<LDObject*, QVector<float>*>	m_objArrays;
-		QVector<float>						m_mainArrays[VBO_NumArrays];
-		GLuint								m_mainVBOIndices[VBO_NumArrays];
+		QVector<float>						m_mainVBOData[VBO_NumArrays];
+		GLuint								m_mainVBOs[VBO_NumArrays];
 		bool								m_changed[VBO_NumArrays];
 		LDObjectList						m_staged; // Objects that need to be compiled
 };

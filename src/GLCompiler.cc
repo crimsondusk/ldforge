@@ -22,13 +22,13 @@ static const QColor g_BFCBackColor(224, 0, 0);
 GLCompiler::GLCompiler() :
 	m_Document (null)
 {
-	glGenBuffers (VBO_NumArrays, &m_mainVBOIndices[0]);
+	glGenBuffers (VBO_NumArrays, &m_mainVBOs[0]);
 	needMerge();
 }
 
 GLCompiler::~GLCompiler()
 {
-	glDeleteBuffers (VBO_NumArrays, &m_mainVBOIndices[0]);
+	glDeleteBuffers (VBO_NumArrays, &m_mainVBOs[0]);
 }
 
 // =============================================================================
@@ -166,17 +166,17 @@ void GLCompiler::prepareVBOArray (E_VBOArray type)
 	if (!m_changed[type])
 		return;
 
-	m_mainArrays[type].clear();
+	m_mainVBOData[type].clear();
 
 	for (auto it = m_objArrays.begin(); it != m_objArrays.end(); ++it)
-		m_mainArrays[type] += (*it)[type];
+		m_mainVBOData[type] += (*it)[type];
 
-	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOIndices[type]);
-	glBufferData (GL_ARRAY_BUFFER, m_mainArrays[type].size() * sizeof(float),
-		m_mainArrays[type].constData(), GL_DYNAMIC_DRAW);
-	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOIndices[type]);
+	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOs[type]);
+	glBufferData (GL_ARRAY_BUFFER, m_mainVBOData[type].size() * sizeof(float),
+		m_mainVBOData[type].constData(), GL_DYNAMIC_DRAW);
+	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOs[type]);
 	m_changed[type] = false;
-	log ("VBO array %1 prepared: %2 coordinates", (int) type, m_mainArrays[type].size());
+	log ("VBO array %1 prepared: %2 coordinates", (int) type, m_mainVBOData[type].size());
 }
 
 // =============================================================================
