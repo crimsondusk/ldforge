@@ -130,6 +130,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	setMessageLog (null);
 	m_width = m_height = -1;
 	m_hoverpos = g_origin;
+	m_compiler = new GLCompiler;
 
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -149,32 +150,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 		info->cam = cam;
 	}
 
-	// Init VBO for axes
-	float axesdata[18];
-	memset (axesdata, 0, sizeof axesdata);
-	float colordata[18];
-
-	for (int i = 0; i < 3; ++i)
-	{
-		for (int j = 0; j < 3; ++j)
-		{
-			axesdata[(i * 6) + j] = g_GLAxes[i].vert.getCoordinate (j);
-			axesdata[(i * 6) + 3 + j] = -g_GLAxes[i].vert.getCoordinate (j);
-		}
-
-		for (int j = 0; j < 2; ++j)
-		{
-			colordata[(i * 6) + (j * 3) + 0] = g_GLAxes[i].col.red();
-			colordata[(i * 6) + (j * 3) + 1] = g_GLAxes[i].col.green();
-			colordata[(i * 6) + (j * 3) + 2] = g_GLAxes[i].col.blue();
-		}
-	}
-
-	glGenBuffers (1, &g_GLAxes_VBO);
-	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
-	glBufferData (GL_ARRAY_BUFFER, sizeof axesdata, axesdata, GL_STATIC_DRAW);
-	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
-
 	calcCameraIcons();
 }
 
@@ -187,6 +162,8 @@ GLRenderer::~GLRenderer()
 
 	for (CameraIcon& info : m_cameraIcons)
 		delete info.img;
+
+	delete m_compiler;
 }
 
 // =============================================================================
@@ -280,7 +257,40 @@ void GLRenderer::initializeGL()
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
 
-	g_vertexCompiler.compileDocument();
+	m_compiler->initialize();
+	m_compiler->compileDocument();
+
+	initializeAxes();
+}
+
+// =============================================================================
+//
+void GLRenderer::initializeAxes()
+{
+	float axesdata[18];
+	memset (axesdata, 0, sizeof axesdata);
+	float colordata[18];
+
+	for (int i = 0; i < 3; ++i)
+	{
+		for (int j = 0; j < 3; ++j)
+		{
+			axesdata[(i * 6) + j] = g_GLAxes[i].vert.getCoordinate (j);
+			axesdata[(i * 6) + 3 + j] = -g_GLAxes[i].vert.getCoordinate (j);
+		}
+
+		for (int j = 0; j < 2; ++j)
+		{
+			colordata[(i * 6) + (j * 3) + 0] = g_GLAxes[i].col.red();
+			colordata[(i * 6) + (j * 3) + 1] = g_GLAxes[i].col.green();
+			colordata[(i * 6) + (j * 3) + 2] = g_GLAxes[i].col.blue();
+		}
+	}
+
+	glGenBuffers (1, &g_GLAxes_VBO);
+	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+	glBufferData (GL_ARRAY_BUFFER, sizeof axesdata, axesdata, GL_STATIC_DRAW);
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
 }
 
 // =============================================================================
@@ -324,7 +334,7 @@ void GLRenderer::refresh()
 // -----------------------------------------------------------------------------
 void GLRenderer::hardRefresh()
 {
-	g_vertexCompiler.compileDocument();
+	m_compiler->compileDocument();
 	refresh();
 
 	glLineWidth (gl_linethickness);
@@ -400,8 +410,11 @@ void GLRenderer::drawGLScene()
 	if (gl_axes)
 	{
 		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+		checkGLError();
 		glVertexPointer (3, GL_FLOAT, 0, NULL);
+		checkGLError();
 		glDrawArrays (GL_LINES, 0, 6);
+		checkGLError();
 	}
 
 	drawVBOs (VBO_Triangles, GL_TRIANGLES);
@@ -410,7 +423,9 @@ void GLRenderer::drawGLScene()
 	drawVBOs (VBO_CondLines, GL_LINES);
 
 	glPopMatrix();
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	glDisableClientState (GL_VERTEX_ARRAY);
+	checkGLError();
 	glDisable (GL_CULL_FACE);
 	glMatrixMode (GL_MODELVIEW);
 	glPolygonMode (GL_FRONT_AND_BACK, GL_FILL);
@@ -420,17 +435,20 @@ void GLRenderer::drawGLScene()
 //
 void GLRenderer::drawVBOs (E_VBOArray arrayType, GLenum type)
 {
-	g_vertexCompiler.prepareVBOArray (arrayType);
-	GLuint idx = g_vertexCompiler.getVBOIndex (arrayType);
-	GLsizei count = g_vertexCompiler.getVBOCount (arrayType);
+	m_compiler->prepareVBOArray (arrayType);
+	GLuint idx = m_compiler->getVBOIndex (arrayType);
+	GLsizei count = m_compiler->getVBOCount (arrayType);
 
 	if (count > 0)
 	{
 		glBindBuffer (GL_ARRAY_BUFFER, idx);
+		checkGLError();
 		glVertexPointer (3, GL_FLOAT, 0, null);
+		checkGLError();
 		// glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::VAO), &array->data()[0].color);
 		// glVertexAttribPointer (idx, 3, GL_FLOAT, GL_FALSE, 0, null);
 		glDrawArrays (type, 0, count);
+		checkGLError();
 	}
 }
 
@@ -829,7 +847,7 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 //
 void GLRenderer::compileAllObjects()
 {
-	g_vertexCompiler.compileDocument();
+	m_compiler->compileDocument();
 }
 
 // =============================================================================
@@ -1285,7 +1303,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 void GLRenderer::setFile (LDDocument* const& a)
 {
 	m_File = a;
-	g_vertexCompiler.setDocument (a);
+	m_compiler->setDocument (a);
 
 	if (a != null)
 	{
@@ -1559,7 +1577,7 @@ static QList<Vertex> getVertices (LDObject* obj)
 //
 void GLRenderer::compileObject (LDObject* obj)
 {
-	g_vertexCompiler.stageForCompilation (obj);
+	m_compiler->stageForCompilation (obj);
 
 	// Mark in known vertices of this object
 	QList<Vertex> verts = getVertices (obj);

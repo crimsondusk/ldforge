@@ -25,6 +25,7 @@
 #include "Document.h"
 #include "GLShared.h"
 
+class GLCompiler;
 class MessageManager;
 class QDialogButtonBox;
 class RadioGroup;
@@ -217,6 +218,7 @@ class GLRenderer : public QGLWidget
 		Vertex						m_rectverts[4];
 		QColor						m_bgcolor;
 		QList<Vertex>				m_knownVerts;
+		GLCompiler*					m_compiler;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
 		LDOverlay*     findOverlayObject (EFixedCamera cam);
@@ -297,6 +299,7 @@ class GLRenderer : public QGLWidget
 
 	private slots:
 		void           slot_toolTipTimer();
+		void initializeAxes();
 };
 
 // Alias for short namespaces

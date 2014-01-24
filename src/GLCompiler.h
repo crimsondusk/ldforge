@@ -84,6 +84,7 @@ class GLCompiler
 		{
 			return m_mainVBOData[array].size() / 3;
 		}
+		void initialize();
 
 	private:
 		void			compileStaged();
@@ -91,13 +92,14 @@ class GLCompiler
 		void			compileSubObject (LDObject* obj, LDObject* topobj);
 		void			writeColor (QVector< float >& array, const QColor& color);
 
-		QMap<LDObject*, QVector<float>*>	m_objArrays;
-		QVector<float>						m_mainVBOData[VBO_NumArrays];
+		QMap<LDObject*, QVector<GLfloat>*>	m_objArrays;
+		QVector<GLfloat>					m_mainVBOData[VBO_NumArrays];
 		GLuint								m_mainVBOs[VBO_NumArrays];
 		bool								m_changed[VBO_NumArrays];
 		LDObjectList						m_staged; // Objects that need to be compiled
 };
 
-extern GLCompiler g_vertexCompiler;
+#define checkGLError() { checkGLError_private (__FILE__, __LINE__); }
+void checkGLError_private (const char* file, int line);
 
 #endif // LDFORGE_GLCOMPILER_H

@@ -7,28 +7,76 @@
 #include "Document.h"
 #include "Misc.h"
 #include "GLRenderer.h"
+#include "Dialogs.h"
+
+static const struct
+{
+	GLenum	value;
+	QString	text;
+}
+g_GLErrors[] =
+{
+	{ GL_NO_ERROR,						"No error" },
+	{ GL_INVALID_ENUM,					"Unacceptable enumerator passed" },
+	{ GL_INVALID_VALUE,					"Numeric argument out of range" },
+	{ GL_INVALID_OPERATION,				"The operation is not allowed to be done in this state" },
+	{ GL_INVALID_FRAMEBUFFER_OPERATION,	"Framebuffer object is not complete"},
+	{ GL_OUT_OF_MEMORY,					"Out of memory" },
+	{ GL_STACK_UNDERFLOW,				"The operation would have caused an underflow" },
+	{ GL_STACK_OVERFLOW,				"The operation would have caused an overflow" },
+};
 
 #define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
 
 extern_cfg (Bool, gl_blackedges);
 static QList<short> g_warnedColors;
-GLCompiler g_vertexCompiler;
 
 static const QColor g_BFCFrontColor(40, 192, 0);
 static const QColor g_BFCBackColor(224, 0, 0);
 
 // =============================================================================
 //
+void checkGLError_private (const char* file, int line)
+{
+	GLenum errnum = glGetError();
+
+	if (errnum == GL_NO_ERROR)
+		return;
+
+	QString errmsg;
+
+	for (const auto& it : g_GLErrors)
+	{
+		if (it.value == errnum)
+		{
+			errmsg = it.text;
+			break;
+		}
+	}
+
+	log ("GL ERROR: %1:%2: %3", file, line, errmsg);
+}
+
+// =============================================================================
+//
 GLCompiler::GLCompiler() :
 	m_Document (null)
 {
-	glGenBuffers (VBO_NumArrays, &m_mainVBOs[0]);
 	needMerge();
+}
+
+// =============================================================================
+//
+void GLCompiler::initialize()
+{
+	glGenBuffers (VBO_NumArrays, &m_mainVBOs[0]);
+	checkGLError();
 }
 
 GLCompiler::~GLCompiler()
 {
 	glDeleteBuffers (VBO_NumArrays, &m_mainVBOs[0]);
+	checkGLError();
 }
 
 // =============================================================================
@@ -172,9 +220,12 @@ void GLCompiler::prepareVBOArray (E_VBOArray type)
 		m_mainVBOData[type] += (*it)[type];
 
 	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOs[type]);
+	checkGLError();
 	glBufferData (GL_ARRAY_BUFFER, m_mainVBOData[type].size() * sizeof(float),
 		m_mainVBOData[type].constData(), GL_DYNAMIC_DRAW);
-	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOs[type]);
+	checkGLError();
+	glBindBuffer (GL_ARRAY_BUFFER, 0);
+	checkGLError();
 	m_changed[type] = false;
 	log ("VBO array %1 prepared: %2 coordinates", (int) type, m_mainVBOData[type].size());
 }
@@ -198,7 +249,7 @@ void GLCompiler::compileObject (LDObject* obj)
 {
 	// Ensure we have valid arrays to write to.
 	if (m_objArrays.find (obj) == m_objArrays.end())
-		m_objArrays[obj] = new QVector<float>[VBO_NumArrays];
+		m_objArrays[obj] = new QVector<GLfloat>[VBO_NumArrays];
 	else
 	{
 		// Arrays exist already, clear them.
@@ -241,15 +292,17 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj)
 				default: break;
 			}
 
-			QVector<float>* ap = m_objArrays[topobj];
+			QVector<GLfloat>* ap = m_objArrays[topobj];
 			QColor normalColor = getObjectColor (obj, E_NormalColor);
 			QColor pickColor = getObjectColor (topobj, E_PickColor);
 
 			for (int i = 0; i < verts; ++i)
 			{
 				// Write coordinates
-				for (int j = 0; j < 3; ++j)
-					ap[arraynum] << obj->getVertex (i).getCoordinate (j);
+				ap[arraynum]
+					<< obj->getVertex (i).x()
+					<< -obj->getVertex (i).y()
+					<< -obj->getVertex (i).z();
 
 				// Colors
 				writeColor (ap[VBO_NormalColors], normalColor);
@@ -278,7 +331,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj)
 
 // =============================================================================
 //
-void GLCompiler::writeColor (QVector<float>& array, const QColor& color)
+void GLCompiler::writeColor (QVector<GLfloat>& array, const QColor& color)
 {
 	array	<< color.red()
 			<< color.green()
