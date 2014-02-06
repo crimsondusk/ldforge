@@ -25,78 +25,58 @@
 #include <QMap>
 
 // =============================================================================
-// GLCompiler
-//
-// This class manages vertex arrays for the GL renderer, compiling vertices into
-// VAO-readable triangles which can be requested with getMergedBuffer.
-//
-// There are 6 main array types:
-// - the normal polygon array, for triangles
-// - edge line array, for lines
-// - conditional line array, for conditional lines. Kept separate so that they
-//       can be drawn as dashed liness
-// - BFC array, this is the same as the normal polygon array except that the
-//       polygons are listed twice, once normally and green and once reversed
-//       and red, this allows BFC red/green view.
-// - Picking array, this is the same as the normal polygon array except the
-//       polygons are compiled with their index color, this way the picking
-//       method is capable of determining which object was selected by pixel
-//       color.
-// - Edge line picking array, the pick array version of the edge line array.
-//       Conditional lines are grouped with normal edgelines here.
-//
-// There are also these same 5 arrays for every LDObject compiled. The main
-// arrays are generated on demand from the ones in the current file's
-// LDObjects and stored in cache for faster renmm dering.
-//
-// The nested Array class contains a vector-like buffer of the Vertex structs,
-// these structs are the VAOs that get passed to the renderer.
 //
 class GLCompiler
 {
 	PROPERTY (public,	LDDocumentPointer,	Document,	NO_OPS,	STOCK_WRITE)
 
 	public:
-		enum E_ColorType
+		struct ObjectVBOInfo
 		{
-			E_NormalColor,
-			E_PickColor,
+			int offset[gNumVBOs];
+			int size[gNumVBOs];
 		};
 
 		GLCompiler();
 		~GLCompiler();
-		void			compileDocument();
-		void			forgetObject (LDObject* obj);
-		void			initObject (LDObject* obj);
-		QColor			getObjectColor (LDObject* obj, E_ColorType colortype) const;
-		void			needMerge();
-		void			prepareVBOArray (E_VBOArray type);
-		void			stageForCompilation (LDObject* obj);
+		void				compileDocument();
+		void				uncompileObject (LDObject* obj);
+		void				initialize();
+		QColor				getPolygonColor (LDPolygon& poly, LDObject* topobj) const;
+		QColor				getIndexColor (int id) const;
+		void				needMerge();
+		void				prepareVBO (int vbonum);
+		void				stageForCompilation (LDObject* obj);
 
-		static uint32	getColorRGB (const QColor& color);
+		static uint32		getColorRGB (const QColor& color);
 
-		inline GLuint	getVBOIndex (E_VBOArray array) const
+		static inline int	getVBONumber (EVBOSurface surface, EVBOComplement complement)
 		{
-			return m_mainVBOs[array];
+			return (surface * vboNumComplements) + complement;
 		}
 
-		inline int		getVBOCount (E_VBOArray array) const
+		inline GLuint		getVBO (int vbonum) const
 		{
-			return m_mainVBOData[array].size() / 3;
+			return mVBOs[vbonum];
 		}
-		void initialize();
+
+		inline int			getVBOCount (int vbonum) const
+		{
+			return mVBOData[vbonum].size() / 3;
+		}
 
 	private:
 		void			compileStaged();
 		void			compileObject (LDObject* obj);
-		void			compileSubObject (LDObject* obj, LDObject* topobj);
-		void			writeColor (QVector< float >& array, const QColor& color);
+		void			compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
+		void			writeColor (QVector<float>& array, const QColor& color);
+		void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
-		QMap<LDObject*, QVector<GLfloat>*>	m_objArrays;
-		QVector<GLfloat>					m_mainVBOData[VBO_NumArrays];
-		GLuint								m_mainVBOs[VBO_NumArrays];
-		bool								m_changed[VBO_NumArrays];
-		LDObjectList						m_staged; // Objects that need to be compiled
+		QMap<LDObject*, ObjectVBOInfo>		mObjectInfo;
+		QVector<GLfloat>					mVBOData[gNumVBOs];
+		GLuint								mVBOs[gNumVBOs];
+		bool								mChanged[gNumVBOs];
+		LDObjectList						mStaged; // Objects that need to be compiled
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

@@ -270,7 +270,7 @@ void LDObject::deleteSelf()
 		getFile()->forgetObject (this);
 
 	// Delete the GL lists
-	GL::deleteLists (this);
+	g_win->R()->forgetObject (this);
 
 	// Remove this object from the list of LDObjects
 	g_LDObjects.removeOne (this);
@@ -320,9 +320,9 @@ static void transformObject (LDObject* obj, Matrix transform, Vertex pos, int pa
 
 // =============================================================================
 // -----------------------------------------------------------------------------
-LDObjectList LDSubfile::inlineContents (InlineFlags flags)
+LDObjectList LDSubfile::inlineContents (bool deep, bool render)
 {
-	LDObjectList objs = getFileInfo()->inlineContents (flags);
+	LDObjectList objs = getFileInfo()->inlineContents (deep, render);
 
 	// Transform the objects
 	for (LDObject* obj : objs)
@@ -333,6 +333,45 @@ LDObjectList LDSubfile::inlineContents (InlineFlags flags)
 	}
 
 	return objs;
+}
+
+// =============================================================================
+//
+LDPolygon* LDObject::getPolygon()
+{
+	Type ot = getType();
+	int num =
+		(ot == LDObject::ELine)		? 2 :
+		(ot == LDObject::ETriangle)	? 3 :
+		(ot == LDObject::EQuad)		? 4 :
+		(ot == LDObject::ECondLine)	? 5 :
+									  0;
+	if (ot == 0)
+		return null;
+
+	LDPolygon* data = new LDPolygon;
+	data->id = getID();
+	data->num = num;
+	data->color = getColor();
+	data->origin = getOrigin();
+
+	for (int i = 0; i < data->numVertices(); ++i)
+		data->vertices[i] = getVertex (i);
+
+	return data;
+}
+
+// =============================================================================
+//
+QList<LDPolygon> LDSubfile::inlinePolygons()
+{
+	QList<LDPolygon> data = getFileInfo()->inlinePolygons();
+
+	for (LDPolygon& entry : data)
+		for (int i = 0; i < entry.numVertices(); ++i)
+			entry.vertices[i].transform (getTransform(), getPosition());
+
+	return data;
 }
 
 // =============================================================================
@@ -832,5 +871,28 @@ LDObject* LDObject::createCopy() const
 	*/
 
 	LDObject* copy = parseLine (raw());
+
+	if (getOrigin().isEmpty() == false)
+		copy->setOrigin (getOrigin());
+	elif (getFile() != null)
+		copy->setOrigin (getFile()->getDisplayName() + ":" + QString::number (getIndex()));
+
 	return copy;
 }
+
+// =============================================================================
+//
+void LDSubfile::setFileInfo (const LDDocumentPointer& a)
+{
+	m_FileInfo = a;
+
+	// If it's an immediate subfile reference (i.e. this subfile belongs in an
+	// explicit file), we need to pre-compile the GL polygons for the document
+	// if they don't exist already.
+	if (a != null &&
+		a->isImplicit() == false &&
+		a->getPolygonData().isEmpty())
+	{
+		a->initializeGLData();
+	}
+};

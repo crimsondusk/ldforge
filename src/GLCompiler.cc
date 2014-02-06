@@ -9,12 +9,13 @@
 #include "GLRenderer.h"
 #include "Dialogs.h"
 
-static const struct
+struct GLErrorInfo
 {
 	GLenum	value;
 	QString	text;
-}
-g_GLErrors[] =
+};
+
+static const GLErrorInfo g_GLErrors[] =
 {
 	{ GL_NO_ERROR,						"No error" },
 	{ GL_INVALID_ENUM,					"Unacceptable enumerator passed" },
@@ -26,35 +27,47 @@ g_GLErrors[] =
 	{ GL_STACK_OVERFLOW,				"The operation would have caused an overflow" },
 };
 
+#include <QTime>
+
+#define CLOCK_INIT QTime t0;
+
+#define CLOCK_START \
+{ \
+	t0 = QTime::currentTime(); \
+}
+
+#define CLOCK_TIME(A) \
+{ \
+	fprint (stderr, A ": %1ms\n", t0.msecsTo (QTime::currentTime())); \
+}
+
 #define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
 
 extern_cfg (Bool, gl_blackedges);
-static QList<short> g_warnedColors;
-
-static const QColor g_BFCFrontColor(40, 192, 0);
-static const QColor g_BFCBackColor(224, 0, 0);
+static QList<short>		gWarnedColors;
+static const QColor		gBFCFrontColor (40, 192, 40);
+static const QColor		gBFCBackColor (224, 40, 40);
 
 // =============================================================================
 //
 void checkGLError_private (const char* file, int line)
 {
+	QString errmsg;
 	GLenum errnum = glGetError();
 
 	if (errnum == GL_NO_ERROR)
 		return;
 
-	QString errmsg;
-
-	for (const auto& it : g_GLErrors)
+	for (const GLErrorInfo& err : g_GLErrors)
 	{
-		if (it.value == errnum)
+		if (err.value == errnum)
 		{
-			errmsg = it.text;
+			errmsg = err.text;
 			break;
 		}
 	}
 
-	log ("GL ERROR: %1:%2: %3", file, line, errmsg);
+	log ("OpenGL ERROR: at %1:%2: %3", basename (QString (file)), line, errmsg);
 }
 
 // =============================================================================
@@ -69,13 +82,15 @@ GLCompiler::GLCompiler() :
 //
 void GLCompiler::initialize()
 {
-	glGenBuffers (VBO_NumArrays, &m_mainVBOs[0]);
+	glGenBuffers (gNumVBOs, &mVBOs[0]);
 	checkGLError();
 }
 
+// =============================================================================
+//
 GLCompiler::~GLCompiler()
 {
-	glDeleteBuffers (VBO_NumArrays, &m_mainVBOs[0]);
+	glDeleteBuffers (gNumVBOs, &mVBOs[0]);
 	checkGLError();
 }
 
@@ -92,70 +107,64 @@ uint32 GLCompiler::getColorRGB (const QColor& color)
 
 // =============================================================================
 //
-QColor GLCompiler::getObjectColor (LDObject* obj, GLCompiler::E_ColorType colortype) const
+QColor GLCompiler::getIndexColor (int id) const
+{
+	// Calculate a color based from this index. This method caters for
+	// 16777216 objects. I don't think that will be exceeded anytime soon. :)
+	int r = (id / 0x10000) % 0x100,
+		g = (id / 0x100) % 0x100,
+		b = id % 0x100;
+
+	return QColor (r, g, b);
+}
+
+// =============================================================================
+//
+QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 {
 	QColor qcol;
 
-	if (!obj->isColored())
-		return QColor();
-
-	if (colortype == E_PickColor)
-	{
-		// Make the color by the object's ID if we're picking, so we can make the
-		// ID again from the color we get from the picking results. Be sure to use
-		// the top level parent's index since we want a subfile's children point
-		// to the subfile itself.
-		long i = obj->topLevelParent()->getID();
-
-		// Calculate a color based from this index. This method caters for
-		// 16777216 objects. I don't think that'll be exceeded anytime soon. :)
-		// ATM biggest is 53588.dat with 12600 lines.
-		int r = (i / 0x10000) % 0x100,
-			g = (i / 0x100) % 0x100,
-			b = i % 0x100;
-
-		return QColor (r, g, b);
-	}
-
-	if (obj->getColor() == maincolor)
+	if (poly.color == maincolor)
 		qcol = GLRenderer::getMainColor();
 	else
 	{
-		LDColor* col = getColor (obj->getColor());
+		LDColor* col = getColor (poly.color);
 
 		if (col)
 			qcol = col->faceColor;
 	}
 
-	if (obj->getColor() == edgecolor)
+	if (poly.color == edgecolor)
 	{
 		qcol = QColor (32, 32, 32); // luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
 		LDColor* col;
 
-		if (!gl_blackedges && obj->getParent() && (col = getColor (obj->getParent()->getColor())))
+		/*
+		if (!gl_blackedges && poly.obj->getParent() && (col = getColor (poly.obj->getParent()->getColor())))
 			qcol = col->edgeColor;
+		*/
 	}
 
 	if (qcol.isValid() == false)
 	{
-		// The color was unknown. Use main color to make the object at least
+		// The color was unknown. Use main color to make the poly.object at least
 		// not appear pitch-black.
-		if (obj->getColor() != edgecolor)
+		if (poly.color != edgecolor)
 			qcol = GLRenderer::getMainColor();
 		else
 			qcol = Qt::black;
 
 		// Warn about the unknown color, but only once.
-		for (short i : g_warnedColors)
-			if (obj->getColor() == i)
+		for (short i : gWarnedColors)
+			if (poly.color == i)
 				return qcol;
 
-		log ("%1: Unknown color %2!\n", __func__, obj->getColor());
-		g_warnedColors << obj->getColor();
+		log ("%1: Unknown color %2!\n", __func__, poly.color);
+		gWarnedColors << poly.color;
 		return qcol;
 	}
 
-	if (obj->topLevelParent()->isSelected())
+	if (topobj->isSelected())
 	{
 		// Brighten it up if selected.
 		const int add = 51;
@@ -172,24 +181,27 @@ QColor GLCompiler::getObjectColor (LDObject* obj, GLCompiler::E_ColorType colort
 //
 void GLCompiler::needMerge()
 {
-	// Set all of m_changed to true
-	// memset (m_changed, 0xFF, sizeof m_changed);
-	for (int i = 0; i < VBO_NumArrays; ++i)
-		m_changed[i] = true;
+	// Set all of mChanged to true
+	// memset (mChanged, 0xFF, sizeof mChanged);
+	for (int i = 0; i < ((int) (sizeof mChanged / sizeof *mChanged)); ++i)
+		mChanged[i] = true;
 }
 
 // =============================================================================
 //
 void GLCompiler::stageForCompilation (LDObject* obj)
 {
-	m_staged << obj;
-	removeDuplicates (m_staged);
+	mStaged << obj;
+	removeDuplicates (mStaged);
 }
 
 // =============================================================================
 //
 void GLCompiler::compileDocument()
 {
+	if (getDocument() == null)
+		return;
+
 	for (LDObject* obj : getDocument()->getObjects())
 		compileObject (obj);
 }
@@ -198,131 +210,184 @@ void GLCompiler::compileDocument()
 //
 void GLCompiler::compileStaged()
 {
-	for (LDObject* obj : m_staged)
+	for (LDObject* obj : mStaged)
 		compileObject (obj);
 
-	m_staged.clear();
+	mStaged.clear();
 }
 
 // =============================================================================
 //
-void GLCompiler::prepareVBOArray (E_VBOArray type)
+void GLCompiler::prepareVBO (int vbonum)
 {
 	// Compile anything that still awaits it
 	compileStaged();
 
-	if (!m_changed[type])
+	if (mChanged[vbonum] == false)
 		return;
 
-	m_mainVBOData[type].clear();
-
-	for (auto it = m_objArrays.begin(); it != m_objArrays.end(); ++it)
-		m_mainVBOData[type] += (*it)[type];
-
-	glBindBuffer (GL_ARRAY_BUFFER, m_mainVBOs[type]);
+	glBindBuffer (GL_ARRAY_BUFFER, mVBOs[vbonum]);
 	checkGLError();
-	glBufferData (GL_ARRAY_BUFFER, m_mainVBOData[type].size() * sizeof(float),
-		m_mainVBOData[type].constData(), GL_DYNAMIC_DRAW);
+	glBufferData (GL_ARRAY_BUFFER, mVBOData[vbonum].size() * sizeof(float),
+		mVBOData[vbonum].constData(), GL_DYNAMIC_DRAW);
 	checkGLError();
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	checkGLError();
-	m_changed[type] = false;
-	log ("VBO array %1 prepared: %2 coordinates", (int) type, m_mainVBOData[type].size());
+	mChanged[vbonum] = false;
 }
 
 // =============================================================================
 //
-void GLCompiler::forgetObject (LDObject* obj)
+void GLCompiler::uncompileObject (LDObject* obj)
 {
-	auto it = m_objArrays.find (obj);
+	auto it = mObjectInfo.find (obj);
 
-	if (it != m_objArrays.end())
+	if (it == mObjectInfo.end())
+		return;
+
+	ObjectVBOInfo* info = &(*it);
+
+	for (int i = 0; i < gNumVBOs; ++i)
 	{
-		delete *it;
-		m_objArrays.erase (it);
+		if (info->size[i] == 0)
+			continue;
+
+		mVBOData[i].remove (info->offset[i], info->size[i]);
+		mChanged[i] = true;
 	}
+
+	mObjectInfo.erase (it);
 }
 
 // =============================================================================
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
-	// Ensure we have valid arrays to write to.
-	if (m_objArrays.find (obj) == m_objArrays.end())
-		m_objArrays[obj] = new QVector<GLfloat>[VBO_NumArrays];
-	else
-	{
-		// Arrays exist already, clear them.
-		for (int i = 0; i < VBO_NumArrays; ++i)
-			m_objArrays[obj][i].clear();
-	}
+	ObjectVBOInfo info;
+	uncompileObject (obj);
 
-	compileSubObject (obj, obj);
-	QList<int> data;
+	for (int i = 0; i < gNumVBOs; ++i)
+		info.offset[i] = mVBOData[i].size();
 
-	for (int i = 0; i < VBO_NumArrays; ++i)
-		data << m_objArrays[obj][i].size();
-
-	dlog ("Compiled #%1: %2 coordinates", obj->getID(), data);
+	memset (info.size, 0, sizeof info.size);
+	compileSubObject (obj, obj, &info);
+	mObjectInfo[obj] = info;
 	needMerge();
 }
 
 // =============================================================================
 //
-void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj)
+void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInfo* objinfo)
 {
+	EVBOSurface surface;
+	int numverts;
+
+	switch (poly.num)
+	{
+		case 3:	surface = vboTriangles;	numverts = 3; break;
+		case 4:	surface = vboQuads;		numverts = 4; break;
+		case 2:	surface = vboLines;		numverts = 2; break;
+		case 5:	surface = vboCondLines;	numverts = 2; break;
+
+		default:
+			log ("OMGWTFBBQ weird polygon with number %1 (topobj: #%2, %3), origin: %4",
+				(int) poly.num, topobj->getID(), topobj->getTypeName(), poly.origin);
+			assert (false);
+	}
+
+	for (int complement = 0; complement < vboNumComplements; ++complement)
+	{
+		const int vbonum			= getVBONumber (surface, (EVBOComplement) complement);
+		QVector<GLfloat>& vbodata	= mVBOData[vbonum];
+		const QColor normalColor	= getPolygonColor (poly, topobj);
+		const QColor pickColor		= getIndexColor (topobj->getID());
+
+		for (int vert = 0; vert < numverts; ++vert)
+		{
+			objinfo->size[vbonum] += (complement == vboSurfaces) ? 3 : 4;
+
+			switch ((EVBOComplement) complement)
+			{
+				case vboSurfaces:
+				{
+					// Write coordinates. Apparently Z must be flipped too?
+					vbodata	<< poly.vertices[vert].x()
+							<< -poly.vertices[vert].y()
+							<< -poly.vertices[vert].z();
+					break;
+				}
+
+				case vboNormalColors:
+				{
+					writeColor (vbodata, normalColor);
+					break;
+				}
+
+				case vboPickColors:
+				{
+					writeColor (vbodata, pickColor);
+					break;
+				}
+
+				case vboBFCFrontColors:
+				{
+					writeColor (vbodata, gBFCFrontColor);
+					break;
+				}
+
+				case vboBFCBackColors:
+				{
+					writeColor (vbodata, gBFCBackColor);
+					break;
+				}
+
+				case vboNumComplements:
+					break;
+			}
+		}
+	}
+}
+
+// =============================================================================
+//
+void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInfo* objinfo)
+{
+	CLOCK_INIT
+
 	switch (obj->getType())
 	{
-		// Note: We cannot split the quad into triangles here, it would
-		// mess up the wireframe view. Quads must go into a separate array.
+		// Note: We cannot split quads into triangles here, it would mess up the
+		// wireframe view. Quads must go into separate vbos.
 		case LDObject::ETriangle:
 		case LDObject::EQuad:
 		case LDObject::ELine:
 		case LDObject::ECondLine:
 		{
-			E_VBOArray arraynum;
-			int verts;
-
-			switch (obj->getType())
-			{
-				case LDObject::ETriangle:	arraynum = VBO_Triangles;	verts = 3; break;
-				case LDObject::EQuad:		arraynum = VBO_Quads;		verts = 4; break;
-				case LDObject::ELine:		arraynum = VBO_Lines;		verts = 2; break;
-				case LDObject::ECondLine:	arraynum = VBO_CondLines;	verts = 2; break;
-				default: break;
-			}
-
-			QVector<GLfloat>* ap = m_objArrays[topobj];
-			QColor normalColor = getObjectColor (obj, E_NormalColor);
-			QColor pickColor = getObjectColor (topobj, E_PickColor);
-
-			for (int i = 0; i < verts; ++i)
-			{
-				// Write coordinates
-				ap[arraynum]
-					<< obj->getVertex (i).x()
-					<< -obj->getVertex (i).y()
-					<< -obj->getVertex (i).z();
-
-				// Colors
-				writeColor (ap[VBO_NormalColors], normalColor);
-				writeColor (ap[VBO_PickColors], pickColor);
-				writeColor (ap[VBO_BFCFrontColors], g_BFCFrontColor);
-				writeColor (ap[VBO_BFCBackColors], g_BFCBackColor);
-			}
-		} break;
+			LDPolygon* poly = obj->getPolygon();
+			poly->id = topobj->getID();
+			compilePolygon (*poly, topobj, objinfo);
+			delete poly;
+			break;
+		}
 
 		case LDObject::ESubfile:
 		{
+			CLOCK_INIT
+			CLOCK_START
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDObjectList subobjs = ref->inlineContents (LDSubfile::DeepCacheInline | LDSubfile::RendererInline);
+			auto data = ref->inlinePolygons();
+			CLOCK_TIME ("Inline")
+			CLOCK_START
 
-			for (LDObject* subobj : subobjs)
+			for (LDPolygon& poly : data)
 			{
-				compileSubObject (subobj, topobj);
-				subobj->deleteSelf();
+				poly.id = topobj->getID();
+				compilePolygon (poly, topobj, objinfo);
 			}
-		} break;
+			CLOCK_TIME ("Compile")
+
+			break;
+		}
 
 		default:
 			break;
@@ -333,8 +398,8 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj)
 //
 void GLCompiler::writeColor (QVector<GLfloat>& array, const QColor& color)
 {
-	array	<< color.red()
-			<< color.green()
-			<< color.blue()
-			<< color.alpha();
+	array	<< ((float) color.red()) / 255.0f
+			<< ((float) color.green()) / 255.0f
+			<< ((float) color.blue()) / 255.0f
+			<< ((float) color.alpha()) / 255.0f;
 }

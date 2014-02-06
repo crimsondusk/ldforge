@@ -22,6 +22,7 @@
 #include "Main.h"
 #include "Types.h"
 #include "misc/DocumentPointer.h"
+#include "GLShared.h"
 
 #define LDOBJ(T)										\
 protected:												\
@@ -74,6 +75,7 @@ class LDObject
 	PROPERTY (private,		int,			ID,				NUM_OPS,	STOCK_WRITE)
 	PROPERTY (public,		int,			Color,			NUM_OPS,	CUSTOM_WRITE)
 	PROPERTY (public,		bool,			GLInit,			BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		QString,		Origin,			NO_OPS,		STOCK_WRITE)
 
 	public:
 		// Object type codes.
@@ -174,6 +176,7 @@ class LDObject
 		// Get a description of a list of LDObjects
 		static QString describeObjects (const LDObjectList& objs);
 		static LDObject* fromID (int id);
+		LDPolygon* getPolygon();
 
 		// TODO: make these private!
 		// OpenGL list for this object
@@ -395,7 +398,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (public,	LDDocumentPointer, FileInfo, NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDDocumentPointer, FileInfo, NO_OPS,	CUSTOM_WRITE)
 
 	public:
 		enum InlineFlag
@@ -416,7 +419,8 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 		// Inlines this subfile. Note that return type is an array of heap-allocated
 		// LDObject copies, they must be deleted manually.
-		LDObjectList inlineContents (InlineFlags flags);
+		LDObjectList inlineContents (bool deep, bool render);
+		QList<LDPolygon> inlinePolygons();
 
 	protected:
 		~LDSubfile();

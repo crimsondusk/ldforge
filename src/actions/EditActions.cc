@@ -123,19 +123,10 @@ static void doInline (bool deep)
 		// inlined contents.
 		long idx = obj->getIndex();
 
-		if (idx == -1)
+		if (idx == -1 || obj->getType() != LDObject::ESubfile)
 			continue;
 
-		LDObjectList objs;
-
-		if (obj->getType() == LDObject::ESubfile)
-			objs = static_cast<LDSubfile*> (obj)->inlineContents (
-					   (LDSubfile::InlineFlags)
-					   ( (deep) ? LDSubfile::DeepInline : 0) |
-					   LDSubfile::CacheInline
-				   );
-		else
-			continue;
+		LDObjectList objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, false);
 
 		// Merge in the inlined objects
 		for (LDObject * inlineobj : objs)
@@ -394,11 +385,13 @@ void doMoveObjects (Vertex vect)
 	vect[Y] *= *currentGrid().confs[Grid::Y];
 	vect[Z] *= *currentGrid().confs[Grid::Z];
 
+	QTime t0 = QTime::currentTime();
 	for (LDObject* obj : selection())
 	{
 		obj->move (vect);
 		g_win->R()->compileObject (obj);
 	}
+	fprint (stderr, "Move: %1ms\n", t0.msecsTo (QTime::currentTime()));
 
 	g_win->refresh();
 }

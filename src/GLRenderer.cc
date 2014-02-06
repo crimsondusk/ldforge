@@ -125,12 +125,12 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_EditMode = ESelectMode;
 	m_rectdraw = false;
 	m_panning = false;
+	m_compiler = new GLCompiler;
 	setFile (null);
 	setDrawOnly (false);
 	setMessageLog (null);
 	m_width = m_height = -1;
 	m_hoverpos = g_origin;
-	m_compiler = new GLCompiler;
 
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
@@ -417,10 +417,10 @@ void GLRenderer::drawGLScene()
 		checkGLError();
 	}
 
-	drawVBOs (VBO_Triangles, GL_TRIANGLES);
-	drawVBOs (VBO_Quads, GL_QUADS);
-	drawVBOs (VBO_Lines, GL_LINES);
-	drawVBOs (VBO_CondLines, GL_LINES);
+	drawVBOs (vboTriangles, GL_TRIANGLES);
+	drawVBOs (vboQuads, GL_QUADS);
+	drawVBOs (vboLines, GL_LINES);
+	drawVBOs (vboCondLines, GL_LINES);
 
 	glPopMatrix();
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
@@ -433,20 +433,25 @@ void GLRenderer::drawGLScene()
 
 // =============================================================================
 //
-void GLRenderer::drawVBOs (E_VBOArray arrayType, GLenum type)
+void GLRenderer::drawVBOs (EVBOSurface surface, GLenum type)
 {
-	m_compiler->prepareVBOArray (arrayType);
-	GLuint idx = m_compiler->getVBOIndex (arrayType);
-	GLsizei count = m_compiler->getVBOCount (arrayType);
+	int surfacenum = m_compiler->getVBONumber (surface, vboSurfaces);
+	int colornum = m_compiler->getVBONumber (surface, vboNormalColors);
+
+	m_compiler->prepareVBO (surfacenum);
+	m_compiler->prepareVBO (colornum);
+	GLuint surfacevbo = m_compiler->getVBO (surfacenum);
+	GLuint colorvbo = m_compiler->getVBO (colornum);
+	GLsizei count = m_compiler->getVBOCount (surfacevbo);
 
 	if (count > 0)
 	{
-		glBindBuffer (GL_ARRAY_BUFFER, idx);
-		checkGLError();
+		glBindBuffer (GL_ARRAY_BUFFER, surfacevbo);
 		glVertexPointer (3, GL_FLOAT, 0, null);
 		checkGLError();
-		// glColorPointer (4, GL_UNSIGNED_BYTE, sizeof (GLCompiler::VAO), &array->data()[0].color);
-		// glVertexAttribPointer (idx, 3, GL_FLOAT, GL_FALSE, 0, null);
+		glBindBuffer (GL_ARRAY_BUFFER, colorvbo);
+		glColorPointer (4, GL_FLOAT, 0, null);
+		checkGLError();
 		glDrawArrays (type, 0, count);
 		checkGLError();
 	}
@@ -1558,10 +1563,11 @@ static QList<Vertex> getVertices (LDObject* obj)
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 			verts << obj->getVertex (i);
-	} elif (obj->getType() == LDObject::ESubfile)
+	}
+	elif (obj->getType() == LDObject::ESubfile)
 	{
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
-		LDObjectList objs = ref->inlineContents (LDSubfile::DeepCacheInline);
+		LDObjectList objs = ref->inlineContents (true, false);
 
 		for (LDObject* obj : objs)
 		{
@@ -1580,11 +1586,20 @@ void GLRenderer::compileObject (LDObject* obj)
 	m_compiler->stageForCompilation (obj);
 
 	// Mark in known vertices of this object
+	/*
 	QList<Vertex> verts = getVertices (obj);
 	m_knownVerts << verts;
 	removeDuplicates (m_knownVerts);
+	*/
 
 	obj->setGLInit (true);
+}
+
+// =============================================================================
+//
+void GLRenderer::forgetObject (LDObject* obj)
+{
+	m_compiler->uncompileObject (obj);
 }
 
 // =============================================================================
@@ -1622,20 +1637,6 @@ void GLRenderer::slot_toolTipTimer()
 			break;
 		}
 	}
-}
-
-// =============================================================================
-//
-void GLRenderer::deleteLists (LDObject* obj)
-{
-	// Delete the lists but only if they have been initialized
-	if (!obj->isGLInit())
-		return;
-
-	for (const GL::ListType listType : g_glListTypes)
-		glDeleteLists (obj->glLists[listType], 1);
-
-	obj->setGLInit (false);
 }
 
 // =============================================================================

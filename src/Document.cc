@@ -19,6 +19,7 @@
 #include <QMessageBox>
 #include <QFileDialog>
 #include <QDir>
+#include <QTime>
 #include <QApplication>
 #include "Main.h"
 #include "Configuration.h"
@@ -143,10 +144,6 @@ LDDocument::~LDDocument()
 
 	// Clear everything from the model
 	for (LDObject* obj : getObjects())
-		obj->deleteSelf();
-
-	// Clear the cache as well
-	for (LDObject* obj : getCache())
 		obj->deleteSelf();
 
 	delete m_History;
@@ -1192,82 +1189,77 @@ QString LDDocument::getDisplayName()
 }
 
 // =============================================================================
+//
+void LDDocument::initializeGLData()
+{
+	log (getDisplayName() + ": Initializing GL data");
+	LDObjectList objs = inlineContents (true, true);
+
+	for (LDObject* obj : objs)
+	{
+		assert (obj->getType() != LDObject::ESubfile);
+		LDPolygon* data = obj->getPolygon();
+
+		if (data != null)
+		{
+			m_PolygonData << *data;
+			delete data;
+		}
+
+		obj->deleteSelf();
+	}
+
+	m_needsGLReInit = false;
+}
+
+// =============================================================================
+//
+QList<LDPolygon> LDDocument::inlinePolygons()
+{
+	if (m_needsGLReInit == true)
+		initializeGLData();
+
+	return m_PolygonData;
+}
+
+// =============================================================================
 // -----------------------------------------------------------------------------
-LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
+LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 {
 	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
-	if (gl_logostuds && (flags & LDSubfile::RendererInline))
+	if (gl_logostuds && renderinline)
 	{
 		// Ensure logoed studs are loaded first
 		loadLogoedStuds();
 
-		if (getName() == "stud.dat" && g_logoedStud)
-			return g_logoedStud->inlineContents (flags);
-		elif (getName() == "stud2.dat" && g_logoedStud2)
-			return g_logoedStud2->inlineContents (flags);
+		if (getName() == "stud.dat" && g_logoedStud != null)
+			return g_logoedStud->inlineContents (deep, renderinline);
+		elif (getName() == "stud2.dat" && g_logoedStud2 != null)
+			return g_logoedStud2->inlineContents (deep, renderinline);
 	}
 
 	LDObjectList objs, objcache;
 
-	bool deep = flags & LDSubfile::DeepInline,
-		 doCache = flags & LDSubfile::CacheInline;
-
-	if (m_needsCache)
+	for (LDObject* obj : getObjects())
 	{
-		clearCache();
-		doCache = true;
-	}
+		// Skip those without scemantic meaning
+		if (!obj->isScemantic())
+			continue;
 
-	// If we have this cached, just create a copy of that
-	if (deep && getCache().isEmpty() == false)
-	{
-		for (LDObject* obj : getCache())
-			objs << obj->createCopy();
-	}
-	else
-	{
-		if (!deep)
-			doCache = false;
-
-		for (LDObject* obj : getObjects())
+		// Got another sub-file reference, inline it if we're deep-inlining. If not,
+		// just add it into the objects normally. Yay, recursion!
+		if (deep == true && obj->getType() == LDObject::ESubfile)
 		{
-			// Skip those without scemantic meaning
-			if (!obj->isScemantic())
-				continue;
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDObjectList otherobjs = ref->inlineContents (deep, renderinline);
 
-			// Got another sub-file reference, inline it if we're deep-inlining. If not,
-			// just add it into the objects normally. Also, we only cache immediate
-			// subfiles and this is not one. Yay, recursion!
-			if (deep && obj->getType() == LDObject::ESubfile)
-			{
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
-
-				// We only want to cache immediate subfiles, so shed the caching
-				// flag when recursing deeper in hierarchy.
-				LDObjectList otherobjs = ref->inlineContents (flags & ~ (LDSubfile::CacheInline));
-
-				for (LDObject* otherobj : otherobjs)
-				{
-					// Cache this object, if desired
-					if (doCache)
-						objcache << otherobj->createCopy();
-
-					objs << otherobj;
-				}
-			}
-			else
-			{
-				if (doCache)
-					objcache << obj->createCopy();
-
-				objs << obj->createCopy();
-			}
+			for (LDObject* otherobj : otherobjs)
+				objs << otherobj;
 		}
-
-		if (doCache)
-			setCache (objcache);
+		else
+			objs << obj->createCopy();
 	}
 
 	return objs;

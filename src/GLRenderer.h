@@ -151,6 +151,7 @@ class GLRenderer : public QGLWidget
 		void           compileAllObjects();
 		void           drawGLScene();
 		void           endDraw (bool accept);
+		void           forgetObject (LDObject* obj);
 		Axis           getCameraAxis (bool y, EFixedCamera camid = (EFixedCamera) - 1);
 		const char*    getCameraName() const;
 		double         getDepthValue() const;
@@ -249,7 +250,7 @@ class GLRenderer : public QGLWidget
 		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
 		// Draw a VBO array
-		void           drawVBOs (E_VBOArray arrayType, GLenum type);
+		void           drawVBOs (EVBOSurface surface, GLenum type);
 
 		// Determine which color to draw text with
 		QColor         getTextPen() const;

@@ -18,18 +18,53 @@
 
 #ifndef LDFORGE_GLSHARED_H
 #define LDFORGE_GLSHARED_H
+#include <QString>
 
-enum E_VBOArray
+class LDObject;
+
+struct LDPolygon
 {
-	VBO_Quads,
-	VBO_Triangles,
-	VBO_Lines,
-	VBO_CondLines,
-	VBO_NormalColors,
-	VBO_BFCFrontColors,
-	VBO_BFCBackColors,
-	VBO_PickColors,
-	VBO_NumArrays
+	char		num;
+	Vertex		vertices[4];
+	int			id;
+	int			color;
+	QString		origin;
+
+	inline int numVertices() const
+	{
+		return (num == 5) ? 4 : num;
+	}
 };
+
+enum EVBOSurface
+{
+	vboLines,
+	vboTriangles,
+	vboQuads,
+	vboCondLines,
+	vboNumSurfaces
+};
+
+enum EVBOComplement
+{
+	vboSurfaces,
+	vboNormalColors,
+	vboPickColors,
+	vboBFCFrontColors,
+	vboBFCBackColors,
+	vboNumComplements
+};
+
+// KDevelop doesn't seem to understand some VBO stuff
+#ifdef IN_IDE_PARSER
+using GLenum = unsigned int;
+using GLuint = unsigned int;
+void glBindBuffer (GLenum, GLuint);
+void glGenBuffers (GLuint, GLuint*);
+void glDeleteBuffers (GLuint, GLuint*);
+void glBufferData (GLuint, GLuint, void*, GLuint);
+#endif
+
+static const int gNumVBOs = vboNumSurfaces * vboNumComplements;
 
 #endif // LDFORGE_GLSHARED_H
