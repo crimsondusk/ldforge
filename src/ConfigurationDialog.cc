@@ -16,8 +16,8 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *  =====================================================================
  *
- *  configDialog.cpp: Settings dialog and everything related to it.
- *  Actual configuration core is in config.cpp.
+ *  configDialog.cxx: Settings dialog and everything related to it.
+ *  Actual configuration core is in config.cxx.
  */
 
 #include <QGridLayout>
@@ -38,7 +38,7 @@
 #include "ColorSelector.h"
 #include "GLRenderer.h"
 #include "ui_config.h"
-#include "moc_ConfigurationDialog.cpp"
+#include "moc_ConfigurationDialog.cxx"
 
 extern_cfg (String, gl_bgcolor);
 extern_cfg (String, gl_maincolor);

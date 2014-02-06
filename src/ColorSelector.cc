@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *  =====================================================================
  *
- *  colorSelectDialog.cpp: Color selector box.
+ *  colorSelectDialog.cxx: Color selector box.
  */
 
 #include <QGraphicsScene>
@@ -31,7 +31,7 @@
 #include "Configuration.h"
 #include "Misc.h"
 #include "ui_colorsel.h"
-#include "moc_ColorSelector.cpp"
+#include "moc_ColorSelector.cxx"
 
 static const int g_numColumns = 16;
 static const int g_squareSize = 32;

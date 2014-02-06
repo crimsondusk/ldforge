@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *  =====================================================================
  *
- *  colors.cpp: LDraw color management. LDConfig.ldr parsing is not here!
+ *  colors.cxx: LDraw color management. LDConfig.ldr parsing is not here!
  *  TODO: Make LDColor more full-fledged, add support for direct colors.
  *  TODO: g_LDColors should probably be a map.
  */

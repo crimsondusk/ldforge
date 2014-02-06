@@ -33,6 +33,7 @@
 #include "ConfigurationDialog.h"
 #include "Dialogs.h"
 #include "CrashCatcher.h"
+#include "GitInformation.h"
 
 QList<LDDocument*> g_loadedFiles;
 MainWindow* g_win = null;
@@ -121,8 +122,8 @@ QString versionString()
 // -----------------------------------------------------------------------------
 QString fullVersionString()
 {
-#if BUILD_ID != BUILD_RELEASE && defined (GIT_DESCRIBE)
-	return GIT_DESCRIBE;
+#if BUILD_ID != BUILD_RELEASE
+	return GIT_DESCRIPTION;
 #else
 	return "v" + versionString();
 #endif

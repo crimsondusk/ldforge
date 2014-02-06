@@ -16,7 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *  =====================================================================
  *
- *  config.cpp: Configuration management. I don't like how unsafe QSettings
+ *  config.cxx: Configuration management. I don't like how unsafe QSettings
  *  is so this implements a type-safer and identifer-safer wrapping system of
  *  configuration variables. QSettings is used underlyingly, this is a matter
  *  of interface.

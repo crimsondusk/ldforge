@@ -38,7 +38,7 @@
 #include "MessageLog.h"
 #include "Primitives.h"
 #include "misc/RingFinder.h"
-#include "moc_GLRenderer.cpp"
+#include "moc_GLRenderer.cxx"
 
 static const LDFixedCameraInfo g_FixedCameras[6] =
 {
