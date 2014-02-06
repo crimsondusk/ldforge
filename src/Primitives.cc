@@ -25,7 +25,7 @@
 #include "ui_makeprim.h"
 #include "Misc.h"
 #include "Colors.h"
-#include "moc_Primitives.cpp"
+#include "moc_Primitives.cxx"
 
 QList<PrimitiveCategory*> g_PrimitiveCategories;
 QList<Primitive> g_primitives;

@@ -29,7 +29,7 @@
 #include "Document.h"
 #include "GLRenderer.h"
 #include "ConfigurationDialog.h"
-#include "moc_PartDownloader.cpp"
+#include "moc_PartDownloader.cxx"
 
 cfg (String,	net_downloadpath,	"");
 cfg (Bool,		net_guesspaths,	true);

@@ -34,7 +34,7 @@
 #include "Widgets.h"
 #include "Misc.h"
 #include "Primitives.h"
-#include "moc_AddObjectDialog.cpp"
+#include "moc_AddObjectDialog.cxx"
 
 // =============================================================================
 // -----------------------------------------------------------------------------

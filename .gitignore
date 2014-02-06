@@ -2,7 +2,7 @@ build
 build_shared
 build_debug
 build_release
-ldforge.kdev4
+*.kdev4
 Makefile
 Makefile.*
 ldforge
@@ -12,3 +12,5 @@ debug_lastOutput
 debug_lastInput
 .kdev_include_paths
 *.cfg
+GitInformation.h
+.kdev4
