@@ -43,7 +43,6 @@
 #include "ui_extprogpath.h"
 #include "ui_about.h"
 #include "ui_bombbox.h"
-#include "moc_Dialogs.cxx"
 
 extern const char* g_extProgPathFilter;
 extern_cfg (String, io_ldpath);

@@ -31,7 +31,6 @@
 #include "Configuration.h"
 #include "Misc.h"
 #include "ui_colorsel.h"
-#include "moc_ColorSelector.cxx"
 
 static const int g_numColumns = 16;
 static const int g_squareSize = 32;

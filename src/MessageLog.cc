@@ -21,7 +21,6 @@
 #include "MessageLog.h"
 #include "GLRenderer.h"
 #include "MainWindow.h"
-#include "moc_MessageLog.cxx"
 
 static const int g_maxMessages = 5;
 static const int g_expiry = 5;

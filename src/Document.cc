@@ -29,7 +29,6 @@
 #include "Dialogs.h"
 #include "GLRenderer.h"
 #include "misc/InvokationDeferer.h"
-#include "moc_Document.cxx"
 
 cfg (String, io_ldpath, "");
 cfg (List, io_recentfiles, {});
