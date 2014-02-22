@@ -102,6 +102,7 @@ set (LDForgeForms
 set (LDForgeResources ldforge.qrc)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -W -Wall")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lGLU")
+include_directories ("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_BINARY_DIR}/src")
 include_directories ("${PROJECT_BINARY_DIR}/src/misc")
 
@@ -116,7 +117,8 @@ qt4_add_resources (LDForgeResourcesRCC ${LDForgeResources})
 add_executable (ldforge
 	${LDForgeSources}
 	${LDForgeResourcesRCC}
-    ${LDForgeFormsHeaders}
+	${LDForgeFormsHeaders}
+	${LDForgeMOC}
 )
 
 target_link_libraries (ldforge

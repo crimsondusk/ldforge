@@ -48,7 +48,6 @@
 #include "MessageLog.h"
 #include "Configuration.h"
 #include "ui_ldforge.h"
-#include "moc_MainWindow.cxx"
 
 static bool g_isSelectionLocked = false;
 

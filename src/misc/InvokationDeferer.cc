@@ -16,7 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "moc_InvokationDeferer.cxx"
 #include "InvokationDeferer.h"
 #include "../Misc.h"
 
