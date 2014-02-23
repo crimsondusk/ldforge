@@ -113,6 +113,7 @@ static const LDGLAxis g_GLAxes[3] =
 };
 
 static GLuint g_GLAxes_VBO;
+static GLuint g_GLAxes_ColorVBO;
 
 // =============================================================================
 //
@@ -267,8 +268,8 @@ void GLRenderer::initializeGL()
 void GLRenderer::initializeAxes()
 {
 	float axesdata[18];
-	memset (axesdata, 0, sizeof axesdata);
 	float colordata[18];
+	memset (axesdata, 0, sizeof axesdata);
 
 	for (int i = 0; i < 3; ++i)
 	{
@@ -289,6 +290,9 @@ void GLRenderer::initializeAxes()
 	glGenBuffers (1, &g_GLAxes_VBO);
 	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
 	glBufferData (GL_ARRAY_BUFFER, sizeof axesdata, axesdata, GL_STATIC_DRAW);
+	glGenBuffers (1, &g_GLAxes_ColorVBO);
+	glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_ColorVBO);
+	glBufferData (GL_ARRAY_BUFFER, sizeof colordata, colordata, GL_STATIC_DRAW);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 }
 
@@ -410,9 +414,9 @@ void GLRenderer::drawGLScene()
 	if (gl_axes)
 	{
 		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
-		checkGLError();
 		glVertexPointer (3, GL_FLOAT, 0, NULL);
-		checkGLError();
+		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+		glColorPointer (3, GL_FLOAT, 0, NULL);
 		glDrawArrays (GL_LINES, 0, 6);
 		checkGLError();
 	}
