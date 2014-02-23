@@ -72,30 +72,6 @@ int main (int argc, char* argv[])
 	newFile();
 	win->show();
 
-	/*
-	LDDocument* box = getDocument ("box.dat");
-	LDSubfile* ref = new LDSubfile;
-	ref->setFileInfo (box);
-	ref->setPosition (g_origin);
-	ref->setTransform (g_identity);
-	ref->setColor (maincolor);
-	assert (box != null);
-
-	for (int i = 0; i < 500; ++i)
-	{
-		QTime t0 = QTime::currentTime();
-		LDObjectList objs = ref->inlineContents (LDSubfile::DeepCacheInline | LDSubfile::RendererInline);
-		LDObject::Type type = static_cast<LDObject*> (ref)->getType();
-		dlog ("%1: %2ms (%3 objs)\n", i, t0.msecsTo (QTime::currentTime()), objs.size());
-
-		for (LDObject* obj : objs)
-			obj->deleteSelf();
-	}
-
-	ref->deleteSelf();
-	delete box;
-	*/
-
 	// If this is the first start, get the user to configuration. Especially point
 	// them to the profile tab, it's the most important form to fill in.
 	if (firststart)

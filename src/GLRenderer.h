@@ -250,7 +250,7 @@ class GLRenderer : public QGLWidget
 		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
 		// Draw a VBO array
-		void           drawVBOs (EVBOSurface surface, GLenum type);
+		void           drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum type);
 
 		// Determine which color to draw text with
 		QColor         getTextPen() const;

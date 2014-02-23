@@ -341,12 +341,12 @@ LDPolygon* LDObject::getPolygon()
 {
 	Type ot = getType();
 	int num =
-		(ot == LDObject::ELine)		? 2 :
-		(ot == LDObject::ETriangle)	? 3 :
-		(ot == LDObject::EQuad)		? 4 :
-		(ot == LDObject::ECondLine)	? 5 :
-									  0;
-	if (ot == 0)
+		(ot == LDObject::ELine)		?	2 :
+		(ot == LDObject::ETriangle)	?	3 :
+		(ot == LDObject::EQuad)		?	4 :
+		(ot == LDObject::ECondLine)	?	5 :
+										0;
+	if (num == 0)
 		return null;
 
 	LDPolygon* data = new LDPolygon;

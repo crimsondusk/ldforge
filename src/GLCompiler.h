@@ -33,14 +33,13 @@ class GLCompiler
 	public:
 		struct ObjectVBOInfo
 		{
-			int offset[gNumVBOs];
-			int size[gNumVBOs];
+			QVector<GLfloat> data[gNumVBOs];
 		};
 
 		GLCompiler();
 		~GLCompiler();
 		void				compileDocument();
-		void				uncompileObject (LDObject* obj);
+		void				dropObject (LDObject* obj);
 		void				initialize();
 		QColor				getPolygonColor (LDPolygon& poly, LDObject* topobj) const;
 		QColor				getIndexColor (int id) const;

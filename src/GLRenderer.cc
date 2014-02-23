@@ -405,6 +405,7 @@ void GLRenderer::drawGLScene()
 	}
 
 	glEnableClientState (GL_VERTEX_ARRAY);
+	glEnableClientState (GL_COLOR_ARRAY);
 
 	if (gl_axes)
 	{
@@ -416,14 +417,40 @@ void GLRenderer::drawGLScene()
 		checkGLError();
 	}
 
-	drawVBOs (vboTriangles, GL_TRIANGLES);
-	drawVBOs (vboQuads, GL_QUADS);
-	drawVBOs (vboLines, GL_LINES);
-	drawVBOs (vboCondLines, GL_LINES);
+	if (isPicking())
+	{
+		drawVBOs (vboTriangles, vboPickColors, GL_TRIANGLES);
+		drawVBOs (vboQuads, vboPickColors, GL_QUADS);
+		drawVBOs (vboLines, vboPickColors, GL_LINES);
+		drawVBOs (vboCondLines, vboPickColors, GL_LINES);
+	}
+	else
+	{
+		if (gl_colorbfc)
+		{
+			glEnable (GL_CULL_FACE);
+			glCullFace (GL_BACK);
+			drawVBOs (vboTriangles, vboBFCFrontColors, GL_TRIANGLES);
+			drawVBOs (vboQuads, vboBFCFrontColors, GL_QUADS);
+			glCullFace (GL_FRONT);
+			drawVBOs (vboTriangles, vboBFCBackColors, GL_TRIANGLES);
+			drawVBOs (vboQuads, vboBFCBackColors, GL_QUADS);
+			glDisable (GL_CULL_FACE);
+		}
+		else
+		{
+			drawVBOs (vboTriangles, vboNormalColors, GL_TRIANGLES);
+			drawVBOs (vboQuads, vboNormalColors, GL_QUADS);
+		}
+
+		drawVBOs (vboLines, vboNormalColors, GL_LINES);
+		drawVBOs (vboCondLines, vboNormalColors, GL_LINES);
+	}
 
 	glPopMatrix();
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	glDisableClientState (GL_VERTEX_ARRAY);
+	glDisableClientState (GL_COLOR_ARRAY);
 	checkGLError();
 	glDisable (GL_CULL_FACE);
 	glMatrixMode (GL_MODELVIEW);
@@ -432,10 +459,10 @@ void GLRenderer::drawGLScene()
 
 // =============================================================================
 //
-void GLRenderer::drawVBOs (EVBOSurface surface, GLenum type)
+void GLRenderer::drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum type)
 {
 	int surfacenum = m_compiler->getVBONumber (surface, vboSurfaces);
-	int colornum = m_compiler->getVBONumber (surface, vboNormalColors);
+	int colornum = m_compiler->getVBONumber (surface, colors);
 
 	m_compiler->prepareVBO (surfacenum);
 	m_compiler->prepareVBO (colornum);
@@ -1598,7 +1625,7 @@ void GLRenderer::compileObject (LDObject* obj)
 //
 void GLRenderer::forgetObject (LDObject* obj)
 {
-	m_compiler->uncompileObject (obj);
+	m_compiler->dropObject (obj);
 }
 
 // =============================================================================
@@ -1690,11 +1717,11 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, QString file, int x, int y, int
 
 	// Set alpha of all pixels to 0.5
 	for (long i = 0; i < img->width(); ++i)
-		for (long j = 0; j < img->height(); ++j)
-		{
-			uint32 pixel = img->pixel (i, j);
-			img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
-		}
+	for (long j = 0; j < img->height(); ++j)
+	{
+		uint32 pixel = img->pixel (i, j);
+		img->setPixel (i, j, 0x80000000 | (pixel & 0x00FFFFFF));
+	}
 
 	updateOverlayObjects();
 	return true;

@@ -137,7 +137,6 @@ QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 	if (poly.color == edgecolor)
 	{
 		qcol = QColor (32, 32, 32); // luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
-		LDColor* col;
 
 		/*
 		if (!gl_blackedges && poly.obj->getParent() && (col = getColor (poly.obj->getParent()->getColor())))
@@ -226,6 +225,11 @@ void GLCompiler::prepareVBO (int vbonum)
 	if (mChanged[vbonum] == false)
 		return;
 
+	mVBOData[vbonum].clear();
+
+	for (auto it = mObjectInfo.begin(); it != mObjectInfo.end(); ++it)
+		mVBOData[vbonum] += it->data[vbonum];
+
 	glBindBuffer (GL_ARRAY_BUFFER, mVBOs[vbonum]);
 	checkGLError();
 	glBufferData (GL_ARRAY_BUFFER, mVBOData[vbonum].size() * sizeof(float),
@@ -238,25 +242,15 @@ void GLCompiler::prepareVBO (int vbonum)
 
 // =============================================================================
 //
-void GLCompiler::uncompileObject (LDObject* obj)
+void GLCompiler::dropObject (LDObject* obj)
 {
 	auto it = mObjectInfo.find (obj);
 
-	if (it == mObjectInfo.end())
-		return;
-
-	ObjectVBOInfo* info = &(*it);
-
-	for (int i = 0; i < gNumVBOs; ++i)
+	if (it != mObjectInfo.end())
 	{
-		if (info->size[i] == 0)
-			continue;
-
-		mVBOData[i].remove (info->offset[i], info->size[i]);
-		mChanged[i] = true;
+		mObjectInfo.erase (it);
+		needMerge();
 	}
-
-	mObjectInfo.erase (it);
 }
 
 // =============================================================================
@@ -264,12 +258,7 @@ void GLCompiler::uncompileObject (LDObject* obj)
 void GLCompiler::compileObject (LDObject* obj)
 {
 	ObjectVBOInfo info;
-	uncompileObject (obj);
-
-	for (int i = 0; i < gNumVBOs; ++i)
-		info.offset[i] = mVBOData[i].size();
-
-	memset (info.size, 0, sizeof info.size);
+	dropObject (obj);
 	compileSubObject (obj, obj, &info);
 	mObjectInfo[obj] = info;
 	needMerge();
@@ -298,14 +287,12 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 	for (int complement = 0; complement < vboNumComplements; ++complement)
 	{
 		const int vbonum			= getVBONumber (surface, (EVBOComplement) complement);
-		QVector<GLfloat>& vbodata	= mVBOData[vbonum];
+		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
 		const QColor normalColor	= getPolygonColor (poly, topobj);
 		const QColor pickColor		= getIndexColor (topobj->getID());
 
 		for (int vert = 0; vert < numverts; ++vert)
 		{
-			objinfo->size[vbonum] += (complement == vboSurfaces) ? 3 : 4;
-
 			switch ((EVBOComplement) complement)
 			{
 				case vboSurfaces:
@@ -372,20 +359,14 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 
 		case LDObject::ESubfile:
 		{
-			CLOCK_INIT
-			CLOCK_START
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			auto data = ref->inlinePolygons();
-			CLOCK_TIME ("Inline")
-			CLOCK_START
 
 			for (LDPolygon& poly : data)
 			{
 				poly.id = topobj->getID();
 				compilePolygon (poly, topobj, objinfo);
 			}
-			CLOCK_TIME ("Compile")
-
 			break;
 		}
 

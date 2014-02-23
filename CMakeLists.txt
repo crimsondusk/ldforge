@@ -31,6 +31,7 @@ set (LDForgeSources
 	src/EditHistory.cc
 	src/ExternalPrograms.cc
 	src/GLRenderer.cc
+	src/GLCompiler.cc
 	src/LDConfig.cc
 	src/LDObject.cc
 	src/Main.cc
