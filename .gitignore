@@ -12,5 +12,5 @@ debug_lastOutput
 debug_lastInput
 .kdev_include_paths
 *.cfg
-GitInformation.h
+Git.h
 .kdev4

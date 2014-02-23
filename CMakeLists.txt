@@ -12,7 +12,7 @@ find_package (OpenGL REQUIRED)
 get_target_property (UPDATEREVISION_EXE updaterevision LOCATION)
 
 add_custom_target (revision_check ALL
-    COMMAND ${UPDATEREVISION_EXE} src/GitInformation.h
+    COMMAND ${UPDATEREVISION_EXE} src/Git.h
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS updaterevision)
 
@@ -30,6 +30,7 @@ set (LDForgeSources
 	src/Document.cc
 	src/EditHistory.cc
 	src/ExternalPrograms.cc
+	src/Git.cc
 	src/GLRenderer.cc
 	src/LDConfig.cc
 	src/LDObject.cc

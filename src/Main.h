@@ -30,27 +30,9 @@
 #include <QString>
 #include <QTextFormat>
 
+#include "Version.h"
 #include "PropertyMacro.h"
 #include "Configuration.h"
-
-#define APPNAME			"LDForge"
-#define UNIXNAME		"ldforge"
-#define VERSION_MAJOR	0
-#define VERSION_MINOR	2
-#define VERSION_PATCH	999
-#define BUILD_ID		BUILD_INTERNAL
-
-#define BUILD_INTERNAL	0
-#define BUILD_RELEASE	1
-
-// =============================================
-#ifdef DEBUG
-# undef RELEASE
-#endif // DEBUG
-
-#ifdef RELEASE
-# undef DEBUG
-#endif // RELEASE
 
 // =============================================
 #define alias auto&
@@ -97,9 +79,9 @@ void assertionFailure (const char* file, int line, const char* funcname, const c
 # define assert(N) {}
 #endif // DEBUG
 
-// Version string identifier
-QString versionString();
-QString fullVersionString();
+// Version string identifier. These are defined in Version.cc.
+const char* versionString();
+const char* fullVersionString();
 
 #define properties private
 #define typedefs public
