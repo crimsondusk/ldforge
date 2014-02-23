@@ -235,13 +235,15 @@ class MainWindow : public QMainWindow
 		void closeEvent (QCloseEvent* ev);
 
 	private:
-		GLRenderer* m_renderer;
-		LDObjectList m_sel;
-		QList<LDQuickColor> m_quickColors;
-		QList<QToolButton*> m_colorButtons;
-		QList<QAction*> m_recentFiles;
-		MessageManager* m_msglog;
-		Ui_LDForgeUI* ui;
+		GLRenderer*			m_renderer;
+		LDObjectList		m_sel;
+		QList<LDQuickColor>	m_quickColors;
+		QList<QToolButton*>	m_colorButtons;
+		QList<QAction*>		m_recentFiles;
+		MessageManager*		m_msglog;
+		Ui_LDForgeUI*		ui;
+		QTabBar*			m_tabs;
+		bool				m_updatingTabs;
 
 	private slots:
 		void slot_selectionChanged();

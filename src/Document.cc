@@ -125,7 +125,7 @@ LDDocument::LDDocument() :
 {
 	setImplicit (true);
 	setSavePosition (-1);
-	setListItem (null);
+	setTabIndex (-1);
 	setHistory (new History);
 	m_History->setDocument (this);
 }
@@ -1297,6 +1297,7 @@ void LDDocument::setCurrent (LDDocument* f)
 	if (g_win && f)
 	{
 		// A ton of stuff needs to be updated
+		log ("current: %1\n", m_curdoc);
 		g_win->updateDocumentListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();

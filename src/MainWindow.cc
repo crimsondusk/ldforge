@@ -67,10 +67,12 @@ extern_cfg (Bool,		gl_drawangles);
 MainWindow::MainWindow()
 {
 	g_win = this;
-	m_renderer = new GLRenderer;
-
 	ui = new Ui_LDForgeUI;
 	ui->setupUi (this);
+	m_updatingTabs = false;
+	m_renderer = new GLRenderer (this);
+	m_tabs = new QTabBar;
+	ui->verticalLayout->insertWidget (0, m_tabs);
 
 	// Stuff the renderer into its frame
 	QVBoxLayout* rendererLayout = new QVBoxLayout (ui->rendererFrame);
@@ -78,7 +80,7 @@ MainWindow::MainWindow()
 
 	connect (ui->objectList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_selectionChanged()));
 	connect (ui->objectList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
-	connect (ui->fileList, SIGNAL (currentItemChanged (QListWidgetItem*, QListWidgetItem*)), this, SLOT (changeCurrentFile()));
+	connect (m_tabs, SIGNAL (currentChanged(int)), this, SLOT (changeCurrentFile()));
 
 	// Init message log manager
 	m_msglog = new MessageManager;
@@ -892,7 +894,10 @@ void makeColorComboBox (QComboBox* box)
 
 void MainWindow::updateDocumentList()
 {
-	ui->fileList->clear();
+	m_updatingTabs = true;
+
+	while (m_tabs->count() > 0)
+		m_tabs->removeTab (0);
 
 	for (LDDocument* f : g_loadedFiles)
 	{
@@ -900,18 +905,21 @@ void MainWindow::updateDocumentList()
 		if (f->isImplicit() && !gui_implicitfiles)
 			continue;
 
-		// Add an item to the list for this file and store a pointer to it in
-		// the file, so we can find files by the list item.
-		ui->fileList->addItem ("");
-		QListWidgetItem* item = ui->fileList->item (ui->fileList->count() - 1);
-		f->setListItem (item);
+		// Add an item to the list for this file and store the tab index
+		// in the document so we can find documents by tab index.
+		f->setTabIndex (m_tabs->addTab (""));
 		updateDocumentListItem (f);
 	}
+
+	m_updatingTabs = false;
 }
 
 void MainWindow::updateDocumentListItem (LDDocument* f)
 {
-	if (f->getListItem() == null)
+	bool oldUpdatingTabs = m_updatingTabs;
+	m_updatingTabs = true;
+
+	if (f->getTabIndex() == -1)
 	{
 		// We don't have a list item for this file, so the list either doesn't
 		// exist yet or is out of date. Build the list now.
@@ -921,18 +929,18 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 
 	// If this is the current file, it also needs to be the selected item on
 	// the list.
+	log ("%1 <-> %2\n", f, getCurrentDocument());
 	if (f == getCurrentDocument())
-		ui->fileList->setCurrentItem (f->getListItem());
+	{
+		log ("New index: %1\n", f->getTabIndex());
+		m_tabs->setCurrentIndex (f->getTabIndex());
+	}
 
-	// If we list implicit files, draw them with a shade of gray to make them
-	// distinct.
-	if (f->isImplicit())
-		f->getListItem()->setForeground (QColor (96, 96, 96));
+	m_tabs->setTabText (f->getTabIndex(), f->getDisplayName());
 
-	f->getListItem()->setText (f->getDisplayName());
-
-	// If the Document.has unsaved changes, draw a little icon next to it to mark that.
-	f->getListItem()->setIcon (f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	// If the document.has unsaved changes, draw a little icon next to it to mark that.
+	m_tabs->setTabIcon (f->getTabIndex(), f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	m_updatingTabs = oldUpdatingTabs;
 }
 
 // =============================================================================
@@ -940,13 +948,16 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 // which file was picked and change to it.
 void MainWindow::changeCurrentFile()
 {
+	if (m_updatingTabs)
+		return;
+
 	LDDocument* f = null;
-	QListWidgetItem* item = ui->fileList->currentItem();
+	int tabIndex = m_tabs->currentIndex();
 
 	// Find the file pointer of the item that was selected.
 	for (LDDocument* it : g_loadedFiles)
 	{
-		if (it->getListItem() == item)
+		if (it->getTabIndex() == tabIndex)
 		{
 			f = it;
 			break;
@@ -955,7 +966,7 @@ void MainWindow::changeCurrentFile()
 
 	// If we picked the same file we're currently on, we don't need to do
 	// anything.
-	if (!f || f == getCurrentDocument())
+	if (f == null || f == getCurrentDocument())
 		return;
 
 	LDDocument::setCurrent (f);
