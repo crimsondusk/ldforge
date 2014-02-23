@@ -30,7 +30,6 @@ set (LDForgeSources
 	src/Document.cc
 	src/EditHistory.cc
 	src/ExternalPrograms.cc
-	src/Git.cc
 	src/GLRenderer.cc
 	src/GLCompiler.cc
 	src/LDConfig.cc
@@ -42,6 +41,7 @@ set (LDForgeSources
 	src/PartDownloader.cc
 	src/Primitives.cc
 	src/Types.cc
+	src/Version.cc
 	src/Widgets.cc
 	src/actions/MainActions.cc
 	src/actions/EditActions.cc
