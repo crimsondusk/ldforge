@@ -1297,7 +1297,6 @@ void LDDocument::setCurrent (LDDocument* f)
 	if (g_win && f)
 	{
 		// A ton of stuff needs to be updated
-		log ("current: %1\n", m_curdoc);
 		g_win->updateDocumentListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();

@@ -929,12 +929,8 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 
 	// If this is the current file, it also needs to be the selected item on
 	// the list.
-	log ("%1 <-> %2\n", f, getCurrentDocument());
 	if (f == getCurrentDocument())
-	{
-		log ("New index: %1\n", f->getTabIndex());
 		m_tabs->setCurrentIndex (f->getTabIndex());
-	}
 
 	m_tabs->setTabText (f->getTabIndex(), f->getDisplayName());
 
