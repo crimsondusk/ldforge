@@ -346,7 +346,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 {
 	Ui::AboutUI ui;
 	ui.setupUi (this);
-	ui.versionInfo->setText (APPNAME " " + fullVersionString());
+	ui.versionInfo->setText (APPNAME " " + QString (fullVersionString()));
 
 	QPushButton* mailButton = new QPushButton;
 	mailButton->setText (tr ("Contact"));

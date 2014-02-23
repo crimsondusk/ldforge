@@ -34,7 +34,6 @@
 #include "ConfigurationDialog.h"
 #include "Dialogs.h"
 #include "CrashCatcher.h"
-#include "GitInformation.h"
 
 QList<LDDocument*> g_loadedFiles;
 MainWindow* g_win = null;
@@ -103,29 +102,3 @@ void doPrint (FILE* fp, QList<StringFormatArg> args)
 	fflush (fp);
 }
 
-// =============================================================================
-// -----------------------------------------------------------------------------
-QString versionString()
-{
-	if (g_versionString.length() == 0)
-	{
-#if VERSION_PATCH == 0
-		g_versionString = fmt ("%1.%2", VERSION_MAJOR, VERSION_MINOR);
-#else
-		g_versionString = fmt ("%1.%2.%3", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
-#endif // VERSION_PATCH
-	}
-
-	return g_versionString;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-QString fullVersionString()
-{
-#if BUILD_ID != BUILD_RELEASE
-	return GIT_DESCRIPTION;
-#else
-	return "v" + versionString();
-#endif
-}
