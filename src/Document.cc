@@ -126,7 +126,7 @@ LDDocument::LDDocument() :
 {
 	setImplicit (true);
 	setSavePosition (-1);
-	setListItem (null);
+	setTabIndex (-1);
 	setHistory (new History);
 	m_History->setDocument (this);
 }

@@ -411,16 +411,6 @@ void GLRenderer::drawGLScene()
 	glEnableClientState (GL_VERTEX_ARRAY);
 	glEnableClientState (GL_COLOR_ARRAY);
 
-	if (gl_axes)
-	{
-		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
-		glVertexPointer (3, GL_FLOAT, 0, NULL);
-		glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
-		glColorPointer (3, GL_FLOAT, 0, NULL);
-		glDrawArrays (GL_LINES, 0, 6);
-		checkGLError();
-	}
-
 	if (isPicking())
 	{
 		drawVBOs (vboTriangles, vboPickColors, GL_TRIANGLES);
@@ -449,6 +439,16 @@ void GLRenderer::drawGLScene()
 
 		drawVBOs (vboLines, vboNormalColors, GL_LINES);
 		drawVBOs (vboCondLines, vboNormalColors, GL_LINES);
+
+		if (gl_axes)
+		{
+			glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+			glVertexPointer (3, GL_FLOAT, 0, NULL);
+			glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
+			glColorPointer (3, GL_FLOAT, 0, NULL);
+			glDrawArrays (GL_LINES, 0, 6);
+			checkGLError();
+		}
 	}
 
 	glPopMatrix();

@@ -257,6 +257,7 @@ void GLCompiler::dropObject (LDObject* obj)
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
+	log ("compile #%1\n", obj->getID() );
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);

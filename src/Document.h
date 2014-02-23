@@ -58,9 +58,9 @@ class LDDocument : public QObject
 {
 	properties:
 		Q_OBJECT
-		PROPERTY (private,	LDObjectList,			Objects, 		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,				Objects, 		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (private,	History*,					History,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,			Vertices,		LIST_OPS,	STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,				Vertices,		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (private,	QList<LDDocumentPointer*>,	References,		LIST_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QString,					Name,			STR_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QString,					FullPath,		STR_OPS,	STOCK_WRITE)
@@ -68,7 +68,7 @@ class LDDocument : public QObject
 		PROPERTY (public,	bool,						Implicit,		BOOL_OPS,	STOCK_WRITE)
 		PROPERTY (public,	QList<LDPolygon>,			PolygonData,	NO_OPS,		STOCK_WRITE)
 		PROPERTY (public,	long,						SavePosition,	NUM_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QListWidgetItem*,			ListItem,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	int,						TabIndex,		NO_OPS,		STOCK_WRITE)
 
 	public:
 		LDDocument();
