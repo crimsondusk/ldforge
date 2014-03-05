@@ -111,7 +111,7 @@ void ColorSelector::drawScene()
 
 		QPen pen (info->edgeColor, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		m_scene->addRect (x, y, w, w, pen, col);
-		QGraphicsTextItem* numtext = m_scene->addText (fmt ("%1", i));
+		QGraphicsTextItem* numtext = m_scene->addText (format ("%1", i));
 		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 
@@ -147,7 +147,7 @@ void ColorSelector::drawColorInfo()
 		return;
 	}
 
-	ui->colorLabel->setText (fmt ("%1 - %2", selection()->index, selection()->name));
+	ui->colorLabel->setText (format ("%1 - %2", selection()->index, selection()->name));
 }
 
 // =============================================================================

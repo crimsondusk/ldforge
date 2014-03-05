@@ -80,14 +80,14 @@ LDError::LDError() {}
 //
 QString LDComment::asText() const
 {
-	return fmt ("0 %1", text());
+	return format ("0 %1", text());
 }
 
 // =============================================================================
 //
 QString LDSubfile::asText() const
 {
-	QString val = fmt ("1 %1 %2 ", color(), position());
+	QString val = format ("1 %1 %2 ", color(), position());
 	val += transform().toString();
 	val += ' ';
 	val += fileInfo()->name();
@@ -98,10 +98,10 @@ QString LDSubfile::asText() const
 //
 QString LDLine::asText() const
 {
-	QString val = fmt ("2 %1", color());
+	QString val = format ("2 %1", color());
 
 	for (int i = 0; i < 2; ++i)
-		val += fmt (" %1", vertex (i));
+		val += format (" %1", vertex (i));
 
 	return val;
 }
@@ -110,10 +110,10 @@ QString LDLine::asText() const
 //
 QString LDTriangle::asText() const
 {
-	QString val = fmt ("3 %1", color());
+	QString val = format ("3 %1", color());
 
 	for (int i = 0; i < 3; ++i)
-		val += fmt (" %1", vertex (i));
+		val += format (" %1", vertex (i));
 
 	return val;
 }
@@ -122,10 +122,10 @@ QString LDTriangle::asText() const
 //
 QString LDQuad::asText() const
 {
-	QString val = fmt ("4 %1", color());
+	QString val = format ("4 %1", color());
 
 	for (int i = 0; i < 4; ++i)
-		val += fmt (" %1", vertex (i));
+		val += format (" %1", vertex (i));
 
 	return val;
 }
@@ -134,11 +134,11 @@ QString LDQuad::asText() const
 //
 QString LDCondLine::asText() const
 {
-	QString val = fmt ("5 %1", color());
+	QString val = format ("5 %1", color());
 
 	// Add the coordinates
 	for (int i = 0; i < 4; ++i)
-		val += fmt (" %1", vertex (i));
+		val += format (" %1", vertex (i));
 
 	return val;
 }
@@ -154,7 +154,7 @@ QString LDError::asText() const
 //
 QString LDVertex::asText() const
 {
-	return fmt ("0 !LDFORGE VERTEX %1 %2", color(), pos);
+	return format ("0 !LDFORGE VERTEX %1 %2", color(), pos);
 }
 
 // =============================================================================
@@ -182,7 +182,7 @@ const char* LDBFC::k_statementStrings[] =
 
 QString LDBFC::asText() const
 {
-	return fmt ("0 BFC %1", LDBFC::k_statementStrings[m_statement]);
+	return format ("0 BFC %1", LDBFC::k_statementStrings[m_statement]);
 }
 
 // =============================================================================
@@ -426,13 +426,13 @@ QString LDObject::describeObjects (const LDObjectList& objs)
 		if (!firstDetails)
 			text += ", ";
 
-		QString noun = fmt ("%1%2", typeName (objType), plural (count));
+		QString noun = format ("%1%2", typeName (objType), plural (count));
 
 		// Plural of "vertex" is "vertices", correct that
 		if (objType == EVertex && count != 1)
 			noun = "vertices";
 
-		text += fmt ("%1 %2", count, noun);
+		text += format ("%1 %2", count, noun);
 		firstDetails = false;
 	}
 
@@ -639,7 +639,7 @@ LDObject* LDObject::fromID (int id)
 //
 QString LDOverlay::asText() const
 {
-	return fmt ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
+	return format ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
 		fileName(), camera(), x(), y(), width(), height());
 }
 
@@ -747,12 +747,7 @@ void LDSharedVertex::delRef (LDObject* a)
 //
 void LDObject::select()
 {
-	if (!document())
-	{
-		log ("Warning: Object #%1 cannot be selected as it is not assigned a file!\n", id());
-		return;
-	}
-
+	assert (document() != null);
 	document()->addToSelection (this);
 }
 
@@ -760,12 +755,7 @@ void LDObject::select()
 //
 void LDObject::unselect()
 {
-	if (!document())
-	{
-		log ("Warning: Object #%1 cannot be unselected as it is not assigned a file!\n", id());
-		return;
-	}
-
+	assert (document() != null);
 	document()->removeFromSelection (this);
 }
 

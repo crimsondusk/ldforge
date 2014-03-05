@@ -120,16 +120,12 @@ const QList<MessageManager::Line>& MessageManager::getLines() const
 }
 
 // =============================================================================
-// log() interface - format the argument list and add the resulting string to
-// the main message manager.
 //
-void DoLog (std::initializer_list<StringFormatArg> args)
+void printToLog (const QString& msg)
 {
-	const QString msg = DoFormat (args);
-
 	for (QString& a : msg.split ("\n", QString::SkipEmptyParts))
 	{
-		if (g_win)
+		if (g_win != null)
 			g_win->addMessage (a);
 
 		// Also print it to stdout

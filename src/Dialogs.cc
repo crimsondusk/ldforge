@@ -242,7 +242,7 @@ void LDrawPathDialog::slot_tryConfigure()
 {
 	if (LDPaths::tryConfigure (filename()) == false)
 	{
-		ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
+		ui->status->setText (format ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
 		return;
 	}
@@ -290,7 +290,7 @@ void OpenProgressDialog::setNumLines (int const& a)
 // =============================================================================
 void OpenProgressDialog::updateValues()
 {
-	ui->progressText->setText (fmt ("Parsing... %1 / %2", progress(), numLines()));
+	ui->progressText->setText (format ("Parsing... %1 / %2", progress(), numLines()));
 	ui->progressBar->setValue (progress());
 }
 
@@ -354,7 +354,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
 	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
 
-	setWindowTitle (fmt (tr ("About %1"), APPNAME));
+	setWindowTitle (format (tr ("About %1"), APPNAME));
 }
 
 // =============================================================================

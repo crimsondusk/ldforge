@@ -72,6 +72,7 @@ set (LDForgeHeaders
 	src/Configuration.h
 	src/MainWindow.h
 	src/EditHistory.h
+	src/Format.h
 )
 
 set (LDForgeForms

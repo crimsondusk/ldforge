@@ -218,10 +218,10 @@ void ConfigDialog::initGrids()
 	{
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%1", QString (g_GridInfo[i].name).toLower())));
+		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%1", QString (g_GridInfo[i].name).toLower())));
 
 		// Text label
-		lb_gridLabels[i] = new QLabel (fmt ("%1:", g_GridInfo[i].name));
+		lb_gridLabels[i] = new QLabel (format ("%1:", g_GridInfo[i].name));
 
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
@@ -587,7 +587,7 @@ void ConfigDialog::setButtonBackground (QPushButton* button, QString value)
 {
 	button->setIcon (getIcon ("colorselect"));
 	button->setAutoFillBackground (true);
-	button->setStyleSheet (fmt ("background-color: %1", value));
+	button->setStyleSheet (format ("background-color: %1", value));
 }
 
 // =============================================================================
@@ -693,7 +693,7 @@ void ConfigDialog::slot_setExtProgPath()
 	}
 
 	assert (info != null);
-	QString fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
+	QString fpath = QFileDialog::getOpenFileName (this, format ("Path to %1", info->name), *info->path, g_extProgPathFilter);
 
 	if (fpath.isEmpty())
 		return;
@@ -720,7 +720,7 @@ void ConfigDialog::setShortcutText (ShortcutListItem* item)
 	QAction* act = item->action();
 	QString label = act->iconText();
 	QString keybind = item->keyConfig()->getValue().toString();
-	item->setText (fmt ("%1 (%2)", label, keybind));
+	item->setText (format ("%1 (%2)", label, keybind));
 }
 
 // =============================================================================
@@ -738,7 +738,7 @@ QString ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += fmt ("%1", entry.color()->index);
+			val += format ("%1", entry.color()->index);
 	}
 
 	return val;
@@ -791,7 +791,7 @@ void KeySequenceDialog::updateOutput()
 	if (seq == QKeySequence())
 		shortcut = "&lt;empty&gt;";
 
-	QString text = fmt ("<center><b>%1</b></center>", shortcut);
+	QString text = format ("<center><b>%1</b></center>", shortcut);
 	lb_output->setText (text);
 }
 

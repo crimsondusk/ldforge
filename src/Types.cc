@@ -29,19 +29,6 @@
 
 // =============================================================================
 //
-QString DoFormat (QList<StringFormatArg> args)
-{
-	assert (args.size() >= 1);
-	QString text = args[0].value();
-
-	for (uchar i = 1; i < args.size(); ++i)
-		text = text.arg (args[i].value());
-
-	return text;
-}
-
-// =============================================================================
-//
 Vertex::Vertex (double x, double y, double z)
 {
 	m_coords[X] = x;
@@ -83,12 +70,12 @@ Vertex Vertex::midpoint (const Vertex& other)
 //
 QString Vertex::toString (bool mangled) const
 {
-	QString fmtstr = "%1 %2 %3";
+	QString formatstr = "%1 %2 %3";
 
 	if (mangled)
-		fmtstr = "(%1, %2, %3)";
+		formatstr = "(%1, %2, %3)";
 
-	return fmt (fmtstr, x(), y(), z());
+	return format (formatstr, x(), y(), z());
 }
 
 // =============================================================================
@@ -210,14 +197,14 @@ Matrix::Matrix (initlist<double> vals)
 
 // =============================================================================
 //
-void Matrix::puts() const
+void Matrix::dump() const
 {
 	for (int i = 0; i < 3; ++i)
 	{
 		for (int j = 0; j < 3; ++j)
-			log ("%1\t", m_vals[ (i * 3) + j]);
+			print ("%1\t", m_vals[ (i * 3) + j]);
 
-		log ("\n");
+		print ("\n");
 	}
 }
 

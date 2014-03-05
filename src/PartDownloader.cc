@@ -223,7 +223,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 
 		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest))
 		{
-			const QString overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+			const QString overwritemsg = format (tr ("%1 already exists in download directory. Overwrite?"), dest);
 			if (!confirm (tr ("Overwrite?"), overwritemsg))
 				return;
 		}
@@ -339,12 +339,12 @@ PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primar
 
 	QDir dir (dirpath);
 
-	if (!dir.exists())
+	if (dir.exists() == false)
 	{
-		log ("Creating %1...\n", dirpath);
+		print ("Creating %1...\n", dirpath);
 
 		if (!dir.mkpath (dirpath))
-			critical (fmt (tr ("Couldn't create the directory %1!"), dirpath));
+			critical (format (tr ("Couldn't create the directory %1!"), dirpath));
 	}
 
 	setNetworkReply (networkManager()->get (QNetworkRequest (QUrl (url))));
@@ -401,7 +401,7 @@ void PartDownloadRequest::updateToTable()
 
 	if (isFirstUpdate())
 	{
-		lb = new QLabel (fmt ("<b>%1</b>", destinaton()), table);
+		lb = new QLabel (format ("<b>%1</b>", destinaton()), table);
 		table->setCellWidget (tableRow(), labelcol, lb);
 	}
 
@@ -505,7 +505,7 @@ void PartDownloadRequest::readyRead()
 
 		if (!filePointer()->open (QIODevice::WriteOnly))
 		{
-			critical (fmt (tr ("Couldn't open %1 for writing: %2"), filePath(), strerror (errno)));
+			critical (format (tr ("Couldn't open %1 for writing: %2"), filePath(), strerror (errno)));
 			setState (EFailed);
 			networkReply()->abort();
 			updateToTable();

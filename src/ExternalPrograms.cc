@@ -144,7 +144,7 @@ static QString processErrorString (extprog prog, QProcess& proc)
 				wineblurb = "make sure Wine is installed and ";
 #endif
 
-			return fmt ("Program failed to start, %1check your permissions", wineblurb);
+			return format ("Program failed to start, %1check your permissions", wineblurb);
 		} break;
 
 		case QProcess::Crashed:
@@ -158,7 +158,7 @@ static QString processErrorString (extprog prog, QProcess& proc)
 			return "Unknown error";
 
 		case QProcess::Timedout:
-			return fmt ("Timed out (30 seconds)");
+			return format ("Timed out (30 seconds)");
 	}
 
 	return "";
@@ -194,7 +194,7 @@ static void writeObjects (const LDObjectList& objects, QString fname)
 
 	if (!f.open (QIODevice::WriteOnly | QIODevice::Text))
 	{
-		critical (fmt ("Couldn't open temporary file %1 for writing: %2\n", fname, f.errorString()));
+		critical (format ("Couldn't open temporary file %1 for writing: %2\n", fname, f.errorString()));
 		return;
 	}
 
@@ -245,7 +245,7 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 	}
 #endif // _WIN32
 
-	log ("cmdline: %1 %2\n", path, argv.join (" "));
+	print ("Running command: %1 %2\n", path, argv.join (" "));
 
 	if (!input.open())
 		return false;
@@ -258,7 +258,7 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 
 	if (!proc.waitForStarted())
 	{
-		critical (fmt ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
+		critical (format ("Couldn't start %1: %2\n", g_extProgNames[prog], processErrorString (prog, proc)));
 		return false;
 	}
 
@@ -275,11 +275,11 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 
 	// Check the return code
 	if (proc.exitCode() != 0)
-		err = fmt ("Program exited abnormally (return code %1).",  proc.exitCode());
+		err = format ("Program exited abnormally (return code %1).",  proc.exitCode());
 
 	if (!err.isEmpty())
 	{
-		critical (fmt ("%1 failed: %2\n", g_extProgNames[prog], err));
+		critical (format ("%1 failed: %2\n", g_extProgNames[prog], err));
 		return false;
 	}
 
@@ -299,7 +299,7 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 
 	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (fmt ("Couldn't open temporary file %1 for reading.\n", fname));
+		critical (format ("Couldn't open temporary file %1 for reading.\n", fname));
 		return;
 	}
 
@@ -575,8 +575,8 @@ DEFINE_ACTION (Coverer, 0)
 	{
 		(ui.cb_oldsweep->isChecked() ? "-s" : ""),
 		(ui.cb_reverse->isChecked() ? "-r" : ""),
-		(ui.dsb_segsplit->value() != 0 ? fmt ("-l %1", ui.dsb_segsplit->value()) : ""),
-		(ui.sb_bias->value() != 0 ? fmt ("-s %1", ui.sb_bias->value()) : ""),
+		(ui.dsb_segsplit->value() != 0 ? format ("-l %1", ui.dsb_segsplit->value()) : ""),
+		(ui.sb_bias->value() != 0 ? format ("-s %1", ui.sb_bias->value()) : ""),
 		in1DATName,
 		in2DATName,
 		outDATName
@@ -672,10 +672,10 @@ DEFINE_ACTION (Edger2, 0)
 
 	QString argv = join (
 	{
-		fmt ("-p %1", ui.precision->value()),
-		fmt ("-af %1", ui.flatAngle->value()),
-		fmt ("-ac %1", ui.condAngle->value()),
-		fmt ("-ae %1", ui.edgeAngle->value()),
+		format ("-p %1", ui.precision->value()),
+		format ("-af %1", ui.flatAngle->value()),
+		format ("-ac %1", ui.condAngle->value()),
+		format ("-ae %1", ui.edgeAngle->value()),
 		ui.delLines->isChecked()     ? "-de" : "",
 		ui.delCondLines->isChecked() ? "-dc" : "",
 		ui.colored->isChecked()      ? "-c" : "",

@@ -69,7 +69,7 @@ DEFINE_ACTION (Cut, CTRL (X))
 {
 	int num = copyToClipboard();
 	deleteSelection();
-	log (tr ("%1 objects cut"), num);
+	print (tr ("%1 objects cut"), num);
 }
 
 // =============================================================================
@@ -77,7 +77,7 @@ DEFINE_ACTION (Cut, CTRL (X))
 DEFINE_ACTION (Copy, CTRL (C))
 {
 	int num = copyToClipboard();
-	log (tr ("%1 objects copied"), num);
+	print (tr ("%1 objects copied"), num);
 }
 
 // =============================================================================
@@ -98,7 +98,7 @@ DEFINE_ACTION (Paste, CTRL (V))
 		++num;
 	}
 
-	log (tr ("%1 objects pasted"), num);
+	print (tr ("%1 objects pasted"), num);
 	refresh();
 	scrollToSelection();
 }
@@ -108,7 +108,7 @@ DEFINE_ACTION (Paste, CTRL (V))
 DEFINE_ACTION (Delete, KEY (Delete))
 {
 	int num = deleteSelection();
-	log (tr ("%1 objects deleted"), num);
+	print (tr ("%1 objects deleted"), num);
 }
 
 // =============================================================================
@@ -198,7 +198,7 @@ DEFINE_ACTION (SplitQuads, 0)
 		num++;
 	}
 
-	log ("%1 quadrilaterals split", num);
+	print ("%1 quadrilaterals split", num);
 	refresh();
 }
 
@@ -318,7 +318,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 		num += numLines;
 	}
 
-	log (tr ("Added %1 border lines"), num);
+	print (tr ("Added %1 border lines"), num);
 	refresh();
 }
 
@@ -347,7 +347,7 @@ DEFINE_ACTION (CornerVerts, 0)
 		}
 	}
 
-	log (tr ("Added %1 vertices"), num);
+	print (tr ("Added %1 vertices"), num);
 	refresh();
 }
 
@@ -599,7 +599,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		}
 	}
 
-	log (tr ("Rounded %1 values"), num);
+	print (tr ("Rounded %1 values"), num);
 	refreshObjectList();
 	refresh();
 }
@@ -625,7 +625,7 @@ DEFINE_ACTION (Uncolorize, 0)
 		num++;
 	}
 
-	log (tr ("%1 objects uncolored"), num);
+	print (tr ("%1 objects uncolored"), num);
 	refresh();
 }
 
@@ -677,7 +677,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 		}
 	}
 
-	log (tr ("Altered %1 values"), num);
+	print (tr ("Altered %1 values"), num);
 	refresh();
 }
 
@@ -732,7 +732,7 @@ DEFINE_ACTION (Demote, 0)
 		++num;
 	}
 
-	log (tr ("Demoted %1 conditional lines"), num);
+	print (tr ("Demoted %1 conditional lines"), num);
 	refresh();
 }
 
@@ -758,7 +758,7 @@ DEFINE_ACTION (Autocolor, 0)
 
 	if (colnum >= MAX_COLORS)
 	{
-		log (tr ("Cannot auto-color: all colors are in use!"));
+		print (tr ("Cannot auto-color: all colors are in use!"));
 		return;
 	}
 
@@ -771,7 +771,7 @@ DEFINE_ACTION (Autocolor, 0)
 		R()->compileObject (obj);
 	}
 
-	log (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
+	print (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
 	refresh();
 }
 
@@ -794,7 +794,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		return;
 
 	// Create the comment object based on input
-	QString commentText = fmt ("!HISTORY %1 [%2] %3",
+	QString commentText = format ("!HISTORY %1 [%2] %3",
 		ui->m_date->date().toString ("yyyy-MM-dd"),
 		ui->m_username->text(),
 		ui->m_comment->text());

@@ -36,7 +36,7 @@ static LDColor* g_LDColors[MAX_COLORS];
 void initColors()
 {
 	LDColor* col;
-	log ("%1: initializing color information.\n", __func__);
+	print ("Initializing color information.\n");
 
 	// Always make sure there's 16 and 24 available. They're special like that.
 	col = new LDColor;

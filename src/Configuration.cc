@@ -61,7 +61,7 @@ Config::Config (QString name) :
 bool Config::load()
 {
 	QSettings* settings = getSettingsObject();
-	log ("config::load: Loading configuration file from %1\n", settings->fileName());
+	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
 	{
@@ -79,12 +79,12 @@ bool Config::load()
 }
 
 // =============================================================================
+//
 // Save the configuration to disk
-// =============================================================================
+//
 bool Config::save()
 {
 	QSettings* settings = getSettingsObject();
-	log ("Saving configuration to %1...\n", settings->fileName());
 
 	for (Config* cfg : g_configs)
 	{
@@ -95,6 +95,7 @@ bool Config::save()
 	}
 
 	settings->sync();
+	print ("Configuration saved to %1.\n", settings->fileName());
 	settings->deleteLater();
 	return true;
 }

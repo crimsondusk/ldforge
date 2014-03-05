@@ -56,12 +56,12 @@ int main (int argc, char* argv[])
 	// Load or create the configuration
 	if (!Config::load())
 	{
-		log ("Creating configuration file...\n");
+		print ("Creating configuration file...\n");
 
 		if (Config::save())
-			log ("Configuration file successfully created.\n");
+			print ("Configuration file successfully created.\n");
 		else
-			log ("failed to create configuration file!\n");
+			critical ("Failed to create configuration file!\n");
 	}
 
 	LDPaths::initPaths();
@@ -81,22 +81,4 @@ int main (int argc, char* argv[])
 
 	loadPrimitives();
 	return app.exec();
-}
-
-// =============================================================================
-//
-void doPrint (QFile& f, QList<StringFormatArg> args)
-{
-	QString msg = DoFormat (args);
-	f.write (msg.toUtf8());
-	f.flush();
-}
-
-// =============================================================================
-//
-void doPrint (FILE* fp, QList<StringFormatArg> args)
-{
-	QString msg = DoFormat (args);
-	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
-	fflush (fp);
 }

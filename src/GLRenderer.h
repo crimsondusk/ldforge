@@ -19,6 +19,7 @@
 #pragma once
 #include <QGLWidget>
 #include "Main.h"
+#include "Macros.h"
 #include "LDObject.h"
 #include "Document.h"
 
@@ -283,6 +284,12 @@ class GLRenderer : public QGLWidget
 		inline double& zoom()
 		{
 			return currentDocumentData().zoom[camera()];
+		}
+
+		template<typename... Args>
+		inline QString format (QString fmtstr, Args... args)
+		{
+			return ::format (fmtstr, args...);
 		}
 
 	private slots:

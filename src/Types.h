@@ -71,7 +71,7 @@ class Matrix
 
 		double			getDeterminant() const;
 		Matrix			mult (const Matrix& other) const;
-		void			puts() const;
+		void			dump() const;
 		QString			toString() const;
 		void			zero();
 		Matrix&			operator= (const Matrix& other);
@@ -203,61 +203,6 @@ class Vertex
 Q_DECLARE_METATYPE (Vertex)
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// StringFormatArg
-//
-// Converts a given value into a string that can be retrieved with ::value().
-// Used as the argument type to the formatting functions, hence its name.
-// =============================================================================
-class StringFormatArg
-{
-	public:
-		StringFormatArg (const QString& a) : m_val (a) {}
-		StringFormatArg (const char& a) : m_val (a) {}
-		StringFormatArg (const uchar& a) : m_val (a) {}
-		StringFormatArg (const QChar& a) : m_val (a) {}
-		StringFormatArg (int a) : m_val (QString::number (a)) {}
-		StringFormatArg (const float& a) : m_val (QString::number (a)) {}
-		StringFormatArg (const double& a) : m_val (QString::number (a)) {}
-		StringFormatArg (const Vertex& a) : m_val (a.toString (false)) {}
-		StringFormatArg (const Matrix& a) : m_val (a.toString()) {}
-		StringFormatArg (const char* a) : m_val (a) {}
-
-		StringFormatArg (const void* a)
-		{
-			m_val.sprintf ("%p", a);
-		}
-
-		template<class T> StringFormatArg (const QList<T>& a)
-		{
-			m_val = "{ ";
-
-			for (const T& it : a)
-			{
-				if (&it != &a.first())
-					m_val += ", ";
-
-				StringFormatArg arg (it);
-				m_val += arg.value();
-			}
-
-			if (!a.isEmpty())
-				m_val += " ";
-
-			m_val += "}";
-		}
-
-		inline QString value() const
-		{
-			return m_val;
-		}
-
-	private:
-		QString m_val;
-};
-
-// =============================================================================
 // LDBoundingBox
 //
 // The bounding box is the box that encompasses a given set of objects.
@@ -281,29 +226,6 @@ class LDBoundingBox
 		LDBoundingBox& operator<< (LDObject* obj);
 		LDBoundingBox& operator<< (const Vertex& v);
 };
-
-// Formatter function
-QString DoFormat (QList<StringFormatArg> args);
-
-// printf replacement
-void doPrint (QFile& f, QList<StringFormatArg> args);
-void doPrint (FILE* fp, QList<StringFormatArg> args);
-
-// log() - universal access to the message log. Defined here so that I don't have
-// to include MessageLog.h here and recompile everything every time that file changes.
-void DoLog (std::initializer_list<StringFormatArg> args);
-
-// Macros to access these functions
-# ifndef IN_IDE_PARSER 
-#define fmt(...) DoFormat ({__VA_ARGS__})
-# define fprint(F, ...) doPrint (F, {__VA_ARGS__})
-# define log(...) DoLog({ __VA_ARGS__ })
-#else
-QString fmt (const char* fmtstr, ...);
-void fprint (QFile& f, const char* fmtstr, ...);
-void fprint (FILE* fp, const char* fmtstr, ...);
-void log (const char* fmtstr, ...);
-#endif
 
 extern const Vertex g_origin; // Vertex at (0, 0, 0)
 extern const Matrix g_identity; // Identity matrix

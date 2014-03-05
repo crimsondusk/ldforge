@@ -89,9 +89,9 @@ namespace LDPaths
 			return false;
 		}
 
-		pathInfo.partsPath = fmt ("%1" DIRSLASH "parts", path);
-		pathInfo.LDConfigPath = fmt ("%1" DIRSLASH "LDConfig.ldr", path);
-		pathInfo.primsPath = fmt ("%1" DIRSLASH "p", path);
+		pathInfo.partsPath = format ("%1" DIRSLASH "parts", path);
+		pathInfo.LDConfigPath = format ("%1" DIRSLASH "LDConfig.ldr", path);
+		pathInfo.primsPath = format ("%1" DIRSLASH "p", path);
 
 		return true;
 	}
@@ -179,7 +179,7 @@ LDDocument::~LDDocument()
 		g_logoedStud2 = null;
 
 	g_win->updateDocumentList();
-	log ("Closed %1", name());
+	print ("Closed %1", name());
 }
 
 // =============================================================================
@@ -244,7 +244,7 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 		if (doc->fullPath().isEmpty())
 			continue;
 
-		QString partpath = fmt ("%1/%2", dirname (doc->fullPath()), relpath);
+		QString partpath = format ("%1/%2", dirname (doc->fullPath()), relpath);
 		QFile f (partpath);
 
 		if (f.exists())
@@ -272,7 +272,7 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 		return relpath;
 
 	// Try with just the LDraw path first
-	fullPath = fmt ("%1" DIRSLASH "%2", io_ldpath, relpath);
+	fullPath = format ("%1" DIRSLASH "%2", io_ldpath, relpath);
 
 	if (QFile::exists (fullPath))
 		return fullPath;
@@ -285,7 +285,7 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 		{
 			for (const QString& subdir : initlist<QString> ({ "parts", "p" }))
 			{
-				fullPath = fmt ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
+				fullPath = format ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 
 				if (QFile::exists (fullPath))
 					return fullPath;
@@ -299,7 +299,7 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 
 QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer)
 {
-	log ("Opening %1...\n", relpath);
+	print ("Opening %1...\n", relpath);
 	QString path = findLDrawFilePath (relpath, subdirs);
 
 	if (pathpointer != null)
@@ -382,7 +382,7 @@ void LDFileLoader::work (int i)
 		// Check for parse errors and warn about tthem
 		if (obj->type() == LDObject::EError)
 		{
-			log ("Couldn't parse line #%1: %2", progress() + 1, static_cast<LDError*> (obj)->reason());
+			print ("Couldn't parse line #%1: %2", progress() + 1, static_cast<LDError*> (obj)->reason());
 
 			if (warnings() != null)
 				(*warnings())++;
@@ -499,7 +499,7 @@ LDDocument* openDocument (QString path, bool search)
 	LDDocument* load = new LDDocument;
 	load->setFullPath (fullpath);
 	load->setName (LDDocument::shortenName (load->fullPath()));
-	dlog ("name: %1 (%2)", load->name(), load->fullPath());
+	dprint ("name: %1 (%2)", load->name(), load->fullPath());
 	g_loadedFiles << load;
 
 	// Don't take the file loading as actual edits to the file
@@ -524,7 +524,7 @@ LDDocument* openDocument (QString path, bool search)
 	{
 		LDDocument::setCurrent (load);
 		g_win->R()->setDocument (load);
-		log (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
+		print (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
 	}
 
 	load->history()->setIgnoring (false);
@@ -541,7 +541,7 @@ bool LDDocument::isSafeToClose()
 	// If we have unsaved changes, warn and give the option of saving.
 	if (hasUnsavedChanges())
 	{
-		QString message = fmt (tr ("There are unsaved changes to %1. Should it be saved?"),
+		QString message = format (tr ("There are unsaved changes to %1. Should it be saved?"),
 			(name().length() > 0) ? name() : tr ("<anonymous>"));
 
 		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
@@ -565,7 +565,7 @@ bool LDDocument::isSafeToClose()
 
 				if (!save())
 				{
-					message = fmt (tr ("Failed to save %1 (%2)\nDo you still want to close?"),
+					message = format (tr ("Failed to save %1 (%2)\nDo you still want to close?"),
 						name(), strerror (errno));
 
 					if (msgbox::critical (g_win, tr ("Save Failure"), message,
@@ -683,7 +683,7 @@ void openMainFile (QString path)
 		{
 			// Tell the user loading failed.
 			setlocale (LC_ALL, "C");
-			critical (fmt (QObject::tr ("Failed to open %1: %2"), path, strerror (errno)));
+			critical (format (QObject::tr ("Failed to open %1: %2"), path, strerror (errno)));
 		}
 
 		g_loadingMainFile = false;
@@ -696,7 +696,7 @@ void openMainFile (QString path)
 	if (documentToReplace != null)
 	{
 		for (LDDocumentPointer* ptr : documentToReplace->references())
-		{	dlog ("ptr: %1 (%2)\n",
+		{	dprint ("ptr: %1 (%2)\n",
 				ptr, ptr->pointer() ? ptr->pointer()->name() : "<null>");
 
 			*ptr = file;
@@ -742,7 +742,7 @@ bool LDDocument::save (QString savepath)
 		if (nameComment->text().left (6) == "Name: ")
 		{
 			QString newname = shortenName (savepath);
-			nameComment->setText (fmt ("Name: %1", newname));
+			nameComment->setText (format ("Name: %1", newname));
 			g_win->buildObjList();
 		}
 	}
@@ -788,7 +788,7 @@ class LDParseError : public std::exception
 void checkTokenCount (QString line, const QStringList& tokens, int num)
 {
 	if (tokens.size() != num)
-		throw LDParseError (line, fmt ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
+		throw LDParseError (line, format ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
 }
 
 // =============================================================================
@@ -805,7 +805,7 @@ void checkTokenNumbers (QString line, const QStringList& tokens, int min, int ma
 		tokens[i].toDouble (&ok);
 
 		if (!ok && !scient.exactMatch (tokens[i]))
-			throw LDParseError (line, fmt ("Token #%1 was `%2`, expected a number (matched length: %3)", (i + 1), tokens[i], scient.matchedLength()));
+			throw LDParseError (line, format ("Token #%1 was `%2`, expected a number (matched length: %3)", (i + 1), tokens[i], scient.matchedLength()));
 	}
 }
 
@@ -854,7 +854,7 @@ LDObject* parseLine (QString line)
 				if (tokens.size() > 2 && tokens[1] == "BFC")
 				{
 					for (int i = 0; i < LDBFC::NumStatements; ++i)
-						if (comm == fmt ("BFC %1", LDBFC::k_statementStrings [i]))
+						if (comm == format ("BFC %1", LDBFC::k_statementStrings [i]))
 							return new LDBFC ( (LDBFC::Statement) i);
 
 					// MLCAD is notorious for stuffing these statements in parts it
@@ -931,7 +931,7 @@ LDObject* parseLine (QString line)
 				// here because the error object needs the document reference.
 				if (!load)
 				{
-					LDError* obj = new LDError (line, fmt ("Could not open %1", tokens[14]));
+					LDError* obj = new LDError (line, format ("Could not open %1", tokens[14]));
 					obj->setFileReferenced (tokens[14]);
 					return obj;
 				}
@@ -1047,7 +1047,7 @@ void reloadAllSubfiles()
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDError (ref->asText(), fmt ("Could not open %1", ref->fileInfo()->name())));
+				ref->replace (new LDError (ref->asText(), format ("Could not open %1", ref->fileInfo()->name())));
 		}
 
 		// Reparse gibberish files. It could be that they are invalid because
@@ -1069,7 +1069,7 @@ int LDDocument::addObject (LDObject* obj)
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Added object #%1 (%2)\n", obj->id(), obj->typeName());
+		dprint ("Added object #%1 (%2)\n", obj->id(), obj->typeName());
 #endif
 
 	obj->setDocument (this);
@@ -1095,7 +1095,7 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Inserted object #%1 (%2) at %3\n", obj->id(), obj->typeName(), pos);
+		dprint ("Inserted object #%1 (%2) at %3\n", obj->id(), obj->typeName(), pos);
 #endif
 }
 
@@ -1305,7 +1305,7 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->updateTitle();
 		g_win->R()->setDocument (f);
 		g_win->R()->repaint();
-		log ("Changed file to %1", f->getDisplayName());
+		print ("Changed file to %1", f->getDisplayName());
 	}
 }
 
@@ -1350,7 +1350,7 @@ void loadLogoedStuds()
 	g_logoedStud = openDocument ("stud-logo.dat", true);
 	g_logoedStud2 = openDocument ("stud2-logo.dat", true);
 
-	log (LDDocument::tr ("Logoed studs loaded.\n"));
+	print (LDDocument::tr ("Logoed studs loaded.\n"));
 }
 
 // =============================================================================

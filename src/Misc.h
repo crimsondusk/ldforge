@@ -39,7 +39,7 @@ void simplify (int& numer, int& denom);
 
 void roundToDecimals (double& a, int decimals);
 
-QString join (initlist<StringFormatArg> vals, QString delim = " ");
+QString join (QList< StringFormatArg > vals, QString delim = " ");
 
 // Grid stuff
 struct gridinfo

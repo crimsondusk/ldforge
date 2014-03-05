@@ -50,7 +50,7 @@ void History::undo()
 	m_position--;
 	g_win->refresh();
 	g_win->updateActions();
-	dlog ("Position is now %1", position());
+	dprint ("Position is now %1", position());
 	setIgnoring (false);
 }
 
@@ -71,7 +71,7 @@ void History::redo()
 	setPosition (position() + 1);
 	g_win->refresh();
 	g_win->updateActions();
-	dlog ("Position is now %1", position());
+	dprint ("Position is now %1", position());
 	setIgnoring (false);
 }
 
@@ -84,7 +84,7 @@ void History::clear()
 			delete change;
 
 	m_changesets.clear();
-	dlog ("History: cleared");
+	dprint ("History: cleared");
 }
 
 // =============================================================================
@@ -104,7 +104,7 @@ void History::addStep()
 		m_changesets.removeLast();
 	}
 
-	dlog ("History: step added (%1 changes)", m_currentChangeset.size());
+	dprint ("History: step added (%1 changes)", m_currentChangeset.size());
 	m_changesets << m_currentChangeset;
 	m_currentChangeset.clear();
 	setPosition (position() + 1);
@@ -123,7 +123,7 @@ void History::add (AbstractHistoryEntry* entry)
 
 	entry->setParent (this);
 	m_currentChangeset << entry;
-	dlog ("History: added entry of type %1", entry->getTypeName());
+	dprint ("History: added entry of type %1", entry->getTypeName());
 }
 
 // =============================================================================

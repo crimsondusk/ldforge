@@ -24,7 +24,11 @@
 #include <QMessageBox>
 #include <unistd.h>
 #include <signal.h>
-#include <sys/prctl.h>
+
+#ifdef Q_OS_LINUX
+# include <sys/prctl.h>
+#endif
+
 #include "CrashCatcher.h"
 #include "Types.h"
 #include "Dialogs.h"
@@ -44,7 +48,7 @@ static QList<int> g_signalsToCatch ({
 });
 
 // =============================================================================
-// =============================================================================
+//
 static void handleCrash (int sig)
 {
 	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
@@ -63,7 +67,7 @@ static void handleCrash (int sig)
 
 	if (commandsFile.open())
 	{
-		commandsFile.write (fmt ("attach %1\n", pid).toLocal8Bit());
+		commandsFile.write (format ("attach %1\n", pid).toLocal8Bit());
 		commandsFile.write (QString ("backtrace full\n").toLocal8Bit());
 		commandsFile.write (QString ("detach\n").toLocal8Bit());
 		commandsFile.write (QString ("quit").toLocal8Bit());
@@ -78,13 +82,15 @@ static void handleCrash (int sig)
 	// Linux doesn't allow ptrace to be used on anything but direct child processes
 	// so we need to use prctl to register an exception to this to allow GDB attach to us.
 	// We need to do this now and no earlier because only now we actually know GDB's PID.
+#ifdef Q_OS_LINUX
 	prctl (PR_SET_PTRACER, proc.pid(), 0, 0, 0);
+#endif
 
 	proc.waitForFinished (1000);
 	QString output = QString (proc.readAllStandardOutput());
 	QString err = QString (proc.readAllStandardError());
 
-	bombBox (fmt ("<h3>Program crashed with signal %1</h3>\n\n"
+	bombBox (format ("<h3>Program crashed with signal %1</h3>\n\n"
 		"%2"
 		"<p><b>GDB <tt>stdout</tt>:</b></p><pre>%3</pre>\n"
 		"<p><b>GDB <tt>stderr</tt>:</b></p><pre>%4</pre>",
@@ -92,7 +98,7 @@ static void handleCrash (int sig)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void initCrashCatcher()
 {
 	struct sigaction sighandler;
@@ -103,19 +109,20 @@ void initCrashCatcher()
 	for (int sig : g_signalsToCatch)
 		sigaction (sig, &sighandler, null);
 
-	log ("%1: crash catcher hooked to signals: %2\n", __func__, g_signalsToCatch);
+	print ("%1: crash catcher hooked to signals: %2\n", __func__, g_signalsToCatch);
 }
 #endif // #ifdef __unix__
 
 // =============================================================================
+//
 // This function must be readily available in both Windows and Linux. We display
 // the bomb box straight in Windows while in Linux we let abort() trigger the
 // signal handler, which will cause the usual bomb box with GDB diagnostics.
 // Said prompt will embed the assertion failure information.
-// =============================================================================
+//
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
 {
-	QString errmsg = fmt (
+	QString errmsg = format (
 		"<p><b>File</b>: <tt>%1</tt><br />"
 		"<b>Line</b>: <tt>%2</tt><br />"
 		"<b>Function:</b> <tt>%3</tt></p>"

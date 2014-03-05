@@ -18,6 +18,10 @@
 
 #pragma once
 
+#ifndef __GNUC__
+# define __attribute__(X)
+#endif
+
 // =============================================================================
 //
 #define PROPERTY(ACCESS, TYPE, READ, WRITE, WRITETYPE)			\
@@ -65,17 +69,7 @@ ACCESS:															\
 
 // =============================================================================
 //
-#ifdef IN_IDE_PARSER
-void dlog(void, ...) {}
-#else
-# ifdef DEBUG
-#  define dlog(...) log (QString (__PRETTY_FUNCTION__) + ": " __VA_ARGS__)
-# else
-#  define dlog(...)
-# endif // DEBUG
-#endif // IN_IDE_PARSER
-
-#define dvalof(A) dlog ("value of '%1' = %2\n", #A, A)
+#define dvalof(A) dprint ("value of '%1' = %2\n", #A, A)
 
 // =============================================================================
 //

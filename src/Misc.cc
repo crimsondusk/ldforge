@@ -284,12 +284,12 @@ void configRotationPoint()
 
 // =============================================================================
 //
-QString join (initlist<StringFormatArg> vals, QString delim)
+QString join (QList<StringFormatArg> vals, QString delim)
 {
 	QStringList list;
 
 	for (const StringFormatArg& arg : vals)
-		list << arg.value();
+		list << arg.text();
 
 	return list.join (delim);
 }

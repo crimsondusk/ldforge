@@ -115,7 +115,7 @@ MainWindow::MainWindow()
 //
 KeySequenceConfig* MainWindow::shortcutForAction (QAction* act)
 {
-	QString keycfgname = fmt ("key_%1", act->objectName());
+	QString keycfgname = format ("key_%1", act->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
 
@@ -136,15 +136,10 @@ void MainWindow::updateActionShortcuts()
 //
 void MainWindow::slot_action()
 {
-	// Get the name of the sender object and use it to compose the slot name.
-	QString methodName = fmt ("slot_%1", sender()->objectName());
-
-#ifdef DEBUG
-	log ("Action %1 triggered", sender()->objectName());
-#endif
-
-	// Now invoke this slot to call the action.
-	QMetaObject::invokeMethod (this, methodName.toAscii().constData(), Qt::DirectConnection);
+	// Get the name of the sender object and use it to compose the slot name,
+	// then invoke this slot to call the action.
+	QMetaObject::invokeMethod (this,
+		qPrintable (format ("slot_%1", sender()->objectName())), Qt::DirectConnection);
 	endAction();
 }
 
@@ -257,22 +252,22 @@ void MainWindow::updateGridToolBar()
 //
 void MainWindow::updateTitle()
 {
-	QString title = fmt (APPNAME " %1", fullVersionString());
+	QString title = format (APPNAME " %1", fullVersionString());
 
 	// Append our current file if we have one
 	if (getCurrentDocument())
 	{
 		if (getCurrentDocument()->name().length() > 0)
-			title += fmt (": %1", basename (getCurrentDocument()->name()));
+			title += format (": %1", basename (getCurrentDocument()->name()));
 		else
-			title += fmt (": <anonymous>");
+			title += format (": <anonymous>");
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
 				getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
-			title += fmt (": %1", comm->text());
+			title += format (": %1", comm->text());
 		}
 
 		if (getCurrentDocument()->hasUnsavedChanges())
@@ -363,7 +358,7 @@ void MainWindow::buildObjList()
 
 			case LDObject::EError:
 			{
-				descr = fmt ("ERROR: %1", obj->asText());
+				descr = format ("ERROR: %1", obj->asText());
 				break;
 			}
 
@@ -377,10 +372,10 @@ void MainWindow::buildObjList()
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->fileInfo()->getDisplayName(), ref->position().toString (true));
+				descr = format ("%1 %2, (", ref->fileInfo()->getDisplayName(), ref->position().toString (true));
 
 				for (int i = 0; i < 9; ++i)
-					descr += fmt ("%1%2", ref->transform()[i], (i != 8) ? " " : "");
+					descr += format ("%1%2", ref->transform()[i], (i != 8) ? " " : "");
 
 				descr += ')';
 				break;
@@ -395,7 +390,7 @@ void MainWindow::buildObjList()
 			case LDObject::EOverlay:
 			{
 				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
-				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
+				descr = format ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
 					basename (ovl->fileName()), ovl->x(), ovl->y(),
 					ovl->width(), ovl->height());
 				break;
@@ -771,14 +766,14 @@ bool MainWindow::save (LDDocument* f, bool saveAs)
 		if (f == getCurrentDocument())
 			updateTitle();
 
-		log ("Saved to %1.", path);
+		print ("Saved to %1.", path);
 
 		// Add it to recent files
 		addRecentFile (path);
 		return true;
 	}
 
-	QString message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
+	QString message = format (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
 	// Tell the user the save failed, and give the option for saving as with it.
 	QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
@@ -811,7 +806,7 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
 //
 QPixmap getIcon (QString iconName)
 {
-	return (QPixmap (fmt (":/icons/%1.png", iconName)));
+	return (QPixmap (format (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
@@ -884,7 +879,7 @@ void makeColorComboBox (QComboBox* box)
 		assert (col != null);
 
 		QIcon ico = makeColorIcon (col, 16);
-		box->addItem (ico, fmt ("[%1] %2 (%3 object%4)",
+		box->addItem (ico, format ("[%1] %2 (%3 object%4)",
 			pair.first, col->name, pair.second, plural (pair.second)));
 		box->setItemData (row, pair.first);
 

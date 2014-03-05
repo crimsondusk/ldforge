@@ -55,7 +55,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 	QString authortext = ld_defaultname;
 
 	if (!ld_defaultuser.isEmpty())
-		authortext.append (fmt (" [%1]", ld_defaultuser));
+		authortext.append (format (" [%1]", ld_defaultuser));
 
 	ui.le_author->setText (authortext);
 
@@ -75,7 +75,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 		default:
 			QMessageBox::warning (null, "Warning",
-				fmt ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
+				format ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
 			break;
 	}
 
@@ -96,8 +96,8 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 	{
 		new LDComment (ui.le_title->text()),
 		new LDComment ("Name: <untitled>.dat"),
-		new LDComment (fmt ("Author: %1", ui.le_author->text())),
-		new LDComment (fmt ("!LDRAW_ORG Unofficial_Part")),
+		new LDComment (format ("Author: %1", ui.le_author->text())),
+		new LDComment (format ("!LDRAW_ORG Unofficial_Part")),
 		(license != "" ? new LDComment (license) : null),
 		new LDEmpty,
 		new LDBFC (BFCType),
@@ -392,7 +392,7 @@ DEFINE_ACTION (InsertFrom, 0)
 
 	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (fmt ("Couldn't open %1 (%2)", fname, f.errorString()));
+		critical (format ("Couldn't open %1 (%2)", fname, f.errorString()));
 		return;
 	}
 
@@ -429,7 +429,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 	if (!file.open (QIODevice::WriteOnly | QIODevice::Text))
 	{
-		critical (fmt ("Unable to open %1 for writing (%2)", fname, file.errorString()));
+		critical (format ("Unable to open %1 for writing (%2)", fname, file.errorString()));
 		return;
 	}
 
@@ -494,12 +494,12 @@ DEFINE_ACTION (Screenshot, 0)
 	if (root.right (4) == ".dat")
 		root.chop (4);
 
-	QString defaultname = (root.length() > 0) ? fmt ("%1.png", root) : "";
+	QString defaultname = (root.length() > 0) ? format ("%1.png", root) : "";
 	QString fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 				"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 
 	if (fname.length() > 0 && !img.save (fname))
-		critical (fmt ("Couldn't open %1 for writing to save screencap: %2", fname, strerror (errno)));
+		critical (format ("Couldn't open %1 for writing to save screencap: %2", fname, strerror (errno)));
 
 	delete[] imgdata;
 }
@@ -609,7 +609,7 @@ DEFINE_ACTION (SetDrawDepth, 0)
 
 	bool ok;
 	double depth = QInputDialog::getDouble (g_win, "Set Draw Depth",
-											fmt ("Depth value for %1 Camera:", R()->getCameraName()),
+											format ("Depth value for %1 Camera:", R()->getCameraName()),
 											R()->getDepthValue(), -10000.0f, 10000.0f, 3, &ok);
 
 	if (ok)
@@ -754,7 +754,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	{
 		QString desiredPath = subdirname + "/s";
 		QString title = tr ("Create subfile directory?");
-		QString text = fmt (tr ("The directory <b>%1</b> is suggested for "
+		QString text = format (tr ("The directory <b>%1</b> is suggested for "
 			"subfiles. This directory does not exist, create it?"), desiredPath);
 
 		if (QDir (desiredPath).exists() || confirm (title, text))
@@ -824,8 +824,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 	{
 		new LDComment (subtitle),
 		new LDComment ("Name: "),
-		new LDComment (fmt ("Author: %1 [%2]", ld_defaultname, ld_defaultuser)),
-		new LDComment (fmt ("!LDRAW_ORG Unofficial_Subpart")),
+		new LDComment (format ("Author: %1 [%2]", ld_defaultname, ld_defaultuser)),
+		new LDComment (format ("!LDRAW_ORG Unofficial_Subpart")),
 		(license != "" ? new LDComment (license) : null),
 		new LDEmpty,
 		new LDBFC (bfctype),

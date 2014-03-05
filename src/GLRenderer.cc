@@ -138,7 +138,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	// Init camera icons
 	for (const GL::EFixedCamera cam : g_Cameras)
 	{
-		QString iconname = fmt ("camera-%1", tr (g_CameraNames[cam]).toLower());
+		QString iconname = format ("camera-%1", tr (g_CameraNames[cam]).toLower());
 
 		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
@@ -351,7 +351,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 				if (obj->color() == i)
 					return;
 
-			log ("%1: Unknown color %2!\n", __func__, obj->color());
+			print ("%1: Unknown color %2!\n", __func__, obj->color());
 			g_warnedColors << obj->color();
 			return;
 		}
@@ -609,7 +609,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		}
 
 		// Paint the coordinates onto the screen.
-		QString text = fmt (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
+		QString text = format (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		paint.setPen (textpen);
@@ -821,14 +821,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
 		}
 
-		QString fmtstr = tr ("%1 Camera");
+		QString formatstr = tr ("%1 Camera");
 
 		// Draw a label for the current camera in the bottom left corner
 		{
 			const int margin = 4;
 
 			QString label;
-			label = fmt (fmtstr, tr (g_CameraNames[camera()]));
+			label = format (formatstr, tr (g_CameraNames[camera()]));
 			paint.setPen (textpen);
 			paint.drawText (QPoint (margin, height() - (margin + metrics.descent())), label);
 		}
@@ -840,7 +840,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				m_drawToolTip = false;
 			else
 			{
-				QString label = fmt (fmtstr, tr (g_CameraNames[m_toolTipCamera]));
+				QString label = format (formatstr, tr (g_CameraNames[m_toolTipCamera]));
 				QToolTip::showText (m_globalpos, label);
 			}
 		}

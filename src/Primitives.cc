@@ -59,7 +59,7 @@ void loadPrimitives()
 	// Try to load prims.cfg
 	QFile conf (Config::filepath ("prims.cfg"));
 
-	if (!conf.open (QIODevice::ReadOnly))
+	if (conf.open (QIODevice::ReadOnly) == false)
 	{
 		// No prims.cfg, build it
 		PrimitiveScanner::start();
@@ -85,7 +85,7 @@ void loadPrimitives()
 		}
 
 		PrimitiveCategory::populateCategories();
-		log ("%1 primitives loaded.\n", g_primitives.size());
+		print ("%1 primitives loaded.\n", g_primitives.size());
 	}
 }
 
@@ -116,7 +116,7 @@ PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 	m_baselen = dir.absolutePath().length();
 	recursiveGetFilenames (dir, m_files);
 	emit starting (m_files.size());
-	log ("Scanning primitives...");
+	print ("Scanning primitives...");
 }
 
 // =============================================================================
@@ -167,7 +167,7 @@ void PrimitiveScanner::work()
 		QFile conf (path);
 
 		if (!conf.open (QIODevice::WriteOnly | QIODevice::Text))
-			critical (fmt ("Couldn't write primitive list %1: %2",
+			critical (format ("Couldn't write primitive list %1: %2",
 				path, conf.errorString()));
 		else
 		{
@@ -179,7 +179,7 @@ void PrimitiveScanner::work()
 
 		g_primitives = m_prims;
 		PrimitiveCategory::populateCategories();
-		log ("%1 primitives scanned", g_primitives.size());
+		print ("%1 primitives scanned", g_primitives.size());
 		g_activeScanner = null;
 		emit workDone();
 		deleteLater();
@@ -281,7 +281,7 @@ void PrimitiveCategory::loadCategories()
 
 	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (fmt (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
+		critical (format (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
 		return;
 	}
 
@@ -316,7 +316,7 @@ void PrimitiveCategory::loadCategories()
 				type = ETitleRegex;
 			else
 			{
-				log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
+				print (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
 				continue;
 			}
 
@@ -325,7 +325,7 @@ void PrimitiveCategory::loadCategories()
 			cat->regexes << entry;
 		}
 		else
-			log ("Warning: Rules given before the first category name");
+			print ("Warning: Rules given before the first category name");
 	}
 
 	if (cat->isValidToInclude())
@@ -343,9 +343,9 @@ void PrimitiveCategory::loadCategories()
 //
 bool PrimitiveCategory::isValidToInclude()
 {
-	if (regexes.size() == 0)
+	if (regexes.isEmpty())
 	{
-		log (tr ("Warning: category \"%1\" left without patterns"), name());
+		print (tr ("Warning: category \"%1\" left without patterns"), name());
 		deleteLater();
 		return false;
 	}
@@ -565,10 +565,10 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 	}
 
 	// Compose some general information: prefix, fraction, root, ring number
-	QString prefix = (divs == g_lores) ? "" : fmt ("%1/", divs);
-	QString frac = fmt ("%1-%2", numer, denom);
+	QString prefix = (divs == g_lores) ? "" : format ("%1/", divs);
+	QString frac = format ("%1-%2", numer, denom);
 	QString root = g_radialNameRoots[type];
-	QString numstr = (type == Ring || type == Cone) ? fmt ("%1", num) : "";
+	QString numstr = (type == Ring || type == Cone) ? format ("%1", num) : "";
 
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
@@ -598,10 +598,10 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 			(num < 10) ? "  " :
 			(num < 100) ? " "  : "";
 
-		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
+		descr = format ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
 	}
 	else
-		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
+		descr = format ("%1 %2", primitiveTypeName (type), frac);
 
 	// Prepend "Hi-Res" if 48/ primitive.
 	if (divs == g_hires)
@@ -616,15 +616,15 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (ld_defaultname.isEmpty() == false)
 	{
 		license = getLicenseText (ld_defaultlicense);
-		author = fmt ("%1 [%2]", ld_defaultname, ld_defaultuser);
+		author = format ("%1 [%2]", ld_defaultname, ld_defaultuser);
 	}
 
 	f->addObjects (
 	{
 		new LDComment (descr),
-		new LDComment (fmt ("Name: %1", name)),
-		new LDComment (fmt ("Author: %1", author)),
-		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : "")),
+		new LDComment (format ("Name: %1", name)),
+		new LDComment (format ("Author: %1", author)),
+		new LDComment (format ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : "")),
 		new LDComment (license),
 		new LDEmpty,
 		new LDBFC (LDBFC::CertifyCCW),

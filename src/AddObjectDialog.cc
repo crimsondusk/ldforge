@@ -126,7 +126,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				for (Primitive& prim : cat->prims)
 				{
 					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
-					item->setText (0, fmt ("%1 - %2", prim.name, prim.title));
+					item->setText (0, format ("%1 - %2", prim.name, prim.title));
 					subfileItems << item;
 
 					// If this primitive is the one the current object points to,
@@ -152,11 +152,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 		default:
 		{
-			critical (fmt ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
+			critical (format ("Unhandled LDObject type %1 (%2) in AddObjectDialog", (int) type, typeName));
 		} return;
 	}
 
-	QPixmap icon = getIcon (fmt ("add-%1", typeName));
+	QPixmap icon = getIcon (format ("add-%1", typeName));
 	LDObject* defaults = LDObject::getDefault (type);
 
 	lb_typeIcon = new QLabel;
@@ -261,7 +261,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	QWidget::connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject()));
 	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
 	setLayout (layout);
-	setWindowTitle (fmt (tr ("Edit %1"), typeName));
+	setWindowTitle (format (tr ("Edit %1"), typeName));
 
 	setWindowIcon (icon);
 	defaults->destroy();
@@ -277,7 +277,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 	button->setAutoFillBackground (true);
 
 	if (col)
-		button->setStyleSheet (fmt ("background-color: %1", col->hexcode));
+		button->setStyleSheet (format ("background-color: %1", col->hexcode));
 }
 
 // =============================================================================
@@ -412,7 +412,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 			if (!file)
 			{
-				critical (fmt ("Couldn't open `%1': %2", name, strerror (errno)));
+				critical (format ("Couldn't open `%1': %2", name, strerror (errno)));
 				return;
 			}
 

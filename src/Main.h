@@ -30,6 +30,7 @@
 #include "Macros.h"
 #include "Version.h"
 #include "Configuration.h"
+#include "Format.h"
 
 // Null pointer
 static const std::nullptr_t null = nullptr;
