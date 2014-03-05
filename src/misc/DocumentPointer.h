@@ -25,7 +25,7 @@ class LDDocument;
 
 class LDDocumentPointer
 {
-	PROPERTY (private, LDDocument*,			Pointer,	NO_OPS, STOCK_WRITE)
+	PROPERTY (private, LDDocument*, pointer, setPointer, STOCK_WRITE)
 
 	public:
 		LDDocumentPointer();
@@ -36,17 +36,17 @@ class LDDocumentPointer
 
 		inline LDDocumentPointer& operator= (LDDocumentPointer& other)
 		{
-			return operator= (other.getPointer());
+			return operator= (other.pointer());
 		}
 
 		inline LDDocument* operator->() const
 		{
-			return getPointer();
+			return pointer();
 		}
 
 		inline operator LDDocument*() const
 		{
-			return getPointer();
+			return pointer();
 		}
 
 	private:

@@ -47,7 +47,7 @@ set (LDForgeSources
 )
 
 set (LDForgeHeaders
-	src/PropertyMacro.h
+	src/Macros.h
 	src/CrashCatcher.h
 	src/Colors.h
 	src/misc/DocumentPointer.h

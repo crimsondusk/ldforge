@@ -45,7 +45,7 @@ QString join (initlist<StringFormatArg> vals, QString delim = " ");
 struct gridinfo
 {
 	const char* const	name;
-	float* const			confs[4];
+	float* const		confs[4];
 };
 
 extern_cfg (Int, grid);

@@ -53,7 +53,7 @@ static QSettings* getSettingsObject()
 }
 
 Config::Config (QString name) :
-	m_Name (name) {}
+	m_name (name) {}
 
 // =============================================================================
 // Load the configuration from file
@@ -68,9 +68,9 @@ bool Config::load()
 		if (!cfg)
 			break;
 
-		QVariant val = settings->value (cfg->getName(), cfg->getDefaultAsVariant());
+		QVariant val = settings->value (cfg->name(), cfg->getDefaultAsVariant());
 		cfg->loadFromVariant (val);
-		g_configsByName[cfg->getName()] = cfg;
+		g_configsByName[cfg->name()] = cfg;
 		g_configs << cfg;
 	}
 
@@ -89,9 +89,9 @@ bool Config::save()
 	for (Config* cfg : g_configs)
 	{
 		if (!cfg->isDefault())
-			settings->setValue (cfg->getName(), cfg->toVariant());
+			settings->setValue (cfg->name(), cfg->toVariant());
 		else
-			settings->remove (cfg->getName());
+			settings->remove (cfg->name());
 	}
 
 	settings->sync();

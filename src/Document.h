@@ -51,19 +51,21 @@ namespace LDPaths
 //
 class LDDocument : public QObject
 {
-	properties:
+	public:
+		using ReferenceList = QList<LDDocumentPointer*>;
+
 		Q_OBJECT
-		PROPERTY (private,	LDObjectList,				Objects, 		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	History*,					History,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,				Vertices,		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QList<LDDocumentPointer*>,	References,		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					Name,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					FullPath,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					DefaultName,	STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	bool,						Implicit,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,	LDObjectList,				Cache,			LIST_OPS,	STOCK_WRITE)
-		PROPERTY (public,	long,						SavePosition,	NUM_OPS,	STOCK_WRITE)
-		PROPERTY (public,	int,						TabIndex,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	QString,		name,			setName,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	objects, 		setObjects,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	cache, 			setCache,			STOCK_WRITE)
+		PROPERTY (private,	History*,		history,		setHistory,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	vertices,		setVertices,		STOCK_WRITE)
+		PROPERTY (private,	ReferenceList,	references,		setReferences,		STOCK_WRITE)
+		PROPERTY (public,	QString,		fullPath,		setFullPath,		STOCK_WRITE)
+		PROPERTY (public,	QString,		defaultName,	setDefaultName,		STOCK_WRITE)
+		PROPERTY (public,	bool,			isImplicit,		setImplicit,		STOCK_WRITE)
+		PROPERTY (public,	long,			savePosition,	setSavePosition,	STOCK_WRITE)
+		PROPERTY (public,	int,			tabIndex,		setTabIndex,		STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -75,7 +77,7 @@ class LDDocument : public QObject
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
 		QString getDisplayName();
 		const LDObjectList& getSelection() const;
-		bool hasUnsavedChanges() const; // Does this Document.have unsaved changes?
+		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
 		LDObjectList inlineContents (LDSubfile::InlineFlags flags);
 		void insertObj (int pos, LDObject* obj);
 		int getObjectCount() const;
@@ -95,27 +97,27 @@ class LDDocument : public QObject
 
 		inline void addHistoryStep()
 		{
-			m_History->addStep();
+			history()->addStep();
 		}
 
 		inline void undo()
 		{
-			m_History->undo();
+			history()->undo();
 		}
 
 		inline void redo()
 		{
-			m_History->redo();
+			history()->redo();
 		}
 
 		inline void clearHistory()
 		{
-			m_History->clear();
+			history()->clear();
 		}
 
 		inline void addToHistory (AbstractHistoryEntry* entry)
 		{
-			*m_History << entry;
+			*history() << entry;
 		}
 
 		static void closeUnused();
@@ -214,13 +216,13 @@ extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files
 class LDFileLoader : public QObject
 {
 	Q_OBJECT
-	PROPERTY (private,	LDObjectList,	Objects,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (private,	int,					Progress,		NUM_OPS,		STOCK_WRITE)
-	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		QStringList,		Lines,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		int*,					Warnings,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		bool,					OnForeground,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	LDObjectList,	objects,		setObjects,			STOCK_WRITE)
+	PROPERTY (private,	bool,			isDone,			setDone,			STOCK_WRITE)
+	PROPERTY (private,	int,			progress,		setProgress,		STOCK_WRITE)
+	PROPERTY (private,	bool,			isAborted,		setAborted,			STOCK_WRITE)
+	PROPERTY (public,	QStringList,	lines,			setLines,			STOCK_WRITE)
+	PROPERTY (public,	int*,			warnings,		setWarnings,		STOCK_WRITE)
+	PROPERTY (public,	bool,			isOnForeground,	setOnForeground,	STOCK_WRITE)
 
 	public slots:
 		void start();

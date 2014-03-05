@@ -65,13 +65,13 @@ class LDSharedVertex;
 // =============================================================================
 class LDObject
 {
-	PROPERTY (public,		bool,			Hidden,			BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		bool,			Selected,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		LDObject*,		Parent,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,	File,			NO_OPS,		STOCK_WRITE) // TODO: rename~
-	PROPERTY (private,		int,			ID,				NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,		int,			Color,			NUM_OPS,	CUSTOM_WRITE)
-	PROPERTY (public,		bool,			GLInit,			BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (public,		bool,			isHidden,		setHidden,		STOCK_WRITE)
+	PROPERTY (public,		bool,			isSelected,		setSelected,	STOCK_WRITE)
+	PROPERTY (public,		LDObject*,		parent,			setParent,		STOCK_WRITE)
+	PROPERTY (public,		LDDocument*,	document,		setDocument,	STOCK_WRITE)
+	PROPERTY (private,		int,			id,				setID,			STOCK_WRITE)
+	PROPERTY (public,		int,			color,			setColor,		CUSTOM_WRITE)
+	PROPERTY (public,		bool,			isGLInit,		setGLInit,		STOCK_WRITE)
 
 	public:
 		// Object type codes.
@@ -227,8 +227,6 @@ class LDSharedVertex
 };
 
 // =============================================================================
-// LDMatrixObject
-// =============================================================================
 //
 // Common code for objects with matrices. This class is multiple-derived in
 // and thus not used directly other than as a common storage point for matrices
@@ -240,28 +238,28 @@ class LDSharedVertex
 // In 0.1-alpha, there was a separate 'radial' type which had a position and
 // matrix as well. Even though right now only LDSubfile uses this, I'm keeping
 // this class distinct in case I get new extension ideas. :)
-// =============================================================================
+//
 class LDMatrixObject
 {
-	PROPERTY (public,	LDObject*,			LinkPointer,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (public,	Matrix,				Transform,		NO_OPS,	CUSTOM_WRITE)
+	PROPERTY (public,	LDObject*,	linkPointer,	setLinkPointer,	STOCK_WRITE)
+	PROPERTY (public,	Matrix,		transform,		setTransform,	CUSTOM_WRITE)
 
 	public:
 		LDMatrixObject() :
-			m_Position (LDSharedVertex::getSharedVertex (g_origin)) {}
+			m_position (LDSharedVertex::getSharedVertex (g_origin)) {}
 
 		LDMatrixObject (const Matrix& transform, const Vertex& pos) :
-			m_Transform (transform),
-			m_Position (LDSharedVertex::getSharedVertex (pos)) {}
+			m_transform (transform),
+			m_position (LDSharedVertex::getSharedVertex (pos)) {}
 
-		inline const Vertex& getPosition() const
+		inline const Vertex& position() const
 		{
-			return m_Position->data();
+			return m_position->data();
 		}
 
 		void setCoordinate (const Axis ax, double value)
 		{
-			Vertex v = getPosition();
+			Vertex v = position();
 			v[ax] = value;
 			setPosition (v);
 		}
@@ -269,17 +267,15 @@ class LDMatrixObject
 		void setPosition (const Vertex& a);
 
 	private:
-		LDSharedVertex*	m_Position;
+		LDSharedVertex*	m_position;
 };
 
 // =============================================================================
-// LDError
 //
 // Represents a line in the LDraw file that could not be properly parsed. It is
 // represented by a (!) ERROR in the code view. It exists for the purpose of
-// allowing garbage lines be debugged and corrected within LDForge. The member
-// zContent contains the contents of the unparsable line.
-// =============================================================================
+// allowing garbage lines be debugged and corrected within LDForge.
+//
 class LDError : public LDObject
 {
 	LDOBJ (Error)
@@ -288,24 +284,21 @@ class LDError : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	QString, FileReferenced, STR_OPS,	STOCK_WRITE)
+	PROPERTY (public,	QString,	fileReferenced, setFileReferenced,	STOCK_WRITE)
+	PROPERTY (private,	QString,	contents,		setContents,		STOCK_WRITE)
+	PROPERTY (private,	QString,	reason,			setReason,			STOCK_WRITE)
 
 	public:
 		LDError();
-		LDError (QString contents, QString reason) : contents (contents), reason (reason) {}
-
-		// Content of this unknown line
-		QString contents;
-
-		// Why is this gibberish?
-		QString reason;
+		LDError (QString contents, QString reason) :
+			m_contents (contents),
+			m_reason (reason) {}
 };
 
 // =============================================================================
-// LDEmpty
 //
 // Represents an empty line in the LDraw code file.
-// =============================================================================
+//
 class LDEmpty : public LDObject
 {
 	LDOBJ (Empty)
@@ -317,13 +310,12 @@ class LDEmpty : public LDObject
 };
 
 // =============================================================================
-// LDComment
 //
-// Represents a code-0 comment in the LDraw code file. Member text contains
-// the text of the comment.
-// =============================================================================
+// Represents a code-0 comment in the LDraw code file.
+//
 class LDComment : public LDObject
 {
+	PROPERTY (public, QString, text, setText, STOCK_WRITE)
 	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
@@ -333,17 +325,14 @@ class LDComment : public LDObject
 
 	public:
 		LDComment() {}
-		LDComment (QString text) : text (text) {}
-
-		QString text; // The text of this comment
+		LDComment (QString text) : m_text (text) {}
 };
 
 // =============================================================================
-// LDBFC
 //
 // Represents a 0 BFC statement in the LDraw code. eStatement contains the type
 // of this statement.
-// =============================================================================
+//
 class LDBFC : public LDObject
 {
 	public:
@@ -366,8 +355,9 @@ class LDBFC : public LDObject
 		LDOBJ_NAME (bfc)
 		LDOBJ_VERTICES (0)
 		LDOBJ_UNCOLORED
-		LDOBJ_CUSTOM_SCEMANTIC { return (m_statement == InvertNext); }
+		LDOBJ_CUSTOM_SCEMANTIC { return (statement() == InvertNext); }
 		LDOBJ_NO_MATRIX
+		PROPERTY (public, Statement, statement, setStatement, STOCK_WRITE)
 
 	public:
 		LDBFC() {}
@@ -376,8 +366,6 @@ class LDBFC : public LDObject
 
 		// Statement strings
 		static const char* k_statementStrings[];
-
-		Statement m_statement;
 };
 
 // =============================================================================
@@ -393,7 +381,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (public,	LDDocumentPointer, FileInfo, NO_OPS,	STOCK_WRITE)
+	PROPERTY (public, LDDocumentPointer, fileInfo, setFileInfo, STOCK_WRITE)
 
 	public:
 		enum InlineFlag
@@ -401,8 +389,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 			DeepInline     = (1 << 0),
 			CacheInline    = (1 << 1),
 			RendererInline = (1 << 2),
-
-			DeepCacheInline = DeepInline | CacheInline,
+			DeepCacheInline = (DeepInline | CacheInline),
 		};
 
 		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
@@ -549,18 +536,18 @@ class LDOverlay : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	int,	 Camera,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int,	 X,			NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int,	 Y,			NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int,	 Width,		NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int,	 Height,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	QString, FileName,	STR_OPS,	STOCK_WRITE)
+	PROPERTY (public,	int,	 camera,	setCamera,		STOCK_WRITE)
+	PROPERTY (public,	int,	 x,			setX,			STOCK_WRITE)
+	PROPERTY (public,	int,	 y,			setY,			STOCK_WRITE)
+	PROPERTY (public,	int,	 width,		setWidth,		STOCK_WRITE)
+	PROPERTY (public,	int,	 height,	setHeight,		STOCK_WRITE)
+	PROPERTY (public,	QString, fileName,	setFileName,	STOCK_WRITE)
 };
 
 // Other common LDraw stuff
-static const QString CALicense = "!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt",
-				 NonCALicense = "!LICENSE Not redistributable : see NonCAreadme.txt";
-static const int lores = 16;
-static const int hires = 48;
+static const QString g_CALicense ("!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt");
+static const QString g_nonCALicense ("!LICENSE Not redistributable : see NonCAreadme.txt");
+static const int g_lores = 16;
+static const int g_hires = 48;
 
 QString getLicenseText (int id);

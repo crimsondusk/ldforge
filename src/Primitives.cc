@@ -143,7 +143,7 @@ void PrimitiveScanner::work()
 		Primitive info;
 		info.name = fname.mid (m_baselen + 1);  // make full path relative
 		info.name.replace ('/', '\\');  // use DOS backslashes, they're expected
-		info.cat = null;
+		info.category = null;
 		QByteArray titledata = f.readLine();
 
 		if (titledata != QByteArray())
@@ -207,7 +207,7 @@ void PrimitiveScanner::start()
 //
 PrimitiveCategory::PrimitiveCategory (QString name, QObject* parent) :
 	QObject (parent),
-	m_Name (name) {}
+	m_name (name) {}
 
 // =============================================================================
 //
@@ -220,7 +220,7 @@ void PrimitiveCategory::populateCategories()
 	for (Primitive& prim : g_primitives)
 	{
 		bool matched = false;
-		prim.cat = null;
+		prim.category = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
@@ -245,20 +245,20 @@ void PrimitiveCategory::populateCategories()
 
 				if (matched)
 				{
-					prim.cat = cat;
+					prim.category = cat;
 					break;
 				}
 			}
 
 			// Drop out if a category was decided on.
-			if (prim.cat != null)
+			if (prim.category != null)
 				break;
 		}
 
 		// If there was a match, add the primitive to the category.
 		// Otherwise, add it to the list of unmatched primitives.
-		if (prim.cat != null)
-			prim.cat->prims << prim;
+		if (prim.category != null)
+			prim.category->prims << prim;
 		else
 			g_unmatched->prims << prim;
 	}
@@ -308,7 +308,7 @@ void PrimitiveCategory::loadCategories()
 		elif (cat != null)
 		{
 			QString cmd = line.left (colon);
-			ERegexType type = EFilenameRegex;
+			RegexType type = EFilenameRegex;
 
 			if (cmd == "f")
 				type = EFilenameRegex;
@@ -345,7 +345,7 @@ bool PrimitiveCategory::isValidToInclude()
 {
 	if (regexes.size() == 0)
 	{
-		log (tr ("Warning: category \"%1\" left without patterns"), getName());
+		log (tr ("Warning: category \"%1\" left without patterns"), name());
 		deleteLater();
 		return false;
 	}
@@ -565,7 +565,7 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 	}
 
 	// Compose some general information: prefix, fraction, root, ring number
-	QString prefix = (divs == lores) ? "" : fmt ("%1/", divs);
+	QString prefix = (divs == g_lores) ? "" : fmt ("%1/", divs);
 	QString frac = fmt ("%1-%2", numer, denom);
 	QString root = g_radialNameRoots[type];
 	QString numstr = (type == Ring || type == Cone) ? fmt ("%1", num) : "";
@@ -604,7 +604,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
 
 	// Prepend "Hi-Res" if 48/ primitive.
-	if (divs == hires)
+	if (divs == g_hires)
 		descr.insert (0, "Hi-Res ");
 
 	LDDocument* f = new LDDocument;
@@ -624,7 +624,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 		new LDComment (descr),
 		new LDComment (fmt ("Name: %1", name)),
 		new LDComment (fmt ("Author: %1", author)),
-		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
+		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : "")),
 		new LDComment (license),
 		new LDEmpty,
 		new LDBFC (LDBFC::CertifyCCW),
@@ -669,12 +669,12 @@ PrimitivePrompt::~PrimitivePrompt()
 //
 void PrimitivePrompt::hiResToggled (bool on)
 {
-	ui->sb_segs->setMaximum (on ? hires : lores);
+	ui->sb_segs->setMaximum (on ? g_hires : g_lores);
 
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
-	if (on && ui->sb_segs->value() == lores)
-		ui->sb_segs->setValue (hires);
+	if (on && ui->sb_segs->value() == g_lores)
+		ui->sb_segs->setValue (g_hires);
 }
 
 // =============================================================================
@@ -687,7 +687,7 @@ DEFINE_ACTION (MakePrimitive, 0)
 		return;
 
 	int segs = dlg->ui->sb_segs->value();
-	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
+	int divs = dlg->ui->cb_hires->isChecked() ? g_hires : g_lores;
 	int num = dlg->ui->sb_ringnum->value();
 	PrimitiveType type =
 		dlg->ui->rb_circle->isChecked()   ? Circle :

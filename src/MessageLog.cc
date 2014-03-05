@@ -83,8 +83,8 @@ void MessageManager::addLine (QString line)
 	m_lines << Line (line);
 
 	// Update the renderer view
-	if (getRenderer())
-		getRenderer()->update();
+	if (renderer())
+		renderer()->update();
 }
 
 // =============================================================================
@@ -108,8 +108,8 @@ void MessageManager::tick()
 		changed |= lineChanged;
 	}
 
-	if (changed && getRenderer())
-		getRenderer()->update();
+	if (changed && renderer())
+		renderer()->update();
 }
 
 // =============================================================================

@@ -17,7 +17,6 @@
  */
 
 #pragma once
-
 #include <QObject>
 
 class InvokationDeferer : public QObject
@@ -41,4 +40,3 @@ class InvokationDeferer : public QObject
 };
 
 void invokeLater (InvokationDeferer::FunctionType func);
-

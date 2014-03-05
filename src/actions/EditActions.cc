@@ -217,7 +217,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	ui.code->setText (obj->asText());
 
 	if (obj->type() == LDObject::EError)
-		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
+		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason());
 	else
 	{
 		ui.errorDescription->hide();
@@ -339,7 +339,7 @@ DEFINE_ACTION (CornerVerts, 0)
 		{
 			LDVertex* vert = new LDVertex;
 			vert->pos = obj->vertex (i);
-			vert->setColor (obj->getColor());
+			vert->setColor (obj->color());
 
 			getCurrentDocument()->insertObj (++ln, vert);
 			R()->compileObject (vert);
@@ -502,12 +502,12 @@ static void doRotate (const int l, const int m, const int n)
 			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
-			Vertex v = mo->getPosition();
+			Vertex v = mo->position();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
 
 			// Transform the matrix
-			mo->setTransform (transform * mo->getTransform());
+			mo->setTransform (transform * mo->transform());
 		}
 		elif (obj->type() == LDObject::EVertex)
 		{
@@ -568,8 +568,8 @@ DEFINE_ACTION (RoundCoordinates, 0)
 
 		if (mo != null)
 		{
-			Vertex v = mo->getPosition();
-			Matrix t = mo->getTransform();
+			Vertex v = mo->position();
+			Matrix t = mo->transform();
 
 			for_axes (ax)
 				roundToDecimals (v[ax], 3);
@@ -740,8 +740,8 @@ DEFINE_ACTION (Demote, 0)
 //
 static bool isColorUsed (int colnum)
 {
-	for (LDObject* obj : getCurrentDocument()->getObjects())
-		if (obj->isColored() && obj->getColor() == colnum)
+	for (LDObject* obj : getCurrentDocument()->objects())
+		if (obj->isColored() && obj->color() == colnum)
 			return true;
 
 	return false;
@@ -810,7 +810,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	{
 		LDComment* comm = dynamic_cast<LDComment*> (obj);
 
-		if (comm && comm->text.startsWith ("!HISTORY "))
+		if (comm != null && comm->text().startsWith ("!HISTORY "))
 			ishistory = true;
 
 		if (prevIsHistory && !ishistory)

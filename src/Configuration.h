@@ -20,7 +20,7 @@
 #include <QString>
 #include <QVariant>
 #include <QKeySequence>
-#include "PropertyMacro.h"
+#include "Macros.h"
 #include "Types.h"
 
 class QSettings;
@@ -37,7 +37,7 @@ class QSettings;
 // =========================================================
 class Config
 {
-	PROPERTY (private, QString, Name, STR_OPS, STOCK_WRITE)
+	PROPERTY (private, QString, name, setName, STOCK_WRITE)
 
 	public:
 		enum Type

@@ -46,7 +46,7 @@ LDDocument* LDDocument::m_curdoc = null;
 const QStringList g_specialSubdirectories ({ "s", "48", "8" });
 
 // =============================================================================
-// =============================================================================
+//
 namespace LDPaths
 {
 	static QString pathError;
@@ -119,7 +119,7 @@ namespace LDPaths
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument::LDDocument() :
 	m_gldata (new LDGLData)
 {
@@ -127,28 +127,28 @@ LDDocument::LDDocument() :
 	setSavePosition (-1);
 	setTabIndex (-1);
 	setHistory (new History);
-	m_History->setDocument (this);
+	history()->setDocument (this);
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument::~LDDocument()
 {
 	// Remove this file from the list of files. This MUST be done FIRST, otherwise
 	// a ton of other functions will think this file is still valid when it is not!
 	g_loadedFiles.removeOne (this);
 
-	m_History->setIgnoring (true);
+	m_history->setIgnoring (true);
 
 	// Clear everything from the model
-	for (LDObject* obj : getObjects())
+	for (LDObject* obj : objects())
 		obj->destroy();
 
 	// Clear the cache as well
-	for (LDObject* obj : getCache())
+	for (LDObject* obj : cache())
 		obj->destroy();
 
-	delete m_History;
+	delete m_history;
 	delete m_gldata;
 
 	// If we just closed the current file, we need to set the current
@@ -179,22 +179,22 @@ LDDocument::~LDDocument()
 		g_logoedStud2 = null;
 
 	g_win->updateDocumentList();
-	log ("Closed %1", getName());
+	log ("Closed %1", name());
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument* findDocument (QString name)
 {
 	for (LDDocument * file : g_loadedFiles)
-		if (!file->getName().isEmpty() && file->getName() == name)
+		if (!file->name().isEmpty() && file->name() == name)
 			return file;
 
 	return null;
 }
 
 // =============================================================================
-// =============================================================================
+//
 QString dirname (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
@@ -211,7 +211,7 @@ QString dirname (QString path)
 }
 
 // =============================================================================
-// =============================================================================
+//
 QString basename (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
@@ -223,7 +223,7 @@ QString basename (QString path)
 }
 
 // =============================================================================
-// =============================================================================
+//
 static QString findLDrawFilePath (QString relpath, bool subdirs)
 {
 	QString fullPath;
@@ -241,10 +241,10 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 
 	for (LDDocument* doc : g_loadedFiles)
 	{
-		if (doc->getFullPath().isEmpty())
+		if (doc->fullPath().isEmpty())
 			continue;
 
-		QString partpath = fmt ("%1/%2", dirname (doc->getFullPath()), relpath);
+		QString partpath = fmt ("%1/%2", dirname (doc->fullPath()), relpath);
 		QFile f (partpath);
 
 		if (f.exists())
@@ -318,7 +318,7 @@ QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDFileLoader::start()
 {
 	setDone (false);
@@ -334,7 +334,7 @@ void LDFileLoader::start()
 		// Of course we cannot exec() the dialog because then the dialog would
 		// block.
 		dlg = new OpenProgressDialog (g_win);
-		dlg->setNumLines (getLines().size());
+		dlg->setNumLines (lines().size());
 		dlg->setModal (true);
 		dlg->show();
 
@@ -350,16 +350,16 @@ void LDFileLoader::start()
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDFileLoader::work (int i)
 {
 	// User wishes to abort, so stop here now.
 	if (isAborted())
 	{
-		for (LDObject* obj : m_Objects)
+		for (LDObject* obj : m_objects)
 			obj->destroy();
 
-		m_Objects.clear();
+		m_objects.clear();
 		setDone (true);
 		return;
 	}
@@ -367,9 +367,9 @@ void LDFileLoader::work (int i)
 	// Parse up to 300 lines per iteration
 	int max = i + 300;
 
-	for (; i < max && i < (int) getLines().size(); ++i)
+	for (; i < max && i < (int) lines().size(); ++i)
 	{
-		QString line = getLines()[i];
+		QString line = lines()[i];
 
 		// Trim the trailing newline
 		QChar c;
@@ -382,13 +382,13 @@ void LDFileLoader::work (int i)
 		// Check for parse errors and warn about tthem
 		if (obj->type() == LDObject::EError)
 		{
-			log ("Couldn't parse line #%1: %2", getProgress() + 1, static_cast<LDError*> (obj)->reason);
+			log ("Couldn't parse line #%1: %2", progress() + 1, static_cast<LDError*> (obj)->reason());
 
-			if (getWarnings() != null)
-				(*getWarnings())++;
+			if (warnings() != null)
+				(*warnings())++;
 		}
 
-		m_Objects << obj;
+		m_objects << obj;
 		setProgress (i);
 
 		// If we have a dialog pointer, update the progress now
@@ -397,7 +397,7 @@ void LDFileLoader::work (int i)
 	}
 
 	// If we're done now, tell the environment we're done and stop.
-	if (i >= ((int) getLines().size()) - 1)
+	if (i >= ((int) lines().size()) - 1)
 	{
 		emit workDone();
 		setDone (true);
@@ -425,7 +425,7 @@ void LDFileLoader::work (int i)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDFileLoader::abort()
 {
 	setAborted (true);
@@ -435,7 +435,7 @@ void LDFileLoader::abort()
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 {
 	QStringList lines;
@@ -465,12 +465,12 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 	if (ok)
 		*ok = !loader->isAborted();
 
-	objs = loader->getObjects();
+	objs = loader->objects();
 	return objs;
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument* openDocument (QString path, bool search)
 {
 	// Convert the file name to lowercase since some parts contain uppercase
@@ -498,12 +498,12 @@ LDDocument* openDocument (QString path, bool search)
 
 	LDDocument* load = new LDDocument;
 	load->setFullPath (fullpath);
-	load->setName (LDDocument::shortenName (load->getFullPath()));
-	dlog ("name: %1 (%2)", load->getName(), load->getFullPath());
+	load->setName (LDDocument::shortenName (load->fullPath()));
+	dlog ("name: %1 (%2)", load->name(), load->fullPath());
 	g_loadedFiles << load;
 
 	// Don't take the file loading as actual edits to the file
-	load->getHistory()->setIgnoring (true);
+	load->history()->setIgnoring (true);
 
 	int numWarnings;
 	bool ok;
@@ -523,16 +523,16 @@ LDDocument* openDocument (QString path, bool search)
 	if (g_loadingMainFile)
 	{
 		LDDocument::setCurrent (load);
-		g_win->R()->setFile (load);
+		g_win->R()->setDocument (load);
 		log (QObject::tr ("File %1 parsed successfully (%2 errors)."), path, numWarnings);
 	}
 
-	load->getHistory()->setIgnoring (false);
+	load->history()->setIgnoring (false);
 	return load;
 }
 
 // =============================================================================
-// =============================================================================
+//
 bool LDDocument::isSafeToClose()
 {
 	typedef QMessageBox msgbox;
@@ -542,7 +542,7 @@ bool LDDocument::isSafeToClose()
 	if (hasUnsavedChanges())
 	{
 		QString message = fmt (tr ("There are unsaved changes to %1. Should it be saved?"),
-			(getName().length() > 0) ? getName() : tr ("<anonymous>"));
+			(name().length() > 0) ? name() : tr ("<anonymous>"));
 
 		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
 			(msgbox::Yes | msgbox::No | msgbox::Cancel), msgbox::Cancel);
@@ -552,10 +552,10 @@ bool LDDocument::isSafeToClose()
 			case msgbox::Yes:
 			{
 				// If we don't have a file path yet, we have to ask the user for one.
-				if (getName().length() == 0)
+				if (name().length() == 0)
 				{
 					QString newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
-						getCurrentDocument()->getName(), tr ("LDraw files (*.dat *.ldr)"));
+						getCurrentDocument()->name(), tr ("LDraw files (*.dat *.ldr)"));
 
 					if (newpath.length() == 0)
 						return false;
@@ -566,7 +566,7 @@ bool LDDocument::isSafeToClose()
 				if (!save())
 				{
 					message = fmt (tr ("Failed to save %1 (%2)\nDo you still want to close?"),
-						getName(), strerror (errno));
+						name(), strerror (errno));
 
 					if (msgbox::critical (g_win, tr ("Save Failure"), message,
 						(msgbox::Yes | msgbox::No), msgbox::No) == msgbox::No)
@@ -588,7 +588,7 @@ bool LDDocument::isSafeToClose()
 }
 
 // =============================================================================
-// =============================================================================
+//
 void closeAll()
 {
 	// Remove all loaded files and the objects they contain
@@ -599,7 +599,7 @@ void closeAll()
 }
 
 // =============================================================================
-// =============================================================================
+//
 void newFile()
 {
 	// Create a new anonymous file and set it to our current
@@ -609,14 +609,14 @@ void newFile()
 	g_loadedFiles << f;
 	LDDocument::setCurrent (f);
 	LDDocument::closeInitialFile();
-	g_win->R()->setFile (f);
+	g_win->R()->setDocument (f);
 	g_win->doFullRefresh();
 	g_win->updateTitle();
 	g_win->updateActions();
 }
 
 // =============================================================================
-// =============================================================================
+//
 void addRecentFile (QString path)
 {
 	auto& rfiles = io_recentfiles;
@@ -656,7 +656,7 @@ void openMainFile (QString path)
 
 	for (LDDocument* doc : g_loadedFiles)
 	{
-		if (doc->getName() == shortName)
+		if (doc->name() == shortName)
 		{
 			documentToReplace = doc;
 			break;
@@ -695,14 +695,14 @@ void openMainFile (QString path)
 	// Replace references to the old file with the new file.
 	if (documentToReplace != null)
 	{
-		for (LDDocumentPointer* ptr : documentToReplace->getReferences())
+		for (LDDocumentPointer* ptr : documentToReplace->references())
 		{	dlog ("ptr: %1 (%2)\n",
-				ptr, ptr->getPointer() ? ptr->getPointer()->getName() : "<null>");
+				ptr, ptr->pointer() ? ptr->pointer()->name() : "<null>");
 
-			ptr->operator= (file);
+			*ptr = file;
 		}
 
-		assert (documentToReplace->countReferences() == 0);
+		assert (documentToReplace->references().isEmpty());
 		delete documentToReplace;
 	}
 
@@ -720,11 +720,11 @@ void openMainFile (QString path)
 }
 
 // =============================================================================
-// =============================================================================
+//
 bool LDDocument::save (QString savepath)
 {
 	if (!savepath.length())
-		savepath = getFullPath();
+		savepath = fullPath();
 
 	QFile f (savepath);
 
@@ -739,24 +739,24 @@ bool LDDocument::save (QString savepath)
 	{
 		LDComment* nameComment = static_cast<LDComment*> (nameObject);
 
-		if (nameComment->text.left (6) == "Name: ")
+		if (nameComment->text().left (6) == "Name: ")
 		{
 			QString newname = shortenName (savepath);
-			nameComment->text = fmt ("Name: %1", newname);
+			nameComment->setText (fmt ("Name: %1", newname));
 			g_win->buildObjList();
 		}
 	}
 
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
-	for (LDObject* obj : getObjects())
+	for (LDObject* obj : objects())
 		f.write ((obj->asText() + "\r\n").toUtf8());
 
 	// File is saved, now clean up.
 	f.close();
 
 	// We have successfully saved, update the save position now.
-	setSavePosition (getHistory()->getPosition());
+	setSavePosition (history()->position());
 	setFullPath (savepath);
 	setName (shortenName (savepath));
 
@@ -766,23 +766,25 @@ bool LDDocument::save (QString savepath)
 }
 
 // =============================================================================
-// =============================================================================
+//
 class LDParseError : public std::exception
 {
-	PROPERTY (private, QString,	Error,	STR_OPS, STOCK_WRITE)
-	PROPERTY (private, QString,	Line,		STR_OPS,	STOCK_WRITE)
+	PROPERTY (private, QString,	error,	setError,	STOCK_WRITE)
+	PROPERTY (private, QString,	line,	setLine,	STOCK_WRITE)
 
 	public:
-		LDParseError (QString line, QString a) : m_Error (a), m_Line (line) {}
+		LDParseError (QString line, QString a) :
+			m_error (a),
+			m_line (line) {}
 
 		const char* what() const throw()
 		{
-			return getError().toLocal8Bit().constData();
+			return qPrintable (error());
 		}
 };
 
 // =============================================================================
-// =============================================================================
+//
 void checkTokenCount (QString line, const QStringList& tokens, int num)
 {
 	if (tokens.size() != num)
@@ -790,7 +792,7 @@ void checkTokenCount (QString line, const QStringList& tokens, int num)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void checkTokenNumbers (QString line, const QStringList& tokens, int min, int max)
 {
 	bool ok;
@@ -808,7 +810,7 @@ void checkTokenNumbers (QString line, const QStringList& tokens, int min, int ma
 }
 
 // =============================================================================
-// =============================================================================
+//
 static Vertex parseVertex (QStringList& s, const int n)
 {
 	Vertex v;
@@ -908,7 +910,7 @@ LDObject* parseLine (QString line)
 
 				// Just a regular comment:
 				LDComment* obj = new LDComment;
-				obj->text = comm;
+				obj->setText (comm);
 				return obj;
 			}
 
@@ -1006,12 +1008,12 @@ LDObject* parseLine (QString line)
 	}
 	catch (LDParseError& e)
 	{
-		return new LDError (e.getLine(), e.getError());
+		return new LDError (e.line(), e.error());
 	}
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument* getDocument (QString filename)
 {
 	// Try find the file in the list of loaded files
@@ -1025,7 +1027,7 @@ LDDocument* getDocument (QString filename)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void reloadAllSubfiles()
 {
 	if (!getCurrentDocument())
@@ -1035,47 +1037,47 @@ void reloadAllSubfiles()
 	g_loadedFiles << getCurrentDocument();
 
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		if (obj->type() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			LDDocument* fileInfo = getDocument (ref->getFileInfo()->getName());
+			LDDocument* fileInfo = getDocument (ref->fileInfo()->name());
 
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDError (ref->asText(), fmt ("Could not open %1", ref->getFileInfo()->getName())));
+				ref->replace (new LDError (ref->asText(), fmt ("Could not open %1", ref->fileInfo()->name())));
 		}
 
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
 		if (obj->type() == LDObject::EError)
-			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
+			obj->replace (parseLine (static_cast<LDError*> (obj)->contents()));
 	}
 }
 
 // =============================================================================
-// =============================================================================
+//
 int LDDocument::addObject (LDObject* obj)
 {
-	getHistory()->add (new AddHistory (getObjects().size(), obj));
-	m_Objects << obj;
+	history()->add (new AddHistory (objects().size(), obj));
+	m_objects << obj;
 
 	if (obj->type() == LDObject::EVertex)
-		m_Vertices << obj;
+		m_vertices << obj;
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Added object #%1 (%2)\n", obj->getID(), obj->typeName());
+		dlog ("Added object #%1 (%2)\n", obj->id(), obj->typeName());
 #endif
 
-	obj->setFile (this);
+	obj->setDocument (this);
 	return getObjectCount() - 1;
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::addObjects (const LDObjectList objs)
 {
 	for (LDObject* obj : objs)
@@ -1084,36 +1086,36 @@ void LDDocument::addObjects (const LDObjectList objs)
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::insertObj (int pos, LDObject* obj)
 {
-	getHistory()->add (new AddHistory (pos, obj));
-	m_Objects.insert (pos, obj);
-	obj->setFile (this);
+	history()->add (new AddHistory (pos, obj));
+	m_objects.insert (pos, obj);
+	obj->setDocument (this);
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Inserted object #%1 (%2) at %3\n", obj->getID(), obj->typeName(), pos);
+		dlog ("Inserted object #%1 (%2) at %3\n", obj->id(), obj->typeName(), pos);
 #endif
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::forgetObject (LDObject* obj)
 {
 	int idx = obj->lineNumber();
 	obj->unselect();
-	assert (m_Objects[idx] == obj);
+	assert (m_objects[idx] == obj);
 
-	if (!getHistory()->isIgnoring())
-		getHistory()->add (new DelHistory (idx, obj));
+	if (!history()->isIgnoring())
+		history()->add (new DelHistory (idx, obj));
 
-	m_Objects.removeAt (idx);
-	obj->setFile (null);
+	m_objects.removeAt (idx);
+	obj->setDocument (null);
 }
 
 // =============================================================================
-// =============================================================================
+//
 bool safeToCloseAll()
 {
 	for (LDDocument* f : g_loadedFiles)
@@ -1124,74 +1126,75 @@ bool safeToCloseAll()
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::setObject (int idx, LDObject* obj)
 {
-	assert (idx >= 0 && idx < m_Objects.size());
+	assert (idx >= 0 && idx < m_objects.size());
 
 	// Mark this change to history
-	if (!m_History->isIgnoring())
+	if (!m_history->isIgnoring())
 	{
 		QString oldcode = getObject (idx)->asText();
 		QString newcode = obj->asText();
-		*m_History << new EditHistory (idx, oldcode, newcode);
+		*m_history << new EditHistory (idx, oldcode, newcode);
 	}
 
-	m_Objects[idx]->unselect();
-	m_Objects[idx]->setFile (null);
-	obj->setFile (this);
-	m_Objects[idx] = obj;
+	m_objects[idx]->unselect();
+	m_objects[idx]->setDocument (null);
+	obj->setDocument (this);
+	m_objects[idx] = obj;
 }
 
 // =============================================================================
-// Close all implicit files with no references
-// =============================================================================
+//
+// Close all documents we don't need anymore
+//
 void LDDocument::closeUnused()
 {
 	for (LDDocument* file : g_loadedFiles)
-		if (file->isImplicit() && file->countReferences() == 0)
+		if (file->isImplicit() && file->references().isEmpty())
 			delete file;
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDObject* LDDocument::getObject (int pos) const
 {
-	if (m_Objects.size() <= pos)
+	if (m_objects.size() <= pos)
 		return null;
 
-	return m_Objects[pos];
+	return m_objects[pos];
 }
 
 // =============================================================================
-// =============================================================================
+//
 int LDDocument::getObjectCount() const
 {
-	return getObjects().size();
+	return objects().size();
 }
 
 // =============================================================================
-// =============================================================================
+//
 bool LDDocument::hasUnsavedChanges() const
 {
-	return !isImplicit() && getHistory()->getPosition() != getSavePosition();
+	return !isImplicit() && history()->position() != savePosition();
 }
 
 // =============================================================================
-// =============================================================================
+//
 QString LDDocument::getDisplayName()
 {
-	if (!getName().isEmpty())
-		return getName();
+	if (!name().isEmpty())
+		return name();
 
-	if (!getDefaultName().isEmpty())
-		return "[" + getDefaultName() + "]";
+	if (!defaultName().isEmpty())
+		return "[" + defaultName() + "]";
 
 	return tr ("<anonymous>");
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 {
 	// Possibly substitute with logoed studs:
@@ -1202,9 +1205,9 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 		// Ensure logoed studs are loaded first
 		loadLogoedStuds();
 
-		if (getName() == "stud.dat" && g_logoedStud)
+		if (name() == "stud.dat" && g_logoedStud)
 			return g_logoedStud->inlineContents (flags);
-		elif (getName() == "stud2.dat" && g_logoedStud2)
+		elif (name() == "stud2.dat" && g_logoedStud2)
 			return g_logoedStud2->inlineContents (flags);
 	}
 
@@ -1215,14 +1218,14 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 
 	if (m_needsCache)
 	{
-		clearCache();
+		m_cache.clear();
 		doCache = true;
 	}
 
 	// If we have this cached, just create a copy of that
-	if (deep && getCache().isEmpty() == false)
+	if (deep && cache().isEmpty() == false)
 	{
-		for (LDObject* obj : getCache())
+		for (LDObject* obj : cache())
 			objs << obj->createCopy();
 	}
 	else
@@ -1230,7 +1233,7 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 		if (!deep)
 			doCache = false;
 
-		for (LDObject* obj : getObjects())
+		for (LDObject* obj : objects())
 		{
 			// Skip those without scemantic meaning
 			if (!obj->isScemantic())
@@ -1273,7 +1276,7 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 }
 
 // =============================================================================
-// =============================================================================
+//
 LDDocument* LDDocument::current()
 {
 	return m_curdoc;
@@ -1300,14 +1303,14 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->updateDocumentListItem (f);
 		g_win->buildObjList();
 		g_win->updateTitle();
-		g_win->R()->setFile (f);
+		g_win->R()->setDocument (f);
 		g_win->R()->repaint();
 		log ("Changed file to %1", f->getDisplayName());
 	}
 }
 
 // =============================================================================
-// =============================================================================
+//
 int LDDocument::countExplicitFiles()
 {
 	int count = 0;
@@ -1327,15 +1330,15 @@ void LDDocument::closeInitialFile()
 {
 	if (
 		countExplicitFiles() == 2 &&
-		g_loadedFiles[0]->getName().isEmpty() &&
-		g_loadedFiles[1]->getName().isEmpty() == false &&
+		g_loadedFiles[0]->name().isEmpty() &&
+		g_loadedFiles[1]->name().isEmpty() == false &&
 		!g_loadedFiles[0]->hasUnsavedChanges()
 	)
 		delete g_loadedFiles[0];
 }
 
 // =============================================================================
-// =============================================================================
+//
 void loadLogoedStuds()
 {
 	if (g_logoedStud && g_logoedStud2)
@@ -1351,31 +1354,31 @@ void loadLogoedStuds()
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::addToSelection (LDObject* obj) // [protected]
 {
 	if (obj->isSelected())
 		return;
 
-	assert (obj->getFile() == this);
+	assert (obj->document() == this);
 	m_sel << obj;
 	obj->setSelected (true);
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::removeFromSelection (LDObject* obj) // [protected]
 {
 	if (!obj->isSelected())
 		return;
 
-	assert (obj->getFile() == this);
+	assert (obj->document() == this);
 	m_sel.removeOne (obj);
 	obj->setSelected (false);
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::clearSelection()
 {
 	for (LDObject* obj : m_sel)
@@ -1385,26 +1388,26 @@ void LDDocument::clearSelection()
 }
 
 // =============================================================================
-// =============================================================================
+//
 const LDObjectList& LDDocument::getSelection() const
 {
 	return m_sel;
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::swapObjects (LDObject* one, LDObject* other)
 {
-	int a = m_Objects.indexOf (one);
-	int b = m_Objects.indexOf (other);
+	int a = m_objects.indexOf (one);
+	int b = m_objects.indexOf (other);
 	assert (a != b && a != -1 && b != -1);
-	m_Objects[b] = one;
-	m_Objects[a] = other;
-	addToHistory (new SwapHistory (one->getID(), other->getID()));
+	m_objects[b] = one;
+	m_objects[a] = other;
+	addToHistory (new SwapHistory (one->id(), other->id()));
 }
 
 // =============================================================================
-// =============================================================================
+//
 QString LDDocument::shortenName (QString a) // [static]
 {
 	QString shortname = basename (a);
@@ -1417,18 +1420,18 @@ QString LDDocument::shortenName (QString a) // [static]
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::addReference (LDDocumentPointer* ptr)
 {
-	pushToReferences (ptr);
+	m_references << ptr;
 }
 
 // =============================================================================
-// =============================================================================
+//
 void LDDocument::removeReference (LDDocumentPointer* ptr)
 {
-	removeFromReferences (ptr);
+	m_references.removeOne (ptr);
 
-	if (getReferences().size() == 0)
+	if (references().isEmpty())
 		invokeLater (closeUnused);
 }

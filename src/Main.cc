@@ -100,4 +100,3 @@ void doPrint (FILE* fp, QList<StringFormatArg> args)
 	fwrite (msg.toStdString().c_str(), 1, msg.length(), fp);
 	fflush (fp);
 }
-

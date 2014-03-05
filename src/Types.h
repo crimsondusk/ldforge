@@ -21,7 +21,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QMetaType>
-#include "PropertyMacro.h"
+#include "Macros.h"
 
 class LDObject;
 class QFile;
@@ -265,9 +265,9 @@ class StringFormatArg
 // =============================================================================
 class LDBoundingBox
 {
-	PROPERTY (private,	bool,		Empty,		BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (private,	Vertex,		Vertex0,	NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	Vertex,		Vertex1,	NO_OPS,		STOCK_WRITE)
+	PROPERTY (private,	bool,		isEmpty,	setEmpty,		STOCK_WRITE)
+	PROPERTY (private,	Vertex,		vertex0,	setVertex0,		STOCK_WRITE)
+	PROPERTY (private,	Vertex,		vertex1,	setVertex1,		STOCK_WRITE)
 
 	public:
 		LDBoundingBox();

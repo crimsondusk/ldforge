@@ -57,8 +57,8 @@ class Ui_LDForgeUI;
 // =============================================================================
 class LDQuickColor
 {
-	PROPERTY (public,	LDColor*,		Color,		NO_OPS,	STOCK_WRITE)
-	PROPERTY (public,	QToolButton*,	ToolButton,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDColor*,		color,		setColor,		STOCK_WRITE)
+	PROPERTY (public,	QToolButton*,	toolButton,	setToolButton,	STOCK_WRITE)
 
 	public:
 		LDQuickColor (LDColor* color, QToolButton* toolButton);
@@ -109,7 +109,6 @@ class MainWindow : public QMainWindow
 		LDObject::Type getUniformSelectedType();
 		void scrollToSelection();
 		void spawnContextMenu (const QPoint pos);
-		void deleteObjects (LDObjectList objs);
 		int deleteSelection();
 		void deleteByColor (const int colnum);
 		bool save (LDDocument* f, bool saveAs);

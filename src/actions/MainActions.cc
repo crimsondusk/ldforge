@@ -89,8 +89,8 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 
 	const QString license =
-		ui.rb_license_ca->isChecked()    ? CALicense :
-		ui.rb_license_nonca->isChecked() ? NonCALicense : "";
+		ui.rb_license_ca->isChecked()    ? g_CALicense :
+		ui.rb_license_nonca->isChecked() ? g_nonCALicense : "";
 
 	getCurrentDocument()->addObjects (
 	{
@@ -285,7 +285,7 @@ DEFINE_ACTION (AboutQt, 0)
 //
 DEFINE_ACTION (SelectAll, CTRL (A))
 {
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 		obj->select();
 
 	updateSelection();
@@ -302,8 +302,8 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
-		if (obj->getColor() == colnum)
+	for (LDObject* obj : getCurrentDocument()->objects())
+		if (obj->color() == colnum)
 			obj->select();
 
 	updateSelection();
@@ -327,21 +327,21 @@ DEFINE_ACTION (SelectByType, 0)
 
 	if (type == LDObject::ESubfile)
 	{
-		refName = static_cast<LDSubfile*> (selection()[0])->getFileInfo()->getName();
+		refName = static_cast<LDSubfile*> (selection()[0])->fileInfo()->name();
 
 		for (LDObject* obj : selection())
-			if (static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
+			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 				return;
 	}
 
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		if (obj->type() != type)
 			continue;
 
-		if (type == LDObject::ESubfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
+		if (type == LDObject::ESubfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
 			continue;
 
 		obj->select();
@@ -489,7 +489,7 @@ DEFINE_ACTION (Screenshot, 0)
 	uchar* imgdata = R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
-	QString root = basename (getCurrentDocument()->getName());
+	QString root = basename (getCurrentDocument()->name());
 
 	if (root.right (4) == ".dat")
 		root.chop (4);
@@ -519,7 +519,7 @@ DEFINE_ACTION (Axes, 0)
 DEFINE_ACTION (VisibilityToggle, 0)
 {
 	for (LDObject* obj : selection())
-		obj->toggleHidden();
+		obj->setHidden (!obj->isHidden());
 
 	refresh();
 }
@@ -710,7 +710,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	if (selection().size() == 0)
 		return;
 
-	QString			parentpath = getCurrentDocument()->getFullPath();
+	QString			parentpath = getCurrentDocument()->fullPath();
 
 	// BFC type of the new subfile - it shall inherit the BFC type of the parent document
 	LDBFC::Statement		bfctype = LDBFC::NoCertify;
@@ -738,7 +738,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// Determine title of subfile
 	if (titleobj != null)
-		subtitle = "~" + titleobj->text;
+		subtitle = "~" + titleobj->text();
 	else
 		subtitle = "~subfile";
 
@@ -748,7 +748,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// If this the parent document isn't already in s/, we need to stuff it into
 	// a subdirectory named s/. Ensure it exists!
-	QString topdirname = basename (dirname (getCurrentDocument()->getFullPath()));
+	QString topdirname = basename (dirname (getCurrentDocument()->fullPath()));
 
 	if (topdirname != "s")
 	{
@@ -795,14 +795,14 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// Determine the BFC winding type used in the main document - it is to
 	// be carried over to the subfile.
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
 
 		if (!bfc)
 			continue;
 
-		LDBFC::Statement a = bfc->m_statement;
+		LDBFC::Statement a = bfc->statement();
 
 		if (a == LDBFC::CertifyCCW || a == LDBFC::CertifyCW || a == LDBFC::NoCertify)
 		{
@@ -847,7 +847,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 			obj->destroy();
 
 		// Compile all objects in the new subfile
-		for (LDObject* obj : doc->getObjects())
+		for (LDObject* obj : doc->objects())
 			R()->compileObject (obj);
 
 		g_loadedFiles << doc;

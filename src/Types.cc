@@ -307,7 +307,7 @@ void LDBoundingBox::calculate()
 	if (!getCurrentDocument())
 		return;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 		calcObject (obj);
 }
 
@@ -366,8 +366,8 @@ void LDBoundingBox::calcVertex (const Vertex& v)
 {
 	for_axes (ax)
 	{
-		m_Vertex0[ax] = min (v[ax], m_Vertex0[ax]);
-		m_Vertex1[ax] = max (v[ax], m_Vertex1[ax]);
+		m_vertex0[ax] = min (v[ax], m_vertex0[ax]);
+		m_vertex1[ax] = max (v[ax], m_vertex1[ax]);
 	}
 
 	setEmpty (false);
@@ -377,8 +377,8 @@ void LDBoundingBox::calcVertex (const Vertex& v)
 //
 void LDBoundingBox::reset()
 {
-	m_Vertex0[X] = m_Vertex0[Y] = m_Vertex0[Z] = 10000.0;
-	m_Vertex1[X] = m_Vertex1[Y] = m_Vertex1[Z] = -10000.0;
+	m_vertex0[X] = m_vertex0[Y] = m_vertex0[Z] = 10000.0;
+	m_vertex1[X] = m_vertex1[Y] = m_vertex1[Z] = -10000.0;
 	setEmpty (true);
 }
 
@@ -386,9 +386,9 @@ void LDBoundingBox::reset()
 //
 double LDBoundingBox::size() const
 {
-	double xscale = (m_Vertex0[X] - m_Vertex1[X]);
-	double yscale = (m_Vertex0[Y] - m_Vertex1[Y]);
-	double zscale = (m_Vertex0[Z] - m_Vertex1[Z]);
+	double xscale = (m_vertex0[X] - m_vertex1[X]);
+	double yscale = (m_vertex0[Y] - m_vertex1[Y]);
+	double zscale = (m_vertex0[Z] - m_vertex1[Z]);
 	double size = zscale;
 
 	if (xscale > yscale)
@@ -410,7 +410,7 @@ double LDBoundingBox::size() const
 Vertex LDBoundingBox::center() const
 {
 	return Vertex (
-		(m_Vertex0[X] + m_Vertex1[X]) / 2,
-		(m_Vertex0[Y] + m_Vertex1[Y]) / 2,
-		(m_Vertex0[Z] + m_Vertex1[Z]) / 2);
+		(m_vertex0[X] + m_vertex1[X]) / 2,
+		(m_vertex0[Y] + m_vertex1[Y]) / 2,
+		(m_vertex0[Z] + m_vertex1[Z]) / 2);
 }

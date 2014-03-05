@@ -34,7 +34,7 @@ class QAbstractButton;
 //
 class PartDownloader : public QDialog
 {
-	typedefs:
+	public:
 		enum Source
 		{
 			PartsTracker,
@@ -56,26 +56,25 @@ class PartDownloader : public QDialog
 
 		using RequestList = QList<PartDownloadRequest*>;
 
-	properties:
 		Q_OBJECT
-		PROPERTY (public,	LDDocument*, 		PrimaryFile,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,	bool,				Aborted,			BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (private,	Ui_DownloadFrom*,	Interface,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QStringList,			FilesToDownload,		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	RequestList,		Requests,			LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QPushButton*,		DownloadButton,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	LDDocument*, 		primaryFile,		setPrimaryFile,		STOCK_WRITE)
+		PROPERTY (public,	bool,				isAborted,			setAborted,			STOCK_WRITE)
+		PROPERTY (private,	Ui_DownloadFrom*,	interface,			setInterface,		STOCK_WRITE)
+		PROPERTY (private,	QStringList,		filesToDownload,	setFilesToDownload,	STOCK_WRITE)
+		PROPERTY (private,	RequestList,		requests,			setRequests,		STOCK_WRITE)
+		PROPERTY (private,	QPushButton*,		downloadButton,		setDownloadButton,	STOCK_WRITE)
 
 	public:
 		explicit		PartDownloader (QWidget* parent = null);
 		virtual			~PartDownloader();
 
 		void			downloadFile (QString dest, QString url, bool primary);
-		QPushButton*		getButton (Button i);
-		QString				getURL() const;
+		QPushButton*	getButton (Button i);
+		QString			getURL() const;
 		Source			getSource() const;
 		void			modifyDestination (QString& dest) const;
 
-		static QString		getDownloadPath();
+		static QString	getDownloadPath();
 		static void		staticBegin();
 
 	public slots:
@@ -88,7 +87,7 @@ class PartDownloader : public QDialog
 //
 class PartDownloadRequest : public QObject
 {
-	typedefs:
+	public:
 		enum EState
 		{
 			ERequesting,
@@ -97,21 +96,20 @@ class PartDownloadRequest : public QObject
 			EFailed,
 		};
 
-	properties:
 		Q_OBJECT
-		PROPERTY (public,	int,						TableRow,		NUM_OPS,	STOCK_WRITE)
-		PROPERTY (private,	EState,					State,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	PartDownloader*,			Prompt,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QString,					URL,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QString,					Destinaton,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QString,					FilePath,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QNetworkAccessManager*,	NAM,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	QNetworkReply*,			Reply,			NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	bool,					FirstUpdate,	BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (private,	int64,					BytesRead,		NUM_OPS,	STOCK_WRITE)
-		PROPERTY (private,	int64,					BytesTotal,		NUM_OPS,	STOCK_WRITE)
-		PROPERTY (private,	bool,					Primary,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QFile*,					FilePointer,	NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	int,					tableRow,		setTableRow,		STOCK_WRITE)
+		PROPERTY (private,	EState,					state,			setState,			STOCK_WRITE)
+		PROPERTY (private,	PartDownloader*,		prompt,			setPrompt,			STOCK_WRITE)
+		PROPERTY (private,	QString,				url,			setURL,				STOCK_WRITE)
+		PROPERTY (private,	QString,				destinaton,		setDestination,		STOCK_WRITE)
+		PROPERTY (private,	QString,				filePath,		setFilePath,		STOCK_WRITE)
+		PROPERTY (private,	QNetworkAccessManager*,	networkManager,	setNetworkManager,	STOCK_WRITE)
+		PROPERTY (private,	QNetworkReply*,			networkReply,	setNetworkReply,	STOCK_WRITE)
+		PROPERTY (private,	bool,					isFirstUpdate,	setFirstUpdate,		STOCK_WRITE)
+		PROPERTY (private,	int64,					numBytesRead,	setNumBytesRead,	STOCK_WRITE)
+		PROPERTY (private,	int64,					numBytesTotal,	setNumBytesTotal,	STOCK_WRITE)
+		PROPERTY (private,	bool,					isPrimary,		setPrimary,			STOCK_WRITE)
+		PROPERTY (private,	QFile*,					filePointer,	setFilePointer,		STOCK_WRITE)
 
 	public:
 		explicit PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent);
@@ -119,7 +117,6 @@ class PartDownloadRequest : public QObject
 		virtual ~PartDownloadRequest();
 		void updateToTable();
 		bool isFinished() const;
-
 		void operator= (const PartDownloadRequest&) = delete;
 
 	public slots:

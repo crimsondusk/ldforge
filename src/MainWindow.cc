@@ -228,9 +228,9 @@ void MainWindow::updateToolBars()
 		else
 		{
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.getColor(), 22));
+			colorButton->setIcon (makeColorIcon (entry.color(), 22));
 			colorButton->setIconSize (QSize (22, 22));
-			colorButton->setToolTip (entry.getColor()->name);
+			colorButton->setToolTip (entry.color()->name);
 
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
 			ui->colorToolbar->addWidget (colorButton);
@@ -262,8 +262,8 @@ void MainWindow::updateTitle()
 	// Append our current file if we have one
 	if (getCurrentDocument())
 	{
-		if (getCurrentDocument()->getName().length() > 0)
-			title += fmt (": %1", basename (getCurrentDocument()->getName()));
+		if (getCurrentDocument()->name().length() > 0)
+			title += fmt (": %1", basename (getCurrentDocument()->name()));
 		else
 			title += fmt (": <anonymous>");
 
@@ -272,10 +272,10 @@ void MainWindow::updateTitle()
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
-			title += fmt (": %1", comm->text);
+			title += fmt (": %1", comm->text());
 		}
 
-		if (getCurrentDocument()->getHistory()->getPosition() != getCurrentDocument()->getSavePosition())
+		if (getCurrentDocument()->hasUnsavedChanges())
 			title += '*';
 	}
 
@@ -326,7 +326,7 @@ void MainWindow::buildObjList()
 
 	ui->objectList->clear();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		QString descr;
 
@@ -334,7 +334,7 @@ void MainWindow::buildObjList()
 		{
 			case LDObject::EComment:
 			{
-				descr = static_cast<LDComment*> (obj)->text;
+				descr = static_cast<LDComment*> (obj)->text();
 
 				// Remove leading whitespace
 				while (descr[0] == ' ')
@@ -377,10 +377,10 @@ void MainWindow::buildObjList()
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().toString (true));
+				descr = fmt ("%1 %2, (", ref->fileInfo()->getDisplayName(), ref->position().toString (true));
 
 				for (int i = 0; i < 9; ++i)
-					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");
+					descr += fmt ("%1%2", ref->transform()[i], (i != 8) ? " " : "");
 
 				descr += ')';
 				break;
@@ -388,16 +388,16 @@ void MainWindow::buildObjList()
 
 			case LDObject::EBFC:
 			{
-				descr = LDBFC::k_statementStrings[static_cast<LDBFC*> (obj)->m_statement];
+				descr = LDBFC::k_statementStrings[static_cast<LDBFC*> (obj)->statement()];
 				break;
 			}
 
 			case LDObject::EOverlay:
 			{
 				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
-				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->getCamera()],
-					basename (ovl->getFileName()), ovl->getX(), ovl->getY(),
-					ovl->getWidth(), ovl->getHeight());
+				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
+					basename (ovl->fileName()), ovl->x(), ovl->y(),
+					ovl->width(), ovl->height());
 				break;
 			}
 
@@ -425,11 +425,11 @@ void MainWindow::buildObjList()
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		}
-		elif (lv_colorize && obj->isColored() && obj->getColor() != maincolor && obj->getColor() != edgecolor)
+		elif (lv_colorize && obj->isColored() && obj->color() != maincolor && obj->color() != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			LDColor* col = getColor (obj->getColor());
+			LDColor* col = getColor (obj->color());
 
 			if (col)
 				item->setForeground (col->faceColor);
@@ -474,7 +474,7 @@ void MainWindow::slot_selectionChanged()
 	getCurrentDocument()->clearSelection();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		for (QListWidgetItem* item : items)
 		{
@@ -513,9 +513,9 @@ void MainWindow::slot_quickColor()
 
 	for (const LDQuickColor& entry : m_quickColors)
 	{
-		if (entry.getToolButton() == button)
+		if (entry.toolButton() == button)
 		{
-			col = entry.getColor();
+			col = entry.color();
 			break;
 		}
 	}
@@ -572,7 +572,7 @@ void MainWindow::updateSelection()
 {
 	g_isSelectionLocked = true;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 		obj->setSelected (false);
 
 	ui->objectList->clearSelection();
@@ -601,11 +601,11 @@ int MainWindow::getSelectedColor()
 		if (obj->isColored() == false)
 			continue; // doesn't use color
 
-		if (result != -1 && obj->getColor() != result)
+		if (result != -1 && obj->color() != result)
 			return -1; // No consensus in object color
 
 		if (result == -1)
-			result = obj->getColor();
+			result = obj->color();
 	}
 
 	return result;
@@ -619,7 +619,7 @@ LDObject::Type MainWindow::getUniformSelectedType()
 
 	for (LDObject* obj : selection())
 	{
-		if (result != LDObject::EUnidentified && obj->getColor() != result)
+		if (result != LDObject::EUnidentified && obj->color() != result)
 			return LDObject::EUnidentified;
 
 		if (result == LDObject::EUnidentified)
@@ -695,36 +695,28 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 }
 
 // =============================================================================
-// TODO: what the heh?
 //
-void MainWindow::deleteObjects (LDObjectList objs)
+void MainWindow::deleteByColor (const int colnum)
 {
+	LDObjectList objs;
+
+	for (LDObject* obj : getCurrentDocument()->objects())
+	{
+		if (!obj->isColored() || obj->color() != colnum)
+			continue;
+
+		objs << obj;
+	}
+
 	for (LDObject* obj : objs)
 		obj->destroy();
 }
 
 // =============================================================================
 //
-void MainWindow::deleteByColor (const int colnum)
-{
-	LDObjectList objs;
-
-	for (LDObject* obj : getCurrentDocument()->getObjects())
-	{
-		if (!obj->isColored() || obj->getColor() != colnum)
-			continue;
-
-		objs << obj;
-	}
-
-	deleteObjects (objs);
-}
-
-// =============================================================================
-//
 void MainWindow::updateEditModeActions()
 {
-	const EditMode mode = R()->getEditMode();
+	const EditMode mode = R()->editMode();
 	ui->actionModeSelect->setChecked (mode == ESelectMode);
 	ui->actionModeDraw->setChecked (mode == EDrawMode);
 	ui->actionModeCircle->setChecked (mode == ECircleMode);
@@ -736,7 +728,7 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 {
 	LDObject* obj = null;
 
-	for (LDObject* it : getCurrentDocument()->getObjects())
+	for (LDObject* it : getCurrentDocument()->objects())
 	{
 		if (it->qObjListEntry == listitem)
 		{
@@ -752,16 +744,16 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 //
 bool MainWindow::save (LDDocument* f, bool saveAs)
 {
-	QString path = f->getFullPath();
+	QString path = f->fullPath();
 
 	if (saveAs || path.isEmpty())
 	{
-		QString name = f->getDefaultName();
+		QString name = f->defaultName();
 
-		if (!f->getFullPath().isEmpty()) 
-			name = f->getFullPath();
-		elif (!f->getName().isEmpty())
-			name = f->getName();
+		if (!f->fullPath().isEmpty()) 
+			name = f->fullPath();
+		elif (!f->name().isEmpty())
+			name = f->name();
 
 		name.replace ("\\", "/");
 		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
@@ -872,15 +864,15 @@ void makeColorComboBox (QComboBox* box)
 {
 	std::map<int, int> counts;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		if (!obj->isColored())
 			continue;
 
-		if (counts.find (obj->getColor()) == counts.end())
-			counts[obj->getColor()] = 1;
+		if (counts.find (obj->color()) == counts.end())
+			counts[obj->color()] = 1;
 		else
-			counts[obj->getColor()]++;
+			counts[obj->color()]++;
 	}
 
 	box->clear();
@@ -927,7 +919,7 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 	bool oldUpdatingTabs = m_updatingTabs;
 	m_updatingTabs = true;
 
-	if (f->getTabIndex() == -1)
+	if (f->tabIndex() == -1)
 	{
 		// We don't have a list item for this file, so the list either doesn't
 		// exist yet or is out of date. Build the list now.
@@ -938,12 +930,12 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 	// If this is the current file, it also needs to be the selected item on
 	// the list.
 	if (f == getCurrentDocument())
-		m_tabs->setCurrentIndex (f->getTabIndex());
+		m_tabs->setCurrentIndex (f->tabIndex());
 
-	m_tabs->setTabText (f->getTabIndex(), f->getDisplayName());
+	m_tabs->setTabText (f->tabIndex(), f->getDisplayName());
 
 	// If the document.has unsaved changes, draw a little icon next to it to mark that.
-	m_tabs->setTabIcon (f->getTabIndex(), f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	m_tabs->setTabIcon (f->tabIndex(), f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 	m_updatingTabs = oldUpdatingTabs;
 }
 
@@ -961,7 +953,7 @@ void MainWindow::changeCurrentFile()
 	// Find the file pointer of the item that was selected.
 	for (LDDocument* it : g_loadedFiles)
 	{
-		if (it->getTabIndex() == tabIndex)
+		if (it->tabIndex() == tabIndex)
 		{
 			f = it;
 			break;
@@ -992,8 +984,8 @@ for (LDObject* obj : *f)
 
 void MainWindow::updateActions()
 {
-	History* his = getCurrentDocument()->getHistory();
-	int pos = his->getPosition();
+	History* his = getCurrentDocument()->history();
+	int pos = his->position();
 	ui->actionUndo->setEnabled (pos != -1);
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
 	ui->actionAxes->setChecked (gl_axes);
@@ -1010,8 +1002,8 @@ QImage imageFromScreencap (uchar* data, int w, int h)
 // =============================================================================
 //
 LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
-	m_Color (color),
-	m_ToolButton (toolButton) {}
+	m_color (color),
+	m_toolButton (toolButton) {}
 
 LDQuickColor LDQuickColor::getSeparator()
 {
@@ -1020,5 +1012,5 @@ LDQuickColor LDQuickColor::getSeparator()
 
 bool LDQuickColor::isSeparator() const
 {
-	return getColor() == null;
+	return color() == null;
 }

@@ -220,7 +220,7 @@ Vertex rotPoint (const LDObjectList& objs)
 			for (LDObject* obj : objs)
 			{
 				if (obj->hasMatrix())
-					box << dynamic_cast<LDMatrixObject*> (obj)->getPosition();
+					box << dynamic_cast<LDMatrixObject*> (obj)->position();
 				else
 					box << obj;
 			}

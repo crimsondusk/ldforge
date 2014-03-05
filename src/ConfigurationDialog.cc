@@ -411,7 +411,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 		}
 		else
 		{
-			LDColor* col = entry.getColor();
+			LDColor* col = entry.color();
 
 			if (col == null)
 			{
@@ -459,7 +459,7 @@ void ConfigDialog::slot_setColor()
 			return; // don't color separators
 	}
 
-	int defval = entry ? entry->getColor()->index : -1;
+	int defval = entry ? entry->color()->index : -1;
 	int val;
 
 	if (ColorSelector::selectColor (val, defval, this) == false)
@@ -519,8 +519,9 @@ void ConfigDialog::slot_moveColor()
 }
 
 // =============================================================================
+//
 // Add a separator to quick colors
-// =============================================================================
+//
 void ConfigDialog::slot_addColorSeparator()
 {
 	quickColors << LDQuickColor::getSeparator();
@@ -528,8 +529,9 @@ void ConfigDialog::slot_addColorSeparator()
 }
 
 // =============================================================================
+//
 // Clear all quick colors
-// =============================================================================
+//
 void ConfigDialog::slot_clearColors()
 {
 	quickColors.clear();
@@ -537,8 +539,9 @@ void ConfigDialog::slot_clearColors()
 }
 
 // =============================================================================
+//
 // Pick a color and set the appropriate configuration option.
-// =============================================================================
+//
 void ConfigDialog::pickColor (QString& conf, QPushButton* button)
 {
 	QColor col = QColorDialog::getColor (QColor (conf));
@@ -641,7 +644,7 @@ void ConfigDialog::slot_setShortcut()
 
 	ShortcutListItem* item = sel[0];
 
-	if (KeySequenceDialog::staticDialog (item->getKeyConfig(), this))
+	if (KeySequenceDialog::staticDialog (item->keyConfig(), this))
 		setShortcutText (item);
 }
 
@@ -654,7 +657,7 @@ void ConfigDialog::slot_resetShortcut()
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->getKeyConfig()->reset();
+		item->keyConfig()->reset();
 		setShortcutText (item);
 	}
 }
@@ -668,7 +671,7 @@ void ConfigDialog::slot_clearShortcut()
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->getKeyConfig()->setValue (QKeySequence());
+		item->keyConfig()->setValue (QKeySequence());
 		setShortcutText (item);
 	}
 }
@@ -699,8 +702,9 @@ void ConfigDialog::slot_setExtProgPath()
 }
 
 // =============================================================================
+//
 // '...' button pressed for the download path
-// =============================================================================
+//
 void ConfigDialog::slot_findDownloadFolder()
 {
 	QString dpath = QFileDialog::getExistingDirectory();
@@ -708,13 +712,14 @@ void ConfigDialog::slot_findDownloadFolder()
 }
 
 // =============================================================================
+//
 // Updates the text string for a given shortcut list item
-// =============================================================================
+//
 void ConfigDialog::setShortcutText (ShortcutListItem* item)
 {
-	QAction* act = item->getAction();
+	QAction* act = item->action();
 	QString label = act->iconText();
-	QString keybind = item->getKeyConfig()->getValue().toString();
+	QString keybind = item->keyConfig()->getValue().toString();
 	item->setText (fmt ("%1 (%2)", label, keybind));
 }
 
@@ -733,7 +738,7 @@ QString ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += fmt ("%1", entry.getColor()->index);
+			val += fmt ("%1", entry.color()->index);
 	}
 
 	return val;

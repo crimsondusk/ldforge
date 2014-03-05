@@ -219,9 +219,9 @@ void writeColorGroup (const int colnum, QString fname)
 {
 	LDObjectList objects;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
-		if (obj->isColored() == false || obj->getColor() != colnum)
+		if (obj->isColored() == false || obj->color() != colnum)
 			continue;
 
 		objects << obj;

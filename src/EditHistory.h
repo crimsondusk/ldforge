@@ -40,9 +40,9 @@ class AbstractHistoryEntry;
 // =============================================================================
 class History
 {
-	PROPERTY (private,	int,			Position,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	LDDocument*,	Document,	NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,	bool,			Ignoring,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,			position,	setPosition,	STOCK_WRITE)
+	PROPERTY (public,	LDDocument*,	document,	setDocument,	STOCK_WRITE)
+	PROPERTY (public,	bool,			isIgnoring,	setIgnoring,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;
@@ -86,11 +86,10 @@ class History
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class AbstractHistoryEntry
 {
-	PROPERTY (public,	History*,	Parent,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	History*,	parent,	setParent,	STOCK_WRITE)
 
 	public:
 		virtual ~AbstractHistoryEntry() {}
@@ -101,12 +100,11 @@ class AbstractHistoryEntry
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class DelHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int,		Index,		NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
+	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
@@ -114,21 +112,20 @@ class DelHistory : public AbstractHistoryEntry
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class EditHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int, 		Index,		NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString,	OldCode,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString,	NewCode,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int, 		index,		setIndex,	STOCK_WRITE)
+	PROPERTY (private,	QString,	oldCode,	setOldCode,	STOCK_WRITE)
+	PROPERTY (private,	QString,	newCode,	setNewCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
 
 		EditHistory (int idx, QString oldCode, QString newCode) :
-				m_Index (idx),
-				m_OldCode (oldCode),
-				m_NewCode (newCode) {}
+			m_index (idx),
+			m_oldCode (oldCode),
+			m_newCode (newCode) {}
 };
 
 // =============================================================================
@@ -136,20 +133,19 @@ class EditHistory : public AbstractHistoryEntry
 // =============================================================================
 class AddHistory : public AbstractHistoryEntry
 {
-	PROPERTY (private,	int,		Index,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (private,	QString,	Code,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
+	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)
 
 		AddHistory (int idx, LDObject* obj) :
-				m_Index (idx),
-				m_Code (obj->asText()) {}
+			m_index (idx),
+			m_code (obj->asText()) {}
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class MoveHistory : public AbstractHistoryEntry
 {
 	public:
@@ -164,16 +160,15 @@ class MoveHistory : public AbstractHistoryEntry
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class SwapHistory : public AbstractHistoryEntry
 {
 	public:
 		IMPLEMENT_HISTORY_TYPE (Swap)
 
 		SwapHistory (int a, int b) :
-				a (a),
-				b (b) {}
+			a (a),
+			b (b) {}
 
 	private:
 		int a, b;
