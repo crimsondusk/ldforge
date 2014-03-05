@@ -21,13 +21,13 @@
 #include "../Main.h"
 
 //!
-//! @brief Provides an algorithm for finding solutions of rings between given radii.
+//! \brief Provides an algorithm for finding solutions of rings between given radii.
 //!
 //! The RingFinder is a class which implements a ring finding algorithm. It is passed
 //! two radii and it tries to find solutions of rings that would fill the given space.
 //!
-//! @note It is not fool-proof and does not always yield a solution, never assume
-//! @note that one is a available as none is guaranteed.
+//! \note It is not fool-proof and does not always yield a solution, never assume
+//! \note that one is a available as none is guaranteed.
 //!
 class RingFinder
 {
@@ -43,7 +43,7 @@ class RingFinder
 		class Solution
 		{
 			public:
-				//! @returns components of this solution
+				//! \returns components of this solution
 				inline const QVector<Component>& getComponents() const
 				{
 					return m_components;
@@ -55,9 +55,9 @@ class RingFinder
 					m_components.push_back (a);
 				}
 
-				//! @brief Compare solutions.
+				//! \brief Compare solutions.
 				//!
-				//! Compares this solution with @c other and determines which
+				//! Compares this solution with \c other and determines which
 				//! one is superior.
 				//!
 				//! A solution is considered superior if solution has less
@@ -67,11 +67,11 @@ class RingFinder
 				//! yield less new primitives and cleaner definitions.
 				//!
 				//! The solution which is found superior to every other solution
-				//! will be the one returned by @c RingFinder::bestSolution().
+				//! will be the one returned by \c RingFinder::bestSolution().
 				//!
-				//! @param other the solution to check against
-				//! @returns whether this solution is considered superior
-				//! @returns to @c other.
+				//! \param other the solution to check against
+				//! \returns whether this solution is considered superior
+				//! \returns to \c other.
 				//!
 				bool isSuperiorTo (const Solution* other) const;
 
@@ -82,7 +82,7 @@ class RingFinder
 		//! Constructs a ring finder.
 		RingFinder() {}
 
-		//! @brief Tries to find rings between @c r0 and @c r1.
+		//! \brief Tries to find rings between \c r0 and \c r1.
 		//!
 		//! This is the main algorithm of the ring finder. It tries to use math
 		//! to find the one ring between r0 and r1. If it fails (the ring number
@@ -94,23 +94,23 @@ class RingFinder
 		//! r0 or r == r1, there is no hope of finding the rings, at least with
 		//! this algorithm, as it would fall into an infinite recursion.
 		//!
-		//! @param r0 the lower radius of the ring space
-		//! @param r1 the higher radius of the ring space
-		//! @returns whether it was possible to find a solution for the given
-		//! @returns ring space.
+		//! \param r0 the lower radius of the ring space
+		//! \param r1 the higher radius of the ring space
+		//! \returns whether it was possible to find a solution for the given
+		//! \returns ring space.
 		//!
 		bool findRings (double r0, double r1);
 
-		//! @returns the solution that was considered best. Returns @c null
-		//! @returns if no suitable solution was found.
-		//! @see @c RingFinder::Solution::isSuperiorTo()
+		//! \returns the solution that was considered best. Returns \c null
+		//! \returns if no suitable solution was found.
+		//! \see \c RingFinder::Solution::isSuperiorTo()
 		inline const Solution* bestSolution()
 		{
 			return m_bestSolution;
 		}
 
-		//! @returns all found solutions. The list is empty if no solutions
-		//! @returns were found.
+		//! \returns all found solutions. The list is empty if no solutions
+		//! \returns were found.
 		inline const QVector<Solution>& allSolutions() const
 		{
 			return m_solutions;
@@ -121,7 +121,7 @@ class RingFinder
 		const Solution*   m_bestSolution;
 		int               m_stack;
 
-		//! Helper function for @c findRings
+		//! Helper function for \c findRings
 		bool findRingsRecursor (double r0, double r1, Solution& currentSolution);
 };
 

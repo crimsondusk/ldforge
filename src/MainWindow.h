@@ -79,10 +79,10 @@ class ObjectList : public QListWidget
 };
 
 //!
-//! @brief The main window class.
+//! \brief The main window class.
 //!
 //! The MainWindow is LDForge's main GUI. It hosts the renderer, the object list,
-//! the message log, etc. Contains @c slot_action(), which is what all actions
+//! the message log, etc. Contains \c slot_action(), which is what all actions
 //! connect to.
 //!
 class MainWindow : public QMainWindow
@@ -106,7 +106,7 @@ class MainWindow : public QMainWindow
 		//! Builds the object list and tells the GL renderer to do a soft update.
 		void refresh();
 
-		//! @returns the suggested position to place a new object at.
+		//! \returns the suggested position to place a new object at.
 		int getInsertionPoint();
 
 		//! Updates the quick color toolbar
@@ -127,16 +127,16 @@ class MainWindow : public QMainWindow
 		//! Rebuilds the document tab list.
 		void updateDocumentList();
 
-		//! Updates the document tab for @c doc. If no such tab exists, the
+		//! Updates the document tab for \c doc. If no such tab exists, the
 		//! document list is rebuilt instead.
 		void updateDocumentListItem (LDDocument* doc);
 
-		//! @returns the uniform selected color (i.e. 4 if everything selected is
+		//! \returns the uniform selected color (i.e. 4 if everything selected is
 		//! red), -1 if there is no such consensus.
 		int getSelectedColor();
 
-		//! @returns the uniform selected type (i.e. @c LDObject::ELine if everything
-		//! selected is a line), @c LDObject::EUnidentified if there is no such
+		//! \returns the uniform selected type (i.e. \c LDObject::ELine if everything
+		//! selected is a line), \c LDObject::EUnidentified if there is no such
 		//! consensus.
 		LDObject::Type getUniformSelectedType();
 
@@ -148,16 +148,16 @@ class MainWindow : public QMainWindow
 		void spawnContextMenu (const QPoint pos);
 
 		//! Deletes all selected objects.
-		//! @returns the count of deleted objects.
+		//! \returns the count of deleted objects.
 		int deleteSelection();
 
 		//! Deletes all objects by the given color number.
 		void deleteByColor (int colnum);
 
 		//! Tries to save the given document.
-		//! @param doc the document to save
-		//! @param saveAs if true, always ask for a file path
-		//! @returns whether the save was successful
+		//! \param doc the document to save
+		//! \param saveAs if true, always ask for a file path
+		//! \returns whether the save was successful
 		bool save (LDDocument* doc, bool saveAs);
 
 		//! Updates various actions, undo/redo are set enabled/disabled where
@@ -165,7 +165,7 @@ class MainWindow : public QMainWindow
 		//! etc.
 		void updateActions();
 
-		//! @returns a pointer to the renderer
+		//! \returns a pointer to the renderer
 		inline GLRenderer* R()
 		{
 			return m_renderer;
@@ -188,7 +188,7 @@ class MainWindow : public QMainWindow
 		//! defined in the configuration entries.
 		void updateActionShortcuts();
 
-		//! Gets the shortcut configuration for the given @c action
+		//! Gets the shortcut configuration for the given \c action
 		KeySequenceConfig* shortcutForAction (QAction* action);
 
 	public slots:
@@ -319,36 +319,36 @@ extern MainWindow* g_win;
 //! Get an icon by name from the resources directory.
 QPixmap getIcon (QString iconName);
 
-//! @returns a list of quick colors based on the configuration entry.
+//! \returns a list of quick colors based on the configuration entry.
 QList<LDQuickColor> quickColorsFromConfig();
 
-//! Asks the user a yes/no question with the given @c message and the given
-//! window @c title.
-//! @returns true if the user answered yes, false if no.
+//! Asks the user a yes/no question with the given \c message and the given
+//! window \c title.
+//! \returns true if the user answered yes, false if no.
 bool confirm (QString title, QString message); // Generic confirm prompt
 
-//! An overload of @c confirm(), this asks the user a yes/no question with the
-//! given @c message.
-//! @returns true if the user answered yes, false if no.
+//! An overload of \c confirm(), this asks the user a yes/no question with the
+//! given \c message.
+//! \returns true if the user answered yes, false if no.
 bool confirm (QString message);
 
-//! Displays an error prompt with the given @c message
+//! Displays an error prompt with the given \c message
 void critical (QString message);
 
-//! Makes an icon of @c size x @c size pixels to represent @c colinfo
+//! Makes an icon of \c size x \c size pixels to represent \c colinfo
 QIcon makeColorIcon (LDColor* colinfo, const int size);
 
 //! Fills the given combo-box with color information
 void makeColorComboBox (QComboBox* box);
 
-//! @returns a QImage from the given raw GL @c data
+//! \returns a QImage from the given raw GL \c data
 QImage imageFromScreencap (uchar* data, int w, int h);
 
 //!
 //! Takes in pairs of radio buttons and respective values and finds the first
 //! selected one.
-//! @returns returns the value of the first found radio button that was checked
-//! @returns by the user.
+//! \returns returns the value of the first found radio button that was checked
+//! \returns by the user.
 //!
 template<class T>
 T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
@@ -362,7 +362,7 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 
 //!
 //! Takes in pairs of radio buttons and respective values and checks the first
-//! found radio button whose respsective value matches @c expr have the given value.
+//! found radio button whose respsective value matches \c expr have the given value.
 //!
 template<class T>
 void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)

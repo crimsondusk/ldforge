@@ -70,7 +70,7 @@ class StringFormatArg
 };
 
 //!
-//! Helper function for @c format
+//! Helper function for \c format
 //!
 template<typename Arg1, typename... Rest>
 void formatHelper (QString& str, Arg1 arg1, Rest... rest)
@@ -80,7 +80,7 @@ void formatHelper (QString& str, Arg1 arg1, Rest... rest)
 }
 
 //!
-//! Overload of @c formatHelper with no template args
+//! Overload of \c formatHelper with no template args
 //!
 static void formatHelper (QString& str) __attribute__ ((unused));
 static void formatHelper (QString& str)
@@ -90,9 +90,9 @@ static void formatHelper (QString& str)
 
 //!
 //! Format the message with the given args
-//! @param fmtstr The string to format
-//! @param args The args to format with
-//! @return The formatted string
+//! \param fmtstr The string to format
+//! \param args The args to format with
+//! \return The formatted string
 //!
 template<typename... Args>
 QString format (QString fmtstr, Args... args)
@@ -109,8 +109,8 @@ void printToLog (const QString& msg);
 
 //!
 //! Format and print the given args to the message log.
-//! @param fmtstr The string to format
-//! @param args The args to format with
+//! \param fmtstr The string to format
+//! \param args The args to format with
 //!
 template<typename... Args>
 void print (QString fmtstr, Args... args)
@@ -121,9 +121,9 @@ void print (QString fmtstr, Args... args)
 
 //!
 //! Format and print the given args to the given file descriptor
-//! @param fp The file descriptor to print to
-//! @param fmtstr The string to format
-//! @param args The args to format with
+//! \param fp The file descriptor to print to
+//! \param fmtstr The string to format
+//! \param args The args to format with
 //!
 template<typename... Args>
 void fprint (FILE* fp, QString fmtstr, Args... args)
@@ -133,10 +133,10 @@ void fprint (FILE* fp, QString fmtstr, Args... args)
 }
 
 //!
-//! Overload of @c fprint with a QIODevice
-//! @param dev The IO device to print to
-//! @param fmtstr The string to format
-//! @param args The args to format with
+//! Overload of \c fprint with a QIODevice
+//! \param dev The IO device to print to
+//! \param fmtstr The string to format
+//! \param args The args to format with
 //!
 template<typename... Args>
 void fprint (QIODevice& dev, QString fmtstr, Args... args)
@@ -147,8 +147,8 @@ void fprint (QIODevice& dev, QString fmtstr, Args... args)
 
 //!
 //! Exactly like print() except no-op in release builds.
-//! @param fmtstr The string to format
-//! @param args The args to format with
+//! \param fmtstr The string to format
+//! \param args The args to format with
 //!
 template<typename... Args>
 void dprint (QString fmtstr, Args... args)
