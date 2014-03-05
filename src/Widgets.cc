@@ -71,7 +71,7 @@ void RadioGroup::init (Qt::Orientation orient)
 
 // =============================================================================
 //
-RadioGroup::RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId, const Qt::Orientation orient, QWidget* parent) :
+RadioGroup::RadioGroup (const QString& title, QList<char const*> entries, int const defaultId, const Qt::Orientation orient, QWidget* parent) :
 		QGroupBox (title, parent),
 		m_defId (defaultId)
 {

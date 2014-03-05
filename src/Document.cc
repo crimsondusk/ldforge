@@ -281,9 +281,9 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 	{
 		// Look in sub-directories: parts and p. Also look in net_downloadpath, since that's
 		// where we download parts from the PT to.
-		for (const QString& topdir : initlist<QString> ({ io_ldpath, net_downloadpath }))
+		for (const QString& topdir : QList<QString> ({ io_ldpath, net_downloadpath }))
 		{
-			for (const QString& subdir : initlist<QString> ({ "parts", "p" }))
+			for (const QString& subdir : QList<QString> ({ "parts", "p" }))
 			{
 				fullPath = format ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 

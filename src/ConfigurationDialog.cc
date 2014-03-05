@@ -208,7 +208,7 @@ void ConfigDialog::initGrids()
 	*anglabel = new QLabel ("Angle");
 	int i = 1;
 
-	for (QLabel* label : initlist<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
+	for (QLabel* label : QList<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
 	{
 		label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);

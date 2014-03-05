@@ -124,7 +124,7 @@ bool RingFinder::findRings (double r0, double r1)
 	{
 		const Solution& sol = *solp;
 
-		if (m_bestSolution == null || sol.isBetterThan (m_bestSolution))
+		if (m_bestSolution == null || sol.isSuperiorTo (m_bestSolution))
 			m_bestSolution = &sol;
 	}
 
@@ -133,7 +133,7 @@ bool RingFinder::findRings (double r0, double r1)
 
 // =============================================================================
 //
-bool RingFinder::Solution::isBetterThan (const Solution* other) const
+bool RingFinder::Solution::isSuperiorTo (const Solution* other) const
 {
 	// If this solution has less components than the other one, this one
 	// is definitely better.

@@ -189,7 +189,7 @@ Matrix::Matrix (double fillval)
 
 // =============================================================================
 //
-Matrix::Matrix (initlist<double> vals)
+Matrix::Matrix (QList<double> vals)
 {
 	assert (vals.size() == 9);
 	memcpy (&m_vals[0], & (*vals.begin()), sizeof m_vals);
@@ -259,12 +259,12 @@ Matrix& Matrix::operator= (const Matrix& other)
 //
 double Matrix::getDeterminant() const
 {
-	return (val (0) * val (4) * val (8)) +
-		   (val (1) * val (5) * val (6)) +
-		   (val (2) * val (3) * val (7)) -
-		   (val (2) * val (4) * val (6)) -
-		   (val (1) * val (3) * val (8)) -
-		   (val (0) * val (5) * val (7));
+	return (value (0) * value (4) * value (8)) +
+		   (value (1) * value (5) * value (6)) +
+		   (value (2) * value (3) * value (7)) -
+		   (value (2) * value (4) * value (6)) -
+		   (value (1) * value (3) * value (8)) -
+		   (value (0) * value (5) * value (7));
 }
 
 // =============================================================================
@@ -272,7 +272,7 @@ double Matrix::getDeterminant() const
 bool Matrix::operator== (const Matrix& other) const
 {
 	for (int i = 0; i < 9; ++i)
-		if (val (i) != other[i])
+		if (value (i) != other[i])
 			return false;
 
 	return true;
@@ -287,7 +287,7 @@ LDBoundingBox::LDBoundingBox()
 
 // =============================================================================
 //
-void LDBoundingBox::calculate()
+void LDBoundingBox::calculateFromCurrentDocument()
 {
 	reset();
 
@@ -349,12 +349,12 @@ LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 
 // =============================================================================
 //
-void LDBoundingBox::calcVertex (const Vertex& v)
+void LDBoundingBox::calcVertex (const Vertex& vertex)
 {
 	for_axes (ax)
 	{
-		m_vertex0[ax] = min (v[ax], m_vertex0[ax]);
-		m_vertex1[ax] = max (v[ax], m_vertex1[ax]);
+		m_vertex0[ax] = min (vertex[ax], m_vertex0[ax]);
+		m_vertex1[ax] = max (vertex[ax], m_vertex1[ax]);
 	}
 
 	setEmpty (false);
@@ -371,7 +371,7 @@ void LDBoundingBox::reset()
 
 // =============================================================================
 //
-double LDBoundingBox::size() const
+double LDBoundingBox::longestMeasurement() const
 {
 	double xscale = (m_vertex0[X] - m_vertex1[X]);
 	double yscale = (m_vertex0[Y] - m_vertex1[Y]);

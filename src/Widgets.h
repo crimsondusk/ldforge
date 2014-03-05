@@ -52,7 +52,7 @@ class RadioGroup : public QGroupBox
 		}
 
 		explicit RadioGroup (const QString& title, QWidget* parent = null);
-		explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
+		explicit RadioGroup (const QString& title, QList<char const*> entries, int const defaultId,
 			const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
 
 		void            addButton	(const char* entry);
