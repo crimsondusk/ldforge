@@ -268,7 +268,7 @@ void MainWindow::updateTitle()
 			title += fmt (": <anonymous>");
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
-				getCurrentDocument()->getObject (0)->getType() == LDObject::EComment)
+				getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
@@ -330,7 +330,7 @@ void MainWindow::buildObjList()
 	{
 		QString descr;
 
-		switch (obj->getType())
+		switch (obj->type())
 		{
 			case LDObject::EComment:
 			{
@@ -339,7 +339,9 @@ void MainWindow::buildObjList()
 				// Remove leading whitespace
 				while (descr[0] == ' ')
 					descr.remove (0, 1);
-			} break;
+
+				break;
+			}
 
 			case LDObject::EEmpty:
 				break; // leave it empty
@@ -354,19 +356,22 @@ void MainWindow::buildObjList()
 					if (i != 0)
 						descr += ", ";
 
-					descr += obj->getVertex (i).toString (true);
+					descr += obj->vertex (i).toString (true);
 				}
-			} break;
+				break;
+			}
 
 			case LDObject::EError:
 			{
-				descr = fmt ("ERROR: %1", obj->raw());
-			} break;
+				descr = fmt ("ERROR: %1", obj->asText());
+				break;
+			}
 
 			case LDObject::EVertex:
 			{
 				descr = static_cast<LDVertex*> (obj)->pos.toString (true);
-			} break;
+				break;
+			}
 
 			case LDObject::ESubfile:
 			{
@@ -378,12 +383,14 @@ void MainWindow::buildObjList()
 					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");
 
 				descr += ')';
-			} break;
+				break;
+			}
 
 			case LDObject::EBFC:
 			{
-				descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
-			} break;
+				descr = LDBFC::k_statementStrings[static_cast<LDBFC*> (obj)->m_statement];
+				break;
+			}
 
 			case LDObject::EOverlay:
 			{
@@ -391,17 +398,18 @@ void MainWindow::buildObjList()
 				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->getCamera()],
 					basename (ovl->getFileName()), ovl->getX(), ovl->getY(),
 					ovl->getWidth(), ovl->getHeight());
+				break;
 			}
-			break;
 
 			default:
 			{
-				descr = obj->getTypeName();
-			} break;
+				descr = obj->typeName();
+				break;
+			}
 		}
 
 		QListWidgetItem* item = new QListWidgetItem (descr);
-		item->setIcon (getIcon (obj->getTypeName()));
+		item->setIcon (getIcon (obj->typeName()));
 
 		// Use italic font if hidden
 		if (obj->isHidden())
@@ -412,7 +420,7 @@ void MainWindow::buildObjList()
 		}
 
 		// Color gibberish orange on red so it stands out.
-		if (obj->getType() == LDObject::EError)
+		if (obj->type() == LDObject::EError)
 		{
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
@@ -536,7 +544,7 @@ int MainWindow::getInsertionPoint()
 {
 	// If we have a selection, put the item after it.
 	if (!selection().isEmpty())
-		return selection().last()->getIndex() + 1;
+		return selection().last()->lineNumber() + 1;
 
 	// Otherwise place the object at the end.
 	return getCurrentDocument()->getObjectCount();
@@ -615,7 +623,7 @@ LDObject::Type MainWindow::getUniformSelectedType()
 			return LDObject::EUnidentified;
 
 		if (result == LDObject::EUnidentified)
-			result = obj->getType();
+			result = obj->type();
 	}
 
 	return result;
@@ -648,7 +656,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 	QMenu* contextMenu = new QMenu;
 
-	if (single && singleObj->getType() != LDObject::EEmpty)
+	if (single && singleObj->type() != LDObject::EEmpty)
 	{
 		contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();
@@ -737,7 +745,7 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 		}
 	}
 
-	AddObjectDialog::staticDialog (obj->getType(), obj);
+	AddObjectDialog::staticDialog (obj->type(), obj);
 }
 
 // =============================================================================

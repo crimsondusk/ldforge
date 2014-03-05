@@ -84,7 +84,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 	newFile();
 
-	const LDBFC::Type BFCType =
+	const LDBFC::Statement BFCType =
 		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
 		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 
@@ -258,7 +258,7 @@ DEFINE_ACTION (Edit, 0)
 		return;
 
 	LDObject* obj = selection() [0];
-	AddObjectDialog::staticDialog (obj->getType(), obj);
+	AddObjectDialog::staticDialog (obj->type(), obj);
 }
 
 // =============================================================================
@@ -338,7 +338,7 @@ DEFINE_ACTION (SelectByType, 0)
 
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{
-		if (obj->getType() != type)
+		if (obj->type() != type)
 			continue;
 
 		if (type == LDObject::ESubfile && static_cast<LDSubfile*> (obj)->getFileInfo()->getName() != refName)
@@ -435,7 +435,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 	for (LDObject* obj : selection())
 	{
-		QString contents = obj->raw();
+		QString contents = obj->asText();
 		QByteArray data = contents.toUtf8();
 		file.write (data, data.size());
 		file.write ("\r\n", 2);
@@ -690,7 +690,7 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 	LDObject* obj;
 
 	if (selection().size() == 1)
-		defval = selection()[0]->getIndex();
+		defval = selection()[0]->lineNumber();
 
 	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
 		1, getCurrentDocument()->getObjectCount(), 1, &ok);
@@ -713,7 +713,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	QString			parentpath = getCurrentDocument()->getFullPath();
 
 	// BFC type of the new subfile - it shall inherit the BFC type of the parent document
-	LDBFC::Type		bfctype = LDBFC::NoCertify;
+	LDBFC::Statement		bfctype = LDBFC::NoCertify;
 
 	// Dirname of the new subfile
 	QString			subdirname = dirname (parentpath);
@@ -734,7 +734,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	QString			fullsubname;
 
 	// Where to insert the subfile reference?
-	int				refidx = selection()[0]->getIndex();
+	int				refidx = selection()[0]->lineNumber();
 
 	// Determine title of subfile
 	if (titleobj != null)
@@ -802,7 +802,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 		if (!bfc)
 			continue;
 
-		LDBFC::Type a = bfc->type;
+		LDBFC::Statement a = bfc->m_statement;
 
 		if (a == LDBFC::CertifyCCW || a == LDBFC::CertifyCW || a == LDBFC::NoCertify)
 		{
@@ -813,7 +813,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// Get the body of the document in LDraw code
 	for (LDObject* obj : selection())
-		code << obj->raw();
+		code << obj->asText();
 
 	// Create the new subfile document
 	LDDocument* doc = new LDDocument;

@@ -147,7 +147,7 @@ void AddHistory::redo() const
 //
 DelHistory::DelHistory (int idx, LDObject* obj) :
 	m_Index (idx),
-	m_Code (obj->raw()) {}
+	m_Code (obj->asText()) {}
 
 // =============================================================================
 // heh

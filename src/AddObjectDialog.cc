@@ -104,11 +104,11 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 				if (i == LDBFC::NumStatements / 2)
 					rb_bfcType->rowBreak();
 
-				rb_bfcType->addButton (LDBFC::statements[i]);
+				rb_bfcType->addButton (LDBFC::k_statementStrings[i]);
 			}
 
 			if (obj)
-				rb_bfcType->setValue ( (int) static_cast<LDBFC*> (obj)->type);
+				rb_bfcType->setValue ( (int) static_cast<LDBFC*> (obj)->m_statement);
 		} break;
 
 		case LDObject::ESubfile:
@@ -198,7 +198,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			{
 				for (int i = 0; i < coordCount / 3; ++i)
 					for (int j = 0; j < 3; ++j)
-						dsb_coords[ (i * 3) + j]->setValue (obj->getVertex (i).getCoordinate (j));
+						dsb_coords[ (i * 3) + j]->setValue (obj->vertex (i).getCoordinate (j));
 			}
 
 			break;
@@ -327,7 +327,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	setlocale (LC_ALL, "C");
 
 	// FIXME: Redirect to Edit Raw
-	if (obj && obj->getType() == LDObject::EError)
+	if (obj && obj->type() == LDObject::EError)
 		return;
 
 	if (type == LDObject::EEmpty)
@@ -337,7 +337,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	Matrix transform = g_identity;
 	AddObjectDialog dlg (type, obj);
 
-	assert (!obj || obj->getType() == type);
+	assert (obj == null || obj->type() == type);
 
 	if (dlg.exec() == false)
 		return;
@@ -389,7 +389,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::EBFC:
 		{
 			LDBFC* bfc = initObj<LDBFC> (obj);
-			bfc->type = (LDBFC::Type) dlg.rb_bfcType->value();
+			bfc->m_statement = (LDBFC::Statement) dlg.rb_bfcType->value();
 		} break;
 
 		case LDObject::EVertex:

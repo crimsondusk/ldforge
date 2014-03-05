@@ -309,8 +309,8 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 	}
 
 	if ((list == BFCFrontList || list == BFCBackList) &&
-		obj->getType() != LDObject::ELine &&
-		obj->getType() != LDObject::ECondLine)
+		obj->type() != LDObject::ELine &&
+		obj->type() != LDObject::ECondLine)
 	{
 		if (list == GL::BFCFrontList)
 			qcol = QColor (40, 192, 0);
@@ -932,14 +932,14 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 {
 	glBegin (gltype);
 
-	const int numverts = (obj->getType() != LDObject::ECondLine) ? obj->vertices() : 2;
+	const int numverts = (obj->type() != LDObject::ECondLine) ? obj->vertices() : 2;
 
 	if (g_glInvert == false)
 		for (int i = 0; i < numverts; ++i)
-			compileVertex (obj->getVertex (i));
+			compileVertex (obj->vertex (i));
 	else
 		for (int i = numverts - 1; i >= 0; --i)
-			compileVertex (obj->getVertex (i));
+			compileVertex (obj->vertex (i));
 
 	glEnd();
 }
@@ -950,7 +950,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 {
 	setObjectColor (obj, list);
 
-	switch (obj->getType())
+	switch (obj->type())
 	{
 		case LDObject::ELine:
 		{
@@ -993,9 +993,9 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			if (ref->getTransform().getDeterminant() < 0)
 				g_glInvert = !g_glInvert;
 
-			LDObject* prev = ref->prev();
+			LDObject* prev = ref->previous();
 
-			if (prev && prev->getType() == LDObject::EBFC && static_cast<LDBFC*> (prev)->type == LDBFC::InvertNext)
+			if (prev && prev->type() == LDObject::EBFC && static_cast<LDBFC*> (prev)->m_statement == LDBFC::InvertNext)
 				g_glInvert = !g_glInvert;
 
 			for (LDObject* obj : objs)
@@ -1725,8 +1725,8 @@ static QList<Vertex> getVertices (LDObject* obj)
 	if (obj->vertices() >= 2)
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
-			verts << obj->getVertex (i);
-	} elif (obj->getType() == LDObject::ESubfile)
+			verts << obj->vertex (i);
+	} elif (obj->type() == LDObject::ESubfile)
 	{
 		LDSubfile* ref = static_cast<LDSubfile*> (obj);
 		LDObjectList objs = ref->inlineContents (LDSubfile::DeepCacheInline);
@@ -2098,7 +2098,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 		return;
 
 	LDObject* obj = selection().first();
-	AddObjectDialog::staticDialog (obj->getType(), obj);
+	AddObjectDialog::staticDialog (obj->type(), obj);
 	g_win->endAction();
 	ev->accept();
 }
@@ -2111,7 +2111,7 @@ LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 
 	for (LDObject* obj : getFile()->getObjects())
 	{
-		if (obj->getType() == LDObject::EOverlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
+		if (obj->type() == LDObject::EOverlay && static_cast<LDOverlay*> (obj)->getCamera() == cam)
 		{
 			ovlobj = static_cast<LDOverlay*> (obj);
 			break;
@@ -2162,7 +2162,7 @@ void GLRenderer::updateOverlayObjects()
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
 
-			if (nextobj && nextobj->getType() == LDObject::EEmpty)
+			if (nextobj && nextobj->type() == LDObject::EEmpty)
 				nextobj->deleteSelf();
 
 			// If the overlay object was there and the overlay itself is
@@ -2193,7 +2193,7 @@ void GLRenderer::updateOverlayObjects()
 					break;
 				}
 
-				if (obj->getType() == LDObject::EOverlay)
+				if (obj->type() == LDObject::EOverlay)
 					lastOverlay = i;
 			}
 

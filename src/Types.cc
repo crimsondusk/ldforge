@@ -315,7 +315,7 @@ void LDBoundingBox::calculate()
 // -----------------------------------------------------------------------------
 void LDBoundingBox::calcObject (LDObject* obj)
 {
-	switch (obj->getType())
+	switch (obj->type())
 	{
 		case LDObject::ELine:
 		case LDObject::ETriangle:
@@ -323,7 +323,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 		case LDObject::ECondLine:
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
-				calcVertex (obj->getVertex (i));
+				calcVertex (obj->vertex (i));
 		} break;
 
 		case LDObject::ESubfile:

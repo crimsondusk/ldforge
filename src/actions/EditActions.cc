@@ -1,5 +1,5 @@
 /*
- *  LDForge: LDraw parts authoring CAD
+ *  LDForge: LDasText parts authoring CAD
  *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -55,7 +55,7 @@ static int copyToClipboard()
 		if (data.length() > 0)
 			data += "\n";
 
-		data += obj->raw();
+		data += obj->asText();
 		++num;
 	}
 
@@ -121,14 +121,14 @@ static void doInline (bool deep)
 	{
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
-		long idx = obj->getIndex();
+		long idx = obj->lineNumber();
 
 		if (idx == -1)
 			continue;
 
 		LDObjectList objs;
 
-		if (obj->getType() == LDObject::ESubfile)
+		if (obj->type() == LDObject::ESubfile)
 			objs = static_cast<LDSubfile*> (obj)->inlineContents (
 					   (LDSubfile::InlineFlags)
 					   ( (deep) ? LDSubfile::DeepInline : 0) |
@@ -140,7 +140,7 @@ static void doInline (bool deep)
 		// Merge in the inlined objects
 		for (LDObject * inlineobj : objs)
 		{
-			QString line = inlineobj->raw();
+			QString line = inlineobj->asText();
 			inlineobj->deleteSelf();
 			LDObject* newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
@@ -174,11 +174,11 @@ DEFINE_ACTION (SplitQuads, 0)
 
 	for (LDObject* obj : objs)
 	{
-		if (obj->getType() != LDObject::EQuad)
+		if (obj->type() != LDObject::EQuad)
 			continue;
 
 		// Find the index of this quad
-		long index = obj->getIndex();
+		long index = obj->lineNumber();
 
 		if (index == -1)
 			return;
@@ -215,9 +215,9 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	Ui::EditRawUI ui;
 
 	ui.setupUi (dlg);
-	ui.code->setText (obj->raw());
+	ui.code->setText (obj->asText());
 
-	if (obj->getType() == LDObject::EError)
+	if (obj->type() == LDObject::EError)
 		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
 	else
 	{
@@ -280,7 +280,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 
 	for (LDObject* obj : objs)
 	{
-		const LDObject::Type type = obj->getType();
+		const LDObject::Type type = obj->type();
 		if (type != LDObject::EQuad && type != LDObject::ETriangle)
 			continue;
 
@@ -292,24 +292,24 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 			numLines = 4;
 
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
-			lines[1] = new LDLine (quad->getVertex (1), quad->getVertex (2));
-			lines[2] = new LDLine (quad->getVertex (2), quad->getVertex (3));
-			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
+			lines[0] = new LDLine (quad->vertex (0), quad->vertex (1));
+			lines[1] = new LDLine (quad->vertex (1), quad->vertex (2));
+			lines[2] = new LDLine (quad->vertex (2), quad->vertex (3));
+			lines[3] = new LDLine (quad->vertex (3), quad->vertex (0));
 		}
 		else
 		{
 			numLines = 3;
 
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
-			lines[1] = new LDLine (tri->getVertex (1), tri->getVertex (2));
-			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
+			lines[0] = new LDLine (tri->vertex (0), tri->vertex (1));
+			lines[1] = new LDLine (tri->vertex (1), tri->vertex (2));
+			lines[2] = new LDLine (tri->vertex (2), tri->vertex (0));
 		}
 
 		for (int i = 0; i < numLines; ++i)
 		{
-			long idx = obj->getIndex() + i + 1;
+			long idx = obj->lineNumber() + i + 1;
 
 			lines[i]->setColor (edgecolor);
 			getCurrentDocument()->insertObj (idx, lines[i]);
@@ -334,15 +334,15 @@ DEFINE_ACTION (CornerVerts, 0)
 		if (obj->vertices() < 2)
 			continue;
 
-		int idx = obj->getIndex();
+		int ln = obj->lineNumber();
 
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
 			LDVertex* vert = new LDVertex;
-			vert->pos = obj->getVertex (i);
+			vert->pos = obj->vertex (i);
 			vert->setColor (obj->getColor());
 
-			getCurrentDocument()->insertObj (++idx, vert);
+			getCurrentDocument()->insertObj (++ln, vert);
 			R()->compileObject (vert);
 			++num;
 		}
@@ -493,7 +493,7 @@ static void doRotate (const int l, const int m, const int n)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				Vertex v = obj->getVertex (i);
+				Vertex v = obj->vertex (i);
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
@@ -510,7 +510,7 @@ static void doRotate (const int l, const int m, const int n)
 			// Transform the matrix
 			mo->setTransform (transform * mo->getTransform());
 		}
-		elif (obj->getType() == LDObject::EVertex)
+		elif (obj->type() == LDObject::EVertex)
 		{
 			LDVertex* vert = static_cast<LDVertex*> (obj);
 			Vertex v = vert->pos;
@@ -588,7 +588,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				Vertex v = obj->getVertex (i);
+				Vertex v = obj->vertex (i);
 
 				for_axes (ax)
 					roundToDecimals (v[ax], 3);
@@ -618,7 +618,7 @@ DEFINE_ACTION (Uncolorize, 0)
 
 		int col = maincolor;
 
-		if (obj->getType() == LDObject::ELine || obj->getType() == LDObject::ECondLine)
+		if (obj->type() == LDObject::ELine || obj->type() == LDObject::ECondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
@@ -657,7 +657,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			Vertex v = obj->getVertex (i);
+			Vertex v = obj->vertex (i);
 
 			for (Axis ax : sel)
 			{
@@ -703,7 +703,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			Vertex v = obj->getVertex (i);
+			Vertex v = obj->vertex (i);
 
 			for (Axis ax : sel)
 				v[ax] *= -1;
@@ -725,7 +725,7 @@ DEFINE_ACTION (Demote, 0)
 
 	for (LDObject* obj : sel)
 	{
-		if (obj->getType() != LDObject::ECondLine)
+		if (obj->type() != LDObject::ECondLine)
 			continue;
 
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
@@ -824,7 +824,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		prevIsHistory = ishistory;
 	}
 
-	int idx = obj ? obj->getIndex() : 0;
+	int idx = obj ? obj->lineNumber() : 0;
 	getCurrentDocument()->insertObj (idx++, comm);
 
 	// If we're adding a history line right before a scemantic object, pad it

@@ -31,14 +31,14 @@ protected:												\
 	}													\
 														\
 public:													\
-	virtual LDObject::Type getType() const override		\
+	virtual LDObject::Type type() const override		\
 	{													\
 		return LDObject::E##T;							\
 	}													\
-	virtual QString raw() const override;				\
+	virtual QString asText() const override;			\
 	virtual void invert() override;
 
-#define LDOBJ_NAME(N)          virtual QString getTypeName() const override { return #N; }
+#define LDOBJ_NAME(N)          virtual QString typeName() const override { return #N; }
 #define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
@@ -103,16 +103,16 @@ class LDObject
 		void						deleteSelf();
 
 		// Index (i.e. line number) of this object
-		long						getIndex() const;
+		long						lineNumber() const;
 
 		// Type enumerator of this object
-		virtual Type				getType() const = 0;
+		virtual Type				type() const = 0;
 
 		// Get a vertex by index
-		const Vertex&				getVertex (int i) const;
+		const Vertex&				vertex (int i) const;
 
 		// Type name of this object
-		virtual QString				getTypeName() const = 0;
+		virtual QString				typeName() const = 0;
 
 		// Does this object have a matrix and position? (see LDMatrixObject)
 		virtual bool				hasMatrix() const = 0;
@@ -133,10 +133,10 @@ class LDObject
 		LDObject*					next() const;
 
 		// Object prior to this in the current file
-		LDObject*					prev() const;
+		LDObject*					previous() const;
 
 		// This object as LDraw code
-		virtual						QString raw() const = 0;
+		virtual QString				asText() const = 0;
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
 		void						replace (LDObject* other);
@@ -349,7 +349,7 @@ class LDComment : public LDObject
 class LDBFC : public LDObject
 {
 	public:
-		enum Type
+		enum Statement
 		{
 			CertifyCCW,
 			CCW,
@@ -368,18 +368,18 @@ class LDBFC : public LDObject
 		LDOBJ_NAME (bfc)
 		LDOBJ_VERTICES (0)
 		LDOBJ_UNCOLORED
-		LDOBJ_CUSTOM_SCEMANTIC { return (type == InvertNext); }
+		LDOBJ_CUSTOM_SCEMANTIC { return (m_statement == InvertNext); }
 		LDOBJ_NO_MATRIX
 
 	public:
 		LDBFC() {}
-		LDBFC (const LDBFC::Type type) :
-			type (type) {}
+		LDBFC (const LDBFC::Statement type) :
+			m_statement (type) {}
 
 		// Statement strings
-		static const char* statements[];
+		static const char* k_statementStrings[];
 
-		Type type;
+		Statement m_statement;
 };
 
 // =============================================================================

@@ -146,7 +146,7 @@ class AddHistory : public AbstractHistoryEntry
 
 		AddHistory (int idx, LDObject* obj) :
 				m_Index (idx),
-				m_Code (obj->raw()) {}
+				m_Code (obj->asText()) {}
 };
 
 // =============================================================================

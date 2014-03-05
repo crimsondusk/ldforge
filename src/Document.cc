@@ -380,7 +380,7 @@ void LDFileLoader::work (int i)
 		LDObject* obj = parseLine (line);
 
 		// Check for parse errors and warn about tthem
-		if (obj->getType() == LDObject::EError)
+		if (obj->type() == LDObject::EError)
 		{
 			log ("Couldn't parse line #%1: %2", getProgress() + 1, static_cast<LDError*> (obj)->reason);
 
@@ -735,7 +735,7 @@ bool LDDocument::save (QString savepath)
 	// Only do this if the file is explicitly open.
 	LDObject* nameObject = getObject (1);
 
-	if (!isImplicit() && nameObject != null && nameObject->getType() == LDObject::EComment)
+	if (!isImplicit() && nameObject != null && nameObject->type() == LDObject::EComment)
 	{
 		LDComment* nameComment = static_cast<LDComment*> (nameObject);
 
@@ -750,7 +750,7 @@ bool LDDocument::save (QString savepath)
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
 	for (LDObject* obj : getObjects())
-		f.write ((obj->raw() + "\r\n").toUtf8());
+		f.write ((obj->asText() + "\r\n").toUtf8());
 
 	// File is saved, now clean up.
 	f.close();
@@ -852,8 +852,8 @@ LDObject* parseLine (QString line)
 				if (tokens.size() > 2 && tokens[1] == "BFC")
 				{
 					for (int i = 0; i < LDBFC::NumStatements; ++i)
-						if (comm == fmt ("BFC %1", LDBFC::statements [i]))
-							return new LDBFC ( (LDBFC::Type) i);
+						if (comm == fmt ("BFC %1", LDBFC::k_statementStrings [i]))
+							return new LDBFC ( (LDBFC::Statement) i);
 
 					// MLCAD is notorious for stuffing these statements in parts it
 					// creates. The above block only handles valid statements, so we
@@ -861,7 +861,7 @@ LDObject* parseLine (QString line)
 					struct
 					{
 						QString			a;
-						LDBFC::Type	b;
+						LDBFC::Statement	b;
 					} BFCData[] =
 					{
 						{ "INVERTNEXT", LDBFC::InvertNext },
@@ -1037,7 +1037,7 @@ void reloadAllSubfiles()
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObject* obj : getCurrentDocument()->getObjects())
 	{
-		if (obj->getType() == LDObject::ESubfile)
+		if (obj->type() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDDocument* fileInfo = getDocument (ref->getFileInfo()->getName());
@@ -1045,12 +1045,12 @@ void reloadAllSubfiles()
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDError (ref->raw(), fmt ("Could not open %1", ref->getFileInfo()->getName())));
+				ref->replace (new LDError (ref->asText(), fmt ("Could not open %1", ref->getFileInfo()->getName())));
 		}
 
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
-		if (obj->getType() == LDObject::EError)
+		if (obj->type() == LDObject::EError)
 			obj->replace (parseLine (static_cast<LDError*> (obj)->contents));
 	}
 }
@@ -1062,12 +1062,12 @@ int LDDocument::addObject (LDObject* obj)
 	getHistory()->add (new AddHistory (getObjects().size(), obj));
 	m_Objects << obj;
 
-	if (obj->getType() == LDObject::EVertex)
+	if (obj->type() == LDObject::EVertex)
 		m_Vertices << obj;
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Added object #%1 (%2)\n", obj->getID(), obj->getTypeName());
+		dlog ("Added object #%1 (%2)\n", obj->getID(), obj->typeName());
 #endif
 
 	obj->setFile (this);
@@ -1093,7 +1093,7 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 
 #ifdef DEBUG
 	if (!isImplicit())
-		dlog ("Inserted object #%1 (%2) at %3\n", obj->getID(), obj->getTypeName(), pos);
+		dlog ("Inserted object #%1 (%2) at %3\n", obj->getID(), obj->typeName(), pos);
 #endif
 }
 
@@ -1101,7 +1101,7 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 // -----------------------------------------------------------------------------
 void LDDocument::forgetObject (LDObject* obj)
 {
-	int idx = obj->getIndex();
+	int idx = obj->lineNumber();
 	obj->unselect();
 	assert (m_Objects[idx] == obj);
 
@@ -1132,8 +1132,8 @@ void LDDocument::setObject (int idx, LDObject* obj)
 	// Mark this change to history
 	if (!m_History->isIgnoring())
 	{
-		QString oldcode = getObject (idx)->raw();
-		QString newcode = obj->raw();
+		QString oldcode = getObject (idx)->asText();
+		QString newcode = obj->asText();
 		*m_History << new EditHistory (idx, oldcode, newcode);
 	}
 
@@ -1239,7 +1239,7 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 			// Got another sub-file reference, inline it if we're deep-inlining. If not,
 			// just add it into the objects normally. Also, we only cache immediate
 			// subfiles and this is not one. Yay, recursion!
-			if (deep && obj->getType() == LDObject::ESubfile)
+			if (deep && obj->type() == LDObject::ESubfile)
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 

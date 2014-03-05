@@ -170,7 +170,7 @@ static void writeObjects (const LDObjectList& objects, QFile& f)
 {
 	for (LDObject* obj : objects)
 	{
-		if (obj->getType() == LDObject::ESubfile)
+		if (obj->type() == LDObject::ESubfile)
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			LDObjectList objs = ref->inlineContents (LDSubfile::DeepInline);
@@ -181,7 +181,7 @@ static void writeObjects (const LDObjectList& objects, QFile& f)
 				obj->deleteSelf();
 		}
 		else
-			f.write ((obj->raw() + "\r\n").toUtf8());
+			f.write ((obj->asText() + "\r\n").toUtf8());
 	}
 }
 
