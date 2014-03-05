@@ -310,11 +310,11 @@ class LDBoundingBox
 		//! \returns the length of the bounding box on the longest measure.
 		double longestMeasurement() const;
 
-		//! Calculates the given \param obj to the bounding box, adjusting
+		//! Calculates the given \c obj to the bounding box, adjusting
 		//! extremas if necessary.
 		void calcObject (LDObject* obj);
 
-		//! Calculates the given \param vertex to the bounding box, adjusting
+		//! Calculates the given \c vertex to the bounding box, adjusting
 		//! extremas if necessary.
 		void calcVertex (const Vertex& vertex);
 
