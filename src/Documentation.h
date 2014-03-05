@@ -16,11 +16,6 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOCS_H
-#define LDFORGE_DOCS_H
-
+#pragma once
 extern const char* g_docs_overlays;
-
 void showDocumentation (const char* text);
-
-#endif // LDFORGE_DOCS_H

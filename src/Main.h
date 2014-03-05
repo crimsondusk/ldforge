@@ -20,9 +20,7 @@
 // This file is included one way or another in every source file of LDForge.
 // Stuff defined and included here is universally included.
 
-#ifndef LDFORGE_MAIN_H
-#define LDFORGE_MAIN_H
-
+#pragma once
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -103,5 +101,3 @@ const char* fullVersionString();
 static const char* __func__ = ""; // Current function name
 typedef void FILE; // :|
 #endif // IN_IDE_PARSER
-
-#endif // LDFORGE_MAIN_H

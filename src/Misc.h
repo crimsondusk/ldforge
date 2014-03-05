@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_MISC_H
-#define LDFORGE_MISC_H
-
+#pragma once
 #include <QVector>
 #include "Configuration.h"
 #include "Main.h"
@@ -138,5 +136,3 @@ template<class T> void removeDuplicates (QList<T>& a)
 	std::sort (a.begin(), a.end());
 	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
-
-#endif // LDFORGE_MISC_H

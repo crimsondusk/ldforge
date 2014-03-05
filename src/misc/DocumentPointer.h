@@ -16,8 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOCUMENT_POINTER_H
-#define LDFORGE_DOCUMENT_POINTER_H
+#pragma once
 
 #include "../Main.h"
 
@@ -55,4 +54,3 @@ class LDDocumentPointer
 		void removeReference();
 };
 
-#endif // LDFORGE_DOCUMENT_POINTER_H

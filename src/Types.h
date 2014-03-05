@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_TYPES_H
-#define LDFORGE_TYPES_H
-
+#pragma once
 #include <QString>
 #include <QObject>
 #include <QStringList>
@@ -311,5 +309,3 @@ extern const Vertex g_origin; // Vertex at (0, 0, 0)
 extern const Matrix g_identity; // Identity matrix
 
 static const double pi = 3.14159265358979323846;
-
-#endif // LDFORGE_TYPES_H

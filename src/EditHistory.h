@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_HISTORY_H
-#define LDFORGE_HISTORY_H
-
+#pragma once
 #include "Main.h"
 #include "LDObject.h"
 
@@ -180,5 +178,3 @@ class SwapHistory : public AbstractHistoryEntry
 	private:
 		int a, b;
 };
-
-#endif // LDFORGE_HISTORY_H

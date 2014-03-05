@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_LDCONFIG_H
-#define LDFORGE_LDCONFIG_H
-
+#pragma once
 #include "Types.h"
 #include <QStringList>
 
@@ -54,5 +52,3 @@ class LDConfigParser
 };
 
 void parseLDConfig();
-
-#endif // LDFORGE_LDCONFIG_H

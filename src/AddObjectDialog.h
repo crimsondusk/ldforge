@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_ADDOBJECTDIALOG_H
-#define LDFORGE_ADDOBJECTDIALOG_H
-
+#pragma once
 #include <QDialog>
 #include "LDObject.h"
 
@@ -69,5 +67,3 @@ class AddObjectDialog : public QDialog
 		void slot_colorButtonClicked();
 		void slot_subfileTypeChanged();
 };
-
-#endif // LDFORGE_ADDOBJECTDIALOG_H

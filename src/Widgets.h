@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WIDGETS_H
-#define WIDGETS_H
-
+#pragma once
 #include <QGroupBox>
 #include <QSpinBox>
 #include <map>
@@ -92,5 +90,3 @@ class RadioGroup : public QGroupBox
 		void slot_buttonPressed (int btn);
 		void slot_buttonReleased (int btn);
 };
-
-#endif // WIDGETS_H

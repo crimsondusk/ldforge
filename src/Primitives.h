@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_PRIMITIVES_H
-#define LDFORGE_PRIMITIVES_H
-
+#pragma once
 #include "Main.h"
 #include "Types.h"
 #include <QRegExp>
@@ -130,5 +128,3 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
 QString radialFileName (PrimitiveType type, int segs, int divs, int num);
-
-#endif // LDFORGE_PRIMITIVES_H

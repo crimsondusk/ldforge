@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_COLORSELECTOR_H
-#define LDFORGE_COLORSELECTOR_H
-
+#pragma once
 #include <QDialog>
 #include "Main.h"
 
@@ -50,5 +48,3 @@ class ColorSelector : public QDialog
 		void drawScene();
 		void drawColorInfo();
 };
-
-#endif // LDFORGE_COLORSELECTOR_H

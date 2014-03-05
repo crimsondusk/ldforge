@@ -16,8 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_MISC_RINGFINDER_H
-#define LDFORGE_MISC_RINGFINDER_H
+#pragma once
 
 #include "../Main.h"
 
@@ -85,4 +84,3 @@ class RingFinder
 
 extern RingFinder g_RingFinder;
 
-#endif // LDFORGE_MISC_RINGFINDER_H

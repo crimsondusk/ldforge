@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_GLDRAW_H
-#define LDFORGE_GLDRAW_H
-
+#pragma once
 #include <QGLWidget>
 #include "Main.h"
 #include "LDObject.h"
@@ -305,5 +303,3 @@ static const GLRenderer::ListType g_glListTypes[] =
 
 extern const GL::EFixedCamera g_Cameras[7];
 extern const char* g_CameraNames[7];
-
-#endif // LDFORGE_GLDRAW_H

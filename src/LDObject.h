@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_LDTYPES_H
-#define LDFORGE_LDTYPES_H
-
+#pragma once
 #include "Main.h"
 #include "Types.h"
 #include "misc/DocumentPointer.h"
@@ -566,5 +564,3 @@ static const int lores = 16;
 static const int hires = 48;
 
 QString getLicenseText (int id);
-
-#endif // LDFORGE_LDTYPES_H

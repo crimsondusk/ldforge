@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOCUMENT_H
-#define LDFORGE_DOCUMENT_H
-
+#pragma once
 #include <QObject>
 #include "Main.h"
 #include "LDObject.h"
@@ -41,18 +39,16 @@ namespace LDPaths
 }
 
 // =============================================================================
-// LDDocument
 //
-// The LDDocument class stores a document opened in LDForge either as a editable
-// file for the user or for subfile caching. Its methods handle file input and
-// output.
+// This class stores a document either as a editable file for the user or for
+// subfile caching. Its methods handle file input and output.
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
 //
 // The default name is a placeholder, initially suggested name for a file. The
 // primitive generator uses this to give initial names to primitives.
-// =============================================================================
+//
 class LDDocument : public QObject
 {
 	properties:
@@ -208,14 +204,13 @@ QString dirname (QString path);
 extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// FileLoader
+//
+// LDFileLoader
 //
 // Loads the given file and parses it to LDObjects using parseLine. It's a
 // separate class so as to be able to do the work progressively through the
 // event loop, allowing the program to maintain responsivity during loading.
-// =============================================================================
+//
 class LDFileLoader : public QObject
 {
 	Q_OBJECT
@@ -241,5 +236,3 @@ class LDFileLoader : public QObject
 		void progressUpdate (int progress);
 		void workDone();
 };
-
-#endif // LDFORGE_DOCUMENT_H

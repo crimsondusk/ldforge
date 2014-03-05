@@ -16,8 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_PROPERTY_H
-#define LDFORGE_PROPERTY_H
+#pragma once
 
 // =============================================================================
 //
@@ -199,5 +198,3 @@
 		{																		\
 			return PROPERTY_GET_ACCESSOR (NAME)().size();						\
 		}
-
-#endif // LDFORGE_PROPERTY_H

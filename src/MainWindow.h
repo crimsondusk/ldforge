@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_GUI_H
-#define LDFORGE_GUI_H
-
+#pragma once
 #include <QMainWindow>
 #include <QAction>
 #include <QListWidget>
@@ -254,11 +252,15 @@ class MainWindow : public QMainWindow
 };
 
 // =============================================================================
+//
 // Pointer to the instance of MainWindow.
+//
 extern MainWindow* g_win;
 
 // =============================================================================
-// Other GUI-related stuff not directly part of MainWindow:
+//
+// Other GUI-related stuff not directly part of MainWindow
+//
 QPixmap getIcon (QString iconName); // Get an icon from the resource dir
 QList<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
 bool confirm (QString title, QString msg); // Generic confirm prompt
@@ -269,10 +271,10 @@ void makeColorComboBox (QComboBox* box); // Fills the given combo-box with color
 QImage imageFromScreencap (uchar* data, int w, int h);
 
 // =============================================================================
-// =============================================================================
+//
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
-// =============================================================================
+//
 template<class T>
 T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 {
@@ -284,10 +286,10 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 }
 
 // =============================================================================
-// =============================================================================
+//
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
-// =============================================================================
+//
 template<class T>
 void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
 {
@@ -300,5 +302,3 @@ void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
 		}
 	}
 }
-
-#endif // LDFORGE_GUI_H

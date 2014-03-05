@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DIALOGS_H
-#define LDFORGE_DIALOGS_H
-
+#pragma once
 #include <QDialog>
 #include "Main.h"
 #include "Types.h"
@@ -141,5 +139,3 @@ class AboutDialog : public QDialog
 };
 
 void bombBox (const QString& message);
-
-#endif // LDFORGE_DIALOGS_H

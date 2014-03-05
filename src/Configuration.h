@@ -16,16 +16,13 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_CONFIG_H
-#define LDFORGE_CONFIG_H
-
-#include "PropertyMacro.h"
-#include "Types.h"
-
-// =============================================================================
+#pragma once
 #include <QString>
 #include <QVariant>
 #include <QKeySequence>
+#include "PropertyMacro.h"
+#include "Types.h"
+
 class QSettings;
 
 #define MAX_INI_LINE 512
@@ -148,45 +145,50 @@ private:																		\
 	ValueType	m_default;
 
 // =============================================================================
+//
 class IntConfig : public Config
 {
 	IMPLEMENT_CONFIG (Int)
 };
 
 // =============================================================================
+//
 class StringConfig : public Config
 {
 	IMPLEMENT_CONFIG (String)
 };
 
 // =============================================================================
+//
 class FloatConfig : public Config
 {
 	IMPLEMENT_CONFIG (Float)
 };
 
 // =============================================================================
+//
 class BoolConfig : public Config
 {
 	IMPLEMENT_CONFIG (Bool)
 };
 
 // =============================================================================
+//
 class KeySequenceConfig : public Config
 {
 	IMPLEMENT_CONFIG (KeySequence)
 };
 
 // =============================================================================
+//
 class ListConfig : public Config
 {
 	IMPLEMENT_CONFIG (List)
 };
 
 // =============================================================================
+//
 class VertexConfig : public Config
 {
 	IMPLEMENT_CONFIG (Vertex)
 };
-
-#endif // LDFORGE_CONFIG_H

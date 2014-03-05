@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOWNLOAD_H
-#define LDFORGE_DOWNLOAD_H
-
+#pragma once
 #include <QDialog>
 #include "Main.h"
 #include "Types.h"
@@ -33,7 +31,7 @@ class QNetworkReply;
 class QAbstractButton;
 
 // =============================================================================
-// =============================================================================
+//
 class PartDownloader : public QDialog
 {
 	typedefs:
@@ -87,7 +85,7 @@ class PartDownloader : public QDialog
 };
 
 // =============================================================================
-// =============================================================================
+//
 class PartDownloadRequest : public QObject
 {
 	typedefs:
@@ -130,5 +128,3 @@ class PartDownloadRequest : public QObject
 		void downloadProgress (qint64 recv, qint64 total);
 		void abort();
 };
-
-#endif // LDFORGE_DOWNLOAD_H
