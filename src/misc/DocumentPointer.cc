@@ -23,7 +23,7 @@
 LDDocumentPointer::LDDocumentPointer()  : m_pointer (null) {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::LDDocumentPointer (LDDocument* ptr) :
 	m_pointer (ptr)
 {
@@ -31,7 +31,7 @@ LDDocumentPointer::LDDocumentPointer (LDDocument* ptr) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::LDDocumentPointer (const LDDocumentPointer& other) :
 	m_pointer (other.pointer())
 {
@@ -39,14 +39,14 @@ LDDocumentPointer::LDDocumentPointer (const LDDocumentPointer& other) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::~LDDocumentPointer()
 {
 	removeReference();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDDocumentPointer::addReference()
 {
 	if (pointer() != null)
@@ -54,7 +54,7 @@ void LDDocumentPointer::addReference()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDDocumentPointer::removeReference()
 {
 	if (pointer() != null)
@@ -62,7 +62,7 @@ void LDDocumentPointer::removeReference()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer& LDDocumentPointer::operator= (LDDocument* ptr)
 {
 	if (ptr != pointer())
