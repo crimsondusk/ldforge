@@ -63,7 +63,7 @@ extern_cfg (Bool,		gl_colorbfc);
 extern_cfg (Bool,		gl_drawangles);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 MainWindow::MainWindow()
 {
 	g_win = this;
@@ -112,7 +112,7 @@ MainWindow::MainWindow()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 KeySequenceConfig* MainWindow::shortcutForAction (QAction* act)
 {
 	QString keycfgname = fmt ("key_%1", act->objectName());
@@ -120,7 +120,7 @@ KeySequenceConfig* MainWindow::shortcutForAction (QAction* act)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateActionShortcuts()
 {
 	for (QAction* act : findChildren<QAction*>())
@@ -133,7 +133,7 @@ void MainWindow::updateActionShortcuts()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_action()
 {
 	// Get the name of the sender object and use it to compose the slot name.
@@ -149,7 +149,7 @@ void MainWindow::slot_action()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::endAction()
 {
 	// Add a step in the history now.
@@ -161,7 +161,7 @@ void MainWindow::endAction()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_lastSecondCleanup()
 {
 	delete m_renderer;
@@ -169,7 +169,7 @@ void MainWindow::slot_lastSecondCleanup()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateRecentFilesMenu()
 {
 	// First, clear any items in the recent files menu
@@ -193,7 +193,7 @@ for (QAction * recent : m_recentFiles)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QList<LDQuickColor> quickColorsFromConfig()
 {
 	QList<LDQuickColor> colors;
@@ -215,7 +215,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateToolBars()
 {
 	m_colorButtons.clear();
@@ -244,7 +244,7 @@ void MainWindow::updateToolBars()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateGridToolBar()
 {
 	// Ensure that the current grid - and only the current grid - is selected.
@@ -254,7 +254,7 @@ void MainWindow::updateGridToolBar()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateTitle()
 {
 	QString title = fmt (APPNAME " %1", fullVersionString());
@@ -293,7 +293,7 @@ void MainWindow::updateTitle()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::deleteSelection()
 {
 	if (selection().isEmpty())
@@ -310,7 +310,7 @@ int MainWindow::deleteSelection()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::buildObjList()
 {
 	if (!getCurrentDocument())
@@ -445,7 +445,7 @@ void MainWindow::buildObjList()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::scrollToSelection()
 {
 	if (selection().isEmpty())
@@ -456,7 +456,7 @@ void MainWindow::scrollToSelection()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_selectionChanged()
 {
 	if (g_isSelectionLocked == true || getCurrentDocument() == null)
@@ -497,7 +497,7 @@ void MainWindow::slot_selectionChanged()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_recentFile()
 {
 	QAction* qAct = static_cast<QAction*> (sender());
@@ -505,7 +505,7 @@ void MainWindow::slot_recentFile()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_quickColor()
 {
 	QToolButton* button = static_cast<QToolButton*> (sender());
@@ -539,7 +539,7 @@ void MainWindow::slot_quickColor()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::getInsertionPoint()
 {
 	// If we have a selection, put the item after it.
@@ -551,7 +551,7 @@ int MainWindow::getInsertionPoint()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::doFullRefresh()
 {
 	buildObjList();
@@ -559,7 +559,7 @@ void MainWindow::doFullRefresh()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::refresh()
 {
 	buildObjList();
@@ -567,7 +567,7 @@ void MainWindow::refresh()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateSelection()
 {
 	g_isSelectionLocked = true;
@@ -591,7 +591,7 @@ void MainWindow::updateSelection()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::getSelectedColor()
 {
 	int result = -1;
@@ -612,7 +612,7 @@ int MainWindow::getSelectedColor()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDObject::Type MainWindow::getUniformSelectedType()
 {
 	LDObject::Type result = LDObject::EUnidentified;
@@ -630,7 +630,7 @@ LDObject::Type MainWindow::getUniformSelectedType()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::closeEvent (QCloseEvent* ev)
 {
 	// Check whether it's safe to close all files.
@@ -648,7 +648,7 @@ void MainWindow::closeEvent (QCloseEvent* ev)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::spawnContextMenu (const QPoint pos)
 {
 	const bool single = (selection().size() == 1);
@@ -696,7 +696,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 // =============================================================================
 // TODO: what the heh?
-// -----------------------------------------------------------------------------
+//
 void MainWindow::deleteObjects (LDObjectList objs)
 {
 	for (LDObject* obj : objs)
@@ -704,7 +704,7 @@ void MainWindow::deleteObjects (LDObjectList objs)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::deleteByColor (const int colnum)
 {
 	LDObjectList objs;
@@ -721,7 +721,7 @@ void MainWindow::deleteByColor (const int colnum)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateEditModeActions()
 {
 	const EditMode mode = R()->getEditMode();
@@ -731,7 +731,7 @@ void MainWindow::updateEditModeActions()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_editObject (QListWidgetItem* listitem)
 {
 	LDObject* obj = null;
@@ -749,7 +749,7 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool MainWindow::save (LDDocument* f, bool saveAs)
 {
 	QString path = f->getFullPath();
@@ -816,7 +816,7 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QPixmap getIcon (QString iconName)
 {
 	return (QPixmap (fmt (":/icons/%1.png", iconName)));
@@ -1008,7 +1008,7 @@ QImage imageFromScreencap (uchar* data, int w, int h)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
 	m_Color (color),
 	m_ToolButton (toolButton) {}

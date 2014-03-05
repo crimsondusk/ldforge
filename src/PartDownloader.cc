@@ -37,7 +37,7 @@ cfg (Bool,		net_autoclose,		true);
 const QString g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::staticBegin()
 {
 	QString path = getDownloadPath();
@@ -56,7 +56,7 @@ void PartDownloader::staticBegin()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString PartDownloader::getDownloadPath()
 {
 	QString path = net_downloadpath;
@@ -69,7 +69,7 @@ QString PartDownloader::getDownloadPath()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent)
 {
 	setInterface (new Ui_DownloadFrom);
@@ -88,14 +88,14 @@ PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::~PartDownloader()
 {
 	delete getInterface();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString PartDownloader::getURL() const
 {
 	const Source src = getSource();
@@ -117,7 +117,7 @@ QString PartDownloader::getURL() const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::modifyDestination (QString& dest) const
 {
 	dest = dest.simplified();
@@ -179,14 +179,14 @@ void PartDownloader::modifyDestination (QString& dest) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::Source PartDownloader::getSource() const
 {
 	return (Source) getInterface()->source->currentIndex();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::sourceChanged (int i)
 {
 	if (i == CustomURL)
@@ -196,7 +196,7 @@ void PartDownloader::sourceChanged (int i)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::buttonClicked (QAbstractButton* btn)
 {
 	if (btn == getButton (Close))
@@ -240,7 +240,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::downloadFile (QString dest, QString url, bool primary)
 {
 	const int row = getInterface()->progress->rowCount();
@@ -261,7 +261,7 @@ void PartDownloader::downloadFile (QString dest, QString url, bool primary)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::checkIfFinished()
 {
 	bool failed = isAborted();
@@ -304,7 +304,7 @@ void PartDownloader::checkIfFinished()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QPushButton* PartDownloader::getButton (PartDownloader::Button i)
 {
 	switch (i)
@@ -323,7 +323,7 @@ QPushButton* PartDownloader::getButton (PartDownloader::Button i)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent) :
 	QObject (parent),
 	m_State (ERequesting),
@@ -357,11 +357,11 @@ PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primar
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloadRequest::~PartDownloadRequest() {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::updateToTable()
 {
 	const int		labelcol = PartDownloader::PartLabelColumn,
@@ -415,7 +415,7 @@ void PartDownloadRequest::updateToTable()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::downloadFinished()
 {
 	if (getReply()->error() != QNetworkReply::NoError)
@@ -481,7 +481,7 @@ void PartDownloadRequest::downloadFinished()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::downloadProgress (int64 recv, int64 total)
 {
 	setBytesRead (recv);
@@ -491,7 +491,7 @@ void PartDownloadRequest::downloadProgress (int64 recv, int64 total)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::readyRead()
 {
 	if (getState() == EFailed)
@@ -520,21 +520,21 @@ void PartDownloadRequest::readyRead()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool PartDownloadRequest::isFinished() const
 {
 	return getState() == EFinished || getState() == EFailed;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::abort()
 {
 	getReply()->abort();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (DownloadFrom, 0)
 {
 	PartDownloader::staticBegin();

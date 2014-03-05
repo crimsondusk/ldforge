@@ -201,7 +201,7 @@ class LDObject
 // LDSharedVertex
 //
 // For use as coordinates of LDObjects. Keeps count of references.
-// -----------------------------------------------------------------------------
+// =============================================================================
 class LDSharedVertex
 {
 	public:

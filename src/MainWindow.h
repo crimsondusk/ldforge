@@ -253,11 +253,11 @@ class MainWindow : public QMainWindow
 		void slot_editObject (QListWidgetItem* listitem);
 };
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Pointer to the instance of MainWindow.
 extern MainWindow* g_win;
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Other GUI-related stuff not directly part of MainWindow:
 QPixmap getIcon (QString iconName); // Get an icon from the resource dir
 QList<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
@@ -269,7 +269,7 @@ void makeColorComboBox (QComboBox* box); // Fills the given combo-box with color
 QImage imageFromScreencap (uchar* data, int w, int h);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Takes in pairs of radio buttons and respective values and returns the value of
 // the first found radio button that was checked.
 // =============================================================================
@@ -284,7 +284,7 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Takes in pairs of radio buttons and respective values and checks the first
 // found radio button to have the given value.
 // =============================================================================

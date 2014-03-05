@@ -44,7 +44,7 @@ static QList<int> g_signalsToCatch ({
 });
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 static void handleCrash (int sig)
 {
 	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
@@ -92,7 +92,7 @@ static void handleCrash (int sig)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void initCrashCatcher()
 {
 	struct sigaction sighandler;
@@ -112,7 +112,7 @@ void initCrashCatcher()
 // the bomb box straight in Windows while in Linux we let abort() trigger the
 // signal handler, which will cause the usual bomb box with GDB diagnostics.
 // Said prompt will embed the assertion failure information.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
 {
 	QString errmsg = fmt (

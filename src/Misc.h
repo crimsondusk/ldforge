@@ -91,14 +91,14 @@ namespace Grid
 	double snap (double value, const Grid::Config axis);
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Plural expression
 template<class T> static inline const char* plural (T n)
 {
 	return (n != 1) ? "s" : "";
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Templated clamp
 template<class T> static inline T clamp (T a, T min, T max)
 {

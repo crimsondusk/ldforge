@@ -45,7 +45,7 @@ static QList<Config*>			g_configs;
 
 // =============================================================================
 // Get the QSettings object.
-// -----------------------------------------------------------------------------
+// =============================================================================
 static QSettings* getSettingsObject()
 {
 	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
@@ -57,7 +57,7 @@ Config::Config (QString name) :
 
 // =============================================================================
 // Load the configuration from file
-// -----------------------------------------------------------------------------
+// =============================================================================
 bool Config::load()
 {
 	QSettings* settings = getSettingsObject();
@@ -80,7 +80,7 @@ bool Config::load()
 
 // =============================================================================
 // Save the configuration to disk
-// -----------------------------------------------------------------------------
+// =============================================================================
 bool Config::save()
 {
 	QSettings* settings = getSettingsObject();
@@ -101,7 +101,7 @@ bool Config::save()
 
 // =============================================================================
 // Reset configuration to defaults.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void Config::reset()
 {
 	for (Config* cfg : g_configs)
@@ -110,7 +110,7 @@ void Config::reset()
 
 // =============================================================================
 // Where is the configuration file located at?
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString Config::filepath (QString file)
 {
 	return Config::dirpath() + DIRSLASH + file;
@@ -118,7 +118,7 @@ QString Config::filepath (QString file)
 
 // =============================================================================
 // Directory of the configuration file.
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
@@ -129,7 +129,7 @@ QString Config::dirpath()
 // We cannot just add config objects to a list or vector because that would rely
 // on the vector's c-tor being called before the configs' c-tors. With global
 // variables we cannot assume that, therefore we need to use a C-style array here.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void Config::addToArray (Config* ptr)
 {
 	if (g_cfgPointerCursor == 0)
@@ -140,7 +140,7 @@ void Config::addToArray (Config* ptr)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 template<class T> T* getConfigByName (QString name, Config::Type type)
 {
 	auto it = g_configsByName.find (name);
@@ -160,7 +160,7 @@ template<class T> T* getConfigByName (QString name, Config::Type type)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 #undef IMPLEMENT_CONFIG
 
 #define IMPLEMENT_CONFIG(NAME)										\

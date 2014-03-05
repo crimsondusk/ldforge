@@ -99,8 +99,9 @@ static const long g_e10[] =
 };
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 // Grid stuff
+//
 cfg (Int,		grid,					Grid::Medium);
 cfg (Float,		grid_coarse_x,			5.0f);
 cfg (Float,		grid_coarse_y,			5.0f);
@@ -125,8 +126,9 @@ const gridinfo g_GridInfo[3] =
 };
 
 // =============================================================================
+//
 // Snap the given coordinate value on the current grid's given axis.
-// -----------------------------------------------------------------------------
+//
 double Grid::snap (double in, const Grid::Config axis)
 {
 	const double gridval = *currentGrid().confs[axis];
@@ -144,7 +146,7 @@ double Grid::snap (double in, const Grid::Config axis)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool numeric (const QString& tok)
 {
 	bool gotDot = false;
@@ -176,7 +178,7 @@ bool numeric (const QString& tok)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void simplify (int& numer, int& denom)
 {
 	bool repeat;
@@ -205,7 +207,7 @@ void simplify (int& numer, int& denom)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex rotPoint (const LDObjectList& objs)
 {
 	switch ((ERotationPoint) edit_rotpoint)
@@ -241,7 +243,7 @@ Vertex rotPoint (const LDObjectList& objs)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void configRotationPoint()
 {
 	QDialog* dlg = new QDialog;
@@ -281,7 +283,7 @@ void configRotationPoint()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString join (initlist<StringFormatArg> vals, QString delim)
 {
 	QStringList list;
@@ -293,7 +295,7 @@ QString join (initlist<StringFormatArg> vals, QString delim)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void roundToDecimals (double& a, int decimals)
 {
 	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));

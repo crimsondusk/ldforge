@@ -51,7 +51,7 @@ PrimitiveScanner* getActivePrimitiveScanner()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void loadPrimitives()
 {
 	PrimitiveCategory::loadCategories();
@@ -90,7 +90,7 @@ void loadPrimitives()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 {
 	QFileInfoList flist = dir.entryInfoList (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -105,7 +105,7 @@ static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 	QObject (parent),
 	m_i (0)
@@ -120,14 +120,14 @@ PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveScanner::~PrimitiveScanner()
 {
 	g_activeScanner = null;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveScanner::work()
 {
 	int j = min (m_i + 100, m_files.size());
@@ -193,7 +193,7 @@ void PrimitiveScanner::work()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveScanner::start()
 {
 	if (g_activeScanner)
@@ -204,13 +204,13 @@ void PrimitiveScanner::start()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveCategory::PrimitiveCategory (QString name, QObject* parent) :
 	QObject (parent),
 	m_Name (name) {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveCategory::populateCategories()
 {
 	for (PrimitiveCategory* cat : g_PrimitiveCategories)
@@ -265,7 +265,7 @@ void PrimitiveCategory::populateCategories()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveCategory::loadCategories()
 {
 	for (PrimitiveCategory* cat : g_PrimitiveCategories)
@@ -340,7 +340,7 @@ void PrimitiveCategory::loadCategories()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool PrimitiveCategory::isValidToInclude()
 {
 	if (regexes.size() == 0)
@@ -354,21 +354,21 @@ bool PrimitiveCategory::isValidToInclude()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool isPrimitiveLoaderBusy()
 {
 	return g_activeScanner != null;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static double radialPoint (int i, int divs, double (*func) (double))
 {
 	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 {
 	for (int i = 0; i < segs; ++i)
@@ -383,7 +383,7 @@ void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	LDObjectList objs;
@@ -536,7 +536,7 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static QString primitiveTypeName (PrimitiveType type)
 {
 	// Not translated as primitives are in English.
@@ -548,7 +548,7 @@ static QString primitiveTypeName (PrimitiveType type)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 {
 	int numer = segs,
@@ -580,7 +580,7 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	// Make the description
@@ -636,7 +636,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	QString name = radialFileName (type, segs, divs, num);
@@ -649,7 +649,7 @@ LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
 {
@@ -659,14 +659,14 @@ PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitivePrompt::~PrimitivePrompt()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitivePrompt::hiResToggled (bool on)
 {
 	ui->sb_segs->setMaximum (on ? hires : lores);
@@ -678,7 +678,7 @@ void PrimitivePrompt::hiResToggled (bool on)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (MakePrimitive, 0)
 {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);

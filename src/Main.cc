@@ -44,7 +44,7 @@ const Matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 cfg (Bool, firststart, true);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int main (int argc, char* argv[])
 {
 	QApplication app (argc, argv);
@@ -84,7 +84,7 @@ int main (int argc, char* argv[])
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void doPrint (QFile& f, QList<StringFormatArg> args)
 {
 	QString msg = DoFormat (args);
@@ -93,7 +93,7 @@ void doPrint (QFile& f, QList<StringFormatArg> args)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void doPrint (FILE* fp, QList<StringFormatArg> args)
 {
 	QString msg = DoFormat (args);

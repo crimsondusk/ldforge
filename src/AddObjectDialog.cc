@@ -36,7 +36,7 @@
 #include "Primitives.h"
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 class SubfileListItem : public QTreeWidgetItem
 {
 	PROPERTY (public,	Primitive*,	PrimitiveInfo, NO_OPS,	STOCK_WRITE)
@@ -52,7 +52,7 @@ class SubfileListItem : public QTreeWidgetItem
 };
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
 	QDialog (parent)
 {
@@ -268,7 +268,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 {
 	LDColor* col = getColor (colnum);
@@ -281,7 +281,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString AddObjectDialog::currentSubfileName()
 {
 	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
@@ -293,7 +293,7 @@ QString AddObjectDialog::currentSubfileName()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void AddObjectDialog::slot_colorButtonClicked()
 {
 	ColorSelector::selectColor (colnum, colnum, this);
@@ -301,7 +301,7 @@ void AddObjectDialog::slot_colorButtonClicked()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void AddObjectDialog::slot_subfileTypeChanged()
 {
 	QString name = currentSubfileName();
@@ -311,7 +311,7 @@ void AddObjectDialog::slot_subfileTypeChanged()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 template<class T> static T* initObj (LDObject*& obj)
 {
 	if (obj == null)
@@ -321,7 +321,7 @@ template<class T> static T* initObj (LDObject*& obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 {
 	setlocale (LC_ALL, "C");

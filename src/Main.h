@@ -87,7 +87,7 @@ const char* fullVersionString();
 #define typedefs public
 #define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 #ifdef IN_IDE_PARSER // KDevelop workarounds:
 # error IN_IDE_PARSER is defined (this code is only for KDevelop workarounds)
 # define COMPILE_DATE "14-01-10 10:31:09"

@@ -50,7 +50,7 @@ enum extprog
 };
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 cfg (String, prog_isecalc, "");
 cfg (String, prog_intersector, "");
 cfg (String, prog_coverer, "");
@@ -98,7 +98,7 @@ const char* g_extProgNames[] =
 };
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
 {
 	if (!tmp.open())
@@ -110,7 +110,7 @@ static bool mkTempFile (QTemporaryFile& tmp, QString& fname)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static bool checkProgPath (const extprog prog)
 {
 	QString& path = *g_extProgPaths[prog];
@@ -130,7 +130,7 @@ static bool checkProgPath (const extprog prog)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static QString processErrorString (extprog prog, QProcess& proc)
 {
 	switch (proc.error())
@@ -165,7 +165,7 @@ static QString processErrorString (extprog prog, QProcess& proc)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void writeObjects (const LDObjectList& objects, QFile& f)
 {
 	for (LDObject* obj : objects)
@@ -186,7 +186,7 @@ static void writeObjects (const LDObjectList& objects, QFile& f)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void writeObjects (const LDObjectList& objects, QString fname)
 {
 	// Write the input file
@@ -207,14 +207,14 @@ static void writeObjects (const LDObjectList& objects, QString fname)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void writeSelection (QString fname)
 {
 	writeObjects (selection(), fname);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void writeColorGroup (const int colnum, QString fname)
 {
 	LDObjectList objects;
@@ -231,7 +231,7 @@ void writeColorGroup (const int colnum, QString fname)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 {
 	QTemporaryFile input;
@@ -287,7 +287,7 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void insertOutput (QString fname, bool replace, QList<int> colorsToReplace)
 {
 #ifdef DEBUG
@@ -332,7 +332,7 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 
 // =============================================================================
 // Interface for Ytruder
-// -----------------------------------------------------------------------------
+// =============================================================================
 DEFINE_ACTION (Ytruder, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -389,7 +389,7 @@ DEFINE_ACTION (Ytruder, 0)
 
 // =============================================================================
 // Rectifier interface
-// -----------------------------------------------------------------------------
+// =============================================================================
 DEFINE_ACTION (Rectifier, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -434,7 +434,7 @@ DEFINE_ACTION (Rectifier, 0)
 
 // =============================================================================
 // Intersector interface
-// -----------------------------------------------------------------------------
+// =============================================================================
 DEFINE_ACTION (Intersector, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -532,7 +532,7 @@ DEFINE_ACTION (Intersector, 0)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Coverer, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -592,7 +592,7 @@ DEFINE_ACTION (Coverer, 0)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Isecalc, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -647,7 +647,7 @@ DEFINE_ACTION (Isecalc, 0)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Edger2, 0)
 {
 	setlocale (LC_ALL, "C");
