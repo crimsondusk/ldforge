@@ -303,7 +303,7 @@ int MainWindow::deleteSelection()
 
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy)
-		obj->deleteSelf();
+		obj->destroy();
 
 	refresh();
 	return selCopy.size();
@@ -700,7 +700,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 void MainWindow::deleteObjects (LDObjectList objs)
 {
 	for (LDObject* obj : objs)
-		obj->deleteSelf();
+		obj->destroy();
 }
 
 // =============================================================================

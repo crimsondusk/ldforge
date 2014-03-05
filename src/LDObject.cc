@@ -219,7 +219,7 @@ void LDObject::replace (LDObject* other)
 	getFile()->setObject (idx, other);
 
 	// Remove the old object
-	deleteSelf();
+	destroy();
 }
 
 // =============================================================================
@@ -258,7 +258,7 @@ LDSubfile::~LDSubfile() {}
 
 // =============================================================================
 //
-void LDObject::deleteSelf()
+void LDObject::destroy()
 {
 	// If this object was selected, unselect it now
 	if (isSelected())
@@ -397,7 +397,7 @@ QString LDObject::typeName (LDObject::Type type)
 {
 	LDObject* obj = LDObject::getDefault (type);
 	QString name = obj->typeName();
-	obj->deleteSelf();
+	obj->destroy();
 	return name;
 }
 
@@ -576,7 +576,7 @@ void LDSubfile::invert()
 		if (bfc && bfc->m_statement == LDBFC::InvertNext)
 		{
 			// This is prefixed with an invertnext, thus remove it.
-			bfc->deleteSelf();
+			bfc->destroy();
 			return;
 		}
 	}

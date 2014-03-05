@@ -142,11 +142,11 @@ LDDocument::~LDDocument()
 
 	// Clear everything from the model
 	for (LDObject* obj : getObjects())
-		obj->deleteSelf();
+		obj->destroy();
 
 	// Clear the cache as well
 	for (LDObject* obj : getCache())
-		obj->deleteSelf();
+		obj->destroy();
 
 	delete m_History;
 	delete m_gldata;
@@ -357,7 +357,7 @@ void LDFileLoader::work (int i)
 	if (isAborted())
 	{
 		for (LDObject* obj : m_Objects)
-			obj->deleteSelf();
+			obj->destroy();
 
 		m_Objects.clear();
 		setDone (true);

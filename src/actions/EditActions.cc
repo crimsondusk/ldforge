@@ -129,19 +129,18 @@ static void doInline (bool deep)
 		LDObjectList objs;
 
 		if (obj->type() == LDObject::ESubfile)
-			objs = static_cast<LDSubfile*> (obj)->inlineContents (
-					   (LDSubfile::InlineFlags)
-					   ( (deep) ? LDSubfile::DeepInline : 0) |
-					   LDSubfile::CacheInline
-				   );
+		{
+			LDSubfile::InlineFlags flags = deep ? LDSubfile::DeepCacheInline : LDSubfile::CacheInline;
+			objs = static_cast<LDSubfile*> (obj)->inlineContents (flags);
+		}
 		else
 			continue;
 
 		// Merge in the inlined objects
-		for (LDObject * inlineobj : objs)
+		for (LDObject* inlineobj : objs)
 		{
 			QString line = inlineobj->asText();
-			inlineobj->deleteSelf();
+			inlineobj->destroy();
 			LDObject* newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
@@ -149,7 +148,7 @@ static void doInline (bool deep)
 		}
 
 		// Delete the subfile now as it's been inlined.
-		obj->deleteSelf();
+		obj->destroy();
 	}
 
 	g_win->refresh();
@@ -194,7 +193,7 @@ DEFINE_ACTION (SplitQuads, 0)
 			R()->compileObject (t);
 
 		// Delete this quad now, it has been split.
-		obj->deleteSelf();
+		obj->destroy();
 
 		num++;
 	}

@@ -1001,7 +1001,7 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			for (LDObject* obj : objs)
 			{
 				compileList (obj, list);
-				obj->deleteSelf();
+				obj->destroy();
 			}
 
 			g_glInvert = oldinvert;
@@ -1734,7 +1734,7 @@ static QList<Vertex> getVertices (LDObject* obj)
 		for (LDObject* obj : objs)
 		{
 			verts << getVertices (obj);
-			obj->deleteSelf();
+			obj->destroy();
 		}
 	}
 
@@ -2163,11 +2163,11 @@ void GLRenderer::updateOverlayObjects()
 			LDObject* nextobj = ovlobj->next();
 
 			if (nextobj && nextobj->type() == LDObject::EEmpty)
-				nextobj->deleteSelf();
+				nextobj->destroy();
 
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
-			ovlobj->deleteSelf();
+			ovlobj->destroy();
 		} elif (meta.img && !ovlobj)
 		{
 			// Inverse case: image is there but the overlay object is

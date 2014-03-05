@@ -844,7 +844,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	{
 		// Remove the selection now
 		for (LDObject* obj : selection())
-			obj->deleteSelf();
+			obj->destroy();
 
 		// Compile all objects in the new subfile
 		for (LDObject* obj : doc->getObjects())

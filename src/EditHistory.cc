@@ -131,7 +131,7 @@ void History::add (AbstractHistoryEntry* entry)
 void AddHistory::undo() const
 {
 	LDObject* obj = getParent()->getDocument()->getObject (getIndex());
-	obj->deleteSelf();
+	obj->destroy();
 }
 
 // =============================================================================
@@ -164,7 +164,7 @@ void DelHistory::undo() const
 void DelHistory::redo() const
 {
 	LDObject* obj = getParent()->getDocument()->getObject (getIndex());
-	obj->deleteSelf();
+	obj->destroy();
 }
 
 // =============================================================================

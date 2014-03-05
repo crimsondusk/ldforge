@@ -100,7 +100,7 @@ class LDObject
 		LDObject*					createCopy() const;
 
 		// Deletes this object
-		void						deleteSelf();
+		void						destroy();
 
 		// Index (i.e. line number) of this object
 		long						lineNumber() const;
