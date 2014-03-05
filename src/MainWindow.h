@@ -67,11 +67,9 @@ class LDQuickColor
 		static LDQuickColor getSeparator();
 };
 
-// =============================================================================
-// ObjectList
-//
-// Object list class for MainWindow
-// =============================================================================
+//!
+//! Object list class for MainWindow
+//!
 class ObjectList : public QListWidget
 {
 	Q_OBJECT
@@ -80,55 +78,118 @@ class ObjectList : public QListWidget
 		void contextMenuEvent (QContextMenuEvent* ev);
 };
 
-// =============================================================================
-// MainWindow
-//
-// The one main GUI class. Hosts the renderer, object list, message log. Contains
-// slot_action, which is what all actions connect to. Manages menus and toolbars.
-// Large and in charge.
-// =============================================================================
+//!
+//! @brief The main window class.
+//!
+//! The MainWindow is LDForge's main GUI. It hosts the renderer, the object list,
+//! the message log, etc. Contains @c slot_action(), which is what all actions
+//! connect to.
+//!
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
 
 	public:
-		MainWindow();
+		//! Constructs the main window
+		explicit MainWindow (QWidget* parent = null, Qt::WindowFlags flags = 0);
+
+		//! Rebuilds the object list, located to the right of the GUI.
 		void buildObjList();
+
+		//! Updates the window title.
 		void updateTitle();
+
+		//! Builds the object list and tells the GL renderer to init a full
+		//! refresh.
 		void doFullRefresh();
+
+		//! Builds the object list and tells the GL renderer to do a soft update.
 		void refresh();
+
+		//! @returns the suggested position to place a new object at.
 		int getInsertionPoint();
-		void updateToolBars();
+
+		//! Updates the quick color toolbar
+		void updateColorToolbar();
+
+		//! Rebuilds the recent files submenu
 		void updateRecentFilesMenu();
+
+		//! Sets the selection based on what's selected in the object list.
 		void updateSelection();
+
+		//! Updates the grids, selects the selected grid and deselects others.
 		void updateGridToolBar();
+
+		//! Updates the edit modes, current one is selected and others are deselected.
 		void updateEditModeActions();
+
+		//! Rebuilds the document tab list.
 		void updateDocumentList();
-		void updateDocumentListItem (LDDocument* f);
+
+		//! Updates the document tab for @c doc. If no such tab exists, the
+		//! document list is rebuilt instead.
+		void updateDocumentListItem (LDDocument* doc);
+
+		//! @returns the uniform selected color (i.e. 4 if everything selected is
+		//! red), -1 if there is no such consensus.
 		int getSelectedColor();
+
+		//! @returns the uniform selected type (i.e. @c LDObject::ELine if everything
+		//! selected is a line), @c LDObject::EUnidentified if there is no such
+		//! consensus.
 		LDObject::Type getUniformSelectedType();
+
+		//! Automatically scrolls the object list so that it points to the first
+		//! selected object.
 		void scrollToSelection();
+
+		//! Spawns the context menu at the given position.
 		void spawnContextMenu (const QPoint pos);
+
+		//! Deletes all selected objects.
+		//! @returns the count of deleted objects.
 		int deleteSelection();
-		void deleteByColor (const int colnum);
-		bool save (LDDocument* f, bool saveAs);
+
+		//! Deletes all objects by the given color number.
+		void deleteByColor (int colnum);
+
+		//! Tries to save the given document.
+		//! @param doc the document to save
+		//! @param saveAs if true, always ask for a file path
+		//! @returns whether the save was successful
+		bool save (LDDocument* doc, bool saveAs);
+
+		//! Updates various actions, undo/redo are set enabled/disabled where
+		//! appropriate, togglable actions are updated based on configuration,
+		//! etc.
 		void updateActions();
 
+		//! @returns a pointer to the renderer
 		inline GLRenderer* R()
 		{
 			return m_renderer;
 		}
 
-		inline void setQuickColors (QList<LDQuickColor>& colors)
+		//! Sets the quick color list to the given list of colors.
+		inline void setQuickColors (const QList<LDQuickColor>& colors)
 		{
 			m_quickColors = colors;
+			updateColorToolbar();
 		}
 
+		//! Adds a message to the renderer's message manager.
 		void addMessage (QString msg);
+
+		//! Updates the object list. Right now this just rebuilds it.
 		void refreshObjectList();
+
+		//! Updates all actions to ensure they have the correct shortcut as
+		//! defined in the configuration entries.
 		void updateActionShortcuts();
-		KeySequenceConfig* shortcutForAction (QAction* act);
-		void endAction();
+
+		//! Gets the shortcut configuration for the given @c action
+		KeySequenceConfig* shortcutForAction (QAction* action);
 
 	public slots:
 		void changeCurrentFile();
@@ -242,6 +303,8 @@ class MainWindow : public QMainWindow
 		QTabBar*			m_tabs;
 		bool				m_updatingTabs;
 
+		void endAction();
+
 	private slots:
 		void slot_selectionChanged();
 		void slot_recentFile();
@@ -250,30 +313,43 @@ class MainWindow : public QMainWindow
 		void slot_editObject (QListWidgetItem* listitem);
 };
 
-// =============================================================================
-//
-// Pointer to the instance of MainWindow.
-//
+//! Pointer to the instance of MainWindow.
 extern MainWindow* g_win;
 
-// =============================================================================
-//
-// Other GUI-related stuff not directly part of MainWindow
-//
-QPixmap getIcon (QString iconName); // Get an icon from the resource dir
-QList<LDQuickColor> quickColorsFromConfig(); // Make a list of quick colors based on config
-bool confirm (QString title, QString msg); // Generic confirm prompt
-bool confirm (QString msg); // Generic confirm prompt
-void critical (QString msg); // Generic error prompt
-QIcon makeColorIcon (LDColor* colinfo, const int size); // Makes an icon for the given color
-void makeColorComboBox (QComboBox* box); // Fills the given combo-box with color information
+//! Get an icon by name from the resources directory.
+QPixmap getIcon (QString iconName);
+
+//! @returns a list of quick colors based on the configuration entry.
+QList<LDQuickColor> quickColorsFromConfig();
+
+//! Asks the user a yes/no question with the given @c message and the given
+//! window @c title.
+//! @returns true if the user answered yes, false if no.
+bool confirm (QString title, QString message); // Generic confirm prompt
+
+//! An overload of @c confirm(), this asks the user a yes/no question with the
+//! given @c message.
+//! @returns true if the user answered yes, false if no.
+bool confirm (QString message);
+
+//! Displays an error prompt with the given @c message
+void critical (QString message);
+
+//! Makes an icon of @c size x @c size pixels to represent @c colinfo
+QIcon makeColorIcon (LDColor* colinfo, const int size);
+
+//! Fills the given combo-box with color information
+void makeColorComboBox (QComboBox* box);
+
+//! @returns a QImage from the given raw GL @c data
 QImage imageFromScreencap (uchar* data, int w, int h);
 
-// =============================================================================
-//
-// Takes in pairs of radio buttons and respective values and returns the value of
-// the first found radio button that was checked.
-//
+//!
+//! Takes in pairs of radio buttons and respective values and finds the first
+//! selected one.
+//! @returns returns the value of the first found radio button that was checked
+//! @returns by the user.
+//!
 template<class T>
 T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 {
@@ -284,11 +360,10 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 	return defval;
 }
 
-// =============================================================================
-//
-// Takes in pairs of radio buttons and respective values and checks the first
-// found radio button to have the given value.
-//
+//!
+//! Takes in pairs of radio buttons and respective values and checks the first
+//! found radio button whose respsective value matches @c expr have the given value.
+//!
 template<class T>
 void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
 {

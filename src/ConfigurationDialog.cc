@@ -364,7 +364,6 @@ void ConfigDialog::applySettings()
 	loadLogoedStuds();
 	g_win->R()->setBackground();
 	g_win->doFullRefresh();
-	g_win->updateToolBars();
 	g_win->updateDocumentList();
 }
 

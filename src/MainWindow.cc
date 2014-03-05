@@ -64,7 +64,8 @@ extern_cfg (Bool,		gl_drawangles);
 
 // =============================================================================
 //
-MainWindow::MainWindow()
+
+MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags)
 {
 	g_win = this;
 	ui = new Ui_LDForgeUI;
@@ -97,7 +98,7 @@ MainWindow::MainWindow()
 	updateGridToolBar();
 	updateEditModeActions();
 	updateRecentFilesMenu();
-	updateToolBars();
+	updateColorToolbar();
 	updateTitle();
 	updateActionShortcuts();
 
@@ -113,9 +114,9 @@ MainWindow::MainWindow()
 
 // =============================================================================
 //
-KeySequenceConfig* MainWindow::shortcutForAction (QAction* act)
+KeySequenceConfig* MainWindow::shortcutForAction (QAction* action)
 {
-	QString keycfgname = format ("key_%1", act->objectName());
+	QString keycfgname = format ("key_%1", action->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
 
@@ -211,7 +212,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 
 // =============================================================================
 //
-void MainWindow::updateToolBars()
+void MainWindow::updateColorToolbar()
 {
 	m_colorButtons.clear();
 	ui->colorToolbar->clear();
@@ -691,7 +692,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 // =============================================================================
 //
-void MainWindow::deleteByColor (const int colnum)
+void MainWindow::deleteByColor (int colnum)
 {
 	LDObjectList objs;
 
@@ -737,18 +738,18 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 
 // =============================================================================
 //
-bool MainWindow::save (LDDocument* f, bool saveAs)
+bool MainWindow::save (LDDocument* doc, bool saveAs)
 {
-	QString path = f->fullPath();
+	QString path = doc->fullPath();
 
 	if (saveAs || path.isEmpty())
 	{
-		QString name = f->defaultName();
+		QString name = doc->defaultName();
 
-		if (!f->fullPath().isEmpty()) 
-			name = f->fullPath();
-		elif (!f->name().isEmpty())
-			name = f->name();
+		if (!doc->fullPath().isEmpty()) 
+			name = doc->fullPath();
+		elif (!doc->name().isEmpty())
+			name = doc->name();
 
 		name.replace ("\\", "/");
 		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
@@ -761,9 +762,9 @@ bool MainWindow::save (LDDocument* f, bool saveAs)
 		}
 	}
 
-	if (f->save (path))
+	if (doc->save (path))
 	{
-		if (f == getCurrentDocument())
+		if (doc == getCurrentDocument())
 			updateTitle();
 
 		print ("Saved to %1.", path);
@@ -786,7 +787,7 @@ bool MainWindow::save (LDDocument* f, bool saveAs)
 	dlg.exec();
 
 	if (dlg.clickedButton() == saveAsBtn)
-		return save (f, true); // yay recursion!
+		return save (doc, true); // yay recursion!
 
 	return false;
 }
@@ -812,19 +813,19 @@ QPixmap getIcon (QString iconName)
 // =============================================================================
 bool confirm (QString msg)
 {
-	return confirm (MainWindow::tr ("Confirm"), msg);
+	return confirm (MainWindow::tr ("Confirm"), message);
 }
 
 bool confirm (QString title, QString msg)
 {
-	return QMessageBox::question (g_win, title, msg,
+	return QMessageBox::question (g_win, title, messag,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
 void critical (QString msg)
 {
-	QMessageBox::critical (g_win, MainWindow::tr ("Error"), msg,
+	QMessageBox::critical (g_win, MainWindow::tr ("Error"), message,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 
@@ -909,12 +910,12 @@ void MainWindow::updateDocumentList()
 	m_updatingTabs = false;
 }
 
-void MainWindow::updateDocumentListItem (LDDocument* f)
+void MainWindow::updateDocumentListItem (LDDocument* doc)
 {
 	bool oldUpdatingTabs = m_updatingTabs;
 	m_updatingTabs = true;
 
-	if (f->tabIndex() == -1)
+	if (doc->tabIndex() == -1)
 	{
 		// We don't have a list item for this file, so the list either doesn't
 		// exist yet or is out of date. Build the list now.
@@ -924,13 +925,13 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 
 	// If this is the current file, it also needs to be the selected item on
 	// the list.
-	if (f == getCurrentDocument())
-		m_tabs->setCurrentIndex (f->tabIndex());
+	if (doc == getCurrentDocument())
+		m_tabs->setCurrentIndex (doc->tabIndex());
 
-	m_tabs->setTabText (f->tabIndex(), f->getDisplayName());
+	m_tabs->setTabText (doc->tabIndex(), doc->getDisplayName());
 
 	// If the document.has unsaved changes, draw a little icon next to it to mark that.
-	m_tabs->setTabIcon (f->tabIndex(), f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	m_tabs->setTabIcon (doc->tabIndex(), doc->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 	m_updatingTabs = oldUpdatingTabs;
 }
 
