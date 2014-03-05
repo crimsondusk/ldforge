@@ -16,15 +16,33 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+//! \file Version.h
+//! Contains macros related to application name and version.
+
 #pragma once
+
+//! The application name.
 #define APPNAME			"LDForge"
+
+//! The unix-style name of the application. used in filenames
 #define UNIXNAME		"ldforge"
+
+//! The major version number.
 #define VERSION_MAJOR	0
-#define VERSION_MINOR	2
-#define VERSION_PATCH	999
+
+//! The minor version number.
+#define VERSION_MINOR	3
+
+//! The patch level version number.
+#define VERSION_PATCH	0
+
+//! The build ID, use either BUILD_INTERNAL or BUILD_RELEASE
 #define BUILD_ID		BUILD_INTERNAL
 
+//! The build code for internal builds
 #define BUILD_INTERNAL	0
+
+//! The build code for release builds.
 #define BUILD_RELEASE	1
 
 // =============================================

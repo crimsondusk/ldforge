@@ -20,6 +20,9 @@
 #include <QString>
 #include "Types.h"
 
+//! \file Format.h
+//! Contains string formatting-related functions and classes.
+
 //!
 //! Converts a given value into a string that can be retrieved with text().
 //! Used as the argument type to the formatting functions, hence its name.
@@ -80,7 +83,7 @@ void formatHelper (QString& str, Arg1 arg1, Rest... rest)
 }
 
 //!
-//! Overload of \c formatHelper with no template args
+//! Overload of \c formatHelper() with no template args
 //!
 static void formatHelper (QString& str) __attribute__ ((unused));
 static void formatHelper (QString& str)
@@ -89,7 +92,12 @@ static void formatHelper (QString& str)
 }
 
 //!
-//! Format the message with the given args
+//! @brief Format the message with the given args.
+//!
+//! The formatting ultimately uses QString's arg() method to actually format
+//! the args so the format string should be prepared accordingly, with %1
+//! referring to the first arg, %2 to the second, etc.
+//!
 //! \param fmtstr The string to format
 //! \param args The args to format with
 //! \return The formatted string
