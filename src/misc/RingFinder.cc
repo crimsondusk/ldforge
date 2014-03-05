@@ -22,15 +22,6 @@
 RingFinder g_RingFinder;
 
 // =============================================================================
-// This is the main algorithm of the ring finder. It tries to use math to find
-// the one ring between r0 and r1. If it fails (the ring number is non-integral),
-// it finds an intermediate radius (ceil of the ring number times scale) and
-// splits the radius at this point, calling this function again to try find the
-// rings between r0 - r and r - r1.
-//
-// This does not always yield into usable results. If at some point r == r0 or
-// r == r1, there is no hope of finding the rings, at least with this algorithm,
-// as it would fall into an infinite recursion.
 //
 bool RingFinder::findRingsRecursor (double r0, double r1, Solution& currentSolution)
 {

@@ -44,9 +44,6 @@ MessageManager::Line::Line (QString text) :
 			expiry (QDateTime::currentDateTime().addSecs (g_expiry)) {}
 
 // =============================================================================
-// Check this line's expiry and update alpha accordingly. Returns true if the
-// line is to still stick around, false if it expired. 'changed' is updated to
-// whether the line has somehow changed since the last update.
 //
 bool MessageManager::Line::update (bool& changed)
 {
