@@ -1072,6 +1072,7 @@ int LDDocument::addObject (LDObject* obj)
 #endif
 
 	obj->setDocument (this);
+	g_win->R()->compileObject (obj);
 	return getObjectCount() - 1;
 }
 
@@ -1091,6 +1092,7 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 	history()->add (new AddHistory (pos, obj));
 	m_objects.insert (pos, obj);
 	obj->setDocument (this);
+	g_win->R()->compileObject (obj);
 
 #ifdef DEBUG
 	if (!isImplicit())
