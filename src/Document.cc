@@ -129,6 +129,7 @@ LDDocument::LDDocument() :
 	setTabIndex (-1);
 	setHistory (new History);
 	history()->setDocument (this);
+	m_needsGLReInit = true;
 }
 
 // =============================================================================

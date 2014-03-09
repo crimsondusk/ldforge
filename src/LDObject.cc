@@ -366,6 +366,7 @@ LDPolygon* LDObject::getPolygon()
 QList<LDPolygon> LDSubfile::inlinePolygons()
 {
 	QList<LDPolygon> data = fileInfo()->inlinePolygons();
+	print ("LDSubfile::inlinePolygons: %1 has %2 polygons\n", fileInfo()->getDisplayName(), data.size());
 
 	for (LDPolygon& entry : data)
 		for (int i = 0; i < entry.numVertices(); ++i)

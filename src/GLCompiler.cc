@@ -360,7 +360,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			auto data = ref->inlinePolygons();
-			print ("inlinePolygons yielded %1 polys\n", data.size());
+			print ("inlinePolygons on %2 yielded %1 polys\n", data.size(), ref->fileInfo()->getDisplayName());
 
 			for (LDPolygon& poly : data)
 			{
