@@ -865,7 +865,7 @@ LDObject* LDObject::createCopy() const
 	if (origin().isEmpty() == false)
 		copy->setOrigin (origin());
 	elif (document() != null)
-		copy->setOrigin (document()->displayName() + ":" + QString::number (lineNumber()));
+		copy->setOrigin (document()->getDisplayName() + ":" + QString::number (lineNumber()));
 
 	return copy;
 }

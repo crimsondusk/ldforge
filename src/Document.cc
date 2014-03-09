@@ -1194,12 +1194,12 @@ QString LDDocument::getDisplayName()
 //
 void LDDocument::initializeGLData()
 {
-	log (getDisplayName() + ": Initializing GL data");
+	print (getDisplayName() + ": Initializing GL data");
 	LDObjectList objs = inlineContents (true, true);
 
 	for (LDObject* obj : objs)
 	{
-		assert (obj->getType() != LDObject::ESubfile);
+		assert (obj->type() != LDObject::ESubfile);
 		LDPolygon* data = obj->getPolygon();
 
 		if (data != null)

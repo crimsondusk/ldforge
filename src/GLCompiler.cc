@@ -67,13 +67,13 @@ void checkGLError_private (const char* file, int line)
 		}
 	}
 
-	log ("OpenGL ERROR: at %1:%2: %3", basename (QString (file)), line, errmsg);
+	print ("OpenGL ERROR: at %1:%2: %3", basename (QString (file)), line, errmsg);
 }
 
 // =============================================================================
 //
 GLCompiler::GLCompiler() :
-	m_Document (null)
+	m_document (null)
 {
 	needMerge();
 }
@@ -158,7 +158,7 @@ QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 			if (poly.color == i)
 				return qcol;
 
-		log ("%1: Unknown color %2!\n", __func__, poly.color);
+		print ("%1: Unknown color %2!\n", __func__, poly.color);
 		gWarnedColors << poly.color;
 		return qcol;
 	}
@@ -198,10 +198,10 @@ void GLCompiler::stageForCompilation (LDObject* obj)
 //
 void GLCompiler::compileDocument()
 {
-	if (getDocument() == null)
+	if (document() == null)
 		return;
 
-	for (LDObject* obj : getDocument()->getObjects())
+	for (LDObject* obj : document()->objects())
 		compileObject (obj);
 }
 
@@ -257,7 +257,7 @@ void GLCompiler::dropObject (LDObject* obj)
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
-	log ("compile #%1\n", obj->getID());
+	print ("compiling #%1\n", obj->id());
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
@@ -280,8 +280,8 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 		case 5:	surface = vboCondLines;	numverts = 2; break;
 
 		default:
-			log ("OMGWTFBBQ weird polygon with number %1 (topobj: #%2, %3), origin: %4",
-				(int) poly.num, topobj->getID(), topobj->getTypeName(), poly.origin);
+			print ("OMGWTFBBQ weird polygon with number %1 (topobj: #%2, %3), origin: %4",
+				(int) poly.num, topobj->id(), topobj->typeName(), poly.origin);
 			assert (false);
 	}
 
@@ -290,7 +290,7 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 		const int vbonum			= getVBONumber (surface, (EVBOComplement) complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
 		const QColor normalColor	= getPolygonColor (poly, topobj);
-		const QColor pickColor		= getIndexColor (topobj->getID());
+		const QColor pickColor		= getIndexColor (topobj->id());
 
 		for (int vert = 0; vert < numverts; ++vert)
 		{
@@ -340,7 +340,7 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 //
 void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInfo* objinfo)
 {
-	switch (obj->getType())
+	switch (obj->type())
 	{
 		// Note: We cannot split quads into triangles here, it would mess up the
 		// wireframe view. Quads must go into separate vbos.
@@ -350,7 +350,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 		case LDObject::ECondLine:
 		{
 			LDPolygon* poly = obj->getPolygon();
-			poly->id = topobj->getID();
+			poly->id = topobj->id();
 			compilePolygon (*poly, topobj, objinfo);
 			delete poly;
 			break;
@@ -360,11 +360,11 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			auto data = ref->inlinePolygons();
-			log ("inlinePolygons yielded %1 polys\n", data.size());
+			print ("inlinePolygons yielded %1 polys\n", data.size());
 
 			for (LDPolygon& poly : data)
 			{
-				poly.id = topobj->getID();
+				poly.id = topobj->id();
 				compilePolygon (poly, topobj, objinfo);
 			}
 			break;
