@@ -45,7 +45,7 @@ static QList<Config*>			g_configs;
 
 // =============================================================================
 // Get the QSettings object.
-// -----------------------------------------------------------------------------
+// =============================================================================
 static QSettings* getSettingsObject()
 {
 	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
@@ -53,24 +53,24 @@ static QSettings* getSettingsObject()
 }
 
 Config::Config (QString name) :
-	m_Name (name) {}
+	m_name (name) {}
 
 // =============================================================================
 // Load the configuration from file
-// -----------------------------------------------------------------------------
+// =============================================================================
 bool Config::load()
 {
 	QSettings* settings = getSettingsObject();
-	log ("config::load: Loading configuration file from %1\n", settings->fileName());
+	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (Config* cfg : g_configPointers)
 	{
 		if (!cfg)
 			break;
 
-		QVariant val = settings->value (cfg->getName(), cfg->getDefaultAsVariant());
+		QVariant val = settings->value (cfg->name(), cfg->getDefaultAsVariant());
 		cfg->loadFromVariant (val);
-		g_configsByName[cfg->getName()] = cfg;
+		g_configsByName[cfg->name()] = cfg;
 		g_configs << cfg;
 	}
 
@@ -79,29 +79,30 @@ bool Config::load()
 }
 
 // =============================================================================
+//
 // Save the configuration to disk
-// -----------------------------------------------------------------------------
+//
 bool Config::save()
 {
 	QSettings* settings = getSettingsObject();
-	log ("Saving configuration to %1...\n", settings->fileName());
 
 	for (Config* cfg : g_configs)
 	{
 		if (!cfg->isDefault())
-			settings->setValue (cfg->getName(), cfg->toVariant());
+			settings->setValue (cfg->name(), cfg->toVariant());
 		else
-			settings->remove (cfg->getName());
+			settings->remove (cfg->name());
 	}
 
 	settings->sync();
+	print ("Configuration saved to %1.\n", settings->fileName());
 	settings->deleteLater();
 	return true;
 }
 
 // =============================================================================
 // Reset configuration to defaults.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void Config::reset()
 {
 	for (Config* cfg : g_configs)
@@ -110,7 +111,7 @@ void Config::reset()
 
 // =============================================================================
 // Where is the configuration file located at?
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString Config::filepath (QString file)
 {
 	return Config::dirpath() + DIRSLASH + file;
@@ -118,7 +119,7 @@ QString Config::filepath (QString file)
 
 // =============================================================================
 // Directory of the configuration file.
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
@@ -129,7 +130,7 @@ QString Config::dirpath()
 // We cannot just add config objects to a list or vector because that would rely
 // on the vector's c-tor being called before the configs' c-tors. With global
 // variables we cannot assume that, therefore we need to use a C-style array here.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void Config::addToArray (Config* ptr)
 {
 	if (g_cfgPointerCursor == 0)
@@ -140,7 +141,7 @@ void Config::addToArray (Config* ptr)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 template<class T> T* getConfigByName (QString name, Config::Type type)
 {
 	auto it = g_configsByName.find (name);
@@ -160,7 +161,7 @@ template<class T> T* getConfigByName (QString name, Config::Type type)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 #undef IMPLEMENT_CONFIG
 
 #define IMPLEMENT_CONFIG(NAME)										\

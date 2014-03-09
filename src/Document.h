@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOCUMENT_H
-#define LDFORGE_DOCUMENT_H
-
+#pragma once
 #include <QObject>
 #include "Main.h"
 #include "LDObject.h"
@@ -42,33 +40,34 @@ namespace LDPaths
 }
 
 // =============================================================================
-// LDDocument
 //
-// The LDDocument class stores a document opened in LDForge either as a editable
-// file for the user or for subfile caching. Its methods handle file input and
-// output.
+// This class stores a document either as a editable file for the user or for
+// subfile caching. Its methods handle file input and output.
 //
 // A file is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
 //
 // The default name is a placeholder, initially suggested name for a file. The
 // primitive generator uses this to give initial names to primitives.
-// =============================================================================
+//
 class LDDocument : public QObject
 {
-	properties:
+	public:
+		using ReferenceList = QList<LDDocumentPointer*>;
+
 		Q_OBJECT
-		PROPERTY (private,	LDObjectList,				Objects, 		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	History*,					History,		NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,				Vertices,		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (private,	QList<LDDocumentPointer*>,	References,		LIST_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					Name,			STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					FullPath,		STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QString,					DefaultName,	STR_OPS,	STOCK_WRITE)
-		PROPERTY (public,	bool,						Implicit,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,	QList<LDPolygon>,			PolygonData,	NO_OPS,		STOCK_WRITE)
-		PROPERTY (public,	long,						SavePosition,	NUM_OPS,	STOCK_WRITE)
-		PROPERTY (public,	int,						TabIndex,		NO_OPS,		STOCK_WRITE)
+		PROPERTY (public,	QString,		name,			setName,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	objects, 		setObjects,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	cache, 			setCache,			STOCK_WRITE)
+		PROPERTY (private,	History*,		history,		setHistory,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,	vertices,		setVertices,		STOCK_WRITE)
+		PROPERTY (private,	ReferenceList,	references,		setReferences,		STOCK_WRITE)
+		PROPERTY (public,	QString,		fullPath,		setFullPath,		STOCK_WRITE)
+		PROPERTY (public,	QString,		defaultName,	setDefaultName,		STOCK_WRITE)
+		PROPERTY (public,	bool,			isImplicit,		setImplicit,		STOCK_WRITE)
+		PROPERTY (public,	long,			savePosition,	setSavePosition,	STOCK_WRITE)
+		PROPERTY (public,	int,			tabIndex,		setTabIndex,		STOCK_WRITE)
+		PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,	STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -80,7 +79,7 @@ class LDDocument : public QObject
 		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
 		QString getDisplayName();
 		const LDObjectList& getSelection() const;
-		bool hasUnsavedChanges() const; // Does this Document.have unsaved changes?
+		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
 		void initializeGLData();
 		LDObjectList inlineContents (bool deep, bool renderinline);
 		void insertObj (int pos, LDObject* obj);
@@ -102,27 +101,27 @@ class LDDocument : public QObject
 
 		inline void addHistoryStep()
 		{
-			m_History->addStep();
+			history()->addStep();
 		}
 
 		inline void undo()
 		{
-			m_History->undo();
+			history()->undo();
 		}
 
 		inline void redo()
 		{
-			m_History->redo();
+			history()->redo();
 		}
 
 		inline void clearHistory()
 		{
-			m_History->clear();
+			history()->clear();
 		}
 
 		inline void addToHistory (AbstractHistoryEntry* entry)
 		{
-			*m_History << entry;
+			*history() << entry;
 		}
 
 		static void closeUnused();
@@ -211,24 +210,23 @@ QString dirname (QString path);
 extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-// FileLoader
+//
+// LDFileLoader
 //
 // Loads the given file and parses it to LDObjects using parseLine. It's a
 // separate class so as to be able to do the work progressively through the
 // event loop, allowing the program to maintain responsivity during loading.
-// =============================================================================
+//
 class LDFileLoader : public QObject
 {
 	Q_OBJECT
-	PROPERTY (private,	LDObjectList,	Objects,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (private,	bool,					Done,				BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (private,	int,					Progress,		NUM_OPS,		STOCK_WRITE)
-	PROPERTY (private,	bool,					Aborted,			BOOL_OPS,	STOCK_WRITE)
-	PROPERTY (public,		QStringList,		Lines,			NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		int*,					Warnings,		NO_OPS,		STOCK_WRITE)
-	PROPERTY (public,		bool,					OnForeground,	BOOL_OPS,	STOCK_WRITE)
+	PROPERTY (private,	LDObjectList,	objects,		setObjects,			STOCK_WRITE)
+	PROPERTY (private,	bool,			isDone,			setDone,			STOCK_WRITE)
+	PROPERTY (private,	int,			progress,		setProgress,		STOCK_WRITE)
+	PROPERTY (private,	bool,			isAborted,		setAborted,			STOCK_WRITE)
+	PROPERTY (public,	QStringList,	lines,			setLines,			STOCK_WRITE)
+	PROPERTY (public,	int*,			warnings,		setWarnings,		STOCK_WRITE)
+	PROPERTY (public,	bool,			isOnForeground,	setOnForeground,	STOCK_WRITE)
 
 	public slots:
 		void start();
@@ -244,5 +242,3 @@ class LDFileLoader : public QObject
 		void progressUpdate (int progress);
 		void workDone();
 };
-
-#endif // LDFORGE_DOCUMENT_H

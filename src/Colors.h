@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_COLORS_H
-#define LDFORGE_COLORS_H
-
+#pragma once
 #include <QColor>
 #include "Main.h"
 
@@ -42,5 +40,3 @@ void setColor (int colnum, LDColor* col);
 // Main and edge color identifiers
 static const int maincolor = 16;
 static const int edgecolor = 24;
-
-#endif // LDFORGE_COLORS_H

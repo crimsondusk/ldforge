@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_COLORSELECTOR_H
-#define LDFORGE_COLORSELECTOR_H
-
+#pragma once
 #include <QDialog>
 #include "Main.h"
 
@@ -29,7 +27,7 @@ class QGraphicsScene;
 class ColorSelector : public QDialog
 {
 	Q_OBJECT
-	PROPERTY (private,	LDColor*,	Selection,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (private,	LDColor*,	selection,	setSelection,	STOCK_WRITE)
 
 	public:
 		explicit ColorSelector (int defval = -1, QWidget* parent = null);
@@ -50,5 +48,3 @@ class ColorSelector : public QDialog
 		void drawScene();
 		void drawColorInfo();
 };
-
-#endif // LDFORGE_COLORSELECTOR_H

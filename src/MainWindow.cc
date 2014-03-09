@@ -63,8 +63,9 @@ extern_cfg (Bool,		gl_colorbfc);
 extern_cfg (Bool,		gl_drawangles);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-MainWindow::MainWindow()
+//
+
+MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags)
 {
 	g_win = this;
 	ui = new Ui_LDForgeUI;
@@ -97,7 +98,7 @@ MainWindow::MainWindow()
 	updateGridToolBar();
 	updateEditModeActions();
 	updateRecentFilesMenu();
-	updateToolBars();
+	updateColorToolbar();
 	updateTitle();
 	updateActionShortcuts();
 
@@ -112,15 +113,15 @@ MainWindow::MainWindow()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-KeySequenceConfig* MainWindow::shortcutForAction (QAction* act)
+//
+KeySequenceConfig* MainWindow::shortcutForAction (QAction* action)
 {
-	QString keycfgname = fmt ("key_%1", act->objectName());
+	QString keycfgname = format ("key_%1", action->objectName());
 	return KeySequenceConfig::getByName (keycfgname);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateActionShortcuts()
 {
 	for (QAction* act : findChildren<QAction*>())
@@ -133,23 +134,18 @@ void MainWindow::updateActionShortcuts()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_action()
 {
-	// Get the name of the sender object and use it to compose the slot name.
-	QString methodName = fmt ("slot_%1", sender()->objectName());
-
-#ifdef DEBUG
-	log ("Action %1 triggered", sender()->objectName());
-#endif
-
-	// Now invoke this slot to call the action.
-	QMetaObject::invokeMethod (this, methodName.toAscii().constData(), Qt::DirectConnection);
+	// Get the name of the sender object and use it to compose the slot name,
+	// then invoke this slot to call the action.
+	QMetaObject::invokeMethod (this,
+		qPrintable (format ("slot_%1", sender()->objectName())), Qt::DirectConnection);
 	endAction();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::endAction()
 {
 	// Add a step in the history now.
@@ -161,7 +157,7 @@ void MainWindow::endAction()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_lastSecondCleanup()
 {
 	delete m_renderer;
@@ -169,7 +165,7 @@ void MainWindow::slot_lastSecondCleanup()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateRecentFilesMenu()
 {
 	// First, clear any items in the recent files menu
@@ -193,7 +189,7 @@ for (QAction * recent : m_recentFiles)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QList<LDQuickColor> quickColorsFromConfig()
 {
 	QList<LDQuickColor> colors;
@@ -215,8 +211,8 @@ QList<LDQuickColor> quickColorsFromConfig()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-void MainWindow::updateToolBars()
+//
+void MainWindow::updateColorToolbar()
 {
 	m_colorButtons.clear();
 	ui->colorToolbar->clear();
@@ -228,9 +224,9 @@ void MainWindow::updateToolBars()
 		else
 		{
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.getColor(), 22));
+			colorButton->setIcon (makeColorIcon (entry.color(), 22));
 			colorButton->setIconSize (QSize (22, 22));
-			colorButton->setToolTip (entry.getColor()->name);
+			colorButton->setToolTip (entry.color()->name);
 
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
 			ui->colorToolbar->addWidget (colorButton);
@@ -244,7 +240,7 @@ void MainWindow::updateToolBars()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateGridToolBar()
 {
 	// Ensure that the current grid - and only the current grid - is selected.
@@ -254,28 +250,28 @@ void MainWindow::updateGridToolBar()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateTitle()
 {
-	QString title = fmt (APPNAME " %1", fullVersionString());
+	QString title = format (APPNAME " %1", fullVersionString());
 
 	// Append our current file if we have one
 	if (getCurrentDocument())
 	{
-		if (getCurrentDocument()->getName().length() > 0)
-			title += fmt (": %1", basename (getCurrentDocument()->getName()));
+		if (getCurrentDocument()->name().length() > 0)
+			title += format (": %1", basename (getCurrentDocument()->name()));
 		else
-			title += fmt (": <anonymous>");
+			title += format (": <anonymous>");
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
-				getCurrentDocument()->getObject (0)->getType() == LDObject::EComment)
+				getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
-			title += fmt (": %1", comm->text);
+			title += format (": %1", comm->text());
 		}
 
-		if (getCurrentDocument()->getHistory()->getPosition() != getCurrentDocument()->getSavePosition())
+		if (getCurrentDocument()->hasUnsavedChanges())
 			title += '*';
 	}
 
@@ -293,7 +289,7 @@ void MainWindow::updateTitle()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::deleteSelection()
 {
 	if (selection().isEmpty())
@@ -303,14 +299,14 @@ int MainWindow::deleteSelection()
 
 	// Delete the objects that were being selected
 	for (LDObject* obj : selCopy)
-		obj->deleteSelf();
+		obj->destroy();
 
 	refresh();
 	return selCopy.size();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::buildObjList()
 {
 	if (!getCurrentDocument())
@@ -326,20 +322,22 @@ void MainWindow::buildObjList()
 
 	ui->objectList->clear();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		QString descr;
 
-		switch (obj->getType())
+		switch (obj->type())
 		{
 			case LDObject::EComment:
 			{
-				descr = static_cast<LDComment*> (obj)->text;
+				descr = static_cast<LDComment*> (obj)->text();
 
 				// Remove leading whitespace
 				while (descr[0] == ' ')
 					descr.remove (0, 1);
-			} break;
+
+				break;
+			}
 
 			case LDObject::EEmpty:
 				break; // leave it empty
@@ -354,54 +352,60 @@ void MainWindow::buildObjList()
 					if (i != 0)
 						descr += ", ";
 
-					descr += obj->getVertex (i).toString (true);
+					descr += obj->vertex (i).toString (true);
 				}
-			} break;
+				break;
+			}
 
 			case LDObject::EError:
 			{
-				descr = fmt ("ERROR: %1", obj->raw());
-			} break;
+				descr = format ("ERROR: %1", obj->asText());
+				break;
+			}
 
 			case LDObject::EVertex:
 			{
 				descr = static_cast<LDVertex*> (obj)->pos.toString (true);
-			} break;
+				break;
+			}
 
 			case LDObject::ESubfile:
 			{
 				LDSubfile* ref = static_cast<LDSubfile*> (obj);
 
-				descr = fmt ("%1 %2, (", ref->getFileInfo()->getDisplayName(), ref->getPosition().toString (true));
+				descr = format ("%1 %2, (", ref->fileInfo()->getDisplayName(), ref->position().toString (true));
 
 				for (int i = 0; i < 9; ++i)
-					descr += fmt ("%1%2", ref->getTransform()[i], (i != 8) ? " " : "");
+					descr += format ("%1%2", ref->transform()[i], (i != 8) ? " " : "");
 
 				descr += ')';
-			} break;
+				break;
+			}
 
 			case LDObject::EBFC:
 			{
-				descr = LDBFC::statements[static_cast<LDBFC*> (obj)->type];
-			} break;
+				descr = LDBFC::k_statementStrings[static_cast<LDBFC*> (obj)->statement()];
+				break;
+			}
 
 			case LDObject::EOverlay:
 			{
 				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
-				descr = fmt ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->getCamera()],
-					basename (ovl->getFileName()), ovl->getX(), ovl->getY(),
-					ovl->getWidth(), ovl->getHeight());
+				descr = format ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
+					basename (ovl->fileName()), ovl->x(), ovl->y(),
+					ovl->width(), ovl->height());
+				break;
 			}
-			break;
 
 			default:
 			{
-				descr = obj->getTypeName();
-			} break;
+				descr = obj->typeName();
+				break;
+			}
 		}
 
 		QListWidgetItem* item = new QListWidgetItem (descr);
-		item->setIcon (getIcon (obj->getTypeName()));
+		item->setIcon (getIcon (obj->typeName()));
 
 		// Use italic font if hidden
 		if (obj->isHidden())
@@ -412,16 +416,16 @@ void MainWindow::buildObjList()
 		}
 
 		// Color gibberish orange on red so it stands out.
-		if (obj->getType() == LDObject::EError)
+		if (obj->type() == LDObject::EError)
 		{
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		}
-		elif (lv_colorize && obj->isColored() && obj->getColor() != maincolor && obj->getColor() != edgecolor)
+		elif (lv_colorize && obj->isColored() && obj->color() != maincolor && obj->color() != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			LDColor* col = getColor (obj->getColor());
+			LDColor* col = getColor (obj->color());
 
 			if (col)
 				item->setForeground (col->faceColor);
@@ -437,7 +441,7 @@ void MainWindow::buildObjList()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::scrollToSelection()
 {
 	if (selection().isEmpty())
@@ -448,7 +452,7 @@ void MainWindow::scrollToSelection()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_selectionChanged()
 {
 	if (g_isSelectionLocked == true || getCurrentDocument() == null)
@@ -466,7 +470,7 @@ void MainWindow::slot_selectionChanged()
 	getCurrentDocument()->clearSelection();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		for (QListWidgetItem* item : items)
 		{
@@ -489,7 +493,7 @@ void MainWindow::slot_selectionChanged()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_recentFile()
 {
 	QAction* qAct = static_cast<QAction*> (sender());
@@ -497,7 +501,7 @@ void MainWindow::slot_recentFile()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_quickColor()
 {
 	QToolButton* button = static_cast<QToolButton*> (sender());
@@ -505,9 +509,9 @@ void MainWindow::slot_quickColor()
 
 	for (const LDQuickColor& entry : m_quickColors)
 	{
-		if (entry.getToolButton() == button)
+		if (entry.toolButton() == button)
 		{
-			col = entry.getColor();
+			col = entry.color();
 			break;
 		}
 	}
@@ -531,19 +535,19 @@ void MainWindow::slot_quickColor()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::getInsertionPoint()
 {
 	// If we have a selection, put the item after it.
 	if (!selection().isEmpty())
-		return selection().last()->getIndex() + 1;
+		return selection().last()->lineNumber() + 1;
 
 	// Otherwise place the object at the end.
 	return getCurrentDocument()->getObjectCount();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::doFullRefresh()
 {
 	buildObjList();
@@ -551,7 +555,7 @@ void MainWindow::doFullRefresh()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::refresh()
 {
 	buildObjList();
@@ -559,12 +563,12 @@ void MainWindow::refresh()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateSelection()
 {
 	g_isSelectionLocked = true;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 		obj->setSelected (false);
 
 	ui->objectList->clearSelection();
@@ -583,7 +587,7 @@ void MainWindow::updateSelection()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int MainWindow::getSelectedColor()
 {
 	int result = -1;
@@ -593,36 +597,36 @@ int MainWindow::getSelectedColor()
 		if (obj->isColored() == false)
 			continue; // doesn't use color
 
-		if (result != -1 && obj->getColor() != result)
+		if (result != -1 && obj->color() != result)
 			return -1; // No consensus in object color
 
 		if (result == -1)
-			result = obj->getColor();
+			result = obj->color();
 	}
 
 	return result;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDObject::Type MainWindow::getUniformSelectedType()
 {
 	LDObject::Type result = LDObject::EUnidentified;
 
 	for (LDObject* obj : selection())
 	{
-		if (result != LDObject::EUnidentified && obj->getColor() != result)
+		if (result != LDObject::EUnidentified && obj->color() != result)
 			return LDObject::EUnidentified;
 
 		if (result == LDObject::EUnidentified)
-			result = obj->getType();
+			result = obj->type();
 	}
 
 	return result;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::closeEvent (QCloseEvent* ev)
 {
 	// Check whether it's safe to close all files.
@@ -640,7 +644,7 @@ void MainWindow::closeEvent (QCloseEvent* ev)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::spawnContextMenu (const QPoint pos)
 {
 	const bool single = (selection().size() == 1);
@@ -648,7 +652,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 	QMenu* contextMenu = new QMenu;
 
-	if (single && singleObj->getType() != LDObject::EEmpty)
+	if (single && singleObj->type() != LDObject::EEmpty)
 	{
 		contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();
@@ -687,48 +691,40 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 }
 
 // =============================================================================
-// TODO: what the heh?
-// -----------------------------------------------------------------------------
-void MainWindow::deleteObjects (LDObjectList objs)
-{
-	for (LDObject* obj : objs)
-		obj->deleteSelf();
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
-void MainWindow::deleteByColor (const int colnum)
+//
+void MainWindow::deleteByColor (int colnum)
 {
 	LDObjectList objs;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
-		if (!obj->isColored() || obj->getColor() != colnum)
+		if (!obj->isColored() || obj->color() != colnum)
 			continue;
 
 		objs << obj;
 	}
 
-	deleteObjects (objs);
+	for (LDObject* obj : objs)
+		obj->destroy();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::updateEditModeActions()
 {
-	const EditMode mode = R()->getEditMode();
+	const EditMode mode = R()->editMode();
 	ui->actionModeSelect->setChecked (mode == ESelectMode);
 	ui->actionModeDraw->setChecked (mode == EDrawMode);
 	ui->actionModeCircle->setChecked (mode == ECircleMode);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void MainWindow::slot_editObject (QListWidgetItem* listitem)
 {
 	LDObject* obj = null;
 
-	for (LDObject* it : getCurrentDocument()->getObjects())
+	for (LDObject* it : getCurrentDocument()->objects())
 	{
 		if (it->qObjListEntry == listitem)
 		{
@@ -737,23 +733,23 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 		}
 	}
 
-	AddObjectDialog::staticDialog (obj->getType(), obj);
+	AddObjectDialog::staticDialog (obj->type(), obj);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-bool MainWindow::save (LDDocument* f, bool saveAs)
+//
+bool MainWindow::save (LDDocument* doc, bool saveAs)
 {
-	QString path = f->getFullPath();
+	QString path = doc->fullPath();
 
 	if (saveAs || path.isEmpty())
 	{
-		QString name = f->getDefaultName();
+		QString name = doc->defaultName();
 
-		if (!f->getFullPath().isEmpty()) 
-			name = f->getFullPath();
-		elif (!f->getName().isEmpty())
-			name = f->getName();
+		if (!doc->fullPath().isEmpty()) 
+			name = doc->fullPath();
+		elif (!doc->name().isEmpty())
+			name = doc->name();
 
 		name.replace ("\\", "/");
 		path = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
@@ -766,19 +762,19 @@ bool MainWindow::save (LDDocument* f, bool saveAs)
 		}
 	}
 
-	if (f->save (path))
+	if (doc->save (path))
 	{
-		if (f == getCurrentDocument())
+		if (doc == getCurrentDocument())
 			updateTitle();
 
-		log ("Saved to %1.", path);
+		print ("Saved to %1.", path);
 
 		// Add it to recent files
 		addRecentFile (path);
 		return true;
 	}
 
-	QString message = fmt (tr ("Failed to save to %1: %2"), path, strerror (errno));
+	QString message = format (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
 	// Tell the user the save failed, and give the option for saving as with it.
 	QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
@@ -791,7 +787,7 @@ bool MainWindow::save (LDDocument* f, bool saveAs)
 	dlg.exec();
 
 	if (dlg.clickedButton() == saveAsBtn)
-		return save (f, true); // yay recursion!
+		return save (doc, true); // yay recursion!
 
 	return false;
 }
@@ -808,28 +804,28 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QPixmap getIcon (QString iconName)
 {
-	return (QPixmap (fmt (":/icons/%1.png", iconName)));
+	return (QPixmap (format (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
 bool confirm (QString msg)
 {
-	return confirm (MainWindow::tr ("Confirm"), msg);
+	return confirm (MainWindow::tr ("Confirm"), message);
 }
 
 bool confirm (QString title, QString msg)
 {
-	return QMessageBox::question (g_win, title, msg,
+	return QMessageBox::question (g_win, title, messag,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
 void critical (QString msg)
 {
-	QMessageBox::critical (g_win, MainWindow::tr ("Error"), msg,
+	QMessageBox::critical (g_win, MainWindow::tr ("Error"), message,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 
@@ -864,15 +860,15 @@ void makeColorComboBox (QComboBox* box)
 {
 	std::map<int, int> counts;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 	{
 		if (!obj->isColored())
 			continue;
 
-		if (counts.find (obj->getColor()) == counts.end())
-			counts[obj->getColor()] = 1;
+		if (counts.find (obj->color()) == counts.end())
+			counts[obj->color()] = 1;
 		else
-			counts[obj->getColor()]++;
+			counts[obj->color()]++;
 	}
 
 	box->clear();
@@ -884,7 +880,7 @@ void makeColorComboBox (QComboBox* box)
 		assert (col != null);
 
 		QIcon ico = makeColorIcon (col, 16);
-		box->addItem (ico, fmt ("[%1] %2 (%3 object%4)",
+		box->addItem (ico, format ("[%1] %2 (%3 object%4)",
 			pair.first, col->name, pair.second, plural (pair.second)));
 		box->setItemData (row, pair.first);
 
@@ -914,12 +910,12 @@ void MainWindow::updateDocumentList()
 	m_updatingTabs = false;
 }
 
-void MainWindow::updateDocumentListItem (LDDocument* f)
+void MainWindow::updateDocumentListItem (LDDocument* doc)
 {
 	bool oldUpdatingTabs = m_updatingTabs;
 	m_updatingTabs = true;
 
-	if (f->getTabIndex() == -1)
+	if (doc->tabIndex() == -1)
 	{
 		// We don't have a list item for this file, so the list either doesn't
 		// exist yet or is out of date. Build the list now.
@@ -929,13 +925,13 @@ void MainWindow::updateDocumentListItem (LDDocument* f)
 
 	// If this is the current file, it also needs to be the selected item on
 	// the list.
-	if (f == getCurrentDocument())
-		m_tabs->setCurrentIndex (f->getTabIndex());
+	if (doc == getCurrentDocument())
+		m_tabs->setCurrentIndex (doc->tabIndex());
 
-	m_tabs->setTabText (f->getTabIndex(), f->getDisplayName());
+	m_tabs->setTabText (doc->tabIndex(), doc->getDisplayName());
 
 	// If the document.has unsaved changes, draw a little icon next to it to mark that.
-	m_tabs->setTabIcon (f->getTabIndex(), f->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	m_tabs->setTabIcon (doc->tabIndex(), doc->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
 	m_updatingTabs = oldUpdatingTabs;
 }
 
@@ -953,7 +949,7 @@ void MainWindow::changeCurrentFile()
 	// Find the file pointer of the item that was selected.
 	for (LDDocument* it : g_loadedFiles)
 	{
-		if (it->getTabIndex() == tabIndex)
+		if (it->tabIndex() == tabIndex)
 		{
 			f = it;
 			break;
@@ -984,8 +980,8 @@ for (LDObject* obj : *f)
 
 void MainWindow::updateActions()
 {
-	History* his = getCurrentDocument()->getHistory();
-	int pos = his->getPosition();
+	History* his = getCurrentDocument()->history();
+	int pos = his->position();
 	ui->actionUndo->setEnabled (pos != -1);
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
 	ui->actionAxes->setChecked (gl_axes);
@@ -1000,10 +996,10 @@ QImage imageFromScreencap (uchar* data, int w, int h)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
-	m_Color (color),
-	m_ToolButton (toolButton) {}
+	m_color (color),
+	m_toolButton (toolButton) {}
 
 LDQuickColor LDQuickColor::getSeparator()
 {
@@ -1012,5 +1008,5 @@ LDQuickColor LDQuickColor::getSeparator()
 
 bool LDQuickColor::isSeparator() const
 {
-	return getColor() == null;
+	return color() == null;
 }

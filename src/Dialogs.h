@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DIALOGS_H
-#define LDFORGE_DIALOGS_H
-
+#pragma once
 #include <QDialog>
 #include "Main.h"
 #include "Types.h"
@@ -95,8 +93,8 @@ class LDrawPathDialog : public QDialog
 class OpenProgressDialog : public QDialog
 {
 	Q_OBJECT
-	PROPERTY (public,	int, Progress,	NUM_OPS,	STOCK_WRITE)
-	PROPERTY (public,	int, NumLines,	NUM_OPS,	CUSTOM_WRITE)
+	PROPERTY (public,	int, progress,	setProgress,	STOCK_WRITE)
+	PROPERTY (public,	int, numLines,	setNumLines,	CUSTOM_WRITE)
 
 	public:
 		explicit OpenProgressDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
@@ -141,5 +139,3 @@ class AboutDialog : public QDialog
 };
 
 void bombBox (const QString& message);
-
-#endif // LDFORGE_DIALOGS_H

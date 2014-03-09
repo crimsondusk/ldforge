@@ -48,7 +48,7 @@ extern const char* g_extProgPathFilter;
 extern_cfg (String, io_ldpath);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f)
 {
 	ui = new Ui_OverlayUI;
@@ -79,14 +79,14 @@ OverlayDialog::OverlayDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (par
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 OverlayDialog::~OverlayDialog()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void OverlayDialog::fillDefaults (int newcam)
 {
 	LDGLOverlay& info = g_win->R()->getOverlay (newcam);
@@ -111,7 +111,7 @@ void OverlayDialog::fillDefaults (int newcam)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString OverlayDialog::fpath() const
 {
 	return ui->filename->text();
@@ -159,7 +159,7 @@ void OverlayDialog::slot_dimensionsChanged()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	m_validDefault (validDefault)
@@ -190,7 +190,7 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 LDrawPathDialog::~LDrawPathDialog()
 {
 	delete ui;
@@ -217,7 +217,7 @@ QString LDrawPathDialog::filename() const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void LDrawPathDialog::slot_findPath()
 {
 	QString newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
@@ -230,19 +230,19 @@ void LDrawPathDialog::slot_findPath()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void LDrawPathDialog::slot_exit()
 {
 	exit (0);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void LDrawPathDialog::slot_tryConfigure()
 {
 	if (LDPaths::tryConfigure (filename()) == false)
 	{
-		ui->status->setText (fmt ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
+		ui->status->setText (format ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
 		return;
 	}
@@ -252,7 +252,7 @@ void LDrawPathDialog::slot_tryConfigure()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void LDrawPathDialog::slot_accept()
 {
 	Config::save();
@@ -260,42 +260,42 @@ void LDrawPathDialog::slot_accept()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 OpenProgressDialog::OpenProgressDialog (QWidget* parent, Qt::WindowFlags f) : QDialog (parent, f)
 {
 	ui = new Ui_OpenProgressUI;
 	ui->setupUi (this);
 	ui->progressText->setText ("Parsing...");
 	setNumLines (0);
-	m_Progress = 0;
+	m_progress = 0;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 OpenProgressDialog::~OpenProgressDialog()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void OpenProgressDialog::setNumLines (int const& a)
 {
-	m_NumLines = a;
-	ui->progressBar->setRange (0, getNumLines());
+	m_numLines = a;
+	ui->progressBar->setRange (0, numLines());
 	updateValues();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void OpenProgressDialog::updateValues()
 {
-	ui->progressText->setText (fmt ("Parsing... %1 / %2", getProgress(), getNumLines()));
-	ui->progressBar->setValue (getProgress());
+	ui->progressText->setText (format ("Parsing... %1 / %2", progress(), numLines()));
+	ui->progressBar->setValue (progress());
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void OpenProgressDialog::updateProgress (int progress)
 {
 	setProgress (progress);
@@ -303,7 +303,7 @@ void OpenProgressDialog::updateProgress (int progress)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 ExtProgPathPrompt::ExtProgPathPrompt (QString progName, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	ui (new Ui_ExtProgPath)
@@ -316,14 +316,14 @@ ExtProgPathPrompt::ExtProgPathPrompt (QString progName, QWidget* parent, Qt::Win
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 ExtProgPathPrompt::~ExtProgPathPrompt()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ExtProgPathPrompt::findPath()
 {
 	QString path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
@@ -333,14 +333,14 @@ void ExtProgPathPrompt::findPath()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString ExtProgPathPrompt::getPath() const
 {
 	return ui->m_path->text();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
 {
@@ -354,18 +354,18 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 	ui.buttonBox->addButton (static_cast<QAbstractButton*> (mailButton), QDialogButtonBox::HelpRole);
 	connect (ui.buttonBox, SIGNAL (helpRequested()), this, SLOT (slot_mail()));
 
-	setWindowTitle (fmt (tr ("About %1"), APPNAME));
+	setWindowTitle (format (tr ("About %1"), APPNAME));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void AboutDialog::slot_mail()
 {
 	QDesktopServices::openUrl (QUrl ("mailto:Santeri Piippo <arezey@gmail.com>?subject=LDForge"));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void bombBox (const QString& message)
 {
 	QDialog dlg (g_win);

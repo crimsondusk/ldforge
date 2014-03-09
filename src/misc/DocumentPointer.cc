@@ -20,52 +20,52 @@
 #include "../Document.h"
 #include "../Misc.h"
 
-LDDocumentPointer::LDDocumentPointer()  : m_Pointer (null) {}
+LDDocumentPointer::LDDocumentPointer()  : m_pointer (null) {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::LDDocumentPointer (LDDocument* ptr) :
-	m_Pointer (ptr)
+	m_pointer (ptr)
 {
 	addReference ();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::LDDocumentPointer (const LDDocumentPointer& other) :
-	m_Pointer (other.getPointer())
+	m_pointer (other.pointer())
 {
 	addReference ();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer::~LDDocumentPointer()
 {
 	removeReference();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDDocumentPointer::addReference()
 {
-	if (getPointer() != null)
-		getPointer()->addReference (this);
+	if (pointer() != null)
+		pointer()->addReference (this);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDDocumentPointer::removeReference()
 {
-	if (getPointer() != null)
-		getPointer()->removeReference (this);
+	if (pointer() != null)
+		pointer()->removeReference (this);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocumentPointer& LDDocumentPointer::operator= (LDDocument* ptr)
 {
-	if (ptr != getPointer())
+	if (ptr != pointer())
 	{
 		removeReference();
 		setPointer (ptr);

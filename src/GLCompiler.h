@@ -28,7 +28,7 @@
 //
 class GLCompiler
 {
-	PROPERTY (public,	LDDocumentPointer,	Document,	NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	LDDocumentPointer,	Document,	setDocument,	STOCK_WRITE)
 
 	public:
 		struct ObjectVBOInfo

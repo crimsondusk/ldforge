@@ -51,7 +51,7 @@ PrimitiveScanner* getActivePrimitiveScanner()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void loadPrimitives()
 {
 	PrimitiveCategory::loadCategories();
@@ -59,7 +59,7 @@ void loadPrimitives()
 	// Try to load prims.cfg
 	QFile conf (Config::filepath ("prims.cfg"));
 
-	if (!conf.open (QIODevice::ReadOnly))
+	if (conf.open (QIODevice::ReadOnly) == false)
 	{
 		// No prims.cfg, build it
 		PrimitiveScanner::start();
@@ -85,12 +85,12 @@ void loadPrimitives()
 		}
 
 		PrimitiveCategory::populateCategories();
-		log ("%1 primitives loaded.\n", g_primitives.size());
+		print ("%1 primitives loaded.\n", g_primitives.size());
 	}
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 {
 	QFileInfoList flist = dir.entryInfoList (QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot);
@@ -105,7 +105,7 @@ static void recursiveGetFilenames (QDir dir, QList<QString>& fnames)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 	QObject (parent),
 	m_i (0)
@@ -116,18 +116,18 @@ PrimitiveScanner::PrimitiveScanner (QObject* parent) :
 	m_baselen = dir.absolutePath().length();
 	recursiveGetFilenames (dir, m_files);
 	emit starting (m_files.size());
-	log ("Scanning primitives...");
+	print ("Scanning primitives...");
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveScanner::~PrimitiveScanner()
 {
 	g_activeScanner = null;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveScanner::work()
 {
 	int j = min (m_i + 100, m_files.size());
@@ -143,7 +143,7 @@ void PrimitiveScanner::work()
 		Primitive info;
 		info.name = fname.mid (m_baselen + 1);  // make full path relative
 		info.name.replace ('/', '\\');  // use DOS backslashes, they're expected
-		info.cat = null;
+		info.category = null;
 		QByteArray titledata = f.readLine();
 
 		if (titledata != QByteArray())
@@ -167,7 +167,7 @@ void PrimitiveScanner::work()
 		QFile conf (path);
 
 		if (!conf.open (QIODevice::WriteOnly | QIODevice::Text))
-			critical (fmt ("Couldn't write primitive list %1: %2",
+			critical (format ("Couldn't write primitive list %1: %2",
 				path, conf.errorString()));
 		else
 		{
@@ -179,7 +179,7 @@ void PrimitiveScanner::work()
 
 		g_primitives = m_prims;
 		PrimitiveCategory::populateCategories();
-		log ("%1 primitives scanned", g_primitives.size());
+		print ("%1 primitives scanned", g_primitives.size());
 		g_activeScanner = null;
 		emit workDone();
 		deleteLater();
@@ -193,7 +193,7 @@ void PrimitiveScanner::work()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveScanner::start()
 {
 	if (g_activeScanner)
@@ -204,13 +204,13 @@ void PrimitiveScanner::start()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitiveCategory::PrimitiveCategory (QString name, QObject* parent) :
 	QObject (parent),
-	m_Name (name) {}
+	m_name (name) {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveCategory::populateCategories()
 {
 	for (PrimitiveCategory* cat : g_PrimitiveCategories)
@@ -220,7 +220,7 @@ void PrimitiveCategory::populateCategories()
 	for (Primitive& prim : g_primitives)
 	{
 		bool matched = false;
-		prim.cat = null;
+		prim.category = null;
 
 		// Go over the categories and their regexes, if and when there's a match,
 		// the primitive's category is set to the category the regex beloings to.
@@ -245,27 +245,27 @@ void PrimitiveCategory::populateCategories()
 
 				if (matched)
 				{
-					prim.cat = cat;
+					prim.category = cat;
 					break;
 				}
 			}
 
 			// Drop out if a category was decided on.
-			if (prim.cat != null)
+			if (prim.category != null)
 				break;
 		}
 
 		// If there was a match, add the primitive to the category.
 		// Otherwise, add it to the list of unmatched primitives.
-		if (prim.cat != null)
-			prim.cat->prims << prim;
+		if (prim.category != null)
+			prim.category->prims << prim;
 		else
 			g_unmatched->prims << prim;
 	}
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitiveCategory::loadCategories()
 {
 	for (PrimitiveCategory* cat : g_PrimitiveCategories)
@@ -281,7 +281,7 @@ void PrimitiveCategory::loadCategories()
 
 	if (!f.open (QIODevice::ReadOnly))
 	{
-		critical (fmt (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
+		critical (format (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
 		return;
 	}
 
@@ -308,7 +308,7 @@ void PrimitiveCategory::loadCategories()
 		elif (cat != null)
 		{
 			QString cmd = line.left (colon);
-			ERegexType type = EFilenameRegex;
+			RegexType type = EFilenameRegex;
 
 			if (cmd == "f")
 				type = EFilenameRegex;
@@ -316,7 +316,7 @@ void PrimitiveCategory::loadCategories()
 				type = ETitleRegex;
 			else
 			{
-				log (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
+				print (tr ("Warning: unknown command \"%1\" on line \"%2\""), cmd, line);
 				continue;
 			}
 
@@ -325,7 +325,7 @@ void PrimitiveCategory::loadCategories()
 			cat->regexes << entry;
 		}
 		else
-			log ("Warning: Rules given before the first category name");
+			print ("Warning: Rules given before the first category name");
 	}
 
 	if (cat->isValidToInclude())
@@ -340,12 +340,12 @@ void PrimitiveCategory::loadCategories()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool PrimitiveCategory::isValidToInclude()
 {
-	if (regexes.size() == 0)
+	if (regexes.isEmpty())
 	{
-		log (tr ("Warning: category \"%1\" left without patterns"), getName());
+		print (tr ("Warning: category \"%1\" left without patterns"), name());
 		deleteLater();
 		return false;
 	}
@@ -354,21 +354,21 @@ bool PrimitiveCategory::isValidToInclude()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool isPrimitiveLoaderBusy()
 {
 	return g_activeScanner != null;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static double radialPoint (int i, int divs, double (*func) (double))
 {
 	return (*func) ((i * 2 * pi) / divs);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 {
 	for (int i = 0; i < segs; ++i)
@@ -383,7 +383,7 @@ void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	LDObjectList objs;
@@ -536,7 +536,7 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static QString primitiveTypeName (PrimitiveType type)
 {
 	// Not translated as primitives are in English.
@@ -548,7 +548,7 @@ static QString primitiveTypeName (PrimitiveType type)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 {
 	int numer = segs,
@@ -565,10 +565,10 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 	}
 
 	// Compose some general information: prefix, fraction, root, ring number
-	QString prefix = (divs == lores) ? "" : fmt ("%1/", divs);
-	QString frac = fmt ("%1-%2", numer, denom);
+	QString prefix = (divs == g_lores) ? "" : format ("%1/", divs);
+	QString frac = format ("%1-%2", numer, denom);
 	QString root = g_radialNameRoots[type];
-	QString numstr = (type == Ring || type == Cone) ? fmt ("%1", num) : "";
+	QString numstr = (type == Ring || type == Cone) ? format ("%1", num) : "";
 
 	// Truncate the root if necessary (7-16rin4.dat for instance).
 	// However, always keep the root at least 2 characters.
@@ -580,7 +580,7 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	// Make the description
@@ -598,13 +598,13 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 			(num < 10) ? "  " :
 			(num < 100) ? " "  : "";
 
-		descr = fmt ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
+		descr = format ("%1 %2%3 x %4", primitiveTypeName (type), spacing, num, frac);
 	}
 	else
-		descr = fmt ("%1 %2", primitiveTypeName (type), frac);
+		descr = format ("%1 %2", primitiveTypeName (type), frac);
 
 	// Prepend "Hi-Res" if 48/ primitive.
-	if (divs == hires)
+	if (divs == g_hires)
 		descr.insert (0, "Hi-Res ");
 
 	LDDocument* f = new LDDocument;
@@ -616,15 +616,15 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (ld_defaultname.isEmpty() == false)
 	{
 		license = getLicenseText (ld_defaultlicense);
-		author = fmt ("%1 [%2]", ld_defaultname, ld_defaultuser);
+		author = format ("%1 [%2]", ld_defaultname, ld_defaultuser);
 	}
 
 	f->addObjects (
 	{
 		new LDComment (descr),
-		new LDComment (fmt ("Name: %1", name)),
-		new LDComment (fmt ("Author: %1", author)),
-		new LDComment (fmt ("!LDRAW_ORG Unofficial_%1Primitive", divs == hires ? "48_" : "")),
+		new LDComment (format ("Name: %1", name)),
+		new LDComment (format ("Author: %1", author)),
+		new LDComment (format ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : "")),
 		new LDComment (license),
 		new LDEmpty,
 		new LDBFC (LDBFC::CertifyCCW),
@@ -636,7 +636,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	QString name = radialFileName (type, segs, divs, num);
@@ -649,7 +649,7 @@ LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
 {
@@ -659,26 +659,26 @@ PrimitivePrompt::PrimitivePrompt (QWidget* parent, Qt::WindowFlags f) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PrimitivePrompt::~PrimitivePrompt()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PrimitivePrompt::hiResToggled (bool on)
 {
-	ui->sb_segs->setMaximum (on ? hires : lores);
+	ui->sb_segs->setMaximum (on ? g_hires : g_lores);
 
 	// If the current value is 16 and we switch to hi-res, default the
 	// spinbox to 48.
-	if (on && ui->sb_segs->value() == lores)
-		ui->sb_segs->setValue (hires);
+	if (on && ui->sb_segs->value() == g_lores)
+		ui->sb_segs->setValue (g_hires);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (MakePrimitive, 0)
 {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
@@ -687,7 +687,7 @@ DEFINE_ACTION (MakePrimitive, 0)
 		return;
 
 	int segs = dlg->ui->sb_segs->value();
-	int divs = dlg->ui->cb_hires->isChecked() ? hires : lores;
+	int divs = dlg->ui->cb_hires->isChecked() ? g_hires : g_lores;
 	int num = dlg->ui->sb_ringnum->value();
 	PrimitiveType type =
 		dlg->ui->rb_circle->isChecked()   ? Circle :

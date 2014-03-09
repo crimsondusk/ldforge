@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_CONFIGDIALOG_H
-#define LDFORGE_CONFIGDIALOG_H
-
+#pragma once
 #include "MainWindow.h"
 #include <QDialog>
 
@@ -29,8 +27,8 @@ class QDoubleSpinBox;
 // =============================================================================
 class ShortcutListItem : public QListWidgetItem
 {
-	PROPERTY (public,	KeySequenceConfig*,	KeyConfig,	NO_OPS,	STOCK_WRITE)
-	PROPERTY (public,	QAction*,				Action,		NO_OPS,	STOCK_WRITE)
+	PROPERTY (public,	KeySequenceConfig*,	keyConfig,	setKeyConfig,	STOCK_WRITE)
+	PROPERTY (public,	QAction*,			action,		setAction,		STOCK_WRITE)
 
 	public:
 		explicit ShortcutListItem (QListWidget* view = null, int type = Type) :
@@ -119,5 +117,3 @@ class KeySequenceDialog : public QDialog
 	private slots:
 		virtual void keyPressEvent (QKeyEvent* ev) override;
 };
-
-#endif // LDFORGE_CONFIGDIALOG_H

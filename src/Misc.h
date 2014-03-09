@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_MISC_H
-#define LDFORGE_MISC_H
-
+#pragma once
 #include <QVector>
 #include "Configuration.h"
 #include "Main.h"
@@ -41,13 +39,13 @@ void simplify (int& numer, int& denom);
 
 void roundToDecimals (double& a, int decimals);
 
-QString join (initlist<StringFormatArg> vals, QString delim = " ");
+QString join (QList< StringFormatArg > vals, QString delim = " ");
 
 // Grid stuff
 struct gridinfo
 {
 	const char* const	name;
-	float* const			confs[4];
+	float* const		confs[4];
 };
 
 extern_cfg (Int, grid);
@@ -91,14 +89,14 @@ namespace Grid
 	double snap (double value, const Grid::Config axis);
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Plural expression
 template<class T> static inline const char* plural (T n)
 {
 	return (n != 1) ? "s" : "";
 }
 
-// -----------------------------------------------------------------------------
+// =============================================================================
 // Templated clamp
 template<class T> static inline T clamp (T a, T min, T max)
 {
@@ -138,5 +136,3 @@ template<class T> void removeDuplicates (QList<T>& a)
 	std::sort (a.begin(), a.end());
 	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
-
-#endif // LDFORGE_MISC_H

@@ -16,14 +16,9 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_CRASHCATCHER_H
-#define LDFORGE_CRASHCATCHER_H
-
+#pragma once
 #ifdef __unix__
-
 void initCrashCatcher();
-
 #else // ifdef __unix__
-#define initCrashCatcher()
+# define initCrashCatcher()
 #endif // ifdef __unix__
-#endif // ifndef LDFORGE_CRASHCATCHER_H

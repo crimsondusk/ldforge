@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_MISC_INVOKATION_DEFERER_H
-#define LDFORGE_MISC_INVOKATION_DEFERER_H
-
+#pragma once
 #include <QObject>
 
 class InvokationDeferer : public QObject
@@ -42,5 +40,3 @@ class InvokationDeferer : public QObject
 };
 
 void invokeLater (InvokationDeferer::FunctionType func);
-
-#endif // LDFORGE_MISC_INVOKATION_DEFERER_H

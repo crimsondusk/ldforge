@@ -16,43 +16,59 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_DOCUMENT_POINTER_H
-#define LDFORGE_DOCUMENT_POINTER_H
+#pragma once
 
 #include "../Main.h"
 
 class LDSubfile;
 class LDDocument;
 
+//!
+//! \brief A reference-counting pointer to LDDocument.
+//!
+//! The LDDocumentPointer class defines a reference-counting pointer which
+//! points to LDDocument.
+//!
 class LDDocumentPointer
 {
-	PROPERTY (private, LDDocument*,			Pointer,	NO_OPS, STOCK_WRITE)
+	PROPERTY (private, LDDocument*, pointer, setPointer, STOCK_WRITE)
 
 	public:
+		//! Constructs a null LDDocumentPointer
 		LDDocumentPointer();
+
+		//! Constructs a document pointer with the given pointer
 		LDDocumentPointer (LDDocument* ptr);
+
+		//! Copy-constructs a LDDocumentPointer.
 		LDDocumentPointer (const LDDocumentPointer& other);
+
+		//! Destructs the pointer.
 		~LDDocumentPointer();
+
+		//! \param ptr the new pointer to change to.
 		LDDocumentPointer& operator= (LDDocument* ptr);
 
+		//! Copy operator.
+		//! \param other the pointer whose internal pointer to copy.
 		inline LDDocumentPointer& operator= (LDDocumentPointer& other)
 		{
-			return operator= (other.getPointer());
+			return operator= (other.pointer());
 		}
 
+		//! Operator overload for a->b support.
 		inline LDDocument* operator->() const
 		{
-			return getPointer();
+			return pointer();
 		}
 
+		//! Cast operator overload
 		inline operator LDDocument*() const
 		{
-			return getPointer();
+			return pointer();
 		}
 
 	private:
 		void addReference();
 		void removeReference();
 };
-
-#endif // LDFORGE_DOCUMENT_POINTER_H

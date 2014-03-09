@@ -37,7 +37,7 @@ cfg (Bool,		net_autoclose,		true);
 const QString g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::staticBegin()
 {
 	QString path = getDownloadPath();
@@ -56,7 +56,7 @@ void PartDownloader::staticBegin()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString PartDownloader::getDownloadPath()
 {
 	QString path = net_downloadpath;
@@ -69,33 +69,33 @@ QString PartDownloader::getDownloadPath()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::PartDownloader (QWidget* parent) : QDialog (parent)
 {
 	setInterface (new Ui_DownloadFrom);
-	getInterface()->setupUi (this);
-	getInterface()->fname->setFocus();
-	getInterface()->progress->horizontalHeader()->setResizeMode (PartLabelColumn, QHeaderView::Stretch);
+	interface()->setupUi (this);
+	interface()->fname->setFocus();
+	interface()->progress->horizontalHeader()->setResizeMode (PartLabelColumn, QHeaderView::Stretch);
 
 	setDownloadButton (new QPushButton (tr ("Download")));
-	getInterface()->buttonBox->addButton (getDownloadButton(), QDialogButtonBox::ActionRole);
+	interface()->buttonBox->addButton (downloadButton(), QDialogButtonBox::ActionRole);
 	getButton (Abort)->setEnabled (false);
 
-	connect (getInterface()->source, SIGNAL (currentIndexChanged (int)),
+	connect (interface()->source, SIGNAL (currentIndexChanged (int)),
 		this, SLOT (sourceChanged (int)));
-	connect (getInterface()->buttonBox, SIGNAL (clicked (QAbstractButton*)),
+	connect (interface()->buttonBox, SIGNAL (clicked (QAbstractButton*)),
 		this, SLOT (buttonClicked (QAbstractButton*)));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::~PartDownloader()
 {
-	delete getInterface();
+	delete interface();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString PartDownloader::getURL() const
 {
 	const Source src = getSource();
@@ -104,12 +104,12 @@ QString PartDownloader::getURL() const
 	switch (src)
 	{
 		case PartsTracker:
-			dest = getInterface()->fname->text();
+			dest = interface()->fname->text();
 			modifyDestination (dest);
 			return g_unofficialLibraryURL + dest;
 
 		case CustomURL:
-			return getInterface()->fname->text();
+			return interface()->fname->text();
 	}
 
 	// Shouldn't happen
@@ -117,7 +117,7 @@ QString PartDownloader::getURL() const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::modifyDestination (QString& dest) const
 {
 	dest = dest.simplified();
@@ -179,24 +179,24 @@ void PartDownloader::modifyDestination (QString& dest) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloader::Source PartDownloader::getSource() const
 {
-	return (Source) getInterface()->source->currentIndex();
+	return (Source) interface()->source->currentIndex();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::sourceChanged (int i)
 {
 	if (i == CustomURL)
-		getInterface()->fileNameLabel->setText (tr ("URL:"));
+		interface()->fileNameLabel->setText (tr ("URL:"));
 	else
-		getInterface()->fileNameLabel->setText (tr ("File name:"));
+		interface()->fileNameLabel->setText (tr ("File name:"));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::buttonClicked (QAbstractButton* btn)
 {
 	if (btn == getButton (Close))
@@ -207,12 +207,12 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 	{
 		setAborted (true);
 
-		for (PartDownloadRequest* req : getRequests())
+		for (PartDownloadRequest* req : requests())
 			req->abort();
 	}
 	elif (btn == getButton (Download))
 	{
-		QString dest = getInterface()->fname->text();
+		QString dest = interface()->fname->text();
 		setPrimaryFile (null);
 		setAborted (false);
 
@@ -223,15 +223,15 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 
 		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest))
 		{
-			const QString overwritemsg = fmt (tr ("%1 already exists in download directory. Overwrite?"), dest);
+			const QString overwritemsg = format (tr ("%1 already exists in download directory. Overwrite?"), dest);
 			if (!confirm (tr ("Overwrite?"), overwritemsg))
 				return;
 		}
 
-		getDownloadButton()->setEnabled (false);
-		getInterface()->progress->setEnabled (true);
-		getInterface()->fname->setEnabled (false);
-		getInterface()->source->setEnabled (false);
+		downloadButton()->setEnabled (false);
+		interface()->progress->setEnabled (true);
+		interface()->fname->setEnabled (false);
+		interface()->source->setEnabled (false);
 		downloadFile (dest, getURL(), true);
 		getButton (Close)->setEnabled (false);
 		getButton (Abort)->setEnabled (true);
@@ -240,51 +240,49 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::downloadFile (QString dest, QString url, bool primary)
 {
-	const int row = getInterface()->progress->rowCount();
+	const int row = interface()->progress->rowCount();
 
 	// Don't download files repeadetly.
-	if (getFilesToDownload().indexOf (dest) != -1)
+	if (filesToDownload().indexOf (dest) != -1)
 		return;
 
 	modifyDestination (dest);
-	log ("DOWNLOAD: %1 -> %2\n", url, PartDownloader::getDownloadPath() + DIRSLASH + dest);
 	PartDownloadRequest* req = new PartDownloadRequest (url, dest, primary, this);
-
-	pushToFilesToDownload (dest);
-	pushToRequests (req);
-	getInterface()->progress->insertRow (row);
+	m_filesToDownload << dest;
+	m_requests << req;
+	interface()->progress->insertRow (row);
 	req->setTableRow (row);
 	req->updateToTable();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloader::checkIfFinished()
 {
 	bool failed = isAborted();
 
 	// If there is some download still working, we're not finished.
-	for (PartDownloadRequest* req : getRequests())
+	for (PartDownloadRequest* req : requests())
 	{
 		if (!req->isFinished())
 			return;
 
-		if (req->getState() == PartDownloadRequest::EFailed)
+		if (req->state() == PartDownloadRequest::EFailed)
 			failed = true;
 	}
 
-	for (PartDownloadRequest* req : getRequests())
+	for (PartDownloadRequest* req : requests())
 		delete req;
 
-	clearRequests();
+	m_requests.clear();
 
 	// Update everything now
-	if (getPrimaryFile())
+	if (primaryFile() != null)
 	{
-		LDDocument::setCurrent (getPrimaryFile());
+		LDDocument::setCurrent (primaryFile());
 		reloadAllSubfiles();
 		g_win->doFullRefresh();
 		g_win->R()->resetAngles();
@@ -304,107 +302,107 @@ void PartDownloader::checkIfFinished()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QPushButton* PartDownloader::getButton (PartDownloader::Button i)
 {
 	switch (i)
 	{
 		case Download:
-			return getDownloadButton();
+			return downloadButton();
 
 		case Abort:
-			return qobject_cast<QPushButton*> (getInterface()->buttonBox->button (QDialogButtonBox::Abort));
+			return qobject_cast<QPushButton*> (interface()->buttonBox->button (QDialogButtonBox::Abort));
 
 		case Close:
-			return qobject_cast<QPushButton*> (getInterface()->buttonBox->button (QDialogButtonBox::Close));
+			return qobject_cast<QPushButton*> (interface()->buttonBox->button (QDialogButtonBox::Close));
 	}
 
 	return null;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primary, PartDownloader* parent) :
 	QObject (parent),
-	m_State (ERequesting),
-	m_Prompt (parent),
-	m_URL (url),
-	m_Destinaton (dest),
-	m_FilePath (PartDownloader::getDownloadPath() + DIRSLASH + dest),
-	m_NAM (new QNetworkAccessManager),
-	m_FirstUpdate (true),
-	m_Primary (primary),
-	m_FilePointer (null)
+	m_state (ERequesting),
+	m_prompt (parent),
+	m_url (url),
+	m_destinaton (dest),
+	m_filePath (PartDownloader::getDownloadPath() + DIRSLASH + dest),
+	m_networkManager (new QNetworkAccessManager),
+	m_isFirstUpdate (true),
+	m_isPrimary (primary),
+	m_filePointer (null)
 {
 	// Make sure that we have a valid destination.
-	QString dirpath = dirname (getFilePath());
+	QString dirpath = dirname (filePath());
 
 	QDir dir (dirpath);
 
-	if (!dir.exists())
+	if (dir.exists() == false)
 	{
-		log ("Creating %1...\n", dirpath);
+		print ("Creating %1...\n", dirpath);
 
 		if (!dir.mkpath (dirpath))
-			critical (fmt (tr ("Couldn't create the directory %1!"), dirpath));
+			critical (format (tr ("Couldn't create the directory %1!"), dirpath));
 	}
 
-	setReply (getNAM()->get (QNetworkRequest (QUrl (url))));
-	connect (getReply(), SIGNAL (finished()), this, SLOT (downloadFinished()));
-	connect (getReply(), SIGNAL (readyRead()), this, SLOT (readyRead()));
-	connect (getReply(), SIGNAL (downloadProgress (qint64, qint64)),
+	setNetworkReply (networkManager()->get (QNetworkRequest (QUrl (url))));
+	connect (networkReply(), SIGNAL (finished()), this, SLOT (downloadFinished()));
+	connect (networkReply(), SIGNAL (readyRead()), this, SLOT (readyRead()));
+	connect (networkReply(), SIGNAL (downloadProgress (qint64, qint64)),
 		this, SLOT (downloadProgress (qint64, qint64)));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 PartDownloadRequest::~PartDownloadRequest() {}
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::updateToTable()
 {
 	const int		labelcol = PartDownloader::PartLabelColumn,
-						progcol = PartDownloader::ProgressColumn;
-	QTableWidget*	table = getPrompt()->getInterface()->progress;
+					progcol = PartDownloader::ProgressColumn;
+	QTableWidget*	table = prompt()->interface()->progress;
 	QProgressBar*	prog;
 
-	switch (getState())
+	switch (state())
 	{
 		case ERequesting:
 		case EDownloading:
 		{
-			prog = qobject_cast<QProgressBar*> (table->cellWidget (getTableRow(), progcol));
+			prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
 
 			if (!prog)
 			{
 				prog = new QProgressBar;
-				table->setCellWidget (getTableRow(), progcol, prog);
+				table->setCellWidget (tableRow(), progcol, prog);
 			}
 
-			prog->setRange (0, getBytesTotal());
-			prog->setValue (getBytesRead());
+			prog->setRange (0, numBytesTotal());
+			prog->setValue (numBytesRead());
 		} break;
 
 		case EFinished:
 		case EFailed:
 		{
-			const QString text = (getState() == EFinished)
+			const QString text = (state() == EFinished)
 				? "<b><span style=\"color: #080\">FINISHED</span></b>"
 				: "<b><span style=\"color: #800\">FAILED</span></b>";
 
 			QLabel* lb = new QLabel (text);
 			lb->setAlignment (Qt::AlignCenter);
-			table->setCellWidget (getTableRow(), progcol, lb);
+			table->setCellWidget (tableRow(), progcol, lb);
 		} break;
 	}
 
-	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (getTableRow(), labelcol));
+	QLabel* lb = qobject_cast<QLabel*> (table->cellWidget (tableRow(), labelcol));
 
 	if (isFirstUpdate())
 	{
-		lb = new QLabel (fmt ("<b>%1</b>", getDestinaton()), table);
-		table->setCellWidget (getTableRow(), labelcol, lb);
+		lb = new QLabel (format ("<b>%1</b>", destinaton()), table);
+		table->setCellWidget (tableRow(), labelcol, lb);
 	}
 
 	// Make sure that the cell is big enough to contain the label
@@ -415,40 +413,40 @@ void PartDownloadRequest::updateToTable()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::downloadFinished()
 {
-	if (getReply()->error() != QNetworkReply::NoError)
+	if (networkReply()->error() != QNetworkReply::NoError)
 	{
-		if (isPrimary() && !getPrompt()->isAborted())
-			critical (getReply()->errorString());
+		if (isPrimary() && !prompt()->isAborted())
+			critical (networkReply()->errorString());
 
 		setState (EFailed);
 	}
-	elif (getState() != EFailed)
+	elif (state() != EFailed)
 		setState (EFinished);
 
-	setBytesRead (getBytesTotal());
+	setNumBytesRead (numBytesTotal());
 	updateToTable();
 
-	if (getFilePointer())
+	if (filePointer())
 	{
-		getFilePointer()->close();
-		delete getFilePointer();
+		filePointer()->close();
+		delete filePointer();
 		setFilePointer (null);
 
-		if (getState() == EFailed)
-			QFile::remove (getFilePath());
+		if (state() == EFailed)
+			QFile::remove (filePath());
 	}
 
-	if (getState() != EFinished)
+	if (state() != EFinished)
 	{
-		getPrompt()->checkIfFinished();
+		prompt()->checkIfFinished();
 		return;
 	}
 
 	// Try to load this file now.
-	LDDocument* f = openDocument (getFilePath(), false);
+	LDDocument* f = openDocument (filePath(), false);
 
 	if (!f)
 		return;
@@ -459,82 +457,82 @@ void PartDownloadRequest::downloadFinished()
 	// from unknown file references, try resolve that by downloading the reference.
 	// This is why downloading a part may end up downloading multiple files, as
 	// it resolves dependencies.
-	for (LDObject* obj : f->getObjects())
+	for (LDObject* obj : f->objects())
 	{
 		LDError* err = dynamic_cast<LDError*> (obj);
 
-		if (!err || err->getFileReferenced().isEmpty())
+		if (err == null || err->fileReferenced().isEmpty())
 			continue;
 
-		QString dest = err->getFileReferenced();
-		getPrompt()->modifyDestination (dest);
-		getPrompt()->downloadFile (dest, g_unofficialLibraryURL + dest, false);
+		QString dest = err->fileReferenced();
+		prompt()->modifyDestination (dest);
+		prompt()->downloadFile (dest, g_unofficialLibraryURL + dest, false);
 	}
 
 	if (isPrimary())
 	{
-		addRecentFile (getFilePath());
-		getPrompt()->setPrimaryFile (f);
+		addRecentFile (filePath());
+		prompt()->setPrimaryFile (f);
 	}
 
-	getPrompt()->checkIfFinished();
+	prompt()->checkIfFinished();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::downloadProgress (int64 recv, int64 total)
 {
-	setBytesRead (recv);
-	setBytesTotal (total);
+	setNumBytesRead (recv);
+	setNumBytesTotal (total);
 	setState (EDownloading);
 	updateToTable();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::readyRead()
 {
-	if (getState() == EFailed)
+	if (state() == EFailed)
 		return;
 
-	if (getFilePointer() == null)
+	if (filePointer() == null)
 	{
-		replaceInFilePath ("\\", "/");
+		m_filePath.replace ("\\", "/");
 
 		// We have already asked the user whether we can overwrite so we're good
 		// to go here.
-		setFilePointer (new QFile (getFilePath().toLocal8Bit()));
+		setFilePointer (new QFile (filePath().toLocal8Bit()));
 
-		if (!getFilePointer()->open (QIODevice::WriteOnly))
+		if (!filePointer()->open (QIODevice::WriteOnly))
 		{
-			critical (fmt (tr ("Couldn't open %1 for writing: %2"), getFilePath(), strerror (errno)));
+			critical (format (tr ("Couldn't open %1 for writing: %2"), filePath(), strerror (errno)));
 			setState (EFailed);
-			getReply()->abort();
+			networkReply()->abort();
 			updateToTable();
-			getPrompt()->checkIfFinished();
+			prompt()->checkIfFinished();
 			return;
 		}
 	}
 
-	getFilePointer()->write (getReply()->readAll());
+	filePointer()->write (networkReply()->readAll());
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool PartDownloadRequest::isFinished() const
 {
-	return getState() == EFinished || getState() == EFailed;
+	return state() == EFinished || state() == EFailed;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void PartDownloadRequest::abort()
 {
-	getReply()->abort();
+	networkReply()->abort();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (DownloadFrom, 0)
 {
 	PartDownloader::staticBegin();

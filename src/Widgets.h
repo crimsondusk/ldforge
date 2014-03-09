@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef WIDGETS_H
-#define WIDGETS_H
-
+#pragma once
 #include <QGroupBox>
 #include <QSpinBox>
 #include <map>
@@ -54,7 +52,7 @@ class RadioGroup : public QGroupBox
 		}
 
 		explicit RadioGroup (const QString& title, QWidget* parent = null);
-		explicit RadioGroup (const QString& title, initlist<char const*> entries, int const defaultId,
+		explicit RadioGroup (const QString& title, QList<char const*> entries, int const defaultId,
 			const Qt::Orientation orient = Qt::Vertical, QWidget* parent = null);
 
 		void            addButton	(const char* entry);
@@ -92,5 +90,3 @@ class RadioGroup : public QGroupBox
 		void slot_buttonPressed (int btn);
 		void slot_buttonReleased (int btn);
 };
-
-#endif // WIDGETS_H

@@ -48,7 +48,7 @@ set (LDForgeSources
 )
 
 set (LDForgeHeaders
-	src/PropertyMacro.h
+	src/Macros.h
 	src/CrashCatcher.h
 	src/Colors.h
 	src/misc/DocumentPointer.h
@@ -73,6 +73,7 @@ set (LDForgeHeaders
 	src/Configuration.h
 	src/MainWindow.h
 	src/EditHistory.h
+	src/Format.h
 )
 
 set (LDForgeForms

@@ -27,7 +27,7 @@ static const int g_expiry = 5;
 static const int g_fadeTime = 500; // msecs
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 MessageManager::MessageManager (QObject* parent) :
 			QObject (parent)
 {
@@ -37,17 +37,14 @@ MessageManager::MessageManager (QObject* parent) :
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 MessageManager::Line::Line (QString text) :
 			text (text),
 			alpha (1.0f),
 			expiry (QDateTime::currentDateTime().addSecs (g_expiry)) {}
 
 // =============================================================================
-// Check this line's expiry and update alpha accordingly. Returns true if the
-// line is to still stick around, false if it expired. 'changed' is updated to
-// whether the line has somehow changed since the last update.
-// -----------------------------------------------------------------------------
+//
 bool MessageManager::Line::update (bool& changed)
 {
 	changed = false;
@@ -73,7 +70,7 @@ bool MessageManager::Line::update (bool& changed)
 
 // =============================================================================
 // Add a line to the message manager.
-// -----------------------------------------------------------------------------
+//
 void MessageManager::addLine (QString line)
 {
 	// If there's too many entries, pop the excess out
@@ -83,14 +80,14 @@ void MessageManager::addLine (QString line)
 	m_lines << Line (line);
 
 	// Update the renderer view
-	if (getRenderer())
-		getRenderer()->update();
+	if (renderer())
+		renderer()->update();
 }
 
 // =============================================================================
 // Ticks the message manager. All lines are ticked and the renderer scene is
 // redrawn if something changed.
-// -----------------------------------------------------------------------------
+//
 void MessageManager::tick()
 {
 	if (m_lines.isEmpty())
@@ -108,28 +105,24 @@ void MessageManager::tick()
 		changed |= lineChanged;
 	}
 
-	if (changed && getRenderer())
-		getRenderer()->update();
+	if (changed && renderer())
+		renderer()->update();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 const QList<MessageManager::Line>& MessageManager::getLines() const
 {
 	return m_lines;
 }
 
 // =============================================================================
-// log() interface - format the argument list and add the resulting string to
-// the main message manager.
-// -----------------------------------------------------------------------------
-void DoLog (std::initializer_list<StringFormatArg> args)
+//
+void printToLog (const QString& msg)
 {
-	const QString msg = DoFormat (args);
-
 	for (QString& a : msg.split ("\n", QString::SkipEmptyParts))
 	{
-		if (g_win)
+		if (g_win != null)
 			g_win->addMessage (a);
 
 		// Also print it to stdout

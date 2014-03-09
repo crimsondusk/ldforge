@@ -28,20 +28,7 @@
 #include "Document.h"
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-QString DoFormat (QList<StringFormatArg> args)
-{
-	assert (args.size() >= 1);
-	QString text = args[0].value();
-
-	for (uchar i = 1; i < args.size(); ++i)
-		text = text.arg (args[i].value());
-
-	return text;
-}
-
-// =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex::Vertex (double x, double y, double z)
 {
 	m_coords[X] = x;
@@ -50,7 +37,7 @@ Vertex::Vertex (double x, double y, double z)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void Vertex::move (const Vertex& other)
 {
 	for_axes (ax)
@@ -58,7 +45,7 @@ void Vertex::move (const Vertex& other)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 double Vertex::distanceTo (const Vertex& other) const
 {
 	double dx = abs (x() - other.x());
@@ -68,7 +55,7 @@ double Vertex::distanceTo (const Vertex& other) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex Vertex::midpoint (const Vertex& other)
 {
 	Vertex mid;
@@ -80,19 +67,19 @@ Vertex Vertex::midpoint (const Vertex& other)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString Vertex::toString (bool mangled) const
 {
-	QString fmtstr = "%1 %2 %3";
+	QString formatstr = "%1 %2 %3";
 
 	if (mangled)
-		fmtstr = "(%1, %2, %3)";
+		formatstr = "(%1, %2, %3)";
 
-	return fmt (fmtstr, x(), y(), z());
+	return format (formatstr, x(), y(), z());
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void Vertex::transform (const Matrix& matr, const Vertex& pos)
 {
 	double x2 = (matr[0] * x()) + (matr[1] * y()) + (matr[2] * z()) + pos[X];
@@ -105,21 +92,21 @@ void Vertex::transform (const Matrix& matr, const Vertex& pos)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex Vertex::operator-() const
 {
 	return Vertex (-m_coords[X], -m_coords[Y], -m_coords[Z]);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool Vertex::operator!= (const Vertex& other) const
 {
 	return !operator== (other);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool Vertex::operator== (const Vertex& other) const
 {
 	return getCoordinate (X) == other[X] &&
@@ -128,7 +115,7 @@ bool Vertex::operator== (const Vertex& other) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex& Vertex::operator/= (const double d)
 {
 	for_axes (ax)
@@ -138,7 +125,7 @@ Vertex& Vertex::operator/= (const double d)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex Vertex::operator/ (const double d) const
 {
 	Vertex other (*this);
@@ -146,7 +133,7 @@ Vertex Vertex::operator/ (const double d) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex& Vertex::operator+= (const Vertex& other)
 {
 	move (other);
@@ -154,7 +141,7 @@ Vertex& Vertex::operator+= (const Vertex& other)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex Vertex::operator+ (const Vertex& other) const
 {
 	Vertex newvert (*this);
@@ -163,7 +150,7 @@ Vertex Vertex::operator+ (const Vertex& other) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 int Vertex::operator< (const Vertex& other) const
 {
 	if (operator== (other))
@@ -185,7 +172,7 @@ int Vertex::operator< (const Vertex& other) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Matrix::Matrix (double vals[])
 {
 	for (int i = 0; i < 9; ++i)
@@ -193,7 +180,7 @@ Matrix::Matrix (double vals[])
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Matrix::Matrix (double fillval)
 {
 	for (int i = 0; i < 9; ++i)
@@ -201,28 +188,28 @@ Matrix::Matrix (double fillval)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-Matrix::Matrix (initlist<double> vals)
+//
+Matrix::Matrix (QList<double> vals)
 {
 	assert (vals.size() == 9);
 	memcpy (&m_vals[0], & (*vals.begin()), sizeof m_vals);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-void Matrix::puts() const
+//
+void Matrix::dump() const
 {
 	for (int i = 0; i < 3; ++i)
 	{
 		for (int j = 0; j < 3; ++j)
-			log ("%1\t", m_vals[ (i * 3) + j]);
+			print ("%1\t", m_vals[ (i * 3) + j]);
 
-		log ("\n");
+		print ("\n");
 	}
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 QString Matrix::toString() const
 {
 	QString val;
@@ -239,14 +226,14 @@ QString Matrix::toString() const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void Matrix::zero()
 {
 	memset (&m_vals[0], 0, sizeof m_vals);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Matrix Matrix::mult (const Matrix& other) const
 {
 	Matrix val;
@@ -261,7 +248,7 @@ Matrix Matrix::mult (const Matrix& other) const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Matrix& Matrix::operator= (const Matrix& other)
 {
 	memcpy (&m_vals[0], &other.m_vals[0], sizeof m_vals);
@@ -269,53 +256,53 @@ Matrix& Matrix::operator= (const Matrix& other)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 double Matrix::getDeterminant() const
 {
-	return (val (0) * val (4) * val (8)) +
-		   (val (1) * val (5) * val (6)) +
-		   (val (2) * val (3) * val (7)) -
-		   (val (2) * val (4) * val (6)) -
-		   (val (1) * val (3) * val (8)) -
-		   (val (0) * val (5) * val (7));
+	return (value (0) * value (4) * value (8)) +
+		   (value (1) * value (5) * value (6)) +
+		   (value (2) * value (3) * value (7)) -
+		   (value (2) * value (4) * value (6)) -
+		   (value (1) * value (3) * value (8)) -
+		   (value (0) * value (5) * value (7));
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 bool Matrix::operator== (const Matrix& other) const
 {
 	for (int i = 0; i < 9; ++i)
-		if (val (i) != other[i])
+		if (value (i) != other[i])
 			return false;
 
 	return true;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDBoundingBox::LDBoundingBox()
 {
 	reset();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-void LDBoundingBox::calculate()
+//
+void LDBoundingBox::calculateFromCurrentDocument()
 {
 	reset();
 
 	if (!getCurrentDocument())
 		return;
 
-	for (LDObject* obj : getCurrentDocument()->getObjects())
+	for (LDObject* obj : getCurrentDocument()->objects())
 		calcObject (obj);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDBoundingBox::calcObject (LDObject* obj)
 {
-	switch (obj->getType())
+	switch (obj->type())
 	{
 		case LDObject::ELine:
 		case LDObject::ETriangle:
@@ -323,7 +310,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 		case LDObject::ECondLine:
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
-				calcVertex (obj->getVertex (i));
+				calcVertex (obj->vertex (i));
 		} break;
 
 		case LDObject::ESubfile:
@@ -334,7 +321,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 			for (LDObject * obj : objs)
 			{
 				calcObject (obj);
-				obj->deleteSelf();
+				obj->destroy();
 			}
 		}
 		break;
@@ -345,7 +332,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDBoundingBox& LDBoundingBox::operator<< (const Vertex& v)
 {
 	calcVertex (v);
@@ -353,7 +340,7 @@ LDBoundingBox& LDBoundingBox::operator<< (const Vertex& v)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 {
 	calcObject (obj);
@@ -361,34 +348,34 @@ LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-void LDBoundingBox::calcVertex (const Vertex& v)
+//
+void LDBoundingBox::calcVertex (const Vertex& vertex)
 {
 	for_axes (ax)
 	{
-		m_Vertex0[ax] = min (v[ax], m_Vertex0[ax]);
-		m_Vertex1[ax] = max (v[ax], m_Vertex1[ax]);
+		m_vertex0[ax] = min (vertex[ax], m_vertex0[ax]);
+		m_vertex1[ax] = max (vertex[ax], m_vertex1[ax]);
 	}
 
 	setEmpty (false);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void LDBoundingBox::reset()
 {
-	m_Vertex0[X] = m_Vertex0[Y] = m_Vertex0[Z] = 10000.0;
-	m_Vertex1[X] = m_Vertex1[Y] = m_Vertex1[Z] = -10000.0;
+	m_vertex0[X] = m_vertex0[Y] = m_vertex0[Z] = 10000.0;
+	m_vertex1[X] = m_vertex1[Y] = m_vertex1[Z] = -10000.0;
 	setEmpty (true);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
-double LDBoundingBox::size() const
+//
+double LDBoundingBox::longestMeasurement() const
 {
-	double xscale = (m_Vertex0[X] - m_Vertex1[X]);
-	double yscale = (m_Vertex0[Y] - m_Vertex1[Y]);
-	double zscale = (m_Vertex0[Z] - m_Vertex1[Z]);
+	double xscale = (m_vertex0[X] - m_vertex1[X]);
+	double yscale = (m_vertex0[Y] - m_vertex1[Y]);
+	double zscale = (m_vertex0[Z] - m_vertex1[Z]);
 	double size = zscale;
 
 	if (xscale > yscale)
@@ -406,11 +393,11 @@ double LDBoundingBox::size() const
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 Vertex LDBoundingBox::center() const
 {
 	return Vertex (
-		(m_Vertex0[X] + m_Vertex1[X]) / 2,
-		(m_Vertex0[Y] + m_Vertex1[Y]) / 2,
-		(m_Vertex0[Z] + m_Vertex1[Z]) / 2);
+		(m_vertex0[X] + m_vertex1[X]) / 2,
+		(m_vertex0[Y] + m_vertex1[Y]) / 2,
+		(m_vertex0[Z] + m_vertex1[Z]) / 2);
 }

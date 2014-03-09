@@ -1,5 +1,5 @@
 /*
- *  LDForge: LDraw parts authoring CAD
+ *  LDForge: LDasText parts authoring CAD
  *  Copyright (C) 2013, 2014 Santeri Piippo
  *
  *  This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ cfg (Bool, edit_schemanticinline, false);
 extern_cfg (String, ld_defaultuser);
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static int copyToClipboard()
 {
 	LDObjectList objs = selection();
@@ -55,7 +55,7 @@ static int copyToClipboard()
 		if (data.length() > 0)
 			data += "\n";
 
-		data += obj->raw();
+		data += obj->asText();
 		++num;
 	}
 
@@ -64,24 +64,24 @@ static int copyToClipboard()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Cut, CTRL (X))
 {
 	int num = copyToClipboard();
 	deleteSelection();
-	log (tr ("%1 objects cut"), num);
+	print (tr ("%1 objects cut"), num);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Copy, CTRL (C))
 {
 	int num = copyToClipboard();
-	log (tr ("%1 objects copied"), num);
+	print (tr ("%1 objects copied"), num);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Paste, CTRL (V))
 {
 	const QString clipboardText = qApp->clipboard()->text();
@@ -98,21 +98,21 @@ DEFINE_ACTION (Paste, CTRL (V))
 		++num;
 	}
 
-	log (tr ("%1 objects pasted"), num);
+	print (tr ("%1 objects pasted"), num);
 	refresh();
 	scrollToSelection();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Delete, KEY (Delete))
 {
 	int num = deleteSelection();
-	log (tr ("%1 objects deleted"), num);
+	print (tr ("%1 objects deleted"), num);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void doInline (bool deep)
 {
 	LDObjectList sel = selection();
@@ -121,18 +121,18 @@ static void doInline (bool deep)
 	{
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
-		long idx = obj->getIndex();
+		long idx = obj->lineNumber();
 
-		if (idx == -1 || obj->getType() != LDObject::ESubfile)
+		if (idx == -1 || obj->type() != LDObject::ESubfile)
 			continue;
 
 		LDObjectList objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, false);
 
 		// Merge in the inlined objects
-		for (LDObject * inlineobj : objs)
+		for (LDObject* inlineobj : objs)
 		{
-			QString line = inlineobj->raw();
-			inlineobj->deleteSelf();
+			QString line = inlineobj->asText();
+			inlineobj->destroy();
 			LDObject* newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
@@ -140,7 +140,7 @@ static void doInline (bool deep)
 		}
 
 		// Delete the subfile now as it's been inlined.
-		obj->deleteSelf();
+		obj->destroy();
 	}
 
 	g_win->refresh();
@@ -157,7 +157,7 @@ DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (SplitQuads, 0)
 {
 	LDObjectList objs = selection();
@@ -165,11 +165,11 @@ DEFINE_ACTION (SplitQuads, 0)
 
 	for (LDObject* obj : objs)
 	{
-		if (obj->getType() != LDObject::EQuad)
+		if (obj->type() != LDObject::EQuad)
 			continue;
 
 		// Find the index of this quad
-		long index = obj->getIndex();
+		long index = obj->lineNumber();
 
 		if (index == -1)
 			return;
@@ -185,17 +185,17 @@ DEFINE_ACTION (SplitQuads, 0)
 			R()->compileObject (t);
 
 		// Delete this quad now, it has been split.
-		obj->deleteSelf();
+		obj->destroy();
 
 		num++;
 	}
 
-	log ("%1 quadrilaterals split", num);
+	print ("%1 quadrilaterals split", num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (EditRaw, KEY (F9))
 {
 	if (selection().size() != 1)
@@ -206,10 +206,10 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	Ui::EditRawUI ui;
 
 	ui.setupUi (dlg);
-	ui.code->setText (obj->raw());
+	ui.code->setText (obj->asText());
 
-	if (obj->getType() == LDObject::EError)
-		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason);
+	if (obj->type() == LDObject::EError)
+		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason());
 	else
 	{
 		ui.errorDescription->hide();
@@ -231,7 +231,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (SetColor, KEY (C))
 {
 	if (selection().isEmpty())
@@ -263,7 +263,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 {
 	LDObjectList objs = selection();
@@ -271,7 +271,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 
 	for (LDObject* obj : objs)
 	{
-		const LDObject::Type type = obj->getType();
+		const LDObject::Type type = obj->type();
 		if (type != LDObject::EQuad && type != LDObject::ETriangle)
 			continue;
 
@@ -283,24 +283,24 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 			numLines = 4;
 
 			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->getVertex (0), quad->getVertex (1));
-			lines[1] = new LDLine (quad->getVertex (1), quad->getVertex (2));
-			lines[2] = new LDLine (quad->getVertex (2), quad->getVertex (3));
-			lines[3] = new LDLine (quad->getVertex (3), quad->getVertex (0));
+			lines[0] = new LDLine (quad->vertex (0), quad->vertex (1));
+			lines[1] = new LDLine (quad->vertex (1), quad->vertex (2));
+			lines[2] = new LDLine (quad->vertex (2), quad->vertex (3));
+			lines[3] = new LDLine (quad->vertex (3), quad->vertex (0));
 		}
 		else
 		{
 			numLines = 3;
 
 			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->getVertex (0), tri->getVertex (1));
-			lines[1] = new LDLine (tri->getVertex (1), tri->getVertex (2));
-			lines[2] = new LDLine (tri->getVertex (2), tri->getVertex (0));
+			lines[0] = new LDLine (tri->vertex (0), tri->vertex (1));
+			lines[1] = new LDLine (tri->vertex (1), tri->vertex (2));
+			lines[2] = new LDLine (tri->vertex (2), tri->vertex (0));
 		}
 
 		for (int i = 0; i < numLines; ++i)
 		{
-			long idx = obj->getIndex() + i + 1;
+			long idx = obj->lineNumber() + i + 1;
 
 			lines[i]->setColor (edgecolor);
 			getCurrentDocument()->insertObj (idx, lines[i]);
@@ -310,12 +310,12 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 		num += numLines;
 	}
 
-	log (tr ("Added %1 border lines"), num);
+	print (tr ("Added %1 border lines"), num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (CornerVerts, 0)
 {
 	int num = 0;
@@ -325,26 +325,26 @@ DEFINE_ACTION (CornerVerts, 0)
 		if (obj->vertices() < 2)
 			continue;
 
-		int idx = obj->getIndex();
+		int ln = obj->lineNumber();
 
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
 			LDVertex* vert = new LDVertex;
-			vert->pos = obj->getVertex (i);
-			vert->setColor (obj->getColor());
+			vert->pos = obj->vertex (i);
+			vert->setColor (obj->color());
 
-			getCurrentDocument()->insertObj (++idx, vert);
+			getCurrentDocument()->insertObj (++ln, vert);
 			R()->compileObject (vert);
 			++num;
 		}
 	}
 
-	log (tr ("Added %1 vertices"), num);
+	print (tr ("Added %1 vertices"), num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void doMoveSelection (const bool up)
 {
 	LDObjectList objs = selection();
@@ -353,7 +353,7 @@ static void doMoveSelection (const bool up)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (MoveUp, KEY (PageUp))
 {
 	doMoveSelection (true);
@@ -365,7 +365,7 @@ DEFINE_ACTION (MoveDown, KEY (PageDown))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Undo, CTRL (Z))
 {
 	getCurrentDocument()->undo();
@@ -377,7 +377,7 @@ DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void doMoveObjects (Vertex vect)
 {
 	// Apply the grid values
@@ -397,7 +397,7 @@ void doMoveObjects (Vertex vect)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (MoveXNeg, KEY (Left))
 {
 	doMoveObjects ({ -1, 0, 0});
@@ -429,7 +429,7 @@ DEFINE_ACTION (MoveZPos, KEY (Up))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 {
 	LDObjectList sel = selection();
@@ -444,7 +444,7 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& transform)
 {
 	v.move (-rotpoint);
@@ -453,7 +453,7 @@ static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& trans
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static void doRotate (const int l, const int m, const int n)
 {
 	LDObjectList sel = selection();
@@ -486,7 +486,7 @@ static void doRotate (const int l, const int m, const int n)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				Vertex v = obj->getVertex (i);
+				Vertex v = obj->vertex (i);
 				rotateVertex (v, rotpoint, transform);
 				obj->setVertex (i, v);
 			}
@@ -496,14 +496,14 @@ static void doRotate (const int l, const int m, const int n)
 			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
 
 			// Transform the position
-			Vertex v = mo->getPosition();
+			Vertex v = mo->position();
 			rotateVertex (v, rotpoint, transform);
 			mo->setPosition (v);
 
 			// Transform the matrix
-			mo->setTransform (transform * mo->getTransform());
+			mo->setTransform (transform * mo->transform());
 		}
-		elif (obj->getType() == LDObject::EVertex)
+		elif (obj->type() == LDObject::EVertex)
 		{
 			LDVertex* vert = static_cast<LDVertex*> (obj);
 			Vertex v = vert->pos;
@@ -518,7 +518,7 @@ static void doRotate (const int l, const int m, const int n)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (RotateXPos, CTRL (Right))
 {
 	doRotate (1, 0, 0);
@@ -550,7 +550,7 @@ DEFINE_ACTION (RotationPoint, (0))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (RoundCoordinates, 0)
 {
 	setlocale (LC_ALL, "C");
@@ -562,8 +562,8 @@ DEFINE_ACTION (RoundCoordinates, 0)
 
 		if (mo != null)
 		{
-			Vertex v = mo->getPosition();
-			Matrix t = mo->getTransform();
+			Vertex v = mo->position();
+			Matrix t = mo->transform();
 
 			for_axes (ax)
 				roundToDecimals (v[ax], 3);
@@ -581,7 +581,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
-				Vertex v = obj->getVertex (i);
+				Vertex v = obj->vertex (i);
 
 				for_axes (ax)
 					roundToDecimals (v[ax], 3);
@@ -593,13 +593,13 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		}
 	}
 
-	log (tr ("Rounded %1 values"), num);
+	print (tr ("Rounded %1 values"), num);
 	refreshObjectList();
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Uncolorize, 0)
 {
 	int num = 0;
@@ -611,7 +611,7 @@ DEFINE_ACTION (Uncolorize, 0)
 
 		int col = maincolor;
 
-		if (obj->getType() == LDObject::ELine || obj->getType() == LDObject::ECondLine)
+		if (obj->type() == LDObject::ELine || obj->type() == LDObject::ECondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
@@ -619,12 +619,12 @@ DEFINE_ACTION (Uncolorize, 0)
 		num++;
 	}
 
-	log (tr ("%1 objects uncolored"), num);
+	print (tr ("%1 objects uncolored"), num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (ReplaceCoords, CTRL (R))
 {
 	QDialog* dlg = new QDialog (g_win);
@@ -650,7 +650,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			Vertex v = obj->getVertex (i);
+			Vertex v = obj->vertex (i);
 
 			for (Axis ax : sel)
 			{
@@ -671,12 +671,12 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 		}
 	}
 
-	log (tr ("Altered %1 values"), num);
+	print (tr ("Altered %1 values"), num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 {
 	QDialog* dlg = new QDialog;
@@ -696,7 +696,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	{
 		for (int i = 0; i < obj->vertices(); ++i)
 		{
-			Vertex v = obj->getVertex (i);
+			Vertex v = obj->vertex (i);
 
 			for (Axis ax : sel)
 				v[ax] *= -1;
@@ -710,7 +710,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Demote, 0)
 {
 	LDObjectList sel = selection();
@@ -718,7 +718,7 @@ DEFINE_ACTION (Demote, 0)
 
 	for (LDObject* obj : sel)
 	{
-		if (obj->getType() != LDObject::ECondLine)
+		if (obj->type() != LDObject::ECondLine)
 			continue;
 
 		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
@@ -726,23 +726,23 @@ DEFINE_ACTION (Demote, 0)
 		++num;
 	}
 
-	log (tr ("Demoted %1 conditional lines"), num);
+	print (tr ("Demoted %1 conditional lines"), num);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 static bool isColorUsed (int colnum)
 {
-	for (LDObject* obj : getCurrentDocument()->getObjects())
-		if (obj->isColored() && obj->getColor() == colnum)
+	for (LDObject* obj : getCurrentDocument()->objects())
+		if (obj->isColored() && obj->color() == colnum)
 			return true;
 
 	return false;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (Autocolor, 0)
 {
 	int colnum = 0;
@@ -752,7 +752,7 @@ DEFINE_ACTION (Autocolor, 0)
 
 	if (colnum >= MAX_COLORS)
 	{
-		log (tr ("Cannot auto-color: all colors are in use!"));
+		print (tr ("Cannot auto-color: all colors are in use!"));
 		return;
 	}
 
@@ -765,12 +765,12 @@ DEFINE_ACTION (Autocolor, 0)
 		R()->compileObject (obj);
 	}
 
-	log (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
+	print (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
 	refresh();
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 DEFINE_ACTION (AddHistoryLine, 0)
 {
 	LDObject* obj;
@@ -788,7 +788,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		return;
 
 	// Create the comment object based on input
-	QString commentText = fmt ("!HISTORY %1 [%2] %3",
+	QString commentText = format ("!HISTORY %1 [%2] %3",
 		ui->m_date->date().toString ("yyyy-MM-dd"),
 		ui->m_username->text(),
 		ui->m_comment->text());
@@ -804,7 +804,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	{
 		LDComment* comm = dynamic_cast<LDComment*> (obj);
 
-		if (comm && comm->text.startsWith ("!HISTORY "))
+		if (comm != null && comm->text().startsWith ("!HISTORY "))
 			ishistory = true;
 
 		if (prevIsHistory && !ishistory)
@@ -817,7 +817,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		prevIsHistory = ishistory;
 	}
 
-	int idx = obj ? obj->getIndex() : 0;
+	int idx = obj ? obj->lineNumber() : 0;
 	getCurrentDocument()->insertObj (idx++, comm);
 
 	// If we're adding a history line right before a scemantic object, pad it

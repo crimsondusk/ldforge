@@ -80,7 +80,7 @@ const char* g_extProgPathFilter =
 #endif
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f)
 {
@@ -163,14 +163,14 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 ConfigDialog::~ConfigDialog()
 {
 	delete ui;
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::selectPage (int row)
 {
 	ui->m_pagelist->setCurrentRow (row);
@@ -179,7 +179,7 @@ void ConfigDialog::selectPage (int row)
 
 // =============================================================================
 // Adds a shortcut entry to the list of shortcuts.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 {
 	ShortcutListItem* item = new ShortcutListItem;
@@ -198,7 +198,7 @@ void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 
 // =============================================================================
 // Initializes the table of grid stuff
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::initGrids()
 {
 	QGridLayout* gridlayout = new QGridLayout;
@@ -208,7 +208,7 @@ void ConfigDialog::initGrids()
 	*anglabel = new QLabel ("Angle");
 	int i = 1;
 
-	for (QLabel* label : initlist<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
+	for (QLabel* label : QList<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
 	{
 		label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);
@@ -218,10 +218,10 @@ void ConfigDialog::initGrids()
 	{
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (fmt ("grid-%1", QString (g_GridInfo[i].name).toLower())));
+		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%1", QString (g_GridInfo[i].name).toLower())));
 
 		// Text label
-		lb_gridLabels[i] = new QLabel (fmt ("%1:", g_GridInfo[i].name));
+		lb_gridLabels[i] = new QLabel (format ("%1:", g_GridInfo[i].name));
 
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
@@ -246,7 +246,7 @@ void ConfigDialog::initGrids()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 static struct LDExtProgInfo
 {
 	const QString		name,
@@ -276,7 +276,7 @@ static struct LDExtProgInfo
 
 // =============================================================================
 // Initializes the stuff in the ext programs tab
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::initExtProgs()
 {
 	QGridLayout* pathsLayout = new QGridLayout;
@@ -317,7 +317,7 @@ void ConfigDialog::initExtProgs()
 
 // =============================================================================
 // Set the settings based on widget data.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::applySettings()
 {
 	// Apply configuration
@@ -364,13 +364,12 @@ void ConfigDialog::applySettings()
 	loadLogoedStuds();
 	g_win->R()->setBackground();
 	g_win->doFullRefresh();
-	g_win->updateToolBars();
 	g_win->updateDocumentList();
 }
 
 // =============================================================================
 // A dialog button was clicked
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::buttonClicked (QAbstractButton* button)
 {
 	typedef QDialogButtonBox QDDB;
@@ -391,7 +390,7 @@ void ConfigDialog::buttonClicked (QAbstractButton* button)
 
 // =============================================================================
 // Update the list of color toolbar items in the quick color tab.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 {
 	for (QListWidgetItem * item : quickColorItems)
@@ -411,7 +410,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 		}
 		else
 		{
-			LDColor* col = entry.getColor();
+			LDColor* col = entry.color();
 
 			if (col == null)
 			{
@@ -438,7 +437,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 
 // =============================================================================
 // Quick colors: add or edit button was clicked.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setColor()
 {
 	LDQuickColor* entry = null;
@@ -459,7 +458,7 @@ void ConfigDialog::slot_setColor()
 			return; // don't color separators
 	}
 
-	int defval = entry ? entry->getColor()->index : -1;
+	int defval = entry ? entry->color()->index : -1;
 	int val;
 
 	if (ColorSelector::selectColor (val, defval, this) == false)
@@ -483,7 +482,7 @@ void ConfigDialog::slot_setColor()
 
 // =============================================================================
 // Remove a quick color
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_delColor()
 {
 	if (ui->quickColorList->selectedItems().isEmpty())
@@ -496,7 +495,7 @@ void ConfigDialog::slot_delColor()
 
 // =============================================================================
 // Move a quick color up/down
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_moveColor()
 {
 	const bool up = (static_cast<QPushButton*> (sender()) == ui->quickColor_moveUp);
@@ -519,8 +518,9 @@ void ConfigDialog::slot_moveColor()
 }
 
 // =============================================================================
+//
 // Add a separator to quick colors
-// -----------------------------------------------------------------------------
+//
 void ConfigDialog::slot_addColorSeparator()
 {
 	quickColors << LDQuickColor::getSeparator();
@@ -528,8 +528,9 @@ void ConfigDialog::slot_addColorSeparator()
 }
 
 // =============================================================================
+//
 // Clear all quick colors
-// -----------------------------------------------------------------------------
+//
 void ConfigDialog::slot_clearColors()
 {
 	quickColors.clear();
@@ -537,8 +538,9 @@ void ConfigDialog::slot_clearColors()
 }
 
 // =============================================================================
+//
 // Pick a color and set the appropriate configuration option.
-// -----------------------------------------------------------------------------
+//
 void ConfigDialog::pickColor (QString& conf, QPushButton* button)
 {
 	QColor col = QColorDialog::getColor (QColor (conf));
@@ -557,21 +559,21 @@ void ConfigDialog::pickColor (QString& conf, QPushButton* button)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setGLBackground()
 {
 	pickColor (gl_bgcolor, ui->backgroundColorButton);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setGLForeground()
 {
 	pickColor (gl_maincolor, ui->mainColorButton);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setGLSelectColor()
 {
 	pickColor (gl_selectcolor, ui->selColorButton);
@@ -579,17 +581,17 @@ void ConfigDialog::slot_setGLSelectColor()
 
 // =============================================================================
 // Sets background color of a given button.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::setButtonBackground (QPushButton* button, QString value)
 {
 	button->setIcon (getIcon ("colorselect"));
 	button->setAutoFillBackground (true);
-	button->setStyleSheet (fmt ("background-color: %1", value));
+	button->setStyleSheet (format ("background-color: %1", value));
 }
 
 // =============================================================================
 // Finds the given list widget item in the list of widget items given.
-// -----------------------------------------------------------------------------
+// =============================================================================
 int ConfigDialog::getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack)
 {
 	int i = 0;
@@ -607,7 +609,7 @@ int ConfigDialog::getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& ha
 
 // =============================================================================
 // Which quick color is currently selected?
-// -----------------------------------------------------------------------------
+// =============================================================================
 QListWidgetItem* ConfigDialog::getSelectedQuickColor()
 {
 	if (ui->quickColorList->selectedItems().isEmpty())
@@ -618,7 +620,7 @@ QListWidgetItem* ConfigDialog::getSelectedQuickColor()
 
 // =============================================================================
 // Get the list of shortcuts selected
-// -----------------------------------------------------------------------------
+// =============================================================================
 QList<ShortcutListItem*> ConfigDialog::getShortcutSelection()
 {
 	QList<ShortcutListItem*> out;
@@ -631,7 +633,7 @@ QList<ShortcutListItem*> ConfigDialog::getShortcutSelection()
 
 // =============================================================================
 // Edit the shortcut of a given action.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
@@ -641,41 +643,41 @@ void ConfigDialog::slot_setShortcut()
 
 	ShortcutListItem* item = sel[0];
 
-	if (KeySequenceDialog::staticDialog (item->getKeyConfig(), this))
+	if (KeySequenceDialog::staticDialog (item->keyConfig(), this))
 		setShortcutText (item);
 }
 
 // =============================================================================
 // Reset a shortcut to defaults
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_resetShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->getKeyConfig()->reset();
+		item->keyConfig()->reset();
 		setShortcutText (item);
 	}
 }
 
 // =============================================================================
 // Remove the shortcut of an action.
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_clearShortcut()
 {
 	QList<ShortcutListItem*> sel = getShortcutSelection();
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->getKeyConfig()->setValue (QKeySequence());
+		item->keyConfig()->setValue (QKeySequence());
 		setShortcutText (item);
 	}
 }
 
 // =============================================================================
 // Set the path of an external program
-// -----------------------------------------------------------------------------
+// =============================================================================
 void ConfigDialog::slot_setExtProgPath()
 {
 	const LDExtProgInfo* info = null;
@@ -690,7 +692,7 @@ void ConfigDialog::slot_setExtProgPath()
 	}
 
 	assert (info != null);
-	QString fpath = QFileDialog::getOpenFileName (this, fmt ("Path to %1", info->name), *info->path, g_extProgPathFilter);
+	QString fpath = QFileDialog::getOpenFileName (this, format ("Path to %1", info->name), *info->path, g_extProgPathFilter);
 
 	if (fpath.isEmpty())
 		return;
@@ -699,8 +701,9 @@ void ConfigDialog::slot_setExtProgPath()
 }
 
 // =============================================================================
+//
 // '...' button pressed for the download path
-// -----------------------------------------------------------------------------
+//
 void ConfigDialog::slot_findDownloadFolder()
 {
 	QString dpath = QFileDialog::getExistingDirectory();
@@ -708,19 +711,20 @@ void ConfigDialog::slot_findDownloadFolder()
 }
 
 // =============================================================================
+//
 // Updates the text string for a given shortcut list item
-// -----------------------------------------------------------------------------
+//
 void ConfigDialog::setShortcutText (ShortcutListItem* item)
 {
-	QAction* act = item->getAction();
+	QAction* act = item->action();
 	QString label = act->iconText();
-	QString keybind = item->getKeyConfig()->getValue().toString();
-	item->setText (fmt ("%1 (%2)", label, keybind));
+	QString keybind = item->keyConfig()->getValue().toString();
+	item->setText (format ("%1 (%2)", label, keybind));
 }
 
 // =============================================================================
 // Gets the configuration string of the quick color toolbar
-// -----------------------------------------------------------------------------
+// =============================================================================
 QString ConfigDialog::quickColorString()
 {
 	QString val;
@@ -733,7 +737,7 @@ QString ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += fmt ("%1", entry.getColor()->index);
+			val += format ("%1", entry.color()->index);
 	}
 
 	return val;
@@ -765,7 +769,7 @@ KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent, Qt::Win
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
 {
 	KeySequenceDialog dlg (cfg->getValue(), parent);
@@ -778,7 +782,7 @@ bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void KeySequenceDialog::updateOutput()
 {
 	QString shortcut = seq.toString();
@@ -786,12 +790,12 @@ void KeySequenceDialog::updateOutput()
 	if (seq == QKeySequence())
 		shortcut = "&lt;empty&gt;";
 
-	QString text = fmt ("<center><b>%1</b></center>", shortcut);
+	QString text = format ("<center><b>%1</b></center>", shortcut);
 	lb_output->setText (text);
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+// =============================================================================
 void KeySequenceDialog::keyPressEvent (QKeyEvent* ev)
 {
 	seq = ev->key() + ev->modifiers();

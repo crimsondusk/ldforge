@@ -16,11 +16,10 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_GLDRAW_H
-#define LDFORGE_GLDRAW_H
-
+#pragma once
 #include <QGLWidget>
 #include "Main.h"
+#include "Macros.h"
 #include "LDObject.h"
 #include "Document.h"
 #include "GLShared.h"
@@ -97,7 +96,7 @@ struct LDGLData
 //
 class GLRenderer : public QGLWidget
 {
-	typedefs:
+	public:
 		enum EFixedCamera
 		{
 			ETopCamera,
@@ -129,13 +128,12 @@ class GLRenderer : public QGLWidget
 			EFixedCamera	cam;
 		};
 
-	properties:
 		Q_OBJECT
-		PROPERTY (public,		bool,					DrawOnly,	BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,		MessageManager*,	MessageLog, NO_OPS,		STOCK_WRITE)
-		PROPERTY (private,	bool,					Picking,		BOOL_OPS,	STOCK_WRITE)
-		PROPERTY (public,		LDDocument*,		File,			NO_OPS,		CUSTOM_WRITE)
-		PROPERTY (public,		EditMode,			EditMode,	NO_OPS,		CUSTOM_WRITE)
+		PROPERTY (public,	bool,				isDrawOnly,	setDrawOnly,	STOCK_WRITE)
+		PROPERTY (public,	MessageManager*,	messageLog, setMessageLog,	STOCK_WRITE)
+		PROPERTY (private,	bool,				isPicking,	setPicking,		STOCK_WRITE)
+		PROPERTY (public,	LDDocument*,		document,	setDocument,	CUSTOM_WRITE)
+		PROPERTY (public,	EditMode,			editMode,	setEditMode,	CUSTOM_WRITE)
 
 	public:
 		GLRenderer (QWidget* parent = null);
@@ -192,7 +190,7 @@ class GLRenderer : public QGLWidget
 	private:
 		CameraIcon					m_cameraIcons[7];
 		QTimer*						m_toolTipTimer;
-		Qt::MouseButtons				m_lastButtons;
+		Qt::MouseButtons			m_lastButtons;
 		Qt::KeyboardModifiers		m_keymods;
 		Vertex						m_hoverpos;
 		double						m_virtWidth,
@@ -266,7 +264,7 @@ class GLRenderer : public QGLWidget
 
 		LDGLData& currentDocumentData() const
 		{
-			return *getFile()->getGLData();
+			return *document()->getGLData();
 		}
 
 		// Get a rotation value
@@ -298,6 +296,12 @@ class GLRenderer : public QGLWidget
 			return currentDocumentData().zoom[camera()];
 		}
 
+		template<typename... Args>
+		inline QString format (QString fmtstr, Args... args)
+		{
+			return ::format (fmtstr, args...);
+		}
+
 	private slots:
 		void           slot_toolTipTimer();
 		void initializeAxes();
@@ -316,5 +320,3 @@ static const GLRenderer::ListType g_glListTypes[] =
 
 extern const GL::EFixedCamera g_Cameras[7];
 extern const char* g_CameraNames[7];
-
-#endif // LDFORGE_GLDRAW_H

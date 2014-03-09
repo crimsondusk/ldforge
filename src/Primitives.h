@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_PRIMITIVES_H
-#define LDFORGE_PRIMITIVES_H
-
+#pragma once
 #include "Main.h"
 #include "Types.h"
 #include <QRegExp>
@@ -29,17 +27,18 @@ class Ui_MakePrimUI;
 class PrimitiveCategory;
 struct Primitive
 {
-	QString name, title;
-	PrimitiveCategory* cat;
+	QString				name,
+						title;
+	PrimitiveCategory*	category;
 };
 
 class PrimitiveCategory : public QObject
 {
 	Q_OBJECT
-	PROPERTY (public,	QString,	Name,	STR_OPS,	STOCK_WRITE)
+	PROPERTY (public, QString, name, setName, STOCK_WRITE)
 
 	public:
-		enum ERegexType
+		enum RegexType
 		{
 			EFilenameRegex,
 			ETitleRegex
@@ -48,7 +47,7 @@ class PrimitiveCategory : public QObject
 		struct RegexEntry
 		{
 			QRegExp		regex;
-			ERegexType	type;
+			RegexType	type;
 		};
 
 		QList<RegexEntry> regexes;
@@ -62,13 +61,12 @@ class PrimitiveCategory : public QObject
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 // PrimitiveScanner
 //
 // Worker object that scans the primitives folder for primitives and
 // builds an index of them.
-// =============================================================================
+//
 class PrimitiveScanner : public QObject
 {
 	Q_OBJECT
@@ -130,5 +128,3 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
 QString radialFileName (PrimitiveType type, int segs, int divs, int num);
-
-#endif // LDFORGE_PRIMITIVES_H
