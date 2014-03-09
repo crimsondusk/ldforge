@@ -64,7 +64,6 @@ static const Matrix g_circleDrawMatrixTemplates[3] =
 cfg (String,	gl_bgcolor,				"#FFFFFF")
 cfg (String,	gl_maincolor,			"#A0A0A0")
 cfg (Float,		gl_maincolor_alpha,		1.0)
-cfg (String,	gl_selectcolor,			"#0080FF")
 cfg (Int,		gl_linethickness,		2)
 cfg (Bool,		gl_colorbfc,			false)
 cfg (Int,		gl_camera,				GLRenderer::EFreeCamera)

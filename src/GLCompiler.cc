@@ -9,6 +9,8 @@
 #include "GLRenderer.h"
 #include "Dialogs.h"
 
+cfg (String,	gl_selectcolor,			"#0080FF")
+
 struct GLErrorInfo
 {
 	GLenum	value;
@@ -165,12 +167,11 @@ QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 
 	if (topobj->isSelected())
 	{
-		// Brighten it up if selected.
-		const int add = 51;
-
-		qcol.setRed (min (qcol.red() + add, 255));
-		qcol.setGreen (min (qcol.green() + add, 255));
-		qcol.setBlue (min (qcol.blue() + add, 255));
+		// Brighten it up for the select list.
+		QColor selcolor (gl_selectcolor);
+		qcol.setRed ((qcol.red() + selcolor.red()) / 2);
+		qcol.setGreen ((qcol.green() + selcolor.green()) / 2);
+		qcol.setBlue ((qcol.blue() + selcolor.blue()) / 2);
 	}
 
 	return qcol;
