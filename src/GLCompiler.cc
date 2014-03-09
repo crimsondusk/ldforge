@@ -257,7 +257,7 @@ void GLCompiler::dropObject (LDObject* obj)
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
-	log ("compile #%1\n", obj->getID() );
+	log ("compile #%1\n", obj->getID());
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
@@ -340,8 +340,6 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 //
 void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInfo* objinfo)
 {
-	CLOCK_INIT
-
 	switch (obj->getType())
 	{
 		// Note: We cannot split quads into triangles here, it would mess up the
@@ -362,6 +360,7 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			auto data = ref->inlinePolygons();
+			log ("inlinePolygons yielded %1 polys\n", data.size());
 
 			for (LDPolygon& poly : data)
 			{

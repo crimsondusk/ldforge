@@ -120,7 +120,7 @@ static GLuint g_GLAxes_ColorVBO;
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 {
 	m_Picking = m_rangepick = false;
-	m_camera = (GL::EFixedCamera) gl_camera;
+	m_camera = (EFixedCamera) gl_camera;
 	m_drawToolTip = false;
 	m_EditMode = ESelectMode;
 	m_rectdraw = false;
@@ -372,7 +372,7 @@ void GLRenderer::drawGLScene()
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glEnable (GL_DEPTH_TEST);
 
-	if (m_camera != EFreeCamera)
+	if (camera() != EFreeCamera)
 	{
 		glMatrixMode (GL_PROJECTION);
 		glPushMatrix();
@@ -381,7 +381,7 @@ void GLRenderer::drawGLScene()
 		glOrtho (-m_virtWidth, m_virtWidth, -m_virtHeight, m_virtHeight, -100.0f, 100.0f);
 		glTranslatef (pan (X), pan (Y), 0.0f);
 
-		if (m_camera != EFrontCamera && m_camera != EBackCamera)
+		if (camera() != EFrontCamera && camera() != EBackCamera)
 		{
 			glRotatef (90.0f, g_FixedCameras[camera()].glrotate[0],
 				g_FixedCameras[camera()].glrotate[1],
@@ -389,7 +389,7 @@ void GLRenderer::drawGLScene()
 		}
 
 		// Back camera needs to be handled differently
-		if (m_camera == GLRenderer::EBackCamera)
+		if (camera() == EBackCamera)
 		{
 			glRotatef (180.0f, 1.0f, 0.0f, 0.0f);
 			glRotatef (180.0f, 0.0f, 0.0f, 1.0f);
@@ -496,7 +496,7 @@ Vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	assert (camera() != EFreeCamera);
 
 	Vertex pos3d;
-	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[camera()];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
 	const int negXFac = cam->negX ? -1 : 1,
@@ -533,7 +533,7 @@ Vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 QPoint GLRenderer::coordconv3_2 (const Vertex& pos3d) const
 {
 	GLfloat m[16];
-	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[camera()];
 	const Axis axisX = cam->axisX;
 	const Axis axisY = cam->axisY;
 	const int negXFac = cam->negX ? -1 : 1,
@@ -579,15 +579,15 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	if (isDrawOnly())
 		return;
 
-	if (m_camera != EFreeCamera && !isPicking())
+	if (camera() != EFreeCamera && !isPicking())
 	{
 		// Paint the overlay image if we have one
-		const LDGLOverlay& overlay = currentDocumentData().overlays[m_camera];
+		const LDGLOverlay& overlay = currentDocumentData().overlays[camera()];
 
 		if (overlay.img != null)
 		{
-			QPoint v0 = coordconv3_2 (currentDocumentData().overlays[m_camera].v0),
-					   v1 = coordconv3_2 (currentDocumentData().overlays[m_camera].v1);
+			QPoint v0 = coordconv3_2 (currentDocumentData().overlays[camera()].v0),
+					   v1 = coordconv3_2 (currentDocumentData().overlays[camera()].v1);
 
 			QRect targRect (v0.x(), v0.y(), abs (v1.x() - v0.x()), abs (v1.y() - v0.y())),
 				  srcRect (0, 0, overlay.img->width(), overlay.img->height());
@@ -1307,7 +1307,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 		case ECircleMode:
 		{
 			// Cannot draw into the free camera - use top instead.
-			if (m_camera == EFreeCamera)
+			if (camera() == EFreeCamera)
 				setCamera (ETopCamera);
 
 			// Disable the context menu - we need the right mouse button
@@ -1578,7 +1578,7 @@ double GLRenderer::getCircleDrawDist (int pos) const
 //
 void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
 {
-	const LDFixedCameraInfo* cam = &g_FixedCameras[m_camera];
+	const LDFixedCameraInfo* cam = &g_FixedCameras[camera()];
 	relX = cam->axisX;
 	relY = cam->axisY;
 }
@@ -1674,7 +1674,7 @@ void GLRenderer::slot_toolTipTimer()
 Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
 {
 	if (camid == (GL::EFixedCamera) - 1)
-		camid = m_camera;
+		camid = camera();
 
 	const LDFixedCameraInfo* cam = &g_FixedCameras[camid];
 	return (y) ? cam->axisY : cam->axisX;
