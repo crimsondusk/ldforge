@@ -72,10 +72,10 @@ void checkGLError_private (const char* file, int line)
 
 // =============================================================================
 //
-GLCompiler::GLCompiler() :
-	m_document (null)
+GLCompiler::GLCompiler()
 {
 	needMerge();
+	memset (mVBOSizes, 0, sizeof mVBOSizes);
 }
 
 // =============================================================================
@@ -196,12 +196,12 @@ void GLCompiler::stageForCompilation (LDObject* obj)
 
 // =============================================================================
 //
-void GLCompiler::compileDocument()
+void GLCompiler::compileDocument (LDDocument* doc)
 {
-	if (document() == null)
+	if (doc == null)
 		return;
 
-	for (LDObject* obj : document()->objects())
+	for (LDObject* obj : doc->objects())
 		compileObject (obj);
 }
 
@@ -225,19 +225,20 @@ void GLCompiler::prepareVBO (int vbonum)
 	if (mChanged[vbonum] == false)
 		return;
 
-	mVBOData[vbonum].clear();
+	QVector<GLfloat> vbodata;
 
 	for (auto it = mObjectInfo.begin(); it != mObjectInfo.end(); ++it)
-		mVBOData[vbonum] += it->data[vbonum];
+	{
+		if (it.key()->document() == getCurrentDocument())
+			vbodata += it->data[vbonum];
+	}
 
 	glBindBuffer (GL_ARRAY_BUFFER, mVBOs[vbonum]);
-	checkGLError();
-	glBufferData (GL_ARRAY_BUFFER, mVBOData[vbonum].size() * sizeof(float),
-		mVBOData[vbonum].constData(), GL_DYNAMIC_DRAW);
-	checkGLError();
+	glBufferData (GL_ARRAY_BUFFER, vbodata.size() * sizeof(GLfloat), vbodata.constData(), GL_DYNAMIC_DRAW);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	checkGLError();
 	mChanged[vbonum] = false;
+	mVBOSizes[vbonum] = vbodata.size();
 }
 
 // =============================================================================
@@ -360,7 +361,6 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 		{
 			LDSubfile* ref = static_cast<LDSubfile*> (obj);
 			auto data = ref->inlinePolygons();
-			print ("inlinePolygons on %2 yielded %1 polys\n", data.size(), ref->fileInfo()->getDisplayName());
 
 			for (LDPolygon& poly : data)
 			{

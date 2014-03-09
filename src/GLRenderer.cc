@@ -25,6 +25,7 @@
 #include <QContextMenuEvent>
 #include <QInputDialog>
 #include <QToolTip>
+#include <qtextdocument.h>
 #include <QTimer>
 #include "Main.h"
 #include "Configuration.h"
@@ -131,7 +132,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	setMessageLog (null);
 	m_width = m_height = -1;
 	m_hoverpos = g_origin;
-
+	m_compiler = new GLCompiler;
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
 	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
@@ -249,17 +250,12 @@ void GLRenderer::resetAllAngles()
 void GLRenderer::initializeGL()
 {
 	setBackground();
-
 	glLineWidth (gl_linethickness);
 	glLineStipple (1, 0x6666);
-
 	setAutoFillBackground (false);
 	setMouseTracking (true);
 	setFocusPolicy (Qt::WheelFocus);
-
-	m_compiler->initialize();
-	m_compiler->compileDocument();
-
+	compiler()->initialize();
 	initializeAxes();
 }
 
@@ -334,13 +330,12 @@ void GLRenderer::refresh()
 }
 
 // =============================================================================
-// -----------------------------------------------------------------------------
+//
 void GLRenderer::hardRefresh()
 {
-	m_compiler->compileDocument();
+	compiler()->compileDocument (getCurrentDocument());
 	refresh();
-
-	glLineWidth (gl_linethickness);
+	glLineWidth (gl_linethickness); // TODO: ...?
 }
 
 // =============================================================================
@@ -578,6 +573,18 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	// If we wish to only draw the brick, stop here
 	if (isDrawOnly())
 		return;
+
+#ifndef RELEASE
+	if (isPicking() == false)
+	{
+		QString text = format ("Rotation: (%1, %2, %3)\nPanning: (%4, %5), Zoom: %6",
+			rot(X), rot(Y), rot(Z), pan(X), pan(Y), zoom());
+		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
+
+		paint.drawText ((width() - textSize.width()) / 2, height() - textSize.height(), textSize.width(),
+			textSize.height(), Qt::AlignCenter, text);
+	}
+#endif
 
 	if (camera() != EFreeCamera && !isPicking())
 	{
@@ -876,13 +883,6 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 	paint.setPen (pen);
 	paint.setBrush (QColor (64, 192, 0));
 	paint.drawEllipse (pos.x() - blipsize / 2, pos.y() - blipsize / 2, blipsize, blipsize);
-}
-
-// =============================================================================
-//
-void GLRenderer::compileAllObjects()
-{
-	m_compiler->compileDocument();
 }
 
 // =============================================================================
@@ -1338,7 +1338,6 @@ void GLRenderer::setEditMode (EditMode const& a)
 void GLRenderer::setDocument (LDDocument* const& a)
 {
 	m_document = a;
-	m_compiler->setDocument (a);
 
 	if (a != null)
 	{
@@ -1613,7 +1612,7 @@ static QList<Vertex> getVertices (LDObject* obj)
 //
 void GLRenderer::compileObject (LDObject* obj)
 {
-	m_compiler->stageForCompilation (obj);
+	compiler()->stageForCompilation (obj);
 
 	// Mark in known vertices of this object
 	/*
@@ -1629,7 +1628,7 @@ void GLRenderer::compileObject (LDObject* obj)
 //
 void GLRenderer::forgetObject (LDObject* obj)
 {
-	m_compiler->dropObject (obj);
+	compiler()->dropObject (obj);
 }
 
 // =============================================================================

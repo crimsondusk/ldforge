@@ -121,10 +121,10 @@ class GLRenderer : public QGLWidget
 		// and Qt doesn't like that.
 		struct CameraIcon
 		{
-			QPixmap*			img;
-			QRect				srcRect,
-								destRect,
-								selRect;
+			QPixmap*		img;
+			QRect			srcRect,
+							destRect,
+							selRect;
 			EFixedCamera	cam;
 		};
 
@@ -134,6 +134,7 @@ class GLRenderer : public QGLWidget
 		PROPERTY (private,	bool,				isPicking,	setPicking,		STOCK_WRITE)
 		PROPERTY (public,	LDDocument*,		document,	setDocument,	CUSTOM_WRITE)
 		PROPERTY (public,	EditMode,			editMode,	setEditMode,	CUSTOM_WRITE)
+		PROPERTY (private,	GLCompiler*,		compiler,	setCompiler,	STOCK_WRITE)
 
 	public:
 		GLRenderer (QWidget* parent = null);
@@ -146,7 +147,6 @@ class GLRenderer : public QGLWidget
 
 		void           clearOverlay();
 		void           compileObject (LDObject* obj);
-		void           compileAllObjects();
 		void           drawGLScene();
 		void           endDraw (bool accept);
 		void           forgetObject (LDObject* obj);
@@ -217,7 +217,6 @@ class GLRenderer : public QGLWidget
 		Vertex						m_rectverts[4];
 		QColor						m_bgcolor;
 		QList<Vertex>				m_knownVerts;
-		GLCompiler*					m_compiler;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
 		LDOverlay*     findOverlayObject (EFixedCamera cam);

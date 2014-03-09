@@ -384,15 +384,15 @@ void doMoveObjects (Vertex vect)
 	vect[X] *= *currentGrid().confs[Grid::X];
 	vect[Y] *= *currentGrid().confs[Grid::Y];
 	vect[Z] *= *currentGrid().confs[Grid::Z];
-
 	QTime t0 = QTime::currentTime();
+
 	for (LDObject* obj : selection())
 	{
 		obj->move (vect);
 		g_win->R()->compileObject (obj);
 	}
-	fprint (stderr, "Move: %1ms\n", t0.msecsTo (QTime::currentTime()));
 
+	dprint ("Move: %1ms\n", t0.msecsTo (QTime::currentTime()));
 	g_win->refresh();
 }
 

@@ -28,8 +28,6 @@
 //
 class GLCompiler
 {
-	PROPERTY (public,	LDDocumentPointer,	document,	setDocument,	STOCK_WRITE)
-
 	public:
 		struct ObjectVBOInfo
 		{
@@ -38,7 +36,7 @@ class GLCompiler
 
 		GLCompiler();
 		~GLCompiler();
-		void				compileDocument();
+		void				compileDocument (LDDocument* doc);
 		void				dropObject (LDObject* obj);
 		void				initialize();
 		QColor				getPolygonColor (LDPolygon& poly, LDObject* topobj) const;
@@ -61,7 +59,7 @@ class GLCompiler
 
 		inline int			getVBOCount (int vbonum) const
 		{
-			return mVBOData[vbonum].size() / 3;
+			return mVBOSizes[vbonum] / 3;
 		}
 
 	private:
@@ -72,10 +70,10 @@ class GLCompiler
 		void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
 		QMap<LDObject*, ObjectVBOInfo>		mObjectInfo;
-		QVector<GLfloat>					mVBOData[gNumVBOs];
+		LDObjectList						mStaged; // Objects that need to be compiled
 		GLuint								mVBOs[gNumVBOs];
 		bool								mChanged[gNumVBOs];
-		LDObjectList						mStaged; // Objects that need to be compiled
+		int									mVBOSizes[gNumVBOs];
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

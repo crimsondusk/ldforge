@@ -30,6 +30,7 @@
 #include "Dialogs.h"
 #include "GLRenderer.h"
 #include "misc/InvokationDeferer.h"
+#include "GLCompiler.h"
 
 cfg (String, io_ldpath, "");
 cfg (List, io_recentfiles, {});
@@ -1298,6 +1299,7 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->updateTitle();
 		g_win->R()->setDocument (f);
 		g_win->R()->repaint();
+		g_win->R()->compiler()->needMerge();
 		print ("Changed file to %1", f->getDisplayName());
 	}
 }

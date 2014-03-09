@@ -27,6 +27,7 @@ class History;
 class OpenProgressDialog;
 class LDDocumentPointer;
 struct LDGLData;
+class GLCompiler;
 
 namespace LDPaths
 {
