@@ -191,6 +191,8 @@ class MainWindow : public QMainWindow
 		//! Gets the shortcut configuration for the given \c action
 		KeySequenceConfig* shortcutForAction (QAction* action);
 
+		void endAction();
+
 	public slots:
 		void changeCurrentFile();
 		void slot_action();
@@ -303,8 +305,6 @@ class MainWindow : public QMainWindow
 		QTabBar*			m_tabs;
 		bool				m_updatingTabs;
 
-		void endAction();
-
 	private slots:
 		void slot_selectionChanged();
 		void slot_recentFile();
@@ -325,15 +325,15 @@ QList<LDQuickColor> quickColorsFromConfig();
 //! Asks the user a yes/no question with the given \c message and the given
 //! window \c title.
 //! \returns true if the user answered yes, false if no.
-bool confirm (QString title, QString message); // Generic confirm prompt
+bool confirm (const QString& title, const QString& message); // Generic confirm prompt
 
 //! An overload of \c confirm(), this asks the user a yes/no question with the
 //! given \c message.
 //! \returns true if the user answered yes, false if no.
-bool confirm (QString message);
+bool confirm (const QString& message);
 
 //! Displays an error prompt with the given \c message
-void critical (QString message);
+void critical (const QString& message);
 
 //! Makes an icon of \c size x \c size pixels to represent \c colinfo
 QIcon makeColorIcon (LDColor* colinfo, const int size);
@@ -351,9 +351,9 @@ QImage imageFromScreencap (uchar* data, int w, int h);
 //! \returns by the user.
 //!
 template<class T>
-T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
+T radioSwitch (const T& defval, QList<Pair<QRadioButton*, T>> haystack)
 {
-	for (pair<QRadioButton*, const T&> i : haystack)
+	for (Pair<QRadioButton*, const T&> i : haystack)
 		if (i.first->isChecked())
 			return i.second;
 
@@ -365,9 +365,9 @@ T radioSwitch (const T& defval, QList<pair<QRadioButton*, T>> haystack)
 //! found radio button whose respsective value matches \c expr have the given value.
 //!
 template<class T>
-void radioDefault (const T& expr, QList<pair<QRadioButton*, T>> haystack)
+void radioDefault (const T& expr, QList<Pair<QRadioButton*, T>> haystack)
 {
-	for (pair<QRadioButton*, const T&> i : haystack)
+	for (Pair<QRadioButton*, const T&> i : haystack)
 	{
 		if (i.second == expr)
 		{

@@ -62,7 +62,7 @@ class Matrix
 
 		//! Constructs a matrix with the given values.
 		//! \note \c vals is expected to have exactly 9 elements.
-		Matrix (const QList<double>& vals);
+		Matrix (const std::initializer_list<double>& vals);
 
 		//! Constructs a matrix all 9 elements initialized to the same value.
 		//! \param fillval the value to initialize the matrix coordinates as
@@ -150,7 +150,8 @@ class Vertex
 {
 	public:
 		//! Constructs a zero vertex
-		Vertex() : m_coords({0, 0, 0}) {}
+		Vertex() :
+			m_coords{0, 0, 0} {}
 
 		//! Constructs a vertex with the given \c x, \c y and \c z.
 		Vertex (double x, double y, double z);

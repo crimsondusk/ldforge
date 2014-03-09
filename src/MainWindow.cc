@@ -64,8 +64,8 @@ extern_cfg (Bool,		gl_drawangles);
 
 // =============================================================================
 //
-
-MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags)
+MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
+	QMainWindow (parent, flags)
 {
 	g_win = this;
 	ui = new Ui_LDForgeUI;
@@ -811,25 +811,30 @@ QPixmap getIcon (QString iconName)
 }
 
 // =============================================================================
-bool confirm (QString msg)
+//
+bool confirm (const QString& message)
 {
 	return confirm (MainWindow::tr ("Confirm"), message);
 }
 
-bool confirm (QString title, QString msg)
+// =============================================================================
+//
+bool confirm (const QString& title, const QString& message)
 {
-	return QMessageBox::question (g_win, title, messag,
+	return QMessageBox::question (g_win, title, message,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
 }
 
 // =============================================================================
-void critical (QString msg)
+//
+void critical (const QString& message)
 {
 	QMessageBox::critical (g_win, MainWindow::tr ("Error"), message,
 		(QMessageBox::Close), QMessageBox::Close);
 }
 
 // =============================================================================
+//
 QIcon makeColorIcon (LDColor* colinfo, const int size)
 {
 	// Create an image object and link a painter to it.
@@ -856,6 +861,7 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 }
 
 // =============================================================================
+//
 void makeColorComboBox (QComboBox* box)
 {
 	std::map<int, int> counts;
@@ -888,6 +894,8 @@ void makeColorComboBox (QComboBox* box)
 	}
 }
 
+// =============================================================================
+//
 void MainWindow::updateDocumentList()
 {
 	m_updatingTabs = true;
@@ -910,6 +918,8 @@ void MainWindow::updateDocumentList()
 	m_updatingTabs = false;
 }
 
+// =============================================================================
+//
 void MainWindow::updateDocumentListItem (LDDocument* doc)
 {
 	bool oldUpdatingTabs = m_updatingTabs;
@@ -936,8 +946,10 @@ void MainWindow::updateDocumentListItem (LDDocument* doc)
 }
 
 // =============================================================================
+//
 // A file is selected from the list of files on the left of the screen. Find out
 // which file was picked and change to it.
+//
 void MainWindow::changeCurrentFile()
 {
 	if (m_updatingTabs)
@@ -964,6 +976,8 @@ void MainWindow::changeCurrentFile()
 	LDDocument::setCurrent (f);
 }
 
+// =============================================================================
+//
 void MainWindow::refreshObjectList()
 {
 #if 0
@@ -978,6 +992,8 @@ for (LDObject* obj : *f)
 	buildObjList();
 }
 
+// =============================================================================
+//
 void MainWindow::updateActions()
 {
 	History* his = getCurrentDocument()->history();
@@ -989,6 +1005,8 @@ void MainWindow::updateActions()
 	ui->actionDrawAngles->setChecked (gl_drawangles);
 }
 
+// =============================================================================
+//
 QImage imageFromScreencap (uchar* data, int w, int h)
 {
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
@@ -1001,11 +1019,15 @@ LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
 	m_color (color),
 	m_toolButton (toolButton) {}
 
+// =============================================================================
+//
 LDQuickColor LDQuickColor::getSeparator()
 {
 	return LDQuickColor (null, null);
 }
 
+// =============================================================================
+//
 bool LDQuickColor::isSeparator() const
 {
 	return color() == null;

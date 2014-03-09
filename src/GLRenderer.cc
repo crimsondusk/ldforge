@@ -1594,7 +1594,7 @@ void GLRenderer::endDraw (bool accept)
 				transform = getCircleDrawMatrix ((dist0 != 0) ? dist0 : dist1);
 				circleOrDisc = true;
 			}
-			elif (g_RingFinder (dist0, dist1))
+			elif (g_RingFinder.findRings (dist0, dist1))
 			{
 				// The ring finder found a solution, use that. Add the component rings to the file.
 				for (const RingFinder::Component& cmp : g_RingFinder.bestSolution()->getComponents())
