@@ -31,7 +31,7 @@ class GLCompiler
 	public:
 		struct ObjectVBOInfo
 		{
-			QVector<GLfloat> data[gNumVBOs];
+			QVector<GLfloat> data[g_numVBOs];
 		};
 
 		GLCompiler();
@@ -59,7 +59,7 @@ class GLCompiler
 
 		inline int			getVBOCount (int vbonum) const
 		{
-			return mVBOSizes[vbonum] / 3;
+			return m_VBOSizes[vbonum] / 3;
 		}
 
 	private:
@@ -71,9 +71,9 @@ class GLCompiler
 
 		QMap<LDObject*, ObjectVBOInfo>		mObjectInfo;
 		LDObjectList						mStaged; // Objects that need to be compiled
-		GLuint								mVBOs[gNumVBOs];
-		bool								mChanged[gNumVBOs];
-		int									mVBOSizes[gNumVBOs];
+		GLuint								mVBOs[g_numVBOs];
+		bool								m_vboChanged[g_numVBOs];
+		int									m_VBOSizes[g_numVBOs];
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

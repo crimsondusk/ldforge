@@ -65,6 +65,6 @@ void glDeleteBuffers (GLuint, GLuint*);
 void glBufferData (GLuint, GLuint, void*, GLuint);
 #endif
 
-static const int gNumVBOs = vboNumSurfaces * vboNumComplements;
+static const int g_numVBOs = vboNumSurfaces * vboNumComplements;
 
 #endif // LDFORGE_GLSHARED_H

@@ -46,9 +46,9 @@ static const GLErrorInfo g_GLErrors[] =
 #define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
 
 extern_cfg (Bool, gl_blackedges);
-static QList<short>		gWarnedColors;
-static const QColor		gBFCFrontColor (40, 192, 40);
-static const QColor		gBFCBackColor (224, 40, 40);
+static QList<short>		g_warnedColors;
+static const QColor		g_BFCFrontColor (40, 192, 40);
+static const QColor		g_BFCBackColor (224, 40, 40);
 
 // =============================================================================
 //
@@ -77,14 +77,14 @@ void checkGLError_private (const char* file, int line)
 GLCompiler::GLCompiler()
 {
 	needMerge();
-	memset (mVBOSizes, 0, sizeof mVBOSizes);
+	memset (m_VBOSizes, 0, sizeof m_VBOSizes);
 }
 
 // =============================================================================
 //
 void GLCompiler::initialize()
 {
-	glGenBuffers (gNumVBOs, &mVBOs[0]);
+	glGenBuffers (g_numVBOs, &mVBOs[0]);
 	checkGLError();
 }
 
@@ -92,7 +92,7 @@ void GLCompiler::initialize()
 //
 GLCompiler::~GLCompiler()
 {
-	glDeleteBuffers (gNumVBOs, &mVBOs[0]);
+	glDeleteBuffers (g_numVBOs, &mVBOs[0]);
 	checkGLError();
 }
 
@@ -150,18 +150,18 @@ QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 	{
 		// The color was unknown. Use main color to make the poly.object at least
 		// not appear pitch-black.
-		if (poly.color != edgecolor)
+		if (poly.num != 2 && poly.num != 5)
 			qcol = GLRenderer::getMainColor();
 		else
 			qcol = Qt::black;
 
 		// Warn about the unknown color, but only once.
-		for (short i : gWarnedColors)
-			if (poly.color == i)
-				return qcol;
+		if (g_warnedColors.contains (poly.color) == false)
+		{
+			print ("Unknown color %1!\n", poly.color);
+			g_warnedColors << poly.color;
+		}
 
-		print ("%1: Unknown color %2!\n", __func__, poly.color);
-		gWarnedColors << poly.color;
 		return qcol;
 	}
 
@@ -181,10 +181,8 @@ QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
 //
 void GLCompiler::needMerge()
 {
-	// Set all of mChanged to true
-	// memset (mChanged, 0xFF, sizeof mChanged);
-	for (int i = 0; i < ((int) (sizeof mChanged / sizeof *mChanged)); ++i)
-		mChanged[i] = true;
+	for (int i = 0; i < countof (m_vboChanged); ++i)
+		m_vboChanged[i] = true;
 }
 
 // =============================================================================
@@ -223,7 +221,7 @@ void GLCompiler::prepareVBO (int vbonum)
 	// Compile anything that still awaits it
 	compileStaged();
 
-	if (mChanged[vbonum] == false)
+	if (m_vboChanged[vbonum] == false)
 		return;
 
 	QVector<GLfloat> vbodata;
@@ -238,8 +236,8 @@ void GLCompiler::prepareVBO (int vbonum)
 	glBufferData (GL_ARRAY_BUFFER, vbodata.size() * sizeof(GLfloat), vbodata.constData(), GL_DYNAMIC_DRAW);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	checkGLError();
-	mChanged[vbonum] = false;
-	mVBOSizes[vbonum] = vbodata.size();
+	m_vboChanged[vbonum] = false;
+	m_VBOSizes[vbonum] = vbodata.size();
 }
 
 // =============================================================================
@@ -321,13 +319,13 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 
 				case vboBFCFrontColors:
 				{
-					writeColor (vbodata, gBFCFrontColor);
+					writeColor (vbodata, g_BFCFrontColor);
 					break;
 				}
 
 				case vboBFCBackColors:
 				{
-					writeColor (vbodata, gBFCBackColor);
+					writeColor (vbodata, g_BFCBackColor);
 					break;
 				}
 

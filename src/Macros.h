@@ -22,6 +22,8 @@
 # define __attribute__(X)
 #endif
 
+#define countof(A) ((int) (sizeof A / sizeof *A))
+
 // =============================================================================
 //
 #define PROPERTY(ACCESS, TYPE, READ, WRITE, WRITETYPE)			\
