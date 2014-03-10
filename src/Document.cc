@@ -1143,6 +1143,7 @@ void LDDocument::setObject (int idx, LDObject* obj)
 	m_objects[idx]->unselect();
 	m_objects[idx]->setDocument (null);
 	obj->setDocument (this);
+	g_win->R()->compileObject (obj);
 	m_objects[idx] = obj;
 }
 

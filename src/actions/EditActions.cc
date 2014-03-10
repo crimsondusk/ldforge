@@ -94,7 +94,6 @@ DEFINE_ACTION (Paste, CTRL (V))
 		LDObject* pasted = parseLine (line);
 		getCurrentDocument()->insertObj (idx++, pasted);
 		pasted->select();
-		R()->compileObject (pasted);
 		++num;
 	}
 
@@ -136,7 +135,6 @@ static void doInline (bool deep)
 			LDObject* newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
-			g_win->R()->compileObject (newobj);
 		}
 
 		// Delete the subfile now as it's been inlined.
@@ -180,13 +178,7 @@ DEFINE_ACTION (SplitQuads, 0)
 		// after the first one.
 		getCurrentDocument()->setObject (index, triangles[0]);
 		getCurrentDocument()->insertObj (index + 1, triangles[1]);
-
-		for (LDTriangle* t : triangles)
-			R()->compileObject (t);
-
-		// Delete this quad now, it has been split.
 		obj->destroy();
-
 		num++;
 	}
 
@@ -216,17 +208,12 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 		ui.errorIcon->hide();
 	}
 
-	if (!dlg->exec())
+	if (dlg->exec() == QDialog::Rejected)
 		return;
 
-	LDObject* oldobj = obj;
-
 	// Reinterpret it from the text of the input field
-	obj = parseLine (ui.code->text());
-	oldobj->replace (obj);
-
-	// Refresh
-	R()->compileObject (obj);
+	LDObject* newobj = parseLine (ui.code->text());
+	obj->replace (newobj);
 	refresh();
 }
 
@@ -255,7 +242,6 @@ DEFINE_ACTION (SetColor, KEY (C))
 				continue;
 
 			obj->setColor (colnum);
-			R()->compileObject (obj);
 		}
 
 		refresh();
@@ -304,7 +290,6 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 
 			lines[i]->setColor (edgecolor);
 			getCurrentDocument()->insertObj (idx, lines[i]);
-			R()->compileObject (lines[i]);
 		}
 
 		num += numLines;
@@ -332,9 +317,7 @@ DEFINE_ACTION (CornerVerts, 0)
 			LDVertex* vert = new LDVertex;
 			vert->pos = obj->vertex (i);
 			vert->setColor (obj->color());
-
 			getCurrentDocument()->insertObj (++ln, vert);
-			R()->compileObject (vert);
 			++num;
 		}
 	}
@@ -384,15 +367,10 @@ void doMoveObjects (Vertex vect)
 	vect[X] *= *currentGrid().confs[Grid::X];
 	vect[Y] *= *currentGrid().confs[Grid::Y];
 	vect[Z] *= *currentGrid().confs[Grid::Z];
-	QTime t0 = QTime::currentTime();
 
 	for (LDObject* obj : selection())
-	{
 		obj->move (vect);
-		g_win->R()->compileObject (obj);
-	}
 
-	dprint ("Move: %1ms\n", t0.msecsTo (QTime::currentTime()));
 	g_win->refresh();
 }
 
@@ -435,10 +413,7 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 	LDObjectList sel = selection();
 
 	for (LDObject* obj : sel)
-	{
 		obj->invert();
-		R()->compileObject (obj);
-	}
 
 	refresh();
 }
@@ -510,8 +485,6 @@ static void doRotate (const int l, const int m, const int n)
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
 		}
-
-		g_win->R()->compileObject (obj);
 	}
 
 	g_win->refresh();
@@ -587,7 +560,6 @@ DEFINE_ACTION (RoundCoordinates, 0)
 					roundToDecimals (v[ax], 3);
 
 				obj->setVertex (i, v);
-				R()->compileObject (obj);
 				num += 3;
 			}
 		}
@@ -615,7 +587,6 @@ DEFINE_ACTION (Uncolorize, 0)
 			col = edgecolor;
 
 		obj->setColor (col);
-		R()->compileObject (obj);
 		num++;
 	}
 
@@ -667,7 +638,6 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 			}
 
 			obj->setVertex (i, v);
-			R()->compileObject (obj);
 		}
 	}
 
@@ -702,7 +672,6 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 				v[ax] *= -1;
 
 			obj->setVertex (i, v);
-			R()->compileObject (obj);
 		}
 	}
 
@@ -721,8 +690,7 @@ DEFINE_ACTION (Demote, 0)
 		if (obj->type() != LDObject::ECondLine)
 			continue;
 
-		LDLine* repl = static_cast<LDCondLine*> (obj)->demote();
-		R()->compileObject (repl);
+		static_cast<LDCondLine*> (obj)->demote();
 		++num;
 	}
 
@@ -762,7 +730,6 @@ DEFINE_ACTION (Autocolor, 0)
 			continue;
 
 		obj->setColor (colnum);
-		R()->compileObject (obj);
 	}
 
 	print (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);

@@ -35,6 +35,7 @@
 #include "../Primitives.h"
 #include "../Widgets.h"
 #include "../Colors.h"
+#include "../GLCompiler.h"
 #include "ui_newpart.h"
 
 extern_cfg (Bool,		gl_wireframe);
@@ -471,7 +472,6 @@ DEFINE_ACTION (InsertRaw, 0)
 
 		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
-		R()->compileObject (obj);
 		idx++;
 	}
 
@@ -847,9 +847,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 			obj->destroy();
 
 		// Compile all objects in the new subfile
-		for (LDObject* obj : doc->objects())
-			R()->compileObject (obj);
-
+		R()->compiler()->compileDocument (doc);
 		g_loadedFiles << doc;
 
 		// Add a reference to the new subfile to where the selection was

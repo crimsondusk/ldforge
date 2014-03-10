@@ -686,6 +686,7 @@ QString LDOverlay::asText() const
 void LDOverlay::invert() {}
 
 // =============================================================================
+//
 // Hook the set accessors of certain properties to this changeProperty function.
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
@@ -697,14 +698,17 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 	if (*ptr == val)
 		return;
 
-	if (obj->document() && (idx = obj->lineNumber()) != -1)
+	if (obj->document() != null && (idx = obj->lineNumber()) != -1)
 	{
 		QString before = obj->asText();
 		*ptr = val;
 		QString after = obj->asText();
 
 		if (before != after)
+		{
 			obj->document()->addToHistory (new EditHistory (idx, before, after));
+			g_win->R()->compileObject (obj);
+		}
 	}
 	else
 		*ptr = val;
