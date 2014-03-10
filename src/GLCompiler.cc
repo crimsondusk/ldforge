@@ -190,7 +190,6 @@ void GLCompiler::needMerge()
 void GLCompiler::stageForCompilation (LDObject* obj)
 {
 	mStaged << obj;
-	removeDuplicates (mStaged);
 }
 
 // =============================================================================
@@ -208,6 +207,8 @@ void GLCompiler::compileDocument (LDDocument* doc)
 //
 void GLCompiler::compileStaged()
 {
+	removeDuplicates (mStaged);
+
 	for (LDObject* obj : mStaged)
 		compileObject (obj);
 
