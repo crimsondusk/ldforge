@@ -79,12 +79,22 @@ struct LDGLData
 
 	LDGLData()
 	{
-		for (int i = 0; i < 6; ++i)
+		for (int i = 0; i < 7; ++i)
 		{
-			overlays[i].img = null;
-			depthValues[i] = 0.0f;
+			if (i < 6)
+			{
+				overlays[i].img = null;
+				depthValues[i] = 0.0f;
+			}
+
+			zoom[i] = 30.0;
+			panX[i] = 0.0;
+			panY[i] = 0.0;
 		}
 
+		rotX = 0;
+		rotY = 0;
+		rotZ = 0;
 		init = false;
 	}
 };

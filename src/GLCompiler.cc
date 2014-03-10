@@ -257,12 +257,13 @@ void GLCompiler::dropObject (LDObject* obj)
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
-	print ("compiling #%1\n", obj->id());
+	print ("compiling #%1 (%2, %3)\n", obj->id(), obj->typeName(), obj->origin());
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
 	mObjectInfo[obj] = info;
 	needMerge();
+	print ("#%1 compiled.\n", obj->id());
 }
 
 // =============================================================================

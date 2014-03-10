@@ -1787,9 +1787,12 @@ void GLRenderer::zoomNotch (bool inward)
 //
 void GLRenderer::zoomToFit()
 {
+	print ("zooming %1 to fit..\n", camera());
+	zoom() = 30.0f;
+
 	if (document() == null || m_width == -1 || m_height == -1)
 	{
-		zoom() = 30.0f;
+		print ("document is invalid!\n");
 		return;
 	}
 
@@ -1831,21 +1834,22 @@ void GLRenderer::zoomToFit()
 			if (imgdata[i] != white || imgdata[((h - 1) * w) + i] != white)
 			{
 				filled = true;
-				goto endOfLoop;
+				break;
 			}
 		}
 
 		// Left and right edges
-		for (int i = 0; i < h; ++i)
+		if (filled == false)
 		{
-			if (imgdata[i * w] != white || imgdata[(i * w) + w - 1] != white)
+			for (int i = 0; i < h; ++i)
 			{
-				filled = true;
-				goto endOfLoop;
+				if (imgdata[i * w] != white || imgdata[(i * w) + w - 1] != white)
+				{
+					filled = true;
+					break;
+				}
 			}
 		}
-
-endOfLoop:
 
 		delete[] cap;
 
@@ -1880,6 +1884,7 @@ endOfLoop:
 
 	setBackground();
 	setPicking (false);
+	print ("zoom to fit done.\n");
 }
 
 // =============================================================================
