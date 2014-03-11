@@ -1,3 +1,21 @@
+/*
+ *  LDForge: LDraw parts authoring CAD
+ *  Copyright (C) 2013, 2014 Santeri Piippo
+ *
+ *  This program is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #define GL_GLEXT_PROTOTYPES
 #include <GL/glu.h>
 #include <GL/glext.h>
@@ -276,10 +294,10 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 
 	switch (poly.num)
 	{
-		case 3:	surface = vboTriangles;	numverts = 3; break;
-		case 4:	surface = vboQuads;		numverts = 4; break;
-		case 2:	surface = vboLines;		numverts = 2; break;
-		case 5:	surface = vboCondLines;	numverts = 2; break;
+		case 3:	surface = VBOSF_Triangles;	numverts = 3; break;
+		case 4:	surface = VBOSF_Quads;		numverts = 4; break;
+		case 2:	surface = VBOSF_Lines;		numverts = 2; break;
+		case 5:	surface = VBOSF_CondLines;	numverts = 2; break;
 
 		default:
 			print ("OMGWTFBBQ weird polygon with number %1 (topobj: #%2, %3), origin: %4",
@@ -298,7 +316,7 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 		{
 			switch ((EVBOComplement) complement)
 			{
-				case vboSurfaces:
+				case VBOCM_Surfaces:
 				{
 					// Write coordinates. Apparently Z must be flipped too?
 					vbodata	<< poly.vertices[vert].x()
@@ -307,25 +325,25 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 					break;
 				}
 
-				case vboNormalColors:
+				case VBOCM_NormalColors:
 				{
 					writeColor (vbodata, normalColor);
 					break;
 				}
 
-				case vboPickColors:
+				case VBOCM_PickColors:
 				{
 					writeColor (vbodata, pickColor);
 					break;
 				}
 
-				case vboBFCFrontColors:
+				case VBOCM_BFCFrontColors:
 				{
 					writeColor (vbodata, g_BFCFrontColor);
 					break;
 				}
 
-				case vboBFCBackColors:
+				case VBOCM_BFCBackColors:
 				{
 					writeColor (vbodata, g_BFCBackColor);
 					break;

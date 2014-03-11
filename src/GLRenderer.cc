@@ -407,10 +407,10 @@ void GLRenderer::drawGLScene()
 
 	if (isPicking())
 	{
-		drawVBOs (vboTriangles, vboPickColors, GL_TRIANGLES);
-		drawVBOs (vboQuads, vboPickColors, GL_QUADS);
-		drawVBOs (vboLines, vboPickColors, GL_LINES);
-		drawVBOs (vboCondLines, vboPickColors, GL_LINES);
+		drawVBOs (VBOSF_Triangles, VBOCM_PickColors, GL_TRIANGLES);
+		drawVBOs (VBOSF_Quads, VBOCM_PickColors, GL_QUADS);
+		drawVBOs (VBOSF_Lines, VBOCM_PickColors, GL_LINES);
+		drawVBOs (VBOSF_CondLines, VBOCM_PickColors, GL_LINES);
 	}
 	else
 	{
@@ -418,21 +418,21 @@ void GLRenderer::drawGLScene()
 		{
 			glEnable (GL_CULL_FACE);
 			glCullFace (GL_BACK);
-			drawVBOs (vboTriangles, vboBFCFrontColors, GL_TRIANGLES);
-			drawVBOs (vboQuads, vboBFCFrontColors, GL_QUADS);
+			drawVBOs (VBOSF_Triangles, VBOCM_BFCFrontColors, GL_TRIANGLES);
+			drawVBOs (VBOSF_Quads, VBOCM_BFCFrontColors, GL_QUADS);
 			glCullFace (GL_FRONT);
-			drawVBOs (vboTriangles, vboBFCBackColors, GL_TRIANGLES);
-			drawVBOs (vboQuads, vboBFCBackColors, GL_QUADS);
+			drawVBOs (VBOSF_Triangles, VBOCM_BFCBackColors, GL_TRIANGLES);
+			drawVBOs (VBOSF_Quads, VBOCM_BFCBackColors, GL_QUADS);
 			glDisable (GL_CULL_FACE);
 		}
 		else
 		{
-			drawVBOs (vboTriangles, vboNormalColors, GL_TRIANGLES);
-			drawVBOs (vboQuads, vboNormalColors, GL_QUADS);
+			drawVBOs (VBOSF_Triangles, VBOCM_NormalColors, GL_TRIANGLES);
+			drawVBOs (VBOSF_Quads, VBOCM_NormalColors, GL_QUADS);
 		}
 
-		drawVBOs (vboLines, vboNormalColors, GL_LINES);
-		drawVBOs (vboCondLines, vboNormalColors, GL_LINES);
+		drawVBOs (VBOSF_Lines, VBOCM_NormalColors, GL_LINES);
+		drawVBOs (VBOSF_CondLines, VBOCM_NormalColors, GL_LINES);
 
 		if (gl_axes)
 		{
@@ -459,7 +459,7 @@ void GLRenderer::drawGLScene()
 //
 void GLRenderer::drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum type)
 {
-	int surfacenum = m_compiler->vboNumber (surface, vboSurfaces);
+	int surfacenum = m_compiler->vboNumber (surface, VBOCM_Surfaces);
 	int colornum = m_compiler->vboNumber (surface, colors);
 
 	m_compiler->prepareVBO (surfacenum);

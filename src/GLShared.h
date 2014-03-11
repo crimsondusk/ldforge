@@ -38,21 +38,21 @@ struct LDPolygon
 
 enum EVBOSurface
 {
-	vboLines,
-	vboTriangles,
-	vboQuads,
-	vboCondLines,
-	vboNumSurfaces
+	VBOSF_Lines,
+	VBOSF_Triangles,
+	VBOSF_Quads,
+	VBOSF_CondLines,
+	VBOSF_NumSurfaces
 };
 
 enum EVBOComplement
 {
-	vboSurfaces,
-	vboNormalColors,
-	vboPickColors,
-	vboBFCFrontColors,
-	vboBFCBackColors,
-	vboNumComplements
+	VBOCM_Surfaces,
+	VBOCM_NormalColors,
+	VBOCM_PickColors,
+	VBOCM_BFCFrontColors,
+	VBOCM_BFCBackColors,
+	VBOCM_NumComplements
 };
 
 // KDevelop doesn't seem to understand some VBO stuff
@@ -65,6 +65,6 @@ void glDeleteBuffers (GLuint, GLuint*);
 void glBufferData (GLuint, GLuint, void*, GLuint);
 #endif
 
-static const int g_numVBOs = vboNumSurfaces * vboNumComplements;
+static const int g_numVBOs = VBOSF_NumSurfaces * VBOCM_NumComplements;
 
 #endif // LDFORGE_GLSHARED_H
