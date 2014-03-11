@@ -305,7 +305,7 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 			assert (false);
 	}
 
-	for (int complement = 0; complement < vboNumComplements; ++complement)
+	for (int complement = 0; complement < VBOCM_NumComplements; ++complement)
 	{
 		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
@@ -349,7 +349,7 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 					break;
 				}
 
-				case vboNumComplements:
+				case VBOCM_NumComplements:
 					break;
 			}
 		}

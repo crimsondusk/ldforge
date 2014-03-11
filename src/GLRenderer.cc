@@ -1688,6 +1688,7 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, QString file, int x, int y, int
 	if (img->isNull())
 	{
 		critical (tr ("Failed to load overlay image!"));
+		currentDocumentData().overlays[cam].invalid = true;
 		delete img;
 		return false;
 	}
@@ -1700,6 +1701,7 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, QString file, int x, int y, int
 	info.ox = x;
 	info.oy = y;
 	info.img = img;
+	info.invalid = false;
 
 	if (info.lw == 0)
 		info.lw = (info.lh * img->width()) / img->height();
@@ -1992,7 +1994,7 @@ void GLRenderer::initOverlaysFromObjects()
 			delete meta.img;
 			meta.img = null;
 		}
-		elif (ovlobj && (!meta.img || meta.fname != ovlobj->fileName()))
+		elif (ovlobj && (meta.img == null || meta.fname != ovlobj->fileName()) && meta.invalid == false)
 			setupOverlay (cam, ovlobj->fileName(), ovlobj->x(),
 				ovlobj->y(), ovlobj->width(), ovlobj->height());
 	}
@@ -2010,7 +2012,7 @@ void GLRenderer::updateOverlayObjects()
 		LDGLOverlay& meta = currentDocumentData().overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
-		if (!meta.img && ovlobj)
+		if (meta.img == null && ovlobj != null)
 		{
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
@@ -2021,7 +2023,8 @@ void GLRenderer::updateOverlayObjects()
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
 			ovlobj->destroy();
-		} elif (meta.img && !ovlobj)
+		}
+		elif (meta.img != null && ovlobj == null)
 		{
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.

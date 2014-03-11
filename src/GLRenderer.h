@@ -51,6 +51,7 @@ struct LDGLOverlay
 					lh;
 	QString			fname;
 	QImage*			img;
+	bool			invalid;
 };
 
 struct LDFixedCameraInfo
@@ -84,6 +85,7 @@ struct LDGLData
 			if (i < 6)
 			{
 				overlays[i].img = null;
+				overlays[i].invalid = false;
 				depthValues[i] = 0.0f;
 			}
 

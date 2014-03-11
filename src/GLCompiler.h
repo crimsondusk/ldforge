@@ -49,7 +49,7 @@ class GLCompiler
 
 		static inline int	vboNumber (EVBOSurface surface, EVBOComplement complement)
 		{
-			return (surface * vboNumComplements) + complement;
+			return (surface * VBOCM_NumComplements) + complement;
 		}
 
 		inline GLuint		vbo (int vbonum) const
