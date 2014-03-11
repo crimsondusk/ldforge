@@ -46,6 +46,7 @@ static const GLErrorInfo g_GLErrors[] =
 #define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
 
 extern_cfg (Bool, gl_blackedges);
+extern_cfg (String, gl_bgcolor);
 static QList<short>		g_warnedColors;
 static const QColor		g_BFCFrontColor (40, 192, 40);
 static const QColor		g_BFCBackColor (224, 40, 40);
@@ -127,23 +128,22 @@ QColor GLCompiler::polygonColor (LDPolygon& poly, LDObject* topobj) const
 	QColor qcol;
 
 	if (poly.color == maincolor)
-		qcol = GLRenderer::getMainColor();
+	{
+		if (topobj->color() == maincolor)
+			qcol = GLRenderer::getMainColor();
+		else
+			qcol = getColor (topobj->color())->faceColor;
+	}
+	elif (poly.color == edgecolor)
+	{
+		qcol = luma (QColor (gl_bgcolor)) > 40 ? Qt::black : Qt::white;
+	}
 	else
 	{
 		LDColor* col = getColor (poly.color);
 
 		if (col)
 			qcol = col->faceColor;
-	}
-
-	if (poly.color == edgecolor)
-	{
-		qcol = QColor (32, 32, 32); // luma (m_bgcolor) < 40 ? QColor (64, 64, 64) : Qt::black;
-
-		/*
-		if (!gl_blackedges && poly.obj->getParent() && (col = getColor (poly.obj->getParent()->getColor())))
-			qcol = col->edgeColor;
-		*/
 	}
 
 	if (qcol.isValid() == false)

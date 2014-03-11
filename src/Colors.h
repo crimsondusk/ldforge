@@ -31,7 +31,7 @@ class LDColor
 };
 
 void initColors();
-int luma (QColor& col);
+int luma (const QColor& col);
 
 // Safely gets a color with the given number or null if no such color.
 LDColor* getColor (int colnum);
