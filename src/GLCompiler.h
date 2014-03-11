@@ -39,27 +39,27 @@ class GLCompiler
 		void				compileDocument (LDDocument* doc);
 		void				dropObject (LDObject* obj);
 		void				initialize();
-		QColor				getPolygonColor (LDPolygon& poly, LDObject* topobj) const;
-		QColor				getIndexColor (int id) const;
+		QColor				polygonColor (LDPolygon& poly, LDObject* topobj) const;
+		QColor				indexColorForID (int id) const;
 		void				needMerge();
 		void				prepareVBO (int vbonum);
 		void				stageForCompilation (LDObject* obj);
 
-		static uint32		getColorRGB (const QColor& color);
+		static uint32		colorToRGB (const QColor& color);
 
-		static inline int	getVBONumber (EVBOSurface surface, EVBOComplement complement)
+		static inline int	vboNumber (EVBOSurface surface, EVBOComplement complement)
 		{
 			return (surface * vboNumComplements) + complement;
 		}
 
-		inline GLuint		getVBO (int vbonum) const
+		inline GLuint		vbo (int vbonum) const
 		{
-			return mVBOs[vbonum];
+			return m_vbo[vbonum];
 		}
 
-		inline int			getVBOCount (int vbonum) const
+		inline int			vboCount (int vbonum) const
 		{
-			return m_VBOSizes[vbonum] / 3;
+			return m_vboSizes[vbonum] / 3;
 		}
 
 	private:
@@ -69,11 +69,11 @@ class GLCompiler
 		void			writeColor (QVector<float>& array, const QColor& color);
 		void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
-		QMap<LDObject*, ObjectVBOInfo>		mObjectInfo;
-		LDObjectList						mStaged; // Objects that need to be compiled
-		GLuint								mVBOs[g_numVBOs];
+		QMap<LDObject*, ObjectVBOInfo>		m_objectInfo;
+		LDObjectList						m_staged; // Objects that need to be compiled
+		GLuint								m_vbo[g_numVBOs];
 		bool								m_vboChanged[g_numVBOs];
-		int									m_VBOSizes[g_numVBOs];
+		int									m_vboSizes[g_numVBOs];
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

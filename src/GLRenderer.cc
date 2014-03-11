@@ -459,14 +459,14 @@ void GLRenderer::drawGLScene()
 //
 void GLRenderer::drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum type)
 {
-	int surfacenum = m_compiler->getVBONumber (surface, vboSurfaces);
-	int colornum = m_compiler->getVBONumber (surface, colors);
+	int surfacenum = m_compiler->vboNumber (surface, vboSurfaces);
+	int colornum = m_compiler->vboNumber (surface, colors);
 
 	m_compiler->prepareVBO (surfacenum);
 	m_compiler->prepareVBO (colornum);
-	GLuint surfacevbo = m_compiler->getVBO (surfacenum);
-	GLuint colorvbo = m_compiler->getVBO (colornum);
-	GLsizei count = m_compiler->getVBOCount (surfacevbo);
+	GLuint surfacevbo = m_compiler->vbo (surfacenum);
+	GLuint colorvbo = m_compiler->vbo (colornum);
+	GLsizei count = m_compiler->vboCount (surfacevbo);
 
 	if (count > 0)
 	{

@@ -77,14 +77,14 @@ void checkGLError_private (const char* file, int line)
 GLCompiler::GLCompiler()
 {
 	needMerge();
-	memset (m_VBOSizes, 0, sizeof m_VBOSizes);
+	memset (m_vboSizes, 0, sizeof m_vboSizes);
 }
 
 // =============================================================================
 //
 void GLCompiler::initialize()
 {
-	glGenBuffers (g_numVBOs, &mVBOs[0]);
+	glGenBuffers (g_numVBOs, &m_vbo[0]);
 	checkGLError();
 }
 
@@ -92,13 +92,13 @@ void GLCompiler::initialize()
 //
 GLCompiler::~GLCompiler()
 {
-	glDeleteBuffers (g_numVBOs, &mVBOs[0]);
+	glDeleteBuffers (g_numVBOs, &m_vbo[0]);
 	checkGLError();
 }
 
 // =============================================================================
 //
-uint32 GLCompiler::getColorRGB (const QColor& color)
+uint32 GLCompiler::colorToRGB (const QColor& color)
 {
 	return
 		(color.red()   & 0xFF) << 0x00 |
@@ -109,7 +109,7 @@ uint32 GLCompiler::getColorRGB (const QColor& color)
 
 // =============================================================================
 //
-QColor GLCompiler::getIndexColor (int id) const
+QColor GLCompiler::indexColorForID (int id) const
 {
 	// Calculate a color based from this index. This method caters for
 	// 16777216 objects. I don't think that will be exceeded anytime soon. :)
@@ -122,7 +122,7 @@ QColor GLCompiler::getIndexColor (int id) const
 
 // =============================================================================
 //
-QColor GLCompiler::getPolygonColor (LDPolygon& poly, LDObject* topobj) const
+QColor GLCompiler::polygonColor (LDPolygon& poly, LDObject* topobj) const
 {
 	QColor qcol;
 
@@ -189,7 +189,7 @@ void GLCompiler::needMerge()
 //
 void GLCompiler::stageForCompilation (LDObject* obj)
 {
-	mStaged << obj;
+	m_staged << obj;
 }
 
 // =============================================================================
@@ -207,12 +207,12 @@ void GLCompiler::compileDocument (LDDocument* doc)
 //
 void GLCompiler::compileStaged()
 {
-	removeDuplicates (mStaged);
+	removeDuplicates (m_staged);
 
-	for (LDObject* obj : mStaged)
+	for (LDObject* obj : m_staged)
 		compileObject (obj);
 
-	mStaged.clear();
+	m_staged.clear();
 }
 
 // =============================================================================
@@ -227,29 +227,29 @@ void GLCompiler::prepareVBO (int vbonum)
 
 	QVector<GLfloat> vbodata;
 
-	for (auto it = mObjectInfo.begin(); it != mObjectInfo.end(); ++it)
+	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
 		if (it.key()->document() == getCurrentDocument())
 			vbodata += it->data[vbonum];
 	}
 
-	glBindBuffer (GL_ARRAY_BUFFER, mVBOs[vbonum]);
+	glBindBuffer (GL_ARRAY_BUFFER, m_vbo[vbonum]);
 	glBufferData (GL_ARRAY_BUFFER, vbodata.size() * sizeof(GLfloat), vbodata.constData(), GL_DYNAMIC_DRAW);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	checkGLError();
 	m_vboChanged[vbonum] = false;
-	m_VBOSizes[vbonum] = vbodata.size();
+	m_vboSizes[vbonum] = vbodata.size();
 }
 
 // =============================================================================
 //
 void GLCompiler::dropObject (LDObject* obj)
 {
-	auto it = mObjectInfo.find (obj);
+	auto it = m_objectInfo.find (obj);
 
-	if (it != mObjectInfo.end())
+	if (it != m_objectInfo.end())
 	{
-		mObjectInfo.erase (it);
+		m_objectInfo.erase (it);
 		needMerge();
 	}
 }
@@ -262,7 +262,7 @@ void GLCompiler::compileObject (LDObject* obj)
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
-	mObjectInfo[obj] = info;
+	m_objectInfo[obj] = info;
 	needMerge();
 	print ("#%1 compiled.\n", obj->id());
 }
@@ -289,10 +289,10 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 
 	for (int complement = 0; complement < vboNumComplements; ++complement)
 	{
-		const int vbonum			= getVBONumber (surface, (EVBOComplement) complement);
+		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
-		const QColor normalColor	= getPolygonColor (poly, topobj);
-		const QColor pickColor		= getIndexColor (topobj->id());
+		const QColor normalColor	= polygonColor (poly, topobj);
+		const QColor pickColor		= indexColorForID (topobj->id());
 
 		for (int vert = 0; vert < numverts; ++vert)
 		{
