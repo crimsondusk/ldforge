@@ -12,67 +12,67 @@ find_package (OpenGL REQUIRED)
 get_target_property (UPDATEREVISION_EXE updaterevision LOCATION)
 
 add_custom_target (revision_check ALL
-    COMMAND ${UPDATEREVISION_EXE} src/Git.h
+    COMMAND ${UPDATEREVISION_EXE} src/gitinfo.h
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
     DEPENDS updaterevision)
 
 include_directories (${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
 
 set (LDForgeSources
-	src/AddObjectDialog.cc
-	src/Colors.cc
-	src/ColorSelector.cc
-	src/Configuration.cc
-	src/ConfigurationDialog.cc
-	src/CrashCatcher.cc
-	src/Dialogs.cc
-	src/Documentation.cc
-	src/Document.cc
-	src/EditHistory.cc
-	src/ExternalPrograms.cc
-	src/GLRenderer.cc
-	src/LDConfig.cc
-	src/LDObject.cc
-	src/Main.cc
-	src/MainWindow.cc
-	src/MessageLog.cc
-	src/Misc.cc
-	src/PartDownloader.cc
-	src/Primitives.cc
-	src/Types.cc
-	src/Version.cc
-	src/Widgets.cc
-	src/actions/MainActions.cc
-	src/actions/EditActions.cc
+	src/actions.cc
+	src/actionsEdit.cc
+	src/addObjectDialog.cc
+	src/basics.cc
+	src/colors.cc
+	src/colorSelector.cc
+	src/configuration.cc
+	src/configDialog.cc
+	src/crashCatcher.cc
+	src/dialogs.cc
+	src/documentation.cc
+	src/editHistory.cc
+	src/extPrograms.cc
+	src/glRenderer.cc
+	src/ldConfig.cc
+	src/ldDocument.cc
+	src/ldObject.cc
+	src/main.cc
+	src/mainWindow.cc
+	src/messageLog.cc
+	src/miscallenous.cc
+	src/partDownloader.cc
+	src/primitives.cc
+	src/radioGroup.cc
+	src/version.cc
 )
 
 set (LDForgeHeaders
-	src/Macros.h
-	src/CrashCatcher.h
-	src/Colors.h
-	src/misc/DocumentPointer.h
-	src/misc/InvokationDeferer.h
-	src/misc/RingFinder.h
-	src/Document.h
-	src/AddObjectDialog.h
-	src/LDConfig.h
-	src/PartDownloader.h
-	src/LDObject.h
-	src/Primitives.h
-	src/Misc.h
-	src/MessageLog.h
-	src/Dialogs.h
-	src/Widgets.h
-	src/Documentation.h
-	src/Main.h
-	src/Types.h
-	src/ColorSelector.h
-	src/ConfigurationDialog.h
-	src/GLRenderer.h
-	src/Configuration.h
-	src/MainWindow.h
-	src/EditHistory.h
-	src/Format.h
+	src/macros.h
+	src/crashCatcher.h
+	src/colors.h
+	src/misc/documentPointer.h
+	src/misc/invokeLater.h
+	src/misc/ringFinder.h
+	src/ldDocument.h
+	src/addObjectDialog.h
+	src/ldConfig.h
+	src/partDownloader.h
+	src/ldObject.h
+	src/primitives.h
+	src/miscallenous.h
+	src/messageLog.h
+	src/dialogs.h
+	src/radioGroup.h
+	src/documentation.h
+	src/main.h
+	src/basics.h
+	src/colorSelector.h
+	src/configDialog.h
+	src/glRenderer.h
+	src/configuration.h
+	src/mainWindow.h
+	src/editHistory.h
+	src/format.h
 )
 
 set (LDForgeForms
