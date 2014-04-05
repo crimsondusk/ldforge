@@ -1151,9 +1151,13 @@ void LDDocument::setObject (int idx, LDObject* obj)
 //
 void LDDocument::closeUnused()
 {
-	for (LDDocument* file : g_loadedFiles)
+	for (int i = 0; i < g_loadedFiles.size(); ++i)
+	{
+		LDDocument* file = g_loadedFiles[i];
+
 		if (file->isImplicit() && file->references().isEmpty())
-			delete file;
+			delete g_loadedFiles[i--];
+	}
 }
 
 // =============================================================================
