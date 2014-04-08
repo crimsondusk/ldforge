@@ -12,8 +12,8 @@ find_package (OpenGL REQUIRED)
 get_target_property (UPDATEREVISION_EXE updaterevision LOCATION)
 
 add_custom_target (revision_check ALL
-    COMMAND ${UPDATEREVISION_EXE} src/gitinfo.h
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+    COMMAND ${UPDATEREVISION_EXE} gitinfo.h
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     DEPENDS updaterevision)
 
 include_directories (${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
@@ -131,4 +131,5 @@ target_link_libraries (ldforge
 	${OPENGL_LIBRARIES}
 )
 
+add_dependencies (ldforge revision_check)
 install (TARGETS ldforge RUNTIME DESTINATION bin)
