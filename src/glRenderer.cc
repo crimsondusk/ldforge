@@ -1249,6 +1249,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 
+		dprint ("id: %1\n", idx);
 		LDObject* obj = LDObject::fromID (idx);
 		assert (obj != null);
 

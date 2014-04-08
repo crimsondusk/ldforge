@@ -68,6 +68,7 @@ extern_cfg (String, gl_bgcolor);
 static QList<short>		g_warnedColors;
 static const QColor		g_BFCFrontColor (40, 192, 40);
 static const QColor		g_BFCBackColor (224, 40, 40);
+static QMap<LDObject*, QString> g_objectOrigins;
 
 // =============================================================================
 //
@@ -248,11 +249,14 @@ void GLCompiler::prepareVBO (int vbonum)
 	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
 		if (it.key()->document() == getCurrentDocument())
+		{
+			print ("merge %1\n", it.key()->id());
 			vbodata += it->data[vbonum];
+		}
 	}
 
 	glBindBuffer (GL_ARRAY_BUFFER, m_vbo[vbonum]);
-	glBufferData (GL_ARRAY_BUFFER, vbodata.size() * sizeof(GLfloat), vbodata.constData(), GL_DYNAMIC_DRAW);
+	glBufferData (GL_ARRAY_BUFFER, vbodata.size() * sizeof(GLfloat), vbodata.constData(), GL_STATIC_DRAW);
 	glBindBuffer (GL_ARRAY_BUFFER, 0);
 	checkGLError();
 	m_vboChanged[vbonum] = false;
@@ -276,13 +280,19 @@ void GLCompiler::dropObject (LDObject* obj)
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
-	print ("compiling #%1 (%2, %3)\n", obj->id(), obj->typeName(), obj->origin());
+	if (obj->document()->isImplicit())
+		return;
+
+	g_objectOrigins[obj] = obj->document()->getDisplayName() + ":" + QString::number (obj->lineNumber());
+
+	if (obj->id() == 563)
+		print ("compile %1\n", g_objectOrigins[obj]);
+
 	ObjectVBOInfo info;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
 	m_objectInfo[obj] = info;
 	needMerge();
-	print ("#%1 compiled.\n", obj->id());
 }
 
 // =============================================================================

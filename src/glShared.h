@@ -57,12 +57,15 @@ enum EVBOComplement
 
 // KDevelop doesn't seem to understand some VBO stuff
 #ifdef IN_IDE_PARSER
+using GLint = int;
+using GLsizei = int;
 using GLenum = unsigned int;
 using GLuint = unsigned int;
 void glBindBuffer (GLenum, GLuint);
 void glGenBuffers (GLuint, GLuint*);
 void glDeleteBuffers (GLuint, GLuint*);
 void glBufferData (GLuint, GLuint, void*, GLuint);
+void glBufferSubData (GLenum, GLint, GLsizei, void*);
 #endif
 
 static const int g_numVBOs = VBOSF_NumSurfaces * VBOCM_NumComplements;
