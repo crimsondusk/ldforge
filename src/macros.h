@@ -17,12 +17,25 @@
  */
 
 #pragma once
+#include <type_traits>
 
 #ifndef __GNUC__
 # define __attribute__(X)
 #endif
 
-#define countof(A) ((int) (sizeof A / sizeof *A))
+// =============================================================================
+//
+#define countof(A) (safeCountOf<std::is_array<decltype(A)>::value, (sizeof A / sizeof *A)>())
+
+template<bool isArray, size_t elems>
+inline constexpr int safeCountOf() __attribute__ ((always_inline));
+
+template<bool isArray, size_t elems>
+inline constexpr int safeCountOf()
+{
+	static_assert (isArray, "parameter to countof must be an array");
+	return elems;
+}
 
 // =============================================================================
 //
