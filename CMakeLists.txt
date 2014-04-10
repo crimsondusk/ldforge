@@ -104,6 +104,15 @@ set (LDForgeForms
 set (LDForgeResources ldforge.qrc)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -W -Wall")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lGLU")
+
+# With clang, we need to set -Wno-deprecated since Qt headers seem to use the
+# register keyword which clang doesn't seem to like. It also appears that Qt
+# doesn't set Q_COMPILER_INITIALIZER_LISTS when compiling with clang? What's
+# up with that?
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -DQ_COMPILER_INITIALIZER_LISTS")
+endif()
+
 include_directories ("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_BINARY_DIR}/src")
 include_directories ("${PROJECT_BINARY_DIR}/src/misc")
