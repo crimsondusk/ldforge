@@ -94,7 +94,7 @@ static void handleCrash (int sig)
 		"%2"
 		"<p><b>GDB <tt>stdout</tt>:</b></p><pre>%3</pre>\n"
 		"<p><b>GDB <tt>stderr</tt>:</b></p><pre>%4</pre>",
-		sig, (!g_assertionFailure.isEmpty()) ? g_assertionFailure : "", output, err));
+		sig, (not g_assertionFailure.isEmpty()) ? g_assertionFailure : "", output, err));
 }
 
 // =============================================================================

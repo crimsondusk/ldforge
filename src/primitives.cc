@@ -59,14 +59,14 @@ void loadPrimitives()
 	// Try to load prims.cfg
 	QFile conf (Config::filepath ("prims.cfg"));
 
-	if (conf.open (QIODevice::ReadOnly) == false)
+	if (not conf.open (QIODevice::ReadOnly))
 	{
 		// No prims.cfg, build it
 		PrimitiveScanner::start();
 	}
 	else
 	{
-		while (conf.atEnd() == false)
+		while (not conf.atEnd())
 		{
 			QString line = conf.readLine();
 
@@ -137,7 +137,7 @@ void PrimitiveScanner::work()
 		QString fname = m_files[m_i];
 		QFile f (fname);
 
-		if (!f.open (QIODevice::ReadOnly))
+		if (not f.open (QIODevice::ReadOnly))
 			continue;
 
 		Primitive info;
@@ -166,7 +166,7 @@ void PrimitiveScanner::work()
 		QString path = Config::filepath ("prims.cfg");
 		QFile conf (path);
 
-		if (!conf.open (QIODevice::WriteOnly | QIODevice::Text))
+		if (not conf.open (QIODevice::WriteOnly | QIODevice::Text))
 			critical (format ("Couldn't write primitive list %1: %2",
 				path, conf.errorString()));
 		else
@@ -274,12 +274,12 @@ void PrimitiveCategory::loadCategories()
 	g_PrimitiveCategories.clear();
 	QString path = Config::dirpath() + "primregexps.cfg";
 
-	if (!QFile::exists (path))
+	if (not QFile::exists (path))
 		path = ":/data/primitive-categories.cfg";
 
 	QFile f (path);
 
-	if (!f.open (QIODevice::ReadOnly))
+	if (not f.open (QIODevice::ReadOnly))
 	{
 		critical (format (QObject::tr ("Failed to open primitive categories: %1"), f.errorString()));
 		return;
@@ -287,7 +287,7 @@ void PrimitiveCategory::loadCategories()
 
 	PrimitiveCategory* cat = null;
 
-	while (f.atEnd() == false)
+	while (not f.atEnd())
 	{
 		QString line = f.readLine();
 		int colon;
@@ -613,7 +613,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	QString author = APPNAME;
 	QString license = "";
 
-	if (ld_defaultname.isEmpty() == false)
+	if (not ld_defaultname.isEmpty())
 	{
 		license = getLicenseText (ld_defaultlicense);
 		author = format ("%1 [%2]", ld_defaultname, ld_defaultuser);
@@ -683,7 +683,7 @@ DEFINE_ACTION (MakePrimitive, 0)
 {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 
-	if (!dlg->exec())
+	if (not dlg->exec())
 		return;
 
 	int segs = dlg->ui->sb_segs->value();

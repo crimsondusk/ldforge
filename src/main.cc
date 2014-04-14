@@ -54,7 +54,7 @@ int main (int argc, char* argv[])
 	LDDocument::setCurrent (null);
 
 	// Load or create the configuration
-	if (!Config::load())
+	if (not Config::load())
 	{
 		print ("Creating configuration file...\n");
 

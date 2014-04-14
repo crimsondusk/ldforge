@@ -65,7 +65,7 @@ bool Config::load()
 
 	for (Config* cfg : g_configPointers)
 	{
-		if (!cfg)
+		if (not cfg)
 			break;
 
 		QVariant val = settings->value (cfg->name(), cfg->getDefaultAsVariant());
@@ -88,7 +88,7 @@ bool Config::save()
 
 	for (Config* cfg : g_configs)
 	{
-		if (!cfg->isDefault())
+		if (not cfg->isDefault())
 			settings->setValue (cfg->name(), cfg->toVariant());
 		else
 			settings->remove (cfg->name());

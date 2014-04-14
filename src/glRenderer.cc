@@ -257,7 +257,7 @@ QColor GLRenderer::getMainColor()
 {
 	QColor col (gl_maincolor);
 
-	if (!col.isValid())
+	if (not col.isValid())
 		return QColor (0, 0, 0);
 
 	col.setAlpha (gl_maincolor_alpha * 255.f);
@@ -270,7 +270,7 @@ void GLRenderer::setBackground()
 {
 	QColor col (gl_bgcolor);
 
-	if (!col.isValid())
+	if (not col.isValid())
 		return;
 
 	col.setAlpha (255);
@@ -286,7 +286,7 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 {
 	QColor qcol;
 
-	if (!obj->isColored())
+	if (not obj->isColored())
 		return;
 
 	if (list == GL::PickList)
@@ -333,13 +333,13 @@ void GLRenderer::setObjectColor (LDObject* obj, const ListType list)
 		{
 			LDColor* col;
 
-			if (!gl_blackedges && obj->parent() && (col = ::getColor (obj->parent()->color())))
+			if (not gl_blackedges && obj->parent() && (col = ::getColor (obj->parent()->color())))
 				qcol = col->edgeColor;
 			else
-				qcol = (m_darkbg == false) ? Qt::black : Qt::white;
+				qcol = not m_darkbg ? Qt::black : Qt::white;
 		}
 
-		if (qcol.isValid() == false)
+		if (not qcol.isValid())
 		{
 			// The color was unknown. Use main color to make the object at least
 			// not appear pitch-black.
@@ -419,7 +419,7 @@ void GLRenderer::drawGLScene()
 	if (document() == null)
 		return;
 
-	if (gl_wireframe && !isPicking())
+	if (gl_wireframe && not isPicking())
 		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -461,9 +461,9 @@ void GLRenderer::drawGLScene()
 		glRotatef (rot (Z), 0.0f, 0.0f, 1.0f);
 	}
 
-	const GL::ListType list = (!isDrawOnly() && isPicking()) ? PickList : NormalList;
+	const GL::ListType list = (not isDrawOnly() && isPicking()) ? PickList : NormalList;
 
-	if (gl_colorbfc && !isPicking() && !isDrawOnly())
+	if (gl_colorbfc && not isPicking() && not isDrawOnly())
 	{
 		glEnable (GL_CULL_FACE);
 
@@ -492,7 +492,7 @@ void GLRenderer::drawGLScene()
 		}
 	}
 
-	if (gl_axes && !isPicking() && !isDrawOnly())
+	if (gl_axes && not isPicking() && not isDrawOnly())
 		glCallList (m_axeslist);
 
 	glPopMatrix();
@@ -628,7 +628,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 			int numverts = 4;
 
 			// Calculate polygon data
-			if (!m_rectdraw)
+			if (not m_rectdraw)
 			{
 				numverts = m_drawedVerts.size() + 1;
 				int i = 0;
@@ -804,7 +804,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	}
 
 	// Camera icons
-	if (!isPicking())
+	if (not isPicking())
 	{
 		// Draw a background for the selected camera
 		paint.setPen (m_thinBorderPen);
@@ -836,7 +836,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		// Tool tips
 		if (m_drawToolTip)
 		{
-			if (m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos) == false)
+			if (not m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos))
 				m_drawToolTip = false;
 			else
 			{
@@ -863,7 +863,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 	}
 
 	// If we're range-picking, draw a rectangle encompassing the selection area.
-	if (m_rangepick && !isPicking() && m_totalmove >= 10)
+	if (m_rangepick && not isPicking() && m_totalmove >= 10)
 	{
 		int x0 = m_rangeStart.x(),
 			y0 = m_rangeStart.y(),
@@ -896,7 +896,7 @@ void GLRenderer::drawBlip (QPainter& paint, QPoint pos) const
 //
 void GLRenderer::compileAllObjects()
 {
-	if (!document())
+	if (not document())
 		return;
 
 	// Compiling all is a big job, use a busy cursor
@@ -934,12 +934,16 @@ void GLRenderer::compileSubObject (LDObject* obj, const GLenum gltype)
 
 	const int numverts = (obj->type() != LDObject::ECondLine) ? obj->vertices() : 2;
 
-	if (g_glInvert == false)
+	if (not g_glInvert)
+	{
 		for (int i = 0; i < numverts; ++i)
 			compileVertex (obj->vertex (i));
+	}
 	else
+	{
 		for (int i = numverts - 1; i >= 0; --i)
 			compileVertex (obj->vertex (i));
+	}
 
 	glEnd();
 }
@@ -991,12 +995,16 @@ void GLRenderer::compileList (LDObject* obj, const GLRenderer::ListType list)
 			bool oldinvert = g_glInvert;
 
 			if (ref->transform().getDeterminant() < 0)
-				g_glInvert = !g_glInvert;
+				g_glInvert = not g_glInvert;
 
 			LDObject* prev = ref->previous();
 
-			if (prev && prev->type() == LDObject::EBFC && static_cast<LDBFC*> (prev)->statement() == LDBFC::InvertNext)
-				g_glInvert = !g_glInvert;
+			if (prev != null &&
+				prev->type() == LDObject::EBFC &&
+				static_cast<LDBFC*> (prev)->statement() == LDBFC::InvertNext)
+			{
+				g_glInvert = not g_glInvert;
+			}
 
 			for (LDObject* obj : objs)
 			{
@@ -1054,9 +1062,9 @@ void GLRenderer::addDrawnVertex (Vertex pos)
 //
 void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 {
-	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && ! (ev->buttons() & Qt::LeftButton),
-				   wasRight = (m_lastButtons & Qt::RightButton) && ! (ev->buttons() & Qt::RightButton),
-				   wasMid = (m_lastButtons & Qt::MidButton) && ! (ev->buttons() & Qt::MidButton);
+	const bool wasLeft = (m_lastButtons & Qt::LeftButton) && not (ev->buttons() & Qt::LeftButton),
+	   wasRight = (m_lastButtons & Qt::RightButton) && not (ev->buttons() & Qt::RightButton),
+	   wasMid = (m_lastButtons & Qt::MidButton) && not (ev->buttons() & Qt::MidButton);
 
 	if (m_panning)
 		m_panning = false;
@@ -1064,7 +1072,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	if (wasLeft)
 	{
 		// Check if we selected a camera icon
-		if (!m_rangepick)
+		if (not m_rangepick)
 		{
 			for (CameraIcon & info : m_cameraIcons)
 			{
@@ -1119,12 +1127,12 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 
 			case ESelectMode:
 			{
-				if (!isDrawOnly())
+				if (not isDrawOnly())
 				{
 					if (m_totalmove < 10)
 						m_rangepick = false;
 
-					if (!m_rangepick)
+					if (not m_rangepick)
 						m_addpick = (m_keymods & Qt::ControlModifier);
 
 					if (m_totalmove < 10 || m_rangepick)
@@ -1173,7 +1181,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			addDrawnVertex (closest);
 	}
 
-	if (wasRight && !m_drawedVerts.isEmpty())
+	if (wasRight && not m_drawedVerts.isEmpty())
 	{
 		// Remove the last vertex
 		m_drawedVerts.removeLast();
@@ -1223,7 +1231,8 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 		pan (X) += 0.03f * dx * (zoom() / 7.5f);
 		pan (Y) -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
-	} elif (left && !m_rangepick && camera() == EFreeCamera)
+	}
+	elif (left && not m_rangepick && camera() == EFreeCamera)
 	{
 		rot (X) = rot (X) + dy;
 		rot (Y) = rot (Y) + dx;
@@ -1233,7 +1242,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 	}
 
 	// Start the tool tip timer
-	if (!m_drawToolTip)
+	if (not m_drawToolTip)
 		m_toolTipTimer->start (500);
 
 	// Update 2d position
@@ -1312,7 +1321,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	glLineWidth (max<double> (gl_linethickness, 6.5f));
 
 	// Clear the selection if we do not wish to add to it.
-	if (!m_addpick)
+	if (not m_addpick)
 	{
 		LDObjectList oldsel = selection();
 		getCurrentDocument()->clearSelection();
@@ -1387,7 +1396,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 		// If this is an additive single pick and the object is currently selected,
 		// we remove it from selection instead.
-		if (!m_rangepick && m_addpick)
+		if (not m_rangepick && m_addpick)
 		{
 			if (obj->isSelected())
 			{
@@ -1477,7 +1486,7 @@ void GLRenderer::setDocument (LDDocument* const& a)
 	{
 		initOverlaysFromObjects();
 
-		if (currentDocumentData().init == false)
+		if (not currentDocumentData().init)
 		{
 			resetAllAngles();
 			currentDocumentData().init = true;
@@ -1811,7 +1820,7 @@ for (CameraIcon & icon : m_cameraIcons)
 void GLRenderer::deleteLists (LDObject* obj)
 {
 	// Delete the lists but only if they have been initialized
-	if (!obj->isGLInit())
+	if (not obj->isGLInit())
 		return;
 
 	for (const GL::ListType listType : g_glListTypes)
@@ -2007,14 +2016,14 @@ endOfLoop:
 			// If this is the first run, we don't know enough to determine
 			// whether the zoom was to fit, so we mark in our knowledge so
 			// far and start over.
-			inward = !filled;
+			inward = not filled;
 			firstrun = false;
 		}
 		else
 		{
 			// If this run filled the screen and the last one did not, the
 			// last run had ideal zoom - zoom a bit back and we should reach it.
-			if (filled && !lastfilled)
+			if (filled && not lastfilled)
 			{
 				zoomNotch (false);
 				break;
@@ -2022,10 +2031,10 @@ endOfLoop:
 
 			// If this run did not fill the screen and the last one did, we've
 			// now reached ideal zoom so we're done here.
-			if (!filled && lastfilled)
+			if (not filled && lastfilled)
 				break;
 
-			inward = !filled;
+			inward = not filled;
 		}
 
 		lastfilled = filled;
@@ -2054,7 +2063,7 @@ void GLRenderer::zoomAllToFit()
 //
 void GLRenderer::updateRectVerts()
 {
-	if (!m_rectdraw)
+	if (not m_rectdraw)
 		return;
 
 	if (m_drawedVerts.isEmpty())
@@ -2089,7 +2098,7 @@ void GLRenderer::updateRectVerts()
 //
 void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 {
-	if (!(ev->buttons() & Qt::LeftButton) || editMode() != ESelectMode)
+	if (not (ev->buttons() & Qt::LeftButton) || editMode() != ESelectMode)
 		return;
 
 	pick (ev->x(), ev->y());
@@ -2135,7 +2144,7 @@ void GLRenderer::initOverlaysFromObjects()
 		LDGLOverlay& meta = currentDocumentData().overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
-		if (!ovlobj && meta.img)
+		if (not ovlobj && meta.img)
 		{
 			delete meta.img;
 			meta.img = null;
@@ -2158,7 +2167,7 @@ void GLRenderer::updateOverlayObjects()
 		LDGLOverlay& meta = currentDocumentData().overlays[cam];
 		LDOverlay* ovlobj = findOverlayObject (cam);
 
-		if (!meta.img && ovlobj)
+		if (meta.img == null && ovlobj != null)
 		{
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObject* nextobj = ovlobj->next();
@@ -2169,7 +2178,8 @@ void GLRenderer::updateOverlayObjects()
 			// If the overlay object was there and the overlay itself is
 			// not, remove the object.
 			ovlobj->destroy();
-		} elif (meta.img && !ovlobj)
+		}
+		elif (meta.img != null && ovlobj == null)
 		{
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
@@ -2209,7 +2219,7 @@ void GLRenderer::updateOverlayObjects()
 			}
 		}
 
-		if (meta.img && ovlobj)
+		if (meta.img != null && ovlobj != null)
 		{
 			ovlobj->setCamera (cam);
 			ovlobj->setFileName (meta.fname);

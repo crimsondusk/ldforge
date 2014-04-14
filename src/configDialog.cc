@@ -444,11 +444,11 @@ void ConfigDialog::slot_setColor()
 	QListWidgetItem* item = null;
 	const bool isNew = static_cast<QPushButton*> (sender()) == ui->quickColor_add;
 
-	if (isNew == false)
+	if (not isNew)
 	{
 		item = getSelectedQuickColor();
 
-		if (!item)
+		if (not item)
 			return;
 
 		int i = getItemRow (item, quickColorItems);
@@ -461,7 +461,7 @@ void ConfigDialog::slot_setColor()
 	int defval = entry ? entry->color()->index : -1;
 	int val;
 
-	if (ColorSelector::selectColor (val, defval, this) == false)
+	if (not ColorSelector::selectColor (val, defval, this))
 		return;
 
 	if (entry)
@@ -774,7 +774,7 @@ bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
 {
 	KeySequenceDialog dlg (cfg->getValue(), parent);
 
-	if (dlg.exec() == false)
+	if (dlg.exec() == QDialog::Rejected)
 		return false;
 
 	cfg->setValue (dlg.seq);

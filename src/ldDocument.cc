@@ -59,11 +59,11 @@ namespace LDPaths
 
 	void initPaths()
 	{
-		if (!tryConfigure (io_ldpath))
+		if (not tryConfigure (io_ldpath))
 		{
 			LDrawPathDialog dlg (false);
 
-			if (!dlg.exec())
+			if (not dlg.exec())
 				exit (0);
 
 			io_ldpath = dlg.filename();
@@ -74,7 +74,7 @@ namespace LDPaths
 	{
 		QDir dir;
 
-		if (!dir.cd (path))
+		if (not dir.cd (path))
 		{
 			pathError = "Directory does not exist.";
 			return false;
@@ -161,7 +161,7 @@ LDDocument::~LDDocument()
 		// we need to create a new file to switch to.
 		for (LDDocument* file : g_loadedFiles)
 		{
-			if (!file->isImplicit())
+			if (not file->isImplicit())
 			{
 				LDDocument::setCurrent (file);
 				found = true;
@@ -169,7 +169,7 @@ LDDocument::~LDDocument()
 			}
 		}
 
-		if (!found)
+		if (not found)
 			newFile();
 	}
 
@@ -187,7 +187,7 @@ LDDocument::~LDDocument()
 LDDocument* findDocument (QString name)
 {
 	for (LDDocument * file : g_loadedFiles)
-		if (!file->name().isEmpty() && file->name() == name)
+		if (not file->name().isEmpty() && file->name() == name)
 			return file;
 
 	return null;
@@ -263,7 +263,7 @@ static QString findLDrawFilePath (QString relpath, bool subdirs)
 				}
 			}
 
-			if (!bogus)
+			if (not bogus)
 				return partpath;
 		}
 	}
@@ -405,7 +405,7 @@ void LDFileLoader::work (int i)
 	}
 
 	// Otherwise, continue, by recursing back.
-	if (!isDone())
+	if (not isDone())
 	{
 		// If we have a dialog to show progress output to, we cannot just call
 		// work() again immediately as the dialog needs some processor cycles as
@@ -445,7 +445,7 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 		*numWarnings = 0;
 
 	// Read in the lines
-	while (fp->atEnd() == false)
+	while (not fp->atEnd())
 		lines << QString::fromUtf8 (fp->readLine());
 
 	LDFileLoader* loader = new LDFileLoader;
@@ -458,12 +458,12 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 	// its next iteration through the event loop. We need to catch this here
 	// by telling the event loop to tick, which will tick the file loader again.
 	// We keep doing this until the file loader is ready.
-	while (loader->isDone() == false)
+	while (not loader->isDone())
 		qApp->processEvents();
 
 	// If we wanted the success value, supply that now
 	if (ok)
-		*ok = !loader->isAborted();
+		*ok = not loader->isAborted();
 
 	objs = loader->objects();
 	return objs;
@@ -486,14 +486,14 @@ LDDocument* openDocument (QString path, bool search)
 		fp = new QFile (path);
 		fullpath = path;
 
-		if (!fp->open (QIODevice::ReadOnly))
+		if (not fp->open (QIODevice::ReadOnly))
 		{
 			delete fp;
 			return null;
 		}
 	}
 
-	if (!fp)
+	if (not fp)
 		return null;
 
 	LDDocument* load = new LDDocument;
@@ -511,7 +511,7 @@ LDDocument* openDocument (QString path, bool search)
 	fp->close();
 	fp->deleteLater();
 
-	if (!ok)
+	if (not ok)
 	{
 		g_loadedFiles.removeOne (load);
 		delete load;
@@ -563,7 +563,7 @@ bool LDDocument::isSafeToClose()
 					setName (newpath);
 				}
 
-				if (!save())
+				if (not save())
 				{
 					message = format (tr ("Failed to save %1 (%2)\nDo you still want to close?"),
 						name(), strerror (errno));
@@ -665,7 +665,7 @@ void openMainFile (QString path)
 
 	// We cannot open this file if the document this would replace is not
 	// safe to close.
-	if (documentToReplace != null && documentToReplace->isSafeToClose() == false)
+	if (documentToReplace != null && not documentToReplace->isSafeToClose())
 	{
 		g_loadingMainFile = false;
 		return;
@@ -673,13 +673,13 @@ void openMainFile (QString path)
 
 	LDDocument* file = openDocument (path, false);
 
-	if (!file)
+	if (not file)
 	{
 		// Loading failed, thus drop down to a new file since we
 		// closed everything prior.
 		newFile();
 
-		if (!g_aborted)
+		if (not g_aborted)
 		{
 			// Tell the user loading failed.
 			setlocale (LC_ALL, "C");
@@ -723,19 +723,19 @@ void openMainFile (QString path)
 //
 bool LDDocument::save (QString savepath)
 {
-	if (!savepath.length())
+	if (not savepath.length())
 		savepath = fullPath();
 
 	QFile f (savepath);
 
-	if (!f.open (QIODevice::WriteOnly))
+	if (not f.open (QIODevice::WriteOnly))
 		return false;
 
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open.
 	LDObject* nameObject = getObject (1);
 
-	if (!isImplicit() && nameObject != null && nameObject->type() == LDObject::EComment)
+	if (not isImplicit() && nameObject != null && nameObject->type() == LDObject::EComment)
 	{
 		LDComment* nameComment = static_cast<LDComment*> (nameObject);
 
@@ -804,8 +804,11 @@ void checkTokenNumbers (QString line, const QStringList& tokens, int min, int ma
 	{
 		tokens[i].toDouble (&ok);
 
-		if (!ok && !scient.exactMatch (tokens[i]))
-			throw LDParseError (line, format ("Token #%1 was `%2`, expected a number (matched length: %3)", (i + 1), tokens[i], scient.matchedLength()));
+		if (not ok && not scient.exactMatch (tokens[i]))
+		{
+			throw LDParseError (line, format ("Token #%1 was `%2`, expected a number (matched length: %3)",
+				(i + 1), tokens[i], scient.matchedLength()));
+		}
 	}
 }
 
@@ -838,7 +841,7 @@ LDObject* parseLine (QString line)
 			return new LDEmpty;
 		}
 
-		if (tokens[0].length() != 1 || tokens[0][0].isDigit() == false)
+		if (tokens[0].length() != 1 || not tokens[0][0].isDigit())
 			throw LDParseError (line, "Illogical line code");
 
 		int num = tokens[0][0].digitValue();
@@ -929,7 +932,7 @@ LDObject* parseLine (QString line)
 
 				// If we cannot open the file, mark it an error. Note we cannot use LDParseError
 				// here because the error object needs the document reference.
-				if (!load)
+				if (not load)
 				{
 					LDError* obj = new LDError (line, format ("Could not open %1", tokens[14]));
 					obj->setFileReferenced (tokens[14]);
@@ -1020,7 +1023,7 @@ LDDocument* getDocument (QString filename)
 	LDDocument* doc = findDocument (filename);
 
 	// If it's not loaded, try open it
-	if (!doc)
+	if (not doc)
 		doc = openDocument (filename, true);
 
 	return doc;
@@ -1030,7 +1033,7 @@ LDDocument* getDocument (QString filename)
 //
 void reloadAllSubfiles()
 {
-	if (!getCurrentDocument())
+	if (not getCurrentDocument())
 		return;
 
 	g_loadedFiles.clear();
@@ -1068,7 +1071,7 @@ int LDDocument::addObject (LDObject* obj)
 		m_vertices << obj;
 
 #ifdef DEBUG
-	if (!isImplicit())
+	if (not isImplicit())
 		dprint ("Added object #%1 (%2)\n", obj->id(), obj->typeName());
 #endif
 
@@ -1094,7 +1097,7 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 	obj->setDocument (this);
 
 #ifdef DEBUG
-	if (!isImplicit())
+	if (not isImplicit())
 		dprint ("Inserted object #%1 (%2) at %3\n", obj->id(), obj->typeName(), pos);
 #endif
 }
@@ -1107,7 +1110,7 @@ void LDDocument::forgetObject (LDObject* obj)
 	obj->unselect();
 	assert (m_objects[idx] == obj);
 
-	if (!history()->isIgnoring())
+	if (not history()->isIgnoring())
 		history()->add (new DelHistory (idx, obj));
 
 	m_objects.removeAt (idx);
@@ -1119,7 +1122,7 @@ void LDDocument::forgetObject (LDObject* obj)
 bool safeToCloseAll()
 {
 	for (LDDocument* f : g_loadedFiles)
-		if (!f->isSafeToClose())
+		if (not f->isSafeToClose())
 			return false;
 
 	return true;
@@ -1132,7 +1135,7 @@ void LDDocument::setObject (int idx, LDObject* obj)
 	assert (idx >= 0 && idx < m_objects.size());
 
 	// Mark this change to history
-	if (!m_history->isIgnoring())
+	if (not m_history->isIgnoring())
 	{
 		QString oldcode = getObject (idx)->asText();
 		QString newcode = obj->asText();
@@ -1188,10 +1191,10 @@ bool LDDocument::hasUnsavedChanges() const
 //
 QString LDDocument::getDisplayName()
 {
-	if (!name().isEmpty())
+	if (not name().isEmpty())
 		return name();
 
-	if (!defaultName().isEmpty())
+	if (not defaultName().isEmpty())
 		return "[" + defaultName() + "]";
 
 	return tr ("<anonymous>");
@@ -1227,20 +1230,20 @@ LDObjectList LDDocument::inlineContents (LDSubfile::InlineFlags flags)
 	}
 
 	// If we have this cached, just create a copy of that
-	if (deep && cache().isEmpty() == false)
+	if (deep && not cache().isEmpty())
 	{
 		for (LDObject* obj : cache())
 			objs << obj->createCopy();
 	}
 	else
 	{
-		if (!deep)
+		if (not deep)
 			doCache = false;
 
 		for (LDObject* obj : objects())
 		{
 			// Skip those without scemantic meaning
-			if (!obj->isScemantic())
+			if (not obj->isScemantic())
 				continue;
 
 			// Got another sub-file reference, inline it if we're deep-inlining. If not,
@@ -1320,8 +1323,10 @@ int LDDocument::countExplicitFiles()
 	int count = 0;
 
 	for (LDDocument* f : g_loadedFiles)
-		if (f->isImplicit() == false)
-			count++;
+	{
+		if (not f->isImplicit())
+			++count;
+	}
 
 	return count;
 }
@@ -1332,13 +1337,13 @@ int LDDocument::countExplicitFiles()
 // =============================================================================
 void LDDocument::closeInitialFile()
 {
-	if (
-		countExplicitFiles() == 2 &&
+	if (countExplicitFiles() == 2 &&
 		g_loadedFiles[0]->name().isEmpty() &&
-		g_loadedFiles[1]->name().isEmpty() == false &&
-		!g_loadedFiles[0]->hasUnsavedChanges()
-	)
+		not g_loadedFiles[1]->name().isEmpty() &&
+		not g_loadedFiles[0]->hasUnsavedChanges())
+	{
 		delete g_loadedFiles[0];
+	}
 }
 
 // =============================================================================
@@ -1373,7 +1378,7 @@ void LDDocument::addToSelection (LDObject* obj) // [protected]
 //
 void LDDocument::removeFromSelection (LDObject* obj) // [protected]
 {
-	if (!obj->isSelected())
+	if (not obj->isSelected())
 		return;
 
 	assert (obj->document() == this);

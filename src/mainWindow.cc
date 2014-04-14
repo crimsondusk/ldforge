@@ -108,7 +108,7 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 
 	// Connect all actions
 	for (QAction* act : findChildren<QAction*>())
-		if (!act->objectName().isEmpty())
+		if (not act->objectName().isEmpty())
 			connect (act, SIGNAL (triggered()), this, SLOT (slot_action()));
 }
 
@@ -309,7 +309,7 @@ int MainWindow::deleteSelection()
 //
 void MainWindow::buildObjList()
 {
-	if (!getCurrentDocument())
+	if (not getCurrentDocument())
 		return;
 
 	// Lock the selection while we do this so that refreshing the object list
@@ -523,7 +523,7 @@ void MainWindow::slot_quickColor()
 
 	for (LDObject* obj : selection())
 	{
-		if (obj->isColored() == false)
+		if (not obj->isColored())
 			continue; // uncolored object
 
 		obj->setColor (newColor);
@@ -539,7 +539,7 @@ void MainWindow::slot_quickColor()
 int MainWindow::getInsertionPoint()
 {
 	// If we have a selection, put the item after it.
-	if (!selection().isEmpty())
+	if (not selection().isEmpty())
 		return selection().last()->lineNumber() + 1;
 
 	// Otherwise place the object at the end.
@@ -594,7 +594,7 @@ int MainWindow::getSelectedColor()
 
 	for (LDObject* obj : selection())
 	{
-		if (obj->isColored() == false)
+		if (not obj->isColored())
 			continue; // doesn't use color
 
 		if (result != -1 && obj->color() != result)
@@ -630,7 +630,7 @@ LDObject::Type MainWindow::getUniformSelectedType()
 void MainWindow::closeEvent (QCloseEvent* ev)
 {
 	// Check whether it's safe to close all files.
-	if (!safeToCloseAll())
+	if (not safeToCloseAll())
 	{
 		ev->ignore();
 		return;
@@ -698,7 +698,7 @@ void MainWindow::deleteByColor (int colnum)
 
 	for (LDObject* obj : getCurrentDocument()->objects())
 	{
-		if (!obj->isColored() || obj->color() != colnum)
+		if (not obj->isColored() || obj->color() != colnum)
 			continue;
 
 		objs << obj;
@@ -746,9 +746,9 @@ bool MainWindow::save (LDDocument* doc, bool saveAs)
 	{
 		QString name = doc->defaultName();
 
-		if (!doc->fullPath().isEmpty()) 
+		if (not doc->fullPath().isEmpty()) 
 			name = doc->fullPath();
-		elif (!doc->name().isEmpty())
+		elif (not doc->name().isEmpty())
 			name = doc->name();
 
 		name.replace ("\\", "/");
@@ -868,7 +868,7 @@ void makeColorComboBox (QComboBox* box)
 
 	for (LDObject* obj : getCurrentDocument()->objects())
 	{
-		if (!obj->isColored())
+		if (not obj->isColored())
 			continue;
 
 		if (counts.find (obj->color()) == counts.end())
@@ -906,7 +906,7 @@ void MainWindow::updateDocumentList()
 	for (LDDocument* f : g_loadedFiles)
 	{
 		// Don't list implicit files unless explicitly desired.
-		if (f->isImplicit() && !gui_implicitfiles)
+		if (f->isImplicit() && not gui_implicitfiles)
 			continue;
 
 		// Add an item to the list for this file and store the tab index
