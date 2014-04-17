@@ -238,7 +238,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 	{
 		for (LDObject* obj : objs)
 		{
-			if (obj->isColored() == false)
+			if (not obj->isColored())
 				continue;
 
 			obj->setColor (colnum);
@@ -578,7 +578,7 @@ DEFINE_ACTION (Uncolorize, 0)
 
 	for (LDObject* obj : selection())
 	{
-		if (obj->isColored() == false)
+		if (not obj->isColored())
 			continue;
 
 		int col = maincolor;
@@ -602,7 +602,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	Ui::ReplaceCoordsUI ui;
 	ui.setupUi (dlg);
 
-	if (!dlg->exec())
+	if (not dlg->exec())
 		return;
 
 	const double search = ui.search->value(),
@@ -629,7 +629,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 
 				if (any || coord == search)
 				{
-					if (!rel)
+					if (not rel)
 						coord = 0;
 
 					coord += replacement;
@@ -653,7 +653,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	Ui::FlipUI ui;
 	ui.setupUi (dlg);
 
-	if (!dlg->exec())
+	if (not dlg->exec())
 		return;
 
 	QList<Axis> sel;
@@ -726,7 +726,7 @@ DEFINE_ACTION (Autocolor, 0)
 
 	for (LDObject* obj : selection())
 	{
-		if (obj->isColored() == false)
+		if (not obj->isColored())
 			continue;
 
 		obj->setColor (colnum);
@@ -751,7 +751,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	ui->m_date->setDate (QDate::currentDate());
 	ui->m_comment->setFocus();
 
-	if (!dlg->exec())
+	if (not dlg->exec())
 		return;
 
 	// Create the comment object based on input
@@ -763,18 +763,16 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	LDComment* comm = new LDComment (commentText);
 
 	// Find a spot to place the new comment
-	for (
-		obj = getCurrentDocument()->getObject (0);
-		obj && obj->next() && !obj->next()->isScemantic();
-		obj = obj->next()
-	)
+	for (obj = getCurrentDocument()->getObject (0);
+		obj != null && obj->next() != null && not obj->next()->isScemantic();
+		obj = obj->next())
 	{
 		LDComment* comm = dynamic_cast<LDComment*> (obj);
 
 		if (comm != null && comm->text().startsWith ("!HISTORY "))
 			ishistory = true;
 
-		if (prevIsHistory && !ishistory)
+		if (prevIsHistory && not ishistory)
 		{
 			// Last line was history, this isn't, thus insert the new history
 			// line here.

@@ -99,7 +99,7 @@ void MessageManager::tick()
 	{
 		bool lineChanged;
 
-		if (!m_lines[i].update (lineChanged))
+		if (not m_lines[i].update (lineChanged))
 			m_lines.removeAt (i--);
 
 		changed |= lineChanged;

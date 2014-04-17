@@ -18,7 +18,7 @@ add_custom_target (revision_check ALL
 
 include_directories (${QT_INCLUDES} ${CMAKE_CURRENT_BINARY_DIR})
 
-set (LDForgeSources
+set (LDFORGE_SOURCES
 	src/actions.cc
 	src/actionsEdit.cc
 	src/addObjectDialog.cc
@@ -47,7 +47,7 @@ set (LDForgeSources
 	src/version.cc
 )
 
-set (LDForgeHeaders
+set (LDFORGE_HEADERS
 	src/macros.h
 	src/crashCatcher.h
 	src/colors.h
@@ -77,7 +77,7 @@ set (LDForgeHeaders
 	src/format.h
 )
 
-set (LDForgeForms
+set (LDFORGE_FORMS
 	ui/about.ui
 	ui/addhistoryline.ui
 	ui/bombbox.ui
@@ -103,9 +103,18 @@ set (LDForgeForms
 	ui/ytruder.ui
 )
 
-set (LDForgeResources ldforge.qrc)
+set (LDFORGE_RESOURCES ldforge.qrc)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -W -Wall")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lGLU")
+
+# With clang, we need to set -Wno-deprecated since Qt headers seem to use the
+# register keyword which clang doesn't seem to like. It also appears that Qt
+# doesn't set Q_COMPILER_INITIALIZER_LISTS when compiling with clang? What's
+# up with that?
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-deprecated -DQ_COMPILER_INITIALIZER_LISTS")
+endif()
+
 include_directories ("${PROJECT_BINARY_DIR}")
 include_directories ("${PROJECT_BINARY_DIR}/src")
 include_directories ("${PROJECT_BINARY_DIR}/src/misc")
@@ -114,15 +123,15 @@ if ("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DDEBUG")
 endif()
 
-qt4_wrap_cpp (LDForgeMOC ${LDForgeHeaders})
-qt4_wrap_ui (LDForgeFormsHeaders ${LDForgeForms})
-qt4_add_resources (LDForgeResourcesRCC ${LDForgeResources})
+qt4_wrap_cpp (LDFORGE_MOC ${LDFORGE_HEADERS})
+qt4_wrap_ui (LDFORGE_FORMS_HEADERS ${LDFORGE_FORMS})
+qt4_add_resources (LDFORGE_RCC ${LDFORGE_RESOURCES})
 
 add_executable (ldforge
-	${LDForgeSources}
-	${LDForgeResourcesRCC}
-	${LDForgeFormsHeaders}
-	${LDForgeMOC}
+	${LDFORGE_SOURCES}
+	${LDFORGE_RCC}
+	${LDFORGE_FORMS_HEADERS}
+	${LDFORGE_MOC}
 )
 
 target_link_libraries (ldforge

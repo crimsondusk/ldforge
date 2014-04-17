@@ -312,7 +312,8 @@ void AddObjectDialog::slot_subfileTypeChanged()
 
 // =============================================================================
 // =============================================================================
-template<class T> static T* initObj (LDObject*& obj)
+template<typename T>
+static T* initObj (LDObject*& obj)
 {
 	if (obj == null)
 		obj = new T;
@@ -339,7 +340,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 	assert (obj == null || obj->type() == type);
 
-	if (dlg.exec() == false)
+	if (dlg.exec() == QDialog::Rejected)
 		return;
 
 	if (type == LDObject::ESubfile)
@@ -372,7 +373,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::EQuad:
 		case LDObject::ECondLine:
 		{
-			if (!obj)
+			if (not obj)
 				obj = LDObject::getDefault (type);
 
 			for (int i = 0; i < obj->vertices(); ++i)
@@ -410,7 +411,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 			LDDocument* file = getDocument (name);
 
-			if (!file)
+			if (not file)
 			{
 				critical (format ("Couldn't open `%1': %2", name, strerror (errno)));
 				return;

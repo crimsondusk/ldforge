@@ -55,7 +55,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 	QString authortext = ld_defaultname;
 
-	if (!ld_defaultuser.isEmpty())
+	if (not ld_defaultuser.isEmpty())
 		authortext.append (format (" [%1]", ld_defaultuser));
 
 	ui.le_author->setText (authortext);
@@ -80,7 +80,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 			break;
 	}
 
-	if (dlg->exec() == false)
+	if (dlg->exec() == QDialog::Rejected)
 		return;
 
 	newFile();
@@ -158,7 +158,7 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 //
 DEFINE_ACTION (Close, CTRL (W))
 {
-	if (!getCurrentDocument()->isSafeToClose())
+	if (not getCurrentDocument()->isSafeToClose())
 		return;
 
 	delete getCurrentDocument();
@@ -168,7 +168,7 @@ DEFINE_ACTION (Close, CTRL (W))
 //
 DEFINE_ACTION (CloseAll, 0)
 {
-	if (!safeToCloseAll())
+	if (not safeToCloseAll())
 		return;
 
 	closeAll();
@@ -386,12 +386,12 @@ DEFINE_ACTION (InsertFrom, 0)
 	QString fname = QFileDialog::getOpenFileName();
 	int idx = getInsertionPoint();
 
-	if (!fname.length())
+	if (not fname.length())
 		return;
 
 	QFile f (fname);
 
-	if (!f.open (QIODevice::ReadOnly))
+	if (not f.open (QIODevice::ReadOnly))
 	{
 		critical (format ("Couldn't open %1 (%2)", fname, f.errorString()));
 		return;
@@ -428,7 +428,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 	QFile file (fname);
 
-	if (!file.open (QIODevice::WriteOnly | QIODevice::Text))
+	if (not file.open (QIODevice::WriteOnly | QIODevice::Text))
 	{
 		critical (format ("Unable to open %1 for writing (%2)", fname, file.errorString()));
 		return;
@@ -457,11 +457,11 @@ DEFINE_ACTION (InsertRaw, 0)
 	layout->addWidget (te_edit);
 	layout->addWidget (bbx_buttons);
 	dlg->setLayout (layout);
-	dlg->setWindowTitle (APPNAME ": Insert Raw");
+	dlg->setWindowTitle (APPNAME " - Insert Raw");
 	dlg->connect (bbx_buttons, SIGNAL (accepted()), dlg, SLOT (accept()));
 	dlg->connect (bbx_buttons, SIGNAL (rejected()), dlg, SLOT (reject()));
 
-	if (dlg->exec() == false)
+	if (dlg->exec() == QDialog::Rejected)
 		return;
 
 	getCurrentDocument()->clearSelection();
@@ -498,7 +498,7 @@ DEFINE_ACTION (Screenshot, 0)
 	QString fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 				"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 
-	if (fname.length() > 0 && !img.save (fname))
+	if (not fname.isEmpty() && not img.save (fname))
 		critical (format ("Couldn't open %1 for writing to save screencap: %2", fname, strerror (errno)));
 
 	delete[] imgdata;
@@ -509,7 +509,7 @@ DEFINE_ACTION (Screenshot, 0)
 extern_cfg (Bool, gl_axes);
 DEFINE_ACTION (Axes, 0)
 {
-	gl_axes = !gl_axes;
+	gl_axes = not gl_axes;
 	updateActions();
 	R()->update();
 }
@@ -519,7 +519,7 @@ DEFINE_ACTION (Axes, 0)
 DEFINE_ACTION (VisibilityToggle, 0)
 {
 	for (LDObject* obj : selection())
-		obj->setHidden (!obj->isHidden());
+		obj->setHidden (not obj->isHidden());
 
 	refresh();
 }
@@ -547,7 +547,7 @@ DEFINE_ACTION (VisibilityReveal, 0)
 //
 DEFINE_ACTION (Wireframe, 0)
 {
-	gl_wireframe = !gl_wireframe;
+	gl_wireframe = not gl_wireframe;
 	R()->refresh();
 }
 
@@ -557,7 +557,7 @@ DEFINE_ACTION (SetOverlay,  0)
 {
 	OverlayDialog dlg;
 
-	if (!dlg.exec())
+	if (not dlg.exec())
 		return;
 
 	R()->setupOverlay ((GL::EFixedCamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
@@ -596,7 +596,7 @@ DEFINE_ACTION (ModeCircle, CTRL (3))
 //
 DEFINE_ACTION (DrawAngles, 0)
 {
-	gl_drawangles = !gl_drawangles;
+	gl_drawangles = not gl_drawangles;
 	R()->refresh();
 }
 
@@ -625,7 +625,7 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 	LDDocument* file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 
-	if (!file)
+	if (not file)
 	{
 		critical ("couldn't load axle.dat");
 		return;
@@ -676,7 +676,7 @@ DEFINE_ACTION (ScanPrimitives, 0)
 //
 DEFINE_ACTION (BFCView, SHIFT (B))
 {
-	gl_colorbfc = !gl_colorbfc;
+	gl_colorbfc = not gl_colorbfc;
 	updateActions();
 	R()->refresh();
 }
@@ -695,7 +695,7 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 	int idx = QInputDialog::getInt (null, "Go to line", "Go to line:", defval,
 		1, getCurrentDocument()->getObjectCount(), 1, &ok);
 
-	if (!ok || (obj = getCurrentDocument()->getObject (idx - 1)) == null)
+	if (not ok || (obj = getCurrentDocument()->getObject (idx - 1)) == null)
 		return;
 
 	getCurrentDocument()->clearSelection();
@@ -765,7 +765,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	}
 
 	// Determine the body of the name of the subfile
-	if (!parentpath.isEmpty())
+	if (not parentpath.isEmpty())
 	{
 		if (parentpath.endsWith (".dat"))
 			parentpath.chop (4);
@@ -799,7 +799,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	{
 		LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
 
-		if (!bfc)
+		if (not bfc)
 			continue;
 
 		LDBFC::Statement a = bfc->statement();

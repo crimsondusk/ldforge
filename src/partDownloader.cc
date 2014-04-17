@@ -42,7 +42,7 @@ void PartDownloader::staticBegin()
 {
 	QString path = getDownloadPath();
 
-	if (path == "" || QDir (path).exists() == false)
+	if (path.isEmpty() || not QDir (path).exists())
 	{
 		critical (PartDownloader::tr ("You need to specify a valid path for "
 			"downloaded files in the configuration to download paths."));
@@ -123,7 +123,7 @@ void PartDownloader::modifyDestination (QString& dest) const
 	dest = dest.simplified();
 
 	// If the user doesn't want us to guess, stop right here.
-	if (net_guesspaths == false)
+	if (not net_guesspaths)
 		return;
 
 	// Ensure .dat extension
@@ -224,7 +224,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 		if (QFile::exists (PartDownloader::getDownloadPath() + DIRSLASH + dest))
 		{
 			const QString overwritemsg = format (tr ("%1 already exists in download directory. Overwrite?"), dest);
-			if (!confirm (tr ("Overwrite?"), overwritemsg))
+			if (not confirm (tr ("Overwrite?"), overwritemsg))
 				return;
 		}
 
@@ -267,7 +267,7 @@ void PartDownloader::checkIfFinished()
 	// If there is some download still working, we're not finished.
 	for (PartDownloadRequest* req : requests())
 	{
-		if (!req->isFinished())
+		if (not req->isFinished())
 			return;
 
 		if (req->state() == PartDownloadRequest::EFailed)
@@ -288,7 +288,7 @@ void PartDownloader::checkIfFinished()
 		g_win->R()->resetAngles();
 	}
 
-	if (net_autoclose && !failed)
+	if (net_autoclose && not failed)
 	{
 		// Close automatically if desired.
 		accept();
@@ -339,11 +339,11 @@ PartDownloadRequest::PartDownloadRequest (QString url, QString dest, bool primar
 
 	QDir dir (dirpath);
 
-	if (dir.exists() == false)
+	if (not dir.exists())
 	{
 		print ("Creating %1...\n", dirpath);
 
-		if (!dir.mkpath (dirpath))
+		if (not dir.mkpath (dirpath))
 			critical (format (tr ("Couldn't create the directory %1!"), dirpath));
 	}
 
@@ -374,7 +374,7 @@ void PartDownloadRequest::updateToTable()
 		{
 			prog = qobject_cast<QProgressBar*> (table->cellWidget (tableRow(), progcol));
 
-			if (!prog)
+			if (not prog)
 			{
 				prog = new QProgressBar;
 				table->setCellWidget (tableRow(), progcol, prog);
@@ -418,7 +418,7 @@ void PartDownloadRequest::downloadFinished()
 {
 	if (networkReply()->error() != QNetworkReply::NoError)
 	{
-		if (isPrimary() && !prompt()->isAborted())
+		if (isPrimary() && not prompt()->isAborted())
 			critical (networkReply()->errorString());
 
 		setState (EFailed);
@@ -448,10 +448,10 @@ void PartDownloadRequest::downloadFinished()
 	// Try to load this file now.
 	LDDocument* f = openDocument (filePath(), false);
 
-	if (!f)
+	if (f == null)
 		return;
 
-	f->setImplicit (!isPrimary());
+	f->setImplicit (not isPrimary());
 
 	// Iterate through this file and check for errors. If there's any that stems
 	// from unknown file references, try resolve that by downloading the reference.
@@ -503,7 +503,7 @@ void PartDownloadRequest::readyRead()
 		// to go here.
 		setFilePointer (new QFile (filePath().toLocal8Bit()));
 
-		if (!filePointer()->open (QIODevice::WriteOnly))
+		if (not filePointer()->open (QIODevice::WriteOnly))
 		{
 			critical (format (tr ("Couldn't open %1 for writing: %2"), filePath(), strerror (errno)));
 			setState (EFailed);

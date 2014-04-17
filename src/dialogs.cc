@@ -240,7 +240,7 @@ void LDrawPathDialog::slot_exit()
 // =============================================================================
 void LDrawPathDialog::slot_tryConfigure()
 {
-	if (LDPaths::tryConfigure (filename()) == false)
+	if (not LDPaths::tryConfigure (filename()))
 	{
 		ui->status->setText (format ("<span style=\"color:#700; \">%1</span>", LDPaths::getError()));
 		okButton()->setEnabled (false);
@@ -328,7 +328,7 @@ void ExtProgPathPrompt::findPath()
 {
 	QString path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
 
-	if (!path.isEmpty())
+	if (not path.isEmpty())
 		ui->m_path->setText (path);
 }
 

@@ -409,7 +409,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 		const long idx = obj->lineNumber(),
 				   target = idx + (up ? -1 : 1);
 
-		if ((up && idx == 0) || (!up && idx == (long) (file->objects().size() - 1)))
+		if ((up && idx == 0) || (not up && idx == (long) file->objects().size() - 1l))
 		{
 			// One of the objects hit the extrema. If this happens, this should be the first
 			// object to be iterated on. Thus, nothing has changed yet and it's safe to just
@@ -464,7 +464,7 @@ QString LDObject::describeObjects (const LDObjectList& objs)
 		if (count == 0)
 			continue;
 
-		if (!firstDetails)
+		if (not firstDetails)
 			text += ", ";
 
 		QString noun = format ("%1%2", typeName (objType), plural (count));

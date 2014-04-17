@@ -160,7 +160,7 @@ bool numeric (const QString& tok)
 			continue;
 
 		// Check for decimal point
-		if (!gotDot && c == '.')
+		if (not gotDot && c == '.')
 		{
 			gotDot = true;
 			continue;
@@ -269,7 +269,7 @@ void configRotationPoint()
 	ui.customY->setValue (edit_customrotpoint.y());
 	ui.customZ->setValue (edit_customrotpoint.z());
 
-	if (!dlg->exec())
+	if (not dlg->exec())
 		return;
 
 	edit_rotpoint =

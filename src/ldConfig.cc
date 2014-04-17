@@ -32,7 +32,7 @@ static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, QString& va
 	int pos;
 
 	// Try find the token and get its position
-	if (!pars.findToken (pos, tag, 1))
+	if (not pars.findToken (pos, tag, 1))
 		return false;
 
 	// Get the token after it and store it into val
@@ -45,14 +45,14 @@ void parseLDConfig()
 {
 	QFile* fp = openLDrawFile ("LDConfig.ldr", false);
 
-	if (!fp)
+	if (fp == null)
 	{
 		critical (QObject::tr ("Unable to open LDConfig.ldr for parsing."));
 		return;
 	}
 
 	// Read in the lines
-	while (fp->atEnd() == false)
+	while (not fp->atEnd())
 	{
 		QString line = QString::fromUtf8 (fp->readLine());
 
@@ -69,35 +69,39 @@ void parseLDConfig()
 		QString name, facename, edgename, valuestr;
 
 		// Check 0 !COLOUR, parse the name
-		if (!pars.tokenCompare (0, "0") || !pars.tokenCompare (1, "!COLOUR") || !pars.getToken (name, 2))
+		if (not pars.tokenCompare (0, "0") ||
+			not pars.tokenCompare (1, "!COLOUR") ||
+			not pars.getToken (name, 2))
+		{
 			continue;
+		}
 
 		// Replace underscores in the name with spaces for readability
 		name.replace ("_", " ");
 
 		// Get the CODE tag
-		if (!parseLDConfigTag (pars, "CODE", valuestr))
+		if (not parseLDConfigTag (pars, "CODE", valuestr))
 			continue;
 
-		if (!numeric (valuestr))
+		if (not numeric (valuestr))
 			continue; // not a number
 
 		// Ensure that the code is within [0 - 511]
 		bool ok;
 		code = valuestr.toShort (&ok);
 
-		if (!ok || code < 0 || code >= 512)
+		if (not ok || code < 0 || code >= 512)
 			continue;
 
 		// VALUE and EDGE tags
-		if (!parseLDConfigTag (pars, "VALUE", facename) || !parseLDConfigTag (pars, "EDGE", edgename))
+		if (not parseLDConfigTag (pars, "VALUE", facename) || not parseLDConfigTag (pars, "EDGE", edgename))
 			continue;
 
 		// Ensure that our colors are correct
 		QColor faceColor (facename),
 			edgeColor (edgename);
 
-		if (!faceColor.isValid() || !edgeColor.isValid())
+		if (not faceColor.isValid() || not edgeColor.isValid())
 			continue;
 
 		// Parse alpha if given.
@@ -208,7 +212,7 @@ bool LDConfigParser::tokenCompare (int inPos, const char* sOther)
 {
 	QString tok;
 
-	if (!getToken (tok, inPos))
+	if (not getToken (tok, inPos))
 		return false;
 
 	return (tok == sOther);

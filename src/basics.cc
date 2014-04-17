@@ -102,7 +102,7 @@ Vertex Vertex::operator-() const
 //
 bool Vertex::operator!= (const Vertex& other) const
 {
-	return !operator== (other);
+	return not operator== (other);
 }
 
 // =============================================================================
@@ -291,7 +291,7 @@ void LDBoundingBox::calculateFromCurrentDocument()
 {
 	reset();
 
-	if (!getCurrentDocument())
+	if (not getCurrentDocument())
 		return;
 
 	for (LDObject* obj : getCurrentDocument()->objects())

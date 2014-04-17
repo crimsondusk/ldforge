@@ -43,7 +43,7 @@ extern_cfg (Float, gl_maincolor_alpha);
 ColorSelector::ColorSelector (int defval, QWidget* parent) : QDialog (parent)
 {
 	// Remove the default color if it's invalid
-	if (!getColor (defval))
+	if (not getColor (defval))
 		defval = -1;
 
 	m_firstResize = true;
@@ -93,7 +93,7 @@ void ColorSelector::drawScene()
 	{
 		LDColor* info = ::getColor (i);
 
-		if (!info)
+		if (not info)
 			continue;
 
 		const double x = (i % numCols) * square;
@@ -141,7 +141,7 @@ int ColorSelector::viewportWidth() const
 // =============================================================================
 void ColorSelector::drawColorInfo()
 {
-	if (!selection())
+	if (not selection())
 	{
 		ui->colorLabel->setText ("---");
 		return;
@@ -186,7 +186,7 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 
 	LDColor* col = ::getColor (idx);
 
-	if (!col)
+	if (not col)
 		return;
 
 	setSelection (col);
