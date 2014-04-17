@@ -463,13 +463,11 @@ void GLRenderer::drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum ty
 {
 	int surfacenum = m_compiler->vboNumber (surface, VBOCM_Surfaces);
 	int colornum = m_compiler->vboNumber (surface, colors);
-
 	m_compiler->prepareVBO (surfacenum);
 	m_compiler->prepareVBO (colornum);
 	GLuint surfacevbo = m_compiler->vbo (surfacenum);
 	GLuint colorvbo = m_compiler->vbo (colornum);
-	GLsizei count = m_compiler->vboSize (surfacevbo) / 3;
-	print ("Count: %1\n", (int) count );
+	GLsizei count = m_compiler->vboSize (surfacenum) / 3;
 
 	if (count > 0)
 	{

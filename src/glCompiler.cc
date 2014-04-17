@@ -334,9 +334,6 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 			assert (false);
 	}
 
-	if (poly.num == 3)
-		print ("compile triangle %1 for #%2\n", poly.origin, topobj->id());
-
 	for (int complement = 0; complement < VBOCM_NumComplements; ++complement)
 	{
 		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
