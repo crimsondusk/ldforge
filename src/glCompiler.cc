@@ -47,23 +47,6 @@ static const GLErrorInfo g_GLErrors[] =
 	{ GL_STACK_OVERFLOW,				"The operation would have caused an overflow" },
 };
 
-#include <QTime>
-#include <QFile>
-
-#define CLOCK_INIT QTime t0;
-
-#define CLOCK_START \
-{ \
-	t0 = QTime::currentTime(); \
-}
-
-#define CLOCK_TIME(A) \
-{ \
-	fprint (stderr, A ": %1ms\n", t0.msecsTo (QTime::currentTime())); \
-}
-
-#define DEBUG_PRINT(...) fprint (stdout, __VA_ARGS__)
-
 extern_cfg (Bool, gl_blackedges);
 extern_cfg (String, gl_bgcolor);
 static QList<short>		g_warnedColors;
@@ -242,34 +225,10 @@ void GLCompiler::prepareVBO (int vbonum)
 	// Compile anything that still awaits it
 	compileStaged();
 
-	if (m_vboChanged[vbonum] == false)
+	if (not m_vboChanged[vbonum])
 		return;
 
 	QVector<GLfloat> vbodata;
-
-	/*
-	if (vbonum == vboNumber (VBOSF_Triangles, VBOCM_Surfaces))
-	{
-		QFile f ("vbo.log");
-		if (f.open (QIODevice::WriteOnly))
-		{
-			for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
-			{
-				if (it.key()->document() == getCurrentDocument())
-				{
-					fprint (f, "----- #%1 (%2:%3)\n", it.key()->id(),
-						it.key()->document()->getDisplayName(), it.key()->lineNumber());
-					const QVector<GLfloat>& v = it.value().data[vbonum];
-
-					for (int i = 0; i < v.size() / 3; ++i)
-						fprint (f, "- %1, %2, %3\n", v[i * 3], v[1 * 3 + 1], v[1 * 3 + 2]);
-				}
-			}
-
-			f.close();
-		}
-	}
-	*/
 
 	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
