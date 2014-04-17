@@ -468,7 +468,8 @@ void GLRenderer::drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum ty
 	m_compiler->prepareVBO (colornum);
 	GLuint surfacevbo = m_compiler->vbo (surfacenum);
 	GLuint colorvbo = m_compiler->vbo (colornum);
-	GLsizei count = m_compiler->vboCount (surfacevbo);
+	GLsizei count = m_compiler->vboSize (surfacevbo) / 3;
+	print ("Count: %1\n", (int) count );
 
 	if (count > 0)
 	{
@@ -576,12 +577,12 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 		return;
 
 #ifndef RELEASE
-	if (isPicking() == false)
+	if (not isPicking())
 	{
 		QString text = format ("Rotation: (%1, %2, %3)\nPanning: (%4, %5), Zoom: %6",
 			rot(X), rot(Y), rot(Z), pan(X), pan(Y), zoom());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
-
+		paint.setPen (textpen);
 		paint.drawText ((width() - textSize.width()) / 2, height() - textSize.height(), textSize.width(),
 			textSize.height(), Qt::AlignCenter, text);
 	}
@@ -1240,6 +1241,13 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Go through each pixel read and add them to the selection.
 	for (qint32 i = 0; i < numpixels; ++i)
 	{
+		QList<float> selfloats;
+		selfloats << ((float) pixelptr[0]) / 255.0f;
+		selfloats << ((float) pixelptr[1]) / 255.0f;
+		selfloats << ((float) pixelptr[2]) / 255.0f;
+		selfloats << ((float) pixelptr[3]) / 255.0f;
+		print ("selection: %1\n", selfloats);
+
 		qint32 idx =
 			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x100) +
@@ -1249,7 +1257,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 
-		dprint ("id: %1\n", idx);
+		dvalof (idx);
 		LDObject* obj = LDObject::fromID (idx);
 		assert (obj != null);
 

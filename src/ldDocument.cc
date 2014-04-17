@@ -1306,7 +1306,6 @@ void LDDocument::setCurrent (LDDocument* f)
 		g_win->buildObjList();
 		g_win->updateTitle();
 		g_win->R()->setDocument (f);
-		g_win->R()->repaint();
 		g_win->R()->compiler()->needMerge();
 		print ("Changed file to %1", f->getDisplayName());
 	}

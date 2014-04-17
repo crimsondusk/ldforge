@@ -48,6 +48,7 @@ static const GLErrorInfo g_GLErrors[] =
 };
 
 #include <QTime>
+#include <QFile>
 
 #define CLOCK_INIT QTime t0;
 
@@ -246,13 +247,34 @@ void GLCompiler::prepareVBO (int vbonum)
 
 	QVector<GLfloat> vbodata;
 
+	/*
+	if (vbonum == vboNumber (VBOSF_Triangles, VBOCM_Surfaces))
+	{
+		QFile f ("vbo.log");
+		if (f.open (QIODevice::WriteOnly))
+		{
+			for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
+			{
+				if (it.key()->document() == getCurrentDocument())
+				{
+					fprint (f, "----- #%1 (%2:%3)\n", it.key()->id(),
+						it.key()->document()->getDisplayName(), it.key()->lineNumber());
+					const QVector<GLfloat>& v = it.value().data[vbonum];
+
+					for (int i = 0; i < v.size() / 3; ++i)
+						fprint (f, "- %1, %2, %3\n", v[i * 3], v[1 * 3 + 1], v[1 * 3 + 2]);
+				}
+			}
+
+			f.close();
+		}
+	}
+	*/
+
 	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
-		if (it.key()->document() == getCurrentDocument())
-		{
-			print ("merge %1\n", it.key()->id());
+		if (it.key()->document() == getCurrentDocument() && it.key()->isHidden() == false)
 			vbodata += it->data[vbonum];
-		}
 	}
 
 	glBindBuffer (GL_ARRAY_BUFFER, m_vbo[vbonum]);
@@ -284,11 +306,8 @@ void GLCompiler::compileObject (LDObject* obj)
 		return;
 
 	g_objectOrigins[obj] = obj->document()->getDisplayName() + ":" + QString::number (obj->lineNumber());
-
-	if (obj->id() == 563)
-		print ("compile %1\n", g_objectOrigins[obj]);
-
 	ObjectVBOInfo info;
+	info.isChanged = true;
 	dropObject (obj);
 	compileSubObject (obj, obj, &info);
 	m_objectInfo[obj] = info;
@@ -304,9 +323,9 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 
 	switch (poly.num)
 	{
+		case 2:	surface = VBOSF_Lines;		numverts = 2; break;
 		case 3:	surface = VBOSF_Triangles;	numverts = 3; break;
 		case 4:	surface = VBOSF_Quads;		numverts = 4; break;
-		case 2:	surface = VBOSF_Lines;		numverts = 2; break;
 		case 5:	surface = VBOSF_CondLines;	numverts = 2; break;
 
 		default:
@@ -314,6 +333,9 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 				(int) poly.num, topobj->id(), topobj->typeName(), poly.origin);
 			assert (false);
 	}
+
+	if (poly.num == 3)
+		print ("compile triangle %1 for #%2\n", poly.origin, topobj->id());
 
 	for (int complement = 0; complement < VBOCM_NumComplements; ++complement)
 	{
@@ -408,8 +430,8 @@ void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInf
 //
 void GLCompiler::writeColor (QVector<GLfloat>& array, const QColor& color)
 {
-	array	<< ((float) color.red()) / 255.0f
-			<< ((float) color.green()) / 255.0f
-			<< ((float) color.blue()) / 255.0f
-			<< ((float) color.alpha()) / 255.0f;
+	array	<< ((GLfloat) color.red()) / 255.0f
+			<< ((GLfloat) color.green()) / 255.0f
+			<< ((GLfloat) color.blue()) / 255.0f
+			<< ((GLfloat) color.alpha()) / 255.0f;
 }

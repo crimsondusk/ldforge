@@ -28,52 +28,53 @@
 //
 class GLCompiler
 {
-	public:
-		struct ObjectVBOInfo
-		{
-			QVector<GLfloat> data[g_numVBOs];
-		};
+public:
+	struct ObjectVBOInfo
+	{
+		QVector<GLfloat>	data[g_numVBOs];
+		bool				isChanged;
+	};
 
-		GLCompiler();
-		~GLCompiler();
-		void				compileDocument (LDDocument* doc);
-		void				dropObject (LDObject* obj);
-		void				initialize();
-		QColor				polygonColor (LDPolygon& poly, LDObject* topobj) const;
-		QColor				indexColorForID (int id) const;
-		void				needMerge();
-		void				prepareVBO (int vbonum);
-		void				stageForCompilation (LDObject* obj);
+	GLCompiler();
+	~GLCompiler();
+	void				compileDocument (LDDocument* doc);
+	void				dropObject (LDObject* obj);
+	void				initialize();
+	QColor				polygonColor (LDPolygon& poly, LDObject* topobj) const;
+	QColor				indexColorForID (int id) const;
+	void				needMerge();
+	void				prepareVBO (int vbonum);
+	void				stageForCompilation (LDObject* obj);
 
-		static uint32		colorToRGB (const QColor& color);
+	static uint32		colorToRGB (const QColor& color);
 
-		static inline int	vboNumber (EVBOSurface surface, EVBOComplement complement)
-		{
-			return (surface * VBOCM_NumComplements) + complement;
-		}
+	static inline int	vboNumber (EVBOSurface surface, EVBOComplement complement)
+	{
+		return (surface * VBOCM_NumComplements) + complement;
+	}
 
-		inline GLuint		vbo (int vbonum) const
-		{
-			return m_vbo[vbonum];
-		}
+	inline GLuint		vbo (int vbonum) const
+	{
+		return m_vbo[vbonum];
+	}
 
-		inline int			vboCount (int vbonum) const
-		{
-			return m_vboSizes[vbonum] / 3;
-		}
+	inline int			vboSize (int vbonum) const
+	{
+		return m_vboSizes[vbonum];
+	}
 
-	private:
-		void			compileStaged();
-		void			compileObject (LDObject* obj);
-		void			compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
-		void			writeColor (QVector<float>& array, const QColor& color);
-		void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
+private:
+	void			compileStaged();
+	void			compileObject (LDObject* obj);
+	void			compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
+	void			writeColor (QVector<float>& array, const QColor& color);
+	void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
-		QMap<LDObject*, ObjectVBOInfo>		m_objectInfo;
-		LDObjectList						m_staged; // Objects that need to be compiled
-		GLuint								m_vbo[g_numVBOs];
-		bool								m_vboChanged[g_numVBOs];
-		int									m_vboSizes[g_numVBOs];
+	QMap<LDObject*, ObjectVBOInfo>		m_objectInfo;
+	LDObjectList						m_staged; // Objects that need to be compiled
+	GLuint								m_vbo[g_numVBOs];
+	bool								m_vboChanged[g_numVBOs];
+	int									m_vboSizes[g_numVBOs];
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }
