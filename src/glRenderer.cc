@@ -1011,9 +1011,9 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 
 		QPoint curspos = coordconv3_2 (m_hoverpos);
 
-		for (const Vertex& pos3d: m_knownVerts)
+		for (auto it = document()->vertices().begin(); it != document()->vertices().end(); ++it)
 		{
-			QPoint pos2d = coordconv3_2 (pos3d);
+			QPoint pos2d = coordconv3_2 (it.key());
 
 			// Measure squared distance
 			const double dx = abs (pos2d.x() - curspos.x()),
@@ -1026,7 +1026,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 			if (distsq < mindist)
 			{
 				mindist = distsq;
-				closest = pos3d;
+				closest = it.key();
 				valid = true;
 
 				// If it's only 4 pixels away, I think we found our vertex now.

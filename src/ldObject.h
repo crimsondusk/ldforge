@@ -73,7 +73,6 @@ class LDObject
 	PROPERTY (private,		int,			id,				setID,			STOCK_WRITE)
 	PROPERTY (public,		int,			color,			setColor,		CUSTOM_WRITE)
 	PROPERTY (public,		bool,			isGLInit,		setGLInit,		STOCK_WRITE)
-	PROPERTY (public,		QString,		origin,			setOrigin,		STOCK_WRITE)
 
 	public:
 		// Object type codes.

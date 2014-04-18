@@ -28,7 +28,6 @@ struct LDPolygon
 	Vertex		vertices[4];
 	int			id;
 	int			color;
-	QString		origin;
 
 	inline int numVertices() const
 	{

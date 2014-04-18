@@ -27,8 +27,6 @@
 #include "glRenderer.h"
 #include "dialogs.h"
 
-cfg (String,	gl_selectcolor,			"#0080FF")
-
 struct GLErrorInfo
 {
 	GLenum	value;
@@ -47,12 +45,13 @@ static const GLErrorInfo g_GLErrors[] =
 	{ GL_STACK_OVERFLOW,				"The operation would have caused an overflow" },
 };
 
+cfg (String, gl_selectcolor, "#0080FF")
 extern_cfg (Bool, gl_blackedges);
 extern_cfg (String, gl_bgcolor);
-static QList<short>		g_warnedColors;
+
+static QList<int>		g_warnedColors;
 static const QColor		g_BFCFrontColor (40, 192, 40);
 static const QColor		g_BFCBackColor (224, 40, 40);
-static QMap<LDObject*, QString> g_objectOrigins;
 
 // =============================================================================
 //
@@ -126,7 +125,7 @@ QColor GLCompiler::indexColorForID (int id) const
 
 // =============================================================================
 //
-QColor GLCompiler::polygonColor (LDPolygon& poly, LDObject* topobj) const
+QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObject* topobj) const
 {
 	QColor qcol;
 
@@ -149,9 +148,9 @@ QColor GLCompiler::polygonColor (LDPolygon& poly, LDObject* topobj) const
 			qcol = col->faceColor;
 	}
 
-	if (qcol.isValid() == false)
+	if (not qcol.isValid())
 	{
-		// The color was unknown. Use main color to make the poly.object at least
+		// The color was unknown. Use main color to make the polygon at least
 		// not appear pitch-black.
 		if (poly.num != 2 && poly.num != 5)
 			qcol = GLRenderer::getMainColor();
@@ -159,7 +158,7 @@ QColor GLCompiler::polygonColor (LDPolygon& poly, LDObject* topobj) const
 			qcol = Qt::black;
 
 		// Warn about the unknown color, but only once.
-		if (g_warnedColors.contains (poly.color) == false)
+		if (not g_warnedColors.contains (poly.color))
 		{
 			print ("Unknown color %1!\n", poly.color);
 			g_warnedColors << poly.color;
@@ -232,7 +231,7 @@ void GLCompiler::prepareVBO (int vbonum)
 
 	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
-		if (it.key()->document() == getCurrentDocument() && it.key()->isHidden() == false)
+		if (it.key()->document() == getCurrentDocument() && not it.key()->isHidden())
 			vbodata += it->data[vbonum];
 	}
 
@@ -264,7 +263,6 @@ void GLCompiler::compileObject (LDObject* obj)
 	if (obj->document()->isImplicit())
 		return;
 
-	g_objectOrigins[obj] = obj->document()->getDisplayName() + ":" + QString::number (obj->lineNumber());
 	ObjectVBOInfo info;
 	info.isChanged = true;
 	dropObject (obj);
@@ -286,18 +284,14 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 		case 3:	surface = VBOSF_Triangles;	numverts = 3; break;
 		case 4:	surface = VBOSF_Quads;		numverts = 4; break;
 		case 5:	surface = VBOSF_CondLines;	numverts = 2; break;
-
-		default:
-			print ("OMGWTFBBQ weird polygon with number %1 (topobj: #%2, %3), origin: %4",
-				(int) poly.num, topobj->id(), topobj->typeName(), poly.origin);
-			assert (false);
+		default: return;
 	}
 
 	for (int complement = 0; complement < VBOCM_NumComplements; ++complement)
 	{
 		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
-		const QColor normalColor	= polygonColor (poly, topobj);
+		const QColor normalColor	= getColorForPolygon (poly, topobj);
 		const QColor pickColor		= indexColorForID (topobj->id());
 
 		for (int vert = 0; vert < numverts; ++vert)

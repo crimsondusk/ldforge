@@ -354,7 +354,6 @@ LDPolygon* LDObject::getPolygon()
 	data->id = id();
 	data->num = num;
 	data->color = color();
-	data->origin = origin();
 
 	for (int i = 0; i < data->numVertices(); ++i)
 		data->vertices[i] = vertex (i);
@@ -733,6 +732,9 @@ const Vertex& LDObject::vertex (int i) const
 //
 void LDObject::setVertex (int i, const Vertex& vert)
 {
+	if (document() != null)
+		document()->vertexChanged (*m_coords[i], vert);
+
 	changeProperty (this, &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
 
@@ -740,7 +742,13 @@ void LDObject::setVertex (int i, const Vertex& vert)
 //
 void LDMatrixObject::setPosition (const Vertex& a)
 {
+	if (linkPointer()->document() != null)
+		linkPointer()->document()->removeKnownVerticesOf (linkPointer());
+
 	changeProperty (linkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
+
+	if (linkPointer()->document() != null)
+		linkPointer()->document()->addKnownVerticesOf (linkPointer());
 }
 
 // =============================================================================
@@ -866,12 +874,6 @@ LDObject* LDObject::createCopy() const
 	*/
 
 	LDObject* copy = parseLine (asText());
-
-	if (origin().isEmpty() == false)
-		copy->setOrigin (origin());
-	elif (document() != null)
-		copy->setOrigin (document()->getDisplayName() + ":" + QString::number (lineNumber()));
-
 	return copy;
 }
 

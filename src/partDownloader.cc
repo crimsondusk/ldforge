@@ -446,12 +446,10 @@ void PartDownloadRequest::downloadFinished()
 	}
 
 	// Try to load this file now.
-	LDDocument* f = openDocument (filePath(), false);
+	LDDocument* f = openDocument (filePath(), false, not isPrimary());
 
 	if (f == null)
 		return;
-
-	f->setImplicit (not isPrimary());
 
 	// Iterate through this file and check for errors. If there's any that stems
 	// from unknown file references, try resolve that by downloading the reference.

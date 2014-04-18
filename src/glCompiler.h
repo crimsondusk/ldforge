@@ -40,7 +40,7 @@ public:
 	void				compileDocument (LDDocument* doc);
 	void				dropObject (LDObject* obj);
 	void				initialize();
-	QColor				polygonColor (LDPolygon& poly, LDObject* topobj) const;
+	QColor				getColorForPolygon (LDPolygon& poly, LDObject* topobj) const;
 	QColor				indexColorForID (int id) const;
 	void				needMerge();
 	void				prepareVBO (int vbonum);

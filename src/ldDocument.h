@@ -40,6 +40,17 @@ namespace LDPaths
 	QString getError();
 }
 
+//
+// Flags for LDDocument
+//
+enum LDDocumentFlag
+{
+	DOCF_IsBeingDestroyed = (1 << 0),
+};
+
+Q_DECLARE_FLAGS (LDDocumentFlags, LDDocumentFlag)
+Q_DECLARE_OPERATORS_FOR_FLAGS (LDDocumentFlags)
+
 // =============================================================================
 //
 // This class stores a document either as a editable file for the user or for
@@ -55,13 +66,14 @@ class LDDocument : public QObject
 {
 	public:
 		using ReferenceList = QList<LDDocumentPointer*>;
+		using KnownVertexMap = QMap<Vertex, int>;
 
 		Q_OBJECT
 		PROPERTY (public,	QString,		name,			setName,			STOCK_WRITE)
 		PROPERTY (private,	LDObjectList,	objects, 		setObjects,			STOCK_WRITE)
 		PROPERTY (private,	LDObjectList,	cache, 			setCache,			STOCK_WRITE)
 		PROPERTY (private,	History*,		history,		setHistory,			STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,	vertices,		setVertices,		STOCK_WRITE)
+		PROPERTY (private,	KnownVertexMap,	vertices,		setVertices,		STOCK_WRITE)
 		PROPERTY (private,	ReferenceList,	references,		setReferences,		STOCK_WRITE)
 		PROPERTY (public,	QString,		fullPath,		setFullPath,		STOCK_WRITE)
 		PROPERTY (public,	QString,		defaultName,	setDefaultName,		STOCK_WRITE)
@@ -69,6 +81,7 @@ class LDDocument : public QObject
 		PROPERTY (public,	long,			savePosition,	setSavePosition,	STOCK_WRITE)
 		PROPERTY (public,	int,			tabIndex,		setTabIndex,		STOCK_WRITE)
 		PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,	STOCK_WRITE)
+		PROPERTY (private,	LDDocumentFlags,	flags,			setFlags,		STOCK_WRITE)
 
 	public:
 		LDDocument();
@@ -93,6 +106,9 @@ class LDDocument : public QObject
 		void addReference (LDDocumentPointer* ptr);
 		void removeReference (LDDocumentPointer* ptr);
 		QList<LDPolygon> inlinePolygons();
+		void vertexChanged (const Vertex& a, const Vertex& b);
+		void addKnownVerticesOf(LDObject* obj);
+		void removeKnownVerticesOf (LDObject* sub);
 
 		inline LDDocument& operator<< (LDObject* obj)
 		{
@@ -155,6 +171,9 @@ class LDDocument : public QObject
 		bool					m_needsGLReInit;
 
 		static LDDocument*		m_curdoc;
+
+		void addKnownVertexReference (const Vertex& a);
+		void removeKnownVertexReference (const Vertex& a);
 };
 
 inline LDDocument* getCurrentDocument()
@@ -173,7 +192,7 @@ LDDocument* findDocument (QString name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDDocument* openDocument (QString path, bool search);
+LDDocument* openDocument (QString path, bool search, bool implicit);
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer = null);
