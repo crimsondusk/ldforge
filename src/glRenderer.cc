@@ -1789,14 +1789,10 @@ void GLRenderer::zoomNotch (bool inward)
 //
 void GLRenderer::zoomToFit()
 {
-	print ("zooming %1 to fit..\n", camera());
 	zoom() = 30.0f;
 
 	if (document() == null || m_width == -1 || m_height == -1)
-	{
-		print ("document is invalid!\n");
 		return;
-	}
 
 	bool lastfilled = false;
 	bool firstrun = true;
@@ -1886,7 +1882,6 @@ void GLRenderer::zoomToFit()
 
 	setBackground();
 	setPicking (false);
-	print ("zoom to fit done.\n");
 }
 
 // =============================================================================
