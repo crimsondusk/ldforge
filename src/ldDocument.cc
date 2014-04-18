@@ -132,7 +132,7 @@ LDDocument::LDDocument() :
 	setTabIndex (-1);
 	setHistory (new History);
 	history()->setDocument (this);
-	m_needsGLReInit = true;
+	m_needsReCache = true;
 }
 
 // =============================================================================
@@ -1114,10 +1114,12 @@ void LDDocument::addKnownVerticesOf (LDObject* obj)
 
 	if (obj->type() == LDObject::ESubfile)
 	{
-		for (LDObject* sub : static_cast<LDSubfile*> (obj)->inlineContents (true, false))
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+
+		for (Vertex vrt : ref->fileInfo()->inlineVertices())
 		{
-			addKnownVerticesOf (sub);
-			sub->destroy();
+			vrt.transform (ref->transform(), ref->position());
+			addKnownVertexReference (vrt);
 		}
 	}
 	else
@@ -1136,10 +1138,12 @@ void LDDocument::removeKnownVerticesOf (LDObject* obj)
 
 	if (obj->type() == LDObject::ESubfile)
 	{
-		for (LDObject* sub : static_cast<LDSubfile*> (obj)->inlineContents (true, false))
+		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+
+		for (Vertex vrt : ref->fileInfo()->inlineVertices())
 		{
-			removeKnownVerticesOf (sub);
-			sub->destroy();
+			vrt.transform (ref->transform(), ref->position());
+			removeKnownVertexReference (vrt);
 		}
 	}
 	else
@@ -1293,10 +1297,13 @@ QString LDDocument::getDisplayName()
 
 // =============================================================================
 //
-void LDDocument::initializeGLData()
+void LDDocument::initializeCachedData()
 {
-	print (getDisplayName() + ": Initializing GL data");
+	if (not m_needsReCache)
+		return;
+
 	LDObjectList objs = inlineContents (true, true);
+	m_storedVertices.clear();
 
 	for (LDObject* obj : objs)
 	{
@@ -1309,19 +1316,21 @@ void LDDocument::initializeGLData()
 			delete data;
 		}
 
+		for (int i = 0; i < obj->vertices(); ++i)
+			m_storedVertices << obj->vertex (i);
+
 		obj->destroy();
 	}
 
-	m_needsGLReInit = false;
+	removeDuplicates (m_storedVertices);
+	m_needsReCache = false;
 }
 
 // =============================================================================
 //
 QList<LDPolygon> LDDocument::inlinePolygons()
 {
-	if (m_needsGLReInit == true)
-		initializeGLData();
-
+	initializeCachedData();
 	return polygonData();
 }
 
@@ -1529,4 +1538,12 @@ void LDDocument::removeReference (LDDocumentPointer* ptr)
 
 	if (references().isEmpty())
 		invokeLater (closeUnused);
+}
+
+// =============================================================================
+//
+QList<Vertex> LDDocument::inlineVertices()
+{
+	initializeCachedData();
+	return m_storedVertices;
 }

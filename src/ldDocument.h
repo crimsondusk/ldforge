@@ -94,7 +94,7 @@ class LDDocument : public QObject
 		QString getDisplayName();
 		const LDObjectList& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
-		void initializeGLData();
+		void initializeCachedData();
 		LDObjectList inlineContents (bool deep, bool renderinline);
 		void insertObj (int pos, LDObject* obj);
 		int getObjectCount() const;
@@ -109,6 +109,7 @@ class LDDocument : public QObject
 		void vertexChanged (const Vertex& a, const Vertex& b);
 		void addKnownVerticesOf(LDObject* obj);
 		void removeKnownVerticesOf (LDObject* sub);
+		QList<Vertex> inlineVertices();
 
 		inline LDDocument& operator<< (LDObject* obj)
 		{
@@ -165,10 +166,11 @@ class LDDocument : public QObject
 	private:
 		LDObjectList			m_sel;
 		LDGLData*				m_gldata;
+		QList<Vertex>			m_storedVertices;
 
 		// If set to true, next polygon inline of this document discards the
 		// stored polygon data and re-builds it.
-		bool					m_needsGLReInit;
+		bool					m_needsReCache;
 
 		static LDDocument*		m_curdoc;
 

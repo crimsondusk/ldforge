@@ -890,6 +890,6 @@ void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 		a->isImplicit() == false &&
 		a->polygonData().isEmpty())
 	{
-		a->initializeGLData();
+		a->initializeCachedData();
 	}
 };
