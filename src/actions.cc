@@ -857,7 +857,6 @@ DEFINE_ACTION (SubfileSelection, 0)
 		ref->setPosition (g_origin);
 		ref->setTransform (g_identity);
 		getCurrentDocument()->insertObj (refidx, ref);
-		R()->compileObject (ref);
 
 		// Refresh stuff
 		updateDocumentList();

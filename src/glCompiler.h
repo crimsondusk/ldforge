@@ -45,6 +45,7 @@ public:
 	void				needMerge();
 	void				prepareVBO (int vbonum);
 	void				stageForCompilation (LDObject* obj);
+	void				unstage (LDObject* obj);
 
 	static uint32		colorToRGB (const QColor& color);
 

@@ -53,6 +53,8 @@ static QList<int>		g_warnedColors;
 static const QColor		g_BFCFrontColor (40, 192, 40);
 static const QColor		g_BFCBackColor (224, 40, 40);
 
+// static QMap<LDObject*, QString> g_objectOrigins;
+
 // =============================================================================
 //
 void checkGLError_private (const char* file, int line)
@@ -191,7 +193,19 @@ void GLCompiler::needMerge()
 //
 void GLCompiler::stageForCompilation (LDObject* obj)
 {
+	/*
+	g_objectOrigins[obj] = format ("%1:%2 (%3)",
+		obj->document()->getDisplayName(), obj->lineNumber(), obj->typeName());
+	*/
+
 	m_staged << obj;
+}
+
+// =============================================================================
+//
+void GLCompiler::unstage (LDObject* obj)
+{
+	m_staged.removeOne (obj);
 }
 
 // =============================================================================
@@ -254,12 +268,16 @@ void GLCompiler::dropObject (LDObject* obj)
 		m_objectInfo.erase (it);
 		needMerge();
 	}
+
+	unstage (obj);
 }
 
 // =============================================================================
 //
 void GLCompiler::compileObject (LDObject* obj)
 {
+//	print ("Compile %1\n", g_objectOrigins[obj]);
+
 	if (obj->document()->isImplicit())
 		return;
 
