@@ -1245,7 +1245,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		selfloats << ((float) pixelptr[1]) / 255.0f;
 		selfloats << ((float) pixelptr[2]) / 255.0f;
 		selfloats << ((float) pixelptr[3]) / 255.0f;
-		print ("selection: %1\n", selfloats);
 
 		qint32 idx =
 			(*(pixelptr + 0) * 0x10000) +
@@ -1256,7 +1255,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		if (idx == 0xFFFFFF)
 			continue; // White is background; skip
 
-		dvalof (idx);
 		LDObject* obj = LDObject::fromID (idx);
 		assert (obj != null);
 
@@ -1622,14 +1620,6 @@ static QList<Vertex> getVertices (LDObject* obj)
 void GLRenderer::compileObject (LDObject* obj)
 {
 	compiler()->stageForCompilation (obj);
-
-	// Mark in known vertices of this object
-	/*
-	QList<Vertex> verts = getVertices (obj);
-	m_knownVerts << verts;
-	removeDuplicates (m_knownVerts);
-	*/
-
 	obj->setGLInit (true);
 }
 

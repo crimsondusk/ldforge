@@ -228,7 +228,6 @@ class GLRenderer : public QGLWidget
 		bool						m_rectdraw;
 		Vertex						m_rectverts[4];
 		QColor						m_bgcolor;
-		QList<Vertex>				m_knownVerts;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
 		LDOverlay*     findOverlayObject (EFixedCamera cam);
