@@ -755,7 +755,13 @@ void LDMatrixObject::setPosition (const Vertex& a)
 //
 void LDMatrixObject::setTransform (const Matrix& val)
 {
+	if (linkPointer()->document() != null)
+		linkPointer()->document()->removeKnownVerticesOf (linkPointer());
+
 	changeProperty (linkPointer(), &m_transform, val);
+
+	if (linkPointer()->document() != null)
+		linkPointer()->document()->addKnownVerticesOf (linkPointer());
 }
 
 // =============================================================================
