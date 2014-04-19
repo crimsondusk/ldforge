@@ -109,9 +109,9 @@ struct LDGLAxis
 // Definitions for visual axes, drawn on the screen
 static const LDGLAxis g_GLAxes[3] =
 {
-	{ QColor (255,   0,   0), Vertex (10000, 0, 0) }, // X
-	{ QColor (80,  192,   0), Vertex (0, 10000, 0) }, // Y
-	{ QColor (0,   160, 192), Vertex (0, 0, 10000) }, // Z
+	{ QColor (192,  96,  96), Vertex (10000, 0, 0) }, // X
+	{ QColor (48,  192,  48), Vertex (0, 10000, 0) }, // Y
+	{ QColor (48,  112, 192), Vertex (0, 0, 10000) }, // Z
 };
 
 static GLuint g_GLAxes_VBO;
