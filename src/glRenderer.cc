@@ -434,7 +434,9 @@ void GLRenderer::drawGLScene()
 		}
 
 		drawVBOs (VBOSF_Lines, VBOCM_NormalColors, GL_LINES);
+		glEnable (GL_LINE_STIPPLE);
 		drawVBOs (VBOSF_CondLines, VBOCM_NormalColors, GL_LINES);
+		glDisable (GL_LINE_STIPPLE);
 
 		if (gl_axes)
 		{
