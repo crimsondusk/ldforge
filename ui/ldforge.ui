@@ -353,6 +353,7 @@
    <addaction name="actionAxes"/>
    <addaction name="actionWireframe"/>
    <addaction name="actionBFCView"/>
+   <addaction name="actionRandomColors"/>
    <addaction name="actionDrawAngles"/>
   </widget>
   <widget class="QToolBar" name="toolBar_7">
@@ -1352,6 +1353,10 @@
   <action name="actionRandomColors">
    <property name="checkable">
     <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../ldforge.qrc">
+     <normaloff>:/icons/random-colors.png</normaloff>:/icons/random-colors.png</iconset>
    </property>
    <property name="text">
     <string>Random colors</string>
