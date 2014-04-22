@@ -226,8 +226,8 @@ void MainWindow::updateColorToolbar()
 		else
 		{
 			QToolButton* colorButton = new QToolButton;
-			colorButton->setIcon (makeColorIcon (entry.color(), 22));
-			colorButton->setIconSize (QSize (22, 22));
+			colorButton->setIcon (makeColorIcon (entry.color(), 16));
+			colorButton->setIconSize (QSize (16, 16));
 			colorButton->setToolTip (entry.color()->name);
 
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
