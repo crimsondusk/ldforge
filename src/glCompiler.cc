@@ -127,27 +127,52 @@ QColor GLCompiler::indexColorForID (int id) const
 
 // =============================================================================
 //
-QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObject* topobj) const
+QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObject* topobj,
+									   EVBOComplement complement) const
 {
 	QColor qcol;
 
-	if (poly.color == maincolor)
+	switch (complement)
 	{
-		if (topobj->color() == maincolor)
-			qcol = GLRenderer::getMainColor();
-		else
-			qcol = getColor (topobj->color())->faceColor;
-	}
-	elif (poly.color == edgecolor)
-	{
-		qcol = luma (QColor (gl_bgcolor)) > 40 ? Qt::black : Qt::white;
-	}
-	else
-	{
-		LDColor* col = getColor (poly.color);
+		case VBOCM_Surfaces:
+		case VBOCM_NumComplements:
+			return QColor();
 
-		if (col)
-			qcol = col->faceColor;
+		case VBOCM_BFCFrontColors:
+			qcol = g_BFCFrontColor;
+			break;
+
+		case VBOCM_BFCBackColors:
+			qcol = g_BFCBackColor;
+			break;
+
+		case VBOCM_PickColors:
+			return indexColorForID (topobj->id());
+
+		case VBOCM_RandomColors:
+			qcol = topobj->randomColor();
+			break;
+
+		case VBOCM_NormalColors:
+			if (poly.color == maincolor)
+			{
+				if (topobj->color() == maincolor)
+					qcol = GLRenderer::getMainColor();
+				else
+					qcol = getColor (topobj->color())->faceColor;
+			}
+			elif (poly.color == edgecolor)
+			{
+				qcol = luma (QColor (gl_bgcolor)) > 40 ? Qt::black : Qt::white;
+			}
+			else
+			{
+				LDColor* col = getColor (poly.color);
+
+				if (col)
+					qcol = col->faceColor;
+			}
+			break;
 	}
 
 	if (not qcol.isValid())
@@ -284,7 +309,40 @@ void GLCompiler::compileObject (LDObject* obj)
 	ObjectVBOInfo info;
 	info.isChanged = true;
 	dropObject (obj);
-	compileSubObject (obj, obj, &info);
+
+	switch (obj->type())
+	{
+		// Note: We cannot split quads into triangles here, it would mess up the
+		// wireframe view. Quads must go into separate vbos.
+		case LDObject::ETriangle:
+		case LDObject::EQuad:
+		case LDObject::ELine:
+		case LDObject::ECondLine:
+		{
+			LDPolygon* poly = obj->getPolygon();
+			poly->id = obj->id();
+			compilePolygon (*poly, obj, &info);
+			delete poly;
+			break;
+		}
+
+		case LDObject::ESubfile:
+		{
+			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			auto data = ref->inlinePolygons();
+
+			for (LDPolygon& poly : data)
+			{
+				poly.id = obj->id();
+				compilePolygon (poly, obj, &info);
+			}
+			break;
+		}
+
+		default:
+			break;
+	}
+
 	m_objectInfo[obj] = info;
 	needMerge();
 }
@@ -309,103 +367,24 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 	{
 		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
-		const QColor normalColor	= getColorForPolygon (poly, topobj);
-		const QColor pickColor		= indexColorForID (topobj->id());
+		const QColor color			= getColorForPolygon (poly, topobj, (EVBOComplement) complement);
 
 		for (int vert = 0; vert < numverts; ++vert)
 		{
-			switch ((EVBOComplement) complement)
+			if (complement == VBOCM_Surfaces)
 			{
-				case VBOCM_Surfaces:
-				{
-					// Write coordinates. Apparently Z must be flipped too?
-					vbodata	<< poly.vertices[vert].x()
-							<< -poly.vertices[vert].y()
-							<< -poly.vertices[vert].z();
-					break;
-				}
-
-				case VBOCM_NormalColors:
-				{
-					writeColor (vbodata, normalColor);
-					break;
-				}
-
-				case VBOCM_PickColors:
-				{
-					writeColor (vbodata, pickColor);
-					break;
-				}
-
-				case VBOCM_BFCFrontColors:
-				{
-					writeColor (vbodata, g_BFCFrontColor);
-					break;
-				}
-
-				case VBOCM_BFCBackColors:
-				{
-					writeColor (vbodata, g_BFCBackColor);
-					break;
-				}
-
-				case VBOCM_RandomColors:
-				{
-					writeColor (vbodata, topobj->randomColor());
-					break;
-				}
-
-				case VBOCM_NumComplements:
-					break;
+				// Write coordinates. Apparently Z must be flipped too?
+				vbodata	<< poly.vertices[vert].x()
+						<< -poly.vertices[vert].y()
+						<< -poly.vertices[vert].z();
+			}
+			else
+			{
+				vbodata	<< ((GLfloat) color.red()) / 255.0f
+						<< ((GLfloat) color.green()) / 255.0f
+						<< ((GLfloat) color.blue()) / 255.0f
+						<< ((GLfloat) color.alpha()) / 255.0f;
 			}
 		}
 	}
-}
-
-// =============================================================================
-//
-void GLCompiler::compileSubObject (LDObject* obj, LDObject* topobj, ObjectVBOInfo* objinfo)
-{
-	switch (obj->type())
-	{
-		// Note: We cannot split quads into triangles here, it would mess up the
-		// wireframe view. Quads must go into separate vbos.
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
-		case LDObject::ELine:
-		case LDObject::ECondLine:
-		{
-			LDPolygon* poly = obj->getPolygon();
-			poly->id = topobj->id();
-			compilePolygon (*poly, topobj, objinfo);
-			delete poly;
-			break;
-		}
-
-		case LDObject::ESubfile:
-		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
-			auto data = ref->inlinePolygons();
-
-			for (LDPolygon& poly : data)
-			{
-				poly.id = topobj->id();
-				compilePolygon (poly, topobj, objinfo);
-			}
-			break;
-		}
-
-		default:
-			break;
-	}
-}
-
-// =============================================================================
-//
-void GLCompiler::writeColor (QVector<GLfloat>& array, const QColor& color)
-{
-	array	<< ((GLfloat) color.red()) / 255.0f
-			<< ((GLfloat) color.green()) / 255.0f
-			<< ((GLfloat) color.blue()) / 255.0f
-			<< ((GLfloat) color.alpha()) / 255.0f;
 }

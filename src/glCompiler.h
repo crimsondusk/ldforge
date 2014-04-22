@@ -40,7 +40,8 @@ public:
 	void				compileDocument (LDDocument* doc);
 	void				dropObject (LDObject* obj);
 	void				initialize();
-	QColor				getColorForPolygon (LDPolygon& poly, LDObject* topobj) const;
+	QColor				getColorForPolygon (LDPolygon& poly, LDObject* topobj,
+											EVBOComplement complement) const;
 	QColor				indexColorForID (int id) const;
 	void				needMerge();
 	void				prepareVBO (int vbonum);
@@ -67,8 +68,6 @@ public:
 private:
 	void			compileStaged();
 	void			compileObject (LDObject* obj);
-	void			compileSubObject (LDObject* obj, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
-	void			writeColor (QVector<float>& array, const QColor& color);
 	void			compilePolygon (LDPolygon& poly, LDObject* topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
 	QMap<LDObject*, ObjectVBOInfo>		m_objectInfo;
