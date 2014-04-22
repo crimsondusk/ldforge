@@ -606,7 +606,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Uncolorize, 0)
+DEFINE_ACTION (Uncolor, 0)
 {
 	int num = 0;
 

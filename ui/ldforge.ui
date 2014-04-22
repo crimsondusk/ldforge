@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1010</width>
-     <height>26</height>
+     <height>27</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -159,7 +159,7 @@
     </property>
     <addaction name="actionSetColor"/>
     <addaction name="actionAutocolor"/>
-    <addaction name="actionUncolorize"/>
+    <addaction name="actionUncolor"/>
     <addaction name="separator"/>
     <addaction name="actionInvert"/>
     <addaction name="actionInline"/>
@@ -366,7 +366,6 @@
    </attribute>
    <addaction name="actionSetColor"/>
    <addaction name="actionAutocolor"/>
-   <addaction name="actionUncolorize"/>
    <addaction name="actionInvert"/>
    <addaction name="actionSplitQuads"/>
    <addaction name="actionInline"/>
@@ -853,13 +852,16 @@
     <string>Set the color of the given object to the first found unused color.</string>
    </property>
   </action>
-  <action name="actionUncolorize">
+  <action name="actionUncolor">
    <property name="icon">
     <iconset resource="../ldforge.qrc">
      <normaloff>:/icons/uncolorize.png</normaloff>:/icons/uncolorize.png</iconset>
    </property>
    <property name="text">
-    <string>Uncolorize</string>
+    <string>Uncolor</string>
+   </property>
+   <property name="toolTip">
+    <string>Uncolor</string>
    </property>
    <property name="statusTip">
     <string>Reduce colors of everything selected to main and edge colors</string>
