@@ -51,6 +51,7 @@ enum EVBOComplement
 	VBOCM_PickColors,
 	VBOCM_BFCFrontColors,
 	VBOCM_BFCBackColors,
+	VBOCM_RandomColors,
 	VBOCM_NumComplements
 };
 

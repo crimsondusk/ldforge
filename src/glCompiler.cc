@@ -50,8 +50,8 @@ extern_cfg (Bool, gl_blackedges);
 extern_cfg (String, gl_bgcolor);
 
 static QList<int>		g_warnedColors;
-static const QColor		g_BFCFrontColor (40, 192, 40);
-static const QColor		g_BFCBackColor (224, 40, 40);
+static const QColor		g_BFCFrontColor (64, 192, 80);
+static const QColor		g_BFCBackColor (208, 64, 64);
 
 // static QMap<LDObject*, QString> g_objectOrigins;
 
@@ -346,6 +346,12 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 				case VBOCM_BFCBackColors:
 				{
 					writeColor (vbodata, g_BFCBackColor);
+					break;
+				}
+
+				case VBOCM_RandomColors:
+				{
+					writeColor (vbodata, topobj->randomColor());
 					break;
 				}
 

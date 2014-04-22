@@ -290,6 +290,7 @@ class MainWindow : public QMainWindow
 		void slot_actionJumpTo();
 		void slot_actionSubfileSelection();
 		void slot_actionDrawAngles();
+		void slot_actionRandomColors();
 
 	protected:
 		void closeEvent (QCloseEvent* ev);

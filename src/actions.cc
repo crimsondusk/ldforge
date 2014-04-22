@@ -44,6 +44,7 @@ extern_cfg (String,	ld_defaultname);
 extern_cfg (String,	ld_defaultuser);
 extern_cfg (Int,		ld_defaultlicense);
 extern_cfg (Bool,		gl_drawangles);
+extern_cfg (Bool,		gl_randomcolors)
 
 // =============================================================================
 //
@@ -867,4 +868,10 @@ DEFINE_ACTION (SubfileSelection, 0)
 		// Failed to save.
 		delete doc;
 	}
+}
+
+DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
+{
+	gl_randomcolors = not gl_randomcolors;
+	R()->refresh();
 }

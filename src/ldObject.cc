@@ -48,6 +48,7 @@ LDObject::LDObject() :
 	memset (m_coords, 0, sizeof m_coords);
 	chooseID();
 	g_LDObjects << this;
+	setRandomColor (QColor::fromRgb (rand()));
 }
 
 // =============================================================================
@@ -887,6 +888,9 @@ LDObject* LDObject::createCopy() const
 //
 void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 {
+	if (document() != null)
+		document()->removeKnownVerticesOf (this);
+
 	m_fileInfo = a;
 
 	// If it's an immediate subfile reference (i.e. this subfile belongs in an
@@ -898,4 +902,7 @@ void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 	{
 		a->initializeCachedData();
 	}
+
+	if (document() != null)
+		document()->addKnownVerticesOf (this);
 };

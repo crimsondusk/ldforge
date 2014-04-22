@@ -76,6 +76,7 @@ cfg (Bool,		gl_logostuds,			false)
 cfg (Bool,		gl_aa,					true)
 cfg (Bool,		gl_linelengths,			true)
 cfg (Bool,		gl_drawangles,			false)
+cfg (Bool,		gl_randomcolors,		false)
 
 // argh
 const char* g_CameraNames[7] =
@@ -429,8 +430,16 @@ void GLRenderer::drawGLScene()
 		}
 		else
 		{
-			drawVBOs (VBOSF_Triangles, VBOCM_NormalColors, GL_TRIANGLES);
-			drawVBOs (VBOSF_Quads, VBOCM_NormalColors, GL_QUADS);
+			if (gl_randomcolors)
+			{
+				drawVBOs (VBOSF_Triangles, VBOCM_RandomColors, GL_TRIANGLES);
+				drawVBOs (VBOSF_Quads, VBOCM_RandomColors, GL_QUADS);
+			}
+			else
+			{
+				drawVBOs (VBOSF_Triangles, VBOCM_NormalColors, GL_TRIANGLES);
+				drawVBOs (VBOSF_Quads, VBOCM_NormalColors, GL_QUADS);
+			}
 		}
 
 		drawVBOs (VBOSF_Lines, VBOCM_NormalColors, GL_LINES);
