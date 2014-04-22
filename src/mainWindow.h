@@ -242,7 +242,7 @@ class MainWindow : public QMainWindow
 		void slot_actionSetDrawDepth();
 		void slot_actionSetColor();
 		void slot_actionAutocolor();
-		void slot_actionUncolorize();
+		void slot_actionUncolor();
 		void slot_actionInline();
 		void slot_actionInlineDeep();
 		void slot_actionInvert();
