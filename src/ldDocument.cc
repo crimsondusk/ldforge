@@ -1286,7 +1286,7 @@ QString LDDocument::getDisplayName()
 	if (not defaultName().isEmpty())
 		return "[" + defaultName() + "]";
 
-	return tr ("<anonymous>");
+	return tr ("untitled");
 }
 
 // =============================================================================
