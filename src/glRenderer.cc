@@ -271,10 +271,10 @@ void GLRenderer::initializeAxes()
 
 	for (int i = 0; i < 3; ++i)
 	{
-		for (int j = 0; j < 3; ++j)
+		for_axes (ax)
 		{
-			axesdata[(i * 6) + j] = g_GLAxes[i].vert.getCoordinate (j);
-			axesdata[(i * 6) + 3 + j] = -g_GLAxes[i].vert.getCoordinate (j);
+			axesdata[(i * 6) + ax] = g_GLAxes[i].vert[ax];
+			axesdata[(i * 6) + 3 + ax] = -g_GLAxes[i].vert[ax];
 		}
 
 		for (int j = 0; j < 2; ++j)
@@ -525,9 +525,9 @@ Vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 	roundToDecimals (cy, 4);
 
 	// Create the vertex from the coordinates
-	pos3d[axisX] = cx;
-	pos3d[axisY] = cy;
-	pos3d[3 - axisX - axisY] = getDepthValue();
+	pos3d.setCoordinate (axisX, cx);
+	pos3d.setCoordinate (axisY, cy);
+	pos3d.setCoordinate ((Axis) (3 - axisX - axisY), getDepthValue());
 	return pos3d;
 }
 
@@ -552,9 +552,9 @@ QPoint GLRenderer::coordconv3_2 (const Vertex& pos3d) const
 	const double z = pos3d.z();
 
 	Vertex transformed;
-	transformed[X] = (m[0] * x) + (m[1] * y) + (m[2] * z) + m[3];
-	transformed[Y] = (m[4] * x) + (m[5] * y) + (m[6] * z) + m[7];
-	transformed[Z] = (m[8] * x) + (m[9] * y) + (m[10] * z) + m[11];
+	transformed.setX ((m[0] * x) + (m[1] * y) + (m[2] * z) + m[3]);
+	transformed.setY ((m[4] * x) + (m[5] * y) + (m[6] * z) + m[7]);
+	transformed.setZ ((m[8] * x) + (m[9] * y) + (m[10] * z) + m[11]);
 
 	double rx = (((transformed[axisX] * negXFac) + m_virtWidth + pan (X)) * m_width) / (2 * m_virtWidth);
 	double ry = (((transformed[axisY] * negYFac) - m_virtHeight + pan (Y)) * m_height) / (2 * m_virtHeight);
@@ -691,7 +691,7 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 
 						if (gl_linelengths)
 						{
-							const QString label = QString::number (poly3d[i].distanceTo (poly3d[j]));
+							const QString label = QString::number ((poly3d[j] - poly3d[i]).length());
 							QPoint origin = QLineF (poly[i], poly[j]).pointAt (0.5).toPoint();
 							paint.drawText (origin, label);
 						}
@@ -737,14 +737,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 				for (int i = 0; i < segs; ++i)
 				{
 					Vertex v = g_origin;
-					v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0);
-					v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist0);
+					v.setCoordinate (relX, m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist0));
+					v.setCoordinate (relY, m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist0));
 					verts << v;
 
 					if (dist1 != -1)
 					{
-						v[relX] = m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist1);
-						v[relY] = m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist1);
+						v.setCoordinate (relX, m_drawedVerts[0][relX] + (cos (i * angleUnit) * dist1));
+						v.setCoordinate (relY, m_drawedVerts[0][relY] + (sin (i * angleUnit) * dist1));
 						verts2 << v;
 					}
 				}
@@ -1510,9 +1510,9 @@ void GLRenderer::endDraw (bool accept)
 					y0 = m_drawedVerts[0][relY];
 
 				Vertex templ;
-				templ[relX] = x0;
-				templ[relY] = y0;
-				templ[relZ] = getDepthValue();
+				templ.setCoordinate (relX, x0);
+				templ.setCoordinate (relY, y0);
+				templ.setCoordinate (relZ, getDepthValue());
 
 				// Calculate circle coords
 				makeCircle (segs, divs, dist0, c0);
@@ -1522,14 +1522,14 @@ void GLRenderer::endDraw (bool accept)
 				{
 					Vertex v0, v1, v2, v3;
 					v0 = v1 = v2 = v3 = templ;
-					v0[relX] += c0[i].x1();
-					v0[relY] += c0[i].y1();
-					v1[relX] += c0[i].x2();
-					v1[relY] += c0[i].y2();
-					v2[relX] += c1[i].x2();
-					v2[relY] += c1[i].y2();
-					v3[relX] += c1[i].x1();
-					v3[relY] += c1[i].y1();
+					v0.setCoordinate (relX, v0[relX] + c0[i].x1());
+					v0.setCoordinate (relY, v0[relY] + c0[i].y1());
+					v1.setCoordinate (relX, v1[relX] + c0[i].x2());
+					v1.setCoordinate (relY, v1[relY] + c0[i].y2());
+					v2.setCoordinate (relX, v2[relX] + c1[i].x2());
+					v2.setCoordinate (relY, v2[relY] + c1[i].y2());
+					v3.setCoordinate (relX, v3[relX] + c1[i].x1());
+					v3.setCoordinate (relY, v3[relY] + c1[i].y1());
 
 					LDQuad* q = new LDQuad (v0, v1, v2, v3);
 					q->setColor (maincolor);
@@ -1725,10 +1725,10 @@ bool GLRenderer::setupOverlay (EFixedCamera cam, QString file, int x, int y, int
 		negYFac = g_FixedCameras[cam].negY ? -1 : 1;
 
 	info.v0 = info.v1 = g_origin;
-	info.v0[x2d] = - (info.ox * info.lw * negXFac) / img->width();
-	info.v0[y2d] = (info.oy * info.lh * negYFac) / img->height();
-	info.v1[x2d] = info.v0[x2d] + info.lw;
-	info.v1[y2d] = info.v0[y2d] + info.lh;
+	info.v0.setCoordinate (x2d, -(info.ox * info.lw * negXFac) / img->width());
+	info.v0.setCoordinate (y2d, (info.oy * info.lh * negYFac) / img->height());
+	info.v1.setCoordinate (x2d, info.v0[x2d] + info.lw);
+	info.v1.setCoordinate (y2d, info.v0[y2d] + info.lh);
 
 	// Set alpha of all pixels to 0.5
 	for (long i = 0; i < img->width(); ++i)
@@ -1933,16 +1933,16 @@ void GLRenderer::updateRectVerts()
 			   az = (Axis) (3 - ax - ay);
 
 	for (int i = 0; i < 4; ++i)
-		m_rectverts[i][az] = getDepthValue();
+		m_rectverts[i].setCoordinate (az, getDepthValue());
 
-	m_rectverts[0][ax] = v0[ax];
-	m_rectverts[0][ay] = v0[ay];
-	m_rectverts[1][ax] = v1[ax];
-	m_rectverts[1][ay] = v0[ay];
-	m_rectverts[2][ax] = v1[ax];
-	m_rectverts[2][ay] = v1[ay];
-	m_rectverts[3][ax] = v0[ax];
-	m_rectverts[3][ay] = v1[ay];
+	m_rectverts[0].setCoordinate (ax, v0[ax]);
+	m_rectverts[0].setCoordinate (ay, v0[ay]);
+	m_rectverts[1].setCoordinate (ax, v1[ax]);
+	m_rectverts[1].setCoordinate (ay, v0[ay]);
+	m_rectverts[2].setCoordinate (ax, v1[ax]);
+	m_rectverts[2].setCoordinate (ay, v1[ay]);
+	m_rectverts[3].setCoordinate (ax, v0[ax]);
+	m_rectverts[3].setCoordinate (ay, v1[ay]);
 }
 
 // =============================================================================

@@ -819,10 +819,7 @@ void checkTokenNumbers (QString line, const QStringList& tokens, int min, int ma
 static Vertex parseVertex (QStringList& s, const int n)
 {
 	Vertex v;
-
-	for_axes (ax)
-		v[ax] = s[n + ax].toDouble();
-
+	v.apply ([&] (Axis ax, double& a) { a = s[n + ax].toDouble(); });
 	return v;
 }
 
@@ -892,10 +889,7 @@ LDObject* parseLine (QString line)
 
 						LDVertex* obj = new LDVertex;
 						obj->setColor (tokens[3].toLong());
-
-						for_axes (ax)
-							obj->pos[ax] = tokens[4 + ax].toDouble(); // 4 - 6
-
+						obj->pos.apply ([&](Axis ax, double& value) { value = tokens[4 + ax].toDouble(); });
 						return obj;
 					} elif (tokens[2] == "OVERLAY")
 					{

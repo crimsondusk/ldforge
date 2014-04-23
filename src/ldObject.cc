@@ -73,7 +73,7 @@ void LDObject::chooseID()
 void LDObject::setVertexCoord (int i, Axis ax, double value)
 {
 	Vertex v = vertex (i);
-	v[ax] = value;
+	v.setCoordinate (ax, value);
 	setVertex (i, v);
 }
 

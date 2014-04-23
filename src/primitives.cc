@@ -518,9 +518,9 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 		elif (type == Cone)
 		{
 			v1 = Vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
-			v0[X] *= num;
-			v0[Y] = 1.0f;
-			v0[Z] *= num;
+			v0.setX (v0.x() * num);
+			v0.setY (1.0);
+			v0.setZ (v0.z() * num);
 		}
 
 		LDCondLine* line = new LDCondLine;

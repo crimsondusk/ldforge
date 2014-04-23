@@ -38,7 +38,7 @@ class StringFormatArg
 		StringFormatArg (long a) : m_text (QString::number (a)) {}
 		StringFormatArg (const float& a) : m_text (QString::number (a)) {}
 		StringFormatArg (const double& a) : m_text (QString::number (a)) {}
-		StringFormatArg (const Vertex& a) : m_text (a.toString (false)) {}
+		StringFormatArg (const Vertex& a) : m_text (a.toString()) {}
 		StringFormatArg (const Matrix& a) : m_text (a.toString()) {}
 		StringFormatArg (const char* a) : m_text (a) {}
 

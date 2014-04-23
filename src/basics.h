@@ -21,6 +21,7 @@
 #include <QObject>
 #include <QStringList>
 #include <QMetaType>
+#include <QVector3D>
 #include "macros.h"
 
 class LDObject;
@@ -49,7 +50,33 @@ enum Axis
 // =============================================================================
 //
 class LDObject;
+class Matrix;
 using LDObjectList = QList<LDObject*>;
+
+//!
+//! Derivative of QVector3D: this class is used for the vertices.
+//!
+class Vertex : public QVector3D
+{
+public:
+	using ApplyFunction = std::function<void (Axis, double&)>;
+	using ApplyConstFunction = std::function<void (Axis, double)>;
+
+	Vertex();
+	Vertex (const QVector3D& a);
+	Vertex (qreal xpos, qreal ypos, qreal zpos);
+
+	void	apply (ApplyFunction func);
+	void	apply (ApplyConstFunction func) const;
+	QString	toString (bool mangled = false) const;
+	void	transform (const Matrix& matr, const Vertex& pos);
+	void	setCoordinate (Axis ax, qreal value);
+
+	bool	operator< (const Vertex& other) const;
+	double	operator[] (Axis ax) const;
+};
+
+Q_DECLARE_METATYPE (Vertex)
 
 //!
 //! \brief A mathematical 3 x 3 matrix
@@ -137,155 +164,6 @@ class Matrix
 	private:
 		double m_vals[9];
 };
-
-//!
-//! \brief A vertex in 3D space
-//!
-//! Contains a single point in 3D space. Not to be confused with
-//! LDVertex, which is a vertex used in an LDraw part file.
-//!
-//! This also sees use as a position vector.
-//!
-class Vertex
-{
-	public:
-		//! Constructs a zero vertex
-		Vertex() :
-			m_coords{0, 0, 0} {}
-
-		//! Constructs a vertex with the given \c x, \c y and \c z.
-		Vertex (double x, double y, double z);
-
-		//! \returns the distance from this vertex to \c other
-		double			distanceTo (const Vertex& other) const;
-
-		//! \returns the vertex at the midpoint between this and \c other
-		Vertex			midpoint (const Vertex& other);
-
-		//! Moves this vertex using \param other as a position vector.
-		void			move (const Vertex& other);
-
-		//! Yields a string representation of the vertex. The string returned
-		//! can possibly be mangled.
-		//! - As mangled: {1.5, 2.8, 3.14}
-		//! - Without mangling: 1.5 2.8 3.14
-		//!
-		//! The mangled version is suitable for printing to the user, the
-		//! non-mangled one is used when writing the vertex to LDraw files.
-		//!
-		//! \returns a string representation of this vertex
-		//! \param mangled whether to return a mangled representation or not
-		QString			toString (bool mangled) const;
-
-		//! Transforms this vertex with \c matr as transformation matrix
-		//! and \c pos as the position column of the 4x4 matrix.
-		void			transform (const Matrix& matr, const Vertex& pos);
-
-		//! An operator overload for \c move().
-		Vertex&			operator+= (const Vertex& other);
-
-		//! An operator overload for \c move(), using a temporary vertex.
-		Vertex			operator+ (const Vertex& other) const;
-
-		//! Divides all values by \c d.
-		Vertex			operator/ (const double d) const;
-
-		//! Divides all values by \c d.
-		Vertex&			operator/= (const double d);
-
-		//! Checks whether this vertex has the same values as \c other.
-		bool			operator== (const Vertex& other) const;
-
-		//! Checks whether this vertex has different values than \c other.
-		bool			operator!= (const Vertex& other) const;
-
-		//! \returns a negated version the vertex
-		Vertex			operator-() const;
-
-		//! \returns whether the vertex has lesser values than \c other.
-		int				operator< (const Vertex& other) const;
-
-		//! An operator overload for \c getCoordinate().
-		inline double& operator[] (const Axis ax)
-		{
-			return getCoordinate ((int) ax);
-		}
-
-		//! An operator overload for \c getCoordinate() const.
-		inline const double& operator[] (const Axis ax) const
-		{
-			return getCoordinate ((int) ax);
-		}
-
-		//! An operator overload for \c getCoordinate().
-		inline double& operator[] (const int ax)
-		{
-			return getCoordinate (ax);
-		}
-
-		//! An operator overload for \c getCoordinate() const.
-		inline const double& operator[] (const int ax) const
-		{
-			return getCoordinate (ax);
-		}
-
-		//! \returns a mutable reference for the coordinate designated by \param n.
-		inline double& getCoordinate (int n)
-		{
-			return m_coords[n];
-		}
-
-		//! An overload of \c getCoordinate for const vertices.
-		//! \returns a const reference for the coordinate designated by \param n.
-		inline const double& getCoordinate (int n) const
-		{
-			return m_coords[n];
-		}
-
-		//! \returns a mutable reference to X.
-		inline double& x()
-		{
-			return m_coords[X];
-		}
-
-		//! An overload of \c x() for const vertices.
-		//! \returns a const reference to X.
-		inline const double& x() const
-		{
-			return m_coords[X];
-		}
-
-		//! \returns a mutable reference to Y.
-		inline double& y()
-		{
-			return m_coords[Y];
-		}
-
-		//! An overload of \c y() for const vertices.
-		//! \returns a const reference to Y.
-		inline const double& y() const
-		{
-			return m_coords[Y];
-		}
-
-		//! \returns a mutable reference to Z.
-		inline double& z()
-		{
-			return m_coords[Z];
-		}
-
-		//! An overload of \c z() for const vertices.
-		//! \returns a const reference to Z.
-		inline const double& z() const
-		{
-			return m_coords[Z];
-		}
-
-	private:
-		double m_coords[3];
-};
-
-Q_DECLARE_METATYPE (Vertex)
 
 //!
 //! Defines a bounding box that encompasses a given set of objects.

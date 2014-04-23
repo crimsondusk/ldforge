@@ -27,148 +27,79 @@
 #include "ldObject.h"
 #include "ldDocument.h"
 
-// =============================================================================
-//
-Vertex::Vertex (double x, double y, double z)
-{
-	m_coords[X] = x;
-	m_coords[Y] = y;
-	m_coords[Z] = z;
-}
+Vertex::Vertex() :
+	QVector3D() {}
 
-// =============================================================================
-//
-void Vertex::move (const Vertex& other)
-{
-	for_axes (ax)
-		m_coords[ax] += other[ax];
-}
+Vertex::Vertex (const QVector3D& a) :
+	QVector3D (a) {}
 
-// =============================================================================
-//
-double Vertex::distanceTo (const Vertex& other) const
-{
-	double dx = abs (x() - other.x());
-	double dy = abs (y() - other.y());
-	double dz = abs (z() - other.z());
-	return sqrt ((dx * dx) + (dy * dy) + (dz * dz));
-}
+Vertex::Vertex (qreal xpos, qreal ypos, qreal zpos) :
+	QVector3D(xpos, ypos, zpos) {}
 
-// =============================================================================
-//
-Vertex Vertex::midpoint (const Vertex& other)
-{
-	Vertex mid;
 
-	for_axes (ax)
-		mid[ax] = (getCoordinate (ax) + other[ax]) / 2;
-
-	return mid;
-}
-
-// =============================================================================
-//
-QString Vertex::toString (bool mangled) const
-{
-	QString formatstr = "%1 %2 %3";
-
-	if (mangled)
-		formatstr = "(%1, %2, %3)";
-
-	return format (formatstr, x(), y(), z());
-}
-
-// =============================================================================
-//
 void Vertex::transform (const Matrix& matr, const Vertex& pos)
 {
-	double x2 = (matr[0] * x()) + (matr[1] * y()) + (matr[2] * z()) + pos[X];
-	double y2 = (matr[3] * x()) + (matr[4] * y()) + (matr[5] * z()) + pos[Y];
-	double z2 = (matr[6] * x()) + (matr[7] * y()) + (matr[8] * z()) + pos[Z];
-
-	x() = x2;
-	y() = y2;
-	z() = z2;
+	double x2 = (matr[0] * x()) + (matr[1] * y()) + (matr[2] * z()) + pos.x();
+	double y2 = (matr[3] * x()) + (matr[4] * y()) + (matr[5] * z()) + pos.y();
+	double z2 = (matr[6] * x()) + (matr[7] * y()) + (matr[8] * z()) + pos.z();
+	setX (x2);
+	setY (y2);
+	setZ (z2);
 }
 
-// =============================================================================
-//
-Vertex Vertex::operator-() const
+void Vertex::apply (ApplyFunction func)
 {
-	return Vertex (-m_coords[X], -m_coords[Y], -m_coords[Z]);
+	double newX = x(), newY = y(), newZ = z();
+	func (X, newX);
+	func (Y, newY);
+	func (Z, newZ);
+	*this = Vertex (newX, newY, newZ);
 }
 
-// =============================================================================
-//
-bool Vertex::operator!= (const Vertex& other) const
+void Vertex::apply (ApplyConstFunction func) const
 {
-	return not operator== (other);
+	func (X, x());
+	func (Y, y());
+	func (Z, z());
 }
 
-// =============================================================================
-//
-bool Vertex::operator== (const Vertex& other) const
+double Vertex::operator[] (Axis ax) const
 {
-	return getCoordinate (X) == other[X] &&
-		   getCoordinate (Y) == other[Y] &&
-		   getCoordinate (Z) == other[Z];
+	switch (ax)
+	{
+		case X: return x();
+		case Y: return y();
+		case Z: return z();
+	}
+
+	assert (false);
+	return 0.0;
 }
 
-// =============================================================================
-//
-Vertex& Vertex::operator/= (const double d)
+void Vertex::setCoordinate (Axis ax, qreal value)
 {
-	for_axes (ax)
-		m_coords[ax] /= d;
-
-	return *this;
+	switch (ax)
+	{
+		case X: setX (value); break;
+		case Y: setY (value); break;
+		case Z: setZ (value); break;
+	}
 }
 
-// =============================================================================
-//
-Vertex Vertex::operator/ (const double d) const
+QString Vertex::toString (bool mangled) const
 {
-	Vertex other (*this);
-	return other /= d;
+	if (mangled)
+		return format ("(%1, %2, %3)", x(), y(), z());
+
+	return format ("%1 %2 %3", x(), y(), z());
 }
 
-// =============================================================================
-//
-Vertex& Vertex::operator+= (const Vertex& other)
+bool Vertex::operator< (const Vertex& other) const
 {
-	move (other);
-	return *this;
-}
-
-// =============================================================================
-//
-Vertex Vertex::operator+ (const Vertex& other) const
-{
-	Vertex newvert (*this);
-	newvert.move (other);
-	return newvert;
-}
-
-// =============================================================================
-//
-int Vertex::operator< (const Vertex& other) const
-{
-	if (operator== (other))
-		return false;
-
-	if (getCoordinate (X) < other[X])
-		return true;
-
-	if (getCoordinate (X) > other[X])
-		return false;
-
-	if (getCoordinate (Y) < other[Y])
-		return true;
-
-	if (getCoordinate (Y) > other[Y])
-		return false;
-
-	return getCoordinate (Z) < other[Z];
+	if (x() != other.x()) return x() < other.x();
+	if (y() != other.y()) return y() < other.y();
+	if (z() != other.z()) return z() < other.z();
+	return false;
 }
 
 // =============================================================================
@@ -351,12 +282,12 @@ LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
 //
 void LDBoundingBox::calcVertex (const Vertex& vertex)
 {
-	for_axes (ax)
-	{
-		m_vertex0[ax] = min (vertex[ax], m_vertex0[ax]);
-		m_vertex1[ax] = max (vertex[ax], m_vertex1[ax]);
-	}
-
+	m_vertex0.setX (min (vertex.x(), m_vertex0.x()));
+	m_vertex0.setY (min (vertex.y(), m_vertex0.y()));
+	m_vertex0.setZ (min (vertex.z(), m_vertex0.z()));
+	m_vertex1.setX (max (vertex.x(), m_vertex1.x()));
+	m_vertex1.setY (max (vertex.y(), m_vertex1.y()));
+	m_vertex1.setZ (max (vertex.z(), m_vertex1.z()));
 	setEmpty (false);
 }
 
@@ -364,8 +295,8 @@ void LDBoundingBox::calcVertex (const Vertex& vertex)
 //
 void LDBoundingBox::reset()
 {
-	m_vertex0[X] = m_vertex0[Y] = m_vertex0[Z] = 10000.0;
-	m_vertex1[X] = m_vertex1[Y] = m_vertex1[Z] = -10000.0;
+	m_vertex0 = Vertex (10000.0, 10000.0, 10000.0);
+	m_vertex1 = Vertex (-10000.0, -10000.0, -10000.0);
 	setEmpty (true);
 }
 
@@ -373,9 +304,9 @@ void LDBoundingBox::reset()
 //
 double LDBoundingBox::longestMeasurement() const
 {
-	double xscale = (m_vertex0[X] - m_vertex1[X]);
-	double yscale = (m_vertex0[Y] - m_vertex1[Y]);
-	double zscale = (m_vertex0[Z] - m_vertex1[Z]);
+	double xscale = (m_vertex0.x() - m_vertex1.x());
+	double yscale = (m_vertex0.y() - m_vertex1.y());
+	double zscale = (m_vertex0.z() - m_vertex1.z());
 	double size = zscale;
 
 	if (xscale > yscale)
@@ -386,10 +317,10 @@ double LDBoundingBox::longestMeasurement() const
 	elif (yscale > zscale)
 		size = yscale;
 
-	if (abs (size) >= 2.0f)
+	if (abs (size) >= 2.0)
 		return abs (size / 2);
 
-	return 1.0f;
+	return 1.0;
 }
 
 // =============================================================================
@@ -397,7 +328,7 @@ double LDBoundingBox::longestMeasurement() const
 Vertex LDBoundingBox::center() const
 {
 	return Vertex (
-		(m_vertex0[X] + m_vertex1[X]) / 2,
-		(m_vertex0[Y] + m_vertex1[Y]) / 2,
-		(m_vertex0[Z] + m_vertex1[Z]) / 2);
+		(m_vertex0.x() + m_vertex1.x()) / 2,
+		(m_vertex0.y() + m_vertex1.y()) / 2,
+		(m_vertex0.z() + m_vertex1.z()) / 2);
 }

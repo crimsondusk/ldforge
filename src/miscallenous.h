@@ -18,6 +18,7 @@
 
 #pragma once
 #include <QVector>
+#include <functional>
 #include "configuration.h"
 #include "main.h"
 #include "basics.h"
@@ -37,8 +38,14 @@ bool numeric (const QString& tok);
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);
 
-void roundToDecimals (double& a, int decimals);
+using ApplyToMatrixFunction = std::function<void (int, double&)>;
+using ApplyToMatrixConstFunction = std::function<void (int, double)>;
 
+void roundToDecimals (double& a, int decimals);
+void applyToMatrix (Matrix& a, ApplyToMatrixFunction func);
+void applyToMatrix (const Matrix& a, ApplyToMatrixConstFunction func);
+
+double getCoordinate (const Vertex& a, Axis ax);
 QString join (QList< StringFormatArg > vals, QString delim = " ");
 
 // Grid stuff

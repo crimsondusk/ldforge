@@ -263,7 +263,14 @@ class LDMatrixObject
 		void setCoordinate (const Axis ax, double value)
 		{
 			Vertex v = position();
-			v[ax] = value;
+
+			switch (ax)
+			{
+				case X: v.setX (value); break;
+				case Y: v.setY (value); break;
+				case Z: v.setZ (value); break;
+			}
+
 			setPosition (v);
 		}
 

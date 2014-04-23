@@ -277,9 +277,9 @@ void configRotationPoint()
 		(ui.worldPoint->isChecked())  ? EWorldOrigin :
 		ECustomPoint;
 
-	edit_customrotpoint.x() = ui.customX->value();
-	edit_customrotpoint.y() = ui.customY->value();
-	edit_customrotpoint.z() = ui.customZ->value();
+	edit_customrotpoint.setX (ui.customX->value());
+	edit_customrotpoint.setY (ui.customY->value());
+	edit_customrotpoint.setZ (ui.customZ->value());
 }
 
 // =============================================================================
@@ -300,4 +300,35 @@ void roundToDecimals (double& a, int decimals)
 {
 	assert (decimals >= 0 && decimals < (signed) (sizeof g_e10 / sizeof *g_e10));
 	a = round (a * g_e10[decimals]) / g_e10[decimals];
+}
+
+// =============================================================================
+//
+void applyToMatrix (Matrix& a, ApplyToMatrixFunction func)
+{
+	for (int i = 0; i < 9; ++i)
+		func (i, a[i]);
+}
+
+// =============================================================================
+//
+void applyToMatrix (const Matrix& a, ApplyToMatrixConstFunction func)
+{
+	for (int i = 0; i < 9; ++i)
+		func (i, a[i]);
+}
+
+// =============================================================================
+//
+double getCoordinate (const Vertex& a, Axis ax)
+{
+	switch (ax)
+	{
+		case X: return a.x();
+		case Y: return a.y();
+		case Z: return a.z();
+	}
+
+	assert (false);
+	return 0.0;
 }

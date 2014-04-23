@@ -192,15 +192,17 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		case LDObject::ECondLine:
 		case LDObject::ETriangle:
 		case LDObject::EQuad:
-
 			// Apply coordinates
-			if (obj)
+			if (obj != null)
 			{
 				for (int i = 0; i < coordCount / 3; ++i)
-					for (int j = 0; j < 3; ++j)
-						dsb_coords[ (i * 3) + j]->setValue (obj->vertex (i).getCoordinate (j));
+				{
+					obj->vertex (i).apply ([&](Axis ax, double value)
+					{
+						dsb_coords[(i * 3) + ax]->setValue (value);
+					});
+				}
 			}
-
 			break;
 
 		case LDObject::EComment:
@@ -230,10 +232,12 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 		// le_matrix->setValidator (new QDoubleValidator);
 		Matrix defaultMatrix = g_identity;
 
-		if (mo)
+		if (mo != null)
 		{
-			for_axes (ax)
-				dsb_coords[ax]->setValue (mo->position()[ax]);
+			mo->position().apply ([&](Axis ax, double value)
+			{
+				dsb_coords[ax]->setValue (value);
+			});
 
 			defaultMatrix = mo->transform();
 		}
@@ -380,8 +384,10 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			{
 				Vertex v;
 
-				for_axes (ax)
-					v[ax] = dlg.dsb_coords[ (i * 3) + ax]->value();
+				v.apply ([&](Axis ax, double& value)
+				{
+					value = dlg.dsb_coords[(i * 3) + ax]->value();
+				});
 
 				obj->setVertex (i, v);
 			}
@@ -396,9 +402,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 		case LDObject::EVertex:
 		{
 			LDVertex* vert = initObj<LDVertex> (obj);
-
-			for_axes (ax)
-				vert->pos[ax] = dlg.dsb_coords[ax]->value();
+			vert->pos.apply ([&](Axis ax, double& value) { value = dlg.dsb_coords[ax]->value(); });
 		}
 		break;
 

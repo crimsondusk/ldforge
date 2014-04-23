@@ -364,9 +364,9 @@ DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
 void doMoveObjects (Vertex vect)
 {
 	// Apply the grid values
-	vect[X] *= *currentGrid().confs[Grid::X];
-	vect[Y] *= *currentGrid().confs[Grid::Y];
-	vect[Z] *= *currentGrid().confs[Grid::Z];
+	vect.setX (vect.x() * *currentGrid().confs[Grid::X]);
+	vect.setY (vect.y() * *currentGrid().confs[Grid::Y]);
+	vect.setZ (vect.z() * *currentGrid().confs[Grid::Z]);
 
 	for (LDObject* obj : selection())
 		obj->move (vect);
@@ -420,11 +420,11 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 
 // =============================================================================
 //
-static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& transform)
+static void rotateVertex (Vertex& v, const Vertex& rotpoint, const Matrix& transformer)
 {
-	v.move (-rotpoint);
-	v.transform (transform, g_origin);
-	v.move (rotpoint);
+	v -= rotpoint;
+	v.transform (transformer, g_origin);
+	v += rotpoint;
 }
 
 // =============================================================================
@@ -538,27 +538,20 @@ DEFINE_ACTION (RoundCoordinates, 0)
 			Vertex v = mo->position();
 			Matrix t = mo->transform();
 
-			for_axes (ax)
-				roundToDecimals (v[ax], 3);
-
-			// Let matrix values be rounded to 4 decimals,
-			// they need that extra precision
-			for (int i = 0; i < 9; ++i)
-				roundToDecimals (t[i], 4);
+			// Note: matrix values are to be rounded to 4 decimals.
+			v.apply ([](Axis, double& a) { roundToDecimals (a, 3); });
+			applyToMatrix (t, [](int, double& a) { roundToDecimals (a, 4); });
 
 			mo->setPosition (v);
 			mo->setTransform (t);
-			num += 10;
+			num += 12;
 		}
 		else
 		{
 			for (int i = 0; i < obj->vertices(); ++i)
 			{
 				Vertex v = obj->vertex (i);
-
-				for_axes (ax)
-					roundToDecimals (v[ax], 3);
-
+				v.apply ([](Axis, double& a) { roundToDecimals (a, 3); });
 				obj->setVertex (i, v);
 				num += 3;
 			}
@@ -623,19 +616,20 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 		{
 			Vertex v = obj->vertex (i);
 
-			for (Axis ax : sel)
+			v.apply ([&](Axis ax, double& coord)
 			{
-				double& coord = v[ax];
-
-				if (any || coord == search)
+				if (not sel.contains (ax) ||
+					(not any && coord != search))
 				{
-					if (not rel)
-						coord = 0;
-
-					coord += replacement;
-					num++;
+					return;
 				}
-			}
+
+				if (not rel)
+					coord = 0;
+
+				coord += replacement;
+				num++;
+			});
 
 			obj->setVertex (i, v);
 		}
@@ -668,8 +662,11 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 		{
 			Vertex v = obj->vertex (i);
 
-			for (Axis ax : sel)
-				v[ax] *= -1;
+			v.apply ([&](Axis ax, double& a)
+			{
+				if (sel.contains (ax))
+					a = -a;
+			});
 
 			obj->setVertex (i, v);
 		}
