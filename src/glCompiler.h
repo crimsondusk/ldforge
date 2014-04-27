@@ -16,9 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_GLCOMPILER_H
-#define LDFORGE_GLCOMPILER_H
-
+#pragma once
 #include "main.h"
 #include "glRenderer.h"
 #include "glShared.h"
@@ -79,5 +77,3 @@ private:
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }
 void checkGLError_private (const char* file, int line);
-
-#endif // LDFORGE_GLCOMPILER_H
