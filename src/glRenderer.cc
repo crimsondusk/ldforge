@@ -229,7 +229,6 @@ void GLRenderer::resetAngles()
 	rot (X) = 30.0f;
 	rot (Y) = 325.f;
 	pan (X) = pan (Y) = rot (Z) = 0.0f;
-	zoomToFit();
 }
 
 // =============================================================================
@@ -362,6 +361,12 @@ void GLRenderer::drawGLScene()
 {
 	if (document() == null)
 		return;
+
+	if (currentDocumentData().needZoomToFit)
+	{
+		currentDocumentData().needZoomToFit = false;
+		zoomAllToFit();
+	}
 
 	if (gl_wireframe && not isPicking())
 		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
@@ -1366,6 +1371,8 @@ void GLRenderer::setDocument (LDDocument* const& a)
 			resetAllAngles();
 			currentDocumentData().init = true;
 		}
+
+		currentDocumentData().needZoomToFit = true;
 	}
 }
 

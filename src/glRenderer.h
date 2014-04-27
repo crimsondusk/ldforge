@@ -77,8 +77,14 @@ struct LDGLData
 	double			depthValues[6];
 	LDGLOverlay		overlays[6];
 	bool			init;
+	bool			needZoomToFit;
 
-	LDGLData()
+	LDGLData() :
+		rotX (0.0),
+		rotY (0.0),
+		rotZ (0.0),
+		init (false),
+		needZoomToFit (true)
 	{
 		for (int i = 0; i < 7; ++i)
 		{
@@ -93,11 +99,6 @@ struct LDGLData
 			panX[i] = 0.0;
 			panY[i] = 0.0;
 		}
-
-		rotX = 0;
-		rotY = 0;
-		rotZ = 0;
-		init = false;
 	}
 };
 
