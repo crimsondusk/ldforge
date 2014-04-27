@@ -16,8 +16,7 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef LDFORGE_GLSHARED_H
-#define LDFORGE_GLSHARED_H
+#pragma once
 #include "basics.h"
 
 class LDObject;
@@ -69,5 +68,3 @@ void glBufferSubData (GLenum, GLint, GLsizei, void*);
 #endif
 
 static const int g_numVBOs = VBOSF_NumSurfaces * VBOCM_NumComplements;
-
-#endif // LDFORGE_GLSHARED_H
