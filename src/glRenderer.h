@@ -182,7 +182,6 @@ class GLRenderer : public QGLWidget
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 
-		static void    deleteLists (LDObject* obj);
 		static QColor  getMainColor();
 
 	protected:
@@ -245,23 +244,11 @@ class GLRenderer : public QGLWidget
 		// Clamps an angle to [0, 360]
 		void           clampAngle (double& angle) const;
 
-		// Compile one of the lists of an object
-		void           compileList (LDObject* obj, const ListType list);
-
-		// Sub-routine for object compiling
-		void           compileSubObject (LDObject* obj, const GLenum gltype);
-
-		// Compile a single vertex to a list
-		void           compileVertex (const Vertex& vrt);
-
 		// Convert a 2D point to a 3D point
 		Vertex         coordconv2_3 (const QPoint& pos2d, bool snap) const;
 
 		// Draw a VBO array
 		void           drawVBOs (EVBOSurface surface, EVBOComplement colors, GLenum type);
-
-		// Determine which color to draw text with
-		QColor         getTextPen() const;
 
 		// Convert a 3D point to a 2D point
 		QPoint         coordconv3_2 (const Vertex& pos3d) const;
@@ -269,8 +256,6 @@ class GLRenderer : public QGLWidget
 		// Perform object selection
 		void           pick (int mouseX, int mouseY);
 
-		// Set the color to an object list
-		void           setObjectColor (LDObject* obj, const ListType list);
 		void           zoomToFit();
 		void           zoomAllToFit();
 

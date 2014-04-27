@@ -42,7 +42,6 @@ LDObject::LDObject() :
 	m_isSelected (false),
 	m_parent (null),
 	m_document (null),
-	m_isGLInit (false),
 	qObjListEntry (null)
 {
 	memset (m_coords, 0, sizeof m_coords);
@@ -846,7 +845,6 @@ LDObject* LDObject::createCopy() const
 	/*
 	LDObject* copy = clone();
 	copy->setFile (null);
-	copy->setGLInit (false);
 	copy->chooseID();
 	copy->setSelected (false);
 	*/

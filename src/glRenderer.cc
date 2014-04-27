@@ -1647,7 +1647,6 @@ static QList<Vertex> getVertices (LDObject* obj)
 void GLRenderer::compileObject (LDObject* obj)
 {
 	compiler()->stageForCompilation (obj);
-	obj->setGLInit (true);
 }
 
 // =============================================================================

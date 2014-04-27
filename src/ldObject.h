@@ -72,7 +72,6 @@ class LDObject
 	PROPERTY (public,		LDDocument*,	document,		setDocument,	STOCK_WRITE)
 	PROPERTY (private,		int,			id,				setID,			STOCK_WRITE)
 	PROPERTY (public,		int,			color,			setColor,		CUSTOM_WRITE)
-	PROPERTY (public,		bool,			isGLInit,		setGLInit,		STOCK_WRITE)
 	PROPERTY (private,		QColor,			randomColor,	setRandomColor,	STOCK_WRITE)
 
 	public:
@@ -176,11 +175,7 @@ class LDObject
 		static LDObject* fromID (int id);
 		LDPolygon* getPolygon();
 
-		// TODO: make these private!
-		// OpenGL list for this object
-		uint glLists[4];
-
-		// Object list entry for this object
+		// TODO: make this private!
 		QListWidgetItem* qObjListEntry;
 
 	protected:
