@@ -50,7 +50,7 @@ class MessageManager : public QObject
 		{
 			public:
 				//! Constructs a line with the given \c text
-				Line (QString text);
+				Line (String text);
 
 				//! Check this line's expiry and update alpha accordingly.
 				//! \c changed is updated to whether the line has somehow
@@ -59,7 +59,7 @@ class MessageManager : public QObject
 				//! \returns if it expired.
 				bool update (bool& changed);
 
-				QString text;
+				String text;
 				float alpha;
 				QDateTime expiry;
 		};
@@ -68,7 +68,7 @@ class MessageManager : public QObject
 		explicit MessageManager (QObject* parent = null);
 
 		//! Adds a line with the given \c text to the message manager.
-		void addLine (QString line);
+		void addLine (String line);
 
 		//! \returns all active lines in the message manager.
 		const QList<Line>& getLines() const;

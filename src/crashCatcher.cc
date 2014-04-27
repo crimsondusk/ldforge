@@ -37,7 +37,7 @@
 static bool g_crashCatcherActive = false;
 
 // If an assertion failed, what was it?
-static QString g_assertionFailure;
+static String g_assertionFailure;
 
 // List of signals to catch and crash on
 static QList<int> g_signalsToCatch ({
@@ -68,9 +68,9 @@ static void handleCrash (int sig)
 	if (commandsFile.open())
 	{
 		commandsFile.write (format ("attach %1\n", pid).toLocal8Bit());
-		commandsFile.write (QString ("backtrace full\n").toLocal8Bit());
-		commandsFile.write (QString ("detach\n").toLocal8Bit());
-		commandsFile.write (QString ("quit").toLocal8Bit());
+		commandsFile.write (String ("backtrace full\n").toLocal8Bit());
+		commandsFile.write (String ("detach\n").toLocal8Bit());
+		commandsFile.write (String ("quit").toLocal8Bit());
 		commandsFile.flush();
 		commandsFile.close();
 	}
@@ -87,8 +87,8 @@ static void handleCrash (int sig)
 #endif
 
 	proc.waitForFinished (1000);
-	QString output = QString (proc.readAllStandardOutput());
-	QString err = QString (proc.readAllStandardError());
+	String output = String (proc.readAllStandardOutput());
+	String err = String (proc.readAllStandardError());
 
 	bombBox (format ("<h3>Program crashed with signal %1</h3>\n\n"
 		"%2"
@@ -122,7 +122,7 @@ void initCrashCatcher()
 //
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
 {
-	QString errmsg = format (
+	String errmsg = format (
 		"<p><b>File</b>: <tt>%1</tt><br />"
 		"<b>Line</b>: <tt>%2</tt><br />"
 		"<b>Function:</b> <tt>%3</tt></p>"

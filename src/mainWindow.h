@@ -179,7 +179,7 @@ class MainWindow : public QMainWindow
 		}
 
 		//! Adds a message to the renderer's message manager.
-		void addMessage (QString msg);
+		void addMessage (String msg);
 
 		//! Updates the object list. Right now this just rebuilds it.
 		void refreshObjectList();
@@ -318,7 +318,7 @@ class MainWindow : public QMainWindow
 extern MainWindow* g_win;
 
 //! Get an icon by name from the resources directory.
-QPixmap getIcon (QString iconName);
+QPixmap getIcon (String iconName);
 
 //! \returns a list of quick colors based on the configuration entry.
 QList<LDQuickColor> quickColorsFromConfig();
@@ -326,15 +326,15 @@ QList<LDQuickColor> quickColorsFromConfig();
 //! Asks the user a yes/no question with the given \c message and the given
 //! window \c title.
 //! \returns true if the user answered yes, false if no.
-bool confirm (const QString& title, const QString& message); // Generic confirm prompt
+bool confirm (const String& title, const String& message); // Generic confirm prompt
 
 //! An overload of \c confirm(), this asks the user a yes/no question with the
 //! given \c message.
 //! \returns true if the user answered yes, false if no.
-bool confirm (const QString& message);
+bool confirm (const String& message);
 
 //! Displays an error prompt with the given \c message
-void critical (const QString& message);
+void critical (const String& message);
 
 //! Makes an icon of \c size x \c size pixels to represent \c colinfo
 QIcon makeColorIcon (LDColor* colinfo, const int size);

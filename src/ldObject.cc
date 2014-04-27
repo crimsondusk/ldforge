@@ -81,16 +81,16 @@ LDError::LDError() {}
 
 // =============================================================================
 //
-QString LDComment::asText() const
+String LDComment::asText() const
 {
 	return format ("0 %1", text());
 }
 
 // =============================================================================
 //
-QString LDSubfile::asText() const
+String LDSubfile::asText() const
 {
-	QString val = format ("1 %1 %2 ", color(), position());
+	String val = format ("1 %1 %2 ", color(), position());
 	val += transform().toString();
 	val += ' ';
 	val += fileInfo()->name();
@@ -99,9 +99,9 @@ QString LDSubfile::asText() const
 
 // =============================================================================
 //
-QString LDLine::asText() const
+String LDLine::asText() const
 {
-	QString val = format ("2 %1", color());
+	String val = format ("2 %1", color());
 
 	for (int i = 0; i < 2; ++i)
 		val += format (" %1", vertex (i));
@@ -111,9 +111,9 @@ QString LDLine::asText() const
 
 // =============================================================================
 //
-QString LDTriangle::asText() const
+String LDTriangle::asText() const
 {
-	QString val = format ("3 %1", color());
+	String val = format ("3 %1", color());
 
 	for (int i = 0; i < 3; ++i)
 		val += format (" %1", vertex (i));
@@ -123,9 +123,9 @@ QString LDTriangle::asText() const
 
 // =============================================================================
 //
-QString LDQuad::asText() const
+String LDQuad::asText() const
 {
-	QString val = format ("4 %1", color());
+	String val = format ("4 %1", color());
 
 	for (int i = 0; i < 4; ++i)
 		val += format (" %1", vertex (i));
@@ -135,9 +135,9 @@ QString LDQuad::asText() const
 
 // =============================================================================
 //
-QString LDCondLine::asText() const
+String LDCondLine::asText() const
 {
-	QString val = format ("5 %1", color());
+	String val = format ("5 %1", color());
 
 	// Add the coordinates
 	for (int i = 0; i < 4; ++i)
@@ -148,21 +148,21 @@ QString LDCondLine::asText() const
 
 // =============================================================================
 //
-QString LDError::asText() const
+String LDError::asText() const
 {
 	return contents();
 }
 
 // =============================================================================
 //
-QString LDVertex::asText() const
+String LDVertex::asText() const
 {
 	return format ("0 !LDFORGE VERTEX %1 %2", color(), pos);
 }
 
 // =============================================================================
 //
-QString LDEmpty::asText() const
+String LDEmpty::asText() const
 {
 	return "";
 }
@@ -183,7 +183,7 @@ const char* LDBFC::k_statementStrings[] =
 	"NOCLIP",
 };
 
-QString LDBFC::asText() const
+String LDBFC::asText() const
 {
 	return format ("0 BFC %1", LDBFC::k_statementStrings[m_statement]);
 }
@@ -434,20 +434,20 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 
 // =============================================================================
 //
-QString LDObject::typeName (LDObject::Type type)
+String LDObject::typeName (LDObject::Type type)
 {
 	LDObject* obj = LDObject::getDefault (type);
-	QString name = obj->typeName();
+	String name = obj->typeName();
 	obj->destroy();
 	return name;
 }
 
 // =============================================================================
 //
-QString LDObject::describeObjects (const LDObjectList& objs)
+String LDObject::describeObjects (const LDObjectList& objs)
 {
 	bool firstDetails = true;
-	QString text = "";
+	String text = "";
 
 	if (objs.isEmpty())
 		return "nothing"; // :)
@@ -467,7 +467,7 @@ QString LDObject::describeObjects (const LDObjectList& objs)
 		if (not firstDetails)
 			text += ", ";
 
-		QString noun = format ("%1%2", typeName (objType), plural (count));
+		String noun = format ("%1%2", typeName (objType), plural (count));
 
 		// Plural of "vertex" is "vertices", correct that
 		if (objType == EVertex && count != 1)
@@ -678,7 +678,7 @@ LDObject* LDObject::fromID (int id)
 
 // =============================================================================
 //
-QString LDOverlay::asText() const
+String LDOverlay::asText() const
 {
 	return format ("0 !LDFORGE OVERLAY %1 %2 %3 %4 %5 %6",
 		fileName(), camera(), x(), y(), width(), height());
@@ -701,9 +701,9 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 
 	if (obj->document() != null && (idx = obj->lineNumber()) != -1)
 	{
-		QString before = obj->asText();
+		String before = obj->asText();
 		*ptr = val;
-		QString after = obj->asText();
+		String after = obj->asText();
 
 		if (before != after)
 		{
@@ -821,7 +821,7 @@ void LDObject::unselect()
 
 // =============================================================================
 //
-QString getLicenseText (int id)
+String getLicenseText (int id)
 {
 	switch (id)
 	{

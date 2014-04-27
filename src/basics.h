@@ -36,6 +36,7 @@ using uint8 = quint8;
 using uint16 = quint16;
 using uint32 = quint32;
 using uint64 = quint64;
+using String = QString;
 
 template<typename T, typename R>
 using Pair = std::pair<T, R>;
@@ -68,7 +69,7 @@ public:
 
 	void	apply (ApplyFunction func);
 	void	apply (ApplyConstFunction func) const;
-	QString	toString (bool mangled = false) const;
+	String	toString (bool mangled = false) const;
 	void	transform (const Matrix& matr, const Vertex& pos);
 	void	setCoordinate (Axis ax, qreal value);
 
@@ -113,7 +114,7 @@ class Matrix
 		void			dump() const;
 
 		//! \returns a string representation of the matrix.
-		QString			toString() const;
+		String			toString() const;
 
 		//! Zeroes the matrix out.
 		void			zero();

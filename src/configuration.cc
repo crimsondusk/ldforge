@@ -40,7 +40,7 @@
 
 Config*							g_configPointers[MAX_CONFIG];
 static int						g_cfgPointerCursor = 0;
-static QMap<QString, Config*>	g_configsByName;
+static QMap<String, Config*>	g_configsByName;
 static QList<Config*>			g_configs;
 
 // =============================================================================
@@ -48,11 +48,11 @@ static QList<Config*>			g_configs;
 // =============================================================================
 static QSettings* getSettingsObject()
 {
-	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
+	String path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
 	return new QSettings (path, QSettings::IniFormat);
 }
 
-Config::Config (QString name) :
+Config::Config (String name) :
 	m_name (name) {}
 
 // =============================================================================
@@ -112,7 +112,7 @@ void Config::reset()
 // =============================================================================
 // Where is the configuration file located at?
 // =============================================================================
-QString Config::filepath (QString file)
+String Config::filepath (String file)
 {
 	return Config::dirpath() + DIRSLASH + file;
 }
@@ -120,7 +120,7 @@ QString Config::filepath (QString file)
 // =============================================================================
 // Directory of the configuration file.
 // =============================================================================
-QString Config::dirpath()
+String Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
@@ -142,7 +142,7 @@ void Config::addToArray (Config* ptr)
 
 // =============================================================================
 // =============================================================================
-template<class T> T* getConfigByName (QString name, Config::Type type)
+template<class T> T* getConfigByName (String name, Config::Type type)
 {
 	auto it = g_configsByName.find (name);
 
@@ -165,7 +165,7 @@ template<class T> T* getConfigByName (QString name, Config::Type type)
 #undef IMPLEMENT_CONFIG
 
 #define IMPLEMENT_CONFIG(NAME)										\
-	NAME##Config* NAME##Config::getByName (QString name)			\
+	NAME##Config* NAME##Config::getByName (String name)			\
 	{																\
 		return getConfigByName<NAME##Config> (name, E##NAME##Type);	\
 	}

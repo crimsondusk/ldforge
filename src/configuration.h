@@ -37,7 +37,7 @@ class QSettings;
 // =========================================================
 class Config
 {
-	PROPERTY (private, QString, name, setName, STOCK_WRITE)
+	PROPERTY (private, String, name, setName, STOCK_WRITE)
 
 	public:
 		enum Type
@@ -52,14 +52,14 @@ class Config
 		};
 
 		using IntType			= int;
-		using StringType		= QString;
+		using StringType		= String;
 		using FloatType			= float;
 		using BoolType			= bool;
 		using KeySequenceType	= QKeySequence;
 		using ListType			= QList<QVariant>;
 		using VertexType		= Vertex;
 
-		Config (QString name);
+		Config (String name);
 
 		virtual QVariant	getDefaultAsVariant() const = 0;
 		virtual Type		getType() const = 0;
@@ -72,8 +72,8 @@ class Config
 		static bool load();
 		static bool save();
 		static void reset();
-		static QString dirpath();
-		static QString filepath (QString file);
+		static String dirpath();
+		static String filepath (String file);
 
 	protected:
 		static void addToArray (Config* ptr);
@@ -84,7 +84,7 @@ class Config
 public:																			\
 	using ValueType = Config::NAME##Type;										\
 																				\
-	NAME##Config (ValueType* valueptr, QString name, ValueType def) :			\
+	NAME##Config (ValueType* valueptr, String name, ValueType def) :			\
 		Config (name),															\
 		m_valueptr (valueptr),													\
 		m_default (def)															\
@@ -138,7 +138,7 @@ public:																			\
 		return QVariant::fromValue<ValueType> (m_default);						\
 	}																			\
 																				\
-	static NAME##Config* getByName (QString name);								\
+	static NAME##Config* getByName (String name);								\
 																				\
 private:																		\
 	ValueType*	m_valueptr;														\

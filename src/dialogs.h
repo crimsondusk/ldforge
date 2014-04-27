@@ -46,7 +46,7 @@ class OverlayDialog : public QDialog
 		explicit OverlayDialog (QWidget* parent = null, Qt::WindowFlags f = 0);
 		virtual ~OverlayDialog();
 
-		QString         fpath() const;
+		String         fpath() const;
 		int         ofsx() const;
 		int         ofsy() const;
 		double      lwidth() const;
@@ -72,8 +72,8 @@ class LDrawPathDialog : public QDialog
 	public:
 		explicit LDrawPathDialog (const bool validDefault, QWidget* parent = null, Qt::WindowFlags f = 0);
 		virtual ~LDrawPathDialog();
-		QString filename() const;
-		void setPath (QString path);
+		String filename() const;
+		void setPath (String path);
 
 	private:
 		Q_DISABLE_COPY (LDrawPathDialog)
@@ -115,9 +115,9 @@ class ExtProgPathPrompt : public QDialog
 	Q_OBJECT
 
 	public:
-		explicit ExtProgPathPrompt (QString progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
+		explicit ExtProgPathPrompt (String progName, QWidget* parent = 0, Qt::WindowFlags f = 0);
 		virtual ~ExtProgPathPrompt();
-		QString getPath() const;
+		String getPath() const;
 
 	public slots:
 		void findPath();
@@ -138,4 +138,4 @@ class AboutDialog : public QDialog
 		void slot_mail();
 };
 
-void bombBox (const QString& message);
+void bombBox (const String& message);

@@ -59,7 +59,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	setlocale (LC_ALL, "C");
 
 	int coordCount = 0;
-	QString typeName = LDObject::typeName (type);
+	String typeName = LDObject::typeName (type);
 
 	switch (type)
 	{
@@ -286,7 +286,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
 
 // =============================================================================
 // =============================================================================
-QString AddObjectDialog::currentSubfileName()
+String AddObjectDialog::currentSubfileName()
 {
 	SubfileListItem* item = static_cast<SubfileListItem*> (tw_subfileList->currentItem());
 
@@ -308,7 +308,7 @@ void AddObjectDialog::slot_colorButtonClicked()
 // =============================================================================
 void AddObjectDialog::slot_subfileTypeChanged()
 {
-	QString name = currentSubfileName();
+	String name = currentSubfileName();
 
 	if (name.length() > 0)
 		le_subfileName->setText (name);
@@ -349,14 +349,14 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 	if (type == LDObject::ESubfile)
 	{
-		QStringList matrixstrvals = dlg.le_matrix->text().split (" ", QString::SkipEmptyParts);
+		QStringList matrixstrvals = dlg.le_matrix->text().split (" ", String::SkipEmptyParts);
 
 		if (matrixstrvals.size() == 9)
 		{
 			double matrixvals[9];
 			int i = 0;
 
-			for (QString val : matrixstrvals)
+			for (String val : matrixstrvals)
 				matrixvals[i++] = val.toFloat();
 
 			transform = Matrix (matrixvals);
@@ -408,7 +408,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 		case LDObject::ESubfile:
 		{
-			QString name = dlg.le_subfileName->text();
+			String name = dlg.le_subfileName->text();
 
 			if (name.length() == 0)
 				return; // no subfile filename

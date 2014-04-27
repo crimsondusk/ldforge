@@ -17,7 +17,6 @@
  */
 
 #pragma once
-#include <QString>
 #include "basics.h"
 
 //! \file Format.h
@@ -30,14 +29,14 @@
 class StringFormatArg
 {
 	public:
-		StringFormatArg (const QString& a) : m_text (a) {}
+		StringFormatArg (const String& a) : m_text (a) {}
 		StringFormatArg (const char& a) : m_text (a) {}
 		StringFormatArg (const uchar& a) : m_text (a) {}
 		StringFormatArg (const QChar& a) : m_text (a) {}
-		StringFormatArg (int a) : m_text (QString::number (a)) {}
-		StringFormatArg (long a) : m_text (QString::number (a)) {}
-		StringFormatArg (const float& a) : m_text (QString::number (a)) {}
-		StringFormatArg (const double& a) : m_text (QString::number (a)) {}
+		StringFormatArg (int a) : m_text (String::number (a)) {}
+		StringFormatArg (long a) : m_text (String::number (a)) {}
+		StringFormatArg (const float& a) : m_text (String::number (a)) {}
+		StringFormatArg (const double& a) : m_text (String::number (a)) {}
 		StringFormatArg (const Vertex& a) : m_text (a.toString()) {}
 		StringFormatArg (const Matrix& a) : m_text (a.toString()) {}
 		StringFormatArg (const char* a) : m_text (a) {}
@@ -64,20 +63,20 @@ class StringFormatArg
 			m_text += "}";
 		}
 
-		inline QString text() const
+		inline String text() const
 		{
 			return m_text;
 		}
 
 	private:
-		QString m_text;
+		String m_text;
 };
 
 //!
 //! Helper function for \c format
 //!
 template<typename Arg1, typename... Rest>
-void formatHelper (QString& str, Arg1 arg1, Rest... rest)
+void formatHelper (String& str, Arg1 arg1, Rest... rest)
 {
 	str = str.arg (StringFormatArg (arg1).text());
 	formatHelper (str, rest...);
@@ -86,8 +85,8 @@ void formatHelper (QString& str, Arg1 arg1, Rest... rest)
 //!
 //! Overload of \c formatHelper() with no template args
 //!
-static void formatHelper (QString& str) __attribute__ ((unused));
-static void formatHelper (QString& str)
+static void formatHelper (String& str) __attribute__ ((unused));
+static void formatHelper (String& str)
 {
 	(void) str;
 }
@@ -95,7 +94,7 @@ static void formatHelper (QString& str)
 //!
 //! @brief Format the message with the given args.
 //!
-//! The formatting ultimately uses QString's arg() method to actually format
+//! The formatting ultimately uses String's arg() method to actually format
 //! the args so the format string should be prepared accordingly, with %1
 //! referring to the first arg, %2 to the second, etc.
 //!
@@ -104,7 +103,7 @@ static void formatHelper (QString& str)
 //! \return The formatted string
 //!
 template<typename... Args>
-QString format (QString fmtstr, Args... args)
+String format (String fmtstr, Args... args)
 {
 	formatHelper (fmtstr, args...);
 	return fmtstr;
@@ -114,7 +113,7 @@ QString format (QString fmtstr, Args... args)
 //! From MessageLog.cc - declared here so that I don't need to include
 //! messageLog.h here. Prints the given message to log.
 //!
-void printToLog (const QString& msg);
+void printToLog (const String& msg);
 
 //!
 //! Format and print the given args to the message log.
@@ -122,7 +121,7 @@ void printToLog (const QString& msg);
 //! \param args The args to format with
 //!
 template<typename... Args>
-void print (QString fmtstr, Args... args)
+void print (String fmtstr, Args... args)
 {
 	formatHelper (fmtstr, args...);
 	printToLog (fmtstr);
@@ -135,7 +134,7 @@ void print (QString fmtstr, Args... args)
 //! \param args The args to format with
 //!
 template<typename... Args>
-void fprint (FILE* fp, QString fmtstr, Args... args)
+void fprint (FILE* fp, String fmtstr, Args... args)
 {
 	formatHelper (fmtstr, args...);
 	fprintf (fp, "%s", qPrintable (fmtstr));
@@ -148,7 +147,7 @@ void fprint (FILE* fp, QString fmtstr, Args... args)
 //! \param args The args to format with
 //!
 template<typename... Args>
-void fprint (QIODevice& dev, QString fmtstr, Args... args)
+void fprint (QIODevice& dev, String fmtstr, Args... args)
 {
 	formatHelper (fmtstr, args...);
 	dev.write (fmtstr.toUtf8());
@@ -160,7 +159,7 @@ void fprint (QIODevice& dev, QString fmtstr, Args... args)
 //! \param args The args to format with
 //!
 template<typename... Args>
-void dprint (QString fmtstr, Args... args)
+void dprint (String fmtstr, Args... args)
 {
 #ifndef RELEASE
 	formatHelper (fmtstr, args...);

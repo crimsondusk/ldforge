@@ -112,7 +112,7 @@ void OverlayDialog::fillDefaults (int newcam)
 
 // =============================================================================
 // =============================================================================
-QString OverlayDialog::fpath() const
+String OverlayDialog::fpath() const
 {
 	return ui->filename->text();
 }
@@ -178,7 +178,7 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 
 	okButton()->setEnabled (false);
 
-	connect (ui->path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure()));
+	connect (ui->path, SIGNAL (textEdited (String)), this, SLOT (slot_tryConfigure()));
 	connect (ui->searchButton, SIGNAL (clicked()), this, SLOT (slot_findPath()));
 	connect (ui->buttonBox, SIGNAL (rejected()), this, validDefault ? SLOT (reject()) : SLOT (slot_exit()));
 	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (slot_accept()));
@@ -206,12 +206,12 @@ QPushButton* LDrawPathDialog::cancelButton()
 	return ui->buttonBox->button (QDialogButtonBox::Cancel);
 }
 
-void LDrawPathDialog::setPath (QString path)
+void LDrawPathDialog::setPath (String path)
 {
 	ui->path->setText (path);
 }
 
-QString LDrawPathDialog::filename() const
+String LDrawPathDialog::filename() const
 {
 	return ui->path->text();
 }
@@ -220,7 +220,7 @@ QString LDrawPathDialog::filename() const
 // =============================================================================
 void LDrawPathDialog::slot_findPath()
 {
-	QString newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
+	String newpath = QFileDialog::getExistingDirectory (this, "Find LDraw Path");
 
 	if (newpath.length() > 0 && newpath != filename())
 	{
@@ -304,12 +304,12 @@ void OpenProgressDialog::updateProgress (int progress)
 
 // =============================================================================
 // =============================================================================
-ExtProgPathPrompt::ExtProgPathPrompt (QString progName, QWidget* parent, Qt::WindowFlags f) :
+ExtProgPathPrompt::ExtProgPathPrompt (String progName, QWidget* parent, Qt::WindowFlags f) :
 	QDialog (parent, f),
 	ui (new Ui_ExtProgPath)
 {
 	ui->setupUi (this);
-	QString labelText = ui->m_label->text();
+	String labelText = ui->m_label->text();
 	labelText.replace ("<PROGRAM>", progName);
 	ui->m_label->setText (labelText);
 	connect (ui->m_findPath, SIGNAL (clicked (bool)), this, SLOT (findPath()));
@@ -326,7 +326,7 @@ ExtProgPathPrompt::~ExtProgPathPrompt()
 // =============================================================================
 void ExtProgPathPrompt::findPath()
 {
-	QString path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
+	String path = QFileDialog::getOpenFileName (null, "", "", g_extProgPathFilter);
 
 	if (not path.isEmpty())
 		ui->m_path->setText (path);
@@ -334,7 +334,7 @@ void ExtProgPathPrompt::findPath()
 
 // =============================================================================
 // =============================================================================
-QString ExtProgPathPrompt::getPath() const
+String ExtProgPathPrompt::getPath() const
 {
 	return ui->m_path->text();
 }
@@ -346,7 +346,7 @@ AboutDialog::AboutDialog (QWidget* parent, Qt::WindowFlags f) :
 {
 	Ui::AboutUI ui;
 	ui.setupUi (this);
-	ui.versionInfo->setText (APPNAME " " + QString (fullVersionString()));
+	ui.versionInfo->setText (APPNAME " " + String (fullVersionString()));
 
 	QPushButton* mailButton = new QPushButton;
 	mailButton->setText (tr ("Contact"));
@@ -366,7 +366,7 @@ void AboutDialog::slot_mail()
 
 // =============================================================================
 // =============================================================================
-void bombBox (const QString& message)
+void bombBox (const String& message)
 {
 	QDialog dlg (g_win);
 	Ui_BombBox ui;

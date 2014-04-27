@@ -30,7 +30,7 @@
 struct GLErrorInfo
 {
 	GLenum	value;
-	QString	text;
+	String	text;
 };
 
 static const GLErrorInfo g_GLErrors[] =
@@ -53,13 +53,13 @@ static QList<int>		g_warnedColors;
 static const QColor		g_BFCFrontColor (64, 192, 80);
 static const QColor		g_BFCBackColor (208, 64, 64);
 
-// static QMap<LDObject*, QString> g_objectOrigins;
+// static QMap<LDObject*, String> g_objectOrigins;
 
 // =============================================================================
 //
 void checkGLError_private (const char* file, int line)
 {
-	QString errmsg;
+	String errmsg;
 	GLenum errnum = glGetError();
 
 	if (errnum == GL_NO_ERROR)
@@ -74,7 +74,7 @@ void checkGLError_private (const char* file, int line)
 		}
 	}
 
-	print ("OpenGL ERROR: at %1:%2: %3", basename (QString (file)), line, errmsg);
+	print ("OpenGL ERROR: at %1:%2: %3", basename (String (file)), line, errmsg);
 }
 
 // =============================================================================

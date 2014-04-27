@@ -59,7 +59,7 @@ class AddObjectDialog : public QDialog
 
 	private:
 		void setButtonBackground (QPushButton* button, int color);
-		QString currentSubfileName();
+		String currentSubfileName();
 
 		int colnum;
 

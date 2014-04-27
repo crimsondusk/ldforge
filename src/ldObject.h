@@ -34,10 +34,10 @@ public:													\
 	{													\
 		return LDObject::E##T;							\
 	}													\
-	virtual QString asText() const override;		\
+	virtual String asText() const override;		\
 	virtual void invert() override;
 
-#define LDOBJ_NAME(N)          virtual QString typeName() const override { return #N; }
+#define LDOBJ_NAME(N)          virtual String typeName() const override { return #N; }
 #define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
@@ -112,7 +112,7 @@ class LDObject
 		const Vertex&				vertex (int i) const;
 
 		// Type name of this object
-		virtual QString				typeName() const = 0;
+		virtual String				typeName() const = 0;
 
 		// Does this object have a matrix and position? (see LDMatrixObject)
 		virtual bool				hasMatrix() const = 0;
@@ -136,7 +136,7 @@ class LDObject
 		LDObject*					previous() const;
 
 		// This object as LDraw code
-		virtual QString				asText() const = 0;
+		virtual String				asText() const = 0;
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
 		void						replace (LDObject* other);
@@ -163,7 +163,7 @@ class LDObject
 		virtual int					vertices() const = 0;
 
 		// Get type name by enumerator
-		static QString typeName (LDObject::Type type);
+		static String typeName (LDObject::Type type);
 
 		// Returns a default-constructed LDObject by the given type
 		static LDObject* getDefault (const LDObject::Type type);
@@ -172,7 +172,7 @@ class LDObject
 		static void moveObjects (LDObjectList objs, const bool up);
 
 		// Get a description of a list of LDObjects
-		static QString describeObjects (const LDObjectList& objs);
+		static String describeObjects (const LDObjectList& objs);
 		static LDObject* fromID (int id);
 		LDPolygon* getPolygon();
 
@@ -294,13 +294,13 @@ class LDError : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	QString,	fileReferenced, setFileReferenced,	STOCK_WRITE)
-	PROPERTY (private,	QString,	contents,		setContents,		STOCK_WRITE)
-	PROPERTY (private,	QString,	reason,			setReason,			STOCK_WRITE)
+	PROPERTY (public,	String,	fileReferenced, setFileReferenced,	STOCK_WRITE)
+	PROPERTY (private,	String,	contents,		setContents,		STOCK_WRITE)
+	PROPERTY (private,	String,	reason,			setReason,			STOCK_WRITE)
 
 	public:
 		LDError();
-		LDError (QString contents, QString reason) :
+		LDError (String contents, String reason) :
 			m_contents (contents),
 			m_reason (reason) {}
 };
@@ -325,7 +325,7 @@ class LDEmpty : public LDObject
 //
 class LDComment : public LDObject
 {
-	PROPERTY (public, QString, text, setText, STOCK_WRITE)
+	PROPERTY (public, String, text, setText, STOCK_WRITE)
 	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
@@ -335,7 +335,7 @@ class LDComment : public LDObject
 
 	public:
 		LDComment() {}
-		LDComment (QString text) : m_text (text) {}
+		LDComment (String text) : m_text (text) {}
 };
 
 // =============================================================================
@@ -552,13 +552,13 @@ class LDOverlay : public LDObject
 	PROPERTY (public,	int,	 y,			setY,			STOCK_WRITE)
 	PROPERTY (public,	int,	 width,		setWidth,		STOCK_WRITE)
 	PROPERTY (public,	int,	 height,	setHeight,		STOCK_WRITE)
-	PROPERTY (public,	QString, fileName,	setFileName,	STOCK_WRITE)
+	PROPERTY (public,	String, fileName,	setFileName,	STOCK_WRITE)
 };
 
 // Other common LDraw stuff
-static const QString g_CALicense ("!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt");
-static const QString g_nonCALicense ("!LICENSE Not redistributable : see NonCAreadme.txt");
+static const String g_CALicense ("!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt");
+static const String g_nonCALicense ("!LICENSE Not redistributable : see NonCAreadme.txt");
 static const int g_lores = 16;
 static const int g_hires = 48;
 
-QString getLicenseText (int id);
+String getLicenseText (int id);

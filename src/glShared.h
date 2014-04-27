@@ -18,7 +18,7 @@
 
 #ifndef LDFORGE_GLSHARED_H
 #define LDFORGE_GLSHARED_H
-#include <QString>
+#include "basics.h"
 
 class LDObject;
 

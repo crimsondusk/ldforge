@@ -54,7 +54,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
 
-	QString authortext = ld_defaultname;
+	String authortext = ld_defaultname;
 
 	if (not ld_defaultuser.isEmpty())
 		authortext.append (format (" [%1]", ld_defaultuser));
@@ -90,7 +90,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
 		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 
-	const QString license =
+	const String license =
 		ui.rb_license_ca->isChecked()    ? g_CALicense :
 		ui.rb_license_nonca->isChecked() ? g_nonCALicense : "";
 
@@ -120,7 +120,7 @@ DEFINE_ACTION (NewFile, CTRL (N))
 //
 DEFINE_ACTION (Open, CTRL (O))
 {
-	QString name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
+	String name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 
 	if (name.length() == 0)
 		return;
@@ -325,7 +325,7 @@ DEFINE_ACTION (SelectByType, 0)
 
 	// If we're selecting subfile references, the reference filename must also
 	// be uniform.
-	QString refName;
+	String refName;
 
 	if (type == LDObject::ESubfile)
 	{
@@ -384,7 +384,7 @@ DEFINE_ACTION (ResetView, CTRL (0))
 //
 DEFINE_ACTION (InsertFrom, 0)
 {
-	QString fname = QFileDialog::getOpenFileName();
+	String fname = QFileDialog::getOpenFileName();
 	int idx = getInsertionPoint();
 
 	if (not fname.length())
@@ -422,7 +422,7 @@ DEFINE_ACTION (ExportTo, 0)
 	if (selection().isEmpty())
 		return;
 
-	QString fname = QFileDialog::getSaveFileName();
+	String fname = QFileDialog::getSaveFileName();
 
 	if (fname.length() == 0)
 		return;
@@ -437,7 +437,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 	for (LDObject* obj : selection())
 	{
-		QString contents = obj->asText();
+		String contents = obj->asText();
 		QByteArray data = contents.toUtf8();
 		file.write (data, data.size());
 		file.write ("\r\n", 2);
@@ -467,7 +467,7 @@ DEFINE_ACTION (InsertRaw, 0)
 
 	getCurrentDocument()->clearSelection();
 
-	for (QString line : QString (te_edit->toPlainText()).split ("\n"))
+	for (String line : String (te_edit->toPlainText()).split ("\n"))
 	{
 		LDObject* obj = parseLine (line);
 
@@ -490,13 +490,13 @@ DEFINE_ACTION (Screenshot, 0)
 	uchar* imgdata = R()->getScreencap (w, h);
 	QImage img = imageFromScreencap (imgdata, w, h);
 
-	QString root = basename (getCurrentDocument()->name());
+	String root = basename (getCurrentDocument()->name());
 
 	if (root.right (4) == ".dat")
 		root.chop (4);
 
-	QString defaultname = (root.length() > 0) ? format ("%1.png", root) : "";
-	QString fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
+	String defaultname = (root.length() > 0) ? format ("%1.png", root) : "";
+	String fname = QFileDialog::getSaveFileName (g_win, "Save Screencap", defaultname,
 				"PNG images (*.png);;JPG images (*.jpg);;BMP images (*.bmp);;All Files (*.*)");
 
 	if (not fname.isEmpty() && not img.save (fname))
@@ -711,28 +711,28 @@ DEFINE_ACTION (SubfileSelection, 0)
 	if (selection().size() == 0)
 		return;
 
-	QString			parentpath = getCurrentDocument()->fullPath();
+	String			parentpath = getCurrentDocument()->fullPath();
 
 	// BFC type of the new subfile - it shall inherit the BFC type of the parent document
 	LDBFC::Statement		bfctype = LDBFC::NoCertify;
 
 	// Dirname of the new subfile
-	QString			subdirname = dirname (parentpath);
+	String			subdirname = dirname (parentpath);
 
 	// Title of the new subfile
-	QString			subtitle;
+	String			subtitle;
 
 	// Comment containing the title of the parent document
 	LDComment*		titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
 
 	// License text for the subfile
-	QString			license = getLicenseText (ld_defaultlicense);
+	String			license = getLicenseText (ld_defaultlicense);
 
 	// LDraw code body of the new subfile (i.e. code of the selection)
 	QStringList		code;
 
 	// Full path of the subfile to be
-	QString			fullsubname;
+	String			fullsubname;
 
 	// Where to insert the subfile reference?
 	int				refidx = selection()[0]->lineNumber();
@@ -749,13 +749,13 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// If this the parent document isn't already in s/, we need to stuff it into
 	// a subdirectory named s/. Ensure it exists!
-	QString topdirname = basename (dirname (getCurrentDocument()->fullPath()));
+	String topdirname = basename (dirname (getCurrentDocument()->fullPath()));
 
 	if (topdirname != "s")
 	{
-		QString desiredPath = subdirname + "/s";
-		QString title = tr ("Create subfile directory?");
-		QString text = format (tr ("The directory <b>%1</b> is suggested for "
+		String desiredPath = subdirname + "/s";
+		String title = tr ("Create subfile directory?");
+		String text = format (tr ("The directory <b>%1</b> is suggested for "
 			"subfiles. This directory does not exist, create it?"), desiredPath);
 
 		if (QDir (desiredPath).exists() || confirm (title, text))
@@ -778,9 +778,9 @@ DEFINE_ACTION (SubfileSelection, 0)
 			parentpath.chop (subfilesuffix.matchedLength());
 
 		int subidx = 1;
-		QString digits;
+		String digits;
 		QFile f;
-		QString testfname;
+		String testfname;
 
 		do
 		{
@@ -834,7 +834,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	});
 
 	// Add the actual subfile code to the new document
-	for (QString line : code)
+	for (String line : code)
 	{
 		LDObject* obj = parseLine (line);
 		doc->addObject (obj);
