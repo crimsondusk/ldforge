@@ -171,6 +171,7 @@ class GLRenderer : public QGLWidget
 		void           hardRefresh();
 		void           initGLData();
 		void           initOverlaysFromObjects();
+		void			needZoomToFit();
 		void           refresh();
 		void           resetAngles();
 		void           resetAllAngles();
@@ -180,8 +181,6 @@ class GLRenderer : public QGLWidget
 		bool           setupOverlay (EFixedCamera cam, QString file, int x, int y, int w, int h);
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
-		void           zoomToFit();
-		void           zoomAllToFit();
 
 		static void    deleteLists (LDObject* obj);
 		static QColor  getMainColor();
@@ -272,6 +271,8 @@ class GLRenderer : public QGLWidget
 
 		// Set the color to an object list
 		void           setObjectColor (LDObject* obj, const ListType list);
+		void           zoomToFit();
+		void           zoomAllToFit();
 
 		LDGLData& currentDocumentData() const
 		{

@@ -224,11 +224,20 @@ void GLRenderer::initGLData()
 
 // =============================================================================
 //
+void GLRenderer::needZoomToFit()
+{
+	if (document() != null)
+		currentDocumentData().needZoomToFit = true;
+}
+
+// =============================================================================
+//
 void GLRenderer::resetAngles()
 {
 	rot (X) = 30.0f;
 	rot (Y) = 325.f;
 	pan (X) = pan (Y) = rot (Z) = 0.0f;
+	needZoomToFit();
 }
 
 // =============================================================================
