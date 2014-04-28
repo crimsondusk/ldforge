@@ -54,15 +54,11 @@ class ConfigDialog : public QDialog
 
 		explicit ConfigDialog (Tab deftab = InterfaceTab, QWidget* parent = null, Qt::WindowFlags f = 0);
 		virtual ~ConfigDialog();
-		float getGridValue (int i, int j) const;
 
 		QList<LDQuickColor> quickColors;
-		QDoubleSpinBox* dsb_gridData[3][2];
 
 	private:
 		Ui_ConfigUI* ui;
-		QLabel* lb_gridLabels[3];
-		QLabel* lb_gridIcons[3];
 		QList<QListWidgetItem*> quickColorItems;
 
 		void applySettings();
@@ -75,7 +71,6 @@ class ConfigDialog : public QDialog
 		String quickColorString();
 		QListWidgetItem* getSelectedQuickColor();
 		QList<ShortcutListItem*> getShortcutSelection();
-		void initGrids();
 		void initExtProgs();
 
 	private slots:

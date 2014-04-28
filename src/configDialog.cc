@@ -71,6 +71,12 @@ extern_cfg (Bool, prog_intersector_wine);
 extern_cfg (Bool, prog_coverer_wine);
 extern_cfg (Bool, prog_isecalc_wine);
 extern_cfg (Bool, prog_edger2_wine);
+extern_cfg (Float,	grid_coarse_snap);
+extern_cfg (Float,	grid_coarse_angle);
+extern_cfg (Float, 	grid_medium_snap);
+extern_cfg (Float,	grid_medium_angle);
+extern_cfg (Float,	grid_fine_snap);
+extern_cfg (Float,	grid_fine_angle);
 
 const char* g_extProgPathFilter =
 #ifdef _WIN32
@@ -147,8 +153,13 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->m_profileName->setText (ld_defaultname);
 	ui->m_profileUsername->setText (ld_defaultuser);
 	ui->m_profileLicense->setCurrentIndex (ld_defaultlicense);
+	ui->gridCoarseCoordinateSnap->setValue (grid_coarse_snap);
+	ui->gridCoarseAngleSnap->setValue (grid_coarse_angle);
+	ui->gridMediumCoordinateSnap->setValue (grid_medium_snap);
+	ui->gridMediumAngleSnap->setValue (grid_medium_angle);
+	ui->gridFineCoordinateSnap->setValue (grid_fine_snap);
+	ui->gridFineAngleSnap->setValue (grid_fine_angle);
 
-	initGrids();
 	initExtProgs();
 	selectPage (deftab);
 
@@ -194,57 +205,6 @@ void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 		item->setIcon (getIcon ("empty"));
 
 	ui->shortcutsList->insertItem (i++, item);
-}
-
-// =============================================================================
-// Initializes the table of grid stuff
-// =============================================================================
-void ConfigDialog::initGrids()
-{
-	QGridLayout* gridlayout = new QGridLayout;
-	QLabel* coordlabel = new QLabel ("Coordinate");
-	QLabel* anglelabel = new QLabel ("Angle");
-	int i = 1;
-
-	for (QLabel* label : QList<QLabel*> ({coordlabel, anglelabel}))
-	{
-		label->setAlignment (Qt::AlignCenter);
-		gridlayout->addWidget (label, 0, i++);
-	}
-
-	gridlayout->setColumnStretch (0, 0);
-	gridlayout->setColumnStretch (1, 1);
-	gridlayout->setColumnStretch (2, 1);
-
-	for (int i = 0; i < g_numGrids; ++i)
-	{
-		// Icon
-		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%1", String (g_gridInfo[i].name).toLower())));
-
-		// Text label
-		lb_gridLabels[i] = new QLabel (format ("%1:", g_gridInfo[i].name));
-
-		QHBoxLayout* labellayout = new QHBoxLayout;
-		labellayout->addWidget (lb_gridIcons[i]);
-		labellayout->addWidget (lb_gridLabels[i]);
-		gridlayout->addLayout (labellayout, i + 1, 0);
-
-		// Add the widgets
-		for (int j = 0; j < 2; ++j)
-		{
-			dsb_gridData[i][j] = new QDoubleSpinBox;
-			gridlayout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
-		}
-
-		// Fill in defaults and stuff
-		dsb_gridData[i][0]->setValue (*g_gridInfo[i].coordsnap);
-		dsb_gridData[i][1]->setValue (*g_gridInfo[i].anglesnap);
-		dsb_gridData[i][1]->setMaximum (360);
-		dsb_gridData[i][1]->setSuffix (utf16 (u"\u00B0")); // degree symbol
-	}
-
-	ui->grids->setLayout (gridlayout);
 }
 
 // =============================================================================
@@ -344,11 +304,12 @@ void ConfigDialog::applySettings()
 	gui_colortoolbar = quickColorString();
 
 	// Set the grid settings
-	for (int i = 0; i < g_numGrids; ++i)
-	{
-		*g_gridInfo[i].coordsnap = dsb_gridData[i][0]->value();
-		*g_gridInfo[i].anglesnap = dsb_gridData[i][1]->value();
-	}
+	grid_coarse_snap = ui->gridCoarseCoordinateSnap->value();
+	grid_coarse_angle = ui->gridCoarseAngleSnap->value();
+	grid_medium_snap = ui->gridMediumCoordinateSnap->value();
+	grid_medium_angle = ui->gridMediumAngleSnap->value();
+	grid_fine_snap = ui->gridFineCoordinateSnap->value();
+	grid_fine_angle = ui->gridFineAngleSnap->value();
 
 	// Apply key shortcuts
 	g_win->updateActionShortcuts();
