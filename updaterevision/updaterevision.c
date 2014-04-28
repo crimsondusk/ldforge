@@ -103,7 +103,7 @@ int main(int argc, char **argv)
 		// what we've got, then we don't need to modify it and can avoid rebuilding
 		// dependant files.
 		// [SP] I'm including build date in the file now so it must always be rebuilt.
-		// In LDForge, this is ony used by the very-quick-to-build version.cc anyway.
+		// In LDForge, this is only used by the very-quick-to-build version.cc anyway.
 #if 0
 		if (fgets(lasthash, sizeof lasthash, stream) == lasthash)
 		{

@@ -884,9 +884,10 @@ LDObject* parseLine (String line)
 						obj->setColor (tokens[3].toLong());
 						obj->pos.apply ([&](Axis ax, double& value) { value = tokens[4 + ax].toDouble(); });
 						return obj;
-					} elif (tokens[2] == "OVERLAY")
+					}
+					elif (tokens[2] == "OVERLAY")
 					{
-						checkTokenCount (line, tokens, 9);;
+						checkTokenCount (line, tokens, 9);
 						checkTokenNumbers (line, tokens, 5, 8);
 
 						LDOverlay* obj = new LDOverlay;
@@ -994,12 +995,13 @@ LDObject* parseLine (String line)
 				return obj;
 			}
 
-			default: // Strange line we couldn't parse
+			default:
 				throw LDError (line, "Unknown line code number");
 		}
 	}
 	catch (LDParseError& e)
 	{
+		// Strange line we couldn't parse
 		return new LDError (e.line(), e.error());
 	}
 }
