@@ -858,25 +858,17 @@ LDObject* parseLine (String line)
 				{
 					for (int i = 0; i < LDBFC::NumStatements; ++i)
 						if (commentTextSimplified == format ("BFC %1", LDBFC::k_statementStrings [i]))
-							return new LDBFC ( (LDBFC::Statement) i);
+							return new LDBFC ((LDBFC::Statement) i);
 
 					// MLCAD is notorious for stuffing these statements in parts it
 					// creates. The above block only handles valid statements, so we
 					// need to handle MLCAD-style invertnext, clip and noclip separately.
-					struct
-					{
-						String				a;
-						LDBFC::Statement	b;
-					} BFCData[] =
-					{
-						{ "INVERTNEXT", LDBFC::InvertNext },
-						{ "NOCLIP", LDBFC::NoClip },
-						{ "CLIP", LDBFC::Clip }
-					};
-
-					for (const auto& i : BFCData)
-						if (commentTextSimplified == "BFC CERTIFY " + i.a)
-							return new LDBFC (i.b);
+					if (commentTextSimplified == "BFC CERTIFY INVERTNEXT")
+						return new LDBFC (LDBFC::InvertNext);
+					elif (commentTextSimplified == "BFC CERTIFY CLIP")
+						return new LDBFC (LDBFC::Clip);
+					elif (commentTextSimplified == "BFC CERTIFY NOCLIP")
+						return new LDBFC (LDBFC::NoClip);
 				}
 
 				if (tokens.size() > 2 && tokens[1] == "!LDFORGE")
