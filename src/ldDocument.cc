@@ -543,8 +543,7 @@ bool LDDocument::isSafeToClose()
 	// If we have unsaved changes, warn and give the option of saving.
 	if (hasUnsavedChanges())
 	{
-		String message = format (tr ("There are unsaved changes to %1. Should it be saved?"),
-			(name().length() > 0) ? name() : tr ("<anonymous>"));
+		String message = format (tr ("There are unsaved changes to %1. Should it be saved?"), getDisplayName());
 
 		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
 			(msgbox::Yes | msgbox::No | msgbox::Cancel), msgbox::Cancel);
@@ -576,7 +575,8 @@ bool LDDocument::isSafeToClose()
 						return false;
 					}
 				}
-			} break;
+				break;
+			}
 
 			case msgbox::Cancel:
 				return false;

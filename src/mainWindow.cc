@@ -260,13 +260,11 @@ void MainWindow::updateTitle()
 	// Append our current file if we have one
 	if (getCurrentDocument())
 	{
-		if (getCurrentDocument()->name().length() > 0)
-			title += format (": %1", basename (getCurrentDocument()->name()));
-		else
-			title += format (": <anonymous>");
+		title += ": ";
+		title += getCurrentDocument()->getDisplayName();
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
-				getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
+			getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
 		{
 			// Append title
 			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
