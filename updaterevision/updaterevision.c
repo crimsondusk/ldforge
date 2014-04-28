@@ -13,6 +13,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <errno.h>
+#include <time.h>
 
 #ifdef _WIN32
 #define popen _popen
@@ -37,6 +38,11 @@ int main(int argc, char **argv)
 	char vertag[128], lastlog[128], lasthash[128], *hash = NULL;
 	FILE *stream = NULL;
 	int gotrev = 0, needupdate = 1;
+
+	// [SP] Stuff for build time.
+	time_t now;
+	char currentTime[128];
+	char* cp;
 
 	vertag[0] = '\0';
 	lastlog[0] = '\0';
@@ -96,6 +102,9 @@ int main(int argc, char **argv)
 		// Read the revision that's in this file already. If it's the same as
 		// what we've got, then we don't need to modify it and can avoid rebuilding
 		// dependant files.
+		// [SP] I'm including build date in the file now so it must always be rebuilt.
+		// In LDForge, this is ony used by the very-quick-to-build version.cc anyway.
+#if 0
 		if (fgets(lasthash, sizeof lasthash, stream) == lasthash)
 		{
 			stripnl(lasthash);
@@ -104,7 +113,22 @@ int main(int argc, char **argv)
 				needupdate = 0;
 			}
 		}
+#endif
 		fclose (stream);
+	}
+
+	// [SP] Current time.
+	now = time (NULL);
+	strftime (currentTime, sizeof currentTime, "%F %T %z", localtime (&now));
+
+	// [SP] For some dumb reason asctime includes a newline character. Get rid of it.
+	for (cp = &currentTime[0]; *cp != '\0'; ++cp)
+	{
+		if (*cp == '\n')
+		{
+			*cp = '\0';
+			break;
+		}
 	}
 
 	if (needupdate)
@@ -122,10 +146,11 @@ int main(int argc, char **argv)
 "\n"
 "#define GIT_DESCRIPTION \"%s\"\n"
 "#define GIT_HASH \"%s\"\n"
-"#define GIT_TIME \"%s\"\n",
-			hash, vertag, hash, lastlog);
+"#define GIT_TIME \"%s\"\n"
+"#define BUILD_TIME \"%s\"\n",
+			hash, vertag, hash, lastlog, currentTime);
 		fclose(stream);
-		fprintf(stderr, "%s updated to commit %s.\n", argv[1], vertag);
+		fprintf(stderr, "%s updated to commit %s (build time: %s).\n", argv[1], vertag, currentTime);
 	}
 	else
 	{

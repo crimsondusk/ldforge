@@ -27,6 +27,7 @@
 
 char g_versionString[64] = {'\0'};
 char g_fullVersionString[256] = {'\0'};
+char g_buildTime[256] = {'\0'};
 
 // =============================================================================
 //
@@ -58,4 +59,16 @@ const char* fullVersionString()
 	}
 
 	return g_fullVersionString;
+}
+
+// =============================================================================
+//
+const char* compileTimeString()
+{
+#ifdef BUILD_TIME
+	if (g_buildTime[0] == '\0')
+		strcpy (g_buildTime, BUILD_TIME);
+#endif
+
+	return g_buildTime;
 }

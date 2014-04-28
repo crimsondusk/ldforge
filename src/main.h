@@ -36,7 +36,3 @@
 static const std::nullptr_t null = nullptr;
 
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr);
-
-// Version string identifier. These are defined in Version.cc.
-const char* versionString();
-const char* fullVersionString();

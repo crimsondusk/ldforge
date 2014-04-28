@@ -53,3 +53,7 @@
 #ifdef RELEASE
 # undef DEBUG
 #endif // RELEASE
+
+const char* versionString();
+const char* fullVersionString();
+const char* compileTimeString();

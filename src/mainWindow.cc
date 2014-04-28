@@ -281,9 +281,8 @@ void MainWindow::updateTitle()
 	title += " [pre-release build]";
 #endif // DEBUG
 
-#ifdef COMPILE_DATE
-	title += " (built " COMPILE_DATE ")";
-#endif // COMPILE_DATE
+	if (compileTimeString()[0] != '\0')
+		title += format (" (built %1)", compileTimeString());
 
 	setWindowTitle (title);
 }
