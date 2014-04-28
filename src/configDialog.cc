@@ -241,7 +241,7 @@ void ConfigDialog::initGrids()
 		dsb_gridData[i][0]->setValue (*g_gridInfo[i].coordsnap);
 		dsb_gridData[i][1]->setValue (*g_gridInfo[i].anglesnap);
 		dsb_gridData[i][1]->setMaximum (360);
-		dsb_gridData[i][1]->setSuffix (UTF16 (u"\u00B0")); // degree symbol
+		dsb_gridData[i][1]->setSuffix (utf16 (u"\u00B0")); // degree symbol
 	}
 
 	ui->grids->setLayout (gridlayout);

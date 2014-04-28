@@ -64,8 +64,6 @@ ACCESS:															\
 //
 #define elif(A) else if (A)
 
-#define UTF16(A) (QString::fromUtf16 (reinterpret_cast<const ushort*> (A)))
-
 // =============================================================================
 //
 #ifdef WIN32
