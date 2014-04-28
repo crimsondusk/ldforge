@@ -850,13 +850,14 @@ LDObject* parseLine (String line)
 			case 0:
 			{
 				// Comment
-				String comm = line.mid (line.indexOf ("0") + 1).simplified();
+				String commentText (line.mid (line.indexOf ("0") + 2));
+				String commentTextSimplified (commentText.simplified());
 
 				// Handle BFC statements
 				if (tokens.size() > 2 && tokens[1] == "BFC")
 				{
 					for (int i = 0; i < LDBFC::NumStatements; ++i)
-						if (comm == format ("BFC %1", LDBFC::k_statementStrings [i]))
+						if (commentTextSimplified == format ("BFC %1", LDBFC::k_statementStrings [i]))
 							return new LDBFC ( (LDBFC::Statement) i);
 
 					// MLCAD is notorious for stuffing these statements in parts it
@@ -864,7 +865,7 @@ LDObject* parseLine (String line)
 					// need to handle MLCAD-style invertnext, clip and noclip separately.
 					struct
 					{
-						String			a;
+						String				a;
 						LDBFC::Statement	b;
 					} BFCData[] =
 					{
@@ -874,7 +875,7 @@ LDObject* parseLine (String line)
 					};
 
 					for (const auto& i : BFCData)
-						if (comm == "BFC CERTIFY " + i.a)
+						if (commentTextSimplified == "BFC CERTIFY " + i.a)
 							return new LDBFC (i.b);
 				}
 
@@ -909,7 +910,7 @@ LDObject* parseLine (String line)
 
 				// Just a regular comment:
 				LDComment* obj = new LDComment;
-				obj->setText (comm);
+				obj->setText (commentText);
 				return obj;
 			}
 
