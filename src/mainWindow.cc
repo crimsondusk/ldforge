@@ -56,11 +56,12 @@ cfg (String, gui_colortoolbar, "4:25:14:27:2:3:11:1:22:|:0:72:71:15");
 cfg (Bool, gui_implicitfiles, false);
 extern_cfg (List,		io_recentfiles);
 extern_cfg (Bool,		gl_axes);
-extern_cfg (String,	gl_maincolor);
-extern_cfg (Float,	gl_maincolor_alpha);
+extern_cfg (String,		gl_maincolor);
+extern_cfg (Float,		gl_maincolor_alpha);
 extern_cfg (Bool,		gl_wireframe);
 extern_cfg (Bool,		gl_colorbfc);
 extern_cfg (Bool,		gl_drawangles);
+extern_cfg (Bool,		gl_randomcolors);
 
 // =============================================================================
 //
@@ -83,27 +84,23 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	connect (ui->objectList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
 	connect (m_tabs, SIGNAL (currentChanged(int)), this, SLOT (changeCurrentFile()));
 
-	// Init message log manager
 	m_msglog = new MessageManager;
 	m_msglog->setRenderer (R());
 	m_renderer->setMessageLog (m_msglog);
 	m_quickColors = quickColorsFromConfig();
 	slot_selectionChanged();
 	setStatusBar (new QStatusBar);
-
-	// Make certain actions checkable
 	ui->actionAxes->setChecked (gl_axes);
 	ui->actionWireframe->setChecked (gl_wireframe);
 	ui->actionBFCView->setChecked (gl_colorbfc);
+	ui->actionRandomColors->setChecked (gl_randomcolors);
 	updateGridToolBar();
 	updateEditModeActions();
 	updateRecentFilesMenu();
 	updateColorToolbar();
 	updateTitle();
 	updateActionShortcuts();
-
 	setMinimumSize (300, 200);
-
 	connect (qApp, SIGNAL (aboutToQuit()), this, SLOT (slot_lastSecondCleanup()));
 
 	// Connect all actions
