@@ -1284,6 +1284,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	QList<qint32> indices;
 
 	// Go through each pixel read and add them to the selection.
+	// Note: black is background, those indices are skipped.
 	for (qint32 i = 0; i < numpixels; ++i)
 	{
 		qint32 idx =
@@ -1300,9 +1301,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	for (qint32 idx : indices)
 	{
-		if (idx == 0)
-			continue; // Black is background; skip
-
 		LDObject* obj = LDObject::fromID (idx);
 		assert (obj != null);
 
