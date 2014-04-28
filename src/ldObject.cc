@@ -47,7 +47,7 @@ LDObject::LDObject() :
 	memset (m_coords, 0, sizeof m_coords);
 	chooseID();
 	g_LDObjects << this;
-	setRandomColor (QColor::fromRgb (rand()));
+	setRandomColor (QColor::fromHsv (rand() % 360, rand() % 256, rand() % 96 + 128));
 }
 
 // =============================================================================
