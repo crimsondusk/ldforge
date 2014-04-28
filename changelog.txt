@@ -1,6 +1,8 @@
 =================================================
 == Changes in version 0.3
 =================================================
+- OpenGL renderer largely reworked to use VBO-based rendering instead of immediate mode. This plus additional
+	optimizations speed up LDForge considerably.
 - Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
 	of currently open files.
 		- Added close, close all and save all actions.
@@ -12,6 +14,8 @@
 	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
 	- Added support for multiple spaces before the ring number.
 - Added an action for quickly subfiling the group of selected objects.
+- Added random colors mode.
+- Vertex snapping is now smarter, prefers vertices closer to the camera and is less likely to pick irrelevant vertices.
 - Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix.
 	Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234.
 	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
