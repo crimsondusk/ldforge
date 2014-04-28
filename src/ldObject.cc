@@ -27,9 +27,9 @@
 #include "colors.h"
 #include "glCompiler.h"
 
-cfg (String, ld_defaultname, "");
-cfg (String, ld_defaultuser, "");
-cfg (Int, ld_defaultlicense, 0);
+CFGENTRY (String, defaultName, "");
+CFGENTRY (String, defaultUser, "");
+CFGENTRY (Int, defaultLicense, 0);
 
 // List of all LDObjects
 static LDObjectList g_LDObjects;

@@ -33,10 +33,10 @@
 #include "misc/invokeLater.h"
 #include "glCompiler.h"
 
-cfg (String, io_ldpath, "");
-cfg (List, io_recentfiles, {});
-extern_cfg (String, net_downloadpath);
-extern_cfg (Bool, gl_logostuds);
+CFGENTRY (String,			ldrawPath, "")
+CFGENTRY (List,				recentFiles, {})
+EXTERN_CFGENTRY (String,	downloadFilePath)
+EXTERN_CFGENTRY (Bool,		useLogoStuds)
 
 static bool g_loadingMainFile = false;
 static const int g_maxRecentFiles = 10;
@@ -62,14 +62,14 @@ namespace LDPaths
 
 	void initPaths()
 	{
-		if (not tryConfigure (io_ldpath))
+		if (not tryConfigure (cfg::ldrawPath))
 		{
 			LDrawPathDialog dlg (false);
 
 			if (not dlg.exec())
 				exit (0);
 
-			io_ldpath = dlg.filename();
+			cfg::ldrawPath = dlg.filename();
 		}
 	}
 
@@ -273,7 +273,7 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 		return relpath;
 
 	// Try with just the LDraw path first
-	fullPath = format ("%1" DIRSLASH "%2", io_ldpath, relpath);
+	fullPath = format ("%1" DIRSLASH "%2", cfg::ldrawPath, relpath);
 
 	if (QFile::exists (fullPath))
 		return fullPath;
@@ -282,7 +282,7 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 	{
 		// Look in sub-directories: parts and p. Also look in net_downloadpath, since that's
 		// where we download parts from the PT to.
-		for (const String& topdir : QList<String> ({ io_ldpath, net_downloadpath }))
+		for (const String& topdir : QList<String> ({ cfg::ldrawPath, cfg::downloadFilePath }))
 		{
 			for (const String& subdir : QList<String> ({ "parts", "p" }))
 			{
@@ -621,7 +621,7 @@ void newFile()
 //
 void addRecentFile (String path)
 {
-	auto& rfiles = io_recentfiles;
+	auto& rfiles = cfg::recentFiles;
 	int idx = rfiles.indexOf (path);
 
 	// If this file already is in the list, pop it out.
@@ -1330,7 +1330,7 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 	// Possibly substitute with logoed studs:
 	// stud.dat -> stud-logo.dat
 	// stud2.dat -> stud-logo2.dat
-	if (gl_logostuds && renderinline)
+	if (cfg::useLogoStuds && renderinline)
 	{
 		// Ensure logoed studs are loaded first
 		loadLogoedStuds();

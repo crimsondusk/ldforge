@@ -31,9 +31,9 @@ QList<Primitive> g_primitives;
 static PrimitiveScanner* g_activeScanner = null;
 PrimitiveCategory* g_unmatched = null;
 
-extern_cfg (String, ld_defaultname);
-extern_cfg (String, ld_defaultuser);
-extern_cfg (Int, ld_defaultlicense);
+EXTERN_CFGENTRY (String, defaultName);
+EXTERN_CFGENTRY (String, defaultUser);
+EXTERN_CFGENTRY (Int, defaultLicense);
 
 static const QStringList g_radialNameRoots =
 {
@@ -613,10 +613,10 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	QString author = APPNAME;
 	QString license = "";
 
-	if (not ld_defaultname.isEmpty())
+	if (not cfg::defaultName.isEmpty())
 	{
-		license = getLicenseText (ld_defaultlicense);
-		author = format ("%1 [%2]", ld_defaultname, ld_defaultuser);
+		license = getLicenseText (cfg::defaultLicense);
+		author = format ("%1 [%2]", cfg::defaultName, cfg::defaultUser);
 	}
 
 	f->addObjects (

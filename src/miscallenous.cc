@@ -102,21 +102,21 @@ static const long g_e10[] =
 //
 // Grid stuff
 //
-cfg (Int,		grid,					Grid::Medium);
-cfg (Float,		grid_coarse_snap,		5.0f);
-cfg (Float,		grid_coarse_angle,		45.0f);
-cfg (Float, 	grid_medium_snap,		1.0f);
-cfg (Float,		grid_medium_angle,		22.5f);
-cfg (Float,		grid_fine_snap,			0.1f);
-cfg (Float,		grid_fine_angle,		7.5f);
-cfg (Int,		edit_rotpoint,			0);
-cfg (Vertex,	edit_customrotpoint,	g_origin);
+CFGENTRY (Int,		grid,					Grid::Medium);
+CFGENTRY (Float,		gridCoarseCoordinateSnap,		5.0f);
+CFGENTRY (Float,		gridCoarseAngleSnap,		45.0f);
+CFGENTRY (Float, 	gridMediumCoordinateSnap,		1.0f);
+CFGENTRY (Float,		gridMediumAngleSnap,		22.5f);
+CFGENTRY (Float,		gridFineCoordinateSnap,			0.1f);
+CFGENTRY (Float,		gridFineAngleSnap,		7.5f);
+CFGENTRY (Int,		edit_rotpoint,			0);
+CFGENTRY (Vertex,	edit_customrotpoint,	g_origin);
 
 const gridinfo g_gridInfo[3] =
 {
-	{ "Coarse",	&grid_coarse_snap,	&grid_coarse_angle	},
-	{ "Medium",	&grid_medium_snap,	&grid_medium_angle	},
-	{ "Fine",	&grid_fine_snap,	&grid_fine_angle	},
+	{ "Coarse",	&cfg::gridCoarseCoordinateSnap,	&cfg::gridCoarseAngleSnap	},
+	{ "Medium",	&cfg::gridMediumCoordinateSnap,	&cfg::gridMediumAngleSnap	},
+	{ "Fine",	&cfg::gridFineCoordinateSnap,	&cfg::gridFineAngleSnap	},
 };
 
 // =============================================================================
@@ -203,7 +203,7 @@ void simplify (int& numer, int& denom)
 //
 Vertex rotPoint (const LDObjectList& objs)
 {
-	switch ((ERotationPoint) edit_rotpoint)
+	switch ((ERotationPoint) cfg::edit_rotpoint)
 	{
 		case EObjectOrigin:
 		{
@@ -228,7 +228,7 @@ Vertex rotPoint (const LDObjectList& objs)
 
 		case ECustomPoint:
 		{
-			return edit_customrotpoint;
+			return cfg::edit_customrotpoint;
 		}
 	}
 
@@ -243,7 +243,7 @@ void configRotationPoint()
 	Ui::RotPointUI ui;
 	ui.setupUi (dlg);
 
-	switch ((ERotationPoint) edit_rotpoint)
+	switch ((ERotationPoint) cfg::edit_rotpoint)
 	{
 		case EObjectOrigin:
 			ui.objectPoint->setChecked (true);
@@ -258,21 +258,21 @@ void configRotationPoint()
 			break;
 	}
 
-	ui.customX->setValue (edit_customrotpoint.x());
-	ui.customY->setValue (edit_customrotpoint.y());
-	ui.customZ->setValue (edit_customrotpoint.z());
+	ui.customX->setValue (cfg::edit_customrotpoint.x());
+	ui.customY->setValue (cfg::edit_customrotpoint.y());
+	ui.customZ->setValue (cfg::edit_customrotpoint.z());
 
 	if (not dlg->exec())
 		return;
 
-	edit_rotpoint =
+	cfg::edit_rotpoint =
 		(ui.objectPoint->isChecked()) ? EObjectOrigin :
 		(ui.worldPoint->isChecked())  ? EWorldOrigin :
 		ECustomPoint;
 
-	edit_customrotpoint.setX (ui.customX->value());
-	edit_customrotpoint.setY (ui.customY->value());
-	edit_customrotpoint.setZ (ui.customZ->value());
+	cfg::edit_customrotpoint.setX (ui.customX->value());
+	cfg::edit_customrotpoint.setY (ui.customY->value());
+	cfg::edit_customrotpoint.setZ (ui.customZ->value());
 }
 
 // =============================================================================

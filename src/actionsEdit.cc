@@ -34,8 +34,7 @@
 #include "ui_flip.h"
 #include "ui_addhistoryline.h"
 
-cfg (Bool, edit_schemanticinline, false);
-extern_cfg (String, ld_defaultuser);
+EXTERN_CFGENTRY (String, defaultUser);
 
 // =============================================================================
 //
@@ -742,7 +741,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	QDialog* dlg = new QDialog;
 	Ui_AddHistoryLine* ui = new Ui_AddHistoryLine;
 	ui->setupUi (dlg);
-	ui->m_username->setText (ld_defaultuser);
+	ui->m_username->setText (cfg::defaultUser);
 	ui->m_date->setDate (QDate::currentDate());
 	ui->m_comment->setFocus();
 

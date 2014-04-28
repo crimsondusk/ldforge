@@ -51,39 +51,39 @@ enum extprog
 
 // =============================================================================
 //
-cfg (String, prog_isecalc, "");
-cfg (String, prog_intersector, "");
-cfg (String, prog_coverer, "");
-cfg (String, prog_ytruder, "");
-cfg (String, prog_rectifier, "");
-cfg (String, prog_edger2, "");
+CFGENTRY (String, isecalcPath, "");
+CFGENTRY (String, intersectorPath, "");
+CFGENTRY (String, covererPath, "");
+CFGENTRY (String, ytruderPath, "");
+CFGENTRY (String, rectifierPath, "");
+CFGENTRY (String, edger2Path, "");
 
 String* const g_extProgPaths[] =
 {
-	&prog_isecalc,
-	&prog_intersector,
-	&prog_coverer,
-	&prog_ytruder,
-	&prog_rectifier,
-	&prog_edger2,
+	&cfg::isecalcPath,
+	&cfg::intersectorPath,
+	&cfg::covererPath,
+	&cfg::ytruderPath,
+	&cfg::rectifierPath,
+	&cfg::edger2Path,
 };
 
 #ifndef _WIN32
-cfg (Bool, prog_isecalc_wine, false);
-cfg (Bool, prog_intersector_wine, false);
-cfg (Bool, prog_coverer_wine, false);
-cfg (Bool, prog_ytruder_wine, false);
-cfg (Bool, prog_rectifier_wine, false);
-cfg (Bool, prog_edger2_wine, false);
+CFGENTRY (Bool, isecalcUsesWine, false);
+CFGENTRY (Bool, intersectorUsesWine, false);
+CFGENTRY (Bool, covererUsesWine, false);
+CFGENTRY (Bool, ytruderUsesWine, false);
+CFGENTRY (Bool, rectifierUsesWine, false);
+CFGENTRY (Bool, edger2UsesWine, false);
 
 bool* const g_extProgWine[] =
 {
-	&prog_isecalc_wine,
-	&prog_intersector_wine,
-	&prog_coverer_wine,
-	&prog_ytruder_wine,
-	&prog_rectifier_wine,
-	&prog_edger2_wine,
+	&cfg::isecalcUsesWine,
+	&cfg::intersectorUsesWine,
+	&cfg::covererUsesWine,
+	&cfg::ytruderUsesWine,
+	&cfg::rectifierUsesWine,
+	&cfg::edger2UsesWine,
 };
 #endif // _WIN32
 
@@ -381,7 +381,7 @@ DEFINE_ACTION (Ytruder, 0)
 
 	writeSelection (inDATName);
 
-	if (not runUtilityProcess (Ytruder, prog_ytruder, argv))
+	if (not runUtilityProcess (Ytruder, cfg::ytruderPath, argv))
 		return;
 
 	insertOutput (outDATName, false, {});
@@ -426,7 +426,7 @@ DEFINE_ACTION (Rectifier, 0)
 
 	writeSelection (inDATName);
 
-	if (not runUtilityProcess (Rectifier, prog_rectifier, argv))
+	if (not runUtilityProcess (Rectifier, cfg::rectifierPath, argv))
 		return;
 
 	insertOutput (outDATName, true, {});
@@ -517,20 +517,19 @@ DEFINE_ACTION (Intersector, 0)
 	writeColorGroup (inCol, inDATName);
 	writeColorGroup (cutCol, cutDATName);
 
-	if (not runUtilityProcess (Intersector, prog_intersector, argv_normal))
+	if (not runUtilityProcess (Intersector, cfg::intersectorPath, argv_normal))
 		return;
 
 	insertOutput (outDATName, false, {inCol});
 
-	if (repeatInverse && runUtilityProcess (Intersector, prog_intersector, argv_inverse))
+	if (repeatInverse && runUtilityProcess (Intersector, cfg::intersectorPath, argv_inverse))
 		insertOutput (outDAT2Name, false, {cutCol});
 
-	if (
-		ui.cb_edges->isChecked() &&
-		checkProgPath (Isecalc) &&
-		runUtilityProcess (Isecalc, prog_isecalc, join ( {inDATName, cutDATName, edgesDATName}))
-	)
+	if (ui.cb_edges->isChecked() && checkProgPath (Isecalc) &&
+		runUtilityProcess (Isecalc, cfg::isecalcPath, join ( {inDATName, cutDATName, edgesDATName})))
+	{
 		insertOutput (edgesDATName, false, {});
+	}
 }
 
 // =============================================================================
@@ -591,7 +590,7 @@ DEFINE_ACTION (Coverer, 0)
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);
 
-	if (not runUtilityProcess (Coverer, prog_coverer, argv))
+	if (not runUtilityProcess (Coverer, cfg::covererPath, argv))
 		return;
 
 	insertOutput (outDATName, false, {});
@@ -652,7 +651,7 @@ DEFINE_ACTION (Isecalc, 0)
 
 	writeColorGroup (in1Col, in1DATName);
 	writeColorGroup (in2Col, in2DATName);
-	runUtilityProcess (Isecalc, prog_isecalc, argv);
+	runUtilityProcess (Isecalc, cfg::isecalcPath, argv);
 	insertOutput (outDATName, false, {});
 }
 
@@ -699,7 +698,7 @@ DEFINE_ACTION (Edger2, 0)
 
 	writeSelection (inName);
 
-	if (not runUtilityProcess (Edger2, prog_edger2, argv))
+	if (not runUtilityProcess (Edger2, cfg::edger2Path, argv))
 		return;
 
 	insertOutput (outName, true, {});

@@ -25,170 +25,176 @@
 
 class QSettings;
 
-#define MAX_INI_LINE 512
-#define MAX_CONFIG 512
+#define CFGENTRY(T, NAME, DEFAULT) \
+	namespace cfg \
+	{ \
+		ConfigEntry::T##Type NAME; \
+		T##ConfigEntry config_##NAME (&NAME, #NAME, DEFAULT); \
+	}
 
-#define cfg(T, NAME, DEFAULT) \
-	Config::T##Type NAME; \
-	T##Config config_##NAME (&NAME, #NAME, DEFAULT);
+#define EXTERN_CFGENTRY(T, NAME) \
+	namespace cfg \
+	{ \
+		extern ConfigEntry::T##Type NAME; \
+	}
 
-#define extern_cfg(T, NAME) extern Config::T##Type NAME;
+namespace Config
+{
+	bool load();
+	bool save();
+	void reset();
+	String dirpath();
+	String filepath (String file);
+}
 
 // =========================================================
-class Config
+class ConfigEntry
 {
 	PROPERTY (private, String, name, setName, STOCK_WRITE)
 
-	public:
-		enum Type
-		{
-			EIntType,
-			EStringType,
-			EFloatType,
-			EBoolType,
-			EKeySequenceType,
-			EListType,
-			EVertexType,
-		};
+public:
+	enum Type
+	{
+		EIntType,
+		EStringType,
+		EFloatType,
+		EBoolType,
+		EKeySequenceType,
+		EListType,
+		EVertexType,
+	};
 
-		using IntType			= int;
-		using StringType		= String;
-		using FloatType			= float;
-		using BoolType			= bool;
-		using KeySequenceType	= QKeySequence;
-		using ListType			= QList<QVariant>;
-		using VertexType		= Vertex;
+	using IntType			= int;
+	using StringType		= String;
+	using FloatType			= float;
+	using BoolType			= bool;
+	using KeySequenceType	= QKeySequence;
+	using ListType			= QList<QVariant>;
+	using VertexType		= Vertex;
 
-		Config (String name);
+	ConfigEntry (String name);
 
-		virtual QVariant	getDefaultAsVariant() const = 0;
-		virtual Type		getType() const = 0;
-		virtual bool		isDefault() const = 0;
-		virtual void		loadFromVariant (const QVariant& val) = 0;
-		virtual void		resetValue() = 0;
-		virtual QVariant	toVariant() const = 0;
+	virtual QVariant	getDefaultAsVariant() const = 0;
+	virtual Type		getType() const = 0;
+	virtual bool		isDefault() const = 0;
+	virtual void		loadFromVariant (const QVariant& val) = 0;
+	virtual void		resetValue() = 0;
+	virtual QVariant	toVariant() const = 0;
 
-		// ------------------------------------------
-		static bool load();
-		static bool save();
-		static void reset();
-		static String dirpath();
-		static String filepath (String file);
-
-	protected:
-		static void addToArray (Config* ptr);
+protected:
+	static void addToArray (ConfigEntry* ptr);
 };
 
 // =============================================================================
-#define IMPLEMENT_CONFIG(NAME)													\
-public:																			\
-	using ValueType = Config::NAME##Type;										\
-																				\
-	NAME##Config (ValueType* valueptr, String name, ValueType def) :			\
-		Config (name),															\
-		m_valueptr (valueptr),													\
-		m_default (def)															\
-	{																			\
-		Config::addToArray (this);												\
-		*m_valueptr = def;														\
-	}																			\
-																				\
-	inline ValueType getValue() const											\
-	{																			\
-		return *m_valueptr;														\
-	}																			\
-																				\
-	inline void setValue (ValueType val)										\
-	{																			\
-		*m_valueptr = val;														\
-	}																			\
-																				\
-	virtual Config::Type getType() const										\
-	{																			\
-		return Config::E##NAME##Type;											\
-	}																			\
-																				\
-	virtual void resetValue()													\
-	{																			\
-		*m_valueptr = m_default;												\
-	}																			\
-																				\
-	virtual const ValueType& getDefault() const									\
-	{																			\
-		return m_default;														\
-	}																			\
-																				\
-	virtual bool isDefault() const												\
-	{																			\
-		return *m_valueptr == m_default;										\
-	}																			\
-																				\
-	virtual void loadFromVariant (const QVariant& val)							\
-	{																			\
-		*m_valueptr = val.value<ValueType>();									\
-	}																			\
-																				\
-	virtual QVariant toVariant() const											\
-	{																			\
-		return QVariant::fromValue<ValueType> (*m_valueptr);					\
-	}																			\
-																				\
-	virtual QVariant getDefaultAsVariant() const								\
-	{																			\
-		return QVariant::fromValue<ValueType> (m_default);						\
-	}																			\
-																				\
-	static NAME##Config* getByName (String name);								\
-																				\
-private:																		\
-	ValueType*	m_valueptr;														\
+#define IMPLEMENT_CONFIG(NAME)														\
+public:																				\
+	using ValueType = ConfigEntry::NAME##Type;										\
+																					\
+	NAME##ConfigEntry (ValueType* valueptr, String name, ValueType def) :			\
+		ConfigEntry (name),															\
+		m_valueptr (valueptr),														\
+		m_default (def)																\
+	{																				\
+		ConfigEntry::addToArray (this);												\
+		*m_valueptr = def;															\
+	}																				\
+																					\
+	inline ValueType getValue() const												\
+	{																				\
+		return *m_valueptr;															\
+	}																				\
+																					\
+	inline void setValue (ValueType val)											\
+	{																				\
+		*m_valueptr = val;															\
+	}																				\
+																					\
+	virtual ConfigEntry::Type getType() const										\
+	{																				\
+		return ConfigEntry::E##NAME##Type;											\
+	}																				\
+																					\
+	virtual void resetValue()														\
+	{																				\
+		*m_valueptr = m_default;													\
+	}																				\
+																					\
+	virtual const ValueType& getDefault() const										\
+	{																				\
+		return m_default;															\
+	}																				\
+																					\
+	virtual bool isDefault() const													\
+	{																				\
+		return *m_valueptr == m_default;											\
+	}																				\
+																					\
+	virtual void loadFromVariant (const QVariant& val)								\
+	{																				\
+		*m_valueptr = val.value<ValueType>();										\
+	}																				\
+																					\
+	virtual QVariant toVariant() const												\
+	{																				\
+		return QVariant::fromValue<ValueType> (*m_valueptr);						\
+	}																				\
+																					\
+	virtual QVariant getDefaultAsVariant() const									\
+	{																				\
+		return QVariant::fromValue<ValueType> (m_default);							\
+	}																				\
+																					\
+	static NAME##ConfigEntry* getByName (String name);								\
+																					\
+private:																			\
+	ValueType*	m_valueptr;															\
 	ValueType	m_default;
 
 // =============================================================================
 //
-class IntConfig : public Config
+class IntConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Int)
 };
 
 // =============================================================================
 //
-class StringConfig : public Config
+class StringConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (String)
 };
 
 // =============================================================================
 //
-class FloatConfig : public Config
+class FloatConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Float)
 };
 
 // =============================================================================
 //
-class BoolConfig : public Config
+class BoolConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Bool)
 };
 
 // =============================================================================
 //
-class KeySequenceConfig : public Config
+class KeySequenceConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (KeySequence)
 };
 
 // =============================================================================
 //
-class ListConfig : public Config
+class ListConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (List)
 };
 
 // =============================================================================
 //
-class VertexConfig : public Config
+class VertexConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Vertex)
 };

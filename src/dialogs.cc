@@ -45,7 +45,7 @@
 #include "ui_bombbox.h"
 
 extern const char* g_extProgPathFilter;
-extern_cfg (String, io_ldpath);
+EXTERN_CFGENTRY (String, ldrawPath);
 
 // =============================================================================
 // =============================================================================
@@ -178,12 +178,12 @@ LDrawPathDialog::LDrawPathDialog (const bool validDefault, QWidget* parent, Qt::
 
 	okButton()->setEnabled (false);
 
-	connect (ui->path, SIGNAL (textEdited (String)), this, SLOT (slot_tryConfigure()));
+	connect (ui->path, SIGNAL (textEdited (QString)), this, SLOT (slot_tryConfigure()));
 	connect (ui->searchButton, SIGNAL (clicked()), this, SLOT (slot_findPath()));
 	connect (ui->buttonBox, SIGNAL (rejected()), this, validDefault ? SLOT (reject()) : SLOT (slot_exit()));
 	connect (ui->buttonBox, SIGNAL (accepted()), this, SLOT (slot_accept()));
 
-	setPath (io_ldpath);
+	setPath (cfg::ldrawPath);
 
 	if (validDefault)
 		slot_tryConfigure();

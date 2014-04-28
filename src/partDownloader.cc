@@ -30,9 +30,9 @@
 #include "glRenderer.h"
 #include "configDialog.h"
 
-cfg (String,	net_downloadpath,	"");
-cfg (Bool,		net_guesspaths,	true);
-cfg (Bool,		net_autoclose,		true);
+CFGENTRY (String,	downloadFilePath,	"");
+CFGENTRY (Bool,		guessDownloadPaths,	true);
+CFGENTRY (Bool,		autoCloseDownloadDialog,		true);
 
 const QString g_unofficialLibraryURL ("http://ldraw.org/library/unofficial/");
 
@@ -59,7 +59,7 @@ void PartDownloader::staticBegin()
 //
 QString PartDownloader::getDownloadPath()
 {
-	QString path = net_downloadpath;
+	QString path = cfg::downloadFilePath;
 
 #if DIRSLASH_CHAR != '/'
 	path.replace (DIRSLASH, "/");
@@ -123,7 +123,7 @@ void PartDownloader::modifyDestination (QString& dest) const
 	dest = dest.simplified();
 
 	// If the user doesn't want us to guess, stop right here.
-	if (not net_guesspaths)
+	if (not cfg::guessDownloadPaths)
 		return;
 
 	// Ensure .dat extension
@@ -288,7 +288,7 @@ void PartDownloader::checkIfFinished()
 		g_win->R()->resetAngles();
 	}
 
-	if (net_autoclose && not failed)
+	if (cfg::autoCloseDownloadDialog && not failed)
 	{
 		// Close automatically if desired.
 		accept();

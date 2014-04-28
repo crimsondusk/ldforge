@@ -51,17 +51,17 @@
 
 static bool g_isSelectionLocked = false;
 
-cfg (Bool, lv_colorize, true);
-cfg (String, gui_colortoolbar, "4:25:14:27:2:3:11:1:22:|:0:72:71:15");
-cfg (Bool, gui_implicitfiles, false);
-extern_cfg (List,		io_recentfiles);
-extern_cfg (Bool,		gl_axes);
-extern_cfg (String,		gl_maincolor);
-extern_cfg (Float,		gl_maincolor_alpha);
-extern_cfg (Bool,		gl_wireframe);
-extern_cfg (Bool,		gl_colorbfc);
-extern_cfg (Bool,		gl_drawangles);
-extern_cfg (Bool,		gl_randomcolors);
+CFGENTRY (Bool, colorizeObjectsList, true);
+CFGENTRY (String, quickColorToolbar, "4:25:14:27:2:3:11:1:22:|:0:72:71:15");
+CFGENTRY (Bool, listImplicitFiles, false);
+EXTERN_CFGENTRY (List,		recentFiles);
+EXTERN_CFGENTRY (Bool,		drawAxes);
+EXTERN_CFGENTRY (String,		mainColor);
+EXTERN_CFGENTRY (Float,		mainColorAlpha);
+EXTERN_CFGENTRY (Bool,		drawWireframe);
+EXTERN_CFGENTRY (Bool,		bfcRedGreenView);
+EXTERN_CFGENTRY (Bool,		drawAngles);
+EXTERN_CFGENTRY (Bool,		randomColors);
 
 // =============================================================================
 //
@@ -90,10 +90,10 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	m_quickColors = quickColorsFromConfig();
 	slot_selectionChanged();
 	setStatusBar (new QStatusBar);
-	ui->actionAxes->setChecked (gl_axes);
-	ui->actionWireframe->setChecked (gl_wireframe);
-	ui->actionBFCView->setChecked (gl_colorbfc);
-	ui->actionRandomColors->setChecked (gl_randomcolors);
+	ui->actionAxes->setChecked (cfg::drawAxes);
+	ui->actionWireframe->setChecked (cfg::drawWireframe);
+	ui->actionBFCView->setChecked (cfg::bfcRedGreenView);
+	ui->actionRandomColors->setChecked (cfg::randomColors);
 	updateGridToolBar();
 	updateEditModeActions();
 	updateRecentFilesMenu();
@@ -111,10 +111,10 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 
 // =============================================================================
 //
-KeySequenceConfig* MainWindow::shortcutForAction (QAction* action)
+KeySequenceConfigEntry* MainWindow::shortcutForAction (QAction* action)
 {
-	String keycfgname = format ("key_%1", action->objectName());
-	return KeySequenceConfig::getByName (keycfgname);
+	String keycfgname = action->objectName() + "Shortcut";
+	return KeySequenceConfigEntry::getByName (keycfgname);
 }
 
 // =============================================================================
@@ -123,7 +123,7 @@ void MainWindow::updateActionShortcuts()
 {
 	for (QAction* act : findChildren<QAction*>())
 	{
-		KeySequenceConfig* cfg = shortcutForAction (act);
+		KeySequenceConfigEntry* cfg = shortcutForAction (act);
 
 		if (cfg)
 			act->setShortcut (cfg->getValue());
@@ -173,7 +173,7 @@ for (QAction * recent : m_recentFiles)
 
 	QAction* first = null;
 
-	for (const QVariant& it : io_recentfiles)
+	for (const QVariant& it : cfg::recentFiles)
 	{
 		String file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
@@ -191,7 +191,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 {
 	QList<LDQuickColor> colors;
 
-	for (String colorname : gui_colortoolbar.split (":"))
+	for (String colorname : cfg::quickColorToolbar.split (":"))
 	{
 		if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
@@ -243,9 +243,9 @@ void MainWindow::updateColorToolbar()
 void MainWindow::updateGridToolBar()
 {
 	// Ensure that the current grid - and only the current grid - is selected.
-	ui->actionGridCoarse->setChecked (grid == Grid::Coarse);
-	ui->actionGridMedium->setChecked (grid == Grid::Medium);
-	ui->actionGridFine->setChecked (grid == Grid::Fine);
+	ui->actionGridCoarse->setChecked (cfg::grid == Grid::Coarse);
+	ui->actionGridMedium->setChecked (cfg::grid == Grid::Medium);
+	ui->actionGridFine->setChecked (cfg::grid == Grid::Fine);
 }
 
 // =============================================================================
@@ -417,7 +417,8 @@ void MainWindow::buildObjList()
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
 		}
-		elif (lv_colorize && obj->isColored() && obj->color() != maincolor && obj->color() != edgecolor)
+		elif (cfg::colorizeObjectsList && obj->isColored() &&
+			obj->color() != maincolor && obj->color() != edgecolor)
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
@@ -841,8 +842,8 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 	if (colinfo->index == maincolor)
 	{
 		// Use the user preferences for main color here
-		col = gl_maincolor;
-		col.setAlphaF (gl_maincolor_alpha);
+		col = cfg::mainColor;
+		col.setAlphaF (cfg::mainColorAlpha);
 	}
 
 	// Paint the icon border
@@ -902,7 +903,7 @@ void MainWindow::updateDocumentList()
 	for (LDDocument* f : g_loadedFiles)
 	{
 		// Don't list implicit files unless explicitly desired.
-		if (f->isImplicit() && not gui_implicitfiles)
+		if (f->isImplicit() && not cfg::listImplicitFiles)
 			continue;
 
 		// Add an item to the list for this file and store the tab index
@@ -996,9 +997,9 @@ void MainWindow::updateActions()
 	int pos = his->position();
 	ui->actionUndo->setEnabled (pos != -1);
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
-	ui->actionAxes->setChecked (gl_axes);
-	ui->actionBFCView->setChecked (gl_colorbfc);
-	ui->actionDrawAngles->setChecked (gl_drawangles);
+	ui->actionAxes->setChecked (cfg::drawAxes);
+	ui->actionBFCView->setChecked (cfg::bfcRedGreenView);
+	ui->actionDrawAngles->setChecked (cfg::drawAngles);
 }
 
 // =============================================================================

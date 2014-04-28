@@ -52,17 +52,17 @@ QString join (QList< StringFormatArg > vals, QString delim = " ");
 struct gridinfo
 {
 	const char* const			name;
-	Config::FloatType* const	coordsnap;
-	Config::FloatType* const	anglesnap;
+	ConfigEntry::FloatType* const	coordsnap;
+	ConfigEntry::FloatType* const	anglesnap;
 };
 
-extern_cfg (Int, grid);
+EXTERN_CFGENTRY (Int, grid);
 static const int g_numGrids = 3;
 extern const gridinfo g_gridInfo[3];
 
 inline const gridinfo& currentGrid()
 {
-	return g_gridInfo[grid];
+	return g_gridInfo[cfg::grid];
 }
 
 // =============================================================================

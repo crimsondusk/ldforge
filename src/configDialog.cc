@@ -39,44 +39,43 @@
 #include "glRenderer.h"
 #include "ui_config.h"
 
-extern_cfg (String, gl_bgcolor);
-extern_cfg (String, gl_maincolor);
-extern_cfg (Bool, lv_colorize);
-extern_cfg (Bool, gl_colorbfc);
-extern_cfg (Float, gl_maincolor_alpha);
-extern_cfg (Int, gl_linethickness);
-extern_cfg (String, gui_colortoolbar);
-extern_cfg (Bool, edit_schemanticinline);
-extern_cfg (Bool, gl_blackedges);
-extern_cfg (Bool, gl_aa);
-extern_cfg (Bool, gui_implicitfiles);
-extern_cfg (String, net_downloadpath);
-extern_cfg (Bool, net_guesspaths);
-extern_cfg (Bool, net_autoclose);
-extern_cfg (Bool, gl_logostuds);
-extern_cfg (Bool,	gl_linelengths);
-extern_cfg (String, ld_defaultname);
-extern_cfg (String, ld_defaultuser);
-extern_cfg (Int, ld_defaultlicense);
-extern_cfg (String, gl_selectcolor);
-extern_cfg (String, prog_ytruder);
-extern_cfg (String, prog_rectifier);
-extern_cfg (String, prog_intersector);
-extern_cfg (String, prog_coverer);
-extern_cfg (String, prog_isecalc);
-extern_cfg (String, prog_edger2);
-extern_cfg (Bool, prog_ytruder_wine);
-extern_cfg (Bool, prog_rectifier_wine);
-extern_cfg (Bool, prog_intersector_wine);
-extern_cfg (Bool, prog_coverer_wine);
-extern_cfg (Bool, prog_isecalc_wine);
-extern_cfg (Bool, prog_edger2_wine);
-extern_cfg (Float,	grid_coarse_snap);
-extern_cfg (Float,	grid_coarse_angle);
-extern_cfg (Float, 	grid_medium_snap);
-extern_cfg (Float,	grid_medium_angle);
-extern_cfg (Float,	grid_fine_snap);
-extern_cfg (Float,	grid_fine_angle);
+EXTERN_CFGENTRY (String, backgroundColor);
+EXTERN_CFGENTRY (String, mainColor);
+EXTERN_CFGENTRY (Bool, colorizeObjectsList);
+EXTERN_CFGENTRY (Bool, bfcRedGreenView);
+EXTERN_CFGENTRY (Float, mainColorAlpha);
+EXTERN_CFGENTRY (Int, lineThickness);
+EXTERN_CFGENTRY (String, quickColorToolbar);
+EXTERN_CFGENTRY (Bool, blackEdges);
+EXTERN_CFGENTRY (Bool, antiAliasedLines);
+EXTERN_CFGENTRY (Bool, listImplicitFiles);
+EXTERN_CFGENTRY (String, downloadFilePath);
+EXTERN_CFGENTRY (Bool, guessDownloadPaths);
+EXTERN_CFGENTRY (Bool, autoCloseDownloadDialog);
+EXTERN_CFGENTRY (Bool, useLogoStuds);
+EXTERN_CFGENTRY (Bool,	drawLineLengths);
+EXTERN_CFGENTRY (String, defaultName);
+EXTERN_CFGENTRY (String, defaultUser);
+EXTERN_CFGENTRY (Int, defaultLicense);
+EXTERN_CFGENTRY (String, selectColorBlend);
+EXTERN_CFGENTRY (String, ytruderPath);
+EXTERN_CFGENTRY (String, rectifierPath);
+EXTERN_CFGENTRY (String, intersectorPath);
+EXTERN_CFGENTRY (String, covererPath);
+EXTERN_CFGENTRY (String, isecalcPath);
+EXTERN_CFGENTRY (String, edger2Path);
+EXTERN_CFGENTRY (Bool, ytruderUsesWine);
+EXTERN_CFGENTRY (Bool, rectifierUsesWine);
+EXTERN_CFGENTRY (Bool, intersectorUsesWine);
+EXTERN_CFGENTRY (Bool, covererUsesWine);
+EXTERN_CFGENTRY (Bool, isecalcUsesWine);
+EXTERN_CFGENTRY (Bool, edger2UsesWine);
+EXTERN_CFGENTRY (Float,	gridCoarseCoordinateSnap);
+EXTERN_CFGENTRY (Float,	gridCoarseAngleSnap);
+EXTERN_CFGENTRY (Float, gridMediumCoordinateSnap);
+EXTERN_CFGENTRY (Float,	gridMediumAngleSnap);
+EXTERN_CFGENTRY (Float,	gridFineCoordinateSnap);
+EXTERN_CFGENTRY (Float,	gridFineAngleSnap);
 
 const char* g_extProgPathFilter =
 #ifdef _WIN32
@@ -95,33 +94,33 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->setupUi (this);
 
 	// Interface tab
-	setButtonBackground (ui->backgroundColorButton, gl_bgcolor);
+	setButtonBackground (ui->backgroundColorButton, cfg::backgroundColor);
 	connect (ui->backgroundColorButton, SIGNAL (clicked()),
 			 this, SLOT (slot_setGLBackground()));
 
-	setButtonBackground (ui->mainColorButton, gl_maincolor);
+	setButtonBackground (ui->mainColorButton, cfg::mainColor);
 	connect (ui->mainColorButton, SIGNAL (clicked()),
 			 this, SLOT (slot_setGLForeground()));
 
-	setButtonBackground (ui->selColorButton, gl_selectcolor);
+	setButtonBackground (ui->selColorButton, cfg::selectColorBlend);
 	connect (ui->selColorButton, SIGNAL (clicked()),
 			 this, SLOT (slot_setGLSelectColor()));
 
-	ui->mainColorAlpha->setValue (gl_maincolor_alpha * 10.0f);
-	ui->lineThickness->setValue (gl_linethickness);
-	ui->colorizeObjects->setChecked (lv_colorize);
-	ui->colorBFC->setChecked (gl_colorbfc);
-	ui->blackEdges->setChecked (gl_blackedges);
-	ui->m_aa->setChecked (gl_aa);
-	ui->implicitFiles->setChecked (gui_implicitfiles);
-	ui->m_logostuds->setChecked (gl_logostuds);
-	ui->linelengths->setChecked (gl_linelengths);
+	ui->mainColorAlpha->setValue (cfg::mainColorAlpha * 10.0f);
+	ui->lineThickness->setValue (cfg::lineThickness);
+	ui->colorizeObjects->setChecked (cfg::colorizeObjectsList);
+	ui->colorBFC->setChecked (cfg::bfcRedGreenView);
+	ui->blackEdges->setChecked (cfg::blackEdges);
+	ui->m_aa->setChecked (cfg::antiAliasedLines);
+	ui->implicitFiles->setChecked (cfg::listImplicitFiles);
+	ui->m_logostuds->setChecked (cfg::useLogoStuds);
+	ui->linelengths->setChecked (cfg::drawLineLengths);
 
 	int i = 0;
 
 	for (QAction* act : g_win->findChildren<QAction*>())
 	{
-		KeySequenceConfig* cfg = g_win->shortcutForAction (act);
+		KeySequenceConfigEntry* cfg = g_win->shortcutForAction (act);
 
 		if (cfg)
 			addShortcut (*cfg, act, i);
@@ -145,20 +144,20 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	connect (ui->quickColor_moveDown, SIGNAL (clicked()), this, SLOT (slot_moveColor()));
 	connect (ui->quickColor_clear, SIGNAL (clicked()), this, SLOT (slot_clearColors()));
 
-	ui->downloadPath->setText (net_downloadpath);
-	ui->guessNetPaths->setChecked (net_guesspaths);
-	ui->autoCloseNetPrompt->setChecked (net_autoclose);
+	ui->downloadPath->setText (cfg::downloadFilePath);
+	ui->guessNetPaths->setChecked (cfg::guessDownloadPaths);
+	ui->autoCloseNetPrompt->setChecked (cfg::autoCloseDownloadDialog);
 	connect (ui->findDownloadPath, SIGNAL (clicked (bool)), this, SLOT (slot_findDownloadFolder()));
 
-	ui->m_profileName->setText (ld_defaultname);
-	ui->m_profileUsername->setText (ld_defaultuser);
-	ui->m_profileLicense->setCurrentIndex (ld_defaultlicense);
-	ui->gridCoarseCoordinateSnap->setValue (grid_coarse_snap);
-	ui->gridCoarseAngleSnap->setValue (grid_coarse_angle);
-	ui->gridMediumCoordinateSnap->setValue (grid_medium_snap);
-	ui->gridMediumAngleSnap->setValue (grid_medium_angle);
-	ui->gridFineCoordinateSnap->setValue (grid_fine_snap);
-	ui->gridFineAngleSnap->setValue (grid_fine_angle);
+	ui->m_profileName->setText (cfg::defaultName);
+	ui->m_profileUsername->setText (cfg::defaultUser);
+	ui->m_profileLicense->setCurrentIndex (cfg::defaultLicense);
+	ui->gridCoarseCoordinateSnap->setValue (cfg::gridCoarseCoordinateSnap);
+	ui->gridCoarseAngleSnap->setValue (cfg::gridCoarseAngleSnap);
+	ui->gridMediumCoordinateSnap->setValue (cfg::gridMediumCoordinateSnap);
+	ui->gridMediumAngleSnap->setValue (cfg::gridMediumAngleSnap);
+	ui->gridFineCoordinateSnap->setValue (cfg::gridFineCoordinateSnap);
+	ui->gridFineAngleSnap->setValue (cfg::gridFineAngleSnap);
 
 	initExtProgs();
 	selectPage (deftab);
@@ -191,7 +190,7 @@ void ConfigDialog::selectPage (int row)
 // =============================================================================
 // Adds a shortcut entry to the list of shortcuts.
 // =============================================================================
-void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
+void ConfigDialog::addShortcut (KeySequenceConfigEntry& cfg, QAction* act, int& i)
 {
 	ShortcutListItem* item = new ShortcutListItem;
 	item->setIcon (act->icon());
@@ -211,9 +210,9 @@ void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 // =============================================================================
 static struct LDExtProgInfo
 {
-	const String		name,
-						iconname;
-	String* const		path;
+	const String	name,
+					iconname;
+	String* const	path;
 	QLineEdit*		input;
 	QPushButton*	setPathButton;
 #ifndef _WIN32
@@ -223,9 +222,9 @@ static struct LDExtProgInfo
 } g_LDExtProgInfo[] =
 {
 #ifndef _WIN32
-# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null, &prog_##LOWNAME##_wine, null },
+# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &cfg::LOWNAME##Path, null, null, &cfg::LOWNAME##UsesWine, null },
 #else
-# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &prog_##LOWNAME, null, null },
+# define EXTPROG(NAME, LOWNAME) { #NAME, #LOWNAME, &cfg::LOWNAME##Path, null, null },
 #endif
 	EXTPROG (Ytruder, ytruder)
 	EXTPROG (Rectifier, rectifier)
@@ -283,33 +282,33 @@ void ConfigDialog::initExtProgs()
 void ConfigDialog::applySettings()
 {
 	// Apply configuration
-	lv_colorize = ui->colorizeObjects->isChecked();
-	gl_colorbfc = ui->colorBFC->isChecked();
-	gl_blackedges = ui->blackEdges->isChecked();
-	gl_maincolor_alpha = ( (double) ui->mainColorAlpha->value()) / 10.0f;
-	gl_linethickness = ui->lineThickness->value();
-	gui_implicitfiles = ui->implicitFiles->isChecked();
-	net_downloadpath = ui->downloadPath->text();
-	net_guesspaths = ui->guessNetPaths->isChecked();
-	net_autoclose = ui->autoCloseNetPrompt->isChecked();
-	gl_logostuds = ui->m_logostuds->isChecked();
-	gl_linelengths = ui->linelengths->isChecked();
-	ld_defaultuser = ui->m_profileUsername->text();
-	ld_defaultname = ui->m_profileName->text();
-	ld_defaultlicense = ui->m_profileLicense->currentIndex();
-	gl_aa = ui->m_aa->isChecked();
+	cfg::colorizeObjectsList = ui->colorizeObjects->isChecked();
+	cfg::bfcRedGreenView = ui->colorBFC->isChecked();
+	cfg::blackEdges = ui->blackEdges->isChecked();
+	cfg::mainColorAlpha = ((double) ui->mainColorAlpha->value()) / 10.0;
+	cfg::lineThickness = ui->lineThickness->value();
+	cfg::listImplicitFiles = ui->implicitFiles->isChecked();
+	cfg::downloadFilePath = ui->downloadPath->text();
+	cfg::guessDownloadPaths = ui->guessNetPaths->isChecked();
+	cfg::autoCloseDownloadDialog = ui->autoCloseNetPrompt->isChecked();
+	cfg::useLogoStuds = ui->m_logostuds->isChecked();
+	cfg::drawLineLengths = ui->linelengths->isChecked();
+	cfg::defaultUser = ui->m_profileUsername->text();
+	cfg::defaultName = ui->m_profileName->text();
+	cfg::defaultLicense = ui->m_profileLicense->currentIndex();
+	cfg::antiAliasedLines = ui->m_aa->isChecked();
 
 	// Rebuild the quick color toolbar
 	g_win->setQuickColors (quickColors);
-	gui_colortoolbar = quickColorString();
+	cfg::quickColorToolbar = quickColorString();
 
 	// Set the grid settings
-	grid_coarse_snap = ui->gridCoarseCoordinateSnap->value();
-	grid_coarse_angle = ui->gridCoarseAngleSnap->value();
-	grid_medium_snap = ui->gridMediumCoordinateSnap->value();
-	grid_medium_angle = ui->gridMediumAngleSnap->value();
-	grid_fine_snap = ui->gridFineCoordinateSnap->value();
-	grid_fine_angle = ui->gridFineAngleSnap->value();
+	cfg::gridCoarseCoordinateSnap = ui->gridCoarseCoordinateSnap->value();
+	cfg::gridCoarseAngleSnap = ui->gridCoarseAngleSnap->value();
+	cfg::gridMediumCoordinateSnap = ui->gridMediumCoordinateSnap->value();
+	cfg::gridMediumAngleSnap = ui->gridMediumAngleSnap->value();
+	cfg::gridFineCoordinateSnap = ui->gridFineCoordinateSnap->value();
+	cfg::gridFineAngleSnap = ui->gridFineAngleSnap->value();
 
 	// Apply key shortcuts
 	g_win->updateActionShortcuts();
@@ -527,21 +526,21 @@ void ConfigDialog::pickColor (String& conf, QPushButton* button)
 // =============================================================================
 void ConfigDialog::slot_setGLBackground()
 {
-	pickColor (gl_bgcolor, ui->backgroundColorButton);
+	pickColor (cfg::backgroundColor, ui->backgroundColorButton);
 }
 
 // =============================================================================
 // =============================================================================
 void ConfigDialog::slot_setGLForeground()
 {
-	pickColor (gl_maincolor, ui->mainColorButton);
+	pickColor (cfg::mainColor, ui->mainColorButton);
 }
 
 // =============================================================================
 // =============================================================================
 void ConfigDialog::slot_setGLSelectColor()
 {
-	pickColor (gl_selectcolor, ui->selColorButton);
+	pickColor (cfg::selectColorBlend, ui->selColorButton);
 }
 
 // =============================================================================
@@ -621,7 +620,7 @@ void ConfigDialog::slot_resetShortcut()
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->keyConfig()->reset();
+		item->keyConfig()->resetValue();
 		setShortcutText (item);
 	}
 }
@@ -735,7 +734,7 @@ KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent, Qt::Win
 
 // =============================================================================
 // =============================================================================
-bool KeySequenceDialog::staticDialog (KeySequenceConfig* cfg, QWidget* parent)
+bool KeySequenceDialog::staticDialog (KeySequenceConfigEntry* cfg, QWidget* parent)
 {
 	KeySequenceDialog dlg (cfg->getValue(), parent);
 

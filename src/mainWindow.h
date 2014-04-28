@@ -45,7 +45,7 @@ class Ui_LDForgeUI;
 // * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
 // =============================================================================
 #define DEFINE_ACTION(NAME, DEFSHORTCUT) \
-	cfg (KeySequence, key_action##NAME, DEFSHORTCUT); \
+	CFGENTRY (KeySequence, action##NAME##Shortcut, DEFSHORTCUT); \
 	void MainWindow::slot_action##NAME()
 
 // Convenience macros for key sequences.
@@ -189,7 +189,7 @@ class MainWindow : public QMainWindow
 		void updateActionShortcuts();
 
 		//! Gets the shortcut configuration for the given \c action
-		KeySequenceConfig* shortcutForAction (QAction* action);
+		KeySequenceConfigEntry* shortcutForAction (QAction* action);
 
 		void endAction();
 

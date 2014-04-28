@@ -38,13 +38,13 @@
 #include "glCompiler.h"
 #include "ui_newpart.h"
 
-extern_cfg (Bool,		gl_wireframe);
-extern_cfg (Bool,		gl_colorbfc);
-extern_cfg (String,	ld_defaultname);
-extern_cfg (String,	ld_defaultuser);
-extern_cfg (Int,		ld_defaultlicense);
-extern_cfg (Bool,		gl_drawangles);
-extern_cfg (Bool,		gl_randomcolors)
+EXTERN_CFGENTRY (Bool,		drawWireframe);
+EXTERN_CFGENTRY (Bool,		bfcRedGreenView);
+EXTERN_CFGENTRY (String,	defaultName);
+EXTERN_CFGENTRY (String,	defaultUser);
+EXTERN_CFGENTRY (Int,		defaultLicense);
+EXTERN_CFGENTRY (Bool,		drawAngles);
+EXTERN_CFGENTRY (Bool,		randomColors)
 
 // =============================================================================
 //
@@ -54,14 +54,14 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 	Ui::NewPartUI ui;
 	ui.setupUi (dlg);
 
-	String authortext = ld_defaultname;
+	String authortext = cfg::defaultName;
 
-	if (not ld_defaultuser.isEmpty())
-		authortext.append (format (" [%1]", ld_defaultuser));
+	if (not cfg::defaultUser.isEmpty())
+		authortext.append (format (" [%1]", cfg::defaultUser));
 
 	ui.le_author->setText (authortext);
 
-	switch (ld_defaultlicense)
+	switch (cfg::defaultLicense)
 	{
 		case 0:
 			ui.rb_license_ca->setChecked (true);
@@ -77,7 +77,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 		default:
 			QMessageBox::warning (null, "Warning",
-				format ("Unknown ld_defaultlicense value %1!", ld_defaultlicense));
+				format ("Unknown ld_defaultlicense value %1!", cfg::defaultLicense));
 			break;
 	}
 
@@ -356,19 +356,19 @@ DEFINE_ACTION (SelectByType, 0)
 //
 DEFINE_ACTION (GridCoarse, 0)
 {
-	grid = Grid::Coarse;
+	cfg::grid = Grid::Coarse;
 	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridMedium, 0)
 {
-	grid = Grid::Medium;
+	cfg::grid = Grid::Medium;
 	updateGridToolBar();
 }
 
 DEFINE_ACTION (GridFine, 0)
 {
-	grid = Grid::Fine;
+	cfg::grid = Grid::Fine;
 	updateGridToolBar();
 }
 
@@ -507,10 +507,10 @@ DEFINE_ACTION (Screenshot, 0)
 
 // =============================================================================
 //
-extern_cfg (Bool, gl_axes);
+EXTERN_CFGENTRY (Bool, drawAxes);
 DEFINE_ACTION (Axes, 0)
 {
-	gl_axes = not gl_axes;
+	cfg::drawAxes = not cfg::drawAxes;
 	updateActions();
 	R()->update();
 }
@@ -548,7 +548,7 @@ DEFINE_ACTION (VisibilityReveal, 0)
 //
 DEFINE_ACTION (Wireframe, 0)
 {
-	gl_wireframe = not gl_wireframe;
+	cfg::drawWireframe = not cfg::drawWireframe;
 	R()->refresh();
 }
 
@@ -597,7 +597,7 @@ DEFINE_ACTION (ModeCircle, CTRL (3))
 //
 DEFINE_ACTION (DrawAngles, 0)
 {
-	gl_drawangles = not gl_drawangles;
+	cfg::drawAngles = not cfg::drawAngles;
 	R()->refresh();
 }
 
@@ -677,7 +677,7 @@ DEFINE_ACTION (ScanPrimitives, 0)
 //
 DEFINE_ACTION (BFCView, SHIFT (B))
 {
-	gl_colorbfc = not gl_colorbfc;
+	cfg::bfcRedGreenView = not cfg::bfcRedGreenView;
 	updateActions();
 	R()->refresh();
 }
@@ -726,7 +726,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	LDComment*		titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
 
 	// License text for the subfile
-	String			license = getLicenseText (ld_defaultlicense);
+	String			license = getLicenseText (cfg::defaultLicense);
 
 	// LDraw code body of the new subfile (i.e. code of the selection)
 	QStringList		code;
@@ -825,7 +825,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	{
 		new LDComment (subtitle),
 		new LDComment ("Name: "),
-		new LDComment (format ("Author: %1 [%2]", ld_defaultname, ld_defaultuser)),
+		new LDComment (format ("Author: %1 [%2]", cfg::defaultName, cfg::defaultUser)),
 		new LDComment (format ("!LDRAW_ORG Unofficial_Subpart")),
 		(license != "" ? new LDComment (license) : null),
 		new LDEmpty,
@@ -872,6 +872,6 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
 {
-	gl_randomcolors = not gl_randomcolors;
+	cfg::randomColors = not cfg::randomColors;
 	R()->refresh();
 }

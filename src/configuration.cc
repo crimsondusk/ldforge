@@ -38,32 +38,34 @@
 # define EXTENSION ".cfg"
 #endif // _WIN32
 
-Config*							g_configPointers[MAX_CONFIG];
-static int						g_cfgPointerCursor = 0;
-static QMap<String, Config*>	g_configsByName;
-static QList<Config*>			g_configs;
+#define MAX_CONFIG 512
 
-// =============================================================================
+ConfigEntry*						g_configPointers[MAX_CONFIG];
+static int							g_cfgPointerCursor = 0;
+static QMap<String, ConfigEntry*>	g_configsByName;
+static QList<ConfigEntry*>			g_configs;
+
+//
 // Get the QSettings object.
-// =============================================================================
+//
 static QSettings* getSettingsObject()
 {
 	String path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
 	return new QSettings (path, QSettings::IniFormat);
 }
 
-Config::Config (String name) :
+ConfigEntry::ConfigEntry (String name) :
 	m_name (name) {}
 
-// =============================================================================
+//
 // Load the configuration from file
-// =============================================================================
+//
 bool Config::load()
 {
 	QSettings* settings = getSettingsObject();
 	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 
-	for (Config* cfg : g_configPointers)
+	for (ConfigEntry* cfg : g_configPointers)
 	{
 		if (not cfg)
 			break;
@@ -78,7 +80,6 @@ bool Config::load()
 	return true;
 }
 
-// =============================================================================
 //
 // Save the configuration to disk
 //
@@ -86,7 +87,7 @@ bool Config::save()
 {
 	QSettings* settings = getSettingsObject();
 
-	for (Config* cfg : g_configs)
+	for (ConfigEntry* cfg : g_configs)
 	{
 		if (not cfg->isDefault())
 			settings->setValue (cfg->name(), cfg->toVariant());
@@ -100,38 +101,38 @@ bool Config::save()
 	return true;
 }
 
-// =============================================================================
+//
 // Reset configuration to defaults.
-// =============================================================================
+//
 void Config::reset()
 {
-	for (Config* cfg : g_configs)
+	for (ConfigEntry* cfg : g_configs)
 		cfg->resetValue();
 }
 
-// =============================================================================
+//
 // Where is the configuration file located at?
-// =============================================================================
+//
 String Config::filepath (String file)
 {
 	return Config::dirpath() + DIRSLASH + file;
 }
 
-// =============================================================================
+//
 // Directory of the configuration file.
-// =============================================================================
+//
 String Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
 }
 
-// =============================================================================
+//
 // We cannot just add config objects to a list or vector because that would rely
 // on the vector's c-tor being called before the configs' c-tors. With global
 // variables we cannot assume that, therefore we need to use a C-style array here.
-// =============================================================================
-void Config::addToArray (Config* ptr)
+//
+void ConfigEntry::addToArray (ConfigEntry* ptr)
 {
 	if (g_cfgPointerCursor == 0)
 		memset (g_configPointers, 0, sizeof g_configPointers);
@@ -140,16 +141,15 @@ void Config::addToArray (Config* ptr)
 	g_configPointers[g_cfgPointerCursor++] = ptr;
 }
 
-// =============================================================================
-// =============================================================================
-template<class T> T* getConfigByName (String name, Config::Type type)
+template<typename T>
+T* getConfigByName (String name, ConfigEntry::Type type)
 {
 	auto it = g_configsByName.find (name);
 
 	if (it == g_configsByName.end())
 		return null;
 
-	Config* cfg = it.value();
+	ConfigEntry* cfg = it.value();
 
 	if (cfg->getType() != type)
 	{
@@ -160,14 +160,12 @@ template<class T> T* getConfigByName (String name, Config::Type type)
 	return reinterpret_cast<T*> (cfg);
 }
 
-// =============================================================================
-// =============================================================================
 #undef IMPLEMENT_CONFIG
 
-#define IMPLEMENT_CONFIG(NAME)										\
-	NAME##Config* NAME##Config::getByName (String name)			\
-	{																\
-		return getConfigByName<NAME##Config> (name, E##NAME##Type);	\
+#define IMPLEMENT_CONFIG(NAME)												\
+	NAME##ConfigEntry* NAME##ConfigEntry::getByName (String name)			\
+	{																		\
+		return getConfigByName<NAME##ConfigEntry> (name, E##NAME##Type);	\
 	}
 
 IMPLEMENT_CONFIG (Int)

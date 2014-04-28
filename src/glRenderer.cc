@@ -63,20 +63,20 @@ static const Matrix g_circleDrawMatrixTemplates[3] =
 	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
 };
 
-cfg (String,	gl_bgcolor,				"#FFFFFF")
-cfg (String,	gl_maincolor,			"#A0A0A0")
-cfg (Float,		gl_maincolor_alpha,		1.0)
-cfg (Int,		gl_linethickness,		2)
-cfg (Bool,		gl_colorbfc,			false)
-cfg (Int,		gl_camera,				GLRenderer::EFreeCamera)
-cfg (Bool,		gl_blackedges,			false)
-cfg (Bool,		gl_axes,				false)
-cfg (Bool,		gl_wireframe,			false)
-cfg (Bool,		gl_logostuds,			false)
-cfg (Bool,		gl_aa,					true)
-cfg (Bool,		gl_linelengths,			true)
-cfg (Bool,		gl_drawangles,			false)
-cfg (Bool,		gl_randomcolors,		false)
+CFGENTRY (String,	backgroundColor,	"#FFFFFF")
+CFGENTRY (String,	mainColor,			"#A0A0A0")
+CFGENTRY (Float,	mainColorAlpha,		1.0)
+CFGENTRY (Int,		lineThickness,		2)
+CFGENTRY (Bool,		bfcRedGreenView,	false)
+CFGENTRY (Int,		camera,				GLRenderer::EFreeCamera)
+CFGENTRY (Bool,		blackEdges,			false)
+CFGENTRY (Bool,		drawAxes,			false)
+CFGENTRY (Bool,		drawWireframe,		false)
+CFGENTRY (Bool,		useLogoStuds,		false)
+CFGENTRY (Bool,		antiAliasedLines,	true)
+CFGENTRY (Bool,		drawLineLengths,	true)
+CFGENTRY (Bool,		drawAngles,			false)
+CFGENTRY (Bool,		randomColors,		false)
 
 // argh
 const char* g_CameraNames[7] =
@@ -123,7 +123,7 @@ static GLuint g_GLAxes_ColorVBO;
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 {
 	m_isPicking = m_rangepick = false;
-	m_camera = (EFixedCamera) gl_camera;
+	m_camera = (EFixedCamera) cfg::camera;
 	m_drawToolTip = false;
 	m_editMode = ESelectMode;
 	m_rectdraw = false;
@@ -209,7 +209,7 @@ void GLRenderer::initGLData()
 	glShadeModel (GL_SMOOTH);
 	glEnable (GL_MULTISAMPLE);
 
-	if (gl_aa)
+	if (cfg::antiAliasedLines)
 	{
 		glEnable (GL_LINE_SMOOTH);
 		glEnable (GL_POLYGON_SMOOTH);
@@ -260,7 +260,7 @@ void GLRenderer::resetAllAngles()
 void GLRenderer::initializeGL()
 {
 	setBackground();
-	glLineWidth (gl_linethickness);
+	glLineWidth (cfg::lineThickness);
 	glLineStipple (1, 0x6666);
 	setAutoFillBackground (false);
 	setMouseTracking (true);
@@ -306,12 +306,12 @@ void GLRenderer::initializeAxes()
 //
 QColor GLRenderer::getMainColor()
 {
-	QColor col (gl_maincolor);
+	QColor col (cfg::mainColor);
 
 	if (not col.isValid())
 		return QColor (0, 0, 0);
 
-	col.setAlpha (gl_maincolor_alpha * 255.f);
+	col.setAlpha (cfg::mainColorAlpha * 255.f);
 	return col;
 }
 
@@ -319,7 +319,7 @@ QColor GLRenderer::getMainColor()
 //
 void GLRenderer::setBackground()
 {
-	QColor col (gl_bgcolor);
+	QColor col (cfg::backgroundColor);
 
 	if (not col.isValid())
 		return;
@@ -345,7 +345,7 @@ void GLRenderer::hardRefresh()
 {
 	compiler()->compileDocument (getCurrentDocument());
 	refresh();
-	glLineWidth (gl_linethickness); // TODO: ...?
+	glLineWidth (cfg::lineThickness); // TODO: ...?
 }
 
 // =============================================================================
@@ -377,7 +377,7 @@ void GLRenderer::drawGLScene()
 		zoomAllToFit();
 	}
 
-	if (gl_wireframe && not isPicking())
+	if (cfg::drawWireframe && not isPicking())
 		glPolygonMode (GL_FRONT_AND_BACK, GL_LINE);
 
 	glClear (GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -431,7 +431,7 @@ void GLRenderer::drawGLScene()
 	}
 	else
 	{
-		if (gl_colorbfc)
+		if (cfg::bfcRedGreenView)
 		{
 			glEnable (GL_CULL_FACE);
 			glCullFace (GL_BACK);
@@ -444,7 +444,7 @@ void GLRenderer::drawGLScene()
 		}
 		else
 		{
-			if (gl_randomcolors)
+			if (cfg::randomColors)
 			{
 				drawVBOs (VBOSF_Triangles, VBOCM_RandomColors, GL_TRIANGLES);
 				drawVBOs (VBOSF_Quads, VBOCM_RandomColors, GL_QUADS);
@@ -461,7 +461,7 @@ void GLRenderer::drawGLScene()
 		drawVBOs (VBOSF_CondLines, VBOCM_NormalColors, GL_LINES);
 		glDisable (GL_LINE_STIPPLE);
 
-		if (gl_axes)
+		if (cfg::drawAxes)
 		{
 			glBindBuffer (GL_ARRAY_BUFFER, g_GLAxes_VBO);
 			glVertexPointer (3, GL_FLOAT, 0, NULL);
@@ -703,14 +703,14 @@ void GLRenderer::paintEvent (QPaintEvent* ev)
 						const int j = (i + 1 < numverts) ? i + 1 : 0;
 						const int h = (i - 1 >= 0) ? i - 1 : numverts - 1;
 
-						if (gl_linelengths)
+						if (cfg::drawLineLengths)
 						{
 							const String label = String::number ((poly3d[j] - poly3d[i]).length());
 							QPoint origin = QLineF (poly[i], poly[j]).pointAt (0.5).toPoint();
 							paint.drawText (origin, label);
 						}
 
-						if (gl_drawangles)
+						if (cfg::drawAngles)
 						{
 							QLineF l0 (poly[h], poly[i]),
 								l1 (poly[i], poly[j]);
@@ -1210,7 +1210,7 @@ void GLRenderer::contextMenuEvent (QContextMenuEvent* ev)
 void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
 {
 	m_camera = cam;
-	gl_camera = (int) cam;
+	cfg::camera = (int) cam;
 	g_win->updateEditModeActions();
 }
 
@@ -1221,7 +1221,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	makeCurrent();
 
 	// Use particularly thick lines while picking ease up selecting lines.
-	glLineWidth (max<double> (gl_linethickness, 6.5f));
+	glLineWidth (max<double> (cfg::lineThickness, 6.5f));
 
 	// Clear the selection if we do not wish to add to it.
 	if (not m_addpick)
@@ -1332,7 +1332,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		compileObject (removedObj);
 
 	// Restore line thickness
-	glLineWidth (gl_linethickness);
+	glLineWidth (cfg::lineThickness);
 
 	setPicking (false);
 	m_rangepick = false;

@@ -35,8 +35,8 @@
 static const int g_numColumns = 16;
 static const int g_squareSize = 32;
 
-extern_cfg (String, gl_maincolor);
-extern_cfg (Float, gl_maincolor_alpha);
+EXTERN_CFGENTRY (String, mainColor);
+EXTERN_CFGENTRY (Float, mainColorAlpha);
 
 // =============================================================================
 // =============================================================================
@@ -105,8 +105,8 @@ void ColorSelector::drawScene()
 		if (i == maincolor)
 		{
 			// Use the user preferences for main color here
-			col = QColor (gl_maincolor);
-			col.setAlpha (gl_maincolor_alpha * 255.0f);
+			col = QColor (cfg::mainColor);
+			col.setAlpha (cfg::mainColorAlpha * 255.0f);
 		}
 
 		QPen pen (info->edgeColor, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
