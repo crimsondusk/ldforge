@@ -103,44 +103,37 @@ static const long g_e10[] =
 // Grid stuff
 //
 cfg (Int,		grid,					Grid::Medium);
-cfg (Float,		grid_coarse_x,			5.0f);
-cfg (Float,		grid_coarse_y,			5.0f);
-cfg (Float,		grid_coarse_z,			5.0f);
+cfg (Float,		grid_coarse_snap,		5.0f);
 cfg (Float,		grid_coarse_angle,		45.0f);
-cfg (Float, 	grid_medium_x,			1.0f);
-cfg (Float,		grid_medium_y,			1.0f);
-cfg (Float,		grid_medium_z,			1.0f);
+cfg (Float, 	grid_medium_snap,		1.0f);
 cfg (Float,		grid_medium_angle,		22.5f);
-cfg (Float,		grid_fine_x,			0.1f);
-cfg (Float,		grid_fine_y,			0.1f);
-cfg (Float,		grid_fine_z,			0.1f);
+cfg (Float,		grid_fine_snap,			0.1f);
 cfg (Float,		grid_fine_angle,		7.5f);
 cfg (Int,		edit_rotpoint,			0);
 cfg (Vertex,	edit_customrotpoint,	g_origin);
 
-const gridinfo g_GridInfo[3] =
+const gridinfo g_gridInfo[3] =
 {
-	{ "Coarse", { &grid_coarse_x, &grid_coarse_y, &grid_coarse_z, &grid_coarse_angle }},
-	{ "Medium", { &grid_medium_x, &grid_medium_y, &grid_medium_z, &grid_medium_angle }},
-	{ "Fine",   { &grid_fine_x,   &grid_fine_y,   &grid_fine_z,   &grid_fine_angle   }}
+	{ "Coarse",	&grid_coarse_snap,	&grid_coarse_angle	},
+	{ "Medium",	&grid_medium_snap,	&grid_medium_angle	},
+	{ "Fine",	&grid_fine_snap,	&grid_fine_angle	},
 };
 
 // =============================================================================
 //
 // Snap the given coordinate value on the current grid's given axis.
 //
-double Grid::snap (double in, const Grid::Config axis)
+double Grid::snap (double value, const Grid::Config type)
 {
-	const double gridval = *currentGrid().confs[axis];
-	const long mult = abs (in / gridval);
-	const bool neg = (in < 0);
-	double out = mult * gridval;
+	double snapvalue = (type == Coordinate) ? *currentGrid().coordsnap : *currentGrid().anglesnap;
+	double mult = floor (abs<double> (value / snapvalue));
+	double out = mult * snapvalue;
 
-	if (abs<double> (in) - (mult * gridval) > gridval / 2)
-		out += gridval;
+	if (abs<double> (value) - (mult * snapvalue) > snapvalue / 2)
+		out += snapvalue;
 
-	if (neg && out != 0)
-		out *= -1;
+	if (value < 0 && out != 0)
+		out = -out;
 
 	return out;
 }

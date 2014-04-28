@@ -528,8 +528,8 @@ Vertex GLRenderer::coordconv2_3 (const QPoint& pos2d, bool snap) const
 
 	if (snap)
 	{
-		cx = Grid::snap (cx, (Grid::Config) axisX);
-		cy = Grid::snap (cy, (Grid::Config) axisY);
+		cx = Grid::snap (cx, Grid::Coordinate);
+		cy = Grid::snap (cy, Grid::Coordinate);
 	}
 
 	cx *= negXFac;

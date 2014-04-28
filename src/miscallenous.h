@@ -51,17 +51,18 @@ QString join (QList< StringFormatArg > vals, QString delim = " ");
 // Grid stuff
 struct gridinfo
 {
-	const char* const	name;
-	float* const		confs[4];
+	const char* const			name;
+	Config::FloatType* const	coordsnap;
+	Config::FloatType* const	anglesnap;
 };
 
 extern_cfg (Int, grid);
-static const int g_NumGrids = 3;
-extern const gridinfo g_GridInfo[3];
+static const int g_numGrids = 3;
+extern const gridinfo g_gridInfo[3];
 
 inline const gridinfo& currentGrid()
 {
-	return g_GridInfo[grid];
+	return g_gridInfo[grid];
 }
 
 // =============================================================================
@@ -87,13 +88,11 @@ namespace Grid
 
 	enum Config
 	{
-		X,
-		Y,
-		Z,
+		Coordinate,
 		Angle
 	};
 
-	double snap (double value, const Grid::Config axis);
+	double snap (double value, const Grid::Config type);
 }
 
 // =============================================================================

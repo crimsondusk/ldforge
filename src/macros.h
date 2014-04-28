@@ -64,6 +64,8 @@ ACCESS:															\
 //
 #define elif(A) else if (A)
 
+#define UTF16(A) (QString::fromUtf16 (reinterpret_cast<const ushort*> (A)))
+
 // =============================================================================
 //
 #ifdef WIN32
@@ -98,6 +100,10 @@ ACCESS:															\
 #else
 # define assert(N) {}
 #endif // DEBUG
+
+#ifdef foreach
+# undef foreach
+#endif
 
 #define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
 

@@ -202,26 +202,28 @@ void ConfigDialog::addShortcut (KeySequenceConfig& cfg, QAction* act, int& i)
 void ConfigDialog::initGrids()
 {
 	QGridLayout* gridlayout = new QGridLayout;
-	QLabel* xlabel = new QLabel ("X"),
-	*ylabel = new QLabel ("Y"),
-	*zlabel = new QLabel ("Z"),
-	*anglabel = new QLabel ("Angle");
+	QLabel* coordlabel = new QLabel ("Coordinate");
+	QLabel* anglelabel = new QLabel ("Angle");
 	int i = 1;
 
-	for (QLabel* label : QList<QLabel*> ({xlabel, ylabel, zlabel, anglabel}))
+	for (QLabel* label : QList<QLabel*> ({coordlabel, anglelabel}))
 	{
 		label->setAlignment (Qt::AlignCenter);
 		gridlayout->addWidget (label, 0, i++);
 	}
 
-	for (int i = 0; i < g_NumGrids; ++i)
+	gridlayout->setColumnStretch (0, 0);
+	gridlayout->setColumnStretch (1, 1);
+	gridlayout->setColumnStretch (2, 1);
+
+	for (int i = 0; i < g_numGrids; ++i)
 	{
 		// Icon
 		lb_gridIcons[i] = new QLabel;
-		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%1", String (g_GridInfo[i].name).toLower())));
+		lb_gridIcons[i]->setPixmap (getIcon (format ("grid-%1", String (g_gridInfo[i].name).toLower())));
 
 		// Text label
-		lb_gridLabels[i] = new QLabel (format ("%1:", g_GridInfo[i].name));
+		lb_gridLabels[i] = new QLabel (format ("%1:", g_gridInfo[i].name));
 
 		QHBoxLayout* labellayout = new QHBoxLayout;
 		labellayout->addWidget (lb_gridIcons[i]);
@@ -229,17 +231,17 @@ void ConfigDialog::initGrids()
 		gridlayout->addLayout (labellayout, i + 1, 0);
 
 		// Add the widgets
-		for (int j = 0; j < 4; ++j)
+		for (int j = 0; j < 2; ++j)
 		{
 			dsb_gridData[i][j] = new QDoubleSpinBox;
-
-			// Set the maximum angle
-			if (j == 3)
-				dsb_gridData[i][j]->setMaximum (360);
-
-			dsb_gridData[i][j]->setValue (*g_GridInfo[i].confs[j]);
 			gridlayout->addWidget (dsb_gridData[i][j], i + 1, j + 1);
 		}
+
+		// Fill in defaults and stuff
+		dsb_gridData[i][0]->setValue (*g_gridInfo[i].coordsnap);
+		dsb_gridData[i][1]->setValue (*g_gridInfo[i].anglesnap);
+		dsb_gridData[i][1]->setMaximum (360);
+		dsb_gridData[i][1]->setSuffix (UTF16 (u"\u00B0")); // degree symbol
 	}
 
 	ui->grids->setLayout (gridlayout);
@@ -342,9 +344,11 @@ void ConfigDialog::applySettings()
 	gui_colortoolbar = quickColorString();
 
 	// Set the grid settings
-	for (int i = 0; i < g_NumGrids; ++i)
-		for (int j = 0; j < 4; ++j)
-			*g_GridInfo[i].confs[j] = dsb_gridData[i][j]->value();
+	for (int i = 0; i < g_numGrids; ++i)
+	{
+		*g_gridInfo[i].coordsnap = dsb_gridData[i][0]->value();
+		*g_gridInfo[i].anglesnap = dsb_gridData[i][1]->value();
+	}
 
 	// Apply key shortcuts
 	g_win->updateActionShortcuts();

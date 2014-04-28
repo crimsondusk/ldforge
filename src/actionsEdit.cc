@@ -364,9 +364,7 @@ DEFINE_ACTION (Redo, CTRL_SHIFT (Z))
 void doMoveObjects (Vertex vect)
 {
 	// Apply the grid values
-	vect.setX (vect.x() * *currentGrid().confs[Grid::X]);
-	vect.setY (vect.y() * *currentGrid().confs[Grid::Y]);
-	vect.setZ (vect.z() * *currentGrid().confs[Grid::Z]);
+	vect *= *currentGrid().coordsnap;
 
 	for (LDObject* obj : selection())
 		obj->move (vect);
@@ -378,7 +376,7 @@ void doMoveObjects (Vertex vect)
 //
 DEFINE_ACTION (MoveXNeg, KEY (Left))
 {
-	doMoveObjects ({ -1, 0, 0});
+	doMoveObjects ({-1, 0, 0});
 }
 
 DEFINE_ACTION (MoveYNeg, KEY (Home))
@@ -434,7 +432,7 @@ static void doRotate (const int l, const int m, const int n)
 	LDObjectList sel = selection();
 	QList<Vertex*> queue;
 	const Vertex rotpoint = rotPoint (sel);
-	const double angle = (pi * *currentGrid().confs[Grid::Angle]) / 180,
+	const double angle = (pi * *currentGrid().anglesnap) / 180,
 				 cosangle = cos (angle),
 				 sinangle = sin (angle);
 

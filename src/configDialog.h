@@ -57,7 +57,7 @@ class ConfigDialog : public QDialog
 		float getGridValue (int i, int j) const;
 
 		QList<LDQuickColor> quickColors;
-		QDoubleSpinBox* dsb_gridData[3][4];
+		QDoubleSpinBox* dsb_gridData[3][2];
 
 	private:
 		Ui_ConfigUI* ui;
