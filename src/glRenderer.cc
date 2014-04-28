@@ -1237,7 +1237,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	// Paint the picking scene
 	glDisable (GL_DITHER);
-	glClearColor (1.0f, 1.0f, 1.0f, 1.0f);
+	glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
 	drawGLScene();
 
 	int x0 = mouseX,
@@ -1281,24 +1281,27 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	glReadPixels (x0, m_height - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
 
 	LDObject* removedObj = null;
+	QList<qint32> indices;
 
 	// Go through each pixel read and add them to the selection.
 	for (qint32 i = 0; i < numpixels; ++i)
 	{
-		QList<float> selfloats;
-		selfloats << ((float) pixelptr[0]) / 255.0f;
-		selfloats << ((float) pixelptr[1]) / 255.0f;
-		selfloats << ((float) pixelptr[2]) / 255.0f;
-		selfloats << ((float) pixelptr[3]) / 255.0f;
-
 		qint32 idx =
 			(*(pixelptr + 0) * 0x10000) +
 			(*(pixelptr + 1) * 0x100) +
 			*(pixelptr + 2);
 		pixelptr += 4;
 
-		if (idx == 0xFFFFFF)
-			continue; // White is background; skip
+		if (idx != 0)
+			indices << idx;
+	}
+
+	removeDuplicates (indices);
+
+	for (qint32 idx : indices)
+	{
+		if (idx == 0)
+			continue; // Black is background; skip
 
 		LDObject* obj = LDObject::fromID (idx);
 		assert (obj != null);
