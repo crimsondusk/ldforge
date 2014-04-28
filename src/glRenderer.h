@@ -60,7 +60,8 @@ struct LDFixedCameraInfo
 	const Axis		axisX,
 					axisY;
 	const bool		negX,
-					negY;
+					negY,
+					negatedDepth; // is greater depth value closer to camera?
 };
 
 // =============================================================================
@@ -232,6 +233,7 @@ class GLRenderer : public QGLWidget
 		LDOverlay*     findOverlayObject (EFixedCamera cam);
 		void           updateRectVerts();
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
+		Axis			getRelativeZ() const;
 		Matrix         getCircleDrawMatrix (double scale);
 		void           drawBlip (QPainter& paint, QPoint pos) const;
 

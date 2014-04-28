@@ -46,12 +46,12 @@
 
 static const LDFixedCameraInfo g_FixedCameras[6] =
 {
-	{{  1,  0, 0 }, X, Z, false, false },
-	{{  0,  0, 0 }, X, Y, false,  true },
-	{{  0,  1, 0 }, Z, Y,  true,  true },
-	{{ -1,  0, 0 }, X, Z, false,  true },
-	{{  0,  0, 0 }, X, Y,  true,  true },
-	{{  0, -1, 0 }, Z, Y, false,  true },
+	{{  1,  0, 0 }, X, Z, false, false, false }, // top
+	{{  0,  0, 0 }, X, Y, false,  true, false }, // front
+	{{  0,  1, 0 }, Z, Y,  true,  true, false }, // left
+	{{ -1,  0, 0 }, X, Z, false,  true, true }, // bottom
+	{{  0,  0, 0 }, X, Y,  true,  true, true }, // back
+	{{  0, -1, 0 }, Z, Y, false,  true, true }, // right
 };
 
 // Matrix templates for circle drawing. 2 is substituted with
@@ -978,7 +978,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 						endDraw (true);
 						return;
 					}
-				} else
+				}
+				else
 				{
 					// If we have 4 verts, stop drawing.
 					if (m_drawedVerts.size() >= 4)
@@ -995,7 +996,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				}
 
 				addDrawnVertex (m_hoverpos);
-			} break;
+				break;
+			}
 
 			case ECircleMode:
 			{
@@ -1006,7 +1008,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 				}
 
 				addDrawnVertex (m_hoverpos);
-			} break;
+				break;
+			}
 
 			case ESelectMode:
 			{
@@ -1021,7 +1024,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 					if (m_totalmove < 10 || m_rangepick)
 						pick (ev->x(), ev->y());
 				}
-			} break;
+				break;
+			}
 		}
 
 		m_rangepick = false;
@@ -1030,38 +1034,54 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 	if (wasMid && editMode() != ESelectMode && m_drawedVerts.size() < 4 && m_totalmove < 10)
 	{
 		// Find the closest vertex to our cursor
-		double mindist = 1024.0f;
-		Vertex closest;
-		bool valid = false;
-
-		QPoint curspos = coordconv3_2 (m_hoverpos);
+		double			minimumDistance = 1024.0;
+		const Vertex*	closest = null;
+		Vertex			cursorPosition = coordconv2_3 (m_pos, false);
+		QPoint			cursorPosition2D (m_pos);
+		const Axis		relZ = getRelativeZ();
+		QList<Vertex>	vertices;
 
 		for (auto it = document()->vertices().begin(); it != document()->vertices().end(); ++it)
+			vertices << it.key();
+
+		// Sort the vertices in order of distance to camera
+		std::sort (vertices.begin(), vertices.end(), [&](const Vertex& a, const Vertex& b) -> bool
 		{
-			QPoint pos2d = coordconv3_2 (it.key());
+			if (g_FixedCameras[camera()].negatedDepth)
+				return a[relZ] > b[relZ];
 
-			// Measure squared distance
-			const double dx = abs (pos2d.x() - curspos.x()),
-						 dy = abs (pos2d.y() - curspos.y()),
-						 distsq = (dx * dx) + (dy * dy);
+			return a[relZ] < b[relZ];
+		});
 
-			if (distsq >= 1024.0f) // 32.0f ** 2
-				continue; // too far away
-
-			if (distsq < mindist)
+		for (const Vertex& vrt : vertices)
+		{
+			// If the vertex in 2d space is very close to the cursor then we use
+			// it regardless of depth.
+			QPoint vect2d = coordconv3_2 (vrt) - cursorPosition2D;
+			const double distance2DSquared = std::pow (vect2d.x(), 2) + std::pow (vect2d.y(), 2);
+			if (distance2DSquared < 16.0 * 16.0)
 			{
-				mindist = distsq;
-				closest = it.key();
-				valid = true;
+				closest = &vrt;
+				break;
+			}
 
-				// If it's only 4 pixels away, I think we found our vertex now.
-				if (distsq <= 16.0f) // 4.0f ** 2
-					break;
+			// Check if too far away from the cursor.
+			if (distance2DSquared > 64.0 * 64.0)
+				continue;
+
+			// Not very close to the cursor. Compare using true distance,
+			// including depth.
+			const double distanceSquared = (vrt - cursorPosition).lengthSquared();
+
+			if (distanceSquared < minimumDistance)
+			{
+				minimumDistance = distanceSquared;
+				closest = &vrt;
 			}
 		}
 
-		if (valid)
-			addDrawnVertex (closest);
+		if (closest != null)
+			addDrawnVertex (*closest);
 	}
 
 	if (wasRight && not m_drawedVerts.isEmpty())
@@ -1614,6 +1634,14 @@ void GLRenderer::getRelativeAxes (Axis& relX, Axis& relY) const
 	const LDFixedCameraInfo* cam = &g_FixedCameras[camera()];
 	relX = cam->axisX;
 	relY = cam->axisY;
+}
+
+// =============================================================================
+//
+Axis GLRenderer::getRelativeZ() const
+{
+	const LDFixedCameraInfo* cam = &g_FixedCameras[camera()];
+	return (Axis) (3 - cam->axisX - cam->axisY);
 }
 
 // =============================================================================
