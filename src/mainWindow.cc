@@ -455,12 +455,6 @@ void MainWindow::slot_selectionChanged()
 	if (g_isSelectionLocked == true || getCurrentDocument() == null)
 		return;
 
-	// Update the shared selection array, though don't do this if this was
-	// called during GL picking, in which case the GL renderer takes care
-	// of the selection.
-	if (m_renderer->isPicking())
-		return;
-
 	LDObjectList priorSelection = selection();
 
 	// Get the objects from the object list selection
@@ -484,9 +478,9 @@ void MainWindow::slot_selectionChanged()
 	removeDuplicates (compound);
 
 	for (LDObject* obj : compound)
-		m_renderer->compileObject (obj);
+		R()->compileObject (obj);
 
-	m_renderer->update();
+	R()->update();
 }
 
 // =============================================================================
@@ -565,9 +559,6 @@ void MainWindow::updateSelection()
 {
 	g_isSelectionLocked = true;
 
-	for (LDObject* obj : getCurrentDocument()->objects())
-		obj->setSelected (false);
-
 	ui->objectList->clearSelection();
 
 	for (LDObject* obj : selection())
@@ -576,11 +567,9 @@ void MainWindow::updateSelection()
 			continue;
 
 		obj->qObjListEntry->setSelected (true);
-		obj->setSelected (true);
 	}
 
 	g_isSelectionLocked = false;
-	slot_selectionChanged();
 }
 
 // =============================================================================
