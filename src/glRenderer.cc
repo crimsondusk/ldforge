@@ -63,20 +63,21 @@ static const Matrix g_circleDrawMatrixTemplates[3] =
 	{ 0, 1, 0, 2, 0, 0, 0, 0, 2 },
 };
 
-CFGENTRY (String,	backgroundColor,	"#FFFFFF")
-CFGENTRY (String,	mainColor,			"#A0A0A0")
-CFGENTRY (Float,	mainColorAlpha,		1.0)
-CFGENTRY (Int,		lineThickness,		2)
-CFGENTRY (Bool,		bfcRedGreenView,	false)
-CFGENTRY (Int,		camera,				GLRenderer::EFreeCamera)
-CFGENTRY (Bool,		blackEdges,			false)
-CFGENTRY (Bool,		drawAxes,			false)
-CFGENTRY (Bool,		drawWireframe,		false)
-CFGENTRY (Bool,		useLogoStuds,		false)
-CFGENTRY (Bool,		antiAliasedLines,	true)
-CFGENTRY (Bool,		drawLineLengths,	true)
-CFGENTRY (Bool,		drawAngles,			false)
-CFGENTRY (Bool,		randomColors,		false)
+CFGENTRY (String,	backgroundColor,			"#FFFFFF")
+CFGENTRY (String,	mainColor,					"#A0A0A0")
+CFGENTRY (Float,	mainColorAlpha,				1.0)
+CFGENTRY (Int,		lineThickness,				2)
+CFGENTRY (Bool,		bfcRedGreenView,			false)
+CFGENTRY (Int,		camera,						GLRenderer::EFreeCamera)
+CFGENTRY (Bool,		blackEdges,					false)
+CFGENTRY (Bool,		drawAxes,					false)
+CFGENTRY (Bool,		drawWireframe,				false)
+CFGENTRY (Bool,		useLogoStuds,				false)
+CFGENTRY (Bool,		antiAliasedLines,			true)
+CFGENTRY (Bool,		drawLineLengths,			true)
+CFGENTRY (Bool,		drawAngles,					false)
+CFGENTRY (Bool,		randomColors,				false)
+CFGENTRY (Bool,		highlightObjectBelowCursor,	true)
 
 // argh
 const char* g_CameraNames[7] =
@@ -136,7 +137,8 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_hoverpos = g_origin;
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
-	m_objectAtCursor = 0;
+	m_objectAtCursor = null;
+	m_isCameraMoving = false;
 	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
 
 	m_thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
@@ -1127,6 +1129,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 	int dx = ev->x() - m_pos.x();
 	int dy = ev->y() - m_pos.y();
 	m_totalmove += abs (dx) + abs (dy);
+	setCameraMoving (false);
 
 	const bool left = ev->buttons() & Qt::LeftButton,
 			   mid = ev->buttons() & Qt::MidButton,
@@ -1137,6 +1140,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 		pan (X) += 0.03f * dx * (zoom() / 7.5f);
 		pan (Y) -= 0.03f * dy * (zoom() / 7.5f);
 		m_panning = true;
+		setCameraMoving (true);
 	}
 	elif (left && not m_rangepick && camera() == EFreeCamera)
 	{
@@ -1145,6 +1149,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 
 		clampAngle (rot (X));
 		clampAngle (rot (Y));
+		setCameraMoving (true);
 	}
 
 	// Start the tool tip timer
@@ -1160,10 +1165,7 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 
 	// Update rect vertices since m_hoverpos may have changed
 	updateRectVerts();
-
-	// 
 	highlightCursorObject();
-
 	update();
 }
 
@@ -1189,7 +1191,7 @@ void GLRenderer::wheelEvent (QWheelEvent* ev)
 
 	zoomNotch (ev->delta() > 0);
 	zoom() = clamp (zoom(), 0.01, 10000.0);
-
+	setCameraMoving (true);
 	update();
 	ev->accept();
 }
@@ -2146,25 +2148,37 @@ void GLRenderer::updateOverlayObjects()
 //
 void GLRenderer::highlightCursorObject()
 {
-	setPicking (true);
-	drawGLScene();
-	setPicking (false);
+	if (not cfg::highlightObjectBelowCursor && objectAtCursor() == null)
+		return;
 
-	unsigned char pixel[4];
-	glReadPixels (m_pos.x(), m_height - m_pos.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel[0]);
 	LDObject* newObject = null;
 	LDObject* oldObject = objectAtCursor();
-	qint32 newIndex = pixel[0] * 0x10000 | pixel[1] * 0x100 | pixel[2];
+	qint32 newIndex;
+
+	if (isCameraMoving() || not cfg::highlightObjectBelowCursor)
+	{
+		newIndex = 0;
+	}
+	else
+	{
+		setPicking (true);
+		drawGLScene();
+		setPicking (false);
+
+		unsigned char pixel[4];
+		glReadPixels (m_pos.x(), m_height - m_pos.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel[0]);
+		newIndex = pixel[0] * 0x10000 | pixel[1] * 0x100 | pixel[2];
+	}
 
 	if (newIndex != (oldObject != null ? oldObject->id() : 0))
 	{
 		if (newIndex != 0)
 			newObject = LDObject::fromID (newIndex);
 
+		setObjectAtCursor (newObject);
+
 		if (oldObject != null)
 			compileObject (oldObject);
-
-		setObjectAtCursor (newObject);
 
 		if (newObject != null)
 			compileObject (newObject);

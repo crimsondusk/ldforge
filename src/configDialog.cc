@@ -76,6 +76,7 @@ EXTERN_CFGENTRY (Float, gridMediumCoordinateSnap);
 EXTERN_CFGENTRY (Float,	gridMediumAngleSnap);
 EXTERN_CFGENTRY (Float,	gridFineCoordinateSnap);
 EXTERN_CFGENTRY (Float,	gridFineAngleSnap);
+EXTERN_CFGENTRY (Bool, highlightObjectBelowCursor)
 
 const char* g_extProgPathFilter =
 #ifdef _WIN32
@@ -158,6 +159,7 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->gridMediumAngleSnap->setValue (cfg::gridMediumAngleSnap);
 	ui->gridFineCoordinateSnap->setValue (cfg::gridFineCoordinateSnap);
 	ui->gridFineAngleSnap->setValue (cfg::gridFineAngleSnap);
+	ui->highlightObjectBelowCursor->setChecked (cfg::highlightObjectBelowCursor);
 
 	initExtProgs();
 	selectPage (deftab);
@@ -297,6 +299,7 @@ void ConfigDialog::applySettings()
 	cfg::defaultName = ui->m_profileName->text();
 	cfg::defaultLicense = ui->m_profileLicense->currentIndex();
 	cfg::antiAliasedLines = ui->m_aa->isChecked();
+	cfg::highlightObjectBelowCursor = ui->highlightObjectBelowCursor->isChecked();
 
 	// Rebuild the quick color toolbar
 	g_win->setQuickColors (quickColors);
