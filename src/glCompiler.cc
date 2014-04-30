@@ -79,7 +79,8 @@ void checkGLError_private (const char* file, int line)
 
 // =============================================================================
 //
-GLCompiler::GLCompiler()
+GLCompiler::GLCompiler (GLRenderer* renderer) :
+	m_renderer (renderer)
 {
 	needMerge();
 	memset (m_vboSizes, 0, sizeof m_vboSizes);
@@ -194,13 +195,20 @@ QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObject* topobj,
 		return qcol;
 	}
 
+	double blendAlpha = 0.0;
+
 	if (topobj->isSelected())
+		blendAlpha = 1.0;
+	elif (topobj == m_renderer->objectAtCursor())
+		blendAlpha = 0.5;
+
+	if (blendAlpha != 0.0)
 	{
-		// Brighten it up for the select list.
 		QColor selcolor (cfg::selectColorBlend);
-		qcol.setRed ((qcol.red() + selcolor.red()) / 2);
-		qcol.setGreen ((qcol.green() + selcolor.green()) / 2);
-		qcol.setBlue ((qcol.blue() + selcolor.blue()) / 2);
+		double denom = blendAlpha + 1.0;
+		qcol.setRed ((qcol.red() + (selcolor.red() * blendAlpha)) / denom);
+		qcol.setGreen ((qcol.green() + (selcolor.green() * blendAlpha)) / denom);
+		qcol.setBlue ((qcol.blue() + (selcolor.blue() * blendAlpha)) / denom);
 	}
 
 	return qcol;

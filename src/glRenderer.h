@@ -143,12 +143,13 @@ class GLRenderer : public QGLWidget
 		};
 
 		Q_OBJECT
-		PROPERTY (public,	bool,				isDrawOnly,	setDrawOnly,	STOCK_WRITE)
-		PROPERTY (public,	MessageManager*,	messageLog, setMessageLog,	STOCK_WRITE)
-		PROPERTY (private,	bool,				isPicking,	setPicking,		STOCK_WRITE)
-		PROPERTY (public,	LDDocument*,		document,	setDocument,	CUSTOM_WRITE)
-		PROPERTY (public,	EditMode,			editMode,	setEditMode,	CUSTOM_WRITE)
-		PROPERTY (private,	GLCompiler*,		compiler,	setCompiler,	STOCK_WRITE)
+		PROPERTY (public,	bool,				isDrawOnly,		setDrawOnly,		STOCK_WRITE)
+		PROPERTY (public,	MessageManager*,	messageLog, 	setMessageLog,		STOCK_WRITE)
+		PROPERTY (private,	bool,				isPicking,		setPicking,			CUSTOM_WRITE)
+		PROPERTY (public,	LDDocument*,		document,		setDocument,		CUSTOM_WRITE)
+		PROPERTY (public,	EditMode,			editMode,		setEditMode,		CUSTOM_WRITE)
+		PROPERTY (private,	GLCompiler*,		compiler,		setCompiler,		STOCK_WRITE)
+		PROPERTY (private,	LDObject*,			objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)
 
 	public:
 		GLRenderer (QWidget* parent = null);
@@ -184,6 +185,7 @@ class GLRenderer : public QGLWidget
 		void           zoomNotch (bool inward);
 
 		static QColor  getMainColor();
+		void highlightCursorObject();
 
 	protected:
 		void           contextMenuEvent (QContextMenuEvent* ev);

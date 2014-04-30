@@ -33,7 +33,7 @@ public:
 		bool				isChanged;
 	};
 
-	GLCompiler();
+	GLCompiler (GLRenderer* renderer);
 	~GLCompiler();
 	void				compileDocument (LDDocument* doc);
 	void				dropObject (LDObject* obj);
@@ -73,6 +73,7 @@ private:
 	GLuint								m_vbo[g_numVBOs];
 	bool								m_vboChanged[g_numVBOs];
 	int									m_vboSizes[g_numVBOs];
+	GLRenderer* const					m_renderer;
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

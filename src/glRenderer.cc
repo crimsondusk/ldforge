@@ -128,15 +128,15 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_editMode = ESelectMode;
 	m_rectdraw = false;
 	m_panning = false;
-	m_compiler = new GLCompiler;
+	m_compiler = new GLCompiler (this);
 	setDocument (null);
 	setDrawOnly (false);
 	setMessageLog (null);
 	m_width = m_height = -1;
 	m_hoverpos = g_origin;
-	m_compiler = new GLCompiler;
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
+	m_objectAtCursor = 0;
 	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
 
 	m_thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
@@ -319,6 +319,12 @@ QColor GLRenderer::getMainColor()
 //
 void GLRenderer::setBackground()
 {
+	if (isPicking())
+	{
+		glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+		return;
+	}
+
 	QColor col (cfg::backgroundColor);
 
 	if (not col.isValid())
@@ -578,14 +584,11 @@ QPoint GLRenderer::coordconv3_2 (const Vertex& pos3d) const
 
 // =============================================================================
 //
-void GLRenderer::paintEvent (QPaintEvent* ev)
+void GLRenderer::paintEvent (QPaintEvent*)
 {
-	Q_UNUSED (ev)
-
 	makeCurrent();
 	m_virtWidth = zoom();
 	m_virtHeight = (m_height * m_virtWidth) / m_width;
-
 	initGLData();
 	drawGLScene();
 
@@ -1158,6 +1161,9 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 	// Update rect vertices since m_hoverpos may have changed
 	updateRectVerts();
 
+	// 
+	highlightCursorObject();
+
 	update();
 }
 
@@ -1233,11 +1239,8 @@ void GLRenderer::pick (int mouseX, int mouseY)
 			compileObject (obj);
 	}
 
-	setPicking (true);
-
 	// Paint the picking scene
-	glDisable (GL_DITHER);
-	glClearColor (0.0f, 0.0f, 0.0f, 1.0f);
+	setPicking (true);
 	drawGLScene();
 
 	int x0 = mouseX,
@@ -1336,9 +1339,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	setPicking (false);
 	m_rangepick = false;
-	glEnable (GL_DITHER);
-
-	setBackground();
 	repaint();
 }
 
@@ -1404,6 +1404,19 @@ void GLRenderer::setDocument (LDDocument* const& a)
 
 		currentDocumentData().needZoomToFit = true;
 	}
+}
+
+// =============================================================================
+//
+void GLRenderer::setPicking (const bool& a)
+{
+	m_isPicking = a;
+	setBackground();
+
+	if (a)
+		glDisable (GL_DITHER);
+	else
+		glEnable (GL_DITHER);
 }
 
 // =============================================================================
@@ -2128,3 +2141,35 @@ void GLRenderer::updateOverlayObjects()
 	if (g_win->R() == this)
 		g_win->refresh();
 }
+
+// =============================================================================
+//
+void GLRenderer::highlightCursorObject()
+{
+	setPicking (true);
+	drawGLScene();
+	setPicking (false);
+
+	unsigned char pixel[4];
+	glReadPixels (m_pos.x(), m_height - m_pos.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel[0]);
+	LDObject* newObject = null;
+	LDObject* oldObject = objectAtCursor();
+	qint32 newIndex = pixel[0] * 0x10000 | pixel[1] * 0x100 | pixel[2];
+
+	if (newIndex != (oldObject != null ? oldObject->id() : 0))
+	{
+		if (newIndex != 0)
+			newObject = LDObject::fromID (newIndex);
+
+		if (oldObject != null)
+			compileObject (oldObject);
+
+		setObjectAtCursor (newObject);
+
+		if (newObject != null)
+			compileObject (newObject);
+	}
+
+	update();
+}
+
