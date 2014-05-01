@@ -1455,6 +1455,7 @@ void LDDocument::addToSelection (LDObject* obj) // [protected]
 
 	assert (obj->document() == this);
 	m_sel << obj;
+	g_win->R()->compileObject (obj);
 	obj->setSelected (true);
 }
 
@@ -1467,6 +1468,7 @@ void LDDocument::removeFromSelection (LDObject* obj) // [protected]
 
 	assert (obj->document() == this);
 	m_sel.removeOne (obj);
+	g_win->R()->compileObject (obj);
 	obj->setSelected (false);
 }
 

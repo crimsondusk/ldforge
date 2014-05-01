@@ -290,7 +290,7 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 	for (LDObject* obj : getCurrentDocument()->objects())
 		obj->select();
 
-	updateSelection();
+	ui->objectList->selectAll();
 }
 
 // =============================================================================
