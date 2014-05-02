@@ -99,11 +99,13 @@ ACCESS:															\
 # define assert(N) {}
 #endif // DEBUG
 
-#ifdef foreach
-# undef foreach
-#endif
-
 #define for_axes(AX) for (const Axis AX : std::initializer_list<const Axis> ({X, Y, Z}))
+
+#define NUMERIC_ENUM_OPERATORS(T) \
+	inline T operator++ (T& a) { a = (T) ((int) a + 1); return a; } \
+	inline T operator-- (T& a) { a = (T) ((int) a - 1); return a; } \
+	inline T operator++ (T& a, int) { T result = a; a = (T) ((int) a + 1); return result; } \
+	inline T operator-- (T& a, int) { T result = a; a = (T) ((int) a - 1); return result; }
 
 // =============================================================================
 #ifdef IN_IDE_PARSER // KDevelop workarounds:

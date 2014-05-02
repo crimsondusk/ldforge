@@ -667,7 +667,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 		contextMenu->addAction (ui->actionSubfileSelection);
 	}
 
-	if (R()->camera() != GL::EFreeCamera)
+	if (R()->camera() != EFreeCamera)
 	{
 		contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSetDrawDepth);

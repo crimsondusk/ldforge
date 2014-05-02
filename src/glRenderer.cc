@@ -68,7 +68,7 @@ CFGENTRY (String,	mainColor,					"#A0A0A0")
 CFGENTRY (Float,	mainColorAlpha,				1.0)
 CFGENTRY (Int,		lineThickness,				2)
 CFGENTRY (Bool,		bfcRedGreenView,			false)
-CFGENTRY (Int,		camera,						GLRenderer::EFreeCamera)
+CFGENTRY (Int,		camera,						EFreeCamera)
 CFGENTRY (Bool,		blackEdges,					false)
 CFGENTRY (Bool,		drawAxes,					false)
 CFGENTRY (Bool,		drawWireframe,				false)
@@ -89,17 +89,6 @@ const char* g_CameraNames[7] =
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Back"),
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Right"),
 	QT_TRANSLATE_NOOP ("GLRenderer",  "Free")
-};
-
-const GL::EFixedCamera g_Cameras[7] =
-{
-	GL::ETopCamera,
-	GL::EFrontCamera,
-	GL::ELeftCamera,
-	GL::EBottomCamera,
-	GL::EBackCamera,
-	GL::ERightCamera,
-	GL::EFreeCamera
 };
 
 struct LDGLAxis
@@ -124,7 +113,7 @@ static GLuint g_GLAxes_ColorVBO;
 GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 {
 	m_isPicking = m_rangepick = false;
-	m_camera = (EFixedCamera) cfg::camera;
+	m_camera = (ECamera) cfg::camera;
 	m_drawToolTip = false;
 	m_editMode = ESelectMode;
 	m_rectdraw = false;
@@ -146,10 +135,9 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_thinBorderPen.setWidth (1);
 
 	// Init camera icons
-	for (const GL::EFixedCamera cam : g_Cameras)
+	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
 	{
 		String iconname = format ("camera-%1", tr (g_CameraNames[cam]).toLower());
-
 		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
@@ -246,11 +234,11 @@ void GLRenderer::resetAngles()
 //
 void GLRenderer::resetAllAngles()
 {
-	EFixedCamera oldcam = camera();
+	ECamera oldcam = camera();
 
 	for (int i = 0; i < 7; ++i)
 	{
-		setCamera ((EFixedCamera) i);
+		setCamera ((ECamera) i);
 		resetAngles();
 	}
 
@@ -838,7 +826,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 		for (CameraIcon& info : m_cameraIcons)
 		{
 			// Don't draw the free camera icon when in draw mode
-			if (&info == &m_cameraIcons[GL::EFreeCamera] && editMode() != ESelectMode)
+			if (&info == &m_cameraIcons[EFreeCamera] && editMode() != ESelectMode)
 				continue;
 
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
@@ -1215,7 +1203,7 @@ void GLRenderer::contextMenuEvent (QContextMenuEvent* ev)
 
 // =============================================================================
 //
-void GLRenderer::setCamera (const GLRenderer::EFixedCamera cam)
+void GLRenderer::setCamera (const ECamera cam)
 {
 	m_camera = cam;
 	cfg::camera = (int) cam;
@@ -1739,9 +1727,9 @@ void GLRenderer::slot_toolTipTimer()
 
 // =============================================================================
 //
-Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
+Axis GLRenderer::getCameraAxis (bool y, ECamera camid)
 {
-	if (camid == (GL::EFixedCamera) - 1)
+	if (camid == (ECamera) -1)
 		camid = camera();
 
 	const LDFixedCameraInfo* cam = &g_FixedCameras[camid];
@@ -1750,7 +1738,7 @@ Axis GLRenderer::getCameraAxis (bool y, GLRenderer::EFixedCamera camid)
 
 // =============================================================================
 //
-bool GLRenderer::setupOverlay (EFixedCamera cam, String file, int x, int y, int w, int h)
+bool GLRenderer::setupOverlay (ECamera cam, String file, int x, int y, int w, int h)
 {
 	QImage* img = new QImage (QImage (file).convertToFormat (QImage::Format_ARGB32));
 	LDGLOverlay& info = getOverlay (cam);
@@ -1958,11 +1946,11 @@ void GLRenderer::zoomToFit()
 //
 void GLRenderer::zoomAllToFit()
 {
-	EFixedCamera oldcam = camera();
+	ECamera oldcam = camera();
 
-	for (int i = 0; i < 7; ++i)
+	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
 	{
-		setCamera ((EFixedCamera) i);
+		setCamera (cam);
 		zoomToFit();
 	}
 
@@ -2024,7 +2012,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 
 // =============================================================================
 //
-LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
+LDOverlay* GLRenderer::findOverlayObject (ECamera cam)
 {
 	LDOverlay* ovlobj = null;
 
@@ -2046,7 +2034,7 @@ LDOverlay* GLRenderer::findOverlayObject (EFixedCamera cam)
 //
 void GLRenderer::initOverlaysFromObjects()
 {
-	for (EFixedCamera cam : g_Cameras)
+	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
 	{
 		if (cam == EFreeCamera)
 			continue;
@@ -2069,7 +2057,7 @@ void GLRenderer::initOverlaysFromObjects()
 //
 void GLRenderer::updateOverlayObjects()
 {
-	for (EFixedCamera cam : g_Cameras)
+	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
 	{
 		if (cam == EFreeCamera)
 			continue;

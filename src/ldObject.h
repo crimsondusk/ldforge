@@ -90,7 +90,9 @@ class LDObject
 			EError,          // Object is the result of failed parsing
 			EEmpty,          // Object represents an empty line
 			EUnidentified,   // Unknown object type (some functions return this; TODO: they probably should not)
-			ENumTypes        // Amount of object types
+
+			ENumTypes,       // Amount of object types
+			EFirstType = ESubfile
 		};
 
 		LDObject();
@@ -192,6 +194,8 @@ class LDObject
 		virtual LDObject* clone() = 0;
 		LDSharedVertex*	m_coords[4];
 };
+
+NUMERIC_ENUM_OPERATORS (LDObject::Type)
 
 // =============================================================================
 // LDSharedVertex

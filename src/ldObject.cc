@@ -445,15 +445,13 @@ String LDObject::typeName (LDObject::Type type)
 //
 String LDObject::describeObjects (const LDObjectList& objs)
 {
-	bool firstDetails = true;
-	String text = "";
+	String text;
 
 	if (objs.isEmpty())
 		return "nothing"; // :)
 
-	for (long i = 0; i < ENumTypes; ++i)
+	for (Type objType = EFirstType; objType < ENumTypes; ++objType)
 	{
-		Type objType = (Type) i;
 		int count = 0;
 
 		for (LDObject * obj : objs)
@@ -463,7 +461,7 @@ String LDObject::describeObjects (const LDObjectList& objs)
 		if (count == 0)
 			continue;
 
-		if (not firstDetails)
+		if (not text.isEmpty())
 			text += ", ";
 
 		String noun = format ("%1%2", typeName (objType), plural (count));
@@ -473,7 +471,6 @@ String LDObject::describeObjects (const LDObjectList& objs)
 			noun = "vertices";
 
 		text += format ("%1 %2", count, noun);
-		firstDetails = false;
 	}
 
 	return text;

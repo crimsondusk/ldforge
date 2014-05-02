@@ -103,6 +103,22 @@ struct LDGLData
 	}
 };
 
+enum ECamera
+{
+	ETopCamera,
+	EFrontCamera,
+	ELeftCamera,
+	EBottomCamera,
+	EBackCamera,
+	ERightCamera,
+	EFreeCamera,
+
+	ENumCameras,
+	EFirstCamera = ETopCamera
+};
+
+NUMERIC_ENUM_OPERATORS (ECamera)
+
 // =============================================================================
 // The main renderer object, draws the brick on the screen, manages the camera
 // and selection picking. The instance of GLRenderer is accessible as
@@ -111,25 +127,6 @@ struct LDGLData
 class GLRenderer : public QGLWidget
 {
 	public:
-		enum EFixedCamera
-		{
-			ETopCamera,
-			EFrontCamera,
-			ELeftCamera,
-			EBottomCamera,
-			EBackCamera,
-			ERightCamera,
-			EFreeCamera
-		};
-
-		enum ListType
-		{
-			NormalList,
-			PickList,
-			BFCFrontList,
-			BFCBackList
-		};
-
 		// CameraIcon::img is a heap-allocated QPixmap because otherwise it gets
 		// initialized before program gets to main() and constructs a QApplication
 		// and Qt doesn't like that.
@@ -139,7 +136,7 @@ class GLRenderer : public QGLWidget
 			QRect			srcRect,
 							destRect,
 							selRect;
-			EFixedCamera	cam;
+			ECamera			cam;
 		};
 
 		Q_OBJECT
@@ -156,7 +153,7 @@ class GLRenderer : public QGLWidget
 		GLRenderer (QWidget* parent = null);
 		~GLRenderer();
 
-		inline EFixedCamera camera() const
+		inline ECamera camera() const
 		{
 			return m_camera;
 		}
@@ -166,7 +163,7 @@ class GLRenderer : public QGLWidget
 		void           drawGLScene();
 		void           endDraw (bool accept);
 		void           forgetObject (LDObject* obj);
-		Axis           getCameraAxis (bool y, EFixedCamera camid = (EFixedCamera) - 1);
+		Axis           getCameraAxis (bool y, ECamera camid = (ECamera) -1);
 		const char*    getCameraName() const;
 		double         getDepthValue() const;
 		LDGLOverlay&   getOverlay (int newcam);
@@ -179,9 +176,9 @@ class GLRenderer : public QGLWidget
 		void           resetAngles();
 		void           resetAllAngles();
 		void           setBackground();
-		void           setCamera (const EFixedCamera cam);
+		void           setCamera (const ECamera cam);
 		void           setDepthValue (double depth);
-		bool           setupOverlay (EFixedCamera cam, String file, int x, int y, int w, int h);
+		bool           setupOverlay (ECamera cam, String file, int x, int y, int w, int h);
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 
@@ -221,7 +218,7 @@ class GLRenderer : public QGLWidget
 									m_rangeStart;
 		QPen						m_thickBorderPen,
 									m_thinBorderPen;
-		EFixedCamera				m_camera,
+		ECamera						m_camera,
 									m_toolTipCamera;
 		GLuint						m_axeslist;
 		int							m_width,
@@ -233,7 +230,7 @@ class GLRenderer : public QGLWidget
 		QColor						m_bgcolor;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
-		LDOverlay*     findOverlayObject (EFixedCamera cam);
+		LDOverlay*     findOverlayObject (ECamera cam);
 		void           updateRectVerts();
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 		Axis			getRelativeZ() const;
@@ -309,16 +306,4 @@ class GLRenderer : public QGLWidget
 		void initializeAxes();
 };
 
-// Alias for short namespaces
-typedef GLRenderer GL;
-
-static const GLRenderer::ListType g_glListTypes[] =
-{
-	GL::NormalList,
-	GL::PickList,
-	GL::BFCFrontList,
-	GL::BFCBackList,
-};
-
-extern const GL::EFixedCamera g_Cameras[7];
 extern const char* g_CameraNames[7];

@@ -371,11 +371,11 @@ void GLCompiler::compilePolygon (LDPolygon& poly, LDObject* topobj, ObjectVBOInf
 		default: return;
 	}
 
-	for (int complement = 0; complement < VBOCM_NumComplements; ++complement)
+	for (EVBOComplement complement = VBOCM_First; complement < VBOCM_NumComplements; ++complement)
 	{
-		const int vbonum			= vboNumber (surface, (EVBOComplement) complement);
+		const int vbonum			= vboNumber (surface, complement);
 		QVector<GLfloat>& vbodata	= objinfo->data[vbonum];
-		const QColor color			= getColorForPolygon (poly, topobj, (EVBOComplement) complement);
+		const QColor color			= getColorForPolygon (poly, topobj, complement);
 
 		for (int vert = 0; vert < numverts; ++vert)
 		{

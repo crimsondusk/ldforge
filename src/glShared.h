@@ -40,7 +40,9 @@ enum EVBOSurface
 	VBOSF_Triangles,
 	VBOSF_Quads,
 	VBOSF_CondLines,
-	VBOSF_NumSurfaces
+
+	VBOSF_NumSurfaces,
+	VBOSF_First = VBOSF_Lines
 };
 
 enum EVBOComplement
@@ -51,8 +53,13 @@ enum EVBOComplement
 	VBOCM_BFCFrontColors,
 	VBOCM_BFCBackColors,
 	VBOCM_RandomColors,
-	VBOCM_NumComplements
+
+	VBOCM_NumComplements,
+	VBOCM_First = VBOCM_Surfaces
 };
+
+NUMERIC_ENUM_OPERATORS (EVBOSurface)
+NUMERIC_ENUM_OPERATORS (EVBOComplement)
 
 // KDevelop doesn't seem to understand some VBO stuff
 #ifdef IN_IDE_PARSER

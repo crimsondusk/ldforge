@@ -561,7 +561,7 @@ DEFINE_ACTION (SetOverlay,  0)
 	if (not dlg.exec())
 		return;
 
-	R()->setupOverlay ((GL::EFixedCamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
+	R()->setupOverlay ((ECamera) dlg.camera(), dlg.fpath(), dlg.ofsx(),
 		dlg.ofsy(), dlg.lwidth(), dlg.lheight());
 }
 
@@ -605,7 +605,7 @@ DEFINE_ACTION (DrawAngles, 0)
 //
 DEFINE_ACTION (SetDrawDepth, 0)
 {
-	if (R()->camera() == GL::EFreeCamera)
+	if (R()->camera() == EFreeCamera)
 		return;
 
 	bool ok;
