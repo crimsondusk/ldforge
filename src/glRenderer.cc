@@ -1622,13 +1622,12 @@ void GLRenderer::endDraw (bool accept)
 double GLRenderer::getCircleDrawDist (int pos) const
 {
 	assert (m_drawedVerts.size() >= pos + 1);
-	const Vertex& v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : m_hoverpos;
+	Vertex v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : coordconv2_3 (m_pos, false);
 	Axis relX, relY;
 	getRelativeAxes (relX, relY);
-
-	const double dx = m_drawedVerts[0][relX] - v1[relX];
-	const double dy = m_drawedVerts[0][relY] - v1[relY];
-	return sqrt ((dx * dx) + (dy * dy));
+	double dx = m_drawedVerts[0][relX] - v1[relX];
+	double dy = m_drawedVerts[0][relY] - v1[relY];
+	return Grid::snap (sqrt ((dx * dx) + (dy * dy)), Grid::Coordinate);
 }
 
 // =============================================================================
