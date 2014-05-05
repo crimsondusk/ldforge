@@ -32,6 +32,7 @@
 #include "crashCatcher.h"
 #include "basics.h"
 #include "dialogs.h"
+#include "mainWindow.h"
 
 // Is the crash catcher active now?
 static bool g_crashCatcherActive = false;
@@ -58,6 +59,9 @@ static void handleCrash (int sig)
 		printf ("caught signal while crash catcher is active!\n");
 		exit (149);
 	}
+
+	if (g_win != null)
+		g_win->hide();
 
 	const pid_t pid = getpid();
 	QProcess proc;
@@ -89,12 +93,22 @@ static void handleCrash (int sig)
 	proc.waitForFinished (1000);
 	String output = String (proc.readAllStandardOutput());
 	String err = String (proc.readAllStandardError());
+	QFile f ("ldforge-crash.log");
+
+	if (f.open (QIODevice::WriteOnly))
+	{
+		fprint (f, format ("=== Program crashed with signal %1 ===\n\n%2"
+			"GDB stdout:\n%3\n"
+			"GDB stderr:\n%4\n",
+			sig, (not g_assertionFailure.isEmpty()) ? g_assertionFailure + "\n\n" : "", output, err));
+		f.close();
+	}
 
 	bombBox (format ("<h3>Program crashed with signal %1</h3>\n\n"
 		"%2"
 		"<p><b>GDB <tt>stdout</tt>:</b></p><pre>%3</pre>\n"
 		"<p><b>GDB <tt>stderr</tt>:</b></p><pre>%4</pre>",
-		sig, (not g_assertionFailure.isEmpty()) ? g_assertionFailure : "", output, err));
+		sig, g_assertionFailure, output, err));
 }
 
 // =============================================================================
