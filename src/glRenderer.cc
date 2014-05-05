@@ -123,7 +123,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	setDrawOnly (false);
 	setMessageLog (null);
 	m_width = m_height = -1;
-	m_hoverpos = g_origin;
+	m_position3D = g_origin;
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
 	m_objectAtCursor = null;
@@ -620,7 +620,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 		}
 
 		// Paint the coordinates onto the screen.
-		String text = format (tr ("X: %1, Y: %2, Z: %3"), m_hoverpos[X], m_hoverpos[Y], m_hoverpos[Z]);
+		String text = format (tr ("X: %1, Y: %2, Z: %3"), m_position3D[X], m_position3D[Y], m_position3D[Z]);
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		paint.setPen (textpen);
@@ -649,7 +649,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 
 				// Draw the cursor vertex as the last one in the list.
 				if (numverts <= 4)
-					poly3d[i] = m_hoverpos;
+					poly3d[i] = m_position3D;
 				else
 					numverts = 4;
 			}
@@ -660,7 +660,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 					for (int i = 0; i < numverts; ++i)
 						poly3d[i] = m_rectverts[i];
 				else
-					poly3d[0] = m_hoverpos;
+					poly3d[0] = m_position3D;
 			}
 
 			// Convert to 2D
@@ -727,7 +727,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 		{
 			// If we have not specified the center point of the circle yet, preview it on the screen.
 			if (m_drawedVerts.isEmpty())
-				drawBlip (paint, coordconv3_2 (m_hoverpos));
+				drawBlip (paint, coordconv3_2 (m_position3D));
 			else
 			{
 				QVector<Vertex> verts, verts2;
@@ -847,7 +847,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 		// Tool tips
 		if (m_drawToolTip)
 		{
-			if (not m_cameraIcons[m_toolTipCamera].destRect.contains (m_pos))
+			if (not m_cameraIcons[m_toolTipCamera].destRect.contains (m_mousePosition))
 				m_drawToolTip = false;
 			else
 			{
@@ -878,8 +878,8 @@ void GLRenderer::paintEvent (QPaintEvent*)
 	{
 		int x0 = m_rangeStart.x(),
 			y0 = m_rangeStart.y(),
-			x1 = m_pos.x(),
-			y1 = m_pos.y();
+			x1 = m_mousePosition.x(),
+			y1 = m_mousePosition.y();
 
 		QRect rect (x0, y0, x1 - x0, y1 - y0);
 		QColor fillColor = (m_addpick ? "#40FF00" : "#00CCFF");
@@ -988,7 +988,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 					}
 				}
 
-				addDrawnVertex (m_hoverpos);
+				addDrawnVertex (m_position3D);
 				break;
 			}
 
@@ -1000,7 +1000,7 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 					return;
 				}
 
-				addDrawnVertex (m_hoverpos);
+				addDrawnVertex (m_position3D);
 				break;
 			}
 
@@ -1029,8 +1029,8 @@ void GLRenderer::mouseReleaseEvent (QMouseEvent* ev)
 		// Find the closest vertex to our cursor
 		double			minimumDistance = 1024.0;
 		const Vertex*	closest = null;
-		Vertex			cursorPosition = coordconv2_3 (m_pos, false);
-		QPoint			cursorPosition2D (m_pos);
+		Vertex			cursorPosition = coordconv2_3 (m_mousePosition, false);
+		QPoint			cursorPosition2D (m_mousePosition);
 		const Axis		relZ = getRelativeZ();
 		QList<Vertex>	vertices;
 
@@ -1114,8 +1114,8 @@ void GLRenderer::mousePressEvent (QMouseEvent* ev)
 // =============================================================================
 void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 {
-	int dx = ev->x() - m_pos.x();
-	int dy = ev->y() - m_pos.y();
+	int dx = ev->x() - m_mousePosition.x();
+	int dy = ev->y() - m_mousePosition.y();
 	m_totalmove += abs (dx) + abs (dy);
 	setCameraMoving (false);
 
@@ -1145,13 +1145,13 @@ void GLRenderer::mouseMoveEvent (QMouseEvent* ev)
 		m_toolTipTimer->start (500);
 
 	// Update 2d position
-	m_pos = ev->pos();
+	m_mousePosition = ev->pos();
 	m_globalpos = ev->globalPos();
 
 	// Calculate 3d position of the cursor
-	m_hoverpos = (camera() != EFreeCamera) ? coordconv2_3 (m_pos, true) : g_origin;
+	m_position3D = (camera() != EFreeCamera) ? coordconv2_3 (m_mousePosition, true) : g_origin;
 
-	// Update rect vertices since m_hoverpos may have changed
+	// Update rect vertices since m_position3D may have changed
 	updateRectVerts();
 	highlightCursorObject();
 	update();
@@ -1622,7 +1622,7 @@ void GLRenderer::endDraw (bool accept)
 double GLRenderer::getCircleDrawDist (int pos) const
 {
 	assert (m_drawedVerts.size() >= pos + 1);
-	Vertex v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : coordconv2_3 (m_pos, false);
+	Vertex v1 = (m_drawedVerts.size() >= pos + 2) ? m_drawedVerts[pos + 1] : coordconv2_3 (m_mousePosition, false);
 	Axis relX, relY;
 	getRelativeAxes (relX, relY);
 	double dx = m_drawedVerts[0][relX] - v1[relX];
@@ -1714,7 +1714,7 @@ void GLRenderer::slot_toolTipTimer()
 	// a tooltip.
 	for (CameraIcon & icon : m_cameraIcons)
 	{
-		if (icon.destRect.contains (m_pos))
+		if (icon.destRect.contains (m_mousePosition))
 		{
 			m_toolTipCamera = icon.cam;
 			m_drawToolTip = true;
@@ -1966,13 +1966,13 @@ void GLRenderer::updateRectVerts()
 	if (m_drawedVerts.isEmpty())
 	{
 		for (int i = 0; i < 4; ++i)
-			m_rectverts[i] = m_hoverpos;
+			m_rectverts[i] = m_position3D;
 
 		return;
 	}
 
 	Vertex v0 = m_drawedVerts[0],
-		   v1 = (m_drawedVerts.size() >= 2) ? m_drawedVerts[1] : m_hoverpos;
+		   v1 = (m_drawedVerts.size() >= 2) ? m_drawedVerts[1] : m_position3D;
 
 	const Axis ax = getCameraAxis (false),
 			   ay = getCameraAxis (true),
@@ -2153,7 +2153,7 @@ void GLRenderer::highlightCursorObject()
 		setPicking (false);
 
 		unsigned char pixel[4];
-		glReadPixels (m_pos.x(), m_height - m_pos.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel[0]);
+		glReadPixels (m_mousePosition.x(), m_height - m_mousePosition.y(), 1, 1, GL_RGBA, GL_UNSIGNED_BYTE, &pixel[0]);
 		newIndex = pixel[0] * 0x10000 | pixel[1] * 0x100 | pixel[2];
 	}
 

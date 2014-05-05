@@ -204,7 +204,7 @@ class GLRenderer : public QGLWidget
 		QTimer*						m_toolTipTimer;
 		Qt::MouseButtons			m_lastButtons;
 		Qt::KeyboardModifiers		m_keymods;
-		Vertex						m_hoverpos;
+		Vertex						m_position3D;
 		double						m_virtWidth,
 									m_virtHeight;
 		bool						m_darkbg,
@@ -213,7 +213,7 @@ class GLRenderer : public QGLWidget
 									m_drawToolTip,
 									m_screencap,
 									m_panning;
-		QPoint						m_pos,
+		QPoint						m_mousePosition,
 									m_globalpos,
 									m_rangeStart;
 		QPen						m_thickBorderPen,
