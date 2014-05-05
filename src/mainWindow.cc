@@ -343,7 +343,7 @@ void MainWindow::buildObjList()
 			case LDObject::EQuad:
 			case LDObject::ECondLine:
 			{
-				for (int i = 0; i < obj->vertices(); ++i)
+				for (int i = 0; i < obj->numVertices(); ++i)
 				{
 					if (i != 0)
 						descr += ", ";

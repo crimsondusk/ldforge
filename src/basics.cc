@@ -240,7 +240,7 @@ void LDBoundingBox::calcObject (LDObject* obj)
 		case LDObject::EQuad:
 		case LDObject::ECondLine:
 		{
-			for (int i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->numVertices(); ++i)
 				calcVertex (obj->vertex (i));
 		} break;
 

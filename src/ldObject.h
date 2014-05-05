@@ -34,11 +34,11 @@ public:													\
 	{													\
 		return LDObject::E##T;							\
 	}													\
-	virtual String asText() const override;		\
+	virtual String asText() const override;				\
 	virtual void invert() override;
 
 #define LDOBJ_NAME(N)          virtual String typeName() const override { return #N; }
-#define LDOBJ_VERTICES(V)      virtual int vertices() const override { return V; }
+#define LDOBJ_VERTICES(V)      virtual int numVertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
 #define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false)
@@ -97,23 +97,17 @@ class LDObject
 
 		LDObject();
 
+		// This object as LDraw code
+		virtual String				asText() const = 0;
+
 		// Makes a copy of this object
 		LDObject*					createCopy() const;
 
 		// Deletes this object
 		void						destroy();
 
-		// Index (i.e. line number) of this object
-		long						lineNumber() const;
-
-		// Type enumerator of this object
-		virtual Type				type() const = 0;
-
-		// Get a vertex by index
-		const Vertex&				vertex (int i) const;
-
-		// Type name of this object
-		virtual String				typeName() const = 0;
+		// Removes this object from selection
+		void						deselect();
 
 		// Does this object have a matrix and position? (see LDMatrixObject)
 		virtual bool				hasMatrix() const = 0;
@@ -127,17 +121,20 @@ class LDObject
 		// Does this object have meaning in the part model?
 		virtual bool				isScemantic() const = 0;
 
+		// Index (i.e. line number) of this object
+		long						lineNumber() const;
+
 		// Moves this object using the given vertex as a movement List
 		void						move (Vertex vect);
 
 		// Object after this in the current file
 		LDObject*					next() const;
 
+		// Number of vertices this object has
+		virtual int					numVertices() const = 0;
+
 		// Object prior to this in the current file
 		LDObject*					previous() const;
-
-		// This object as LDraw code
-		virtual String				asText() const = 0;
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
 		void						replace (LDObject* other);
@@ -157,11 +154,14 @@ class LDObject
 		// What object in the current file ultimately references this?
 		LDObject*					topLevelParent();
 
-		// Removes this object from selection // TODO: rename to deselect?
-		void						unselect();
+		// Type enumerator of this object
+		virtual Type				type() const = 0;
 
-		// Number of vertices this object has // TODO: rename to getNumVertices
-		virtual int					vertices() const = 0;
+		// Type name of this object
+		virtual String				typeName() const = 0;
+
+		// Get a vertex by index
+		const Vertex&				vertex (int i) const;
 
 		// Get type name by enumerator
 		static String typeName (LDObject::Type type);

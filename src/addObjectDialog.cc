@@ -380,7 +380,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 			if (not obj)
 				obj = LDObject::getDefault (type);
 
-			for (int i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->numVertices(); ++i)
 			{
 				Vertex v;
 

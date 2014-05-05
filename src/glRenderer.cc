@@ -1303,7 +1303,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		{
 			if (obj->isSelected())
 			{
-				obj->unselect();
+				obj->deselect();
 				removedObj = obj;
 				break;
 			}
@@ -1447,7 +1447,7 @@ void GLRenderer::endDraw (bool accept)
 				// Copy the vertices from m_rectverts
 				updateRectVerts();
 
-				for (int i = 0; i < quad->vertices(); ++i)
+				for (int i = 0; i < quad->numVertices(); ++i)
 					quad->setVertex (i, m_rectverts[i]);
 
 				quad->setColor (maincolor);
@@ -1483,7 +1483,7 @@ void GLRenderer::endDraw (bool accept)
 
 						obj->setColor (maincolor);
 
-						for (int i = 0; i < obj->vertices(); ++i)
+						for (int i = 0; i < obj->numVertices(); ++i)
 							obj->setVertex (i, verts[i]);
 
 						objs << obj;
@@ -1653,9 +1653,9 @@ static QList<Vertex> getVertices (LDObject* obj)
 {
 	QList<Vertex> verts;
 
-	if (obj->vertices() >= 2)
+	if (obj->numVertices() >= 2)
 	{
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 			verts << obj->vertex (i);
 	}
 	elif (obj->type() == LDObject::ESubfile)

@@ -264,7 +264,7 @@ void LDObject::destroy()
 {
 	// If this object was selected, unselect it now
 	if (isSelected())
-		unselect();
+		deselect();
 
 	// If this object was associated to a file, remove it off it now
 	if (document())
@@ -295,7 +295,7 @@ static void transformObject (LDObject* obj, Matrix transform, Vertex pos, int pa
 		case LDObject::ETriangle:
 		case LDObject::EQuad:
 
-			for (int i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->numVertices(); ++i)
 			{
 				Vertex v = obj->vertex (i);
 				v.transform (transform, pos);
@@ -538,7 +538,7 @@ void LDObject::move (Vertex vect)
 	}
 	else
 	{
-		for (int i = 0; i < vertices(); ++i)
+		for (int i = 0; i < numVertices(); ++i)
 			setVertex (i, vertex (i) + vect);
 	}
 }
@@ -657,7 +657,7 @@ LDLine* LDCondLine::demote()
 {
 	LDLine* repl = new LDLine;
 
-	for (int i = 0; i < repl->vertices(); ++i)
+	for (int i = 0; i < repl->numVertices(); ++i)
 		repl->setVertex (i, vertex (i));
 
 	repl->setColor (color());
@@ -814,7 +814,7 @@ void LDObject::select()
 
 // =============================================================================
 //
-void LDObject::unselect()
+void LDObject::deselect()
 {
 	assert (document() != null);
 	document()->removeFromSelection (this);

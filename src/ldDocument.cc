@@ -1113,7 +1113,7 @@ void LDDocument::addKnownVerticesOf (LDObject* obj)
 	}
 	else
 	{
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 			addKnownVertexReference (obj->vertex (i));
 	}
 }
@@ -1137,7 +1137,7 @@ void LDDocument::removeKnownVerticesOf (LDObject* obj)
 	}
 	else
 	{
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 			removeKnownVertexReference (obj->vertex (i));
 	}
 }
@@ -1147,7 +1147,7 @@ void LDDocument::removeKnownVerticesOf (LDObject* obj)
 void LDDocument::forgetObject (LDObject* obj)
 {
 	int idx = obj->lineNumber();
-	obj->unselect();
+	obj->deselect();
 	assert (m_objects[idx] == obj);
 
 	if (not isImplicit() && not (flags() & DOCF_IsBeingDestroyed))
@@ -1224,7 +1224,7 @@ void LDDocument::setObject (int idx, LDObject* obj)
 	}
 
 	removeKnownVerticesOf (m_objects[idx]);
-	m_objects[idx]->unselect();
+	m_objects[idx]->deselect();
 	m_objects[idx]->setDocument (null);
 	obj->setDocument (this);
 	addKnownVerticesOf (obj);
@@ -1305,7 +1305,7 @@ void LDDocument::initializeCachedData()
 			delete data;
 		}
 
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 			m_storedVertices << obj->vertex (i);
 
 		obj->destroy();

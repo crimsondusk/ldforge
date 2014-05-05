@@ -306,12 +306,12 @@ DEFINE_ACTION (CornerVerts, 0)
 
 	for (LDObject* obj : selection())
 	{
-		if (obj->vertices() < 2)
+		if (obj->numVertices() < 2)
 			continue;
 
 		int ln = obj->lineNumber();
 
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 		{
 			LDVertex* vert = new LDVertex;
 			vert->pos = obj->vertex (i);
@@ -454,9 +454,9 @@ static void doRotate (const int l, const int m, const int n)
 	// Apply the above matrix to everything
 	for (LDObject* obj : sel)
 	{
-		if (obj->vertices())
+		if (obj->numVertices())
 		{
-			for (int i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->numVertices(); ++i)
 			{
 				Vertex v = obj->vertex (i);
 				rotateVertex (v, rotpoint, transform);
@@ -545,7 +545,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 		}
 		else
 		{
-			for (int i = 0; i < obj->vertices(); ++i)
+			for (int i = 0; i < obj->numVertices(); ++i)
 			{
 				Vertex v = obj->vertex (i);
 				v.apply ([](Axis, double& a) { roundToDecimals (a, 3); });
@@ -609,7 +609,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 
 	for (LDObject* obj : selection())
 	{
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 		{
 			Vertex v = obj->vertex (i);
 
@@ -655,7 +655,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 
 	for (LDObject* obj : selection())
 	{
-		for (int i = 0; i < obj->vertices(); ++i)
+		for (int i = 0; i < obj->numVertices(); ++i)
 		{
 			Vertex v = obj->vertex (i);
 
