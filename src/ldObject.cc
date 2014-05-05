@@ -276,6 +276,11 @@ void LDObject::destroy()
 	// Remove this object from the list of LDObjects
 	g_LDObjects.removeOne (this);
 
+	// The renderer's mouse-over field also needs to be cleared...
+	// Remind me to implement smart pointers someday.
+	if (g_win->R()->objectAtCursor() == this)
+		g_win->R()->setObjectAtCursor (null);
+
 	delete this;
 }
 

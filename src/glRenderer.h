@@ -146,7 +146,7 @@ class GLRenderer : public QGLWidget
 		PROPERTY (public,	LDDocument*,		document,		setDocument,		CUSTOM_WRITE)
 		PROPERTY (public,	EditMode,			editMode,		setEditMode,		CUSTOM_WRITE)
 		PROPERTY (private,	GLCompiler*,		compiler,		setCompiler,		STOCK_WRITE)
-		PROPERTY (private,	LDObject*,			objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)
+		PROPERTY (public,	LDObject*,			objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)
 		PROPERTY (private,	bool,				isCameraMoving,	setCameraMoving,	STOCK_WRITE)
 
 	public:
