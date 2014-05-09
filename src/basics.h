@@ -22,11 +22,13 @@
 #include <QStringList>
 #include <QMetaType>
 #include <QVector3D>
+#include <QSharedPointer>
 #include "macros.h"
 
 class LDObject;
 class QFile;
 class QTextStream;
+class Matrix;
 
 using int8 = qint8;
 using int16 = qint16;
@@ -37,6 +39,10 @@ using uint16 = quint16;
 using uint32 = quint32;
 using uint64 = quint64;
 using String = QString;
+using LDObjectPtr = QSharedPointer<LDObject>;
+using LDObjectList = QList<LDObjectPtr>;
+using LDObjectWeakPtr = QWeakPointer<LDObject>;
+using LDObjectWeakList = QList<LDObjectWeakPtr>;
 
 template<typename T, typename R>
 using Pair = std::pair<T, R>;
@@ -47,12 +53,6 @@ enum Axis
 	Y,
 	Z
 };
-
-// =============================================================================
-//
-class LDObject;
-class Matrix;
-using LDObjectList = QList<LDObject*>;
 
 //!
 //! Derivative of QVector3D: this class is used for the vertices.
@@ -192,7 +192,7 @@ class LDBoundingBox
 
 		//! Calculates the given \c obj to the bounding box, adjusting
 		//! extremas if necessary.
-		void calcObject (LDObject* obj);
+		void calcObject (LDObjectPtr obj);
 
 		//! Calculates the given \c vertex to the bounding box, adjusting
 		//! extremas if necessary.
@@ -202,7 +202,7 @@ class LDBoundingBox
 		Vertex center() const;
 
 		//! An operator overload for \c calcObject()
-		LDBoundingBox& operator<< (LDObject* obj);
+		LDBoundingBox& operator<< (LDObjectPtr obj);
 
 		//! An operator overload for \c calcVertex()
 		LDBoundingBox& operator<< (const Vertex& v);

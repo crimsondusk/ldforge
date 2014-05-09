@@ -225,13 +225,13 @@ void LDBoundingBox::calculateFromCurrentDocument()
 	if (not getCurrentDocument())
 		return;
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 		calcObject (obj);
 }
 
 // =============================================================================
 //
-void LDBoundingBox::calcObject (LDObject* obj)
+void LDBoundingBox::calcObject (LDObjectPtr obj)
 {
 	switch (obj->type())
 	{
@@ -246,10 +246,10 @@ void LDBoundingBox::calcObject (LDObject* obj)
 
 		case LDObject::ESubfile:
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDObjectList objs = ref->inlineContents (true, false);
 
-			for (LDObject * obj : objs)
+			for (LDObjectPtr obj : objs)
 			{
 				calcObject (obj);
 				obj->destroy();
@@ -272,7 +272,7 @@ LDBoundingBox& LDBoundingBox::operator<< (const Vertex& v)
 
 // =============================================================================
 //
-LDBoundingBox& LDBoundingBox::operator<< (LDObject* obj)
+LDBoundingBox& LDBoundingBox::operator<< (LDObjectPtr obj)
 {
 	calcObject (obj);
 	return *this;

@@ -53,7 +53,7 @@ class SubfileListItem : public QTreeWidgetItem
 
 // =============================================================================
 //
-AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWidget* parent) :
+AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QWidget* parent) :
 	QDialog (parent)
 {
 	setlocale (LC_ALL, "C");
@@ -68,7 +68,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			le_comment = new QLineEdit;
 
 			if (obj)
-				le_comment->setText (static_cast<LDComment*> (obj)->text());
+				le_comment->setText (obj.staticCast<LDComment>()->text());
 
 			le_comment->setMinimumWidth (384);
 		} break;
@@ -108,7 +108,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 			}
 
 			if (obj)
-				rb_bfcType->setValue ( (int) static_cast<LDBFC*> (obj)->statement());
+				rb_bfcType->setValue ((int) obj.staticCast<LDBFC>()->statement());
 		} break;
 
 		case LDObject::ESubfile:
@@ -131,7 +131,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 					// If this primitive is the one the current object points to,
 					// select it by default
-					if (obj && static_cast<LDSubfile*> (obj)->fileInfo()->name() == prim.name)
+					if (obj && obj.staticCast<LDSubfile>()->fileInfo()->name() == prim.name)
 						tw_subfileList->setCurrentItem (item);
 				}
 
@@ -145,7 +145,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 			if (obj)
 			{
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 				le_subfileName->setText (ref->fileInfo()->name());
 			}
 		} break;
@@ -157,7 +157,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 	}
 
 	QPixmap icon = getIcon (format ("add-%1", typeName));
-	LDObject* defaults = LDObject::getDefault (type);
+	LDObjectPtr defaults = LDObject::getDefault (type);
 
 	lb_typeIcon = new QLabel;
 	lb_typeIcon->setPixmap (icon);
@@ -225,8 +225,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObject* obj, QWid
 
 	if (defaults->hasMatrix())
 	{
-		LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
-
+		LDMatrixObjectPtr mo = obj.dynamicCast<LDMatrixObject>();
 		QLabel* lb_matrix = new QLabel ("Matrix:");
 		le_matrix = new QLineEdit;
 		// le_matrix->setValidator (new QDoubleValidator);
@@ -317,17 +316,17 @@ void AddObjectDialog::slot_subfileTypeChanged()
 // =============================================================================
 // =============================================================================
 template<typename T>
-static T* initObj (LDObject*& obj)
+static QSharedPointer<T> initObj (LDObjectPtr& obj)
 {
 	if (obj == null)
-		obj = new T;
+		obj = LDObjectPtr (new T);
 
-	return static_cast<T*> (obj);
+	return obj.staticCast<T>();
 }
 
 // =============================================================================
 // =============================================================================
-void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
+void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
 {
 	setlocale (LC_ALL, "C");
 
@@ -367,7 +366,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 	{
 		case LDObject::EComment:
 		{
-			LDComment* comm = initObj<LDComment> (obj);
+			LDCommentPtr comm = initObj<LDComment> (obj);
 			comm->setText (dlg.le_comment->text());
 		}
 		break;
@@ -395,13 +394,13 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 
 		case LDObject::EBFC:
 		{
-			LDBFC* bfc = initObj<LDBFC> (obj);
+			LDBFCPtr bfc = initObj<LDBFC> (obj);
 			bfc->setStatement ((LDBFC::Statement) dlg.rb_bfcType->value());
 		} break;
 
 		case LDObject::EVertex:
 		{
-			LDVertex* vert = initObj<LDVertex> (obj);
+			LDVertexPtr vert = initObj<LDVertex> (obj);
 			vert->pos.apply ([&](Axis ax, double& value) { value = dlg.dsb_coords[ax]->value(); });
 		}
 		break;
@@ -421,7 +420,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObject* obj)
 				return;
 			}
 
-			LDSubfile* ref = initObj<LDSubfile> (obj);
+			LDSubfilePtr ref = initObj<LDSubfile> (obj);
 			assert (ref);
 
 			for_axes (ax)

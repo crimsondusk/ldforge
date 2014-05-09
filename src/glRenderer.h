@@ -146,7 +146,7 @@ class GLRenderer : public QGLWidget
 		PROPERTY (public,	LDDocument*,		document,		setDocument,		CUSTOM_WRITE)
 		PROPERTY (public,	EditMode,			editMode,		setEditMode,		CUSTOM_WRITE)
 		PROPERTY (private,	GLCompiler*,		compiler,		setCompiler,		STOCK_WRITE)
-		PROPERTY (public,	LDObject*,			objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)
+		PROPERTY (public,	LDObjectWeakPtr,	objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)
 		PROPERTY (private,	bool,				isCameraMoving,	setCameraMoving,	STOCK_WRITE)
 
 	public:
@@ -159,10 +159,10 @@ class GLRenderer : public QGLWidget
 		}
 
 		void           clearOverlay();
-		void           compileObject (LDObject* obj);
+		void           compileObject (LDObjectPtr obj);
 		void           drawGLScene();
 		void           endDraw (bool accept);
-		void           forgetObject (LDObject* obj);
+		void           forgetObject (LDObjectPtr obj);
 		Axis           getCameraAxis (bool y, ECamera camid = (ECamera) -1);
 		const char*    getCameraName() const;
 		double         getDepthValue() const;
@@ -230,7 +230,7 @@ class GLRenderer : public QGLWidget
 		QColor						m_bgcolor;
 
 		void           addDrawnVertex (Vertex m_hoverpos);
-		LDOverlay*     findOverlayObject (ECamera cam);
+		LDOverlayPtr findOverlayObject (ECamera cam);
 		void           updateRectVerts();
 		void           getRelativeAxes (Axis& relX, Axis& relY) const;
 		Axis			getRelativeZ() const;

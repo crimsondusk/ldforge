@@ -168,16 +168,16 @@ static String processErrorString (extprog prog, QProcess& proc)
 //
 static void writeObjects (const LDObjectList& objects, QFile& f)
 {
-	for (LDObject* obj : objects)
+	for (LDObjectPtr obj : objects)
 	{
 		if (obj->type() == LDObject::ESubfile)
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDObjectList objs = ref->inlineContents (true, false);
 
 			writeObjects (objs, f);
 
-			for (LDObject* obj : objs)
+			for (LDObjectPtr obj : objs)
 				obj->destroy();
 		}
 		else
@@ -219,7 +219,7 @@ void writeColorGroup (const int colnum, String fname)
 {
 	LDObjectList objects;
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (not obj->isColored() || obj->color() != colnum)
 			continue;
@@ -315,7 +315,7 @@ static void insertOutput (String fname, bool replace, QList<int> colorsToReplace
 	// Insert the new objects
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		if (not obj->isScemantic())
 		{

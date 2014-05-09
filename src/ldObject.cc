@@ -32,7 +32,7 @@ CFGENTRY (String, defaultUser, "");
 CFGENTRY (Int, defaultLicense, 0);
 
 // List of all LDObjects
-static LDObjectList g_LDObjects;
+static LDObjectWeakList g_LDObjects;
 
 // =============================================================================
 // LDObject constructors
@@ -40,13 +40,12 @@ static LDObjectList g_LDObjects;
 LDObject::LDObject() :
 	m_isHidden (false),
 	m_isSelected (false),
-	m_parent (null),
 	m_document (null),
 	qObjListEntry (null)
 {
 	memset (m_coords, 0, sizeof m_coords);
 	chooseID();
-	g_LDObjects << this;
+	g_LDObjects << LDObjectWeakPtr (thisptr());
 	setRandomColor (QColor::fromHsv (rand() % 360, rand() % 256, rand() % 96 + 128));
 }
 
@@ -56,12 +55,13 @@ void LDObject::chooseID()
 {
 	int32 id = 1; // 0 shalt be null
 
-	for (LDObject* obj : g_LDObjects)
+	for (LDObjectWeakPtr obj : g_LDObjects)
 	{
-		assert (obj != this);
+		LDObjectPtr obj2 = obj.toStrongRef();
+		assert (obj2 != this);
 
-		if (obj->id() >= id)
-			id = obj->id() + 1;
+		if (obj2->id() >= id)
+			id = obj2->id() + 1;
 	}
 
 	setID (id);
@@ -189,7 +189,7 @@ String LDBFC::asText() const
 
 // =============================================================================
 //
-QList<LDTriangle*> LDQuad::splitToTriangles()
+QList<LDTrianglePtr> LDQuad::splitToTriangles()
 {
 	// Create the two triangles based on this quadrilateral:
 	// 0---3       0---3    3
@@ -197,22 +197,19 @@ QList<LDTriangle*> LDQuad::splitToTriangles()
 	// |   |  ==>  | /    / |
 	// |   |       |/    /  |
 	// 1---2       1    1---2
-	LDTriangle* tri1 = new LDTriangle (vertex (0), vertex (1), vertex (3));
-	LDTriangle* tri2 = new LDTriangle (vertex (1), vertex (2), vertex (3));
+	LDTrianglePtr tri1 (spawn<LDTriangle> (vertex (0), vertex (1), vertex (3)));
+	LDTrianglePtr tri2 (spawn<LDTriangle> (vertex (1), vertex (2), vertex (3)));
 
 	// The triangles also inherit the quad's color
 	tri1->setColor (color());
 	tri2->setColor (color());
 
-	QList<LDTriangle*> triangles;
-	triangles << tri1;
-	triangles << tri2;
-	return triangles;
+	return {tri1, tri2};
 }
 
 // =============================================================================
 //
-void LDObject::replace (LDObject* other)
+void LDObject::replace (LDObjectPtr other)
 {
 	long idx = lineNumber();
 	assert (idx != -1);
@@ -226,10 +223,10 @@ void LDObject::replace (LDObject* other)
 
 // =============================================================================
 //
-void LDObject::swap (LDObject* other)
+void LDObject::swap (LDObjectPtr other)
 {
 	assert (document() == other->document());
-	document()->swapObjects (this, other);
+	document()->swapObjects (thisptr(), other);
 }
 
 // =============================================================================
@@ -243,6 +240,16 @@ LDLine::LDLine (Vertex v1, Vertex v2)
 // =============================================================================
 //
 LDQuad::LDQuad (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3)
+{
+	setVertex (0, v0);
+	setVertex (1, v1);
+	setVertex (2, v2);
+	setVertex (3, v3);
+}
+
+// =============================================================================
+//
+LDCondLine::LDCondLine (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3)
 {
 	setVertex (0, v0);
 	setVertex (1, v1);
@@ -268,25 +275,19 @@ void LDObject::destroy()
 
 	// If this object was associated to a file, remove it off it now
 	if (document())
-		document()->forgetObject (this);
+		document()->forgetObject (thisptr());
 
 	// Delete the GL lists
-	g_win->R()->forgetObject (this);
+	g_win->R()->forgetObject (thisptr());
 
 	// Remove this object from the list of LDObjects
-	g_LDObjects.removeOne (this);
-
-	// The renderer's mouse-over field also needs to be cleared...
-	// Remind me to implement smart pointers someday.
-	if (g_win->R()->objectAtCursor() == this)
-		g_win->R()->setObjectAtCursor (null);
-
+	g_LDObjects.removeOne (LDObjectWeakPtr (thisptr()));
 	delete this;
 }
 
 // =============================================================================
 //
-static void transformObject (LDObject* obj, Matrix transform, Vertex pos, int parentcolor)
+static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, int parentcolor)
 {
 	switch (obj->type())
 	{
@@ -306,10 +307,9 @@ static void transformObject (LDObject* obj, Matrix transform, Vertex pos, int pa
 
 		case LDObject::ESubfile:
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfilePtr ref = qSharedPointerCast<LDSubfile> (obj);
 			Matrix newMatrix = transform * ref->transform();
 			Vertex newpos = ref->position();
-
 			newpos.transform (transform, pos);
 			ref->setPosition (newpos);
 			ref->setTransform (newMatrix);
@@ -331,10 +331,10 @@ LDObjectList LDSubfile::inlineContents (bool deep, bool render)
 	LDObjectList objs = fileInfo()->inlineContents (deep, render);
 
 	// Transform the objects
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		// Set the parent now so we know what inlined the object.
-		obj->setParent (this);
+		obj->setParent (LDObjectWeakPtr (thisptr()));
 		transformObject (obj, transform(), position(), color());
 	}
 
@@ -408,7 +408,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 
 	for (long i = start; i != end; i += incr)
 	{
-		LDObject* obj = objs[i];
+		LDObjectPtr obj = objs[i];
 
 		const long idx = obj->lineNumber(),
 				   target = idx + (up ? -1 : 1);
@@ -432,7 +432,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 
 	// The objects need to be recompiled, otherwise their pick lists are left with
 	// the wrong index colors which messes up selection.
-	for (LDObject* obj : objsToCompile)
+	for (LDObjectPtr obj : objsToCompile)
 		g_win->R()->compileObject (obj);
 }
 
@@ -440,7 +440,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 //
 String LDObject::typeName (LDObject::Type type)
 {
-	LDObject* obj = LDObject::getDefault (type);
+	LDObjectPtr obj = LDObject::getDefault (type);
 	String name = obj->typeName();
 	obj->destroy();
 	return name;
@@ -459,7 +459,7 @@ String LDObject::describeObjects (const LDObjectList& objs)
 	{
 		int count = 0;
 
-		for (LDObject * obj : objs)
+		for (LDObjectPtr obj : objs)
 			if (obj->type() == objType)
 				count++;
 
@@ -483,41 +483,41 @@ String LDObject::describeObjects (const LDObjectList& objs)
 
 // =============================================================================
 //
-LDObject* LDObject::topLevelParent()
+LDObjectPtr LDObject::topLevelParent()
 {
 	if (parent() == null)
-		return this;
+		return thisptr();
 
-	LDObject* it = this;
+	LDObjectWeakPtr it (thisptr());
 
-	while (it->parent() != null)
-		it = it->parent();
+	while (it.toStrongRef()->parent() != null)
+		it = it.toStrongRef()->parent();
 
-	return it;
+	return it.toStrongRef();
 }
 
 // =============================================================================
 //
-LDObject* LDObject::next() const
+LDObjectPtr LDObject::next() const
 {
 	long idx = lineNumber();
 	assert (idx != -1);
 
 	if (idx == (long) document()->getObjectCount() - 1)
-		return null;
+		return LDObjectPtr();
 
 	return document()->getObject (idx + 1);
 }
 
 // =============================================================================
 //
-LDObject* LDObject::previous() const
+LDObjectPtr LDObject::previous() const
 {
 	long idx = lineNumber();
 	assert (idx != -1);
 
 	if (idx == 0)
-		return null;
+		return LDObjectPtr();
 
 	return document()->getObject (idx - 1);
 }
@@ -528,13 +528,13 @@ void LDObject::move (Vertex vect)
 {
 	if (hasMatrix())
 	{
-		LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (this);
+		LDMatrixObjectPtr mo = thisptr().dynamicCast<LDMatrixObject>();
 		mo->setPosition (mo->position() + vect);
 	}
 	elif (type() == LDObject::EVertex)
 	{
 		// ugh
-		static_cast<LDVertex*> (this)->pos += vect;
+		thisptr().staticCast<LDVertex>()->pos += vect;
 	}
 	else
 	{
@@ -545,25 +545,25 @@ void LDObject::move (Vertex vect)
 
 // =============================================================================
 //
-#define CHECK_FOR_OBJ(N) \
-	if (type == LDObject::E##N) \
-		return new LD##N;
-
-LDObject* LDObject::getDefault (const LDObject::Type type)
+LDObjectPtr LDObject::getDefault (const LDObject::Type type)
 {
-	CHECK_FOR_OBJ (Comment)
-	CHECK_FOR_OBJ (BFC)
-	CHECK_FOR_OBJ (Line)
-	CHECK_FOR_OBJ (CondLine)
-	CHECK_FOR_OBJ (Subfile)
-	CHECK_FOR_OBJ (Triangle)
-	CHECK_FOR_OBJ (Quad)
-	CHECK_FOR_OBJ (Empty)
-	CHECK_FOR_OBJ (BFC)
-	CHECK_FOR_OBJ (Error)
-	CHECK_FOR_OBJ (Vertex)
-	CHECK_FOR_OBJ (Overlay)
-	return null;
+	switch (type)
+	{
+		case EComment:		return spawn<LDComment>();
+		case EBFC:			return spawn<LDBFC>();
+		case ELine:			return spawn<LDLine>();
+		case ECondLine:		return spawn<LDCondLine>();
+		case ESubfile:		return spawn<LDSubfile>();
+		case ETriangle:		return spawn<LDTriangle>();
+		case EQuad:			return spawn<LDQuad>();
+		case EEmpty:		return spawn<LDEmpty>();
+		case EError:		return spawn<LDError>();
+		case EVertex:		return spawn<LDVertex>();
+		case EOverlay:		return spawn<LDOverlay>();
+		case EUnidentified:	assert (false);
+		case ENumTypes:		assert (false);
+	}
+	return LDObjectPtr();
 }
 
 // =============================================================================
@@ -613,9 +613,9 @@ void LDSubfile::invert()
 
 	if (idx > 0)
 	{
-		LDBFC* bfc = dynamic_cast<LDBFC*> (previous());
+		LDBFCPtr bfc = previous().dynamicCast<LDBFC>();
 
-		if (bfc && bfc->statement() == LDBFC::InvertNext)
+		if (not bfc.isNull() && bfc->statement() == LDBFC::InvertNext)
 		{
 			// This is prefixed with an invertnext, thus remove it.
 			bfc->destroy();
@@ -624,57 +624,55 @@ void LDSubfile::invert()
 	}
 
 	// Not inverted, thus prefix it with a new invertnext.
-	LDBFC* bfc = new LDBFC (LDBFC::InvertNext);
-	document()->insertObj (idx, bfc);
+	document()->insertObj (idx, spawn<LDBFC> (LDBFC::InvertNext));
 }
 
 // =============================================================================
 //
-static void invertLine (LDObject* line)
+void LDLine::invert()
 {
 	// For lines, we swap the vertices. I don't think that a
 	// cond-line's control points need to be swapped, do they?
-	Vertex tmp = line->vertex (0);
-	line->setVertex (0, line->vertex (1));
-	line->setVertex (1, tmp);
-}
-
-void LDLine::invert()
-{
-	invertLine (this);
+	Vertex tmp = vertex (0);
+	setVertex (0, vertex (1));
+	setVertex (1, tmp);
 }
 
 void LDCondLine::invert()
 {
-	invertLine (this);
+	static_cast<LDLine*> (this)->invert();
 }
 
 void LDVertex::invert() {}
 
 // =============================================================================
 //
-LDLine* LDCondLine::demote()
+LDLinePtr LDCondLine::demote()
 {
-	LDLine* repl = new LDLine;
+	LDLinePtr replacement (spawn<LDLine>());
 
-	for (int i = 0; i < repl->numVertices(); ++i)
-		repl->setVertex (i, vertex (i));
+	for (int i = 0; i < replacement->numVertices(); ++i)
+		replacement->setVertex (i, vertex (i));
 
-	repl->setColor (color());
+	replacement->setColor (color());
 
-	replace (repl);
-	return repl;
+	replace (replacement);
+	return replacement;
 }
 
 // =============================================================================
 //
-LDObject* LDObject::fromID (int id)
+LDObjectPtr LDObject::fromID (int id)
 {
-	for (LDObject* obj : g_LDObjects)
-		if (obj->id() == id)
-			return obj;
+	for (LDObjectWeakPtr obj : g_LDObjects)
+	{
+		LDObjectPtr obj2 = obj.toStrongRef();
 
-	return null;
+		if (obj2->id() == id)
+			return obj;
+	}
+
+	return LDObjectPtr();
 }
 
 // =============================================================================
@@ -693,7 +691,8 @@ void LDOverlay::invert() {}
 // It takes care of history management so we can capture low-level changes, this
 // makes history stuff work out of the box.
 //
-template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& val)
+template<typename T>
+static void changeProperty (LDObjectPtr obj, T* ptr, const T& val)
 {
 	long idx;
 
@@ -720,7 +719,7 @@ template<class T> static void changeProperty (LDObject* obj, T* ptr, const T& va
 //
 void LDObject::setColor (const int& val)
 {
-	changeProperty (this, &m_color, val);
+	changeProperty (thisptr(), &m_color, val);
 }
 
 // =============================================================================
@@ -737,7 +736,7 @@ void LDObject::setVertex (int i, const Vertex& vert)
 	if (document() != null)
 		document()->vertexChanged (*m_coords[i], vert);
 
-	changeProperty (this, &m_coords[i], LDSharedVertex::getSharedVertex (vert));
+	changeProperty (thisptr(), &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
 
 // =============================================================================
@@ -786,14 +785,14 @@ LDSharedVertex* LDSharedVertex::getSharedVertex (const Vertex& a)
 
 // =============================================================================
 //
-void LDSharedVertex::addRef (LDObject* a)
+void LDSharedVertex::addRef (LDObjectPtr a)
 {
 	m_refs << a;
 }
 
 // =============================================================================
 //
-void LDSharedVertex::delRef (LDObject* a)
+void LDSharedVertex::delRef (LDObjectPtr a)
 {
 	m_refs.removeOne (a);
 
@@ -809,7 +808,7 @@ void LDSharedVertex::delRef (LDObject* a)
 void LDObject::select()
 {
 	assert (document() != null);
-	document()->addToSelection (this);
+	document()->addToSelection (thisptr());
 }
 
 // =============================================================================
@@ -817,7 +816,7 @@ void LDObject::select()
 void LDObject::deselect()
 {
 	assert (document() != null);
-	document()->removeFromSelection (this);
+	document()->removeFromSelection (thisptr());
 }
 
 // =============================================================================
@@ -842,45 +841,9 @@ String getLicenseText (int id)
 
 // =============================================================================
 //
-LDObject* LDObject::createCopy() const
+LDObjectPtr LDObject::createCopy() const
 {
-	/*
-	LDObject* copy = clone();
-	copy->setFile (null);
-	copy->chooseID();
-	copy->setSelected (false);
-	*/
-
-	/*
-	LDObject* copy = getDefault (getType());
-	copy->setColor (color());
-
-	if (hasMatrix())
-	{
-		LDMatrixObject* copyMo = static_cast<LDMatrixObject*> (copy);
-		const LDMatrixObject* mo = static_cast<const LDMatrixObject*> (this);
-		copyMo->setPosition (mo->getPosition());
-		copyMo->setTransform (mo->transform());
-	}
-	else
-	{
-		for (int i = 0; i < vertices(); ++i)
-			copy->setVertex (getVertex (i));
-	}
-
-	switch (getType())
-	{
-		case Subfile:
-		{
-			LDSubfile* copyRef = static_cast<LDSubfile*> (copy);
-			const LDSubfile* ref = static_cast<const LDSubfile*> (this);
-
-			copyRef->setFileInfo (ref->fileInfo());
-		}
-	}
-	*/
-
-	LDObject* copy = parseLine (asText());
+	LDObjectPtr copy = parseLine (asText());
 	return copy;
 }
 
@@ -889,7 +852,7 @@ LDObject* LDObject::createCopy() const
 void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 {
 	if (document() != null)
-		document()->removeKnownVerticesOf (this);
+		document()->removeKnownVerticesOf (thisptr());
 
 	m_fileInfo = a;
 
@@ -904,5 +867,5 @@ void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 	}
 
 	if (document() != null)
-		document()->addKnownVerticesOf (this);
+		document()->addKnownVerticesOf (thisptr());
 };

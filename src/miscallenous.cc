@@ -210,10 +210,10 @@ Vertex rotPoint (const LDObjectList& objs)
 			LDBoundingBox box;
 
 			// Calculate center vertex
-			for (LDObject* obj : objs)
+			for (LDObjectPtr obj : objs)
 			{
 				if (obj->hasMatrix())
-					box << dynamic_cast<LDMatrixObject*> (obj)->position();
+					box << obj.dynamicCast<LDMatrixObject>()->position();
 				else
 					box << obj;
 			}

@@ -87,31 +87,31 @@ class LDDocument : public QObject
 		LDDocument();
 		~LDDocument();
 
-		int addObject (LDObject* obj); // Adds an object to this file at the end of the file.
+		int addObject (LDObjectPtr obj); // Adds an object to this file at the end of the file.
 		void addObjects (const LDObjectList objs);
 		void clearSelection();
-		void forgetObject (LDObject* obj); // Deletes the given object from the object chain.
+		void forgetObject (LDObjectPtr obj); // Deletes the given object from the object chain.
 		String getDisplayName();
 		const LDObjectList& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
 		void initializeCachedData();
 		LDObjectList inlineContents (bool deep, bool renderinline);
-		void insertObj (int pos, LDObject* obj);
+		void insertObj (int pos, LDObjectPtr obj);
 		int getObjectCount() const;
-		LDObject* getObject (int pos) const;
+		LDObjectPtr getObject (int pos) const;
 		bool save (String path = ""); // Saves this file to disk.
-		void swapObjects (LDObject* one, LDObject* other);
+		void swapObjects (LDObjectPtr one, LDObjectPtr other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
-		void setObject (int idx, LDObject* obj);
+		void setObject (int idx, LDObjectPtr obj);
 		void addReference (LDDocumentPointer* ptr);
 		void removeReference (LDDocumentPointer* ptr);
 		QList<LDPolygon> inlinePolygons();
 		void vertexChanged (const Vertex& a, const Vertex& b);
-		void addKnownVerticesOf(LDObject* obj);
-		void removeKnownVerticesOf (LDObject* sub);
+		void addKnownVerticesOf(LDObjectPtr obj);
+		void removeKnownVerticesOf (LDObjectPtr sub);
 		QList<Vertex> inlineVertices();
 
-		inline LDDocument& operator<< (LDObject* obj)
+		inline LDDocument& operator<< (LDObjectPtr obj)
 		{
 			addObject (obj);
 			return *this;
@@ -152,8 +152,8 @@ class LDDocument : public QObject
 		static String shortenName (String a);
 
 	protected:
-		void addToSelection (LDObject* obj);
-		void removeFromSelection (LDObject* obj);
+		void addToSelection (LDObjectPtr obj);
+		void removeFromSelection (LDObjectPtr obj);
 
 		LDGLData* getGLData()
 		{
@@ -203,7 +203,7 @@ QFile* openLDrawFile (String relpath, bool subdirs, String* pathpointer = null);
 void closeAll();
 
 // Parses a string line containing an LDraw object and returns the object parsed.
-LDObject* parseLine (String line);
+LDObjectPtr parseLine (String line);
 
 // Retrieves the pointer to the given document by file name. Document is loaded
 // from file if necessary. Can return null if neither succeeds.

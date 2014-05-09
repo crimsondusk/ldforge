@@ -86,7 +86,7 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 	newFile();
 
-	const LDBFC::Statement BFCType =
+	const LDBFC::Statement bfctype =
 		ui.rb_bfc_ccw->isChecked() ? LDBFC::CertifyCCW :
 		ui.rb_bfc_cw->isChecked()  ? LDBFC::CertifyCW : LDBFC::NoCertify;
 
@@ -94,17 +94,20 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 		ui.rb_license_ca->isChecked()    ? g_CALicense :
 		ui.rb_license_nonca->isChecked() ? g_nonCALicense : "";
 
-	getCurrentDocument()->addObjects (
-	{
-		new LDComment (ui.le_title->text()),
-		new LDComment ("Name: <untitled>.dat"),
-		new LDComment (format ("Author: %1", ui.le_author->text())),
-		new LDComment (format ("!LDRAW_ORG Unofficial_Part")),
-		(license != "" ? new LDComment (license) : null),
-		new LDEmpty,
-		new LDBFC (BFCType),
-		new LDEmpty,
-	});
+	LDObjectList objs;
+	objs << spawn<LDComment> (ui.le_title->text());
+	objs << spawn<LDComment> ("Name: <untitled>.dat");
+	objs << spawn<LDComment> (format ("Author: %1", ui.le_author->text()));
+	objs << spawn<LDComment> (format ("!LDRAW_ORG Unofficial_Part"));
+
+	if (not license.isEmpty())
+		objs << spawn<LDComment> (license);
+
+	objs << spawn<LDEmpty>();
+	objs << spawn<LDBFC> (bfctype);
+	objs << spawn<LDEmpty>();
+
+	getCurrentDocument()->addObjects (objs);
 
 	doFullRefresh();
 }
@@ -122,7 +125,7 @@ DEFINE_ACTION (Open, CTRL (O))
 {
 	String name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 
-	if (name.length() == 0)
+	if (name.isEmpty())
 		return;
 
 	openMainFile (name);
@@ -200,56 +203,56 @@ DEFINE_ACTION (Exit, CTRL (Q))
 //
 DEFINE_ACTION (NewSubfile, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ESubfile, null);
+	AddObjectDialog::staticDialog (LDObject::ESubfile, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ELine, null);
+	AddObjectDialog::staticDialog (LDObject::ELine, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewTriangle, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ETriangle, null);
+	AddObjectDialog::staticDialog (LDObject::ETriangle, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewQuad, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EQuad, null);
+	AddObjectDialog::staticDialog (LDObject::EQuad, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewCLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ECondLine, null);
+	AddObjectDialog::staticDialog (LDObject::ECondLine, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewComment, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EComment, null);
+	AddObjectDialog::staticDialog (LDObject::EComment, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewBFC, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EBFC, null);
+	AddObjectDialog::staticDialog (LDObject::EBFC, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewVertex, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EVertex, null);
+	AddObjectDialog::staticDialog (LDObject::EVertex, LDObjectPtr());
 }
 
 // =============================================================================
@@ -259,7 +262,7 @@ DEFINE_ACTION (Edit, 0)
 	if (selection().size() != 1)
 		return;
 
-	LDObject* obj = selection() [0];
+	LDObjectPtr obj = selection() [0];
 	AddObjectDialog::staticDialog (obj->type(), obj);
 }
 
@@ -287,7 +290,7 @@ DEFINE_ACTION (AboutQt, 0)
 //
 DEFINE_ACTION (SelectAll, CTRL (A))
 {
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 		obj->select();
 
 	ui->objectList->selectAll();
@@ -304,7 +307,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 		if (obj->color() == colnum)
 			obj->select();
 
@@ -329,21 +332,21 @@ DEFINE_ACTION (SelectByType, 0)
 
 	if (type == LDObject::ESubfile)
 	{
-		refName = static_cast<LDSubfile*> (selection()[0])->fileInfo()->name();
+		refName = selection()[0].staticCast<LDSubfile>()->fileInfo()->name();
 
-		for (LDObject* obj : selection())
-			if (static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+		for (LDObjectPtr obj : selection())
+			if (obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
 				return;
 	}
 
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (obj->type() != type)
 			continue;
 
-		if (type == LDObject::ESubfile && static_cast<LDSubfile*> (obj)->fileInfo()->name() != refName)
+		if (type == LDObject::ESubfile && obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
 			continue;
 
 		obj->select();
@@ -402,7 +405,7 @@ DEFINE_ACTION (InsertFrom, 0)
 
 	getCurrentDocument()->clearSelection();
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
@@ -435,7 +438,7 @@ DEFINE_ACTION (ExportTo, 0)
 		return;
 	}
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		String contents = obj->asText();
 		QByteArray data = contents.toUtf8();
@@ -469,7 +472,7 @@ DEFINE_ACTION (InsertRaw, 0)
 
 	for (String line : String (te_edit->toPlainText()).split ("\n"))
 	{
-		LDObject* obj = parseLine (line);
+		LDObjectPtr obj = parseLine (line);
 
 		getCurrentDocument()->insertObj (idx, obj);
 		obj->select();
@@ -519,7 +522,7 @@ DEFINE_ACTION (Axes, 0)
 //
 DEFINE_ACTION (VisibilityToggle, 0)
 {
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 		obj->setHidden (not obj->isHidden());
 
 	refresh();
@@ -529,7 +532,7 @@ DEFINE_ACTION (VisibilityToggle, 0)
 //
 DEFINE_ACTION (VisibilityHide, 0)
 {
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 		obj->setHidden (true);
 
 	refresh();
@@ -539,7 +542,7 @@ DEFINE_ACTION (VisibilityHide, 0)
 //
 DEFINE_ACTION (VisibilityReveal, 0)
 {
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	obj->setHidden (false);
 	refresh();
 }
@@ -688,7 +691,7 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 {
 	bool ok;
 	int defval = 0;
-	LDObject* obj;
+	LDObjectPtr obj;
 
 	if (selection().size() == 1)
 		defval = selection()[0]->lineNumber();
@@ -723,7 +726,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	String			subtitle;
 
 	// Comment containing the title of the parent document
-	LDComment*		titleobj = dynamic_cast<LDComment*> (getCurrentDocument()->getObject (0));
+	LDCommentPtr	titleobj = getCurrentDocument()->getObject (0).dynamicCast<LDComment>();
 
 	// License text for the subfile
 	String			license = getLicenseText (cfg::defaultLicense);
@@ -744,7 +747,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 		subtitle = "~subfile";
 
 	// Remove duplicate tildes
-	while (subtitle[0] == '~' && subtitle[1] == '~')
+	while (subtitle.startsWith ("~~"))
 		subtitle.remove (0, 1);
 
 	// If this the parent document isn't already in s/, we need to stuff it into
@@ -763,11 +766,14 @@ DEFINE_ACTION (SubfileSelection, 0)
 			subdirname = desiredPath;
 			QDir().mkpath (subdirname);
 		}
+		else
+			return;
 	}
 
 	// Determine the body of the name of the subfile
 	if (not parentpath.isEmpty())
 	{
+		// Chop existing '.dat' suffix
 		if (parentpath.endsWith (".dat"))
 			parentpath.chop (4);
 
@@ -782,6 +788,8 @@ DEFINE_ACTION (SubfileSelection, 0)
 		QFile f;
 		String testfname;
 
+		// Now find the appropriate filename. Increase the number of the subfile
+		// until we find a name which isn't already taken.
 		do
 		{
 			digits.setNum (subidx++);
@@ -796,14 +804,12 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 	// Determine the BFC winding type used in the main document - it is to
 	// be carried over to the subfile.
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		LDBFC* bfc = dynamic_cast<LDBFC*> (obj);
-
-		if (not bfc)
+		if (obj->type() != LDObject::EBFC)
 			continue;
 
-		LDBFC::Statement a = bfc->statement();
+		LDBFC::Statement a = obj.staticCast<LDBFC>()->statement();
 
 		if (a == LDBFC::CertifyCCW || a == LDBFC::CertifyCW || a == LDBFC::NoCertify)
 		{
@@ -813,7 +819,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	}
 
 	// Get the body of the document in LDraw code
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 		code << obj->asText();
 
 	// Create the new subfile document
@@ -821,38 +827,41 @@ DEFINE_ACTION (SubfileSelection, 0)
 	doc->setImplicit (false);
 	doc->setFullPath (fullsubname);
 	doc->setName (LDDocument::shortenName (fullsubname));
-	doc->addObjects (
-	{
-		new LDComment (subtitle),
-		new LDComment ("Name: "),
-		new LDComment (format ("Author: %1 [%2]", cfg::defaultName, cfg::defaultUser)),
-		new LDComment (format ("!LDRAW_ORG Unofficial_Subpart")),
-		(license != "" ? new LDComment (license) : null),
-		new LDEmpty,
-		new LDBFC (bfctype),
-		new LDEmpty,
-	});
+
+	LDObjectList objs;
+	objs << spawn<LDComment> (subtitle);
+	objs << spawn<LDComment> ("Name: "); // This gets filled in when the subfile is saved
+	objs << spawn<LDComment> (format ("Author: %1 [%2]", cfg::defaultName, cfg::defaultUser));
+	objs << spawn<LDComment> ("!LDRAW_ORG Unofficial_Subpart");
+
+	if (not license.isEmpty())
+		objs << spawn<LDComment> (license);
+
+	objs << spawn<LDEmpty>();
+	objs << spawn<LDBFC> (bfctype);
+	objs << spawn<LDEmpty>();
+
+	doc->addObjects (objs);
 
 	// Add the actual subfile code to the new document
 	for (String line : code)
 	{
-		LDObject* obj = parseLine (line);
+		LDObjectPtr obj = parseLine (line);
 		doc->addObject (obj);
 	}
 
 	// Try save it
 	if (save (doc, true))
 	{
-		// Remove the selection now
-		for (LDObject* obj : selection())
+		// Save was successful. Delete the original selection now from the
+		// main document.
+		for (LDObjectPtr obj : selection())
 			obj->destroy();
 
-		// Compile all objects in the new subfile
-		R()->compiler()->compileDocument (doc);
 		g_loadedFiles << doc;
 
 		// Add a reference to the new subfile to where the selection was
-		LDSubfile* ref = new LDSubfile();
+		LDSubfilePtr ref (spawn<LDSubfile>());
 		ref->setColor (maincolor);
 		ref->setFileInfo (doc);
 		ref->setPosition (g_origin);

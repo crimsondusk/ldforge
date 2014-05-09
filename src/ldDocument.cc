@@ -146,7 +146,7 @@ LDDocument::~LDDocument()
 	m_history->setIgnoring (true);
 
 	// Clear everything from the model
-	for (LDObject* obj : objects())
+	for (LDObjectPtr obj : objects())
 		obj->destroy();
 
 	delete history();
@@ -357,7 +357,7 @@ void LDFileLoader::work (int i)
 	// User wishes to abort, so stop here now.
 	if (isAborted())
 	{
-		for (LDObject* obj : m_objects)
+		for (LDObjectPtr obj : m_objects)
 			obj->destroy();
 
 		m_objects.clear();
@@ -378,12 +378,13 @@ void LDFileLoader::work (int i)
 		while (line.endsWith ("\n") || line.endsWith ("\r"))
 			line.chop (1);
 
-		LDObject* obj = parseLine (line);
+		LDObjectPtr obj = parseLine (line);
+		fprint (stderr, "got obj: %1\n", obj.data());
 
 		// Check for parse errors and warn about tthem
 		if (obj->type() == LDObject::EError)
 		{
-			print ("Couldn't parse line #%1: %2", progress() + 1, static_cast<LDError*> (obj)->reason());
+			print ("Couldn't parse line #%1: %2", progress() + 1, obj.staticCast<LDError>()->reason());
 
 			if (warnings() != null)
 				(*warnings())++;
@@ -735,11 +736,11 @@ bool LDDocument::save (String savepath)
 
 	// If the second object in the list holds the file name, update that now.
 	// Only do this if the file is explicitly open.
-	LDObject* nameObject = getObject (1);
+	LDObjectPtr nameObject = getObject (1);
 
 	if (not isImplicit() && nameObject != null && nameObject->type() == LDObject::EComment)
 	{
-		LDComment* nameComment = static_cast<LDComment*> (nameObject);
+		LDCommentPtr nameComment = nameObject.staticCast<LDComment>();
 
 		if (nameComment->text().left (6) == "Name: ")
 		{
@@ -751,7 +752,7 @@ bool LDDocument::save (String savepath)
 
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
-	for (LDObject* obj : objects())
+	for (LDObjectPtr obj : objects())
 		f.write ((obj->asText() + "\r\n").toUtf8());
 
 	// File is saved, now clean up.
@@ -828,7 +829,7 @@ static Vertex parseVertex (QStringList& s, const int n)
 // code and returns the object parsed from it. parseLine never returns null,
 // the object will be LDError if it could not be parsed properly.
 // =============================================================================
-LDObject* parseLine (String line)
+LDObjectPtr parseLine (String line)
 {
 	try
 	{
@@ -837,7 +838,7 @@ LDObject* parseLine (String line)
 		if (tokens.size() <= 0)
 		{
 			// Line was empty, or only consisted of whitespace
-			return new LDEmpty;
+			return spawn<LDEmpty>();
 		}
 
 		if (tokens[0].length() != 1 || not tokens[0][0].isDigit())
@@ -858,17 +859,17 @@ LDObject* parseLine (String line)
 				{
 					for (int i = 0; i < LDBFC::NumStatements; ++i)
 						if (commentTextSimplified == format ("BFC %1", LDBFC::k_statementStrings [i]))
-							return new LDBFC ((LDBFC::Statement) i);
+							return spawn<LDBFC> ((LDBFC::Statement) i);
 
 					// MLCAD is notorious for stuffing these statements in parts it
 					// creates. The above block only handles valid statements, so we
 					// need to handle MLCAD-style invertnext, clip and noclip separately.
 					if (commentTextSimplified == "BFC CERTIFY INVERTNEXT")
-						return new LDBFC (LDBFC::InvertNext);
+						return spawn<LDBFC> (LDBFC::InvertNext);
 					elif (commentTextSimplified == "BFC CERTIFY CLIP")
-						return new LDBFC (LDBFC::Clip);
+						return spawn<LDBFC> (LDBFC::Clip);
 					elif (commentTextSimplified == "BFC CERTIFY NOCLIP")
-						return new LDBFC (LDBFC::NoClip);
+						return spawn<LDBFC> (LDBFC::NoClip);
 				}
 
 				if (tokens.size() > 2 && tokens[1] == "!LDFORGE")
@@ -880,7 +881,7 @@ LDObject* parseLine (String line)
 						checkTokenCount (line, tokens, 7);
 						checkTokenNumbers (line, tokens, 3, 6);
 
-						LDVertex* obj = new LDVertex;
+						LDVertexPtr obj = spawn<LDVertex>();
 						obj->setColor (tokens[3].toLong());
 						obj->pos.apply ([&](Axis ax, double& value) { value = tokens[4 + ax].toDouble(); });
 						return obj;
@@ -890,7 +891,7 @@ LDObject* parseLine (String line)
 						checkTokenCount (line, tokens, 9);
 						checkTokenNumbers (line, tokens, 5, 8);
 
-						LDOverlay* obj = new LDOverlay;
+						LDOverlayPtr obj = spawn<LDOverlay>();
 						obj->setFileName (tokens[3]);
 						obj->setCamera (tokens[4].toLong());
 						obj->setX (tokens[5].toLong());
@@ -902,7 +903,7 @@ LDObject* parseLine (String line)
 				}
 
 				// Just a regular comment:
-				LDComment* obj = new LDComment;
+				LDCommentPtr obj = spawn<LDComment>();
 				obj->setText (commentText);
 				return obj;
 			}
@@ -924,12 +925,12 @@ LDObject* parseLine (String line)
 				// here because the error object needs the document reference.
 				if (not load)
 				{
-					LDError* obj = new LDError (line, format ("Could not open %1", tokens[14]));
+					LDErrorPtr obj = spawn<LDError> (line, format ("Could not open %1", tokens[14]));
 					obj->setFileReferenced (tokens[14]);
 					return obj;
 				}
 
-				LDSubfile* obj = new LDSubfile;
+				LDSubfilePtr obj = spawn<LDSubfile>();
 				obj->setColor (tokens[1].toLong());
 				obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
 
@@ -949,7 +950,7 @@ LDObject* parseLine (String line)
 				checkTokenNumbers (line, tokens, 1, 7);
 
 				// Line
-				LDLine* obj = new LDLine;
+				LDLinePtr obj (spawn<LDLine>());
 				obj->setColor (tokens[1].toLong());
 
 				for (int i = 0; i < 2; ++i)
@@ -964,7 +965,7 @@ LDObject* parseLine (String line)
 				checkTokenNumbers (line, tokens, 1, 10);
 
 				// Triangle
-				LDTriangle* obj = new LDTriangle;
+				LDTrianglePtr obj (spawn<LDTriangle>());
 				obj->setColor (tokens[1].toLong());
 
 				for (int i = 0; i < 3; ++i)
@@ -980,12 +981,12 @@ LDObject* parseLine (String line)
 				checkTokenNumbers (line, tokens, 1, 13);
 
 				// Quadrilateral / Conditional line
-				LDObject* obj;
+				LDObjectPtr obj;
 
 				if (num == 4)
-					obj = new LDQuad;
+					obj = spawn<LDQuad>();
 				else
-					obj = new LDCondLine;
+					obj = spawn<LDCondLine>();
 
 				obj->setColor (tokens[1].toLong());
 
@@ -1002,7 +1003,7 @@ LDObject* parseLine (String line)
 	catch (LDParseError& e)
 	{
 		// Strange line we couldn't parse
-		return new LDError (e.line(), e.error());
+		return spawn<LDError> (e.line(), e.error());
 	}
 }
 
@@ -1031,29 +1032,29 @@ void reloadAllSubfiles()
 	g_loadedFiles << getCurrentDocument();
 
 	// Go through all objects in the current file and reload the subfiles
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (obj->type() == LDObject::ESubfile)
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDDocument* fileInfo = getDocument (ref->fileInfo()->name());
 
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
 			else
-				ref->replace (new LDError (ref->asText(), format ("Could not open %1", ref->fileInfo()->name())));
+				ref->replace (spawn<LDError> (ref->asText(), format ("Could not open %1", ref->fileInfo()->name())));
 		}
 
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
 		if (obj->type() == LDObject::EError)
-			obj->replace (parseLine (static_cast<LDError*> (obj)->contents()));
+			obj->replace (parseLine (obj.staticCast<LDError>()->contents()));
 	}
 }
 
 // =============================================================================
 //
-int LDDocument::addObject (LDObject* obj)
+int LDDocument::addObject (LDObjectPtr obj)
 {
 	history()->add (new AddHistory (objects().size(), obj));
 	m_objects << obj;
@@ -1073,14 +1074,14 @@ int LDDocument::addObject (LDObject* obj)
 //
 void LDDocument::addObjects (const LDObjectList objs)
 {
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 		if (obj)
 			addObject (obj);
 }
 
 // =============================================================================
 //
-void LDDocument::insertObj (int pos, LDObject* obj)
+void LDDocument::insertObj (int pos, LDObjectPtr obj)
 {
 	history()->add (new AddHistory (pos, obj));
 	m_objects.insert (pos, obj);
@@ -1096,14 +1097,14 @@ void LDDocument::insertObj (int pos, LDObject* obj)
 
 // =============================================================================
 //
-void LDDocument::addKnownVerticesOf (LDObject* obj)
+void LDDocument::addKnownVerticesOf (LDObjectPtr obj)
 {
 	if (isImplicit())
 		return;
 
 	if (obj->type() == LDObject::ESubfile)
 	{
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
 		for (Vertex vrt : ref->fileInfo()->inlineVertices())
 		{
@@ -1120,14 +1121,14 @@ void LDDocument::addKnownVerticesOf (LDObject* obj)
 
 // =============================================================================
 //
-void LDDocument::removeKnownVerticesOf (LDObject* obj)
+void LDDocument::removeKnownVerticesOf (LDObjectPtr obj)
 {
 	if (isImplicit())
 		return;
 
 	if (obj->type() == LDObject::ESubfile)
 	{
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
 		for (Vertex vrt : ref->fileInfo()->inlineVertices())
 		{
@@ -1144,7 +1145,7 @@ void LDDocument::removeKnownVerticesOf (LDObject* obj)
 
 // =============================================================================
 //
-void LDDocument::forgetObject (LDObject* obj)
+void LDDocument::forgetObject (LDObjectPtr obj)
 {
 	int idx = obj->lineNumber();
 	obj->deselect();
@@ -1211,7 +1212,7 @@ bool safeToCloseAll()
 
 // =============================================================================
 //
-void LDDocument::setObject (int idx, LDObject* obj)
+void LDDocument::setObject (int idx, LDObjectPtr obj)
 {
 	assert (idx >= 0 && idx < m_objects.size());
 
@@ -1249,10 +1250,10 @@ void LDDocument::closeUnused()
 
 // =============================================================================
 //
-LDObject* LDDocument::getObject (int pos) const
+LDObjectPtr LDDocument::getObject (int pos) const
 {
 	if (m_objects.size() <= pos)
-		return null;
+		return LDObjectPtr();
 
 	return m_objects[pos];
 }
@@ -1294,7 +1295,7 @@ void LDDocument::initializeCachedData()
 	LDObjectList objs = inlineContents (true, true);
 	m_storedVertices.clear();
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		assert (obj->type() != LDObject::ESubfile);
 		LDPolygon* data = obj->getPolygon();
@@ -1343,7 +1344,7 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 
 	LDObjectList objs, objcache;
 
-	for (LDObject* obj : objects())
+	for (LDObjectPtr obj : objects())
 	{
 		// Skip those without scemantic meaning
 		if (not obj->isScemantic())
@@ -1353,10 +1354,10 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 		// just add it into the objects normally. Yay, recursion!
 		if (deep == true && obj->type() == LDObject::ESubfile)
 		{
-			LDSubfile* ref = static_cast<LDSubfile*> (obj);
+			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDObjectList otherobjs = ref->inlineContents (deep, renderinline);
 
-			for (LDObject* otherobj : otherobjs)
+			for (LDObjectPtr otherobj : otherobjs)
 				objs << otherobj;
 		}
 		else
@@ -1448,7 +1449,7 @@ void loadLogoedStuds()
 
 // =============================================================================
 //
-void LDDocument::addToSelection (LDObject* obj) // [protected]
+void LDDocument::addToSelection (LDObjectPtr obj) // [protected]
 {
 	if (obj->isSelected())
 		return;
@@ -1461,7 +1462,7 @@ void LDDocument::addToSelection (LDObject* obj) // [protected]
 
 // =============================================================================
 //
-void LDDocument::removeFromSelection (LDObject* obj) // [protected]
+void LDDocument::removeFromSelection (LDObjectPtr obj) // [protected]
 {
 	if (not obj->isSelected())
 		return;
@@ -1476,7 +1477,7 @@ void LDDocument::removeFromSelection (LDObject* obj) // [protected]
 //
 void LDDocument::clearSelection()
 {
-	for (LDObject* obj : m_sel)
+	for (LDObjectPtr obj : m_sel)
 		removeFromSelection (obj);
 
 	assert (m_sel.isEmpty());
@@ -1491,7 +1492,7 @@ const LDObjectList& LDDocument::getSelection() const
 
 // =============================================================================
 //
-void LDDocument::swapObjects (LDObject* one, LDObject* other)
+void LDDocument::swapObjects (LDObjectPtr one, LDObjectPtr other)
 {
 	int a = m_objects.indexOf (one);
 	int b = m_objects.indexOf (other);

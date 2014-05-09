@@ -406,7 +406,7 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 				Vertex v0 (x0, 0.0f, z0),
 				  v1 (x1, 0.0f, z1);
 
-				LDLine* line = new LDLine;
+				LDLinePtr line (spawn<LDLine>());
 				line->setVertex (0, v0);
 				line->setVertex (1, v1);
 				line->setColor (edgecolor);
@@ -456,12 +456,8 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 					   v2 (x2, y2, z2),
 					   v3 (x3, y3, z3);
 
-				LDQuad* quad = new LDQuad;
+				LDQuadPtr quad (spawn<LDQuad> (v0, v1, v2, v3));
 				quad->setColor (maincolor);
-				quad->setVertex (0, v0);
-				quad->setVertex (1, v1);
-				quad->setVertex (2, v2);
-				quad->setVertex (3, v3);
 
 				if (type == Cylinder)
 					quad->invert();
@@ -491,7 +487,7 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 				// Disc negatives need to go the other way around, otherwise
 				// they'll end up upside-down.
-				LDTriangle* seg = new LDTriangle;
+				LDTrianglePtr seg (spawn<LDTriangle>());
 				seg->setColor (maincolor);
 				seg->setVertex (type == Disc ? 0 : 2, v0);
 				seg->setVertex (1, v1);
@@ -514,7 +510,9 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 		  v3 (radialPoint (i - 1, divs, cos), 0.0f, radialPoint (i - 1, divs, sin));
 
 		if (type == Cylinder)
+		{
 			v1 = Vertex (v0[X], 1.0f, v0[Z]);
+		}
 		elif (type == Cone)
 		{
 			v1 = Vertex (v0[X] * (num + 1), 0.0f, v0[Z] * (num + 1));
@@ -523,7 +521,7 @@ LDObjectList makePrimitive (PrimitiveType type, int segs, int divs, int num)
 			v0.setZ (v0.z() * num);
 		}
 
-		LDCondLine* line = new LDCondLine;
+		LDCondLinePtr line = (spawn<LDCondLine>());
 		line->setColor (edgecolor);
 		line->setVertex (0, v0);
 		line->setVertex (1, v1);
@@ -619,18 +617,18 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 		author = format ("%1 [%2]", cfg::defaultName, cfg::defaultUser);
 	}
 
-	f->addObjects (
-	{
-		new LDComment (descr),
-		new LDComment (format ("Name: %1", name)),
-		new LDComment (format ("Author: %1", author)),
-		new LDComment (format ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : "")),
-		new LDComment (license),
-		new LDEmpty,
-		new LDBFC (LDBFC::CertifyCCW),
-		new LDEmpty,
-	});
+	LDObjectList objs;
 
+	objs << spawn<LDComment> (descr)
+		 << spawn<LDComment> (format ("Name: %1", name))
+		 << spawn<LDComment> (format ("Author: %1", author))
+		 << spawn<LDComment> (format ("!LDRAW_ORG Unofficial_%1Primitive", divs == g_hires ? "48_" : ""))
+		 << spawn<LDComment> (license)
+		 << spawn<LDEmpty>()
+		 << spawn<LDBFC> (LDBFC::CertifyCCW)
+		 << spawn<LDEmpty>();
+
+	f->addObjects (objs);
 	f->addObjects (makePrimitive (type, segs, divs, num));
 	return f;
 }

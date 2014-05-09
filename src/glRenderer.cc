@@ -126,7 +126,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_position3D = g_origin;
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
-	m_objectAtCursor = null;
 	m_isCameraMoving = false;
 	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
 
@@ -1225,7 +1224,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 		LDObjectList oldsel = selection();
 		getCurrentDocument()->clearSelection();
 
-		for (LDObject* obj : oldsel)
+		for (LDObjectPtr obj : oldsel)
 			compileObject (obj);
 	}
 
@@ -1273,7 +1272,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	// Read pixels from the color buffer.
 	glReadPixels (x0, m_height - y1, areawidth, areaheight, GL_RGBA, GL_UNSIGNED_BYTE, pixeldata);
 
-	LDObject* removedObj = null;
+	LDObjectPtr removedObj;
 	QList<qint32> indices;
 
 	// Go through each pixel read and add them to the selection.
@@ -1294,7 +1293,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 
 	for (qint32 idx : indices)
 	{
-		LDObject* obj = LDObject::fromID (idx);
+		LDObjectPtr obj = LDObject::fromID (idx);
 		assert (obj != null);
 
 		// If this is an additive single pick and the object is currently selected,
@@ -1318,7 +1317,7 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	g_win->updateSelection();
 
 	// Recompile the objects now to update their color
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 		compileObject (obj);
 
 	if (removedObj)
@@ -1364,7 +1363,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 			LDObjectList priorsel = selection();
 			getCurrentDocument()->clearSelection();
 
-			for (LDObject* obj : priorsel)
+			for (LDObjectPtr obj : priorsel)
 				compileObject (obj);
 
 			g_win->updateSelection();
@@ -1442,7 +1441,7 @@ void GLRenderer::endDraw (bool accept)
 		{
 			if (m_rectdraw)
 			{
-				LDQuad* quad = new LDQuad;
+				LDQuadPtr quad (spawn<LDQuad>());
 
 				// Copy the vertices from m_rectverts
 				updateRectVerts();
@@ -1460,7 +1459,7 @@ void GLRenderer::endDraw (bool accept)
 					case 1:
 					{
 						// 1 vertex - add a vertex object
-						LDVertex* obj = new LDVertex;
+						LDVertexPtr obj = spawn<LDVertex>();
 						obj->pos = verts[0];
 						obj->setColor (maincolor);
 						objs << obj;
@@ -1469,7 +1468,7 @@ void GLRenderer::endDraw (bool accept)
 					case 2:
 					{
 						// 2 verts - make a line
-						LDLine* obj = new LDLine (verts[0], verts[1]);
+						LDLinePtr obj = spawn<LDLine> (verts[0], verts[1]);
 						obj->setColor (edgecolor);
 						objs << obj;
 					} break;
@@ -1477,9 +1476,9 @@ void GLRenderer::endDraw (bool accept)
 					case 3:
 					case 4:
 					{
-						LDObject* obj = (verts.size() == 3) ?
-							  static_cast<LDObject*> (new LDTriangle) :
-							  static_cast<LDObject*> (new LDQuad);
+						LDObjectPtr obj = (verts.size() == 3) ?
+							  static_cast<LDObjectPtr> (spawn<LDTriangle>()) :
+							  static_cast<LDObjectPtr> (spawn<LDQuad>());
 
 						obj->setColor (maincolor);
 
@@ -1531,7 +1530,7 @@ void GLRenderer::endDraw (bool accept)
 						refFile->setImplicit (false);
 					}
 
-					LDSubfile* ref = new LDSubfile;
+					LDSubfilePtr ref = spawn<LDSubfile>();
 					ref->setFileInfo (refFile);
 					ref->setTransform (getCircleDrawMatrix (cmp.scale));
 					ref->setPosition (m_drawedVerts[0]);
@@ -1571,20 +1570,20 @@ void GLRenderer::endDraw (bool accept)
 					v3.setCoordinate (relX, v3[relX] + c1[i].x1());
 					v3.setCoordinate (relY, v3[relY] + c1[i].y1());
 
-					LDQuad* q = new LDQuad (v0, v1, v2, v3);
-					q->setColor (maincolor);
+					LDQuadPtr quad (spawn<LDQuad> (v0, v1, v2, v3));
+					quad->setColor (maincolor);
 
 					// Ensure the quads always are BFC-front towards the camera
 					if (camera() % 3 <= 0)
-						q->invert();
+						quad->invert();
 
-					objs << q;
+					objs << quad;
 				}
 			}
 
 			if (circleOrDisc)
 			{
-				LDSubfile* ref = new LDSubfile;
+				LDSubfilePtr ref = spawn<LDSubfile>();
 				ref->setFileInfo (refFile);
 				ref->setTransform (transform);
 				ref->setPosition (m_drawedVerts[0]);
@@ -1603,7 +1602,7 @@ void GLRenderer::endDraw (bool accept)
 
 	if (objs.size() > 0)
 	{
-		for (LDObject* obj : objs)
+		for (LDObjectPtr obj : objs)
 		{
 			document()->addObject (obj);
 			compileObject (obj);
@@ -1649,7 +1648,7 @@ Axis GLRenderer::getRelativeZ() const
 
 // =============================================================================
 //
-static QList<Vertex> getVertices (LDObject* obj)
+static QList<Vertex> getVertices (LDObjectPtr obj)
 {
 	QList<Vertex> verts;
 
@@ -1660,10 +1659,10 @@ static QList<Vertex> getVertices (LDObject* obj)
 	}
 	elif (obj->type() == LDObject::ESubfile)
 	{
-		LDSubfile* ref = static_cast<LDSubfile*> (obj);
+		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 		LDObjectList objs = ref->inlineContents (true, false);
 
-		for (LDObject* obj : objs)
+		for (LDObjectPtr obj : objs)
 		{
 			verts << getVertices (obj);
 			obj->destroy();
@@ -1675,14 +1674,14 @@ static QList<Vertex> getVertices (LDObject* obj)
 
 // =============================================================================
 //
-void GLRenderer::compileObject (LDObject* obj)
+void GLRenderer::compileObject (LDObjectPtr obj)
 {
 	compiler()->stageForCompilation (obj);
 }
 
 // =============================================================================
 //
-void GLRenderer::forgetObject (LDObject* obj)
+void GLRenderer::forgetObject (LDObjectPtr obj)
 {
 	compiler()->dropObject (obj);
 }
@@ -2003,7 +2002,7 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 	if (selection().isEmpty())
 		return;
 
-	LDObject* obj = selection().first();
+	LDObjectPtr obj = selection().first();
 	AddObjectDialog::staticDialog (obj->type(), obj);
 	g_win->endAction();
 	ev->accept();
@@ -2011,20 +2010,17 @@ void GLRenderer::mouseDoubleClickEvent (QMouseEvent* ev)
 
 // =============================================================================
 //
-LDOverlay* GLRenderer::findOverlayObject (ECamera cam)
+LDOverlayPtr GLRenderer::findOverlayObject (ECamera cam)
 {
-	LDOverlay* ovlobj = null;
-
-	for (LDObject* obj : document()->objects())
+	for (LDObjectPtr obj : document()->objects())
 	{
-		if (obj->type() == LDObject::EOverlay && static_cast<LDOverlay*> (obj)->camera() == cam)
-		{
-			ovlobj = static_cast<LDOverlay*> (obj);
-			break;
-		}
+		LDOverlayPtr ovlobj = obj.dynamicCast<LDOverlay>();
+
+		if (ovlobj != null && obj.staticCast<LDOverlay>()->camera() == cam)
+			return ovlobj;
 	}
 
-	return ovlobj;
+	return LDOverlayPtr();
 }
 
 // =============================================================================
@@ -2039,16 +2035,20 @@ void GLRenderer::initOverlaysFromObjects()
 			continue;
 
 		LDGLOverlay& meta = currentDocumentData().overlays[cam];
-		LDOverlay* ovlobj = findOverlayObject (cam);
+		LDOverlayPtr ovlobj = findOverlayObject (cam);
 
-		if (not ovlobj && meta.img)
+		if (ovlobj == null && meta.img != null)
 		{
 			delete meta.img;
 			meta.img = null;
 		}
-		elif (ovlobj && (meta.img == null || meta.fname != ovlobj->fileName()) && meta.invalid == false)
+		elif (ovlobj != null &&
+			(meta.img == null || meta.fname != ovlobj->fileName()) &&
+			not meta.invalid)
+		{
 			setupOverlay (cam, ovlobj->fileName(), ovlobj->x(),
 				ovlobj->y(), ovlobj->width(), ovlobj->height());
+		}
 	}
 }
 
@@ -2062,12 +2062,12 @@ void GLRenderer::updateOverlayObjects()
 			continue;
 
 		LDGLOverlay& meta = currentDocumentData().overlays[cam];
-		LDOverlay* ovlobj = findOverlayObject (cam);
+		LDOverlayPtr ovlobj = findOverlayObject (cam);
 
 		if (meta.img == null && ovlobj != null)
 		{
 			// If this is the last overlay image, we need to remove the empty space after it as well.
-			LDObject* nextobj = ovlobj->next();
+			LDObjectPtr nextobj = ovlobj->next();
 
 			if (nextobj && nextobj->type() == LDObject::EEmpty)
 				nextobj->destroy();
@@ -2080,7 +2080,7 @@ void GLRenderer::updateOverlayObjects()
 		{
 			// Inverse case: image is there but the overlay object is
 			// not, thus create the object.
-			ovlobj = new LDOverlay;
+			ovlobj = spawn<LDOverlay>();
 
 			// Find a suitable position to place this object. We want to place
 			// this into the header, which is everything up to the first scemantic
@@ -2093,7 +2093,7 @@ void GLRenderer::updateOverlayObjects()
 
 			for (i = 0; i < document()->getObjectCount(); ++i)
 			{
-				LDObject* obj = document()->getObject (i);
+				LDObjectPtr obj = document()->getObject (i);
 
 				if (obj->isScemantic())
 				{
@@ -2112,7 +2112,7 @@ void GLRenderer::updateOverlayObjects()
 				document()->insertObj (i, ovlobj);
 
 				if (found)
-					document()->insertObj (i + 1, new LDEmpty);
+					document()->insertObj (i + 1, spawn<LDEmpty>());
 			}
 		}
 
@@ -2138,8 +2138,8 @@ void GLRenderer::highlightCursorObject()
 	if (not cfg::highlightObjectBelowCursor && objectAtCursor() == null)
 		return;
 
-	LDObject* newObject = null;
-	LDObject* oldObject = objectAtCursor();
+	LDObjectWeakPtr newObject;
+	LDObjectWeakPtr oldObject = objectAtCursor();
 	qint32 newIndex;
 
 	if (isCameraMoving() || not cfg::highlightObjectBelowCursor)
@@ -2157,7 +2157,7 @@ void GLRenderer::highlightCursorObject()
 		newIndex = pixel[0] * 0x10000 | pixel[1] * 0x100 | pixel[2];
 	}
 
-	if (newIndex != (oldObject != null ? oldObject->id() : 0))
+	if (newIndex != (oldObject != null ? oldObject.toStrongRef()->id() : 0))
 	{
 		if (newIndex != 0)
 			newObject = LDObject::fromID (newIndex);

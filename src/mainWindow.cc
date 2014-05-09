@@ -264,7 +264,7 @@ void MainWindow::updateTitle()
 			getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
 		{
 			// Append title
-			LDComment* comm = static_cast<LDComment*> (getCurrentDocument()->getObject (0));
+			LDCommentPtr comm = getCurrentDocument()->getObject (0).staticCast<LDComment>();
 			title += format (": %1", comm->text());
 		}
 
@@ -294,7 +294,7 @@ int MainWindow::deleteSelection()
 	LDObjectList selCopy = selection();
 
 	// Delete the objects that were being selected
-	for (LDObject* obj : selCopy)
+	for (LDObjectPtr obj : selCopy)
 		obj->destroy();
 
 	refresh();
@@ -318,7 +318,7 @@ void MainWindow::buildObjList()
 
 	ui->objectList->clear();
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		String descr;
 
@@ -326,7 +326,7 @@ void MainWindow::buildObjList()
 		{
 			case LDObject::EComment:
 			{
-				descr = static_cast<LDComment*> (obj)->text();
+				descr = obj.staticCast<LDComment>()->text();
 
 				// Remove leading whitespace
 				while (descr[0] == ' ')
@@ -361,13 +361,13 @@ void MainWindow::buildObjList()
 
 			case LDObject::EVertex:
 			{
-				descr = static_cast<LDVertex*> (obj)->pos.toString (true);
+				descr = obj.staticCast<LDVertex>()->pos.toString (true);
 				break;
 			}
 
 			case LDObject::ESubfile:
 			{
-				LDSubfile* ref = static_cast<LDSubfile*> (obj);
+				LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
 				descr = format ("%1 %2, (", ref->fileInfo()->getDisplayName(), ref->position().toString (true));
 
@@ -380,13 +380,13 @@ void MainWindow::buildObjList()
 
 			case LDObject::EBFC:
 			{
-				descr = LDBFC::k_statementStrings[static_cast<LDBFC*> (obj)->statement()];
+				descr = LDBFC::k_statementStrings[obj.staticCast<LDBFC>()->statement()];
 				break;
 			}
 
 			case LDObject::EOverlay:
 			{
-				LDOverlay* ovl = static_cast<LDOverlay*> (obj);
+				LDOverlayPtr ovl = obj.staticCast<LDOverlay>();
 				descr = format ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
 					basename (ovl->fileName()), ovl->x(), ovl->y(),
 					ovl->width(), ovl->height());
@@ -444,7 +444,7 @@ void MainWindow::scrollToSelection()
 	if (selection().isEmpty())
 		return;
 
-	LDObject* obj = selection().last();
+	LDObjectPtr obj = selection().last();
 	ui->objectList->scrollToItem (obj->qObjListEntry);
 }
 
@@ -461,7 +461,7 @@ void MainWindow::slot_selectionChanged()
 	getCurrentDocument()->clearSelection();
 	const QList<QListWidgetItem*> items = ui->objectList->selectedItems();
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		for (QListWidgetItem* item : items)
 		{
@@ -477,7 +477,7 @@ void MainWindow::slot_selectionChanged()
 	LDObjectList compound = priorSelection + selection();
 	removeDuplicates (compound);
 
-	for (LDObject* obj : compound)
+	for (LDObjectPtr obj : compound)
 		R()->compileObject (obj);
 
 	R()->update();
@@ -512,7 +512,7 @@ void MainWindow::slot_quickColor()
 
 	int newColor = col->index;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue; // uncolored object
@@ -561,7 +561,7 @@ void MainWindow::updateSelection()
 
 	ui->objectList->clearSelection();
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (obj->qObjListEntry == null)
 			continue;
@@ -578,7 +578,7 @@ int MainWindow::getSelectedColor()
 {
 	int result = -1;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue; // doesn't use color
@@ -599,7 +599,7 @@ LDObject::Type MainWindow::getUniformSelectedType()
 {
 	LDObject::Type result = LDObject::EUnidentified;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (result != LDObject::EUnidentified && obj->color() != result)
 			return LDObject::EUnidentified;
@@ -634,7 +634,7 @@ void MainWindow::closeEvent (QCloseEvent* ev)
 void MainWindow::spawnContextMenu (const QPoint pos)
 {
 	const bool single = (selection().size() == 1);
-	LDObject* singleObj = (single) ? selection()[0] : null;
+	LDObjectPtr singleObj = single ? selection().first() : LDObjectPtr();
 
 	QMenu* contextMenu = new QMenu;
 
@@ -661,7 +661,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 	contextMenu->addAction (ui->actionModeDraw);
 	contextMenu->addAction (ui->actionModeCircle);
 
-	if (selection().size() > 0)
+	if (not selection().isEmpty())
 	{
 		contextMenu->addSeparator();
 		contextMenu->addAction (ui->actionSubfileSelection);
@@ -682,7 +682,7 @@ void MainWindow::deleteByColor (int colnum)
 {
 	LDObjectList objs;
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (not obj->isColored() || obj->color() != colnum)
 			continue;
@@ -690,7 +690,7 @@ void MainWindow::deleteByColor (int colnum)
 		objs << obj;
 	}
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 		obj->destroy();
 }
 
@@ -708,18 +708,14 @@ void MainWindow::updateEditModeActions()
 //
 void MainWindow::slot_editObject (QListWidgetItem* listitem)
 {
-	LDObject* obj = null;
-
-	for (LDObject* it : getCurrentDocument()->objects())
+	for (LDObjectPtr it : getCurrentDocument()->objects())
 	{
 		if (it->qObjListEntry == listitem)
 		{
-			obj = it;
+			AddObjectDialog::staticDialog (it->type(), it);
 			break;
 		}
 	}
-
-	AddObjectDialog::staticDialog (obj->type(), obj);
 }
 
 // =============================================================================
@@ -852,7 +848,7 @@ void makeColorComboBox (QComboBox* box)
 {
 	std::map<int, int> counts;
 
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (not obj->isColored())
 			continue;
@@ -970,7 +966,7 @@ void MainWindow::refreshObjectList()
 	ui->objectList->clear();
 	LDDocument* f = getCurrentDocument();
 
-for (LDObject* obj : *f)
+for (LDObjectPtr obj : *f)
 		ui->objectList->addItem (obj->qObjListEntry);
 
 #endif

@@ -455,9 +455,9 @@ void PartDownloadRequest::downloadFinished()
 	// from unknown file references, try resolve that by downloading the reference.
 	// This is why downloading a part may end up downloading multiple files, as
 	// it resolves dependencies.
-	for (LDObject* obj : f->objects())
+	for (LDObjectPtr obj : f->objects())
 	{
-		LDError* err = dynamic_cast<LDError*> (obj);
+		LDErrorPtr err = obj.dynamicCast<LDError>();
 
 		if (err == null || err->fileReferenced().isEmpty())
 			continue;

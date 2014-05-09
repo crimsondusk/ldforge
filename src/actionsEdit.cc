@@ -49,7 +49,7 @@ static int copyToClipboard()
 	// Now, copy the contents into the clipboard.
 	String data;
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		if (data.length() > 0)
 			data += "\n";
@@ -90,7 +90,7 @@ DEFINE_ACTION (Paste, CTRL (V))
 
 	for (String line : clipboardText.split ("\n"))
 	{
-		LDObject* pasted = parseLine (line);
+		LDObjectPtr pasted = parseLine (line);
 		getCurrentDocument()->insertObj (idx++, pasted);
 		pasted->select();
 		++num;
@@ -115,7 +115,7 @@ static void doInline (bool deep)
 {
 	LDObjectList sel = selection();
 
-	for (LDObject* obj : sel)
+	for (LDObjectPtr obj : sel)
 	{
 		// Get the index of the subfile so we know where to insert the
 		// inlined contents.
@@ -124,14 +124,14 @@ static void doInline (bool deep)
 		if (idx == -1 || obj->type() != LDObject::ESubfile)
 			continue;
 
-		LDObjectList objs = static_cast<LDSubfile*> (obj)->inlineContents (deep, false);
+		LDObjectList objs = obj.staticCast<LDSubfile>()->inlineContents (deep, false);
 
 		// Merge in the inlined objects
-		for (LDObject* inlineobj : objs)
+		for (LDObjectPtr inlineobj : objs)
 		{
 			String line = inlineobj->asText();
 			inlineobj->destroy();
-			LDObject* newobj = parseLine (line);
+			LDObjectPtr newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
 			newobj->select();
 		}
@@ -160,7 +160,7 @@ DEFINE_ACTION (SplitQuads, 0)
 	LDObjectList objs = selection();
 	int num = 0;
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		if (obj->type() != LDObject::EQuad)
 			continue;
@@ -171,7 +171,7 @@ DEFINE_ACTION (SplitQuads, 0)
 		if (index == -1)
 			return;
 
-		QList<LDTriangle*> triangles = static_cast<LDQuad*> (obj)->splitToTriangles();
+		QList<LDTrianglePtr> triangles = obj.staticCast<LDQuad>()->splitToTriangles();
 
 		// Replace the quad with the first triangle and add the second triangle
 		// after the first one.
@@ -192,7 +192,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	if (selection().size() != 1)
 		return;
 
-	LDObject* obj = selection()[0];
+	LDObjectPtr obj = selection()[0];
 	QDialog* dlg = new QDialog;
 	Ui::EditRawUI ui;
 
@@ -200,7 +200,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	ui.code->setText (obj->asText());
 
 	if (obj->type() == LDObject::EError)
-		ui.errorDescription->setText (static_cast<LDError*> (obj)->reason());
+		ui.errorDescription->setText (obj.staticCast<LDError>()->reason());
 	else
 	{
 		ui.errorDescription->hide();
@@ -211,7 +211,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 		return;
 
 	// Reinterpret it from the text of the input field
-	LDObject* newobj = parseLine (ui.code->text());
+	LDObjectPtr newobj = parseLine (ui.code->text());
 	obj->replace (newobj);
 	refresh();
 }
@@ -235,7 +235,7 @@ DEFINE_ACTION (SetColor, KEY (C))
 	// Show the dialog to the user now and ask for a color.
 	if (ColorSelector::selectColor (colnum, defcol, g_win))
 	{
-		for (LDObject* obj : objs)
+		for (LDObjectPtr obj : objs)
 		{
 			if (not obj->isColored())
 				continue;
@@ -254,44 +254,41 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 	LDObjectList objs = selection();
 	int num = 0;
 
-	for (LDObject* obj : objs)
+	for (LDObjectPtr obj : objs)
 	{
 		const LDObject::Type type = obj->type();
 		if (type != LDObject::EQuad && type != LDObject::ETriangle)
 			continue;
 
-		int numLines;
-		LDLine* lines[4];
+		LDLinePtr lines[4];
 
 		if (type == LDObject::EQuad)
 		{
-			numLines = 4;
-
-			LDQuad* quad = static_cast<LDQuad*> (obj);
-			lines[0] = new LDLine (quad->vertex (0), quad->vertex (1));
-			lines[1] = new LDLine (quad->vertex (1), quad->vertex (2));
-			lines[2] = new LDLine (quad->vertex (2), quad->vertex (3));
-			lines[3] = new LDLine (quad->vertex (3), quad->vertex (0));
+			LDQuadPtr quad = obj.staticCast<LDQuad>();
+			lines[0] = spawn<LDLine> (quad->vertex (0), quad->vertex (1));
+			lines[1] = spawn<LDLine> (quad->vertex (1), quad->vertex (2));
+			lines[2] = spawn<LDLine> (quad->vertex (2), quad->vertex (3));
+			lines[3] = spawn<LDLine> (quad->vertex (3), quad->vertex (0));
 		}
 		else
 		{
-			numLines = 3;
-
-			LDTriangle* tri = static_cast<LDTriangle*> (obj);
-			lines[0] = new LDLine (tri->vertex (0), tri->vertex (1));
-			lines[1] = new LDLine (tri->vertex (1), tri->vertex (2));
-			lines[2] = new LDLine (tri->vertex (2), tri->vertex (0));
+			LDTrianglePtr tri = obj.staticCast<LDTriangle>();
+			lines[0] = spawn<LDLine> (tri->vertex (0), tri->vertex (1));
+			lines[1] = spawn<LDLine> (tri->vertex (1), tri->vertex (2));
+			lines[2] = spawn<LDLine> (tri->vertex (2), tri->vertex (0));
 		}
 
-		for (int i = 0; i < numLines; ++i)
+		for (int i = 0; i < countof (lines); ++i)
 		{
-			long idx = obj->lineNumber() + i + 1;
+			if (lines[i] == null)
+				continue;
 
+			long idx = obj->lineNumber() + i + 1;
 			lines[i]->setColor (edgecolor);
 			getCurrentDocument()->insertObj (idx, lines[i]);
 		}
 
-		num += numLines;
+		num += countof (lines);
 	}
 
 	print (tr ("Added %1 border lines"), num);
@@ -304,7 +301,7 @@ DEFINE_ACTION (CornerVerts, 0)
 {
 	int num = 0;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (obj->numVertices() < 2)
 			continue;
@@ -313,7 +310,7 @@ DEFINE_ACTION (CornerVerts, 0)
 
 		for (int i = 0; i < obj->numVertices(); ++i)
 		{
-			LDVertex* vert = new LDVertex;
+			QSharedPointer<LDVertex> vert (spawn<LDVertex>());
 			vert->pos = obj->vertex (i);
 			vert->setColor (obj->color());
 			getCurrentDocument()->insertObj (++ln, vert);
@@ -365,7 +362,7 @@ void doMoveObjects (Vertex vect)
 	// Apply the grid values
 	vect *= *currentGrid().coordsnap;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 		obj->move (vect);
 
 	g_win->refresh();
@@ -409,7 +406,7 @@ DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 {
 	LDObjectList sel = selection();
 
-	for (LDObject* obj : sel)
+	for (LDObjectPtr obj : sel)
 		obj->invert();
 
 	refresh();
@@ -452,7 +449,7 @@ static void doRotate (const int l, const int m, const int n)
 	});
 
 	// Apply the above matrix to everything
-	for (LDObject* obj : sel)
+	for (LDObjectPtr obj : sel)
 	{
 		if (obj->numVertices())
 		{
@@ -465,7 +462,7 @@ static void doRotate (const int l, const int m, const int n)
 		}
 		elif (obj->hasMatrix())
 		{
-			LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+			LDMatrixObjectPtr mo = obj.dynamicCast<LDMatrixObject>();
 
 			// Transform the position
 			Vertex v = mo->position();
@@ -477,7 +474,7 @@ static void doRotate (const int l, const int m, const int n)
 		}
 		elif (obj->type() == LDObject::EVertex)
 		{
-			LDVertex* vert = static_cast<LDVertex*> (obj);
+			LDVertexPtr vert = obj.staticCast<LDVertex>();
 			Vertex v = vert->pos;
 			rotateVertex (v, rotpoint, transform);
 			vert->pos = v;
@@ -526,9 +523,9 @@ DEFINE_ACTION (RoundCoordinates, 0)
 	setlocale (LC_ALL, "C");
 	int num = 0;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
-		LDMatrixObject* mo = dynamic_cast<LDMatrixObject*> (obj);
+		LDMatrixObjectPtr mo = obj.dynamicCast<LDMatrixObject>();
 
 		if (mo != null)
 		{
@@ -566,7 +563,7 @@ DEFINE_ACTION (Uncolor, 0)
 {
 	int num = 0;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue;
@@ -607,7 +604,7 @@ DEFINE_ACTION (ReplaceCoords, CTRL (R))
 	if (ui.y->isChecked()) sel << Y;
 	if (ui.z->isChecked()) sel << Z;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		for (int i = 0; i < obj->numVertices(); ++i)
 		{
@@ -653,7 +650,7 @@ DEFINE_ACTION (Flip, CTRL_SHIFT (F))
 	if (ui.y->isChecked()) sel << Y;
 	if (ui.z->isChecked()) sel << Z;
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		for (int i = 0; i < obj->numVertices(); ++i)
 		{
@@ -679,12 +676,12 @@ DEFINE_ACTION (Demote, 0)
 	LDObjectList sel = selection();
 	int num = 0;
 
-	for (LDObject* obj : sel)
+	for (LDObjectPtr obj : sel)
 	{
 		if (obj->type() != LDObject::ECondLine)
 			continue;
 
-		static_cast<LDCondLine*> (obj)->demote();
+		obj.staticCast<LDCondLine>()->demote();
 		++num;
 	}
 
@@ -696,7 +693,7 @@ DEFINE_ACTION (Demote, 0)
 //
 static bool isColorUsed (int colnum)
 {
-	for (LDObject* obj : getCurrentDocument()->objects())
+	for (LDObjectPtr obj : getCurrentDocument()->objects())
 		if (obj->isColored() && obj->color() == colnum)
 			return true;
 
@@ -718,7 +715,7 @@ DEFINE_ACTION (Autocolor, 0)
 		return;
 	}
 
-	for (LDObject* obj : selection())
+	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue;
@@ -734,7 +731,7 @@ DEFINE_ACTION (Autocolor, 0)
 //
 DEFINE_ACTION (AddHistoryLine, 0)
 {
-	LDObject* obj;
+	LDObjectPtr obj;
 	bool ishistory = false,
 		 prevIsHistory = false;
 
@@ -754,14 +751,14 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		ui->m_username->text(),
 		ui->m_comment->text());
 
-	LDComment* comm = new LDComment (commentText);
+	LDCommentPtr comm (spawn<LDComment> (commentText));
 
 	// Find a spot to place the new comment
 	for (obj = getCurrentDocument()->getObject (0);
 		obj != null && obj->next() != null && not obj->next()->isScemantic();
 		obj = obj->next())
 	{
-		LDComment* comm = dynamic_cast<LDComment*> (obj);
+		LDCommentPtr comm = obj.dynamicCast<LDComment>();
 
 		if (comm != null && comm->text().startsWith ("!HISTORY "))
 			ishistory = true;
@@ -782,7 +779,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 	// If we're adding a history line right before a scemantic object, pad it
 	// an empty line
 	if (obj && obj->next() && obj->next()->isScemantic())
-		getCurrentDocument()->insertObj (idx, new LDEmpty);
+		getCurrentDocument()->insertObj (idx, LDEmptyPtr (spawn<LDEmpty>()));
 
 	buildObjList();
 	delete ui;
