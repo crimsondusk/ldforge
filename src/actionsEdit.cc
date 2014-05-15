@@ -177,7 +177,6 @@ DEFINE_ACTION (SplitQuads, 0)
 		// after the first one.
 		getCurrentDocument()->setObject (index, triangles[0]);
 		getCurrentDocument()->insertObj (index + 1, triangles[1]);
-		obj->destroy();
 		num++;
 	}
 

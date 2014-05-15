@@ -32,7 +32,10 @@ CFGENTRY (String, defaultUser, "");
 CFGENTRY (Int, defaultLicense, 0);
 
 // List of all LDObjects
-static LDObjectWeakList g_LDObjects;
+static QMap<long, LDObjectWeakPtr> g_allObjects;
+
+// Temporary resource
+LDObjectPtr g_temporaryLDObject;
 
 // =============================================================================
 // LDObject constructors
@@ -40,13 +43,20 @@ static LDObjectWeakList g_LDObjects;
 LDObject::LDObject() :
 	m_isHidden (false),
 	m_isSelected (false),
+	m_isDestructed (false),
 	m_document (null),
 	qObjListEntry (null)
 {
+	LDObjectPtr selfptr (this, [](LDObject* obj){ obj->finalDelete(); });
 	memset (m_coords, 0, sizeof m_coords);
+	m_self = selfptr;
 	chooseID();
-	g_LDObjects << LDObjectWeakPtr (thisptr());
+	g_allObjects[id()] = self();
 	setRandomColor (QColor::fromHsv (rand() % 360, rand() % 256, rand() % 96 + 128));
+
+	// This prevents the object from being prematurely deleted just because
+	// selfptr falls out of scope before it's caught by spawn()
+	g_temporaryLDObject = selfptr;
 }
 
 // =============================================================================
@@ -55,13 +65,18 @@ void LDObject::chooseID()
 {
 	int32 id = 1; // 0 shalt be null
 
-	for (LDObjectWeakPtr obj : g_LDObjects)
+	for (auto it = g_allObjects.begin(); it != g_allObjects.end(); ++it)
 	{
-		LDObjectPtr obj2 = obj.toStrongRef();
-		assert (obj2 != this);
+		LDObjectPtr obj = it->toStrongRef();
 
-		if (obj2->id() >= id)
-			id = obj2->id() + 1;
+		if (not obj)
+			fprint (stdout, "obj #%1 wasn't removed properly\n", it.key());
+
+		assert (obj != this);
+		assert (obj != null);
+
+		if (obj->id() >= id)
+			id = obj->id() + 1;
 	}
 
 	setID (id);
@@ -226,7 +241,7 @@ void LDObject::replace (LDObjectPtr other)
 void LDObject::swap (LDObjectPtr other)
 {
 	assert (document() == other->document());
-	document()->swapObjects (thisptr(), other);
+	document()->swapObjects (self(), other);
 }
 
 // =============================================================================
@@ -263,10 +278,6 @@ LDObject::~LDObject() {}
 
 // =============================================================================
 //
-LDSubfile::~LDSubfile() {}
-
-// =============================================================================
-//
 void LDObject::destroy()
 {
 	// If this object was selected, unselect it now
@@ -275,13 +286,24 @@ void LDObject::destroy()
 
 	// If this object was associated to a file, remove it off it now
 	if (document())
-		document()->forgetObject (thisptr());
+		document()->forgetObject (self());
 
 	// Delete the GL lists
-	g_win->R()->forgetObject (thisptr());
+	g_win->R()->forgetObject (self());
 
 	// Remove this object from the list of LDObjects
-	g_LDObjects.removeOne (LDObjectWeakPtr (thisptr()));
+	g_allObjects.erase (g_allObjects.find (id()));
+	setDestructed (true);
+}
+
+//
+// Deletes the object. Only the shared pointer is to call this!
+//
+void LDObject::finalDelete()
+{
+	if (not isDestructed())
+		destroy();
+
 	delete this;
 }
 
@@ -334,7 +356,7 @@ LDObjectList LDSubfile::inlineContents (bool deep, bool render)
 	for (LDObjectPtr obj : objs)
 	{
 		// Set the parent now so we know what inlined the object.
-		obj->setParent (LDObjectWeakPtr (thisptr()));
+		obj->setParent (self());
 		transformObject (obj, transform(), position(), color());
 	}
 
@@ -440,10 +462,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 //
 String LDObject::typeName (LDObject::Type type)
 {
-	LDObjectPtr obj = LDObject::getDefault (type);
-	String name = obj->typeName();
-	obj->destroy();
-	return name;
+	return LDObject::getDefault (type)->typeName();
 }
 
 // =============================================================================
@@ -486,9 +505,9 @@ String LDObject::describeObjects (const LDObjectList& objs)
 LDObjectPtr LDObject::topLevelParent()
 {
 	if (parent() == null)
-		return thisptr();
+		return self();
 
-	LDObjectWeakPtr it (thisptr());
+	LDObjectWeakPtr it (self());
 
 	while (it.toStrongRef()->parent() != null)
 		it = it.toStrongRef()->parent();
@@ -528,13 +547,13 @@ void LDObject::move (Vertex vect)
 {
 	if (hasMatrix())
 	{
-		LDMatrixObjectPtr mo = thisptr().dynamicCast<LDMatrixObject>();
+		LDMatrixObjectPtr mo = self().toStrongRef().dynamicCast<LDMatrixObject>();
 		mo->setPosition (mo->position() + vect);
 	}
 	elif (type() == LDObject::EVertex)
 	{
 		// ugh
-		thisptr().staticCast<LDVertex>()->pos += vect;
+		self().toStrongRef().staticCast<LDVertex>()->pos += vect;
 	}
 	else
 	{
@@ -664,13 +683,10 @@ LDLinePtr LDCondLine::demote()
 //
 LDObjectPtr LDObject::fromID (int id)
 {
-	for (LDObjectWeakPtr obj : g_LDObjects)
-	{
-		LDObjectPtr obj2 = obj.toStrongRef();
+	auto it = g_allObjects.find (id);
 
-		if (obj2->id() == id)
-			return obj;
-	}
+	if (it != g_allObjects.end())
+		return *it;
 
 	return LDObjectPtr();
 }
@@ -719,7 +735,7 @@ static void changeProperty (LDObjectPtr obj, T* ptr, const T& val)
 //
 void LDObject::setColor (const int& val)
 {
-	changeProperty (thisptr(), &m_color, val);
+	changeProperty (self(), &m_color, val);
 }
 
 // =============================================================================
@@ -736,33 +752,37 @@ void LDObject::setVertex (int i, const Vertex& vert)
 	if (document() != null)
 		document()->vertexChanged (*m_coords[i], vert);
 
-	changeProperty (thisptr(), &m_coords[i], LDSharedVertex::getSharedVertex (vert));
+	changeProperty (self(), &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
 
 // =============================================================================
 //
 void LDMatrixObject::setPosition (const Vertex& a)
 {
-	if (linkPointer()->document() != null)
-		linkPointer()->document()->removeKnownVerticesOf (linkPointer());
+	LDObjectPtr ref = linkPointer().toStrongRef();
 
-	changeProperty (linkPointer(), &m_position, LDSharedVertex::getSharedVertex (a));
+	if (ref->document() != null)
+		ref->document()->removeKnownVerticesOf (ref);
 
-	if (linkPointer()->document() != null)
-		linkPointer()->document()->addKnownVerticesOf (linkPointer());
+	changeProperty (ref, &m_position, LDSharedVertex::getSharedVertex (a));
+
+	if (ref->document() != null)
+		ref->document()->addKnownVerticesOf (ref);
 }
 
 // =============================================================================
 //
 void LDMatrixObject::setTransform (const Matrix& val)
 {
-	if (linkPointer()->document() != null)
-		linkPointer()->document()->removeKnownVerticesOf (linkPointer());
+	LDObjectPtr ref = linkPointer().toStrongRef();
 
-	changeProperty (linkPointer(), &m_transform, val);
+	if (ref->document() != null)
+		ref->document()->removeKnownVerticesOf (ref);
 
-	if (linkPointer()->document() != null)
-		linkPointer()->document()->addKnownVerticesOf (linkPointer());
+	changeProperty (ref, &m_transform, val);
+
+	if (ref->document() != null)
+		ref->document()->addKnownVerticesOf (ref);
 }
 
 // =============================================================================
@@ -808,7 +828,7 @@ void LDSharedVertex::delRef (LDObjectPtr a)
 void LDObject::select()
 {
 	assert (document() != null);
-	document()->addToSelection (thisptr());
+	document()->addToSelection (self());
 }
 
 // =============================================================================
@@ -816,7 +836,7 @@ void LDObject::select()
 void LDObject::deselect()
 {
 	assert (document() != null);
-	document()->removeFromSelection (thisptr());
+	document()->removeFromSelection (self());
 }
 
 // =============================================================================
@@ -852,7 +872,7 @@ LDObjectPtr LDObject::createCopy() const
 void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 {
 	if (document() != null)
-		document()->removeKnownVerticesOf (thisptr());
+		document()->removeKnownVerticesOf (self());
 
 	m_fileInfo = a;
 
@@ -867,5 +887,5 @@ void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 	}
 
 	if (document() != null)
-		document()->addKnownVerticesOf (thisptr());
+		document()->addKnownVerticesOf (self());
 };

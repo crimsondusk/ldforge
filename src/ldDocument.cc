@@ -379,7 +379,6 @@ void LDFileLoader::work (int i)
 			line.chop (1);
 
 		LDObjectPtr obj = parseLine (line);
-		fprint (stderr, "got obj: %1\n", obj.data());
 
 		// Check for parse errors and warn about tthem
 		if (obj->type() == LDObject::EError)

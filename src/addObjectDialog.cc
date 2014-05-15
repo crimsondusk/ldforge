@@ -265,9 +265,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 	layout->addWidget (bbx_buttons, 5, 0, 1, 4);
 	setLayout (layout);
 	setWindowTitle (format (tr ("Edit %1"), typeName));
-
 	setWindowIcon (icon);
-	defaults->destroy();
 }
 
 // =============================================================================

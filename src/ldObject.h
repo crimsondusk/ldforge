@@ -31,6 +31,7 @@ public:															\
 	}															\
 	virtual String asText() const override;						\
 	virtual void invert() override;								\
+																\
 protected:														\
 	friend class QSharedPointer<LD##T>::ExternalRefCount;		\
 
@@ -65,11 +66,13 @@ class LDObject
 {
 	PROPERTY (public,		bool,				isHidden,		setHidden,		STOCK_WRITE)
 	PROPERTY (public,		bool,				isSelected,		setSelected,	STOCK_WRITE)
+	PROPERTY (public,		bool,				isDestructed,	setDestructed,	STOCK_WRITE)
 	PROPERTY (public,		LDObjectWeakPtr,	parent,			setParent,		STOCK_WRITE)
 	PROPERTY (public,		LDDocument*,		document,		setDocument,	STOCK_WRITE)
 	PROPERTY (private,		int,				id,				setID,			STOCK_WRITE)
 	PROPERTY (public,		int,				color,			setColor,		CUSTOM_WRITE)
 	PROPERTY (private,		QColor,				randomColor,	setRandomColor,	STOCK_WRITE)
+	PROPERTY (private,		LDObjectWeakPtr,	self,			setSelf,		STOCK_WRITE)
 
 	public:
 		// Object type codes.
@@ -177,8 +180,12 @@ class LDObject
 		// TODO: make this private!
 		QListWidgetItem* qObjListEntry;
 
+		// This is public because I cannot protect it as the lambda deletor would
+		// have to be the friend. Do not call this! Ever!
+		void finalDelete();
+
 	protected:
-		// LDObjects are to be deleted with the deleteSelf() method, not with
+		// LDObjects are to be deleted with the finalDelete() method, not with
 		// operator delete. This is because it seems virtual functions cannot
 		// be properly called from the destructor, thus a normal method must
 		// be used instead. The destructor also doesn't seem to be able to
@@ -191,12 +198,8 @@ class LDObject
 		// pointer's base class still calls operator delete directly in one of
 		// its methods. The method should never be called but we need to declare
 		// the class making this delete call a friend anyway.
+		friend class QSharedPointer<LDObject>;
 		friend class QSharedPointer<LDObject>::ExternalRefCount;
-
-		inline LDObjectPtr thisptr()
-		{
-			return LDObjectPtr (this);
-		}
 
 	private:
 		LDSharedVertex*	m_coords[4];
@@ -204,13 +207,14 @@ class LDObject
 
 //
 // Makes a new LDObject. This makes the shared pointer always use the custom
-// deleter so that all deletions go through destroy();
+// deleter so that all deletions go through finalDelete();
 //
 template<typename T, typename... Args>
 inline QSharedPointer<T> spawn (Args... args)
 {
 	static_assert (std::is_base_of<LDObject, T>::value, "spawn may only be used with LDObject-derivatives");
-	return QSharedPointer<T> (new T (args...), [](T* obj){ obj->destroy(); });
+	LDObject* obj = new T (args...);
+	return obj->self().toStrongRef().staticCast<T>();
 }
 
 NUMERIC_ENUM_OPERATORS (LDObject::Type)
@@ -271,8 +275,8 @@ class LDSharedVertex
 //
 class LDMatrixObject
 {
-	PROPERTY (public,	LDObjectPtr,	linkPointer,	setLinkPointer,	STOCK_WRITE)
-	PROPERTY (public,	Matrix,		transform,		setTransform,	CUSTOM_WRITE)
+	PROPERTY (public,	LDObjectWeakPtr,	linkPointer,	setLinkPointer,	STOCK_WRITE)
+	PROPERTY (public,	Matrix,				transform,		setTransform,	CUSTOM_WRITE)
 
 	public:
 		LDMatrixObject() :
@@ -446,18 +450,15 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
 
-		LDSubfile()
+		LDSubfile() :
+			LDObject()
 		{
-			setLinkPointer (QSharedPointer<LDSubfile> (this));
+			setLinkPointer (self());
 		}
 
-		// Inlines this subfile. Note that return type is an array of heap-allocated
-		// LDObject copies, they must be deleted manually.
+		// Inlines this subfile.
 		LDObjectList inlineContents (bool deep, bool render);
 		QList<LDPolygon> inlinePolygons();
-
-	protected:
-		~LDSubfile();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)

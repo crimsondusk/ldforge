@@ -43,12 +43,6 @@ const Matrix g_identity ({1.0f, 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f, 0.0f, 1.0f})
 
 CFGENTRY (Bool, firstStart, true);
 
-static void deleteline (LDLine* obj)
-{
-	fprintf (stderr, "delete %p\n", obj);
-	delete obj;
-}
-
 // =============================================================================
 //
 int main (int argc, char* argv[])
@@ -74,15 +68,7 @@ int main (int argc, char* argv[])
 	initColors();
 	MainWindow* win = new MainWindow;
 	newFile();
-	//win->show();
-
-	QSharedPointer<LDLine> obj (new LDLine, &deleteline);
-	fprint (stderr, "%1: %2\n", obj.data(), obj->type());
-	//class A { public: virtual ~A(){} virtual int foo() = 0; void destroy() { delete this; }};
-	//class B : public A { public: virtual ~B(){} virtual int foo() override { return 5; }};
-	//QSharedPointer<A> a (new B, [](A* p) { p->destroy(); });
-	//fprintf (stderr, "%p (%lu bytes)\n", a.data(), sizeof *a);
-	exit (0);
+	win->show();
 
 	// If this is the first start, get the user to configuration. Especially point
 	// them to the profile tab, it's the most important form to fill in.
