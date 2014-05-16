@@ -317,7 +317,7 @@ template<typename T>
 static QSharedPointer<T> initObj (LDObjectPtr& obj)
 {
 	if (obj == null)
-		obj = LDObjectPtr (new T);
+		obj = spawn<T>();
 
 	return obj.staticCast<T>();
 }

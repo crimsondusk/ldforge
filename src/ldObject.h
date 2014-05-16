@@ -32,6 +32,8 @@ public:															\
 	virtual String asText() const override;						\
 	virtual void invert() override;								\
 																\
+	LD##T (LDObjectPtr* selfptr);								\
+																\
 protected:														\
 	friend class QSharedPointer<LD##T>::ExternalRefCount;		\
 
@@ -95,7 +97,7 @@ class LDObject
 			EFirstType = ESubfile
 		};
 
-		LDObject();
+		LDObject (LDObjectPtr* selfptr);
 
 		// This object as LDraw code
 		virtual String				asText() const = 0;
@@ -213,8 +215,9 @@ template<typename T, typename... Args>
 inline QSharedPointer<T> spawn (Args... args)
 {
 	static_assert (std::is_base_of<LDObject, T>::value, "spawn may only be used with LDObject-derivatives");
-	LDObject* obj = new T (args...);
-	return obj->self().toStrongRef().staticCast<T>();
+	LDObjectPtr ptr;
+	new T (&ptr, args...);
+	return ptr.staticCast<T>();
 }
 
 NUMERIC_ENUM_OPERATORS (LDObject::Type)
@@ -333,8 +336,8 @@ class LDError : public LDObject
 	PROPERTY (private,	String,	reason,			setReason,			STOCK_WRITE)
 
 	public:
-		LDError();
-		LDError (String contents, String reason) :
+		LDError (LDObjectPtr* selfptr, String contents, String reason) :
+			LDObject (selfptr),
 			m_contents (contents),
 			m_reason (reason) {}
 };
@@ -374,8 +377,9 @@ class LDComment : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDComment() {}
-		LDComment (String text) : m_text (text) {}
+		LDComment (LDObjectPtr* selfptr, String text) :
+			LDObject (selfptr),
+			m_text (text) {}
 };
 
 using LDCommentPtr = QSharedPointer<LDComment>;
@@ -413,8 +417,8 @@ class LDBFC : public LDObject
 		PROPERTY (public, Statement, statement, setStatement, STOCK_WRITE)
 
 	public:
-		LDBFC() {}
-		LDBFC (const LDBFC::Statement type) :
+		LDBFC (LDObjectPtr* selfptr, const LDBFC::Statement type) :
+			LDObject (selfptr),
 			m_statement (type) {}
 
 		// Statement strings
@@ -450,12 +454,6 @@ class LDSubfile : public LDObject, public LDMatrixObject
 
 		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
 
-		LDSubfile() :
-			LDObject()
-		{
-			setLinkPointer (self());
-		}
-
 		// Inlines this subfile.
 		LDObjectList inlineContents (bool deep, bool render);
 		QList<LDPolygon> inlinePolygons();
@@ -482,8 +480,7 @@ class LDLine : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDLine() {}
-		LDLine (Vertex v1, Vertex v2);
+		LDLine (LDObjectPtr* selfptr, Vertex v1, Vertex v2);
 };
 
 using LDLinePtr = QSharedPointer<LDLine>;
@@ -505,8 +502,8 @@ class LDCondLine : public LDLine
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDCondLine() {}
-		LDCondLine (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3);
+		LDCondLine (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
+					const Vertex& v2, const Vertex& v3);
 		LDLinePtr demote();
 };
 
@@ -530,8 +527,8 @@ class LDTriangle : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDTriangle() {}
-		LDTriangle (Vertex v0, Vertex v1, Vertex v2)
+		LDTriangle (LDObjectPtr* selfptr, Vertex v0, Vertex v1, Vertex v2) :
+			LDObject (selfptr)
 		{
 			setVertex (0, v0);
 			setVertex (1, v1);
@@ -558,8 +555,8 @@ class LDQuad : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDQuad() {}
-		LDQuad (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3);
+		LDQuad (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
+				const Vertex& v2, const Vertex& v3);
 
 		// Split this quad into two triangles (note: heap-allocated)
 		QList<LDTrianglePtr> splitToTriangles();
@@ -586,8 +583,6 @@ class LDVertex : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDVertex() {}
-
 		Vertex pos;
 };
 

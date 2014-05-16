@@ -311,7 +311,7 @@ void GLCompiler::compileObject (LDObjectPtr obj)
 {
 //	print ("Compile %1\n", g_objectOrigins[obj]);
 
-	if (obj->document()->isImplicit())
+	if (obj == null || obj->document()->isImplicit())
 		return;
 
 	ObjectVBOInfo info;

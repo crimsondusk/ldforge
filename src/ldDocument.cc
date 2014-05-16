@@ -996,7 +996,7 @@ LDObjectPtr parseLine (String line)
 			}
 
 			default:
-				throw LDError (line, "Unknown line code number");
+				throw LDParseError (line, "Unknown line code number");
 		}
 	}
 	catch (LDParseError& e)

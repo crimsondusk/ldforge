@@ -34,30 +34,44 @@ CFGENTRY (Int, defaultLicense, 0);
 // List of all LDObjects
 static QMap<long, LDObjectWeakPtr> g_allObjects;
 
-// Temporary resource
-LDObjectPtr g_temporaryLDObject;
+#define LDOBJ_DEFAULT_CTOR(T,BASE) \
+	T :: T (LDObjectPtr* selfptr) : \
+		BASE (selfptr) {}
 
 // =============================================================================
 // LDObject constructors
 //
-LDObject::LDObject() :
+LDObject::LDObject (LDObjectPtr* selfptr) :
 	m_isHidden (false),
 	m_isSelected (false),
 	m_isDestructed (false),
 	m_document (null),
 	qObjListEntry (null)
 {
-	LDObjectPtr selfptr (this, [](LDObject* obj){ obj->finalDelete(); });
+	*selfptr = LDObjectPtr (this, [](LDObject* obj){ obj->finalDelete(); });
 	memset (m_coords, 0, sizeof m_coords);
-	m_self = selfptr;
+	m_self = selfptr->toWeakRef();
 	chooseID();
 	g_allObjects[id()] = self();
 	setRandomColor (QColor::fromHsv (rand() % 360, rand() % 256, rand() % 96 + 128));
-
-	// This prevents the object from being prematurely deleted just because
-	// selfptr falls out of scope before it's caught by spawn()
-	g_temporaryLDObject = selfptr;
 }
+
+LDSubfile::LDSubfile (LDObjectPtr* selfptr) :
+	LDObject (selfptr)
+{
+	setLinkPointer (self());
+}
+
+LDOBJ_DEFAULT_CTOR (LDEmpty, LDObject)
+LDOBJ_DEFAULT_CTOR (LDError, LDObject)
+LDOBJ_DEFAULT_CTOR (LDLine, LDObject)
+LDOBJ_DEFAULT_CTOR (LDTriangle, LDObject)
+LDOBJ_DEFAULT_CTOR (LDCondLine, LDLine)
+LDOBJ_DEFAULT_CTOR (LDQuad, LDObject)
+LDOBJ_DEFAULT_CTOR (LDVertex, LDObject)
+LDOBJ_DEFAULT_CTOR (LDOverlay, LDObject)
+LDOBJ_DEFAULT_CTOR (LDBFC, LDObject)
+LDOBJ_DEFAULT_CTOR (LDComment, LDObject)
 
 // =============================================================================
 //
@@ -68,9 +82,6 @@ void LDObject::chooseID()
 	for (auto it = g_allObjects.begin(); it != g_allObjects.end(); ++it)
 	{
 		LDObjectPtr obj = it->toStrongRef();
-
-		if (not obj)
-			fprint (stdout, "obj #%1 wasn't removed properly\n", it.key());
 
 		assert (obj != this);
 		assert (obj != null);
@@ -90,8 +101,6 @@ void LDObject::setVertexCoord (int i, Axis ax, double value)
 	v.setCoordinate (ax, value);
 	setVertex (i, v);
 }
-
-LDError::LDError() {}
 
 // =============================================================================
 //
@@ -246,7 +255,8 @@ void LDObject::swap (LDObjectPtr other)
 
 // =============================================================================
 //
-LDLine::LDLine (Vertex v1, Vertex v2)
+LDLine::LDLine (LDObjectPtr* selfptr, Vertex v1, Vertex v2) :
+	LDObject (selfptr)
 {
 	setVertex (0, v1);
 	setVertex (1, v2);
@@ -254,7 +264,9 @@ LDLine::LDLine (Vertex v1, Vertex v2)
 
 // =============================================================================
 //
-LDQuad::LDQuad (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3)
+LDQuad::LDQuad (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
+				const Vertex& v2, const Vertex& v3) :
+	LDObject (selfptr)
 {
 	setVertex (0, v0);
 	setVertex (1, v1);
@@ -264,7 +276,9 @@ LDQuad::LDQuad (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vert
 
 // =============================================================================
 //
-LDCondLine::LDCondLine (const Vertex& v0, const Vertex& v1, const Vertex& v2, const Vertex& v3)
+LDCondLine::LDCondLine (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
+						const Vertex& v2, const Vertex& v3) :
+	LDLine (selfptr)
 {
 	setVertex (0, v0);
 	setVertex (1, v1);
