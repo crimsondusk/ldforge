@@ -32,7 +32,9 @@ CFGENTRY (String, defaultUser, "");
 CFGENTRY (Int, defaultLicense, 0);
 
 // List of all LDObjects
-static QMap<long, LDObjectWeakPtr> g_allObjects;
+static QMap<long, LDObjectWeakPtr>	g_allObjects;
+static int32						g_idcursor = 1; // 0 shalt be null
+static constexpr int32				g_maxID = (1 << 24);
 
 #define LDOBJ_DEFAULT_CTOR(T,BASE) \
 	T :: T (LDObjectPtr* selfptr) : \
@@ -77,20 +79,21 @@ LDOBJ_DEFAULT_CTOR (LDComment, LDObject)
 //
 void LDObject::chooseID()
 {
-	int32 id = 1; // 0 shalt be null
-
-	for (auto it = g_allObjects.begin(); it != g_allObjects.end(); ++it)
+	// If this is the first pass we can just use a global ID counter for each
+	// unique object. Let's nobody goes to create 17 million objects anytime
+	// soon.
+	if (g_idcursor < g_maxID)
 	{
-		LDObjectPtr obj = it->toStrongRef();
-
-		assert (obj != this);
-		assert (obj != null);
-
-		if (obj->id() >= id)
-			id = obj->id() + 1;
+		setID (g_idcursor++);
+		return;
 	}
 
-	setID (id);
+	// In case someone does, we cannot really continue execution. We must abort,
+	// give the user a chance to save their documents though.
+	critical ("Created too many objects. Execution cannot continue. You have a "
+		"chance to save any changes to documents, then restart.");
+	(void) safeToCloseAll();
+	exit (0);
 }
 
 // =============================================================================

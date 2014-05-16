@@ -71,7 +71,7 @@ class LDObject
 	PROPERTY (public,		bool,				isDestructed,	setDestructed,	STOCK_WRITE)
 	PROPERTY (public,		LDObjectWeakPtr,	parent,			setParent,		STOCK_WRITE)
 	PROPERTY (public,		LDDocument*,		document,		setDocument,	STOCK_WRITE)
-	PROPERTY (private,		int,				id,				setID,			STOCK_WRITE)
+	PROPERTY (private,		int32,				id,				setID,			STOCK_WRITE)
 	PROPERTY (public,		int,				color,			setColor,		CUSTOM_WRITE)
 	PROPERTY (private,		QColor,				randomColor,	setRandomColor,	STOCK_WRITE)
 	PROPERTY (private,		LDObjectWeakPtr,	self,			setSelf,		STOCK_WRITE)
