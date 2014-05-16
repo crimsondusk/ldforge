@@ -1215,9 +1215,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 {
 	makeCurrent();
 
-	// Use particularly thick lines while picking ease up selecting lines.
-	glLineWidth (max<double> (cfg::lineThickness, 6.5f));
-
 	// Clear the selection if we do not wish to add to it.
 	if (not m_addpick)
 	{
@@ -1323,9 +1320,6 @@ void GLRenderer::pick (int mouseX, int mouseY)
 	if (removedObj)
 		compileObject (removedObj);
 
-	// Restore line thickness
-	glLineWidth (cfg::lineThickness);
-
 	setPicking (false);
 	m_rangepick = false;
 	repaint();
@@ -1402,10 +1396,20 @@ void GLRenderer::setPicking (const bool& a)
 	m_isPicking = a;
 	setBackground();
 
-	if (a)
+	if (isPicking())
+	{
 		glDisable (GL_DITHER);
+
+		// Use particularly thick lines while picking ease up selecting lines.
+		glLineWidth (max<double> (cfg::lineThickness, 6.5));
+	}
 	else
+	{
 		glEnable (GL_DITHER);
+
+		// Restore line thickness
+		glLineWidth (cfg::lineThickness);
+	}
 }
 
 // =============================================================================
