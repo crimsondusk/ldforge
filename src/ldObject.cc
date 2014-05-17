@@ -80,8 +80,8 @@ LDOBJ_DEFAULT_CTOR (LDComment, LDObject)
 void LDObject::chooseID()
 {
 	// If this is the first pass we can just use a global ID counter for each
-	// unique object. Let's nobody goes to create 17 million objects anytime
-	// soon.
+	// unique object. Let's hope that nobody goes to create 17 million objects
+	// anytime soon.
 	if (g_idcursor < g_maxID)
 	{
 		setID (g_idcursor++);

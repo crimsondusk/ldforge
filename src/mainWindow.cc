@@ -984,6 +984,7 @@ void MainWindow::updateActions()
 	ui->actionRedo->setEnabled (pos < (long) his->getSize() - 1);
 	ui->actionAxes->setChecked (cfg::drawAxes);
 	ui->actionBFCView->setChecked (cfg::bfcRedGreenView);
+	ui->actionRandomColors->setChecked (cfg::randomColors);
 	ui->actionDrawAngles->setChecked (cfg::drawAngles);
 }
 

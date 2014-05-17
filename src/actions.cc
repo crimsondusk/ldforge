@@ -681,6 +681,10 @@ DEFINE_ACTION (ScanPrimitives, 0)
 DEFINE_ACTION (BFCView, SHIFT (B))
 {
 	cfg::bfcRedGreenView = not cfg::bfcRedGreenView;
+
+	if (cfg::bfcRedGreenView)
+		cfg::randomColors = false;
+
 	updateActions();
 	R()->refresh();
 }
@@ -882,5 +886,10 @@ DEFINE_ACTION (SubfileSelection, 0)
 DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
 {
 	cfg::randomColors = not cfg::randomColors;
+
+	if (cfg::randomColors)
+		cfg::bfcRedGreenView = false;
+
+	updateActions();
 	R()->refresh();
 }
