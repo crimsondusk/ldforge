@@ -667,16 +667,21 @@ void LDSubfile::invert()
 //
 void LDLine::invert()
 {
-	// For lines, we swap the vertices. I don't think that a
-	// cond-line's control points need to be swapped, do they?
+	// For lines, we swap the vertices.
 	Vertex tmp = vertex (0);
 	setVertex (0, vertex (1));
 	setVertex (1, tmp);
 }
 
+// =============================================================================
+//
 void LDCondLine::invert()
 {
-	static_cast<LDLine*> (this)->invert();
+	// I don't think that a conditional line's control points need to be
+	// swapped, do they?
+	Vertex tmp = vertex (0);
+	setVertex (0, vertex (1));
+	setVertex (1, tmp);
 }
 
 void LDVertex::invert() {}
