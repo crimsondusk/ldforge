@@ -16,36 +16,28 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-//! \file version.h
-//! Contains macros related to application name and version.
-
 #pragma once
 
-//! The application name.
+//
+// Application name
+//
 #define APPNAME			"LDForge"
-
-//! The unix-style name of the application. used in filenames
 #define UNIXNAME		"ldforge"
 
-//! The major version number.
+//
+// Version number
+//
 #define VERSION_MAJOR	0
-
-//! The minor version number.
 #define VERSION_MINOR	3
-
-//! The patch level version number.
 #define VERSION_PATCH	0
 
-//! The build ID, use either BUILD_INTERNAL or BUILD_RELEASE
+//
+// Build ID, this is BUILD_RELEASE for releases
+//
 #define BUILD_ID		BUILD_INTERNAL
-
-//! The build code for internal builds
 #define BUILD_INTERNAL	0
-
-//! The build code for release builds.
 #define BUILD_RELEASE	1
 
-// =============================================
 #ifdef DEBUG
 # undef RELEASE
 #endif // DEBUG
@@ -56,4 +48,4 @@
 
 const char* versionString();
 const char* fullVersionString();
-const char* compileTimeString();
+const char* commitTimeString();

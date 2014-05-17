@@ -63,11 +63,11 @@ const char* fullVersionString()
 
 // =============================================================================
 //
-const char* compileTimeString()
+const char* commitTimeString()
 {
-#ifdef BUILD_TIME
+#ifdef GIT_TIME
 	if (g_buildTime[0] == '\0')
-		strcpy (g_buildTime, BUILD_TIME);
+		strcpy (g_buildTime, GIT_TIME);
 #endif
 
 	return g_buildTime;
