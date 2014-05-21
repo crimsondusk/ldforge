@@ -1,80 +1,86 @@
-=================================================
-== Changes in version 0.3
-=================================================
-- OpenGL renderer largely reworked to use VBO-based rendering instead of immediate mode. This plus additional
-	optimizations speed up LDForge considerably.
-- Multiple files can now be kept open at the same time. A new list widget is on the left to contain the list
-	of currently open files.
-		- Added close, close all and save all actions.
-- Added ability to download parts from the Parts Tracker or from a custom-specified URL. If the resulting
-	file contains references to unknown files, LDForge attempts to recursively download all of them.
-- Added a new editing mode for drawing circles.
-- Major corrections to the primitive generator:
-	- Fixed: "Hi-Res" was not prepended to the names of 48/ primitives.
-	- Fixed: Checking the Hi-Res option would not allow segment values over 16.
-	- Added support for multiple spaces before the ring number.
-- Added an action for quickly subfiling the group of selected objects.
-- Added random colors mode.
-- Vertex snapping is now smarter, prefers vertices closer to the camera and is less likely to pick irrelevant vertices.
-- Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix.
-	Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234.
-	Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
-- Implicitely-opened documents are now closed automatically when rendered unused, hopefully reducing memory
-	usage somewhat.
-- Configuration is now always situated and read from the application working directory
-- LDraw code parser no longer complains about scientific notation.
-- Changing to draw mode while in free camera now causes the camera to be changed to top.
-- When drawing polygons, line lengths are now displayed. Added a configuration option to toggle this behavior.
-- Added an option for drawing line angles similarly.
-- Added config fields for default name/username/license. This data will be automatically filled
-	into forms that require such information.
-- Upon first start the configuration prompt pops up on its own, defaulting on the profile tab. This
-	way the user can fill in the profile data on the first start and get that out of the way (and
-	gives the opportunity to see the other config fields)
-- Now recognizes "8\" as a special subdirectory alongside "48\" and "s\"
-- Added new action "Add History Line" for quickly inserting 0 !HISTORY lines to headers
-- Added new action "Go to line", default shortcut Ctrl-G. It should be obvious what it does.
-- Added new actions "Hide" and "Reveal" which allow direct setting of objects' visibility setting instead of
-	toggling it.
-- Added support for logoed studs, this should satisfy Steffen. :p
-- Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD
-	syntax ('0 BFC CERTIFY CLIP').
-- Increased the amount of recent file slots from 5 to 10.
-- Added Ball Joint-8 primitives to the primitive categories.
-- Fixed: Configuration window did not allow for grid angle values higher than 99.99
-- The viewport now uses 7 sets of rotation/pan/zoom values, one for each camera. Changing these values
-	in one camera no longer affects other cameras.
-- When an external program is attempted to be used without a binary path defined, one will be asked
-	with an input dialog instead of being told to go to configuration to set the path.
-- When adding edges with Intersector (which is done with Isecalc), the user is prompted for Isecalc's
-	path now as well if necessary instead of just ignoring it and not adding the edgelines.
-- Added a configuration option for line anti-aliasing.
-- Added a configurable selected color to blend to objects when they are selected, instead of a simple
-	light-up. Defaults to a blue color.
-- BFC red/green view and black edges no longer default to true.
-- When the background is dark, the "black edges" option actually means "white edges" now.
-- If the vertex snapper finds a vertex closer than 4 pixels, it likely is the vertex being looked for
-	and the algorithm can terminate early, hopefully this will save a few cycles on large parts.
-- The camera icons now draw real tooltips instead of emulated ones.
-- Color icon border now reflects the color's edge color.
-- Changed the default color toolbar to have a wider range of colors. No need for transparent ones.
-- Fixed: When rotating subfiles, the scale was treated incorrectly due to bad operand order in matrix
-	multiplication, causing unwanted morphing.
-- [Linux] Fixed: If an external program is attempted to be launched requiring Wine but with Wine missing,
-	there was no error message and instead LDForge took this as no output from the program.
-- Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
-- Fixed: The message log was still written with black text with dark backgrounds.
 
-- Selecting an invertnext'd object now also selects the invertnext.
 
-=================================================
-== Changes in version 0.2.1
-=================================================
+
+		Changes in version 0.3
+
+
+
++*	- Added support for holding multiple documents open at once, adding a tab bar of open documents.
++*	- OpenGL renderer upgraded to use VBOs instead of display lists. This results in a massive speed-up and paves way for additional features such as random colors and correct BFC red/green view. This plus additional optimizations speed up LDForge by an order of magnitude.
++*	- Various other optimizations to speed LDForge up considerably.
+
++	- Added an action for creating a new, blank file without any headers.
++	- Added action "download from" which allows the download of part files from the LDraw Parts Tracker. Comfy rework jobs++.
++	- Added action "add history line" for adding new history entries
++	- Added "Go to line" action, renamed the config classes to proper camelcase
++	- Added support for logoed studs.
++	- Added support for '0 BFC CLIP' and '0 BFC NOCLIP' and added auto-correction from errorneous MLCAD syntax ('0 BFC CERTIFY CLIP').
++	- Added configuration fields for default name/username/license alà DATHeader. This data will be automatically filled into the new part prompt. The auto-subfiler also uses this.
++	- Upon first start the configuration prompt pops up on its own. This way the user can fill in the profile data on the first start and get that out of the way, and gives the opportunity to see the other config fields.
++	- Added a third edit mode for adding circles, rings and discs. Uses a ring finder algorithm to automatically find a suitable ring configuration.
++	- (Linux-only) Added a crash catcher which calls GDB and tries to get a backtrace. Also integrated assertion failure handling to this new system.
++	- Added a configuration option for line anti-aliasing
++	- Added new actions "Hide" and "Reveal" which allow direct setting of objects' visibility setting instead of toggling it.
++	- Added the INSTALL document with compilation details.
++	- Line lengths are now displayed when drawing
++	- Added an action which auto-subfiles the current selection(!). It will find the first suitable s/<current_name>s##.dat, present the user an option to save elsewhere and then create the subfile.
++	- Added option for visible angles when drawing
++	- Now recognizes the p\8\ subdirectory
++	- Added a configurable select color blend.
++	- Added Ball Joint-8 stuff to primitive categories.
++	- Added time of commit to window title.
++	- Added random color support.
++	- Vertex snapping is now smarter, does a depth comparison to favor vertices closer to camera. Selecting a vertex very close with the cursor still allows selecting vertices far away from the camera. This makes it less likely to pick irrelevant vertices which caused problems in part files.
++	- Added a selection hover effect to the renderer, making selecting objects a lot more convenient.
++	- Selecting an invertnext'd object now also selects the invertnext.
+
+-	- The camera is now changed to the top one if switching to draw mode while using the free camera instead of disabling the draw mode.
+-	- The color selector now uses the color's edge color for the borders instead of black.
+-	- Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
+-	- Primitive generator: added support for multiple spaces before primitive numbers, add "Hi-Res" to the names of 48/ primitives.
+-	- Implicitely-opened documents are now closed automatically when rendered unused, hopefully reducing memory usage somewhat.
+-	- Fixed: checking the hi-res option in the primitive generator would not allow segment values over 16.
+-	- Fixed: The message log was still written with black text with dark backgrounds.
+-	- Fixed: couldn't open larger files because of a type mismatch in moc method calling, leading into runtime problems
+-	- When an external program is attempted to be used without a binary path defined the user will be asked with an input dialog for the path. When adding edges while using Intersector (which is done with Isecalc), the user is prompted for Isecalc's path now as well if necessary instead of just ignoring it and not adding the edgelines.
+-	- Coordinate rounding now works properly, figures scientific notation and rounds subfile position and matrix. Values are also now properly rounded instead of just floored, 1.2348 now rounds to 1.235 and not 1.234. Subfile matrix values are rounded to 4 decimals, everything else to 3 decimals.
+-	- Fixed: Hi-res cones with 3 digit numbers wouldn't go to the "Cones (48)" category properly
+-	- Fixed: overlay images are now explicitly to ARGB32 format, otherwise they might not be able to be made translucent properly
+-	- (Linux-only) Fixed: external programs requiring wine now properly display an error prompt if wine is missing
+-	- LDraw code parser no longer complains about scientific notation.
+-	- Now compiles with clang.
+-	- Fixed: the configuration dialog did not accept values past 99.99 for grid angles
+-	- Fixed: subfile rotation did matrix multiplication with operands the wrong way around. This caused scaled subfiles to become morphed when rotated.
+-	- Comment texts are no longer simplified (i.e. removed extra whitespace from).
+-	- Selecting an invertnext'd object now also selects the invertnext.
+
+!	- Removed the GUI toolbar icon size slider (always 22x22 now).
+!	- Made the configuration dialog use a list widget for navigation instead of a tab bar.
+!	- Made rotation/pan/zoom values camera-dependant (so now there's 7 sets of them instead of 1)
+!	- Removed the version monikers, new version is now just 0.3 instead of 0.3-alpha. The first mature version will be 1.0 anyway.
+!	- Bumped max amount of recent files from 5 to 10
+!	- "Black edges" now actually mean white edges when the background is dark.
+!	- The configuration file is now always located at and read from the application working directory.
+!	- The toolbar was somewhat reorganized. Color toolbar defaults rearranged to include full hue range.
+!	- Changed build system from qmake to CMake.
+!	- Toned down BFC red/green view colors and axis colors a tad.
+!	- Moved the uncolorize action into the color toolbar, replacing Main and Edge colors there.
+!	- Changed `<anonymous>` to `untitled`.
+!	- Grids now have a single coordinate snap value instead of individual X, Y and Z values.
+
+
+
+		Changes in version 0.2.1
+
+
+
 - Fixed: File loading would skip every 300th line (don't ask me how this managed to happen).
 
-=================================================
-== Changes in version 0.2
-=================================================
+
+
+		Changes in version 0.2
+
+
 
 - Completely rewrote history (undo/redo) code, making it a LOT stabler in the process.
 - Added ability to snap to pre-existing vertices while drawing.
