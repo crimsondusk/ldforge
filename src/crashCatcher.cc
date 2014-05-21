@@ -18,21 +18,17 @@
 
 #ifdef __unix__
 
-#include <QString>
 #include <QProcess>
 #include <QTemporaryFile>
-#include <QMessageBox>
 #include <unistd.h>
 #include <signal.h>
+#include "crashCatcher.h"
+#include "basics.h"
+#include "dialogs.h"
 
 #ifdef Q_OS_LINUX
 # include <sys/prctl.h>
 #endif
-
-#include "crashCatcher.h"
-#include "basics.h"
-#include "dialogs.h"
-#include "mainWindow.h"
 
 // Is the crash catcher active now?
 static bool g_crashCatcherActive = false;
@@ -48,20 +44,29 @@ static QList<int> g_signalsToCatch ({
 	SIGILL, // illegal instructions
 });
 
+//
+//	Removes the signal handler from SIGABRT and then aborts.
+//
+static void finalAbort()
+{
+	struct sigaction sighandler;
+	sighandler.sa_handler = SIG_DFL;
+	sighandler.sa_flags = 0;
+	sigaction (SIGABRT, &sighandler, 0);
+	abort();
+}
+
 // =============================================================================
 //
 static void handleCrash (int sig)
 {
-	printf ("%s: crashed with signal %d, launching gdb\n", __func__, sig);
+	printf ("!! Caught signal %d, launching gdb\n", sig);
 
 	if (g_crashCatcherActive)
 	{
-		printf ("caught signal while crash catcher is active!\n");
-		exit (149);
+		printf ("Caught signal while crash catcher is active! Execution cannot continue.\n");
+		finalAbort();
 	}
-
-	if (g_win != null)
-		g_win->hide();
 
 	const pid_t pid = getpid();
 	QProcess proc;
@@ -75,13 +80,10 @@ static void handleCrash (int sig)
 		commandsFile.write (String ("backtrace full\n").toLocal8Bit());
 		commandsFile.write (String ("detach\n").toLocal8Bit());
 		commandsFile.write (String ("quit").toLocal8Bit());
-		commandsFile.flush();
 		commandsFile.close();
 	}
 
-	QStringList args ({"-x", commandsFile.fileName()});
-
-	proc.start ("gdb", args);
+	proc.start ("gdb", {"-x", commandsFile.fileName()});
 
 	// Linux doesn't allow ptrace to be used on anything but direct child processes
 	// so we need to use prctl to register an exception to this to allow GDB attach to us.
@@ -93,7 +95,7 @@ static void handleCrash (int sig)
 	proc.waitForFinished (1000);
 	String output = String (proc.readAllStandardOutput());
 	String err = String (proc.readAllStandardError());
-	QFile f ("ldforge-crash.log");
+	QFile f (UNIXNAME "-crash.log");
 
 	if (f.open (QIODevice::WriteOnly))
 	{
@@ -104,14 +106,21 @@ static void handleCrash (int sig)
 		f.close();
 	}
 
-	bombBox (format ("<h3>Program crashed with signal %1</h3>\n\n"
-		"%2"
-		"<p><b>GDB <tt>stdout</tt>:</b></p><pre>%3</pre>\n"
-		"<p><b>GDB <tt>stderr</tt>:</b></p><pre>%4</pre>",
-		sig, g_assertionFailure, output, err));
+	if (g_assertionFailure.isEmpty())
+	{
+		printf ("Crashlog written to " UNIXNAME "-crash.log. Aborting.\n");
+	}
+	else
+	{
+		printf ("Assertion failed: \"%s\". Backtrace written to " UNIXNAME "-crash.log.\n",
+			qPrintable (g_assertionFailure));
+	}
+
+	finalAbort();
 }
 
-// =============================================================================
+//
+//	Initializes the crash catcher.
 //
 void initCrashCatcher()
 {
@@ -121,10 +130,17 @@ void initCrashCatcher()
 	sigemptyset (&sighandler.sa_mask);
 
 	for (int sig : g_signalsToCatch)
-		sigaction (sig, &sighandler, null);
+	{
+		if (sigaction (sig, &sighandler, null) == -1)
+		{
+			fprint (stderr, "Couldn't set signal handler %1: %2", sig, strerror (errno));
+			g_signalsToCatch.removeOne (sig);
+		}
+	}
 
-	print ("%1: crash catcher hooked to signals: %2\n", __func__, g_signalsToCatch);
+	print ("Crash catcher hooked to signals: %1\n", g_signalsToCatch);
 }
+
 #endif // #ifdef __unix__
 
 // =============================================================================
