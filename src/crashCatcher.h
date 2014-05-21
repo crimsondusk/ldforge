@@ -17,6 +17,8 @@
  */
 
 #pragma once
+#include "main.h"
+
 #ifdef __unix__
 void initCrashCatcher();
 #else // ifdef __unix__

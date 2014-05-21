@@ -23,8 +23,6 @@
 #include <unistd.h>
 #include <signal.h>
 #include "crashCatcher.h"
-#include "basics.h"
-#include "dialogs.h"
 
 #ifdef Q_OS_LINUX
 # include <sys/prctl.h>
@@ -152,17 +150,15 @@ void initCrashCatcher()
 //
 void assertionFailure (const char* file, int line, const char* funcname, const char* expr)
 {
-	String errmsg = format (
+#ifdef __unix__
+	g_assertionFailure = format ("%1:%2: %3: %4", file, line, funcname, expr);
+#else
+	bombBox (format (
 		"<p><b>File</b>: <tt>%1</tt><br />"
 		"<b>Line</b>: <tt>%2</tt><br />"
 		"<b>Function:</b> <tt>%3</tt></p>"
 		"<p>Assertion <b><tt>`%4'</tt></b> failed.</p>",
-		file, line, funcname, expr);
-
-	g_assertionFailure = errmsg;
-
-#ifndef __unix__
-	bombBox (errmsg);
+		file, line, funcname, expr));
 #endif
 
 	abort();
