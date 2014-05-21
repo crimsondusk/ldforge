@@ -65,6 +65,8 @@
 - Fixed: LDForge would sometimes crash during startup over uninitialized data in the GL renderer.
 - Fixed: The message log was still written with black text with dark backgrounds.
 
+- Selecting an invertnext'd object now also selects the invertnext.
+
 =================================================
 == Changes in version 0.2.1
 =================================================

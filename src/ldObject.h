@@ -56,6 +56,9 @@ class LDSubfile;
 class LDDocument;
 class LDSharedVertex;
 
+class LDBFC;
+using LDBFCPtr = QSharedPointer<LDBFC>;
+
 // =============================================================================
 // LDObject
 //
@@ -137,6 +140,9 @@ class LDObject
 
 		// Object prior to this in the current file
 		LDObjectPtr					previous() const;
+
+		// Is the previous object INVERTNEXT?
+		bool						previousIsInvertnext (LDBFCPtr& ptr);
 
 		// Replace this LDObject with another LDObject. Object is deleted in the process.
 		void						replace (LDObjectPtr other);

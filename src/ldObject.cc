@@ -560,6 +560,21 @@ LDObjectPtr LDObject::previous() const
 
 // =============================================================================
 //
+bool LDObject::previousIsInvertnext (LDBFCPtr& ptr)
+{
+	LDObjectPtr prev (previous());
+
+	if (prev != null && prev->type() == EBFC && prev.staticCast<LDBFC>()->statement() == LDBFC::InvertNext)
+	{
+		ptr = prev.staticCast<LDBFC>();
+		return true;
+	}
+
+	return false;
+}
+
+// =============================================================================
+//
 void LDObject::move (Vertex vect)
 {
 	if (hasMatrix())
@@ -851,6 +866,12 @@ void LDObject::select()
 {
 	assert (document() != null);
 	document()->addToSelection (self());
+
+	// If this object is inverted with INVERTNEXT, pick the INVERTNEXT as well.
+	LDBFCPtr invertnext;
+
+	if (previousIsInvertnext (invertnext))
+		invertnext->select();
 }
 
 // =============================================================================
@@ -859,6 +880,12 @@ void LDObject::deselect()
 {
 	assert (document() != null);
 	document()->removeFromSelection (self());
+
+	// If this object is inverted with INVERTNEXT, deselect the INVERTNEXT as well.
+	LDBFCPtr invertnext;
+
+	if (previousIsInvertnext (invertnext))
+		invertnext->deselect();
 }
 
 // =============================================================================

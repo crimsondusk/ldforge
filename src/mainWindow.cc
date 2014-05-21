@@ -473,6 +473,10 @@ void MainWindow::slot_selectionChanged()
 		}
 	}
 
+	// The select() method calls may have selected additional items (i.e. invertnexts)
+	// Update it all now.
+	updateSelection();
+
 	// Update the GL renderer
 	LDObjectList compound = priorSelection + selection();
 	removeDuplicates (compound);
