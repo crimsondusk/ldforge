@@ -36,6 +36,9 @@
 
 EXTERN_CFGENTRY (String, defaultUser);
 
+CFGENTRY (Int,	roundPosition,	3);
+CFGENTRY (Int,	roundMatrix,	4);
+
 // =============================================================================
 //
 static int copyToClipboard()
@@ -532,8 +535,8 @@ DEFINE_ACTION (RoundCoordinates, 0)
 			Matrix t = mo->transform();
 
 			// Note: matrix values are to be rounded to 4 decimals.
-			v.apply ([](Axis, double& a) { roundToDecimals (a, 3); });
-			applyToMatrix (t, [](int, double& a) { roundToDecimals (a, 4); });
+			v.apply ([](Axis, double& a) { roundToDecimals (a, cfg::roundPosition); });
+			applyToMatrix (t, [](int, double& a) { roundToDecimals (a, cfg::roundMatrix); });
 
 			mo->setPosition (v);
 			mo->setTransform (t);
@@ -544,7 +547,7 @@ DEFINE_ACTION (RoundCoordinates, 0)
 			for (int i = 0; i < obj->numVertices(); ++i)
 			{
 				Vertex v = obj->vertex (i);
-				v.apply ([](Axis, double& a) { roundToDecimals (a, 3); });
+				v.apply ([](Axis, double& a) { roundToDecimals (a, cfg::roundPosition); });
 				obj->setVertex (i, v);
 				num += 3;
 			}

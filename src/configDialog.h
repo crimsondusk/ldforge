@@ -44,6 +44,7 @@ class ConfigDialog : public QDialog
 		enum Tab
 		{
 			InterfaceTab,
+			EditingToolsTab,
 			ProfileTab,
 			ShortcutsTab,
 			QuickColorsTab,

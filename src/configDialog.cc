@@ -77,6 +77,8 @@ EXTERN_CFGENTRY (Float,	gridMediumAngleSnap);
 EXTERN_CFGENTRY (Float,	gridFineCoordinateSnap);
 EXTERN_CFGENTRY (Float,	gridFineAngleSnap);
 EXTERN_CFGENTRY (Bool, highlightObjectBelowCursor)
+EXTERN_CFGENTRY (Int, roundPosition)
+EXTERN_CFGENTRY (Int, roundMatrix)
 
 const char* g_extProgPathFilter =
 #ifdef _WIN32
@@ -116,6 +118,9 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->implicitFiles->setChecked (cfg::listImplicitFiles);
 	ui->m_logostuds->setChecked (cfg::useLogoStuds);
 	ui->linelengths->setChecked (cfg::drawLineLengths);
+
+	ui->roundPosition->setValue (cfg::roundPosition);
+	ui->roundMatrix->setValue (cfg::roundMatrix);
 
 	int i = 0;
 
@@ -300,6 +305,8 @@ void ConfigDialog::applySettings()
 	cfg::defaultLicense = ui->m_profileLicense->currentIndex();
 	cfg::antiAliasedLines = ui->m_aa->isChecked();
 	cfg::highlightObjectBelowCursor = ui->highlightObjectBelowCursor->isChecked();
+	cfg::roundPosition = ui->roundPosition->value();
+	cfg::roundMatrix = ui->roundMatrix->value();
 
 	// Rebuild the quick color toolbar
 	g_win->setQuickColors (quickColors);
