@@ -725,19 +725,16 @@ void openMainFile (String path)
 //
 bool LDDocument::save (String savepath)
 {
+	if (isImplicit())
+		return false;
+
 	if (not savepath.length())
 		savepath = fullPath();
 
-	QFile f (savepath);
-
-	if (not f.open (QIODevice::WriteOnly))
-		return false;
-
 	// If the second object in the list holds the file name, update that now.
-	// Only do this if the file is explicitly open.
 	LDObjectPtr nameObject = getObject (1);
 
-	if (not isImplicit() && nameObject != null && nameObject->type() == LDObject::EComment)
+	if (nameObject != null && nameObject->type() == LDObject::EComment)
 	{
 		LDCommentPtr nameComment = nameObject.staticCast<LDComment>();
 
@@ -749,12 +746,19 @@ bool LDDocument::save (String savepath)
 		}
 	}
 
+	QByteArray data;
+
 	// File is open, now save the model to it. Note that LDraw requires files to
 	// have DOS line endings, so we terminate the lines with \r\n.
 	for (LDObjectPtr obj : objects())
-		f.write ((obj->asText() + "\r\n").toUtf8());
+		data.append ((obj->asText() + "\r\n").toUtf8());
 
-	// File is saved, now clean up.
+	QFile f (savepath);
+
+	if (not f.open (QIODevice::WriteOnly))
+		return false;
+
+	f.write (data);
 	f.close();
 
 	// We have successfully saved, update the save position now.
