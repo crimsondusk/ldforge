@@ -773,33 +773,15 @@ bool LDDocument::save (String savepath)
 
 // =============================================================================
 //
-class LDParseError : public std::exception
-{
-	PROPERTY (private, String,	error,	setError,	STOCK_WRITE)
-	PROPERTY (private, String,	line,	setLine,	STOCK_WRITE)
-
-	public:
-		LDParseError (String line, String a) :
-			m_error (a),
-			m_line (line) {}
-
-		const char* what() const throw()
-		{
-			return qPrintable (error());
-		}
-};
-
-// =============================================================================
-//
-void checkTokenCount (String line, const QStringList& tokens, int num)
+static void checkTokenCount (const QStringList& tokens, int num)
 {
 	if (tokens.size() != num)
-		throw LDParseError (line, format ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
+		throw String (format ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
 }
 
 // =============================================================================
 //
-void checkTokenNumbers (String line, const QStringList& tokens, int min, int max)
+static void checkTokenNumbers (const QStringList& tokens, int min, int max)
 {
 	bool ok;
 
@@ -812,7 +794,7 @@ void checkTokenNumbers (String line, const QStringList& tokens, int min, int max
 
 		if (not ok && not scient.exactMatch (tokens[i]))
 		{
-			throw LDParseError (line, format ("Token #%1 was `%2`, expected a number (matched length: %3)",
+			throw String (format ("Token #%1 was `%2`, expected a number (matched length: %3)",
 				(i + 1), tokens[i], scient.matchedLength()));
 		}
 	}
@@ -845,7 +827,7 @@ LDObjectPtr parseLine (String line)
 		}
 
 		if (tokens[0].length() != 1 || not tokens[0][0].isDigit())
-			throw LDParseError (line, "Illogical line code");
+			throw String ("Illogical line code");
 
 		int num = tokens[0][0].digitValue();
 
@@ -881,8 +863,8 @@ LDObjectPtr parseLine (String line)
 					if (tokens[2] == "VERTEX")
 					{
 						// Vertex (0 !LDFORGE VERTEX)
-						checkTokenCount (line, tokens, 7);
-						checkTokenNumbers (line, tokens, 3, 6);
+						checkTokenCount (tokens, 7);
+						checkTokenNumbers (tokens, 3, 6);
 
 						LDVertexPtr obj = spawn<LDVertex>();
 						obj->setColor (tokens[3].toLong());
@@ -891,8 +873,8 @@ LDObjectPtr parseLine (String line)
 					}
 					elif (tokens[2] == "OVERLAY")
 					{
-						checkTokenCount (line, tokens, 9);
-						checkTokenNumbers (line, tokens, 5, 8);
+						checkTokenCount (tokens, 9);
+						checkTokenNumbers (tokens, 5, 8);
 
 						LDOverlayPtr obj = spawn<LDOverlay>();
 						obj->setFileName (tokens[3]);
@@ -914,8 +896,8 @@ LDObjectPtr parseLine (String line)
 			case 1:
 			{
 				// Subfile
-				checkTokenCount (line, tokens, 15);
-				checkTokenNumbers (line, tokens, 1, 13);
+				checkTokenCount (tokens, 15);
+				checkTokenNumbers (tokens, 1, 13);
 
 				// Try open the file. Disable g_loadingMainFile temporarily since we're
 				// not loading the main file now, but the subfile in question.
@@ -949,8 +931,8 @@ LDObjectPtr parseLine (String line)
 
 			case 2:
 			{
-				checkTokenCount (line, tokens, 8);
-				checkTokenNumbers (line, tokens, 1, 7);
+				checkTokenCount (tokens, 8);
+				checkTokenNumbers (tokens, 1, 7);
 
 				// Line
 				LDLinePtr obj (spawn<LDLine>());
@@ -964,8 +946,8 @@ LDObjectPtr parseLine (String line)
 
 			case 3:
 			{
-				checkTokenCount (line, tokens, 11);
-				checkTokenNumbers (line, tokens, 1, 10);
+				checkTokenCount (tokens, 11);
+				checkTokenNumbers (tokens, 1, 10);
 
 				// Triangle
 				LDTrianglePtr obj (spawn<LDTriangle>());
@@ -980,8 +962,8 @@ LDObjectPtr parseLine (String line)
 			case 4:
 			case 5:
 			{
-				checkTokenCount (line, tokens, 14);
-				checkTokenNumbers (line, tokens, 1, 13);
+				checkTokenCount (tokens, 14);
+				checkTokenNumbers (tokens, 1, 13);
 
 				// Quadrilateral / Conditional line
 				LDObjectPtr obj;
@@ -1000,13 +982,13 @@ LDObjectPtr parseLine (String line)
 			}
 
 			default:
-				throw LDParseError (line, "Unknown line code number");
+				throw String ("Unknown line code number");
 		}
 	}
-	catch (LDParseError& e)
+	catch (String& e)
 	{
 		// Strange line we couldn't parse
-		return spawn<LDError> (e.line(), e.error());
+		return spawn<LDError> (line, e);
 	}
 }
 
