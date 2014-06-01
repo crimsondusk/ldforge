@@ -654,12 +654,50 @@ void LDQuad::invert()
 //
 void LDSubfile::invert()
 {
-	// Subfiles are inverted when they're prefixed with
-	// a BFC INVERTNEXT statement. Thus we need to toggle this status.
-	// For flat primitives it's sufficient that the determinant is
-	// flipped but I don't have a method for checking flatness yet.
-	// Food for thought...
+	// Check whether subfile is flat
+	int axisSet = (1 << X) | (1 << Y) | (1 << Z);
+	LDObjectList objs = inlineContents (true, false);
 
+	for (LDObjectPtr obj : objs)
+	{
+		for (int i = 0; i < obj->numVertices(); ++i)
+		{
+			Vertex const& vrt = obj->vertex (i);
+
+			if (axisSet & (1 << X) && vrt.x() != 0.0)
+				axisSet &= ~(1 << X);
+
+			if (axisSet & (1 << Y) && vrt.y() != 0.0)
+				axisSet &= ~(1 << Y);
+
+			if (axisSet & (1 << Z) && vrt.z() != 0.0)
+				axisSet &= ~(1 << Z);
+		}
+
+		if (axisSet == 0)
+			break;
+	}
+
+	if (axisSet != 0)
+	{
+		// Subfile has all vertices zero on one specific plane, so it is flat.
+		// Let's flip it.
+		Matrix matrixModifier = g_identity;
+
+		if (axisSet & (1 << X))
+			matrixModifier[0] = -1;
+
+		if (axisSet & (1 << Y))
+			matrixModifier[4] = -1;
+
+		if (axisSet & (1 << Z))
+			matrixModifier[8] = -1;
+
+		setTransform (transform() * matrixModifier);
+		return;
+	}
+
+	// Subfile is not flat. Resort to invertnext.
 	int idx = lineNumber();
 
 	if (idx > 0)
