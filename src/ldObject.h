@@ -72,7 +72,6 @@ enum LDObjectType
 	OBJ_Comment,		//	Object represents a	comment
 	OBJ_Error,			//	Object is the result of failed parsing
 	OBJ_Empty,			//	Object represents an empty line
-	OBJ_Unknown,		//	Unknown object type	(some functions return this;	TODO:	they probably should not)
 
 	OBJ_NumTypes,       // Amount of object types
 	OBJ_FirstType = OBJ_Subfile

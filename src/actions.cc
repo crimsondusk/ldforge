@@ -289,24 +289,35 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 		obj->select();
 
 	ui->objectList->selectAll();
+	refresh();
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 {
-	int colnum = getSelectedColor();
+	if (selection().isEmpty())
+		return;
 
-	if (colnum == -1)
-		return; // no consensus on color
+	QList<int> colors;
 
+	for (LDObjectPtr obj : selection())
+	{
+		if (obj->isColored())
+			colors << obj->color();
+	}
+
+	removeDuplicates (colors);
 	getCurrentDocument()->clearSelection();
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
-		if (obj->color() == colnum)
+	{
+		if (colors.contains (obj->color()))
 			obj->select();
+	}
 
 	updateSelection();
+	refresh();
 }
 
 // =============================================================================
@@ -316,38 +327,37 @@ DEFINE_ACTION (SelectByType, 0)
 	if (selection().isEmpty())
 		return;
 
-	LDObjectType type = getUniformSelectedType();
+	QList<LDObjectType> types;
+	QStringList subfilenames;
 
-	if (type == OBJ_Unknown)
-		return;
-
-	// If we're selecting subfile references, the reference filename must also
-	// be uniform.
-	String refName;
-
-	if (type == OBJ_Subfile)
+	for (LDObjectPtr obj : selection())
 	{
-		refName = selection()[0].staticCast<LDSubfile>()->fileInfo()->name();
+		types << obj->type();
 
-		for (LDObjectPtr obj : selection())
-			if (obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
-				return;
+		if (types.last() == OBJ_Subfile)
+			subfilenames << obj.staticCast<LDSubfile>()->fileInfo()->name();
 	}
 
+	removeDuplicates (types);
+	removeDuplicates (subfilenames);
 	getCurrentDocument()->clearSelection();
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (obj->type() != type)
+		LDObjectType type = obj->type();
+
+		if (not types.contains (type))
 			continue;
 
-		if (type == OBJ_Subfile && obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
+		// For subfiles, type check is not enough, we check the name of the document as well.
+		if (type == OBJ_Subfile && not subfilenames.contains (obj.staticCast<LDSubfile>()->fileInfo()->name()))
 			continue;
 
 		obj->select();
 	}
 
 	updateSelection();
+	refresh();
 }
 
 // =============================================================================

@@ -69,6 +69,7 @@
 !	- Moved the uncolorize action into the color toolbar, replacing Main and Edge colors there.
 !	- Changed `<anonymous>` to `untitled`.
 !	- Grids now have a single coordinate snap value instead of individual X, Y and Z values.
+!	- Select by color and type now consider an object matching if one of the color/types match. The color/type of the existing selection does not need to be uniform anymore.
 
 
 

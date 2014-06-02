@@ -54,7 +54,7 @@ static int copyToClipboard()
 
 	for (LDObjectPtr obj : objs)
 	{
-		if (data.length() > 0)
+		if (not data.isEmpty())
 			data += "\n";
 
 		data += obj->asText();
@@ -160,10 +160,9 @@ DEFINE_ACTION (InlineDeep, CTRL_SHIFT (I))
 //
 DEFINE_ACTION (SplitQuads, 0)
 {
-	LDObjectList objs = selection();
 	int num = 0;
 
-	for (LDObjectPtr obj : objs)
+	for (LDObjectPtr obj : selection())
 	{
 		if (obj->type() != OBJ_Quad)
 			continue;
@@ -239,10 +238,8 @@ DEFINE_ACTION (SetColor, KEY (C))
 	{
 		for (LDObjectPtr obj : objs)
 		{
-			if (not obj->isColored())
-				continue;
-
-			obj->setColor (colnum);
+			if (obj->isColored())
+				obj->setColor (colnum);
 		}
 
 		refresh();
@@ -407,9 +404,7 @@ DEFINE_ACTION (MoveZPos, KEY (Up))
 //
 DEFINE_ACTION (Invert, CTRL_SHIFT (W))
 {
-	LDObjectList sel = selection();
-
-	for (LDObjectPtr obj : sel)
+	for (LDObjectPtr obj : selection())
 		obj->invert();
 
 	refresh();

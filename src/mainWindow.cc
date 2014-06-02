@@ -599,24 +599,6 @@ int MainWindow::getSelectedColor()
 
 // =============================================================================
 //
-LDObjectType MainWindow::getUniformSelectedType()
-{
-	LDObjectType result = OBJ_Unknown;
-
-	for (LDObjectPtr obj : selection())
-	{
-		if (result != OBJ_Unknown && obj->color() != result)
-			return OBJ_Unknown;
-
-		if (result == OBJ_Unknown)
-			result = obj->type();
-	}
-
-	return result;
-}
-
-// =============================================================================
-//
 void MainWindow::closeEvent (QCloseEvent* ev)
 {
 	// Check whether it's safe to close all files.

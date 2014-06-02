@@ -606,11 +606,10 @@ LDObjectPtr LDObject::getDefault (const LDObjectType type)
 		case OBJ_Subfile:		return spawn<LDSubfile>();
 		case OBJ_Triangle:		return spawn<LDTriangle>();
 		case OBJ_Quad:			return spawn<LDQuad>();
-		case OBJ_Empty:		return spawn<LDEmpty>();
-		case OBJ_Error:		return spawn<LDError>();
+		case OBJ_Empty:			return spawn<LDEmpty>();
+		case OBJ_Error:			return spawn<LDError>();
 		case OBJ_Vertex:		return spawn<LDVertex>();
 		case OBJ_Overlay:		return spawn<LDOverlay>();
-		case OBJ_Unknown:	assert (false);
 		case OBJ_NumTypes:		assert (false);
 	}
 	return LDObjectPtr();
