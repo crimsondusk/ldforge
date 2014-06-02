@@ -47,6 +47,18 @@ class StringFormatArg
 		}
 
 		template<typename T>
+		StringFormatArg (QSharedPointer<T> const& a)
+		{
+			m_text.sprintf ("%p", a.data());
+		}
+
+		template<typename T>
+		StringFormatArg (QWeakPointer<T> const& a)
+		{
+			m_text.sprintf ("%p", a.data());
+		}
+
+		template<typename T>
 		StringFormatArg (const QList<T>& a)
 		{
 			m_text = "{";

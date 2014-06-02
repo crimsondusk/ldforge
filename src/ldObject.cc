@@ -32,7 +32,7 @@ CFGENTRY (String, defaultUser, "");
 CFGENTRY (Int, defaultLicense, 0);
 
 // List of all LDObjects
-static QMap<long, LDObjectWeakPtr>	g_allObjects;
+QMap<long, LDObjectWeakPtr>	g_allObjects;
 static int32						g_idcursor = 1; // 0 shalt be null
 static constexpr int32				g_maxID = (1 << 24);
 
@@ -47,7 +47,6 @@ LDObject::LDObject (LDObjectPtr* selfptr) :
 	m_isHidden (false),
 	m_isSelected (false),
 	m_isDestructed (false),
-	m_document (null),
 	qObjListEntry (null)
 {
 	*selfptr = LDObjectPtr (this, [](LDObject* obj){ obj->finalDelete(); });
@@ -242,7 +241,7 @@ void LDObject::replace (LDObjectPtr other)
 	assert (idx != -1);
 
 	// Replace the instance of the old object with the new object
-	document()->setObject (idx, other);
+	document().toStrongRef()->setObject (idx, other);
 
 	// Remove the old object
 	destroy();
@@ -253,7 +252,7 @@ void LDObject::replace (LDObjectPtr other)
 void LDObject::swap (LDObjectPtr other)
 {
 	assert (document() == other->document());
-	document()->swapObjects (self(), other);
+	document().toStrongRef()->swapObjects (self(), other);
 }
 
 // =============================================================================
@@ -302,8 +301,8 @@ void LDObject::destroy()
 		deselect();
 
 	// If this object was associated to a file, remove it off it now
-	if (document())
-		document()->forgetObject (self());
+	if (document() != null)
+		document().toStrongRef()->forgetObject (self());
 
 	// Delete the GL lists
 	g_win->R()->forgetObject (self());
@@ -424,8 +423,8 @@ long LDObject::lineNumber() const
 {
 	assert (document() != null);
 
-	for (int i = 0; i < document()->getObjectCount(); ++i)
-		if (document()->getObject (i) == this)
+	for (int i = 0; i < document().toStrongRef()->getObjectCount(); ++i)
+		if (document().toStrongRef()->getObject (i) == this)
 			return i;
 
 	return -1;
@@ -443,7 +442,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 	const long end = up ? objs.size() : -1;
 	const long incr = up ? 1 : -1;
 	LDObjectList objsToCompile;
-	LDDocument* file = objs[0]->document();
+	LDDocumentPtr file = objs[0]->document();
 
 	for (long i = start; i != end; i += incr)
 	{
@@ -539,10 +538,10 @@ LDObjectPtr LDObject::next() const
 	long idx = lineNumber();
 	assert (idx != -1);
 
-	if (idx == (long) document()->getObjectCount() - 1)
+	if (idx == (long) document().toStrongRef()->getObjectCount() - 1)
 		return LDObjectPtr();
 
-	return document()->getObject (idx + 1);
+	return document().toStrongRef()->getObject (idx + 1);
 }
 
 // =============================================================================
@@ -555,7 +554,7 @@ LDObjectPtr LDObject::previous() const
 	if (idx == 0)
 		return LDObjectPtr();
 
-	return document()->getObject (idx - 1);
+	return document().toStrongRef()->getObject (idx - 1);
 }
 
 // =============================================================================
@@ -654,6 +653,9 @@ void LDQuad::invert()
 //
 void LDSubfile::invert()
 {
+	if (document() == null)
+		return;
+
 	// Check whether subfile is flat
 	int axisSet = (1 << X) | (1 << Y) | (1 << Z);
 	LDObjectList objs = inlineContents (true, false);
@@ -713,7 +715,7 @@ void LDSubfile::invert()
 	}
 
 	// Not inverted, thus prefix it with a new invertnext.
-	document()->insertObj (idx, spawn<LDBFC> (LDBFC::InvertNext));
+	document().toStrongRef()->insertObj (idx, spawn<LDBFC> (LDBFC::InvertNext));
 }
 
 // =============================================================================
@@ -798,7 +800,7 @@ static void changeProperty (LDObjectPtr obj, T* ptr, const T& val)
 
 		if (before != after)
 		{
-			obj->document()->addToHistory (new EditHistory (idx, before, after));
+			obj->document().toStrongRef()->addToHistory (new EditHistory (idx, before, after));
 			g_win->R()->compileObject (obj);
 		}
 	}
@@ -825,7 +827,7 @@ const Vertex& LDObject::vertex (int i) const
 void LDObject::setVertex (int i, const Vertex& vert)
 {
 	if (document() != null)
-		document()->vertexChanged (*m_coords[i], vert);
+		document().toStrongRef()->vertexChanged (*m_coords[i], vert);
 
 	changeProperty (self(), &m_coords[i], LDSharedVertex::getSharedVertex (vert));
 }
@@ -837,12 +839,12 @@ void LDMatrixObject::setPosition (const Vertex& a)
 	LDObjectPtr ref = linkPointer().toStrongRef();
 
 	if (ref->document() != null)
-		ref->document()->removeKnownVerticesOf (ref);
+		ref->document().toStrongRef()->removeKnownVerticesOf (ref);
 
 	changeProperty (ref, &m_position, LDSharedVertex::getSharedVertex (a));
 
 	if (ref->document() != null)
-		ref->document()->addKnownVerticesOf (ref);
+		ref->document().toStrongRef()->addKnownVerticesOf (ref);
 }
 
 // =============================================================================
@@ -852,12 +854,12 @@ void LDMatrixObject::setTransform (const Matrix& val)
 	LDObjectPtr ref = linkPointer().toStrongRef();
 
 	if (ref->document() != null)
-		ref->document()->removeKnownVerticesOf (ref);
+		ref->document().toStrongRef()->removeKnownVerticesOf (ref);
 
 	changeProperty (ref, &m_transform, val);
 
 	if (ref->document() != null)
-		ref->document()->addKnownVerticesOf (ref);
+		ref->document().toStrongRef()->addKnownVerticesOf (ref);
 }
 
 // =============================================================================
@@ -903,7 +905,7 @@ void LDSharedVertex::delRef (LDObjectPtr a)
 void LDObject::select()
 {
 	assert (document() != null);
-	document()->addToSelection (self());
+	document().toStrongRef()->addToSelection (self());
 
 	// If this object is inverted with INVERTNEXT, pick the INVERTNEXT as well.
 	LDBFCPtr invertnext;
@@ -917,7 +919,7 @@ void LDObject::select()
 void LDObject::deselect()
 {
 	assert (document() != null);
-	document()->removeFromSelection (self());
+	document().toStrongRef()->removeFromSelection (self());
 
 	// If this object is inverted with INVERTNEXT, deselect the INVERTNEXT as well.
 	LDBFCPtr invertnext;
@@ -956,10 +958,10 @@ LDObjectPtr LDObject::createCopy() const
 
 // =============================================================================
 //
-void LDSubfile::setFileInfo (const LDDocumentPointer& a)
+void LDSubfile::setFileInfo (const LDDocumentPtr& a)
 {
 	if (document() != null)
-		document()->removeKnownVerticesOf (self());
+		document().toStrongRef()->removeKnownVerticesOf (self());
 
 	m_fileInfo = a;
 
@@ -974,5 +976,5 @@ void LDSubfile::setFileInfo (const LDDocumentPointer& a)
 	}
 
 	if (document() != null)
-		document()->addKnownVerticesOf (self());
+		document().toStrongRef()->addKnownVerticesOf (self());
 };

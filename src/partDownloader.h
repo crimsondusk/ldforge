@@ -20,6 +20,7 @@
 #include <QDialog>
 #include "main.h"
 #include "basics.h"
+#include "ldDocument.h"
 
 class LDDocument;
 class QFile;
@@ -57,7 +58,7 @@ class PartDownloader : public QDialog
 		using RequestList = QList<PartDownloadRequest*>;
 
 		Q_OBJECT
-		PROPERTY (public,	LDDocument*, 		primaryFile,		setPrimaryFile,		STOCK_WRITE)
+		PROPERTY (public,	LDDocumentPtr, 		primaryFile,		setPrimaryFile,		STOCK_WRITE)
 		PROPERTY (public,	bool,				isAborted,			setAborted,			STOCK_WRITE)
 		PROPERTY (private,	Ui_DownloadFrom*,	interface,			setInterface,		STOCK_WRITE)
 		PROPERTY (private,	QStringList,		filesToDownload,	setFilesToDownload,	STOCK_WRITE)

@@ -121,10 +121,10 @@ class PrimitivePrompt : public QDialog
 };
 
 void makeCircle (int segs, int divs, double radius, QList<QLineF>& lines);
-LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num);
+LDDocumentPtr generatePrimitive (PrimitiveType type, int segs, int divs, int num);
 
 // Gets a primitive by the given specs. If the primitive cannot be found, it will
 // be automatically generated.
-LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num);
+LDDocumentPtr getPrimitive (PrimitiveType type, int segs, int divs, int num);
 
 QString radialFileName (PrimitiveType type, int segs, int divs, int num);

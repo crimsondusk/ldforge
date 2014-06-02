@@ -25,7 +25,6 @@
 #include "dialogs.h"
 #include "ldDocument.h"
 #include "ui_rotpoint.h"
-#include "misc/documentPointer.cc"
 #include "misc/ringFinder.cc"
 #include "misc/invokeLater.cc"
 

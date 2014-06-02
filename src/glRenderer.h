@@ -143,7 +143,7 @@ class GLRenderer : public QGLWidget
 		PROPERTY (public,	bool,				isDrawOnly,		setDrawOnly,		STOCK_WRITE)
 		PROPERTY (public,	MessageManager*,	messageLog, 	setMessageLog,		STOCK_WRITE)
 		PROPERTY (private,	bool,				isPicking,		setPicking,			CUSTOM_WRITE)
-		PROPERTY (public,	LDDocument*,		document,		setDocument,		CUSTOM_WRITE)
+		PROPERTY (public,	LDDocumentPtr,		document,		setDocument,		CUSTOM_WRITE)
 		PROPERTY (public,	EditMode,			editMode,		setEditMode,		CUSTOM_WRITE)
 		PROPERTY (private,	GLCompiler*,		compiler,		setCompiler,		STOCK_WRITE)
 		PROPERTY (public,	LDObjectWeakPtr,	objectAtCursor,	setObjectAtCursor,	STOCK_WRITE)

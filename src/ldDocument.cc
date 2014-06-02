@@ -41,10 +41,11 @@ EXTERN_CFGENTRY (Bool,		useLogoStuds)
 static bool g_loadingMainFile = false;
 static const int g_maxRecentFiles = 10;
 static bool g_aborted = false;
-static LDDocumentPointer g_logoedStud = null;
-static LDDocumentPointer g_logoedStud2 = null;
-
-LDDocument* LDDocument::m_curdoc = null;
+static LDDocumentPtr g_logoedStud;
+static LDDocumentPtr g_logoedStud2;
+static QList<LDDocumentWeakPtr> g_allDocuments;
+static QList<LDDocumentPtr> g_explicitDocuments;
+static LDDocumentPtr g_currentDocument;
 
 const QStringList g_specialSubdirectories ({ "s", "48", "8" });
 
@@ -123,75 +124,98 @@ namespace LDPaths
 
 // =============================================================================
 //
-LDDocument::LDDocument() :
+LDDocument::LDDocument (LDDocumentPtr* selfptr) :
+	m_isImplicit (true),
 	m_flags (0),
 	m_gldata (new LDGLData)
 {
-	setImplicit (true);
+	*selfptr = LDDocumentPtr (this);
+	setSelf (*selfptr);
 	setSavePosition (-1);
 	setTabIndex (-1);
 	setHistory (new History);
-	history()->setDocument (this);
+	history()->setDocument (*selfptr);
 	m_needsReCache = true;
+	g_allDocuments << *selfptr;
+}
+
+// =============================================================================
+//
+LDDocumentPtr LDDocument::createNew()
+{
+	LDDocumentPtr ptr;
+	new LDDocument (&ptr);
+	return ptr;
 }
 
 // =============================================================================
 //
 LDDocument::~LDDocument()
 {
-	// Remove this file from the list of files. This MUST be done FIRST, otherwise
-	// a ton of other functions will think this file is still valid when it is not!
-	g_loadedFiles.removeOne (this);
+	print ("Deleted %1", getDisplayName());
+	g_allDocuments.removeOne (self());
 	m_flags |= DOCF_IsBeingDestroyed;
-	m_history->setIgnoring (true);
-
-	// Clear everything from the model
-	for (LDObjectPtr obj : objects())
-		obj->destroy();
-
-	delete history();
+	delete m_history;
 	delete m_gldata;
-
-	// If we just closed the current file, we need to set the current
-	// file as something else.
-	if (this == getCurrentDocument())
-	{
-		bool found = false;
-
-		// Try find an explicitly loaded file - if we can't find one,
-		// we need to create a new file to switch to.
-		for (LDDocument* file : g_loadedFiles)
-		{
-			if (not file->isImplicit())
-			{
-				LDDocument::setCurrent (file);
-				found = true;
-				break;
-			}
-		}
-
-		if (not found)
-			newFile();
-	}
-
-	if (this == g_logoedStud)
-		g_logoedStud = null;
-	elif (this == g_logoedStud2)
-		g_logoedStud2 = null;
-
-	g_win->updateDocumentList();
-	print ("Closed %1", name());
 }
 
 // =============================================================================
 //
-LDDocument* findDocument (String name)
+extern QMap<long, LDObjectWeakPtr>	g_allObjects;
+void LDDocument::setImplicit (bool const& a)
 {
-	for (LDDocument * file : g_loadedFiles)
-		if (not file->name().isEmpty() && file->name() == name)
-			return file;
+	if (m_isImplicit != a)
+	{
+		m_isImplicit = a;
 
-	return null;
+		if (a == false)
+			g_explicitDocuments << self().toStrongRef();
+		else
+		{
+			g_explicitDocuments.removeOne (self().toStrongRef());
+			print ("Closed %1", name());
+			int count = 0;
+			for (LDObjectPtr obj : g_allObjects)
+			{
+				LDSubfilePtr ref = obj.dynamicCast<LDSubfile>();
+				if (ref && ref->fileInfo() == self())
+					count++;
+			}
+		}
+
+		if (g_win != null)
+			g_win->updateDocumentList();
+
+		// If the current document just became implicit (e.g. it was 'closed'),
+		// we need to get a new current document.
+		if (current() == self() && isImplicit())
+		{
+			if (explicitDocuments().isEmpty())
+				newFile();
+			else
+				setCurrent (explicitDocuments().first());
+		}
+	}
+}
+
+// =============================================================================
+//
+QList<LDDocumentPtr> const& LDDocument::explicitDocuments()
+{
+	return g_explicitDocuments;
+}
+
+// =============================================================================
+//
+LDDocumentPtr findDocument (String name)
+{
+	for (LDDocumentPtr file : g_allDocuments)
+	{
+		if (file->name() == name)
+			return file;
+	}
+
+	return LDDocumentPtr();
 }
 
 // =============================================================================
@@ -240,7 +264,7 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 	// in the immediate vicinity of a current model to override stock LDraw stuff.
 	String reltop = basename (dirname (relpath));
 
-	for (LDDocument* doc : g_loadedFiles)
+	for (LDDocumentPtr doc : g_allDocuments)
 	{
 		if (doc->fullPath().isEmpty())
 			continue;
@@ -298,6 +322,8 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 	return "";
 }
 
+// =============================================================================
+//
 QFile* openLDrawFile (String relpath, bool subdirs, String* pathpointer)
 {
 	print ("Opening %1...\n", relpath);
@@ -467,12 +493,13 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 		*ok = not loader->isAborted();
 
 	objs = loader->objects();
+	delete loader;
 	return objs;
 }
 
 // =============================================================================
 //
-LDDocument* openDocument (String path, bool search, bool implicit)
+LDDocumentPtr openDocument (String path, bool search, bool implicit, LDDocumentPtr fileToOverride)
 {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
@@ -490,21 +517,19 @@ LDDocument* openDocument (String path, bool search, bool implicit)
 		if (not fp->open (QIODevice::ReadOnly))
 		{
 			delete fp;
-			return null;
+			return LDDocumentPtr();
 		}
 	}
 
 	if (not fp)
-		return null;
+		return LDDocumentPtr();
 
-	LDDocument* load = new LDDocument;
+	LDDocumentPtr load = (fileToOverride != null ? fileToOverride : LDDocument::createNew());
 	load->setImplicit (implicit);
 	load->setFullPath (fullpath);
 	load->setName (LDDocument::shortenName (load->fullPath()));
-	dprint ("name: %1 (%2)", load->name(), load->fullPath());
-	g_loadedFiles << load;
 
-	// Don't take the file loading as actual edits to the file
+	// Loading the file shouldn't count as actual edits to the document.
 	load->history()->setIgnoring (true);
 
 	int numWarnings;
@@ -515,9 +540,8 @@ LDDocument* openDocument (String path, bool search, bool implicit)
 
 	if (not ok)
 	{
-		g_loadedFiles.removeOne (load);
-		delete load;
-		return null;
+		load->dismiss();
+		return LDDocumentPtr();
 	}
 
 	load->addObjects (objs);
@@ -593,11 +617,8 @@ bool LDDocument::isSafeToClose()
 //
 void closeAll()
 {
-	// Remove all loaded files and the objects they contain
-	QList<LDDocument*> files = g_loadedFiles;
-
-	for (LDDocument* file : files)
-		delete file;
+	for (LDDocumentPtr file : g_explicitDocuments)
+		file->dismiss();
 }
 
 // =============================================================================
@@ -605,10 +626,9 @@ void closeAll()
 void newFile()
 {
 	// Create a new anonymous file and set it to our current
-	LDDocument* f = new LDDocument;
+	LDDocumentPtr f = LDDocument::createNew();
 	f->setName ("");
 	f->setImplicit (false);
-	g_loadedFiles << f;
 	LDDocument::setCurrent (f);
 	LDDocument::closeInitialFile();
 	g_win->R()->setDocument (f);
@@ -650,15 +670,14 @@ void addRecentFile (String path)
 // =============================================================================
 void openMainFile (String path)
 {
-	g_loadingMainFile = true;
-
 	// If there's already a file with the same name, this file must replace it.
-	LDDocument* documentToReplace = null;
+	LDDocumentPtr documentToReplace;
+	LDDocumentPtr file;
 	String shortName = LDDocument::shortenName (path);
 
-	for (LDDocument* doc : g_loadedFiles)
+	for (LDDocumentWeakPtr doc : g_allDocuments)
 	{
-		if (doc->name() == shortName)
+		if (doc.toStrongRef()->name() == shortName)
 		{
 			documentToReplace = doc;
 			break;
@@ -668,19 +687,22 @@ void openMainFile (String path)
 	// We cannot open this file if the document this would replace is not
 	// safe to close.
 	if (documentToReplace != null && not documentToReplace->isSafeToClose())
-	{
-		g_loadingMainFile = false;
 		return;
+
+	g_loadingMainFile = true;
+
+	// If we're replacing an existing document, clear the document and
+	// make it ready for being loaded to.
+	if (documentToReplace != null)
+	{
+		file = documentToReplace;
+		file->clear();
 	}
 
-	LDDocument* file = openDocument (path, false, false);
+	file = openDocument (path, false, false, file);
 
-	if (not file)
+	if (file == null)
 	{
-		// Loading failed, thus drop down to a new file since we
-		// closed everything prior.
-		newFile();
-
 		if (not g_aborted)
 		{
 			// Tell the user loading failed.
@@ -693,20 +715,6 @@ void openMainFile (String path)
 	}
 
 	file->setImplicit (false);
-
-	// Replace references to the old file with the new file.
-	if (documentToReplace != null)
-	{
-		for (LDDocumentPointer* ptr : documentToReplace->references())
-		{	dprint ("ptr: %1 (%2)\n",
-				ptr, ptr->pointer() ? ptr->pointer()->name() : "<null>");
-
-			*ptr = file;
-		}
-
-		assert (documentToReplace->references().isEmpty());
-		delete documentToReplace;
-	}
 
 	// If we have an anonymous, unchanged file open as the only open file
 	// (aside of the one we just opened), close it now.
@@ -766,9 +774,17 @@ bool LDDocument::save (String savepath)
 	setFullPath (savepath);
 	setName (shortenName (savepath));
 
-	g_win->updateDocumentListItem (this);
+	g_win->updateDocumentListItem (self().toStrongRef());
 	g_win->updateTitle();
 	return true;
+}
+
+// =============================================================================
+//
+void LDDocument::clear()
+{
+	for (LDObjectPtr obj : objects())
+		forgetObject (obj);
 }
 
 // =============================================================================
@@ -903,7 +919,7 @@ LDObjectPtr parseLine (String line)
 				// not loading the main file now, but the subfile in question.
 				bool tmp = g_loadingMainFile;
 				g_loadingMainFile = false;
-				LDDocument* load = getDocument (tokens[14]);
+				LDDocumentPtr load = getDocument (tokens[14]);
 				g_loadingMainFile = tmp;
 
 				// If we cannot open the file, mark it an error. Note we cannot use LDParseError
@@ -994,10 +1010,10 @@ LDObjectPtr parseLine (String line)
 
 // =============================================================================
 //
-LDDocument* getDocument (String filename)
+LDDocumentPtr getDocument (String filename)
 {
 	// Try find the file in the list of loaded files
-	LDDocument* doc = findDocument (filename);
+	LDDocumentPtr doc = findDocument (filename);
 
 	// If it's not loaded, try open it
 	if (not doc)
@@ -1013,16 +1029,13 @@ void reloadAllSubfiles()
 	if (not getCurrentDocument())
 		return;
 
-	g_loadedFiles.clear();
-	g_loadedFiles << getCurrentDocument();
-
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
 		if (obj->type() == LDObject::ESubfile)
 		{
 			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
-			LDDocument* fileInfo = getDocument (ref->fileInfo()->name());
+			LDDocumentPtr fileInfo = getDocument (ref->fileInfo()->name());
 
 			if (fileInfo)
 				ref->setFileInfo (fileInfo);
@@ -1143,7 +1156,7 @@ void LDDocument::forgetObject (LDObjectPtr obj)
 	}
 
 	m_objects.removeAt (idx);
-	obj->setDocument (null);
+	obj->setDocument (LDDocumentPtr());
 }
 
 // =============================================================================
@@ -1188,9 +1201,11 @@ void LDDocument::removeKnownVertexReference (const Vertex& a)
 //
 bool safeToCloseAll()
 {
-	for (LDDocument* f : g_loadedFiles)
+	for (LDDocumentPtr f : LDDocument::explicitDocuments())
+	{
 		if (not f->isSafeToClose())
 			return false;
+	}
 
 	return true;
 }
@@ -1211,7 +1226,7 @@ void LDDocument::setObject (int idx, LDObjectPtr obj)
 
 	removeKnownVerticesOf (m_objects[idx]);
 	m_objects[idx]->deselect();
-	m_objects[idx]->setDocument (null);
+	m_objects[idx]->setDocument (LDDocumentPtr());
 	obj->setDocument (this);
 	addKnownVerticesOf (obj);
 	g_win->R()->compileObject (obj);
@@ -1222,16 +1237,7 @@ void LDDocument::setObject (int idx, LDObjectPtr obj)
 //
 // Close all documents we don't need anymore
 //
-void LDDocument::closeUnused()
-{
-	for (int i = 0; i < g_loadedFiles.size(); ++i)
-	{
-		LDDocument* file = g_loadedFiles[i];
-
-		if (file->isImplicit() && file->references().isEmpty())
-			delete g_loadedFiles[i--];
-	}
-}
+void LDDocument::closeUnused() {}
 
 // =============================================================================
 //
@@ -1254,7 +1260,7 @@ int LDDocument::getObjectCount() const
 //
 bool LDDocument::hasUnsavedChanges() const
 {
-	return !isImplicit() && history()->position() != savePosition();
+	return not isImplicit() && history()->position() != savePosition();
 }
 
 // =============================================================================
@@ -1277,10 +1283,9 @@ void LDDocument::initializeCachedData()
 	if (not m_needsReCache)
 		return;
 
-	LDObjectList objs = inlineContents (true, true);
 	m_storedVertices.clear();
 
-	for (LDObjectPtr obj : objs)
+	for (LDObjectPtr obj : inlineContents (true, true))
 	{
 		assert (obj->type() != LDObject::ESubfile);
 		LDPolygon* data = obj->getPolygon();
@@ -1293,8 +1298,6 @@ void LDDocument::initializeCachedData()
 
 		for (int i = 0; i < obj->numVertices(); ++i)
 			m_storedVertices << obj->vertex (i);
-
-		obj->destroy();
 	}
 
 	removeDuplicates (m_storedVertices);
@@ -1339,10 +1342,7 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 		// just add it into the objects normally. Yay, recursion!
 		if (deep == true && obj->type() == LDObject::ESubfile)
 		{
-			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
-			LDObjectList otherobjs = ref->inlineContents (deep, renderinline);
-
-			for (LDObjectPtr otherobj : otherobjs)
+			for (LDObjectPtr otherobj : obj.staticCast<LDSubfile>()->inlineContents (deep, renderinline))
 				objs << otherobj;
 		}
 		else
@@ -1354,9 +1354,9 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 
 // =============================================================================
 //
-LDDocument* LDDocument::current()
+LDDocumentPtr LDDocument::current()
 {
-	return m_curdoc;
+	return g_currentDocument;
 }
 
 // =============================================================================
@@ -1365,14 +1365,14 @@ LDDocument* LDDocument::current()
 //
 // TODO: f can be temporarily null. This probably should not be the case.
 // =============================================================================
-void LDDocument::setCurrent (LDDocument* f)
+void LDDocument::setCurrent (LDDocumentPtr f)
 {
 	// Implicit files were loaded for caching purposes and must never be set
 	// current.
-	if (f && f->isImplicit())
+	if (f != null && f->isImplicit())
 		return;
 
-	m_curdoc = f;
+	g_currentDocument = f;
 
 	if (g_win && f)
 	{
@@ -1390,15 +1390,7 @@ void LDDocument::setCurrent (LDDocument* f)
 //
 int LDDocument::countExplicitFiles()
 {
-	int count = 0;
-
-	for (LDDocument* f : g_loadedFiles)
-	{
-		if (not f->isImplicit())
-			++count;
-	}
-
-	return count;
+	return g_explicitDocuments.size();
 }
 
 // =============================================================================
@@ -1407,12 +1399,12 @@ int LDDocument::countExplicitFiles()
 // =============================================================================
 void LDDocument::closeInitialFile()
 {
-	if (countExplicitFiles() == 2 &&
-		g_loadedFiles[0]->name().isEmpty() &&
-		not g_loadedFiles[1]->name().isEmpty() &&
-		not g_loadedFiles[0]->hasUnsavedChanges())
+	if (g_explicitDocuments.size() == 2 &&
+		g_explicitDocuments[0]->name().isEmpty() &&
+		not g_explicitDocuments[1]->name().isEmpty() &&
+		not g_explicitDocuments[0]->hasUnsavedChanges())
 	{
-		delete g_loadedFiles[0];
+		g_explicitDocuments[0]->dismiss();
 	}
 }
 
@@ -1422,9 +1414,6 @@ void loadLogoedStuds()
 {
 	if (g_logoedStud && g_logoedStud2)
 		return;
-
-	delete g_logoedStud;
-	delete g_logoedStud2;
 
 	g_logoedStud = openDocument ("stud-logo.dat", true, true);
 	g_logoedStud2 = openDocument ("stud2-logo.dat", true, true);
@@ -1439,7 +1428,7 @@ void LDDocument::addToSelection (LDObjectPtr obj) // [protected]
 	if (obj->isSelected())
 		return;
 
-	assert (obj->document() == this);
+	assert (obj->document() == self());
 	m_sel << obj;
 	g_win->R()->compileObject (obj);
 	obj->setSelected (true);
@@ -1452,7 +1441,7 @@ void LDDocument::removeFromSelection (LDObjectPtr obj) // [protected]
 	if (not obj->isSelected())
 		return;
 
-	assert (obj->document() == this);
+	assert (obj->document() == self());
 	m_sel.removeOne (obj);
 	g_win->R()->compileObject (obj);
 	obj->setSelected (false);
@@ -1498,23 +1487,6 @@ String LDDocument::shortenName (String a) // [static]
 		shortname.prepend (topdirname + "\\");
 
 	return shortname;
-}
-
-// =============================================================================
-//
-void LDDocument::addReference (LDDocumentPointer* ptr)
-{
-	m_references << ptr;
-}
-
-// =============================================================================
-//
-void LDDocument::removeReference (LDDocumentPointer* ptr)
-{
-	m_references.removeOne (ptr);
-
-	if (references().isEmpty())
-		invokeLater (closeUnused);
 }
 
 // =============================================================================

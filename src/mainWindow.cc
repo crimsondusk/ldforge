@@ -724,7 +724,7 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 
 // =============================================================================
 //
-bool MainWindow::save (LDDocument* doc, bool saveAs)
+bool MainWindow::save (LDDocumentPtr doc, bool saveAs)
 {
 	String path = doc->fullPath();
 
@@ -889,12 +889,8 @@ void MainWindow::updateDocumentList()
 	while (m_tabs->count() > 0)
 		m_tabs->removeTab (0);
 
-	for (LDDocument* f : g_loadedFiles)
+	for (LDDocumentPtr f : LDDocument::explicitDocuments())
 	{
-		// Don't list implicit files unless explicitly desired.
-		if (f->isImplicit() && not cfg::listImplicitFiles)
-			continue;
-
 		// Add an item to the list for this file and store the tab index
 		// in the document so we can find documents by tab index.
 		f->setTabIndex (m_tabs->addTab (""));
@@ -906,7 +902,7 @@ void MainWindow::updateDocumentList()
 
 // =============================================================================
 //
-void MainWindow::updateDocumentListItem (LDDocument* doc)
+void MainWindow::updateDocumentListItem (LDDocumentPtr doc)
 {
 	bool oldUpdatingTabs = m_updatingTabs;
 	m_updatingTabs = true;
@@ -941,11 +937,11 @@ void MainWindow::changeCurrentFile()
 	if (m_updatingTabs)
 		return;
 
-	LDDocument* f = null;
+	LDDocumentPtr f;
 	int tabIndex = m_tabs->currentIndex();
 
 	// Find the file pointer of the item that was selected.
-	for (LDDocument* it : g_loadedFiles)
+	for (LDDocumentPtr it : LDDocument::explicitDocuments())
 	{
 		if (it->tabIndex() == tabIndex)
 		{
@@ -968,7 +964,7 @@ void MainWindow::refreshObjectList()
 {
 #if 0
 	ui->objectList->clear();
-	LDDocument* f = getCurrentDocument();
+	LDDocumentPtr f = getCurrentDocument();
 
 for (LDObjectPtr obj : *f)
 		ui->objectList->addItem (obj->qObjListEntry);

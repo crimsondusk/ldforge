@@ -410,7 +410,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
 			if (name.length() == 0)
 				return; // no subfile filename
 
-			LDDocument* file = getDocument (name);
+			LDDocumentPtr file = getDocument (name);
 
 			if (not file)
 			{

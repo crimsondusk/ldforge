@@ -213,7 +213,7 @@ void PartDownloader::buttonClicked (QAbstractButton* btn)
 	elif (btn == getButton (Download))
 	{
 		QString dest = interface()->fname->text();
-		setPrimaryFile (null);
+		setPrimaryFile (LDDocumentPtr());
 		setAborted (false);
 
 		if (getSource() == CustomURL)
@@ -446,7 +446,7 @@ void PartDownloadRequest::downloadFinished()
 	}
 
 	// Try to load this file now.
-	LDDocument* f = openDocument (filePath(), false, not isPrimary());
+	LDDocumentPtr f = openDocument (filePath(), false, not isPrimary());
 
 	if (f == null)
 		return;

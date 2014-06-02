@@ -73,7 +73,7 @@ class LDObject
 	PROPERTY (public,		bool,				isSelected,		setSelected,	STOCK_WRITE)
 	PROPERTY (public,		bool,				isDestructed,	setDestructed,	STOCK_WRITE)
 	PROPERTY (public,		LDObjectWeakPtr,	parent,			setParent,		STOCK_WRITE)
-	PROPERTY (public,		LDDocument*,		document,		setDocument,	STOCK_WRITE)
+	PROPERTY (public,		LDDocumentWeakPtr,	document,		setDocument,	STOCK_WRITE)
 	PROPERTY (private,		int32,				id,				setID,			STOCK_WRITE)
 	PROPERTY (public,		int,				color,			setColor,		CUSTOM_WRITE)
 	PROPERTY (private,		QColor,				randomColor,	setRandomColor,	STOCK_WRITE)
@@ -447,7 +447,7 @@ class LDSubfile : public LDObject, public LDMatrixObject
 	LDOBJ_COLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
-	PROPERTY (public, LDDocumentPointer, fileInfo, setFileInfo, CUSTOM_WRITE)
+	PROPERTY (public, LDDocumentPtr, fileInfo, setFileInfo, CUSTOM_WRITE)
 
 	public:
 		enum InlineFlag

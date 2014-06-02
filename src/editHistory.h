@@ -40,9 +40,9 @@ class AbstractHistoryEntry;
 // =============================================================================
 class History
 {
-	PROPERTY (private,	int,			position,	setPosition,	STOCK_WRITE)
-	PROPERTY (public,	LDDocument*,	document,	setDocument,	STOCK_WRITE)
-	PROPERTY (public,	bool,			isIgnoring,	setIgnoring,	STOCK_WRITE)
+	PROPERTY (private,	int,				position,	setPosition,	STOCK_WRITE)
+	PROPERTY (public,	LDDocumentWeakPtr,	document,	setDocument,	STOCK_WRITE)
+	PROPERTY (public,	bool,				isIgnoring,	setIgnoring,	STOCK_WRITE)
 
 	public:
 		typedef QList<AbstractHistoryEntry*> Changeset;

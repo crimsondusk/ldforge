@@ -29,6 +29,7 @@ class LDObject;
 class QFile;
 class QTextStream;
 class Matrix;
+class LDDocument;
 
 using int8 = qint8;
 using int16 = qint16;
@@ -43,6 +44,8 @@ using LDObjectPtr = QSharedPointer<LDObject>;
 using LDObjectList = QList<LDObjectPtr>;
 using LDObjectWeakPtr = QWeakPointer<LDObject>;
 using LDObjectWeakList = QList<LDObjectWeakPtr>;
+using LDDocumentPtr = QSharedPointer<LDDocument>;
+using LDDocumentWeakPtr = QWeakPointer<LDDocument>;
 
 template<typename T, typename R>
 using Pair = std::pair<T, R>;

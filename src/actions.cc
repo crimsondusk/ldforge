@@ -149,13 +149,8 @@ DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
 //
 DEFINE_ACTION (SaveAll, CTRL (L))
 {
-	for (LDDocument* file : g_loadedFiles)
-	{
-		if (file->isImplicit())
-			continue;
-
+	for (LDDocumentPtr file : LDDocument::explicitDocuments())
 		save (file, false);
-	}
 }
 
 // =============================================================================
@@ -165,7 +160,7 @@ DEFINE_ACTION (Close, CTRL (W))
 	if (not getCurrentDocument()->isSafeToClose())
 		return;
 
-	delete getCurrentDocument();
+	getCurrentDocument()->dismiss();
 }
 
 // =============================================================================
@@ -626,7 +621,7 @@ DEFINE_ACTION (SetDrawDepth, 0)
 // these is an immense pain.
 DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 {
-	LDDocument* file = getFile ("axle.dat");
+	LDDocumentPtr file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
 
 	if (not file)
@@ -827,7 +822,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 		code << obj->asText();
 
 	// Create the new subfile document
-	LDDocument* doc = new LDDocument;
+	LDDocumentPtr doc = LDDocument::createNew();
 	doc->setImplicit (false);
 	doc->setFullPath (fullsubname);
 	doc->setName (LDDocument::shortenName (fullsubname));
@@ -862,8 +857,6 @@ DEFINE_ACTION (SubfileSelection, 0)
 		for (LDObjectPtr obj : selection())
 			obj->destroy();
 
-		g_loadedFiles << doc;
-
 		// Add a reference to the new subfile to where the selection was
 		LDSubfilePtr ref (spawn<LDSubfile>());
 		ref->setColor (maincolor);
@@ -879,7 +872,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	else
 	{
 		// Failed to save.
-		delete doc;
+		doc->dismiss();
 	}
 }
 

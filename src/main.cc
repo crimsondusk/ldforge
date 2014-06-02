@@ -34,7 +34,6 @@
 #include "dialogs.h"
 #include "crashCatcher.h"
 
-QList<LDDocument*> g_loadedFiles;
 MainWindow* g_win = null;
 static String g_versionString, g_fullVersionString;
 
@@ -51,7 +50,6 @@ int main (int argc, char* argv[])
 	app.setOrganizationName (APPNAME);
 	app.setApplicationName (APPNAME);
 	initCrashCatcher();
-	LDDocument::setCurrent (null);
 
 	// Load or create the configuration
 	if (not Config::load())

@@ -119,7 +119,6 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_rectdraw = false;
 	m_panning = false;
 	m_compiler = new GLCompiler (this);
-	setDocument (null);
 	setDrawOnly (false);
 	setMessageLog (null);
 	m_width = m_height = -1;
@@ -1371,7 +1370,7 @@ void GLRenderer::setEditMode (EditMode const& a)
 
 // =============================================================================
 //
-void GLRenderer::setDocument (LDDocument* const& a)
+void GLRenderer::setDocument (LDDocumentPtr const& a)
 {
 	m_document = a;
 
@@ -1500,7 +1499,7 @@ void GLRenderer::endDraw (bool accept)
 			const int segs = g_lores, divs = g_lores; // TODO: make customizable
 			double dist0 = getCircleDrawDist (0),
 				dist1 = getCircleDrawDist (1);
-			LDDocument* refFile = null;
+			LDDocumentPtr refFile;
 			Matrix transform;
 			bool circleOrDisc = false;
 

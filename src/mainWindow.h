@@ -129,7 +129,7 @@ class MainWindow : public QMainWindow
 
 		//! Updates the document tab for \c doc. If no such tab exists, the
 		//! document list is rebuilt instead.
-		void updateDocumentListItem (LDDocument* doc);
+		void updateDocumentListItem (LDDocumentPtr doc);
 
 		//! \returns the uniform selected color (i.e. 4 if everything selected is
 		//! red), -1 if there is no such consensus.
@@ -158,7 +158,7 @@ class MainWindow : public QMainWindow
 		//! \param doc the document to save
 		//! \param saveAs if true, always ask for a file path
 		//! \returns whether the save was successful
-		bool save (LDDocument* doc, bool saveAs);
+		bool save (LDDocumentPtr doc, bool saveAs);
 
 		//! Updates various actions, undo/redo are set enabled/disabled where
 		//! appropriate, togglable actions are updated based on configuration,

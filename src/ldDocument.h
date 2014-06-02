@@ -25,7 +25,6 @@
 
 class History;
 class OpenProgressDialog;
-class LDDocumentPointer;
 struct LDGLData;
 class GLCompiler;
 
@@ -51,12 +50,11 @@ enum LDDocumentFlag
 Q_DECLARE_FLAGS (LDDocumentFlags, LDDocumentFlag)
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDDocumentFlags)
 
-// =============================================================================
 //
 // This class stores a document either as a editable file for the user or for
-// subfile caching. Its methods handle file input and output.
+// subfile caching.
 //
-// A file is implicit when they are opened automatically for caching purposes
+// A document is implicit when they are opened automatically for caching purposes
 // and are hidden from the user. User-opened files are explicit (not implicit).
 //
 // The default name is a placeholder, initially suggested name for a file. The
@@ -65,26 +63,24 @@ Q_DECLARE_OPERATORS_FOR_FLAGS (LDDocumentFlags)
 class LDDocument : public QObject
 {
 	public:
-		using ReferenceList = QList<LDDocumentPointer*>;
 		using KnownVertexMap = QMap<Vertex, int>;
 
-		Q_OBJECT
-		PROPERTY (public,	String,		name,			setName,			STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,	objects, 		setObjects,			STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,	cache, 			setCache,			STOCK_WRITE)
-		PROPERTY (private,	History*,		history,		setHistory,			STOCK_WRITE)
-		PROPERTY (private,	KnownVertexMap,	vertices,		setVertices,		STOCK_WRITE)
-		PROPERTY (private,	ReferenceList,	references,		setReferences,		STOCK_WRITE)
-		PROPERTY (public,	String,		fullPath,		setFullPath,		STOCK_WRITE)
-		PROPERTY (public,	String,		defaultName,	setDefaultName,		STOCK_WRITE)
-		PROPERTY (public,	bool,			isImplicit,		setImplicit,		STOCK_WRITE)
-		PROPERTY (public,	long,			savePosition,	setSavePosition,	STOCK_WRITE)
-		PROPERTY (public,	int,			tabIndex,		setTabIndex,		STOCK_WRITE)
-		PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,	STOCK_WRITE)
-		PROPERTY (private,	LDDocumentFlags,	flags,			setFlags,		STOCK_WRITE)
+		PROPERTY (public,	String,				name,			setName,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,		objects, 		setObjects,			STOCK_WRITE)
+		PROPERTY (private,	LDObjectList,		cache, 			setCache,			STOCK_WRITE)
+		PROPERTY (private,	History*,			history,		setHistory,			STOCK_WRITE)
+		PROPERTY (private,	KnownVertexMap,		vertices,		setVertices,		STOCK_WRITE)
+		PROPERTY (public,	String,				fullPath,		setFullPath,		STOCK_WRITE)
+		PROPERTY (public,	String,				defaultName,	setDefaultName,		STOCK_WRITE)
+		PROPERTY (public,	bool,				isImplicit,		setImplicit,		CUSTOM_WRITE)
+		PROPERTY (public,	long,				savePosition,	setSavePosition,	STOCK_WRITE)
+		PROPERTY (public,	int,				tabIndex,		setTabIndex,		STOCK_WRITE)
+		PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,		STOCK_WRITE)
+		PROPERTY (private,	LDDocumentFlags,	flags,			setFlags,			STOCK_WRITE)
+		PROPERTY (private,	LDDocumentWeakPtr,	self,			setSelf,			STOCK_WRITE)
 
 	public:
-		LDDocument();
+		LDDocument(LDDocumentPtr* selfptr);
 		~LDDocument();
 
 		int addObject (LDObjectPtr obj); // Adds an object to this file at the end of the file.
@@ -103,13 +99,12 @@ class LDDocument : public QObject
 		void swapObjects (LDObjectPtr one, LDObjectPtr other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObjectPtr obj);
-		void addReference (LDDocumentPointer* ptr);
-		void removeReference (LDDocumentPointer* ptr);
 		QList<LDPolygon> inlinePolygons();
 		void vertexChanged (const Vertex& a, const Vertex& b);
 		void addKnownVerticesOf(LDObjectPtr obj);
 		void removeKnownVerticesOf (LDObjectPtr sub);
 		QList<Vertex> inlineVertices();
+		void clear();
 
 		inline LDDocument& operator<< (LDObjectPtr obj)
 		{
@@ -142,14 +137,21 @@ class LDDocument : public QObject
 			*history() << entry;
 		}
 
+		inline void dismiss()
+		{
+			setImplicit (true);
+		}
+
 		static void closeUnused();
-		static LDDocument* current();
-		static void setCurrent (LDDocument* f);
+		static LDDocumentPtr current();
+		static void setCurrent (LDDocumentPtr f);
 		static void closeInitialFile();
 		static int countExplicitFiles();
+		static LDDocumentPtr createNew();
 
 		// Turns a full path into a relative path
 		static String shortenName (String a);
+		static QList<LDDocumentPtr> const& explicitDocuments();
 
 	protected:
 		void addToSelection (LDObjectPtr obj);
@@ -172,13 +174,11 @@ class LDDocument : public QObject
 		// stored polygon data and re-builds it.
 		bool					m_needsReCache;
 
-		static LDDocument*		m_curdoc;
-
 		void addKnownVertexReference (const Vertex& a);
 		void removeKnownVertexReference (const Vertex& a);
 };
 
-inline LDDocument* getCurrentDocument()
+inline LDDocumentPtr getCurrentDocument()
 {
 	return LDDocument::current();
 }
@@ -190,11 +190,11 @@ void newFile();
 void openMainFile (String path);
 
 // Finds an OpenFile by name or null if not open
-LDDocument* findDocument (String name);
+LDDocumentPtr findDocument (String name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDDocument* openDocument (String path, bool search, bool implicit);
+LDDocumentPtr openDocument (String path, bool search, bool implicit, LDDocumentPtr fileToOverride = LDDocumentPtr());
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
 QFile* openLDrawFile (String relpath, bool subdirs, String* pathpointer = null);
@@ -207,7 +207,7 @@ LDObjectPtr parseLine (String line);
 
 // Retrieves the pointer to the given document by file name. Document is loaded
 // from file if necessary. Can return null if neither succeeds.
-LDDocument* getDocument (String filename);
+LDDocumentPtr getDocument (String filename);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles();
@@ -216,8 +216,6 @@ void reloadAllSubfiles();
 bool safeToCloseAll();
 
 LDObjectList loadFileContents (QFile* f, int* numWarnings, bool* ok = null);
-
-extern QList<LDDocument*> g_loadedFiles;
 
 inline const LDObjectList& selection()
 {
@@ -228,8 +226,6 @@ void addRecentFile (String path);
 void loadLogoedStuds();
 String basename (String path);
 String dirname (String path);
-
-extern QList<LDDocument*> g_loadedFiles; // Vector of all currently opened files.
 
 // =============================================================================
 //

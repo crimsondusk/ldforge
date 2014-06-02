@@ -243,7 +243,7 @@ void GLCompiler::unstage (LDObjectPtr obj)
 
 // =============================================================================
 //
-void GLCompiler::compileDocument (LDDocument* doc)
+void GLCompiler::compileDocument (LDDocumentPtr doc)
 {
 	if (doc == null)
 		return;
@@ -278,7 +278,9 @@ void GLCompiler::prepareVBO (int vbonum)
 
 	for (auto it = m_objectInfo.begin(); it != m_objectInfo.end(); ++it)
 	{
-		if (it.key()->document() == getCurrentDocument() && not it.key()->isHidden())
+		if (it.key() == null)
+			it = m_objectInfo.erase (it);
+		elif (it.key().toStrongRef()->document() == getCurrentDocument() && not it.key().toStrongRef()->isHidden())
 			vbodata += it->data[vbonum];
 	}
 
@@ -311,7 +313,7 @@ void GLCompiler::compileObject (LDObjectPtr obj)
 {
 //	print ("Compile %1\n", g_objectOrigins[obj]);
 
-	if (obj == null || obj->document() == null || obj->document()->isImplicit())
+	if (obj == null || obj->document() == null || obj->document().toStrongRef()->isImplicit())
 		return;
 
 	ObjectVBOInfo info;

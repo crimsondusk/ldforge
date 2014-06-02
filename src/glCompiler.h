@@ -35,7 +35,7 @@ public:
 
 	GLCompiler (GLRenderer* renderer);
 	~GLCompiler();
-	void				compileDocument (LDDocument* doc);
+	void				compileDocument (LDDocumentPtr doc);
 	void				dropObject (LDObjectPtr obj);
 	void				initialize();
 	QColor				getColorForPolygon (LDPolygon& poly, LDObjectPtr topobj,
@@ -68,12 +68,12 @@ private:
 	void			compileObject (LDObjectPtr obj);
 	void			compilePolygon (LDPolygon& poly, LDObjectPtr topobj, GLCompiler::ObjectVBOInfo* objinfo);
 
-	QMap<LDObjectPtr, ObjectVBOInfo>	m_objectInfo;
-	LDObjectWeakList					m_staged; // Objects that need to be compiled
-	GLuint								m_vbo[g_numVBOs];
-	bool								m_vboChanged[g_numVBOs];
-	int									m_vboSizes[g_numVBOs];
-	GLRenderer* const					m_renderer;
+	QMap<LDObjectWeakPtr, ObjectVBOInfo>	m_objectInfo;
+	LDObjectWeakList						m_staged; // Objects that need to be compiled
+	GLuint									m_vbo[g_numVBOs];
+	bool									m_vboChanged[g_numVBOs];
+	int										m_vboSizes[g_numVBOs];
+	GLRenderer* const						m_renderer;
 };
 
 #define checkGLError() { checkGLError_private (__FILE__, __LINE__); }

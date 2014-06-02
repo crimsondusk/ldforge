@@ -579,7 +579,7 @@ QString radialFileName (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 //
-LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
+LDDocumentPtr generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	// Make the description
 	QString frac = QString::number ((float) segs / divs);
@@ -605,7 +605,7 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 	if (divs == g_hires)
 		descr.insert (0, "Hi-Res ");
 
-	LDDocument* f = new LDDocument;
+	LDDocumentPtr f = LDDocument::createNew();
 	f->setDefaultName (name);
 
 	QString author = APPNAME;
@@ -635,10 +635,10 @@ LDDocument* generatePrimitive (PrimitiveType type, int segs, int divs, int num)
 
 // =============================================================================
 //
-LDDocument* getPrimitive (PrimitiveType type, int segs, int divs, int num)
+LDDocumentPtr getPrimitive (PrimitiveType type, int segs, int divs, int num)
 {
 	QString name = radialFileName (type, segs, divs, num);
-	LDDocument* f = getDocument (name);
+	LDDocumentPtr f = getDocument (name);
 
 	if (f != null)
 		return f;
@@ -694,8 +694,7 @@ DEFINE_ACTION (MakePrimitive, 0)
 		dlg->ui->rb_ndisc->isChecked()    ? DiscNeg :
 		dlg->ui->rb_ring->isChecked()     ? Ring : Cone;
 
-	LDDocument* f = generatePrimitive (type, segs, divs, num);
-
+	LDDocumentPtr f = generatePrimitive (type, segs, divs, num);
+	f->setImplicit (false);
 	g_win->save (f, false);
-	delete f;
 }
