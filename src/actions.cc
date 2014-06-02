@@ -896,3 +896,16 @@ DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
 	updateActions();
 	R()->refresh();
 }
+
+DEFINE_ACTION (OpenSubfiles, 0)
+{
+	for (LDObjectPtr obj : selection())
+	{
+		LDSubfilePtr ref = obj.dynamicCast<LDSubfile>();
+
+		if (ref == null || not ref->fileInfo()->isImplicit())
+			continue;
+
+		ref->fileInfo()->setImplicit (false);
+	}
+}

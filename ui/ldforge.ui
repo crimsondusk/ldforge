@@ -60,7 +60,7 @@
      <x>0</x>
      <y>0</y>
      <width>1010</width>
-     <height>27</height>
+     <height>24</height>
     </rect>
    </property>
    <widget class="QMenu" name="menuFile">
@@ -177,6 +177,7 @@
     <addaction name="actionReplaceCoords"/>
     <addaction name="actionFlip"/>
     <addaction name="actionDemote"/>
+    <addaction name="actionOpenSubfiles"/>
     <addaction name="separator"/>
     <addaction name="actionVisibilityHide"/>
     <addaction name="actionVisibilityToggle"/>
@@ -1362,6 +1363,14 @@
    </property>
    <property name="text">
     <string>Random colors</string>
+   </property>
+  </action>
+  <action name="actionOpenSubfiles">
+   <property name="text">
+    <string>Open Subfiles</string>
+   </property>
+   <property name="toolTip">
+    <string>Opens the documents used by the selected subparts for editing.</string>
    </property>
   </action>
  </widget>

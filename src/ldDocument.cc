@@ -168,7 +168,15 @@ void LDDocument::setImplicit (bool const& a)
 		m_isImplicit = a;
 
 		if (a == false)
+		{
 			g_explicitDocuments << self().toStrongRef();
+			print ("Opened %1", name());
+
+			// Implicit files are not compiled by the GL renderer. Now that this
+			// part is no longer implicit, it needs to be compiled.
+			if (g_win != null)
+				g_win->R()->compiler()->compileDocument (self());
+		}
 		else
 		{
 			g_explicitDocuments.removeOne (self().toStrongRef());

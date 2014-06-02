@@ -622,6 +622,17 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 	const bool single = (selection().size() == 1);
 	LDObjectPtr singleObj = single ? selection().first() : LDObjectPtr();
 
+	bool hasSubfiles = false;
+
+	for (LDObjectPtr obj : selection())
+	{
+		if (obj->type() == OBJ_Subfile)
+		{
+			hasSubfiles = true;
+			break;
+		}
+	}
+
 	QMenu* contextMenu = new QMenu;
 
 	if (single && singleObj->type() != OBJ_Empty)
@@ -643,6 +654,14 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 	contextMenu->addAction (ui->actionBorders);
 	contextMenu->addAction (ui->actionSetOverlay);
 	contextMenu->addAction (ui->actionClearOverlay);
+
+	if (hasSubfiles)
+	{
+		contextMenu->addSeparator();
+		contextMenu->addAction (ui->actionOpenSubfiles);
+	}
+
+	contextMenu->addSeparator();
 	contextMenu->addAction (ui->actionModeSelect);
 	contextMenu->addAction (ui->actionModeDraw);
 	contextMenu->addAction (ui->actionModeCircle);
