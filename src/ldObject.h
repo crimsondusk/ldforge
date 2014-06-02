@@ -20,7 +20,6 @@
 #include <type_traits>
 #include "main.h"
 #include "basics.h"
-#include "misc/documentPointer.h"
 #include "glShared.h"
 
 #define LDOBJ(T)												\

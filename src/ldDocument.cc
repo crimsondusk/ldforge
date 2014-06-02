@@ -30,7 +30,6 @@
 #include "editHistory.h"
 #include "dialogs.h"
 #include "glRenderer.h"
-#include "misc/invokeLater.h"
 #include "glCompiler.h"
 
 CFGENTRY (String,			ldrawPath, "")

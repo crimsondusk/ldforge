@@ -51,8 +51,6 @@ set (LDFORGE_HEADERS
 	src/macros.h
 	src/crashCatcher.h
 	src/colors.h
-	src/misc/documentPointer.h
-	src/misc/invokeLater.h
 	src/misc/ringFinder.h
 	src/ldDocument.h
 	src/addObjectDialog.h
