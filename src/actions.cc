@@ -198,56 +198,56 @@ DEFINE_ACTION (Exit, CTRL (Q))
 //
 DEFINE_ACTION (NewSubfile, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ESubfile, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Subfile, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ELine, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Line, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewTriangle, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ETriangle, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Triangle, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewQuad, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EQuad, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Quad, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewCLine, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::ECondLine, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_CondLine, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewComment, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EComment, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Comment, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewBFC, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EBFC, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_BFC, LDObjectPtr());
 }
 
 // =============================================================================
 //
 DEFINE_ACTION (NewVertex, 0)
 {
-	AddObjectDialog::staticDialog (LDObject::EVertex, LDObjectPtr());
+	AddObjectDialog::staticDialog (OBJ_Vertex, LDObjectPtr());
 }
 
 // =============================================================================
@@ -316,16 +316,16 @@ DEFINE_ACTION (SelectByType, 0)
 	if (selection().isEmpty())
 		return;
 
-	LDObject::Type type = getUniformSelectedType();
+	LDObjectType type = getUniformSelectedType();
 
-	if (type == LDObject::EUnidentified)
+	if (type == OBJ_Unknown)
 		return;
 
 	// If we're selecting subfile references, the reference filename must also
 	// be uniform.
 	String refName;
 
-	if (type == LDObject::ESubfile)
+	if (type == OBJ_Subfile)
 	{
 		refName = selection()[0].staticCast<LDSubfile>()->fileInfo()->name();
 
@@ -341,7 +341,7 @@ DEFINE_ACTION (SelectByType, 0)
 		if (obj->type() != type)
 			continue;
 
-		if (type == LDObject::ESubfile && obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
+		if (type == OBJ_Subfile && obj.staticCast<LDSubfile>()->fileInfo()->name() != refName)
 			continue;
 
 		obj->select();
@@ -805,7 +805,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	// be carried over to the subfile.
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (obj->type() != LDObject::EBFC)
+		if (obj->type() != OBJ_BFC)
 			continue;
 
 		LDBFC::Statement a = obj.staticCast<LDBFC>()->statement();

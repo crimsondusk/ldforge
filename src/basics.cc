@@ -235,16 +235,16 @@ void LDBoundingBox::calcObject (LDObjectPtr obj)
 {
 	switch (obj->type())
 	{
-		case LDObject::ELine:
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
-		case LDObject::ECondLine:
+		case OBJ_Line:
+		case OBJ_Triangle:
+		case OBJ_Quad:
+		case OBJ_CondLine:
 		{
 			for (int i = 0; i < obj->numVertices(); ++i)
 				calcVertex (obj->vertex (i));
 		} break;
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 		{
 			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDObjectList objs = ref->inlineContents (true, false);

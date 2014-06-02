@@ -24,9 +24,9 @@
 
 #define LDOBJ(T)												\
 public:															\
-	virtual LDObject::Type type() const override				\
+	virtual LDObjectType type() const override					\
 	{															\
-		return LDObject::E##T;									\
+		return OBJ_##T;											\
 	}															\
 	virtual String asText() const override;						\
 	virtual void invert() override;								\
@@ -58,6 +58,26 @@ class LDSharedVertex;
 class LDBFC;
 using LDBFCPtr = QSharedPointer<LDBFC>;
 
+// Object type codes.
+enum LDObjectType
+{
+	OBJ_Subfile,		//	Object represents a	sub-file reference
+	OBJ_Quad,			//	Object represents a	quadrilateral
+	OBJ_Triangle,		//	Object represents a	triangle
+	OBJ_Line,			//	Object represents a	line
+	OBJ_CondLine,		//	Object represents a	conditional line
+	OBJ_Vertex,			//	Object is a	vertex,	LDForge extension object
+	OBJ_BFC,			//	Object represents a	BFC statement
+	OBJ_Overlay,		//	Object contains meta-info about an overlay image.
+	OBJ_Comment,		//	Object represents a	comment
+	OBJ_Error,			//	Object is the result of failed parsing
+	OBJ_Empty,			//	Object represents an empty line
+	OBJ_Unknown,		//	Unknown object type	(some functions return this;	TODO:	they probably should not)
+
+	OBJ_NumTypes,       // Amount of object types
+	OBJ_FirstType = OBJ_Subfile
+};
+
 // =============================================================================
 // LDObject
 //
@@ -78,138 +98,118 @@ class LDObject
 	PROPERTY (private,		QColor,				randomColor,	setRandomColor,	STOCK_WRITE)
 	PROPERTY (private,		LDObjectWeakPtr,	self,			setSelf,		STOCK_WRITE)
 
-	public:
-		// Object type codes.
-		enum Type
-		{
-			ESubfile,        // Object represents a sub-file reference
-			EQuad,           // Object represents a quadrilateral
-			ETriangle,       // Object represents a triangle
-			ELine,           // Object represents a line
-			ECondLine,       // Object represents a conditional line
-			EVertex,         // Object is a vertex, LDForge extension object
-			EBFC,            // Object represents a BFC statement
-			EOverlay,        // Object contains meta-info about an overlay image.
-			EComment,        // Object represents a comment
-			EError,          // Object is the result of failed parsing
-			EEmpty,          // Object represents an empty line
-			EUnidentified,   // Unknown object type (some functions return this; TODO: they probably should not)
+public:
+	LDObject (LDObjectPtr* selfptr);
 
-			ENumTypes,       // Amount of object types
-			EFirstType = ESubfile
-		};
+	// This object as LDraw code
+	virtual String				asText() const = 0;
 
-		LDObject (LDObjectPtr* selfptr);
+	// Makes a copy of this object
+	LDObjectPtr					createCopy() const;
 
-		// This object as LDraw code
-		virtual String				asText() const = 0;
+	// Deletes this object
+	void						destroy();
 
-		// Makes a copy of this object
-		LDObjectPtr					createCopy() const;
+	// Removes this object from selection
+	void						deselect();
 
-		// Deletes this object
-		void						destroy();
+	// Does this object have a matrix and position? (see LDMatrixObject)
+	virtual bool				hasMatrix() const = 0;
 
-		// Removes this object from selection
-		void						deselect();
+	// Inverts this object (winding is reversed)
+	virtual void				invert() = 0;
 
-		// Does this object have a matrix and position? (see LDMatrixObject)
-		virtual bool				hasMatrix() const = 0;
+	// Is this object colored?
+	virtual bool				isColored() const = 0;
 
-		// Inverts this object (winding is reversed)
-		virtual void				invert() = 0;
+	// Does this object have meaning in the part model?
+	virtual bool				isScemantic() const = 0;
 
-		// Is this object colored?
-		virtual bool				isColored() const = 0;
+	// Index (i.e. line number) of this object
+	long						lineNumber() const;
 
-		// Does this object have meaning in the part model?
-		virtual bool				isScemantic() const = 0;
+	// Moves this object using the given vertex as a movement List
+	void						move (Vertex vect);
 
-		// Index (i.e. line number) of this object
-		long						lineNumber() const;
+	// Object after this in the current file
+	LDObjectPtr					next() const;
 
-		// Moves this object using the given vertex as a movement List
-		void						move (Vertex vect);
+	// Number of vertices this object has
+	virtual int					numVertices() const = 0;
 
-		// Object after this in the current file
-		LDObjectPtr					next() const;
+	// Object prior to this in the current file
+	LDObjectPtr					previous() const;
 
-		// Number of vertices this object has
-		virtual int					numVertices() const = 0;
+	// Is the previous object INVERTNEXT?
+	bool						previousIsInvertnext (LDBFCPtr& ptr);
 
-		// Object prior to this in the current file
-		LDObjectPtr					previous() const;
+	// Replace this LDObject with another LDObject. Object is deleted in the process.
+	void						replace (LDObjectPtr other);
 
-		// Is the previous object INVERTNEXT?
-		bool						previousIsInvertnext (LDBFCPtr& ptr);
+	// Selects this object.
+	void						select();
 
-		// Replace this LDObject with another LDObject. Object is deleted in the process.
-		void						replace (LDObjectPtr other);
+	// Set a vertex to the given value
+	void						setVertex (int i, const Vertex& vert);
 
-		// Selects this object.
-		void						select();
+	// Set a single coordinate of a vertex
+	void						setVertexCoord (int i, Axis ax, double value);
 
-		// Set a vertex to the given value
-		void						setVertex (int i, const Vertex& vert);
+	// Swap this object with another.
+	void						swap (LDObjectPtr other);
 
-		// Set a single coordinate of a vertex
-		void						setVertexCoord (int i, Axis ax, double value);
+	// What object in the current file ultimately references this?
+	LDObjectPtr					topLevelParent();
 
-		// Swap this object with another.
-		void						swap (LDObjectPtr other);
+	// Type enumerator of this object
+	virtual LDObjectType		type() const = 0;
 
-		// What object in the current file ultimately references this?
-		LDObjectPtr					topLevelParent();
+	// Type name of this object
+	virtual String				typeName() const = 0;
 
-		// Type enumerator of this object
-		virtual Type				type() const = 0;
+	// Get a vertex by index
+	const Vertex&				vertex (int i) const;
 
-		// Type name of this object
-		virtual String				typeName() const = 0;
+	// Get type name by enumerator
+	static String typeName (LDObjectType type);
 
-		// Get a vertex by index
-		const Vertex&				vertex (int i) const;
+	// Returns a default-constructed LDObject by the given type
+	static LDObjectPtr getDefault (const LDObjectType type);
 
-		// Get type name by enumerator
-		static String typeName (LDObject::Type type);
+	// TODO: move this to LDDocument?
+	static void moveObjects (LDObjectList objs, const bool up);
 
-		// Returns a default-constructed LDObject by the given type
-		static LDObjectPtr getDefault (const LDObject::Type type);
+	// Get a description of a list of LDObjects
+	static String describeObjects (const LDObjectList& objs);
+	static LDObjectPtr fromID (int id);
+	LDPolygon* getPolygon();
 
-		// TODO: move this to LDDocument?
-		static void moveObjects (LDObjectList objs, const bool up);
+	// TODO: make this private!
+	QListWidgetItem* qObjListEntry;
 
-		// Get a description of a list of LDObjects
-		static String describeObjects (const LDObjectList& objs);
-		static LDObjectPtr fromID (int id);
-		LDPolygon* getPolygon();
+	// This is public because I cannot protect it as the lambda deletor would
+	// have to be the friend. Do not call this! Ever!
+	void finalDelete();
 
-		// TODO: make this private!
-		QListWidgetItem* qObjListEntry;
+protected:
+	// LDObjects are to be deleted with the finalDelete() method, not with
+	// operator delete. This is because it seems virtual functions cannot
+	// be properly called from the destructor, thus a normal method must
+	// be used instead. The destructor also doesn't seem to be able to
+	// be private without causing a truckload of problems so it's protected
+	// instead.
+	virtual ~LDObject();
+	void chooseID();
 
-		// This is public because I cannot protect it as the lambda deletor would
-		// have to be the friend. Do not call this! Ever!
-		void finalDelete();
+	// Even though we supply a custom deleter to QSharedPointer, the shared
+	// pointer's base class still calls operator delete directly in one of
+	// its methods. The method should never be called but we need to declare
+	// the class making this delete call a friend anyway.
+	friend class QSharedPointer<LDObject>;
+	friend class QSharedPointer<LDObject>::ExternalRefCount;
 
-	protected:
-		// LDObjects are to be deleted with the finalDelete() method, not with
-		// operator delete. This is because it seems virtual functions cannot
-		// be properly called from the destructor, thus a normal method must
-		// be used instead. The destructor also doesn't seem to be able to
-		// be private without causing a truckload of problems so it's protected
-		// instead.
-		virtual ~LDObject();
-		void chooseID();
-
-		// Even though we supply a custom deleter to QSharedPointer, the shared
-		// pointer's base class still calls operator delete directly in one of
-		// its methods. The method should never be called but we need to declare
-		// the class making this delete call a friend anyway.
-		friend class QSharedPointer<LDObject>;
-		friend class QSharedPointer<LDObject>::ExternalRefCount;
-
-	private:
-		LDSharedVertex*	m_coords[4];
+private:
+	LDSharedVertex*	m_coords[4];
 };
 
 //
@@ -225,7 +225,7 @@ inline QSharedPointer<T> spawn (Args... args)
 	return ptr.staticCast<T>();
 }
 
-NUMERIC_ENUM_OPERATORS (LDObject::Type)
+NUMERIC_ENUM_OPERATORS (LDObjectType)
 
 //
 // Apparently QWeakPointer doesn't implement operator<. This is a problem when

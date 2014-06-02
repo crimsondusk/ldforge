@@ -261,7 +261,7 @@ void MainWindow::updateTitle()
 		title += getCurrentDocument()->getDisplayName();
 
 		if (getCurrentDocument()->getObjectCount() > 0 &&
-			getCurrentDocument()->getObject (0)->type() == LDObject::EComment)
+			getCurrentDocument()->getObject (0)->type() == OBJ_Comment)
 		{
 			// Append title
 			LDCommentPtr comm = getCurrentDocument()->getObject (0).staticCast<LDComment>();
@@ -324,7 +324,7 @@ void MainWindow::buildObjList()
 
 		switch (obj->type())
 		{
-			case LDObject::EComment:
+			case OBJ_Comment:
 			{
 				descr = obj.staticCast<LDComment>()->text();
 
@@ -335,13 +335,13 @@ void MainWindow::buildObjList()
 				break;
 			}
 
-			case LDObject::EEmpty:
+			case OBJ_Empty:
 				break; // leave it empty
 
-			case LDObject::ELine:
-			case LDObject::ETriangle:
-			case LDObject::EQuad:
-			case LDObject::ECondLine:
+			case OBJ_Line:
+			case OBJ_Triangle:
+			case OBJ_Quad:
+			case OBJ_CondLine:
 			{
 				for (int i = 0; i < obj->numVertices(); ++i)
 				{
@@ -353,19 +353,19 @@ void MainWindow::buildObjList()
 				break;
 			}
 
-			case LDObject::EError:
+			case OBJ_Error:
 			{
 				descr = format ("ERROR: %1", obj->asText());
 				break;
 			}
 
-			case LDObject::EVertex:
+			case OBJ_Vertex:
 			{
 				descr = obj.staticCast<LDVertex>()->pos.toString (true);
 				break;
 			}
 
-			case LDObject::ESubfile:
+			case OBJ_Subfile:
 			{
 				LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
@@ -378,13 +378,13 @@ void MainWindow::buildObjList()
 				break;
 			}
 
-			case LDObject::EBFC:
+			case OBJ_BFC:
 			{
 				descr = LDBFC::k_statementStrings[obj.staticCast<LDBFC>()->statement()];
 				break;
 			}
 
-			case LDObject::EOverlay:
+			case OBJ_Overlay:
 			{
 				LDOverlayPtr ovl = obj.staticCast<LDOverlay>();
 				descr = format ("[%1] %2 (%3, %4), %5 x %6", g_CameraNames[ovl->camera()],
@@ -412,7 +412,7 @@ void MainWindow::buildObjList()
 		}
 
 		// Color gibberish orange on red so it stands out.
-		if (obj->type() == LDObject::EError)
+		if (obj->type() == OBJ_Error)
 		{
 			item->setBackground (QColor ("#AA0000"));
 			item->setForeground (QColor ("#FFAA00"));
@@ -599,16 +599,16 @@ int MainWindow::getSelectedColor()
 
 // =============================================================================
 //
-LDObject::Type MainWindow::getUniformSelectedType()
+LDObjectType MainWindow::getUniformSelectedType()
 {
-	LDObject::Type result = LDObject::EUnidentified;
+	LDObjectType result = OBJ_Unknown;
 
 	for (LDObjectPtr obj : selection())
 	{
-		if (result != LDObject::EUnidentified && obj->color() != result)
-			return LDObject::EUnidentified;
+		if (result != OBJ_Unknown && obj->color() != result)
+			return OBJ_Unknown;
 
-		if (result == LDObject::EUnidentified)
+		if (result == OBJ_Unknown)
 			result = obj->type();
 	}
 
@@ -642,7 +642,7 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 	QMenu* contextMenu = new QMenu;
 
-	if (single && singleObj->type() != LDObject::EEmpty)
+	if (single && singleObj->type() != OBJ_Empty)
 	{
 		contextMenu->addAction (ui->actionEdit);
 		contextMenu->addSeparator();

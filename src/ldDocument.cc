@@ -406,7 +406,7 @@ void LDFileLoader::work (int i)
 		LDObjectPtr obj = parseLine (line);
 
 		// Check for parse errors and warn about tthem
-		if (obj->type() == LDObject::EError)
+		if (obj->type() == OBJ_Error)
 		{
 			print ("Couldn't parse line #%1: %2", progress() + 1, obj.staticCast<LDError>()->reason());
 
@@ -741,7 +741,7 @@ bool LDDocument::save (String savepath)
 	// If the second object in the list holds the file name, update that now.
 	LDObjectPtr nameObject = getObject (1);
 
-	if (nameObject != null && nameObject->type() == LDObject::EComment)
+	if (nameObject != null && nameObject->type() == OBJ_Comment)
 	{
 		LDCommentPtr nameComment = nameObject.staticCast<LDComment>();
 
@@ -1031,7 +1031,7 @@ void reloadAllSubfiles()
 	// Go through all objects in the current file and reload the subfiles
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (obj->type() == LDObject::ESubfile)
+		if (obj->type() == OBJ_Subfile)
 		{
 			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			LDDocumentPtr fileInfo = getDocument (ref->fileInfo()->name());
@@ -1044,7 +1044,7 @@ void reloadAllSubfiles()
 
 		// Reparse gibberish files. It could be that they are invalid because
 		// of loading errors. Circumstances may be different now.
-		if (obj->type() == LDObject::EError)
+		if (obj->type() == OBJ_Error)
 			obj->replace (parseLine (obj.staticCast<LDError>()->contents()));
 	}
 }
@@ -1099,7 +1099,7 @@ void LDDocument::addKnownVerticesOf (LDObjectPtr obj)
 	if (isImplicit())
 		return;
 
-	if (obj->type() == LDObject::ESubfile)
+	if (obj->type() == OBJ_Subfile)
 	{
 		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
@@ -1123,7 +1123,7 @@ void LDDocument::removeKnownVerticesOf (LDObjectPtr obj)
 	if (isImplicit())
 		return;
 
-	if (obj->type() == LDObject::ESubfile)
+	if (obj->type() == OBJ_Subfile)
 	{
 		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 
@@ -1286,7 +1286,7 @@ void LDDocument::initializeCachedData()
 
 	for (LDObjectPtr obj : inlineContents (true, true))
 	{
-		assert (obj->type() != LDObject::ESubfile);
+		assert (obj->type() != OBJ_Subfile);
 		LDPolygon* data = obj->getPolygon();
 
 		if (data != null)
@@ -1339,7 +1339,7 @@ LDObjectList LDDocument::inlineContents (bool deep, bool renderinline)
 
 		// Got another sub-file reference, inline it if we're deep-inlining. If not,
 		// just add it into the objects normally. Yay, recursion!
-		if (deep == true && obj->type() == LDObject::ESubfile)
+		if (deep == true && obj->type() == OBJ_Subfile)
 		{
 			for (LDObjectPtr otherobj : obj.staticCast<LDSubfile>()->inlineContents (deep, renderinline))
 				objs << otherobj;

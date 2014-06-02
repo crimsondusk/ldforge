@@ -1660,7 +1660,7 @@ static QList<Vertex> getVertices (LDObjectPtr obj)
 		for (int i = 0; i < obj->numVertices(); ++i)
 			verts << obj->vertex (i);
 	}
-	elif (obj->type() == LDObject::ESubfile)
+	elif (obj->type() == OBJ_Subfile)
 	{
 		LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 		LDObjectList objs = ref->inlineContents (true, false);
@@ -2072,7 +2072,7 @@ void GLRenderer::updateOverlayObjects()
 			// If this is the last overlay image, we need to remove the empty space after it as well.
 			LDObjectPtr nextobj = ovlobj->next();
 
-			if (nextobj && nextobj->type() == LDObject::EEmpty)
+			if (nextobj && nextobj->type() == OBJ_Empty)
 				nextobj->destroy();
 
 			// If the overlay object was there and the overlay itself is
@@ -2104,7 +2104,7 @@ void GLRenderer::updateOverlayObjects()
 					break;
 				}
 
-				if (obj->type() == LDObject::EOverlay)
+				if (obj->type() == OBJ_Overlay)
 					lastOverlay = i;
 			}
 

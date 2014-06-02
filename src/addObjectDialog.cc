@@ -53,7 +53,7 @@ class SubfileListItem : public QTreeWidgetItem
 
 // =============================================================================
 //
-AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QWidget* parent) :
+AddObjectDialog::AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWidget* parent) :
 	QDialog (parent)
 {
 	setlocale (LC_ALL, "C");
@@ -63,7 +63,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 
 	switch (type)
 	{
-		case LDObject::EComment:
+		case OBJ_Comment:
 		{
 			le_comment = new QLineEdit;
 
@@ -73,28 +73,28 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 			le_comment->setMinimumWidth (384);
 		} break;
 
-		case LDObject::ELine:
+		case OBJ_Line:
 		{
 			coordCount = 6;
 		} break;
 
-		case LDObject::ETriangle:
+		case OBJ_Triangle:
 		{
 			coordCount = 9;
 		} break;
 
-		case LDObject::EQuad:
-		case LDObject::ECondLine:
+		case OBJ_Quad:
+		case OBJ_CondLine:
 		{
 			coordCount = 12;
 		} break;
 
-		case LDObject::EVertex:
+		case OBJ_Vertex:
 		{
 			coordCount = 3;
 		} break;
 
-		case LDObject::EBFC:
+		case OBJ_BFC:
 		{
 			rb_bfcType = new RadioGroup ("Statement", {}, 0, Qt::Vertical);
 
@@ -111,7 +111,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 				rb_bfcType->setValue ((int) obj.staticCast<LDBFC>()->statement());
 		} break;
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 		{
 			coordCount = 3;
 			tw_subfileList = new QTreeWidget();
@@ -168,7 +168,7 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 		if (obj != null)
 			colnum = obj->color();
 		else
-			colnum = (type == LDObject::ECondLine || type == LDObject::ELine) ? edgecolor : maincolor;
+			colnum = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
 
 		pb_color = new QPushButton;
 		setButtonBackground (pb_color, colnum);
@@ -188,10 +188,10 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 
 	switch (type)
 	{
-		case LDObject::ELine:
-		case LDObject::ECondLine:
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
+		case OBJ_Line:
+		case OBJ_CondLine:
+		case OBJ_Triangle:
+		case OBJ_Quad:
 			// Apply coordinates
 			if (obj != null)
 			{
@@ -205,15 +205,15 @@ AddObjectDialog::AddObjectDialog (const LDObject::Type type, LDObjectPtr obj, QW
 			}
 			break;
 
-		case LDObject::EComment:
+		case OBJ_Comment:
 			layout->addWidget (le_comment, 0, 1);
 			break;
 
-		case LDObject::EBFC:
+		case OBJ_BFC:
 			layout->addWidget (rb_bfcType, 0, 1);
 			break;
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 			layout->addWidget (tw_subfileList, 1, 1, 1, 2);
 			layout->addWidget (lb_subfileName, 2, 1);
 			layout->addWidget (le_subfileName, 2, 2);
@@ -324,15 +324,15 @@ static QSharedPointer<T> initObj (LDObjectPtr& obj)
 
 // =============================================================================
 // =============================================================================
-void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
+void AddObjectDialog::staticDialog (const LDObjectType type, LDObjectPtr obj)
 {
 	setlocale (LC_ALL, "C");
 
 	// FIXME: Redirect to Edit Raw
-	if (obj && obj->type() == LDObject::EError)
+	if (obj && obj->type() == OBJ_Error)
 		return;
 
-	if (type == LDObject::EEmpty)
+	if (type == OBJ_Empty)
 		return; // Nothing to edit with empties
 
 	const bool newObject = (obj == null);
@@ -344,7 +344,7 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
 	if (dlg.exec() == QDialog::Rejected)
 		return;
 
-	if (type == LDObject::ESubfile)
+	if (type == OBJ_Subfile)
 	{
 		QStringList matrixstrvals = dlg.le_matrix->text().split (" ", String::SkipEmptyParts);
 
@@ -362,17 +362,17 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
 
 	switch (type)
 	{
-		case LDObject::EComment:
+		case OBJ_Comment:
 		{
 			LDCommentPtr comm = initObj<LDComment> (obj);
 			comm->setText (dlg.le_comment->text());
 		}
 		break;
 
-		case LDObject::ELine:
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
-		case LDObject::ECondLine:
+		case OBJ_Line:
+		case OBJ_Triangle:
+		case OBJ_Quad:
+		case OBJ_CondLine:
 		{
 			if (not obj)
 				obj = LDObject::getDefault (type);
@@ -390,20 +390,20 @@ void AddObjectDialog::staticDialog (const LDObject::Type type, LDObjectPtr obj)
 			}
 		} break;
 
-		case LDObject::EBFC:
+		case OBJ_BFC:
 		{
 			LDBFCPtr bfc = initObj<LDBFC> (obj);
 			bfc->setStatement ((LDBFC::Statement) dlg.rb_bfcType->value());
 		} break;
 
-		case LDObject::EVertex:
+		case OBJ_Vertex:
 		{
 			LDVertexPtr vert = initObj<LDVertex> (obj);
 			vert->pos.apply ([&](Axis ax, double& value) { value = dlg.dsb_coords[ax]->value(); });
 		}
 		break;
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 		{
 			String name = dlg.le_subfileName->text();
 

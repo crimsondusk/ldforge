@@ -324,10 +324,10 @@ void GLCompiler::compileObject (LDObjectPtr obj)
 	{
 		// Note: We cannot split quads into triangles here, it would mess up the
 		// wireframe view. Quads must go into separate vbos.
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
-		case LDObject::ELine:
-		case LDObject::ECondLine:
+		case OBJ_Triangle:
+		case OBJ_Quad:
+		case OBJ_Line:
+		case OBJ_CondLine:
 		{
 			LDPolygon* poly = obj->getPolygon();
 			poly->id = obj->id();
@@ -336,7 +336,7 @@ void GLCompiler::compileObject (LDObjectPtr obj)
 			break;
 		}
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 		{
 			LDSubfilePtr ref = obj.staticCast<LDSubfile>();
 			auto data = ref->inlinePolygons();

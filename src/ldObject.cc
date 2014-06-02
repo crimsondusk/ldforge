@@ -329,10 +329,10 @@ static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, int 
 {
 	switch (obj->type())
 	{
-		case LDObject::ELine:
-		case LDObject::ECondLine:
-		case LDObject::ETriangle:
-		case LDObject::EQuad:
+		case OBJ_Line:
+		case OBJ_CondLine:
+		case OBJ_Triangle:
+		case OBJ_Quad:
 
 			for (int i = 0; i < obj->numVertices(); ++i)
 			{
@@ -343,7 +343,7 @@ static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, int 
 
 			break;
 
-		case LDObject::ESubfile:
+		case OBJ_Subfile:
 		{
 			LDSubfilePtr ref = qSharedPointerCast<LDSubfile> (obj);
 			Matrix newMatrix = transform * ref->transform();
@@ -383,12 +383,12 @@ LDObjectList LDSubfile::inlineContents (bool deep, bool render)
 //
 LDPolygon* LDObject::getPolygon()
 {
-	Type ot = type();
+	LDObjectType ot = type();
 	int num =
-		(ot == LDObject::ELine)		?	2 :
-		(ot == LDObject::ETriangle)	?	3 :
-		(ot == LDObject::EQuad)		?	4 :
-		(ot == LDObject::ECondLine)	?	5 :
+		(ot == OBJ_Line)		?	2 :
+		(ot == OBJ_Triangle)	?	3 :
+		(ot == OBJ_Quad)		?	4 :
+		(ot == OBJ_CondLine)	?	5 :
 										0;
 	if (num == 0)
 		return null;
@@ -476,7 +476,7 @@ void LDObject::moveObjects (LDObjectList objs, const bool up)
 
 // =============================================================================
 //
-String LDObject::typeName (LDObject::Type type)
+String LDObject::typeName (LDObjectType type)
 {
 	return LDObject::getDefault (type)->typeName();
 }
@@ -490,7 +490,7 @@ String LDObject::describeObjects (const LDObjectList& objs)
 	if (objs.isEmpty())
 		return "nothing"; // :)
 
-	for (Type objType = EFirstType; objType < ENumTypes; ++objType)
+	for (LDObjectType objType = OBJ_FirstType; objType < OBJ_NumTypes; ++objType)
 	{
 		int count = 0;
 
@@ -507,7 +507,7 @@ String LDObject::describeObjects (const LDObjectList& objs)
 		String noun = format ("%1%2", typeName (objType), plural (count));
 
 		// Plural of "vertex" is "vertices", correct that
-		if (objType == EVertex && count != 1)
+		if (objType == OBJ_Vertex && count != 1)
 			noun = "vertices";
 
 		text += format ("%1 %2", count, noun);
@@ -563,7 +563,7 @@ bool LDObject::previousIsInvertnext (LDBFCPtr& ptr)
 {
 	LDObjectPtr prev (previous());
 
-	if (prev != null && prev->type() == EBFC && prev.staticCast<LDBFC>()->statement() == LDBFC::InvertNext)
+	if (prev != null && prev->type() == OBJ_BFC && prev.staticCast<LDBFC>()->statement() == LDBFC::InvertNext)
 	{
 		ptr = prev.staticCast<LDBFC>();
 		return true;
@@ -581,7 +581,7 @@ void LDObject::move (Vertex vect)
 		LDMatrixObjectPtr mo = self().toStrongRef().dynamicCast<LDMatrixObject>();
 		mo->setPosition (mo->position() + vect);
 	}
-	elif (type() == LDObject::EVertex)
+	elif (type() == OBJ_Vertex)
 	{
 		// ugh
 		self().toStrongRef().staticCast<LDVertex>()->pos += vect;
@@ -595,23 +595,23 @@ void LDObject::move (Vertex vect)
 
 // =============================================================================
 //
-LDObjectPtr LDObject::getDefault (const LDObject::Type type)
+LDObjectPtr LDObject::getDefault (const LDObjectType type)
 {
 	switch (type)
 	{
-		case EComment:		return spawn<LDComment>();
-		case EBFC:			return spawn<LDBFC>();
-		case ELine:			return spawn<LDLine>();
-		case ECondLine:		return spawn<LDCondLine>();
-		case ESubfile:		return spawn<LDSubfile>();
-		case ETriangle:		return spawn<LDTriangle>();
-		case EQuad:			return spawn<LDQuad>();
-		case EEmpty:		return spawn<LDEmpty>();
-		case EError:		return spawn<LDError>();
-		case EVertex:		return spawn<LDVertex>();
-		case EOverlay:		return spawn<LDOverlay>();
-		case EUnidentified:	assert (false);
-		case ENumTypes:		assert (false);
+		case OBJ_Comment:		return spawn<LDComment>();
+		case OBJ_BFC:			return spawn<LDBFC>();
+		case OBJ_Line:			return spawn<LDLine>();
+		case OBJ_CondLine:		return spawn<LDCondLine>();
+		case OBJ_Subfile:		return spawn<LDSubfile>();
+		case OBJ_Triangle:		return spawn<LDTriangle>();
+		case OBJ_Quad:			return spawn<LDQuad>();
+		case OBJ_Empty:		return spawn<LDEmpty>();
+		case OBJ_Error:		return spawn<LDError>();
+		case OBJ_Vertex:		return spawn<LDVertex>();
+		case OBJ_Overlay:		return spawn<LDOverlay>();
+		case OBJ_Unknown:	assert (false);
+		case OBJ_NumTypes:		assert (false);
 	}
 	return LDObjectPtr();
 }

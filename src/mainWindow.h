@@ -135,10 +135,10 @@ class MainWindow : public QMainWindow
 		//! red), -1 if there is no such consensus.
 		int getSelectedColor();
 
-		//! \returns the uniform selected type (i.e. \c LDObject::ELine if everything
-		//! selected is a line), \c LDObject::EUnidentified if there is no such
+		//! \returns the uniform selected type (i.e. \c OBJ_Line if everything
+		//! selected is a line), \c OBJ_Unknown if there is no such
 		//! consensus.
-		LDObject::Type getUniformSelectedType();
+		LDObjectType getUniformSelectedType();
 
 		//! Automatically scrolls the object list so that it points to the first
 		//! selected object.

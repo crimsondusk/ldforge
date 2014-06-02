@@ -124,7 +124,7 @@ static void doInline (bool deep)
 		// inlined contents.
 		long idx = obj->lineNumber();
 
-		if (idx == -1 || obj->type() != LDObject::ESubfile)
+		if (idx == -1 || obj->type() != OBJ_Subfile)
 			continue;
 
 		LDObjectList objs = obj.staticCast<LDSubfile>()->inlineContents (deep, false);
@@ -165,7 +165,7 @@ DEFINE_ACTION (SplitQuads, 0)
 
 	for (LDObjectPtr obj : objs)
 	{
-		if (obj->type() != LDObject::EQuad)
+		if (obj->type() != OBJ_Quad)
 			continue;
 
 		// Find the index of this quad
@@ -201,7 +201,7 @@ DEFINE_ACTION (EditRaw, KEY (F9))
 	ui.setupUi (dlg);
 	ui.code->setText (obj->asText());
 
-	if (obj->type() == LDObject::EError)
+	if (obj->type() == OBJ_Error)
 		ui.errorDescription->setText (obj.staticCast<LDError>()->reason());
 	else
 	{
@@ -258,13 +258,14 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 
 	for (LDObjectPtr obj : objs)
 	{
-		const LDObject::Type type = obj->type();
-		if (type != LDObject::EQuad && type != LDObject::ETriangle)
+		const LDObjectType type = obj->type();
+
+		if (type != OBJ_Quad && type != OBJ_Triangle)
 			continue;
 
 		LDLinePtr lines[4];
 
-		if (type == LDObject::EQuad)
+		if (type == OBJ_Quad)
 		{
 			LDQuadPtr quad = obj.staticCast<LDQuad>();
 			lines[0] = spawn<LDLine> (quad->vertex (0), quad->vertex (1));
@@ -474,7 +475,7 @@ static void doRotate (const int l, const int m, const int n)
 			// Transform the matrix
 			mo->setTransform (transform * mo->transform());
 		}
-		elif (obj->type() == LDObject::EVertex)
+		elif (obj->type() == OBJ_Vertex)
 		{
 			LDVertexPtr vert = obj.staticCast<LDVertex>();
 			Vertex v = vert->pos;
@@ -572,7 +573,7 @@ DEFINE_ACTION (Uncolor, 0)
 
 		int col = maincolor;
 
-		if (obj->type() == LDObject::ELine || obj->type() == LDObject::ECondLine)
+		if (obj->type() == OBJ_Line || obj->type() == OBJ_CondLine)
 			col = edgecolor;
 
 		obj->setColor (col);
@@ -680,7 +681,7 @@ DEFINE_ACTION (Demote, 0)
 
 	for (LDObjectPtr obj : sel)
 	{
-		if (obj->type() != LDObject::ECondLine)
+		if (obj->type() != OBJ_CondLine)
 			continue;
 
 		obj.staticCast<LDCondLine>()->demote();
