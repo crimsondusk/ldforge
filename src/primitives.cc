@@ -54,8 +54,6 @@ PrimitiveScanner* getActivePrimitiveScanner()
 //
 void loadPrimitives()
 {
-	PrimitiveCategory::loadCategories();
-
 	// Try to load prims.cfg
 	QFile conf (Config::filepath ("prims.cfg"));
 
@@ -202,6 +200,7 @@ void PrimitiveScanner::start()
 	if (g_activeScanner)
 		return;
 
+	PrimitiveCategory::loadCategories();
 	PrimitiveScanner* scanner = new PrimitiveScanner;
 	scanner->work();
 }
@@ -216,9 +215,10 @@ PrimitiveCategory::PrimitiveCategory (QString name, QObject* parent) :
 //
 void PrimitiveCategory::populateCategories()
 {
+	loadCategories();
+
 	for (PrimitiveCategory* cat : g_PrimitiveCategories)
 		cat->prims.clear();
-
 
 	for (Primitive& prim : g_primitives)
 	{
@@ -265,6 +265,14 @@ void PrimitiveCategory::populateCategories()
 		else
 			g_unmatched->prims << prim;
 	}
+
+	// Sort the categories. Note that we do this here because we need the existing
+	// order for regex matching.
+	qSort (g_PrimitiveCategories.begin(), g_PrimitiveCategories.end(),
+		[](PrimitiveCategory* const& a, PrimitiveCategory* const& b) -> bool
+		{
+			return a->name() < b->name();
+		});
 }
 
 // =============================================================================

@@ -37,6 +37,7 @@
 +	- Inverting a subfile now detects whether the subfile is flat and flips it if it is instead of naively invertnexting everything.
 +	- Added an action for opening the subfiles pointed to by selected references as editable documents.
 +	- Added a toolbox for primitives. These primitives can be dragged and dropped into the main viewport.
++	- Primitive categories are now sorted alphabetically.
 
 -	- The camera is now changed to the top one if switching to draw mode while using the free camera instead of disabling the draw mode.
 -	- The color selector now uses the color's edge color for the borders instead of black.
