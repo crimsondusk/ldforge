@@ -34,6 +34,7 @@ class GLRenderer;
 class QComboBox;
 class QProgressBar;
 class Ui_LDForgeUI;
+class Primitive;
 
 // Stuff for dialogs
 #define IMPLEMENT_DIALOG_BUTTONS \
@@ -188,7 +189,13 @@ class MainWindow : public QMainWindow
 
 		void endAction();
 
+		inline QTreeWidget* getPrimitivesTree() const
+		{
+			return ui->primitives;
+		}
+
 	public slots:
+		void updatePrimitives();
 		void changeCurrentFile();
 		void slot_action();
 		void slot_actionNew();
@@ -373,3 +380,21 @@ void radioDefault (const T& expr, QList<Pair<QRadioButton*, T>> haystack)
 		}
 	}
 }
+
+// =============================================================================
+//
+class SubfileListItem : public QTreeWidgetItem
+{
+	PROPERTY (public, Primitive*,	primitive, setPrimitive, STOCK_WRITE)
+
+	public:
+		SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
+			QTreeWidgetItem (parent),
+			m_primitive (info) {}
+
+		SubfileListItem (QTreeWidget* parent, Primitive* info) :
+			QTreeWidgetItem (parent),
+			m_primitive (info) {}
+};
+
+void populatePrimitives (QTreeWidget* tw, const QString& selectByDefault = QString());

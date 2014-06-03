@@ -73,6 +73,9 @@ void loadPrimitives()
 			if (line.endsWith ("\n"))
 				line.chop (1);
 
+			if (line.endsWith ("\r"))
+				line.chop (1);
+
 			int space = line.indexOf (" ");
 
 			if (space == -1)

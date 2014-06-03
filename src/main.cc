@@ -64,6 +64,7 @@ int main (int argc, char* argv[])
 
 	LDPaths::initPaths();
 	initColors();
+	loadPrimitives();
 	MainWindow* win = new MainWindow;
 	newFile();
 	win->show();
@@ -77,6 +78,5 @@ int main (int argc, char* argv[])
 		Config::save();
 	}
 
-	loadPrimitives();
 	return app.exec();
 }

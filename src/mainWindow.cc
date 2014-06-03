@@ -48,6 +48,7 @@
 #include "messageLog.h"
 #include "configuration.h"
 #include "ui_ldforge.h"
+#include "primitives.h"
 
 static bool g_isSelectionLocked = false;
 
@@ -83,6 +84,11 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	connect (ui->objectList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_selectionChanged()));
 	connect (ui->objectList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
 	connect (m_tabs, SIGNAL (currentChanged(int)), this, SLOT (changeCurrentFile()));
+
+	if (getActivePrimitiveScanner() != null)
+		connect (getActivePrimitiveScanner(), SIGNAL (workDone()), this, SLOT (updatePrimitives()));
+	else
+		updatePrimitives();
 
 	m_msglog = new MessageManager;
 	m_msglog->setRenderer (R());
@@ -991,6 +997,13 @@ void MainWindow::updateActions()
 
 // =============================================================================
 //
+void MainWindow::updatePrimitives()
+{
+	populatePrimitives (ui->primitives);
+}
+
+// =============================================================================
+//
 QImage imageFromScreencap (uchar* data, int w, int h)
 {
 	// GL and Qt formats have R and B swapped. Also, GL flips Y - correct it as well.
@@ -1015,4 +1028,30 @@ LDQuickColor LDQuickColor::getSeparator()
 bool LDQuickColor::isSeparator() const
 {
 	return color() == null;
+}
+
+void populatePrimitives (QTreeWidget* tw, QString const& selectByDefault)
+{
+	tw->clear();
+
+	for (PrimitiveCategory* cat : g_PrimitiveCategories)
+	{
+		SubfileListItem* parentItem = new SubfileListItem (tw, null);
+		parentItem->setText (0, cat->name());
+		QList<QTreeWidgetItem*> subfileItems;
+
+		for (Primitive& prim : cat->prims)
+		{
+			SubfileListItem* item = new SubfileListItem (parentItem, &prim);
+			item->setText (0, format ("%1 - %2", prim.name, prim.title));
+			subfileItems << item;
+
+			// If this primitive is the one the current object points to,
+			// select it by default
+			if (selectByDefault == prim.name)
+				tw->setCurrentItem (item);
+		}
+
+		tw->addTopLevelItem (parentItem);
+	}
 }

@@ -126,11 +126,11 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	m_toolTipTimer = new QTimer (this);
 	m_toolTipTimer->setSingleShot (true);
 	m_isCameraMoving = false;
-	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
-
 	m_thickBorderPen = QPen (QColor (0, 0, 0, 208), 2, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin);
 	m_thinBorderPen = m_thickBorderPen;
 	m_thinBorderPen.setWidth (1);
+	setAcceptDrops (true);
+	connect (m_toolTipTimer, SIGNAL (timeout()), this, SLOT (slot_toolTipTimer()));
 
 	// Init camera icons
 	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
@@ -2177,3 +2177,26 @@ void GLRenderer::highlightCursorObject()
 	update();
 }
 
+void GLRenderer::dragEnterEvent (QDragEnterEvent* ev)
+{
+	if (g_win != null && ev->source() == g_win->getPrimitivesTree() && g_win->getPrimitivesTree()->currentItem() != null)
+		ev->acceptProposedAction();
+}
+
+void GLRenderer::dropEvent (QDropEvent* ev)
+{
+	if (g_win != null && ev->source() == g_win->getPrimitivesTree())
+	{
+		QString primName = static_cast<SubfileListItem*> (g_win->getPrimitivesTree()->currentItem())->primitive()->name;
+		LDSubfilePtr ref = spawn<LDSubfile>();
+		ref->setColor (maincolor);
+		ref->setFileInfo (getDocument (primName));
+		ref->setPosition (g_origin);
+		ref->setTransform (g_identity);
+		LDDocument::current()->insertObj (g_win->getInsertionPoint(), ref);
+		ref->select();
+		g_win->buildObjList();
+		g_win->R()->refresh();
+		ev->acceptProposedAction();
+	}
+}

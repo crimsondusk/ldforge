@@ -37,22 +37,6 @@
 
 // =============================================================================
 //
-class SubfileListItem : public QTreeWidgetItem
-{
-	PROPERTY (public, Primitive*,	primitive, setPrimitive, STOCK_WRITE)
-
-	public:
-		SubfileListItem (QTreeWidgetItem* parent, Primitive* info) :
-			QTreeWidgetItem (parent),
-			m_primitive (info) {}
-
-		SubfileListItem (QTreeWidget* parent, Primitive* info) :
-			QTreeWidgetItem (parent),
-			m_primitive (info) {}
-};
-
-// =============================================================================
-//
 AddObjectDialog::AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWidget* parent) :
 	QDialog (parent)
 {
@@ -116,27 +100,7 @@ AddObjectDialog::AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWid
 			coordCount = 3;
 			tw_subfileList = new QTreeWidget();
 			tw_subfileList->setHeaderLabel (tr ("Primitives"));
-
-			for (PrimitiveCategory* cat : g_PrimitiveCategories)
-			{
-				SubfileListItem* parentItem = new SubfileListItem (tw_subfileList, null);
-				parentItem->setText (0, cat->name());
-				QList<QTreeWidgetItem*> subfileItems;
-
-				for (Primitive& prim : cat->prims)
-				{
-					SubfileListItem* item = new SubfileListItem (parentItem, &prim);
-					item->setText (0, format ("%1 - %2", prim.name, prim.title));
-					subfileItems << item;
-
-					// If this primitive is the one the current object points to,
-					// select it by default
-					if (obj && obj.staticCast<LDSubfile>()->fileInfo()->name() == prim.name)
-						tw_subfileList->setCurrentItem (item);
-				}
-
-				tw_subfileList->addTopLevelItem (parentItem);
-			}
+			populatePrimitives (tw_subfileList, (obj != null ? obj.staticCast<LDSubfile>()->fileInfo()->name() : ""));
 
 			connect (tw_subfileList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_subfileTypeChanged()));
 			lb_subfileName = new QLabel ("File:");

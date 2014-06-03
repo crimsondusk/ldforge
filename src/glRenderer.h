@@ -187,6 +187,8 @@ class GLRenderer : public QGLWidget
 
 	protected:
 		void           contextMenuEvent (QContextMenuEvent* ev);
+		void			dragEnterEvent (QDragEnterEvent* ev);
+		void			dropEvent (QDropEvent* ev);
 		void           initializeGL();
 		void           keyPressEvent (QKeyEvent* ev);
 		void           keyReleaseEvent (QKeyEvent* ev);
