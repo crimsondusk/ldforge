@@ -113,7 +113,7 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 //
 KeySequenceConfigEntry* MainWindow::shortcutForAction (QAction* action)
 {
-	String keycfgname = action->objectName() + "Shortcut";
+	QString keycfgname = action->objectName() + "Shortcut";
 	return KeySequenceConfigEntry::getByName (keycfgname);
 }
 
@@ -175,7 +175,7 @@ for (QAction * recent : m_recentFiles)
 
 	for (const QVariant& it : cfg::recentFiles)
 	{
-		String file = it.toString();
+		QString file = it.toString();
 		QAction* recent = new QAction (getIcon ("open-recent"), file, this);
 
 		connect (recent, SIGNAL (triggered()), this, SLOT (slot_recentFile()));
@@ -191,7 +191,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 {
 	QList<LDQuickColor> colors;
 
-	for (String colorname : cfg::quickColorToolbar.split (":"))
+	for (QString colorname : cfg::quickColorToolbar.split (":"))
 	{
 		if (colorname == "|")
 			colors << LDQuickColor::getSeparator();
@@ -252,7 +252,7 @@ void MainWindow::updateGridToolBar()
 //
 void MainWindow::updateTitle()
 {
-	String title = format (APPNAME " %1", fullVersionString());
+	QString title = format (APPNAME " %1", fullVersionString());
 
 	// Append our current file if we have one
 	if (getCurrentDocument())
@@ -320,7 +320,7 @@ void MainWindow::buildObjList()
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		String descr;
+		QString descr;
 
 		switch (obj->type())
 		{
@@ -727,11 +727,11 @@ void MainWindow::slot_editObject (QListWidgetItem* listitem)
 //
 bool MainWindow::save (LDDocumentPtr doc, bool saveAs)
 {
-	String path = doc->fullPath();
+	QString path = doc->fullPath();
 
 	if (saveAs || path.isEmpty())
 	{
-		String name = doc->defaultName();
+		QString name = doc->defaultName();
 
 		if (not doc->fullPath().isEmpty()) 
 			name = doc->fullPath();
@@ -761,7 +761,7 @@ bool MainWindow::save (LDDocumentPtr doc, bool saveAs)
 		return true;
 	}
 
-	String message = format (tr ("Failed to save to %1: %2"), path, strerror (errno));
+	QString message = format (tr ("Failed to save to %1: %2"), path, strerror (errno));
 
 	// Tell the user the save failed, and give the option for saving as with it.
 	QMessageBox dlg (QMessageBox::Critical, tr ("Save Failure"), message, QMessageBox::Close, g_win);
@@ -779,7 +779,7 @@ bool MainWindow::save (LDDocumentPtr doc, bool saveAs)
 	return false;
 }
 
-void MainWindow::addMessage (String msg)
+void MainWindow::addMessage (QString msg)
 {
 	m_msglog->addLine (msg);
 }
@@ -792,21 +792,21 @@ void ObjectList::contextMenuEvent (QContextMenuEvent* ev)
 
 // =============================================================================
 //
-QPixmap getIcon (String iconName)
+QPixmap getIcon (QString iconName)
 {
 	return (QPixmap (format (":/icons/%1.png", iconName)));
 }
 
 // =============================================================================
 //
-bool confirm (const String& message)
+bool confirm (const QString& message)
 {
 	return confirm (MainWindow::tr ("Confirm"), message);
 }
 
 // =============================================================================
 //
-bool confirm (const String& title, const String& message)
+bool confirm (const QString& title, const QString& message)
 {
 	return QMessageBox::question (g_win, title, message,
 		(QMessageBox::Yes | QMessageBox::No), QMessageBox::No) == QMessageBox::Yes;
@@ -814,7 +814,7 @@ bool confirm (const String& title, const String& message)
 
 // =============================================================================
 //
-void critical (const String& message)
+void critical (const QString& message)
 {
 	QMessageBox::critical (g_win, MainWindow::tr ("Error"), message,
 		(QMessageBox::Close), QMessageBox::Close);

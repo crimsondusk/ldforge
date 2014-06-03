@@ -86,7 +86,7 @@ void Vertex::setCoordinate (Axis ax, qreal value)
 	}
 }
 
-String Vertex::toString (bool mangled) const
+QString Vertex::toString (bool mangled) const
 {
 	if (mangled)
 		return format ("(%1, %2, %3)", x(), y(), z());
@@ -141,16 +141,16 @@ void Matrix::dump() const
 
 // =============================================================================
 //
-String Matrix::toString() const
+QString Matrix::toString() const
 {
-	String val;
+	QString val;
 
 	for (int i = 0; i < 9; ++i)
 	{
 		if (i > 0)
 			val += ' ';
 
-		val += String::number (m_vals[i]);
+		val += QString::number (m_vals[i]);
 	}
 
 	return val;

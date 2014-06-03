@@ -64,12 +64,12 @@ class ConfigDialog : public QDialog
 
 		void applySettings();
 		void addShortcut (KeySequenceConfigEntry& cfg, QAction* act, int& i);
-		void setButtonBackground (QPushButton* button, String value);
-		void pickColor (String& conf, QPushButton* button);
+		void setButtonBackground (QPushButton* button, QString value);
+		void pickColor (QString& conf, QPushButton* button);
 		void updateQuickColorList (LDQuickColor* sel = null);
 		void setShortcutText (ShortcutListItem* item);
 		int getItemRow (QListWidgetItem* item, QList<QListWidgetItem*>& haystack);
-		String quickColorString();
+		QString quickColorString();
 		QListWidgetItem* getSelectedQuickColor();
 		QList<ShortcutListItem*> getShortcutSelection();
 		void initExtProgs();

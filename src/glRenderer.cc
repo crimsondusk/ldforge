@@ -135,7 +135,7 @@ GLRenderer::GLRenderer (QWidget* parent) : QGLWidget (parent)
 	// Init camera icons
 	for (ECamera cam = EFirstCamera; cam < ENumCameras; ++cam)
 	{
-		String iconname = format ("camera-%1", tr (g_CameraNames[cam]).toLower());
+		QString iconname = format ("camera-%1", tr (g_CameraNames[cam]).toLower());
 		CameraIcon* info = &m_cameraIcons[cam];
 		info->img = new QPixmap (getIcon (iconname));
 		info->cam = cam;
@@ -593,7 +593,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 #ifndef RELEASE
 	if (not isPicking())
 	{
-		String text = format ("Rotation: (%1, %2, %3)\nPanning: (%4, %5), Zoom: %6",
+		QString text = format ("Rotation: (%1, %2, %3)\nPanning: (%4, %5), Zoom: %6",
 			rot(X), rot(Y), rot(Z), pan(X), pan(Y), zoom());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		paint.setPen (textpen);
@@ -618,7 +618,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 		}
 
 		// Paint the coordinates onto the screen.
-		String text = format (tr ("X: %1, Y: %2, Z: %3"), m_position3D[X], m_position3D[Y], m_position3D[Z]);
+		QString text = format (tr ("X: %1, Y: %2, Z: %3"), m_position3D[X], m_position3D[Y], m_position3D[Z]);
 		QFontMetrics metrics = QFontMetrics (font());
 		QRect textSize = metrics.boundingRect (0, 0, m_width, m_height, Qt::AlignCenter, text);
 		paint.setPen (textpen);
@@ -696,7 +696,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 
 						if (cfg::drawLineLengths)
 						{
-							const String label = String::number ((poly3d[j] - poly3d[i]).length());
+							const QString label = QString::number ((poly3d[j] - poly3d[i]).length());
 							QPoint origin = QLineF (poly[i], poly[j]).pointAt (0.5).toPoint();
 							paint.drawText (origin, label);
 						}
@@ -711,7 +711,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 							if (angle < 0)
 								angle = 180 - l1.angleTo (l0);
 
-							String label = String::number (angle) + String::fromUtf8 (QByteArray ("\302\260"));
+							QString label = QString::number (angle) + QString::fromUtf8 (QByteArray ("\302\260"));
 							QPoint pos = poly[i];
 							pos.setY (pos.y() + metrics.height());
 
@@ -798,13 +798,13 @@ void GLRenderer::paintEvent (QPaintEvent*)
 
 				{ // Draw the current radius in the middle of the circle.
 					QPoint origin = coordconv3_2 (m_drawedVerts[0]);
-					String label = String::number (dist0);
+					QString label = QString::number (dist0);
 					paint.setPen (textpen);
 					paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y(), label);
 
 					if (m_drawedVerts.size() >= 2)
 					{
-						label = String::number (dist1);
+						label = QString::number (dist1);
 						paint.drawText (origin.x() - (metrics.width (label) / 2), origin.y() + metrics.height(), label);
 					}
 				}
@@ -830,13 +830,13 @@ void GLRenderer::paintEvent (QPaintEvent*)
 			paint.drawPixmap (info.destRect, *info.img, info.srcRect);
 		}
 
-		String formatstr = tr ("%1 Camera");
+		QString formatstr = tr ("%1 Camera");
 
 		// Draw a label for the current camera in the bottom left corner
 		{
 			const int margin = 4;
 
-			String label;
+			QString label;
 			label = format (formatstr, tr (g_CameraNames[camera()]));
 			paint.setPen (textpen);
 			paint.drawText (QPoint (margin, height() - (margin + metrics.descent())), label);
@@ -849,7 +849,7 @@ void GLRenderer::paintEvent (QPaintEvent*)
 				m_drawToolTip = false;
 			else
 			{
-				String label = format (formatstr, tr (g_CameraNames[m_toolTipCamera]));
+				QString label = format (formatstr, tr (g_CameraNames[m_toolTipCamera]));
 				QToolTip::showText (m_globalpos, label);
 			}
 		}
@@ -1739,7 +1739,7 @@ Axis GLRenderer::getCameraAxis (bool y, ECamera camid)
 
 // =============================================================================
 //
-bool GLRenderer::setupOverlay (ECamera cam, String file, int x, int y, int w, int h)
+bool GLRenderer::setupOverlay (ECamera cam, QString file, int x, int y, int w, int h)
 {
 	QImage* img = new QImage (QImage (file).convertToFormat (QImage::Format_ARGB32));
 	LDGLOverlay& info = getOverlay (cam);

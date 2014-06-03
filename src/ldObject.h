@@ -28,7 +28,7 @@ public:															\
 	{															\
 		return OBJ_##T;											\
 	}															\
-	virtual String asText() const override;						\
+	virtual QString asText() const override;						\
 	virtual void invert() override;								\
 																\
 	LD##T (LDObjectPtr* selfptr);								\
@@ -36,7 +36,7 @@ public:															\
 protected:														\
 	friend class QSharedPointer<LD##T>::ExternalRefCount;		\
 
-#define LDOBJ_NAME(N)          public: virtual String typeName() const override { return #N; }
+#define LDOBJ_NAME(N)          public: virtual QString typeName() const override { return #N; }
 #define LDOBJ_VERTICES(V)      public: virtual int numVertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    public: virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
@@ -101,7 +101,7 @@ public:
 	LDObject (LDObjectPtr* selfptr);
 
 	// This object as LDraw code
-	virtual String				asText() const = 0;
+	virtual QString				asText() const = 0;
 
 	// Makes a copy of this object
 	LDObjectPtr					createCopy() const;
@@ -164,13 +164,13 @@ public:
 	virtual LDObjectType		type() const = 0;
 
 	// Type name of this object
-	virtual String				typeName() const = 0;
+	virtual QString				typeName() const = 0;
 
 	// Get a vertex by index
 	const Vertex&				vertex (int i) const;
 
 	// Get type name by enumerator
-	static String typeName (LDObjectType type);
+	static QString typeName (LDObjectType type);
 
 	// Returns a default-constructed LDObject by the given type
 	static LDObjectPtr getDefault (const LDObjectType type);
@@ -179,7 +179,7 @@ public:
 	static void moveObjects (LDObjectList objs, const bool up);
 
 	// Get a description of a list of LDObjects
-	static String describeObjects (const LDObjectList& objs);
+	static QString describeObjects (const LDObjectList& objs);
 	static LDObjectPtr fromID (int id);
 	LDPolygon* getPolygon();
 
@@ -335,12 +335,12 @@ class LDError : public LDObject
 	LDOBJ_UNCOLORED
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
-	PROPERTY (public,	String,	fileReferenced, setFileReferenced,	STOCK_WRITE)
-	PROPERTY (private,	String,	contents,		setContents,		STOCK_WRITE)
-	PROPERTY (private,	String,	reason,			setReason,			STOCK_WRITE)
+	PROPERTY (public,	QString,	fileReferenced, setFileReferenced,	STOCK_WRITE)
+	PROPERTY (private,	QString,	contents,		setContents,		STOCK_WRITE)
+	PROPERTY (private,	QString,	reason,			setReason,			STOCK_WRITE)
 
 	public:
-		LDError (LDObjectPtr* selfptr, String contents, String reason) :
+		LDError (LDObjectPtr* selfptr, QString contents, QString reason) :
 			LDObject (selfptr),
 			m_contents (contents),
 			m_reason (reason) {}
@@ -372,7 +372,7 @@ using LDEmptyWeakPtr = QWeakPointer<LDEmpty>;
 //
 class LDComment : public LDObject
 {
-	PROPERTY (public, String, text, setText, STOCK_WRITE)
+	PROPERTY (public, QString, text, setText, STOCK_WRITE)
 	LDOBJ (Comment)
 	LDOBJ_NAME (comment)
 	LDOBJ_VERTICES (0)
@@ -381,7 +381,7 @@ class LDComment : public LDObject
 	LDOBJ_NO_MATRIX
 
 	public:
-		LDComment (LDObjectPtr* selfptr, String text) :
+		LDComment (LDObjectPtr* selfptr, QString text) :
 			LDObject (selfptr),
 			m_text (text) {}
 };
@@ -612,16 +612,16 @@ class LDOverlay : public LDObject
 	PROPERTY (public,	int,		y,			setY,			STOCK_WRITE)
 	PROPERTY (public,	int,		width,		setWidth,		STOCK_WRITE)
 	PROPERTY (public,	int,		height,		setHeight,		STOCK_WRITE)
-	PROPERTY (public,	String,		fileName,	setFileName,	STOCK_WRITE)
+	PROPERTY (public,	QString,		fileName,	setFileName,	STOCK_WRITE)
 };
 
 using LDOverlayPtr = QSharedPointer<LDOverlay>;
 using LDOverlayWeakPtr = QWeakPointer<LDOverlay>;
 
 // Other common LDraw stuff
-static const String g_CALicense ("!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt");
-static const String g_nonCALicense ("!LICENSE Not redistributable : see NonCAreadme.txt");
+static const QString g_CALicense ("!LICENSE Redistributable under CCAL version 2.0 : see CAreadme.txt");
+static const QString g_nonCALicense ("!LICENSE Not redistributable : see NonCAreadme.txt");
 static const int g_lores = 16;
 static const int g_hires = 48;
 
-String getLicenseText (int id);
+QString getLicenseText (int id);

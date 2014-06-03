@@ -49,7 +49,7 @@ struct LDGLOverlay
 					oy;
 	double			lw,
 					lh;
-	String			fname;
+	QString			fname;
 	QImage*			img;
 	bool			invalid;
 };
@@ -178,7 +178,7 @@ class GLRenderer : public QGLWidget
 		void           setBackground();
 		void           setCamera (const ECamera cam);
 		void           setDepthValue (double depth);
-		bool           setupOverlay (ECamera cam, String file, int x, int y, int w, int h);
+		bool           setupOverlay (ECamera cam, QString file, int x, int y, int w, int h);
 		void           updateOverlayObjects();
 		void           zoomNotch (bool inward);
 
@@ -296,7 +296,7 @@ class GLRenderer : public QGLWidget
 		}
 
 		template<typename... Args>
-		inline String format (String fmtstr, Args... args)
+		inline QString format (QString fmtstr, Args... args)
 		{
 			return ::format (fmtstr, args...);
 		}

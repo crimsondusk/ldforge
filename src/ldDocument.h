@@ -31,12 +31,12 @@ class GLCompiler;
 namespace LDPaths
 {
 	void initPaths();
-	bool tryConfigure (String path);
+	bool tryConfigure (QString path);
 
-	String ldconfig();
-	String prims();
-	String parts();
-	String getError();
+	QString ldconfig();
+	QString prims();
+	QString parts();
+	QString getError();
 }
 
 //
@@ -65,13 +65,13 @@ class LDDocument : public QObject
 	public:
 		using KnownVertexMap = QMap<Vertex, int>;
 
-		PROPERTY (public,	String,				name,			setName,			STOCK_WRITE)
+		PROPERTY (public,	QString,				name,			setName,			STOCK_WRITE)
 		PROPERTY (private,	LDObjectList,		objects, 		setObjects,			STOCK_WRITE)
 		PROPERTY (private,	LDObjectList,		cache, 			setCache,			STOCK_WRITE)
 		PROPERTY (private,	History*,			history,		setHistory,			STOCK_WRITE)
 		PROPERTY (private,	KnownVertexMap,		vertices,		setVertices,		STOCK_WRITE)
-		PROPERTY (public,	String,				fullPath,		setFullPath,		STOCK_WRITE)
-		PROPERTY (public,	String,				defaultName,	setDefaultName,		STOCK_WRITE)
+		PROPERTY (public,	QString,				fullPath,		setFullPath,		STOCK_WRITE)
+		PROPERTY (public,	QString,				defaultName,	setDefaultName,		STOCK_WRITE)
 		PROPERTY (public,	bool,				isImplicit,		setImplicit,		CUSTOM_WRITE)
 		PROPERTY (public,	long,				savePosition,	setSavePosition,	STOCK_WRITE)
 		PROPERTY (public,	int,				tabIndex,		setTabIndex,		STOCK_WRITE)
@@ -87,7 +87,7 @@ class LDDocument : public QObject
 		void addObjects (const LDObjectList objs);
 		void clearSelection();
 		void forgetObject (LDObjectPtr obj); // Deletes the given object from the object chain.
-		String getDisplayName();
+		QString getDisplayName();
 		const LDObjectList& getSelection() const;
 		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
 		void initializeCachedData();
@@ -95,7 +95,7 @@ class LDDocument : public QObject
 		void insertObj (int pos, LDObjectPtr obj);
 		int getObjectCount() const;
 		LDObjectPtr getObject (int pos) const;
-		bool save (String path = ""); // Saves this file to disk.
+		bool save (QString path = ""); // Saves this file to disk.
 		void swapObjects (LDObjectPtr one, LDObjectPtr other);
 		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
 		void setObject (int idx, LDObjectPtr obj);
@@ -150,7 +150,7 @@ class LDDocument : public QObject
 		static LDDocumentPtr createNew();
 
 		// Turns a full path into a relative path
-		static String shortenName (String a);
+		static QString shortenName (QString a);
 		static QList<LDDocumentPtr> const& explicitDocuments();
 
 	protected:
@@ -187,27 +187,27 @@ inline LDDocumentPtr getCurrentDocument()
 void newFile();
 
 // Opens the given file as the main file. Everything is closed first.
-void openMainFile (String path);
+void openMainFile (QString path);
 
 // Finds an OpenFile by name or null if not open
-LDDocumentPtr findDocument (String name);
+LDDocumentPtr findDocument (QString name);
 
 // Opens the given file and parses the LDraw code within. Returns a pointer
 // to the opened file or null on error.
-LDDocumentPtr openDocument (String path, bool search, bool implicit, LDDocumentPtr fileToOverride = LDDocumentPtr());
+LDDocumentPtr openDocument (QString path, bool search, bool implicit, LDDocumentPtr fileToOverride = LDDocumentPtr());
 
 // Opens the given file and returns a pointer to it, potentially looking in /parts and /p
-QFile* openLDrawFile (String relpath, bool subdirs, String* pathpointer = null);
+QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer = null);
 
 // Close all open files, whether user-opened or subfile caches.
 void closeAll();
 
 // Parses a string line containing an LDraw object and returns the object parsed.
-LDObjectPtr parseLine (String line);
+LDObjectPtr parseLine (QString line);
 
 // Retrieves the pointer to the given document by file name. Document is loaded
 // from file if necessary. Can return null if neither succeeds.
-LDDocumentPtr getDocument (String filename);
+LDDocumentPtr getDocument (QString filename);
 
 // Re-caches all subfiles.
 void reloadAllSubfiles();
@@ -222,10 +222,10 @@ inline const LDObjectList& selection()
 	return getCurrentDocument()->getSelection();
 }
 
-void addRecentFile (String path);
+void addRecentFile (QString path);
 void loadLogoedStuds();
-String basename (String path);
-String dirname (String path);
+QString basename (QString path);
+QString dirname (QString path);
 
 // =============================================================================
 //

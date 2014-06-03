@@ -43,14 +43,14 @@ namespace Config
 	bool load();
 	bool save();
 	void reset();
-	String dirpath();
-	String filepath (String file);
+	QString dirpath();
+	QString filepath (QString file);
 }
 
 // =========================================================
 class ConfigEntry
 {
-	PROPERTY (private, String, name, setName, STOCK_WRITE)
+	PROPERTY (private, QString, name, setName, STOCK_WRITE)
 
 public:
 	enum Type
@@ -65,14 +65,14 @@ public:
 	};
 
 	using IntType			= int;
-	using StringType		= String;
+	using StringType		= QString;
 	using FloatType			= float;
 	using BoolType			= bool;
 	using KeySequenceType	= QKeySequence;
 	using ListType			= QList<QVariant>;
 	using VertexType		= Vertex;
 
-	ConfigEntry (String name);
+	ConfigEntry (QString name);
 
 	virtual QVariant	getDefaultAsVariant() const = 0;
 	virtual Type		getType() const = 0;
@@ -90,7 +90,7 @@ protected:
 public:																				\
 	using ValueType = ConfigEntry::NAME##Type;										\
 																					\
-	NAME##ConfigEntry (ValueType* valueptr, String name, ValueType def) :			\
+	NAME##ConfigEntry (ValueType* valueptr, QString name, ValueType def) :			\
 		ConfigEntry (name),															\
 		m_valueptr (valueptr),														\
 		m_default (def)																\
@@ -144,7 +144,7 @@ public:																				\
 		return QVariant::fromValue<ValueType> (m_default);							\
 	}																				\
 																					\
-	static NAME##ConfigEntry* getByName (String name);								\
+	static NAME##ConfigEntry* getByName (QString name);								\
 																					\
 private:																			\
 	ValueType*	m_valueptr;															\

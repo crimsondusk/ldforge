@@ -50,7 +50,7 @@ static int copyToClipboard()
 	qApp->clipboard()->clear();
 
 	// Now, copy the contents into the clipboard.
-	String data;
+	QString data;
 
 	for (LDObjectPtr obj : objs)
 	{
@@ -86,12 +86,12 @@ DEFINE_ACTION (Copy, CTRL (C))
 //
 DEFINE_ACTION (Paste, CTRL (V))
 {
-	const String clipboardText = qApp->clipboard()->text();
+	const QString clipboardText = qApp->clipboard()->text();
 	int idx = getInsertionPoint();
 	getCurrentDocument()->clearSelection();
 	int num = 0;
 
-	for (String line : clipboardText.split ("\n"))
+	for (QString line : clipboardText.split ("\n"))
 	{
 		LDObjectPtr pasted = parseLine (line);
 		getCurrentDocument()->insertObj (idx++, pasted);
@@ -132,7 +132,7 @@ static void doInline (bool deep)
 		// Merge in the inlined objects
 		for (LDObjectPtr inlineobj : objs)
 		{
-			String line = inlineobj->asText();
+			QString line = inlineobj->asText();
 			inlineobj->destroy();
 			LDObjectPtr newobj = parseLine (line);
 			getCurrentDocument()->insertObj (idx++, newobj);
@@ -744,7 +744,7 @@ DEFINE_ACTION (AddHistoryLine, 0)
 		return;
 
 	// Create the comment object based on input
-	String commentText = format ("!HISTORY %1 [%2] %3",
+	QString commentText = format ("!HISTORY %1 [%2] %3",
 		ui->m_date->date().toString ("yyyy-MM-dd"),
 		ui->m_username->text(),
 		ui->m_comment->text());

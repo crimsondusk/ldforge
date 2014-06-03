@@ -42,7 +42,7 @@
 
 ConfigEntry*						g_configPointers[MAX_CONFIG];
 static int							g_cfgPointerCursor = 0;
-static QMap<String, ConfigEntry*>	g_configsByName;
+static QMap<QString, ConfigEntry*>	g_configsByName;
 static QList<ConfigEntry*>			g_configs;
 
 //
@@ -50,11 +50,11 @@ static QList<ConfigEntry*>			g_configs;
 //
 static QSettings* getSettingsObject()
 {
-	String path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
+	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
 	return new QSettings (path, QSettings::IniFormat);
 }
 
-ConfigEntry::ConfigEntry (String name) :
+ConfigEntry::ConfigEntry (QString name) :
 	m_name (name) {}
 
 //
@@ -113,7 +113,7 @@ void Config::reset()
 //
 // Where is the configuration file located at?
 //
-String Config::filepath (String file)
+QString Config::filepath (QString file)
 {
 	return Config::dirpath() + DIRSLASH + file;
 }
@@ -121,7 +121,7 @@ String Config::filepath (String file)
 //
 // Directory of the configuration file.
 //
-String Config::dirpath()
+QString Config::dirpath()
 {
 	QSettings* cfg = getSettingsObject();
 	return dirname (cfg->fileName());
@@ -142,7 +142,7 @@ void ConfigEntry::addToArray (ConfigEntry* ptr)
 }
 
 template<typename T>
-T* getConfigByName (String name, ConfigEntry::Type type)
+T* getConfigByName (QString name, ConfigEntry::Type type)
 {
 	auto it = g_configsByName.find (name);
 
@@ -163,7 +163,7 @@ T* getConfigByName (String name, ConfigEntry::Type type)
 #undef IMPLEMENT_CONFIG
 
 #define IMPLEMENT_CONFIG(NAME)												\
-	NAME##ConfigEntry* NAME##ConfigEntry::getByName (String name)			\
+	NAME##ConfigEntry* NAME##ConfigEntry::getByName (QString name)			\
 	{																		\
 		return getConfigByName<NAME##ConfigEntry> (name, E##NAME##Type);	\
 	}

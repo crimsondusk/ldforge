@@ -143,10 +143,10 @@ template<class T> void removeDuplicates (QList<T>& a)
 	a.erase (std::unique (a.begin(), a.end()), a.end());
 }
 
-inline String utf16 (const char16_t* a)
+inline QString utf16 (const char16_t* a)
 {
 	if (Q_LIKELY (sizeof(char16_t) == sizeof(unsigned short)))
-		return String::fromUtf16 (reinterpret_cast<const unsigned short*> (a));
+		return QString::fromUtf16 (reinterpret_cast<const unsigned short*> (a));
 
 	QVector<unsigned short> data;
 
@@ -154,5 +154,5 @@ inline String utf16 (const char16_t* a)
 		data << *ap;
 
 	data << '\u0000';
-	return String::fromUtf16 (data.constData());
+	return QString::fromUtf16 (data.constData());
 }

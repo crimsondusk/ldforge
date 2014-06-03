@@ -39,7 +39,6 @@ using uint8 = quint8;
 using uint16 = quint16;
 using uint32 = quint32;
 using uint64 = quint64;
-using String = QString;
 using LDObjectPtr = QSharedPointer<LDObject>;
 using LDObjectList = QList<LDObjectPtr>;
 using LDObjectWeakPtr = QWeakPointer<LDObject>;
@@ -72,7 +71,7 @@ public:
 
 	void	apply (ApplyFunction func);
 	void	apply (ApplyConstFunction func) const;
-	String	toString (bool mangled = false) const;
+	QString	toString (bool mangled = false) const;
 	void	transform (const Matrix& matr, const Vertex& pos);
 	void	setCoordinate (Axis ax, qreal value);
 
@@ -117,7 +116,7 @@ class Matrix
 		void			dump() const;
 
 		//! \returns a string representation of the matrix.
-		String			toString() const;
+		QString			toString() const;
 
 		//! Zeroes the matrix out.
 		void			zero();

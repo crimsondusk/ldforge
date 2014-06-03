@@ -27,20 +27,20 @@
 class LDConfigParser
 {
 	public:
-		LDConfigParser (String inText, char sep);
+		LDConfigParser (QString inText, char sep);
 
 		bool isAtEnd();
 		bool isAtBeginning();
-		bool getNextToken (String& val);
-		bool peekNextToken (String& val);
-		bool getToken (String& val, const int pos);
+		bool getNextToken (QString& val);
+		bool peekNextToken (QString& val);
+		bool getToken (QString& val, const int pos);
 		bool findToken (int& result, char const* needle, int args);
 		int getSize();
 		void rewind();
 		void seek (int amount, bool rel);
 		bool tokenCompare (int inPos, const char* sOther);
 
-		inline String operator[] (const int idx)
+		inline QString operator[] (const int idx)
 		{
 			return m_tokens[idx];
 		}

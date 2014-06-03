@@ -30,7 +30,7 @@
 		return History::E##N##History;						\
 	}														\
 															\
-	virtual String getTypeName() const						\
+	virtual QString getTypeName() const						\
 	{														\
 		return #N;											\
 	}
@@ -96,7 +96,7 @@ class AbstractHistoryEntry
 		virtual void undo() const = 0;
 		virtual void redo() const = 0;
 		virtual History::EHistoryType getType() const = 0;
-		virtual String getTypeName() const = 0;
+		virtual QString getTypeName() const = 0;
 };
 
 // =============================================================================
@@ -104,7 +104,7 @@ class AbstractHistoryEntry
 class DelHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
-	PROPERTY (private,	String,	code,	setCode,	STOCK_WRITE)
+	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Del)
@@ -116,13 +116,13 @@ class DelHistory : public AbstractHistoryEntry
 class EditHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int, 		index,		setIndex,	STOCK_WRITE)
-	PROPERTY (private,	String,	oldCode,	setOldCode,	STOCK_WRITE)
-	PROPERTY (private,	String,	newCode,	setNewCode,	STOCK_WRITE)
+	PROPERTY (private,	QString,	oldCode,	setOldCode,	STOCK_WRITE)
+	PROPERTY (private,	QString,	newCode,	setNewCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Edit)
 
-		EditHistory (int idx, String oldCode, String newCode) :
+		EditHistory (int idx, QString oldCode, QString newCode) :
 			m_index (idx),
 			m_oldCode (oldCode),
 			m_newCode (newCode) {}
@@ -134,7 +134,7 @@ class EditHistory : public AbstractHistoryEntry
 class AddHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
-	PROPERTY (private,	String,	code,	setCode,	STOCK_WRITE)
+	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
 	public:
 		IMPLEMENT_HISTORY_TYPE (Add)

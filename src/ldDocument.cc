@@ -52,12 +52,12 @@ const QStringList g_specialSubdirectories ({ "s", "48", "8" });
 //
 namespace LDPaths
 {
-	static String pathError;
+	static QString pathError;
 
 	struct
 	{
-		String LDConfigPath;
-		String partsPath, primsPath;
+		QString LDConfigPath;
+		QString partsPath, primsPath;
 	} pathInfo;
 
 	void initPaths()
@@ -73,7 +73,7 @@ namespace LDPaths
 		}
 	}
 
-	bool tryConfigure (String path)
+	bool tryConfigure (QString path)
 	{
 		QDir dir;
 
@@ -100,22 +100,22 @@ namespace LDPaths
 	}
 
 	// Accessors
-	String getError()
+	QString getError()
 	{
 		return pathError;
 	}
 
-	String ldconfig()
+	QString ldconfig()
 	{
 		return pathInfo.LDConfigPath;
 	}
 
-	String prims()
+	QString prims()
 	{
 		return pathInfo.primsPath;
 	}
 
-	String parts()
+	QString parts()
 	{
 		return pathInfo.partsPath;
 	}
@@ -214,7 +214,7 @@ QList<LDDocumentPtr> const& LDDocument::explicitDocuments()
 
 // =============================================================================
 //
-LDDocumentPtr findDocument (String name)
+LDDocumentPtr findDocument (QString name)
 {
 	for (LDDocumentPtr file : g_allDocuments)
 	{
@@ -227,7 +227,7 @@ LDDocumentPtr findDocument (String name)
 
 // =============================================================================
 //
-String dirname (String path)
+QString dirname (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 
@@ -244,7 +244,7 @@ String dirname (String path)
 
 // =============================================================================
 //
-String basename (String path)
+QString basename (QString path)
 {
 	long lastpos = path.lastIndexOf (DIRSLASH);
 
@@ -256,9 +256,9 @@ String basename (String path)
 
 // =============================================================================
 //
-static String findLDrawFilePath (String relpath, bool subdirs)
+static QString findLDrawFilePath (QString relpath, bool subdirs)
 {
-	String fullPath;
+	QString fullPath;
 
 	// LDraw models use Windows-style path separators. If we're not on Windows,
 	// replace the path separator now before opening any files. Qt expects
@@ -269,24 +269,24 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 
 	// Try find it relative to other currently open documents. We want a file
 	// in the immediate vicinity of a current model to override stock LDraw stuff.
-	String reltop = basename (dirname (relpath));
+	QString reltop = basename (dirname (relpath));
 
 	for (LDDocumentPtr doc : g_allDocuments)
 	{
 		if (doc->fullPath().isEmpty())
 			continue;
 
-		String partpath = format ("%1/%2", dirname (doc->fullPath()), relpath);
+		QString partpath = format ("%1/%2", dirname (doc->fullPath()), relpath);
 		QFile f (partpath);
 
 		if (f.exists())
 		{
 			// ensure we don't mix subfiles and 48-primitives with non-subfiles and non-48
-			String proptop = basename (dirname (partpath));
+			QString proptop = basename (dirname (partpath));
 
 			bool bogus = false;
 
-			for (String s : g_specialSubdirectories)
+			for (QString s : g_specialSubdirectories)
 			{
 				if ((proptop == s && reltop != s) || (reltop == s && proptop != s))
 				{
@@ -313,9 +313,9 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 	{
 		// Look in sub-directories: parts and p. Also look in net_downloadpath, since that's
 		// where we download parts from the PT to.
-		for (const String& topdir : QList<String> ({ cfg::ldrawPath, cfg::downloadFilePath }))
+		for (const QString& topdir : QList<QString> ({ cfg::ldrawPath, cfg::downloadFilePath }))
 		{
-			for (const String& subdir : QList<String> ({ "parts", "p" }))
+			for (const QString& subdir : QList<QString> ({ "parts", "p" }))
 			{
 				fullPath = format ("%1" DIRSLASH "%2" DIRSLASH "%3", topdir, subdir, relpath);
 
@@ -331,10 +331,10 @@ static String findLDrawFilePath (String relpath, bool subdirs)
 
 // =============================================================================
 //
-QFile* openLDrawFile (String relpath, bool subdirs, String* pathpointer)
+QFile* openLDrawFile (QString relpath, bool subdirs, QString* pathpointer)
 {
 	print ("Opening %1...\n", relpath);
-	String path = findLDrawFilePath (relpath, subdirs);
+	QString path = findLDrawFilePath (relpath, subdirs);
 
 	if (pathpointer != null)
 		*pathpointer = path;
@@ -403,7 +403,7 @@ void LDFileLoader::work (int i)
 
 	for (; i < max && i < (int) lines().size(); ++i)
 	{
-		String line = lines()[i];
+		QString line = lines()[i];
 
 		// Trim the trailing newline
 		QChar c;
@@ -480,7 +480,7 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 
 	// Read in the lines
 	while (not fp->atEnd())
-		lines << String::fromUtf8 (fp->readLine());
+		lines << QString::fromUtf8 (fp->readLine());
 
 	LDFileLoader* loader = new LDFileLoader;
 	loader->setWarnings (numWarnings);
@@ -506,13 +506,13 @@ LDObjectList loadFileContents (QFile* fp, int* numWarnings, bool* ok)
 
 // =============================================================================
 //
-LDDocumentPtr openDocument (String path, bool search, bool implicit, LDDocumentPtr fileToOverride)
+LDDocumentPtr openDocument (QString path, bool search, bool implicit, LDDocumentPtr fileToOverride)
 {
 	// Convert the file name to lowercase since some parts contain uppercase
 	// file names. I'll assume here that the library will always use lowercase
 	// file names for the actual parts..
 	QFile* fp;
-	String fullpath;
+	QString fullpath;
 
 	if (search)
 		fp = openLDrawFile (path.toLower(), true, &fullpath);
@@ -574,7 +574,7 @@ bool LDDocument::isSafeToClose()
 	// If we have unsaved changes, warn and give the option of saving.
 	if (hasUnsavedChanges())
 	{
-		String message = format (tr ("There are unsaved changes to %1. Should it be saved?"), getDisplayName());
+		QString message = format (tr ("There are unsaved changes to %1. Should it be saved?"), getDisplayName());
 
 		int button = msgbox::question (g_win, tr ("Unsaved Changes"), message,
 			(msgbox::Yes | msgbox::No | msgbox::Cancel), msgbox::Cancel);
@@ -586,7 +586,7 @@ bool LDDocument::isSafeToClose()
 				// If we don't have a file path yet, we have to ask the user for one.
 				if (name().length() == 0)
 				{
-					String newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
+					QString newpath = QFileDialog::getSaveFileName (g_win, tr ("Save As"),
 						getCurrentDocument()->name(), tr ("LDraw files (*.dat *.ldr)"));
 
 					if (newpath.length() == 0)
@@ -646,7 +646,7 @@ void newFile()
 
 // =============================================================================
 //
-void addRecentFile (String path)
+void addRecentFile (QString path)
 {
 	auto& rfiles = cfg::recentFiles;
 	int idx = rfiles.indexOf (path);
@@ -675,12 +675,12 @@ void addRecentFile (String path)
 // =============================================================================
 // Open an LDraw file and set it as the main model
 // =============================================================================
-void openMainFile (String path)
+void openMainFile (QString path)
 {
 	// If there's already a file with the same name, this file must replace it.
 	LDDocumentPtr documentToReplace;
 	LDDocumentPtr file;
-	String shortName = LDDocument::shortenName (path);
+	QString shortName = LDDocument::shortenName (path);
 
 	for (LDDocumentWeakPtr doc : g_allDocuments)
 	{
@@ -738,7 +738,7 @@ void openMainFile (String path)
 
 // =============================================================================
 //
-bool LDDocument::save (String savepath)
+bool LDDocument::save (QString savepath)
 {
 	if (isImplicit())
 		return false;
@@ -755,7 +755,7 @@ bool LDDocument::save (String savepath)
 
 		if (nameComment->text().left (6) == "Name: ")
 		{
-			String newname = shortenName (savepath);
+			QString newname = shortenName (savepath);
 			nameComment->setText (format ("Name: %1", newname));
 			g_win->buildObjList();
 		}
@@ -799,7 +799,7 @@ void LDDocument::clear()
 static void checkTokenCount (const QStringList& tokens, int num)
 {
 	if (tokens.size() != num)
-		throw String (format ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
+		throw QString (format ("Bad amount of tokens, expected %1, got %2", num, tokens.size()));
 }
 
 // =============================================================================
@@ -817,7 +817,7 @@ static void checkTokenNumbers (const QStringList& tokens, int min, int max)
 
 		if (not ok && not scient.exactMatch (tokens[i]))
 		{
-			throw String (format ("Token #%1 was `%2`, expected a number (matched length: %3)",
+			throw QString (format ("Token #%1 was `%2`, expected a number (matched length: %3)",
 				(i + 1), tokens[i], scient.matchedLength()));
 		}
 	}
@@ -837,11 +837,11 @@ static Vertex parseVertex (QStringList& s, const int n)
 // code and returns the object parsed from it. parseLine never returns null,
 // the object will be LDError if it could not be parsed properly.
 // =============================================================================
-LDObjectPtr parseLine (String line)
+LDObjectPtr parseLine (QString line)
 {
 	try
 	{
-		QStringList tokens = line.split (" ", String::SkipEmptyParts);
+		QStringList tokens = line.split (" ", QString::SkipEmptyParts);
 
 		if (tokens.size() <= 0)
 		{
@@ -850,7 +850,7 @@ LDObjectPtr parseLine (String line)
 		}
 
 		if (tokens[0].length() != 1 || not tokens[0][0].isDigit())
-			throw String ("Illogical line code");
+			throw QString ("Illogical line code");
 
 		int num = tokens[0][0].digitValue();
 
@@ -859,8 +859,8 @@ LDObjectPtr parseLine (String line)
 			case 0:
 			{
 				// Comment
-				String commentText (line.mid (line.indexOf ("0") + 2));
-				String commentTextSimplified (commentText.simplified());
+				QString commentText (line.mid (line.indexOf ("0") + 2));
+				QString commentTextSimplified (commentText.simplified());
 
 				// Handle BFC statements
 				if (tokens.size() > 2 && tokens[1] == "BFC")
@@ -1005,10 +1005,10 @@ LDObjectPtr parseLine (String line)
 			}
 
 			default:
-				throw String ("Unknown line code number");
+				throw QString ("Unknown line code number");
 		}
 	}
-	catch (String& e)
+	catch (QString& e)
 	{
 		// Strange line we couldn't parse
 		return spawn<LDError> (line, e);
@@ -1017,7 +1017,7 @@ LDObjectPtr parseLine (String line)
 
 // =============================================================================
 //
-LDDocumentPtr getDocument (String filename)
+LDDocumentPtr getDocument (QString filename)
 {
 	// Try find the file in the list of loaded files
 	LDDocumentPtr doc = findDocument (filename);
@@ -1226,8 +1226,8 @@ void LDDocument::setObject (int idx, LDObjectPtr obj)
 	// Mark this change to history
 	if (not m_history->isIgnoring())
 	{
-		String oldcode = getObject (idx)->asText();
-		String newcode = obj->asText();
+		QString oldcode = getObject (idx)->asText();
+		QString newcode = obj->asText();
 		*m_history << new EditHistory (idx, oldcode, newcode);
 	}
 
@@ -1272,7 +1272,7 @@ bool LDDocument::hasUnsavedChanges() const
 
 // =============================================================================
 //
-String LDDocument::getDisplayName()
+QString LDDocument::getDisplayName()
 {
 	if (not name().isEmpty())
 		return name();
@@ -1485,10 +1485,10 @@ void LDDocument::swapObjects (LDObjectPtr one, LDObjectPtr other)
 
 // =============================================================================
 //
-String LDDocument::shortenName (String a) // [static]
+QString LDDocument::shortenName (QString a) // [static]
 {
-	String shortname = basename (a);
-	String topdirname = basename (dirname (a));
+	QString shortname = basename (a);
+	QString topdirname = basename (dirname (a));
 
 	if (g_specialSubdirectories.contains (topdirname))
 		shortname.prepend (topdirname + "\\");

@@ -32,7 +32,7 @@
 static bool g_crashCatcherActive = false;
 
 // If an assertion failed, what was it?
-static String g_assertionFailure;
+static QString g_assertionFailure;
 
 // List of signals to catch and crash on
 static QList<int> g_signalsToCatch ({
@@ -75,9 +75,9 @@ static void handleCrash (int sig)
 	if (commandsFile.open())
 	{
 		commandsFile.write (format ("attach %1\n", pid).toLocal8Bit());
-		commandsFile.write (String ("backtrace full\n").toLocal8Bit());
-		commandsFile.write (String ("detach\n").toLocal8Bit());
-		commandsFile.write (String ("quit").toLocal8Bit());
+		commandsFile.write (QString ("backtrace full\n").toLocal8Bit());
+		commandsFile.write (QString ("detach\n").toLocal8Bit());
+		commandsFile.write (QString ("quit").toLocal8Bit());
 		commandsFile.close();
 	}
 
@@ -91,8 +91,8 @@ static void handleCrash (int sig)
 #endif
 
 	proc.waitForFinished (1000);
-	String output = String (proc.readAllStandardOutput());
-	String err = String (proc.readAllStandardError());
+	QString output = QString (proc.readAllStandardOutput());
+	QString err = QString (proc.readAllStandardError());
 	QFile f (UNIXNAME "-crash.log");
 
 	if (f.open (QIODevice::WriteOnly))
