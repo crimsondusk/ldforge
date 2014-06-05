@@ -24,10 +24,10 @@
 
 class LDColor
 {
-	public:
-		QString name, hexcode;
-		QColor faceColor, edgeColor;
-		int index;
+public:
+	QString name, hexcode;
+	QColor faceColor, edgeColor;
+	int index;
 };
 
 void initColors();

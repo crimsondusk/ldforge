@@ -25,60 +25,56 @@
 class GLRenderer;
 class QTimer;
 
-//!
-//! \brief Manages the list of messages at the top-left of the renderer.
-//!
-//! The message manager is an object which keeps track of messages that appear
-//! on the renderer's screen. Each line is contained in a separate object which
-//! contains the text, expiry time and alpha. The message manager is doubly
-//! linked to its corresponding renderer.
-//!
-//! Message manager calls its \c tick() function regularly to update the messages,
-//! where each line's expiry is checked for. Lines begin to fade out when nearing
-//! their expiry. If the message manager's lines change, the renderer undergoes
-//! repainting.
-//!
+//
+// The message manager is an object which keeps track of messages that appear
+// on the renderer's screen. Each line is contained in a separate object which
+// contains the text, expiry time and alpha. The message manager is doubly
+// linked to its corresponding renderer.
+//
+// Message manager calls its tick() function regularly to update the messages,
+// where each line's expiry is checked for. Lines begin to fade out when nearing
+// their expiry. If the message manager's lines change, the renderer undergoes
+// repainting.
+//
 class MessageManager : public QObject
 {
-	Q_OBJECT
-	PROPERTY (public, GLRenderer*, renderer, setRenderer, STOCK_WRITE)
+Q_OBJECT
+PROPERTY (public, GLRenderer*, renderer, setRenderer, STOCK_WRITE)
 
-	public:
-		//! \class MessageManager::Line
-		//! A single line of the message log.
-		class Line
-		{
-			public:
-				//! Constructs a line with the given \c text
-				Line (QString text);
+public:
+	// A single line of the message log.
+	class Line
+	{
+		public:
+			// Constructs a line with the given \c text
+			Line (QString text);
 
-				//! Check this line's expiry and update alpha accordingly.
-				//! \c changed is updated to whether the line has somehow
-				//! changed since the last update.
-				//! \returns true if the line is to still stick around, false
-				//! \returns if it expired.
-				bool update (bool& changed);
+			// Check this line's expiry and update alpha accordingly. @changed
+			// is updated to whether the line has somehow changed since the
+			// last update.
+			//
+			// Returns true if the line is to still stick around, false if it
+			// expired.
+			bool update (bool& changed);
 
-				QString text;
-				float alpha;
-				QDateTime expiry;
-		};
+			QString text;
+			float alpha;
+			QDateTime expiry;
+	};
 
-		//! Constructs the message manager.
-		explicit MessageManager (QObject* parent = null);
+	// Constructs the message manager.
+	explicit MessageManager (QObject* parent = null);
 
-		//! Adds a line with the given \c text to the message manager.
-		void addLine (QString line);
+	// Adds a line with the given \c text to the message manager.
+	void addLine (QString line);
 
-		//! \returns all active lines in the message manager.
-		const QList<Line>& getLines() const;
+	// Returns all active lines in the message manager.
+	const QList<Line>& getLines() const;
 
-	private:
-		QList<Line>	m_lines;
-		QTimer*		m_ticker;
+private:
+	QList<Line>	m_lines;
+	QTimer*		m_ticker;
 
-	private slots:
-		//! Ticks the manager. This is called by the timer to update
-		//! the messages.
-		void tick();
+private slots:
+	void tick();
 };

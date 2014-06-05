@@ -29,22 +29,22 @@ class ColorSelector : public QDialog
 	Q_OBJECT
 	PROPERTY (private,	LDColor*,	selection,	setSelection,	STOCK_WRITE)
 
-	public:
-		explicit ColorSelector (int defval = -1, QWidget* parent = null);
-		virtual ~ColorSelector();
-		static bool selectColor (int& val, int defval = -1, QWidget* parent = null);
+public:
+	explicit ColorSelector (int defval = -1, QWidget* parent = null);
+	virtual ~ColorSelector();
+	static bool selectColor (int& val, int defval = -1, QWidget* parent = null);
 
-	protected:
-		void mousePressEvent (QMouseEvent* event);
-		void resizeEvent (QResizeEvent* ev);
+protected:
+	void mousePressEvent (QMouseEvent* event);
+	void resizeEvent (QResizeEvent* ev);
 
-	private:
-		Ui_ColorSelUI* ui;
-		QGraphicsScene* m_scene;
-		bool m_firstResize;
+private:
+	Ui_ColorSelUI* ui;
+	QGraphicsScene* m_scene;
+	bool m_firstResize;
 
-		int numRows() const;
-		int viewportWidth() const;
-		void drawScene();
-		void drawColorInfo();
+	int numRows() const;
+	int viewportWidth() const;
+	void drawScene();
+	void drawColorInfo();
 };

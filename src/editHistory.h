@@ -44,45 +44,45 @@ class History
 	PROPERTY (public,	LDDocumentWeakPtr,	document,	setDocument,	STOCK_WRITE)
 	PROPERTY (public,	bool,				isIgnoring,	setIgnoring,	STOCK_WRITE)
 
-	public:
-		typedef QList<AbstractHistoryEntry*> Changeset;
+public:
+	typedef QList<AbstractHistoryEntry*> Changeset;
 
-		enum EHistoryType
-		{
-			EDelHistory,
-			EEditHistory,
-			EAddHistory,
-			EMoveHistory,
-			ESwapHistory,
-		};
+	enum EHistoryType
+	{
+		EDelHistory,
+		EEditHistory,
+		EAddHistory,
+		EMoveHistory,
+		ESwapHistory,
+	};
 
-		History();
-		void undo();
-		void redo();
-		void clear();
+	History();
+	void undo();
+	void redo();
+	void clear();
 
-		void addStep();
-		void add (AbstractHistoryEntry* entry);
+	void addStep();
+	void add (AbstractHistoryEntry* entry);
 
-		inline long getSize() const
-		{
-			return m_changesets.size();
-		}
+	inline long getSize() const
+	{
+		return m_changesets.size();
+	}
 
-		inline History& operator<< (AbstractHistoryEntry* entry)
-		{
-			add (entry);
-			return *this;
-		}
+	inline History& operator<< (AbstractHistoryEntry* entry)
+	{
+		add (entry);
+		return *this;
+	}
 
-		inline const Changeset& getChangeset (long pos) const
-		{
-			return m_changesets[pos];
-		}
+	inline const Changeset& getChangeset (long pos) const
+	{
+		return m_changesets[pos];
+	}
 
-	private:
-		Changeset m_currentChangeset;
-		QList<Changeset> m_changesets;
+private:
+	Changeset			m_currentChangeset;
+	QList<Changeset>	m_changesets;
 };
 
 // =============================================================================
@@ -91,12 +91,12 @@ class AbstractHistoryEntry
 {
 	PROPERTY (public,	History*,	parent,	setParent,	STOCK_WRITE)
 
-	public:
-		virtual ~AbstractHistoryEntry() {}
-		virtual void undo() const = 0;
-		virtual void redo() const = 0;
-		virtual History::EHistoryType getType() const = 0;
-		virtual QString getTypeName() const = 0;
+public:
+	virtual ~AbstractHistoryEntry() {}
+	virtual void undo() const = 0;
+	virtual void redo() const = 0;
+	virtual History::EHistoryType getType() const = 0;
+	virtual QString getTypeName() const = 0;
 };
 
 // =============================================================================
@@ -106,9 +106,9 @@ class DelHistory : public AbstractHistoryEntry
 	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
 	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
-	public:
-		IMPLEMENT_HISTORY_TYPE (Del)
-		DelHistory (int idx, LDObjectPtr obj);
+public:
+	IMPLEMENT_HISTORY_TYPE (Del)
+	DelHistory (int idx, LDObjectPtr obj);
 };
 
 // =============================================================================
@@ -119,57 +119,56 @@ class EditHistory : public AbstractHistoryEntry
 	PROPERTY (private,	QString,	oldCode,	setOldCode,	STOCK_WRITE)
 	PROPERTY (private,	QString,	newCode,	setNewCode,	STOCK_WRITE)
 
-	public:
-		IMPLEMENT_HISTORY_TYPE (Edit)
+public:
+	IMPLEMENT_HISTORY_TYPE (Edit)
 
-		EditHistory (int idx, QString oldCode, QString newCode) :
-			m_index (idx),
-			m_oldCode (oldCode),
-			m_newCode (newCode) {}
+	EditHistory (int idx, QString oldCode, QString newCode) :
+		m_index (idx),
+		m_oldCode (oldCode),
+		m_newCode (newCode) {}
 };
 
 // =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
+//
 class AddHistory : public AbstractHistoryEntry
 {
 	PROPERTY (private,	int,		index,	setIndex,	STOCK_WRITE)
 	PROPERTY (private,	QString,	code,	setCode,	STOCK_WRITE)
 
-	public:
-		IMPLEMENT_HISTORY_TYPE (Add)
+public:
+	IMPLEMENT_HISTORY_TYPE (Add)
 
-		AddHistory (int idx, LDObjectPtr obj) :
-			m_index (idx),
-			m_code (obj->asText()) {}
+	AddHistory (int idx, LDObjectPtr obj) :
+		m_index (idx),
+		m_code (obj->asText()) {}
 };
 
 // =============================================================================
 //
 class MoveHistory : public AbstractHistoryEntry
 {
-	public:
-		IMPLEMENT_HISTORY_TYPE (Move)
+public:
+	IMPLEMENT_HISTORY_TYPE (Move)
 
-		QList<int> indices;
-		Vertex dest;
+	QList<int> indices;
+	Vertex dest;
 
-		MoveHistory (QList<int> indices, Vertex dest) :
-				indices (indices),
-				dest (dest) {}
+	MoveHistory (QList<int> indices, Vertex dest) :
+			indices (indices),
+			dest (dest) {}
 };
 
 // =============================================================================
 //
 class SwapHistory : public AbstractHistoryEntry
 {
-	public:
-		IMPLEMENT_HISTORY_TYPE (Swap)
+public:
+	IMPLEMENT_HISTORY_TYPE (Swap)
 
-		SwapHistory (int a, int b) :
-			a (a),
-			b (b) {}
+	SwapHistory (int a, int b) :
+		a (a),
+		b (b) {}
 
-	private:
-		int a, b;
+private:
+	int a, b;
 };

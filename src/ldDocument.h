@@ -62,120 +62,120 @@ Q_DECLARE_OPERATORS_FOR_FLAGS (LDDocumentFlags)
 //
 class LDDocument : public QObject
 {
-	public:
-		using KnownVertexMap = QMap<Vertex, int>;
+public:
+	using KnownVertexMap = QMap<Vertex, int>;
 
-		PROPERTY (public,	QString,				name,			setName,			STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,		objects, 		setObjects,			STOCK_WRITE)
-		PROPERTY (private,	LDObjectList,		cache, 			setCache,			STOCK_WRITE)
-		PROPERTY (private,	History*,			history,		setHistory,			STOCK_WRITE)
-		PROPERTY (private,	KnownVertexMap,		vertices,		setVertices,		STOCK_WRITE)
-		PROPERTY (public,	QString,				fullPath,		setFullPath,		STOCK_WRITE)
-		PROPERTY (public,	QString,				defaultName,	setDefaultName,		STOCK_WRITE)
-		PROPERTY (public,	bool,				isImplicit,		setImplicit,		CUSTOM_WRITE)
-		PROPERTY (public,	long,				savePosition,	setSavePosition,	STOCK_WRITE)
-		PROPERTY (public,	int,				tabIndex,		setTabIndex,		STOCK_WRITE)
-		PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,		STOCK_WRITE)
-		PROPERTY (private,	LDDocumentFlags,	flags,			setFlags,			STOCK_WRITE)
-		PROPERTY (private,	LDDocumentWeakPtr,	self,			setSelf,			STOCK_WRITE)
+	PROPERTY (public,	QString,				name,			setName,			STOCK_WRITE)
+	PROPERTY (private,	LDObjectList,		objects, 		setObjects,			STOCK_WRITE)
+	PROPERTY (private,	LDObjectList,		cache, 			setCache,			STOCK_WRITE)
+	PROPERTY (private,	History*,			history,		setHistory,			STOCK_WRITE)
+	PROPERTY (private,	KnownVertexMap,		vertices,		setVertices,		STOCK_WRITE)
+	PROPERTY (public,	QString,				fullPath,		setFullPath,		STOCK_WRITE)
+	PROPERTY (public,	QString,				defaultName,	setDefaultName,		STOCK_WRITE)
+	PROPERTY (public,	bool,				isImplicit,		setImplicit,		CUSTOM_WRITE)
+	PROPERTY (public,	long,				savePosition,	setSavePosition,	STOCK_WRITE)
+	PROPERTY (public,	int,				tabIndex,		setTabIndex,		STOCK_WRITE)
+	PROPERTY (public,	QList<LDPolygon>,	polygonData,	setPolygonData,		STOCK_WRITE)
+	PROPERTY (private,	LDDocumentFlags,	flags,			setFlags,			STOCK_WRITE)
+	PROPERTY (private,	LDDocumentWeakPtr,	self,			setSelf,			STOCK_WRITE)
 
-	public:
-		LDDocument(LDDocumentPtr* selfptr);
-		~LDDocument();
+public:
+	LDDocument(LDDocumentPtr* selfptr);
+	~LDDocument();
 
-		int addObject (LDObjectPtr obj); // Adds an object to this file at the end of the file.
-		void addObjects (const LDObjectList objs);
-		void clearSelection();
-		void forgetObject (LDObjectPtr obj); // Deletes the given object from the object chain.
-		QString getDisplayName();
-		const LDObjectList& getSelection() const;
-		bool hasUnsavedChanges() const; // Does this document have unsaved changes?
-		void initializeCachedData();
-		LDObjectList inlineContents (bool deep, bool renderinline);
-		void insertObj (int pos, LDObjectPtr obj);
-		int getObjectCount() const;
-		LDObjectPtr getObject (int pos) const;
-		bool save (QString path = ""); // Saves this file to disk.
-		void swapObjects (LDObjectPtr one, LDObjectPtr other);
-		bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
-		void setObject (int idx, LDObjectPtr obj);
-		QList<LDPolygon> inlinePolygons();
-		void vertexChanged (const Vertex& a, const Vertex& b);
-		void addKnownVerticesOf(LDObjectPtr obj);
-		void removeKnownVerticesOf (LDObjectPtr sub);
-		QList<Vertex> inlineVertices();
-		void clear();
+	int addObject (LDObjectPtr obj); // Adds an object to this file at the end of the file.
+	void addObjects (const LDObjectList objs);
+	void clearSelection();
+	void forgetObject (LDObjectPtr obj); // Deletes the given object from the object chain.
+	QString getDisplayName();
+	const LDObjectList& getSelection() const;
+	bool hasUnsavedChanges() const; // Does this document have unsaved changes?
+	void initializeCachedData();
+	LDObjectList inlineContents (bool deep, bool renderinline);
+	void insertObj (int pos, LDObjectPtr obj);
+	int getObjectCount() const;
+	LDObjectPtr getObject (int pos) const;
+	bool save (QString path = ""); // Saves this file to disk.
+	void swapObjects (LDObjectPtr one, LDObjectPtr other);
+	bool isSafeToClose(); // Perform safety checks. Do this before closing any files!
+	void setObject (int idx, LDObjectPtr obj);
+	QList<LDPolygon> inlinePolygons();
+	void vertexChanged (const Vertex& a, const Vertex& b);
+	void addKnownVerticesOf(LDObjectPtr obj);
+	void removeKnownVerticesOf (LDObjectPtr sub);
+	QList<Vertex> inlineVertices();
+	void clear();
 
-		inline LDDocument& operator<< (LDObjectPtr obj)
-		{
-			addObject (obj);
-			return *this;
-		}
+	inline LDDocument& operator<< (LDObjectPtr obj)
+	{
+		addObject (obj);
+		return *this;
+	}
 
-		inline void addHistoryStep()
-		{
-			history()->addStep();
-		}
+	inline void addHistoryStep()
+	{
+		history()->addStep();
+	}
 
-		inline void undo()
-		{
-			history()->undo();
-		}
+	inline void undo()
+	{
+		history()->undo();
+	}
 
-		inline void redo()
-		{
-			history()->redo();
-		}
+	inline void redo()
+	{
+		history()->redo();
+	}
 
-		inline void clearHistory()
-		{
-			history()->clear();
-		}
+	inline void clearHistory()
+	{
+		history()->clear();
+	}
 
-		inline void addToHistory (AbstractHistoryEntry* entry)
-		{
-			*history() << entry;
-		}
+	inline void addToHistory (AbstractHistoryEntry* entry)
+	{
+		*history() << entry;
+	}
 
-		inline void dismiss()
-		{
-			setImplicit (true);
-		}
+	inline void dismiss()
+	{
+		setImplicit (true);
+	}
 
-		static void closeUnused();
-		static LDDocumentPtr current();
-		static void setCurrent (LDDocumentPtr f);
-		static void closeInitialFile();
-		static int countExplicitFiles();
-		static LDDocumentPtr createNew();
+	static void closeUnused();
+	static LDDocumentPtr current();
+	static void setCurrent (LDDocumentPtr f);
+	static void closeInitialFile();
+	static int countExplicitFiles();
+	static LDDocumentPtr createNew();
 
-		// Turns a full path into a relative path
-		static QString shortenName (QString a);
-		static QList<LDDocumentPtr> const& explicitDocuments();
+	// Turns a full path into a relative path
+	static QString shortenName (QString a);
+	static QList<LDDocumentPtr> const& explicitDocuments();
 
-	protected:
-		void addToSelection (LDObjectPtr obj);
-		void removeFromSelection (LDObjectPtr obj);
+protected:
+	void addToSelection (LDObjectPtr obj);
+	void removeFromSelection (LDObjectPtr obj);
 
-		LDGLData* getGLData()
-		{
-			return m_gldata;
-		}
+	LDGLData* getGLData()
+	{
+		return m_gldata;
+	}
 
-		friend class LDObject;
-		friend class GLRenderer;
+	friend class LDObject;
+	friend class GLRenderer;
 
-	private:
-		LDObjectList			m_sel;
-		LDGLData*				m_gldata;
-		QList<Vertex>			m_storedVertices;
+private:
+	LDObjectList			m_sel;
+	LDGLData*				m_gldata;
+	QList<Vertex>			m_storedVertices;
 
-		// If set to true, next polygon inline of this document discards the
-		// stored polygon data and re-builds it.
-		bool					m_needsReCache;
+	// If set to true, next polygon inline of this document discards the
+	// stored polygon data and re-builds it.
+	bool					m_needsReCache;
 
-		void addKnownVertexReference (const Vertex& a);
-		void removeKnownVertexReference (const Vertex& a);
+	void addKnownVertexReference (const Vertex& a);
+	void removeKnownVertexReference (const Vertex& a);
 };
 
 inline LDDocumentPtr getCurrentDocument()

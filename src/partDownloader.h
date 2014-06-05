@@ -35,53 +35,53 @@ class QAbstractButton;
 //
 class PartDownloader : public QDialog
 {
-	public:
-		enum Source
-		{
-			PartsTracker,
-			CustomURL,
-		};
+public:
+	enum Source
+	{
+		PartsTracker,
+		CustomURL,
+	};
 
-		enum Button
-		{
-			Download,
-			Abort,
-			Close
-		};
+	enum Button
+	{
+		Download,
+		Abort,
+		Close
+	};
 
-		enum TableColumn
-		{
-			PartLabelColumn,
-			ProgressColumn,
-		};
+	enum TableColumn
+	{
+		PartLabelColumn,
+		ProgressColumn,
+	};
 
-		using RequestList = QList<PartDownloadRequest*>;
+	using RequestList = QList<PartDownloadRequest*>;
 
-		Q_OBJECT
-		PROPERTY (public,	LDDocumentPtr, 		primaryFile,		setPrimaryFile,		STOCK_WRITE)
-		PROPERTY (public,	bool,				isAborted,			setAborted,			STOCK_WRITE)
-		PROPERTY (private,	Ui_DownloadFrom*,	interface,			setInterface,		STOCK_WRITE)
-		PROPERTY (private,	QStringList,		filesToDownload,	setFilesToDownload,	STOCK_WRITE)
-		PROPERTY (private,	RequestList,		requests,			setRequests,		STOCK_WRITE)
-		PROPERTY (private,	QPushButton*,		downloadButton,		setDownloadButton,	STOCK_WRITE)
+	Q_OBJECT
+	PROPERTY (public,	LDDocumentPtr, 		primaryFile,		setPrimaryFile,		STOCK_WRITE)
+	PROPERTY (public,	bool,				isAborted,			setAborted,			STOCK_WRITE)
+	PROPERTY (private,	Ui_DownloadFrom*,	interface,			setInterface,		STOCK_WRITE)
+	PROPERTY (private,	QStringList,		filesToDownload,	setFilesToDownload,	STOCK_WRITE)
+	PROPERTY (private,	RequestList,		requests,			setRequests,		STOCK_WRITE)
+	PROPERTY (private,	QPushButton*,		downloadButton,		setDownloadButton,	STOCK_WRITE)
 
-	public:
-		explicit		PartDownloader (QWidget* parent = null);
-		virtual			~PartDownloader();
+public:
+	explicit		PartDownloader (QWidget* parent = null);
+	virtual			~PartDownloader();
 
-		void			downloadFile (QString dest, QString url, bool primary);
-		QPushButton*	getButton (Button i);
-		QString			getURL() const;
-		Source			getSource() const;
-		void			modifyDestination (QString& dest) const;
+	void			downloadFile (QString dest, QString url, bool primary);
+	QPushButton*	getButton (Button i);
+	QString			getURL() const;
+	Source			getSource() const;
+	void			modifyDestination (QString& dest) const;
 
-		static QString	getDownloadPath();
-		static void		staticBegin();
+	static QString	getDownloadPath();
+	static void		staticBegin();
 
-	public slots:
-		void			buttonClicked (QAbstractButton* btn);
-		void			checkIfFinished();
-		void			sourceChanged (int i);
+public slots:
+	void			buttonClicked (QAbstractButton* btn);
+	void			checkIfFinished();
+	void			sourceChanged (int i);
 };
 
 // =============================================================================

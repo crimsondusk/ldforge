@@ -56,9 +56,9 @@ enum Axis
 	Z
 };
 
-//!
-//! Derivative of QVector3D: this class is used for the vertices.
-//!
+//
+// Derivative of QVector3D: this class is used for the vertices.
+//
 class Vertex : public QVector3D
 {
 public:
@@ -81,96 +81,81 @@ public:
 
 Q_DECLARE_METATYPE (Vertex)
 
-//!
-//! \brief A mathematical 3 x 3 matrix
-//!
+//
+// A mathematical 3 x 3 matrix
+//
 class Matrix
 {
-	public:
-		//! Constructs a matrix with undetermined values.
-		Matrix() {}
+public:
+	Matrix() {}
+	Matrix (const std::initializer_list<double>& vals);
 
-		//! Constructs a matrix with the given values.
-		//! \note \c vals is expected to have exactly 9 elements.
-		Matrix (const std::initializer_list<double>& vals);
+	// Constructs a matrix all 9 elements initialized to the same value.
+	Matrix (double fillval);
 
-		//! Constructs a matrix all 9 elements initialized to the same value.
-		//! \param fillval the value to initialize the matrix coordinates as
-		Matrix (double fillval);
+	// Constructs a matrix with a C-array.
+	// note: @vals is expected to have exactly 9 elements.
+	Matrix (double vals[]);
 
-		//! Constructs a matrix with a C-array.
-		//! \note \c vals is expected to have exactly 9 elements.
-		Matrix (double vals[]);
+	// Calculates the matrix's determinant.
+	double			getDeterminant() const;
 
-		//! Calculates the matrix's determinant.
-		//! \returns the calculated determinant.
-		double			getDeterminant() const;
+	// Multiplies this matrix with @other
+	// note: a.mult(b) is not equivalent to b.mult(a)!
+	Matrix			mult (const Matrix& other) const;
 
-		//! Multiplies this matrix with \c other
-		//! \param other the matrix to multiply with.
-		//! \returns the resulting matrix
-		//! \note a.mult(b) is not equivalent to b.mult(a)!
-		Matrix			mult (const Matrix& other) const;
+	// Prints the matrix to stdout.
+	void			dump() const;
 
-		//! Prints the matrix to stdout.
-		void			dump() const;
+	// Yields a string representation of the matrix.
+	QString			toString() const;
 
-		//! \returns a string representation of the matrix.
-		QString			toString() const;
+	// Zeroes the matrix out.
+	void			zero();
 
-		//! Zeroes the matrix out.
-		void			zero();
+	// Assigns the matrix values to the values of @other.
+	Matrix&			operator= (const Matrix& other);
 
-		//! Assigns the matrix values to the values of \c other.
-		//! \param other the matrix to assign this to.
-		//! \returns a reference to self
-		Matrix&			operator= (const Matrix& other);
+	// Returns a mutable reference to a value by @idx
+	inline double& value (int idx)
+	{
+		return m_vals[idx];
+	}
 
-		//! \returns a mutable reference to a value by \c idx
-		inline double& value (int idx)
-		{
-			return m_vals[idx];
-		}
+	// An overload of value() for const matrices.
+	inline const double& value (int idx) const
+	{
+		return m_vals[idx];
+	}
 
-		//! An overload of \c value() for const matrices.
-		//! \returns a const reference to a value by \c idx
-		inline const double& value (int idx) const
-		{
-			return m_vals[idx];
-		}
+	// An operator overload for mult().
+	inline Matrix operator* (const Matrix& other) const
+	{
+		return mult (other);
+	}
 
-		//! An operator overload for \c mult().
-		//! \returns the multiplied matrix.
-		inline Matrix operator* (const Matrix& other) const
-		{
-			return mult (other);
-		}
+	// An operator overload for value().
+	inline double& operator[] (int idx)
+	{
+		return value (idx);
+	}
 
-		//! An operator overload for \c value().
-		//! \returns a mutable reference to a value by \c idx
-		inline double& operator[] (int idx)
-		{
-			return value (idx);
-		}
+	// An operator overload for value() const.
+	inline const double& operator[] (int idx) const
+	{
+		return value (idx);
+	}
 
-		//! An operator overload for \c value() const.
-		//! \returns a const reference to a value by \c idx
-		inline const double& operator[] (int idx) const
-		{
-			return value (idx);
-		}
+	// Checks whether the two matrices have the same values.
+	bool operator== (const Matrix& other) const;
 
-		//! \param other the matrix to check against
-		//! \returns whether the two matrices have the same values.
-		bool operator== (const Matrix& other) const;
-
-	private:
-		double m_vals[9];
+private:
+	double m_vals[9];
 };
 
-//!
-//! Defines a bounding box that encompasses a given set of objects.
-//! vertex0 is the minimum vertex, vertex1 is the maximum vertex.
+//
+// Defines a bounding box that encompasses a given set of objects.
+// vertex0 is the minimum vertex, vertex1 is the maximum vertex.
 //
 class LDBoundingBox
 {
@@ -178,36 +163,36 @@ class LDBoundingBox
 	PROPERTY (private,	Vertex,		vertex0,	setVertex0,		STOCK_WRITE)
 	PROPERTY (private,	Vertex,		vertex1,	setVertex1,		STOCK_WRITE)
 
-	public:
-		//! Constructs an empty bounding box.
-		LDBoundingBox();
+public:
+	// Constructs an empty bounding box.
+	LDBoundingBox();
 
-		//! Clears the bounding box
-		void reset();
+	// Clears the bounding box
+	void reset();
 
-		//! Calculates the bounding box's values from the objects in the current
-		//! document.
-		void calculateFromCurrentDocument();
+	// Calculates the bounding box's values from the objects in the current
+	// document.
+	void calculateFromCurrentDocument();
 
-		//! \returns the length of the bounding box on the longest measure.
-		double longestMeasurement() const;
+	// Returns the length of the bounding box on the longest measure.
+	double longestMeasurement() const;
 
-		//! Calculates the given \c obj to the bounding box, adjusting
-		//! extremas if necessary.
-		void calcObject (LDObjectPtr obj);
+	// Calculates the given \c obj to the bounding box, adjusting
+	// extremas if necessary.
+	void calcObject (LDObjectPtr obj);
 
-		//! Calculates the given \c vertex to the bounding box, adjusting
-		//! extremas if necessary.
-		void calcVertex (const Vertex& vertex);
+	// Calculates the given \c vertex to the bounding box, adjusting
+	// extremas if necessary.
+	void calcVertex (const Vertex& vertex);
 
-		//! \returns the center of the bounding box.
-		Vertex center() const;
+	// Yields the center of the bounding box.
+	Vertex center() const;
 
-		//! An operator overload for \c calcObject()
-		LDBoundingBox& operator<< (LDObjectPtr obj);
+	// An operator overload for calcObject()
+	LDBoundingBox& operator<< (LDObjectPtr obj);
 
-		//! An operator overload for \c calcVertex()
-		LDBoundingBox& operator<< (const Vertex& v);
+	// An operator overload for calcVertex()
+	LDBoundingBox& operator<< (const Vertex& v);
 };
 
 extern const Vertex g_origin; // Vertex at (0, 0, 0)

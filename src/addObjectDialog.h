@@ -33,37 +33,37 @@ class AddObjectDialog : public QDialog
 {
 	Q_OBJECT
 
-	public:
-		AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWidget* parent = null);
-		static void staticDialog (const LDObjectType type, LDObjectPtr obj);
+public:
+	AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWidget* parent = null);
+	static void staticDialog (const LDObjectType type, LDObjectPtr obj);
 
-		QLabel* lb_typeIcon;
+	QLabel* lb_typeIcon;
 
-		// Comment line edit
-		QLineEdit* le_comment;
+	// Comment line edit
+	QLineEdit* le_comment;
 
-		// Coordinate edits for.. anything with coordinates, really.
-		QDoubleSpinBox* dsb_coords[12];
+	// Coordinate edits for.. anything with coordinates, really.
+	QDoubleSpinBox* dsb_coords[12];
 
-		// Color selection dialog button
-		QPushButton* pb_color;
+	// Color selection dialog button
+	QPushButton* pb_color;
 
-		// BFC-related widgets
-		RadioGroup* rb_bfcType;
+	// BFC-related widgets
+	RadioGroup* rb_bfcType;
 
-		// Subfile stuff
-		QTreeWidget* tw_subfileList;
-		QLineEdit* le_subfileName;
-		QLabel* lb_subfileName;
-		QLineEdit* le_matrix;
+	// Subfile stuff
+	QTreeWidget* tw_subfileList;
+	QLineEdit* le_subfileName;
+	QLabel* lb_subfileName;
+	QLineEdit* le_matrix;
 
-	private:
-		void setButtonBackground (QPushButton* button, int color);
-		QString currentSubfileName();
+private:
+	void setButtonBackground (QPushButton* button, int color);
+	QString currentSubfileName();
 
-		int colnum;
+	int colnum;
 
-	private slots:
-		void slot_colorButtonClicked();
-		void slot_subfileTypeChanged();
+private slots:
+	void slot_colorButtonClicked();
+	void slot_subfileTypeChanged();
 };

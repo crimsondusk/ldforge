@@ -51,9 +51,9 @@ QString join (QList< StringFormatArg > vals, QString delim = " ");
 // Grid stuff
 struct gridinfo
 {
-	const char* const			name;
-	ConfigEntry::FloatType* const	coordsnap;
-	ConfigEntry::FloatType* const	anglesnap;
+	const char*				name;
+	ConfigEntry::FloatType*	coordsnap;
+	ConfigEntry::FloatType*	anglesnap;
 };
 
 EXTERN_CFGENTRY (Int, grid);

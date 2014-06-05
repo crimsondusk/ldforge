@@ -47,7 +47,6 @@ namespace Config
 	QString filepath (QString file);
 }
 
-// =========================================================
 class ConfigEntry
 {
 	PROPERTY (private, QString, name, setName, STOCK_WRITE)
@@ -157,43 +156,31 @@ class IntConfigEntry : public ConfigEntry
 	IMPLEMENT_CONFIG (Int)
 };
 
-// =============================================================================
-//
 class StringConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (String)
 };
 
-// =============================================================================
-//
 class FloatConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Float)
 };
 
-// =============================================================================
-//
 class BoolConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Bool)
 };
 
-// =============================================================================
-//
 class KeySequenceConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (KeySequence)
 };
 
-// =============================================================================
-//
 class ListConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (List)
 };
 
-// =============================================================================
-//
 class VertexConfigEntry : public ConfigEntry
 {
 	IMPLEMENT_CONFIG (Vertex)
