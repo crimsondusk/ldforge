@@ -127,10 +127,10 @@ double Grid::snap (double value, const Grid::Config type)
 	double mult = floor (abs<double> (value / snapvalue));
 	double out = mult * snapvalue;
 
-	if (abs<double> (value) - (mult * snapvalue) > snapvalue / 2)
+	if (abs (value) - (mult * snapvalue) > snapvalue / 2)
 		out += snapvalue;
 
-	if (value < 0 && out != 0)
+	if (value < 0)
 		out = -out;
 
 	return out;
