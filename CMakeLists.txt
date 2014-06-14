@@ -9,6 +9,8 @@ cmake_minimum_required (VERSION 2.6)
 find_package (Qt4 REQUIRED)
 find_package (OpenGL REQUIRED)
 
+option (TRANSPARENT_DIRECT_COLORS "Enables non-standard transparent direct colors" OFF)
+
 get_target_property (UPDATEREVISION_EXE updaterevision LOCATION)
 
 add_custom_target (revision_check ALL
@@ -104,6 +106,10 @@ set (LDFORGE_FORMS
 set (LDFORGE_RESOURCES ldforge.qrc)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -W -Wall")
 set (CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -lGLU")
+
+if (TRANSPARENT_DIRECT_COLORS)
+	set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTRANSPARENT_DIRECT_COLORS")
+endif()
 
 # With clang, we need to set -Wno-deprecated since Qt headers seem to use the
 # register keyword which clang doesn't seem to like. It also appears that Qt

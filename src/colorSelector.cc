@@ -59,7 +59,12 @@ ColorSelector::ColorSelector (LDColor defval, QWidget* parent) : QDialog (parent
 	ui->viewport->setMaximumWidth (width);
 
 	connect (ui->directColor, SIGNAL (clicked (bool)), this, SLOT (chooseDirectColor()));
+
+#ifdef TRANSPARENT_DIRECT_COLORS
 	connect (ui->transparentDirectColor, SIGNAL (clicked (bool)), this, SLOT (transparentCheckboxClicked()));
+#else
+	ui->transparentDirectColor->hide();
+#endif
 
 	drawColorInfo();
 }
@@ -151,8 +156,14 @@ void ColorSelector::drawColorInfo()
 	ui->colorLabel->setText (format ("%1 - %2", selection()->indexString(),
 		(selection()->isDirect() ? "<direct color>" : selection()->name())));
 	ui->iconLabel->setPixmap (makeColorIcon (selection(), 16).pixmap (16, 16));
+
+#ifdef TRANSPARENT_DIRECT_COLORS
 	ui->transparentDirectColor->setEnabled (selection()->isDirect());
 	ui->transparentDirectColor->setChecked (selection()->isDirect() && selection()->faceColor().alphaF() < 1.0);
+#else
+	ui->transparentDirectColor->setChecked (false);
+	ui->transparentDirectColor->setEnabled (false);
+#endif
 }
 
 // =============================================================================
