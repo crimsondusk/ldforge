@@ -151,6 +151,7 @@ void ColorSelector::drawColorInfo()
 	ui->colorLabel->setText (format ("%1 - %2", selection()->indexString(),
 		(selection()->isDirect() ? "<direct color>" : selection()->name())));
 	ui->iconLabel->setPixmap (makeColorIcon (selection(), 16).pixmap (16, 16));
+	ui->transparentDirectColor->setEnabled (selection()->isDirect());
 	ui->transparentDirectColor->setChecked (selection()->isDirect() && selection()->faceColor().alphaF() < 1.0);
 }
 
