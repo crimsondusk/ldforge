@@ -83,9 +83,6 @@ void LDConfigParser::parseLDConfig()
 		if (not parseLDConfigTag (pars, "CODE", valuestr))
 			continue;
 
-		if (not numeric (valuestr))
-			continue; // not a number
-
 		// Ensure that the code is within [0 - 511]
 		bool ok;
 		code = valuestr.toShort (&ok);

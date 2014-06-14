@@ -138,38 +138,6 @@ double Grid::snap (double value, const Grid::Config type)
 
 // =============================================================================
 //
-bool numeric (const QString& tok)
-{
-	bool gotDot = false;
-
-	for (int i = 0; i < tok.length(); ++i)
-	{
-		const QChar c = tok[i];
-
-		// Allow leading hyphen for negatives
-		if (i == 0 && c == '-')
-			continue;
-
-		// Check for decimal point
-		if (not gotDot && c == '.')
-		{
-			gotDot = true;
-			continue;
-		}
-
-		if (c >= '0' && c <= '9')
-			continue; // Digit
-
-		// If the above cases didn't catch this character, it was
-		// illegal and this is therefore not a number.
-		return false;
-	}
-
-	return true;
-}
-
-// =============================================================================
-//
 void simplify (int& numer, int& denom)
 {
 	bool repeat;

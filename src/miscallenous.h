@@ -32,9 +32,6 @@ class QAction;
 // Prime numbers
 extern const int g_primes[NUM_PRIMES];
 
-// Returns whether a given string represents a floating point number.
-bool numeric (const QString& tok);
-
 // Simplifies the given fraction.
 void simplify (int& numer, int& denom);
 
