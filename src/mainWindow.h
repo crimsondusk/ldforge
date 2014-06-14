@@ -189,6 +189,7 @@ public:
 public slots:
 	void updatePrimitives();
 	void changeCurrentFile();
+	void closeTab (int tabindex);
 	void slot_action();
 	void slot_actionNew();
 	void slot_actionNewFile();

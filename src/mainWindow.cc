@@ -75,6 +75,7 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	m_updatingTabs = false;
 	m_renderer = new GLRenderer (this);
 	m_tabs = new QTabBar;
+	m_tabs->setTabsClosable (true);
 	ui->verticalLayout->insertWidget (0, m_tabs);
 
 	// Stuff the renderer into its frame
@@ -84,6 +85,7 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	connect (ui->objectList, SIGNAL (itemSelectionChanged()), this, SLOT (slot_selectionChanged()));
 	connect (ui->objectList, SIGNAL (itemDoubleClicked (QListWidgetItem*)), this, SLOT (slot_editObject (QListWidgetItem*)));
 	connect (m_tabs, SIGNAL (currentChanged(int)), this, SLOT (changeCurrentFile()));
+	connect (m_tabs, SIGNAL (tabCloseRequested (int)), this, SLOT (closeTab (int)));
 
 	if (getActivePrimitiveScanner() != null)
 		connect (getActivePrimitiveScanner(), SIGNAL (workDone()), this, SLOT (updatePrimitives()));
@@ -923,6 +925,7 @@ void MainWindow::updateDocumentListItem (LDDocumentPtr doc)
 
 	// If the document.has unsaved changes, draw a little icon next to it to mark that.
 	m_tabs->setTabIcon (doc->tabIndex(), doc->hasUnsavedChanges() ? getIcon ("file-save") : QIcon());
+	m_tabs->setTabData (doc->tabIndex(), doc->name());
 	m_updatingTabs = oldUpdatingTabs;
 }
 
@@ -992,6 +995,18 @@ void MainWindow::updateActions()
 void MainWindow::updatePrimitives()
 {
 	populatePrimitives (ui->primitives);
+}
+
+// =============================================================================
+//
+void MainWindow::closeTab (int tabindex)
+{
+	LDDocumentPtr doc = findDocument (m_tabs->tabData (tabindex).toString());
+
+	if (doc == null)
+		return;
+
+	doc->dismiss();
 }
 
 // =============================================================================
