@@ -215,13 +215,13 @@ void writeSelection (QString fname)
 
 // =============================================================================
 //
-void writeColorGroup (const int colnum, QString fname)
+void writeColorGroup (LDColor color, QString fname)
 {
 	LDObjectList objects;
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (not obj->isColored() || obj->color() != colnum)
+		if (not obj->isColored() || obj->color() != color)
 			continue;
 
 		objects << obj;
@@ -288,7 +288,7 @@ bool runUtilityProcess (extprog prog, QString path, QString argvstr)
 
 // =============================================================================
 //
-static void insertOutput (QString fname, bool replace, QList<int> colorsToReplace)
+static void insertOutput (QString fname, bool replace, QList<LDColor> colorsToReplace)
 {
 #ifdef DEBUG
 	QFile::copy (fname, "./debug_lastOutput");
@@ -309,8 +309,8 @@ static void insertOutput (QString fname, bool replace, QList<int> colorsToReplac
 	if (replace)
 		g_win->deleteSelection();
 
-	for (int colnum : colorsToReplace)
-		g_win->deleteByColor (colnum);
+	for (LDColor color : colorsToReplace)
+		g_win->deleteByColor (color);
 
 	// Insert the new objects
 	getCurrentDocument()->clearSelection();
@@ -452,7 +452,7 @@ DEFINE_ACTION (Intersector, 0)
 								" cutter group with the input group. Both groups are cut by the intersection.");
 	ui.cb_edges->setWhatsThis ("Makes " APPNAME " try run Isecalc to create edgelines for the intersection.");
 
-	int inCol, cutCol;
+	LDColor inCol, cutCol;
 	const bool repeatInverse = ui.cb_repeat->isChecked();
 
 	forever
@@ -460,8 +460,8 @@ DEFINE_ACTION (Intersector, 0)
 		if (not dlg->exec())
 			return;
 
-		inCol = ui.cmb_incol->itemData (ui.cmb_incol->currentIndex()).toInt();
-		cutCol =  ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex()).toInt();
+		inCol = LDColor::fromIndex (ui.cmb_incol->itemData (ui.cmb_incol->currentIndex()).toInt());
+		cutCol = LDColor::fromIndex (ui.cmb_cutcol->itemData (ui.cmb_cutcol->currentIndex()).toInt());
 
 		if (inCol == cutCol)
 		{
@@ -547,19 +547,19 @@ DEFINE_ACTION (Coverer, 0)
 	makeColorComboBox (ui.cmb_col1);
 	makeColorComboBox (ui.cmb_col2);
 
-	int in1Col, in2Col;
+	LDColor in1Col, in2Col;
 
 	forever
 	{
 		if (not dlg->exec())
 			return;
 
-		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt();
-		in2Col = ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt();
+		in1Col = LDColor::fromIndex (ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt());
+		in2Col = LDColor::fromIndex (ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt());
 
 		if (in1Col == in2Col)
 		{
-			critical ("Cannot use the same color group for both input and cutter!");
+			critical ("Cannot use the same color group for both inputs!");
 			continue;
 		}
 
@@ -612,7 +612,7 @@ DEFINE_ACTION (Isecalc, 0)
 	makeColorComboBox (ui.cmb_col1);
 	makeColorComboBox (ui.cmb_col2);
 
-	int in1Col, in2Col;
+	LDColor in1Col, in2Col;
 
 	// Run the dialog and validate input
 	forever
@@ -620,8 +620,8 @@ DEFINE_ACTION (Isecalc, 0)
 		if (not dlg->exec())
 			return;
 
-		in1Col = ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt(),
-		in2Col = ui.cmb_col1->itemData (ui.cmb_col2->currentIndex()).toInt();
+		in1Col = LDColor::fromIndex (ui.cmb_col1->itemData (ui.cmb_col1->currentIndex()).toInt());
+		in2Col = LDColor::fromIndex (ui.cmb_col2->itemData (ui.cmb_col2->currentIndex()).toInt());
 
 		if (in1Col == in2Col)
 		{

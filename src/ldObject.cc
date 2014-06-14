@@ -325,7 +325,7 @@ void LDObject::finalDelete()
 
 // =============================================================================
 //
-static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, int parentcolor)
+static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, LDColor parentcolor)
 {
 	switch (obj->type())
 	{
@@ -358,7 +358,7 @@ static void transformObject (LDObjectPtr obj, Matrix transform, Vertex pos, int 
 			break;
 	}
 
-	if (obj->color() == maincolor)
+	if (obj->color() == maincolor())
 		obj->setColor (parentcolor);
 }
 
@@ -396,7 +396,7 @@ LDPolygon* LDObject::getPolygon()
 	LDPolygon* data = new LDPolygon;
 	data->id = id();
 	data->num = num;
-	data->color = color();
+	data->color = color()->index();
 
 	for (int i = 0; i < data->numVertices(); ++i)
 		data->vertices[i] = vertex (i);
@@ -809,7 +809,7 @@ static void changeProperty (LDObjectPtr obj, T* ptr, const T& val)
 
 // =============================================================================
 //
-void LDObject::setColor (const int& val)
+void LDObject::setColor (LDColor const& val)
 {
 	changeProperty (self(), &m_color, val);
 }

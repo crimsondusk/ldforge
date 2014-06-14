@@ -6,14 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>382</width>
-    <height>442</height>
+    <width>402</width>
+    <height>539</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Pick a Color</string>
+   <string>Select Color</string>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="verticalLayout_2">
    <item>
     <widget class="QGraphicsView" name="viewport">
      <property name="verticalScrollBarPolicy">
@@ -26,6 +26,13 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout">
+     <item>
+      <widget class="QLabel" name="iconLabel">
+       <property name="text">
+        <string>[[ COLOR ICON HERE]]</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <widget class="QLabel" name="colorLabel">
        <property name="text">
@@ -46,6 +53,27 @@
        </property>
       </spacer>
      </item>
+     <item>
+      <layout class="QVBoxLayout" name="verticalLayout">
+       <item>
+        <widget class="QPushButton" name="directColor">
+         <property name="toolTip">
+          <string>Direct Color...</string>
+         </property>
+         <property name="text">
+          <string>Direct Color...</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="transparentDirectColor">
+         <property name="text">
+          <string>Transparent</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
     </layout>
    </item>
    <item>
@@ -60,7 +88,9 @@
    </item>
   </layout>
  </widget>
- <resources/>
+ <resources>
+  <include location="../ldforge.qrc"/>
+ </resources>
  <connections>
   <connection>
    <sender>buttonBox</sender>

@@ -41,7 +41,7 @@ static bool parseLDConfigTag (LDConfigParser& pars, char const* tag, QString& va
 
 // =============================================================================
 //
-void parseLDConfig()
+void LDConfigParser::parseLDConfig()
 {
 	QFile* fp = openLDrawFile ("LDConfig.ldr", false);
 
@@ -108,14 +108,14 @@ void parseLDConfig()
 		if (parseLDConfigTag (pars, "ALPHA", valuestr))
 			alpha = clamp (valuestr.toInt(), 0, 255);
 
-		LDColor* col = new LDColor;
-		col->name = name;
-		col->faceColor = faceColor;
-		col->edgeColor = edgeColor;
-		col->hexcode = facename;
-		col->faceColor.setAlpha (alpha);
-		col->index = code;
-		setColor (code, col);
+		LDColor col (new LDColorData);
+		col->_name = name;
+		col->_faceColor = faceColor;
+		col->_edgeColor = edgeColor;
+		col->_hexcode = facename;
+		col->_faceColor.setAlpha (alpha);
+		col->_index = code;
+		LDColor::addLDConfigColor (code, col);
 	}
 
 	fp->close();

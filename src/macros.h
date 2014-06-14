@@ -60,6 +60,9 @@ ACCESS:															\
 #define PROPERTY_CUSTOM_WRITE(READ)								\
 	;
 
+#define readAccess(A) inline decltype(_##A) A() const { return _##A; }
+#define writeAccess(A,B) inline void B (decltype(_##A) const& a) const { _##A = a; }
+
 // =============================================================================
 //
 #define elif(A) else if (A)

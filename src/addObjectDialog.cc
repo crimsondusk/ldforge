@@ -130,12 +130,12 @@ AddObjectDialog::AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWid
 	if (defaults->isColored())
 	{
 		if (obj != null)
-			colnum = obj->color();
+			_color = obj->color();
 		else
-			colnum = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor : maincolor;
+			_color = (type == OBJ_CondLine || type == OBJ_Line) ? edgecolor() : maincolor();
 
 		pb_color = new QPushButton;
-		setButtonBackground (pb_color, colnum);
+		setButtonBackground (pb_color, _color);
 		connect (pb_color, SIGNAL (clicked()), this, SLOT (slot_colorButtonClicked()));
 	}
 
@@ -234,15 +234,13 @@ AddObjectDialog::AddObjectDialog (const LDObjectType type, LDObjectPtr obj, QWid
 
 // =============================================================================
 // =============================================================================
-void AddObjectDialog::setButtonBackground (QPushButton* button, int colnum)
+void AddObjectDialog::setButtonBackground (QPushButton* button, LDColor color)
 {
-	LDColor* col = ::getColor (colnum);
-
 	button->setIcon (getIcon ("palette"));
 	button->setAutoFillBackground (true);
 
-	if (col)
-		button->setStyleSheet (format ("background-color: %1", col->hexcode));
+	if (color != null)
+		button->setStyleSheet (format ("background-color: %1", color->hexcode()));
 }
 
 // =============================================================================
@@ -261,8 +259,8 @@ QString AddObjectDialog::currentSubfileName()
 // =============================================================================
 void AddObjectDialog::slot_colorButtonClicked()
 {
-	ColorSelector::selectColor (colnum, colnum, this);
-	setButtonBackground (pb_color, colnum);
+	ColorSelector::selectColor (_color, _color, this);
+	setButtonBackground (pb_color, _color);
 }
 
 // =============================================================================
@@ -397,7 +395,7 @@ void AddObjectDialog::staticDialog (const LDObjectType type, LDObjectPtr obj)
 	}
 
 	if (obj->isColored())
-		obj->setColor (dlg.colnum);
+		obj->setColor (dlg._color);
 
 	if (newObject)
 	{

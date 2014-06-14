@@ -26,28 +26,28 @@
 //
 class LDConfigParser
 {
-	public:
-		LDConfigParser (QString inText, char sep);
+public:
+	LDConfigParser (QString inText, char sep);
 
-		bool isAtEnd();
-		bool isAtBeginning();
-		bool getNextToken (QString& val);
-		bool peekNextToken (QString& val);
-		bool getToken (QString& val, const int pos);
-		bool findToken (int& result, char const* needle, int args);
-		int getSize();
-		void rewind();
-		void seek (int amount, bool rel);
-		bool tokenCompare (int inPos, const char* sOther);
+	bool isAtEnd();
+	bool isAtBeginning();
+	bool getNextToken (QString& val);
+	bool peekNextToken (QString& val);
+	bool getToken (QString& val, const int pos);
+	bool findToken (int& result, char const* needle, int args);
+	int getSize();
+	void rewind();
+	void seek (int amount, bool rel);
+	bool tokenCompare (int inPos, const char* sOther);
 
-		inline QString operator[] (const int idx)
-		{
-			return m_tokens[idx];
-		}
+	inline QString operator[] (const int idx)
+	{
+		return m_tokens[idx];
+	}
 
-	private:
-		QStringList m_tokens;
-		int m_pos;
+	static void parseLDConfig();
+
+private:
+	QStringList m_tokens;
+	int m_pos;
 };
-
-void parseLDConfig();

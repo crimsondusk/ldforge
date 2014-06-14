@@ -18,6 +18,7 @@
 
 #pragma once
 #include "basics.h"
+#include "colors.h"
 
 //
 // Converts a given value into a string that can be retrieved with text().
@@ -37,6 +38,7 @@ public:
 	StringFormatArg (const Vertex& a) : m_text (a.toString()) {}
 	StringFormatArg (const Matrix& a) : m_text (a.toString()) {}
 	StringFormatArg (const char* a) : m_text (a) {}
+	StringFormatArg (LDColor a) : m_text (a->indexString()) {}
 
 	StringFormatArg (const void* a)
 	{

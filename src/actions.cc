@@ -299,7 +299,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 	if (selection().isEmpty())
 		return;
 
-	QList<int> colors;
+	QList<LDColor> colors;
 
 	for (LDObjectPtr obj : selection())
 	{
@@ -869,7 +869,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 
 		// Add a reference to the new subfile to where the selection was
 		LDSubfilePtr ref (spawn<LDSubfile>());
-		ref->setColor (maincolor);
+		ref->setColor (maincolor());
 		ref->setFileInfo (doc);
 		ref->setPosition (g_origin);
 		ref->setTransform (g_identity);

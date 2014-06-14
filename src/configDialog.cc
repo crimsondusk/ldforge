@@ -384,7 +384,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 		}
 		else
 		{
-			LDColor* col = entry.color();
+			LDColor col (entry.color());
 
 			if (col == null)
 			{
@@ -393,7 +393,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 			}
 			else
 			{
-				item->setText (col->name);
+				item->setText (col->name());
 				item->setIcon (makeColorIcon (col, 16));
 			}
 		}
@@ -432,17 +432,17 @@ void ConfigDialog::slot_setColor()
 			return; // don't color separators
 	}
 
-	int defval = entry ? entry->color()->index : -1;
-	int val;
+	LDColor defval = entry ? entry->color() : null;
+	LDColor val;
 
 	if (not ColorSelector::selectColor (val, defval, this))
 		return;
 
 	if (entry)
-		entry->setColor (getColor (val));
+		entry->setColor (val);
 	else
 	{
-		LDQuickColor entry (getColor (val), null);
+		LDQuickColor entry (val, null);
 
 		item = getSelectedQuickColor();
 		int idx = (item) ? getItemRow (item, quickColorItems) + 1 : quickColorItems.size();
@@ -711,7 +711,7 @@ QString ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += format ("%1", entry.color()->index);
+			val += format ("%1", entry.color()->index());
 	}
 
 	return val;

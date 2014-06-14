@@ -58,10 +58,10 @@ public:
 	QLineEdit* le_matrix;
 
 private:
-	void setButtonBackground (QPushButton* button, int color);
+	void setButtonBackground (QPushButton* button, LDColor color);
 	QString currentSubfileName();
 
-	int colnum;
+	LDColor _color;
 
 private slots:
 	void slot_colorButtonClicked();

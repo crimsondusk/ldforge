@@ -203,7 +203,7 @@ QList<LDQuickColor> quickColorsFromConfig()
 			colors << LDQuickColor::getSeparator();
 		else
 		{
-			LDColor* col = getColor (colorname.toLong());
+			LDColor col = LDColor::fromIndex (colorname.toLong());
 
 			if (col != null)
 				colors << LDQuickColor (col, null);
@@ -231,7 +231,7 @@ void MainWindow::updateColorToolbar()
 			QToolButton* colorButton = new QToolButton;
 			colorButton->setIcon (makeColorIcon (entry.color(), 16));
 			colorButton->setIconSize (QSize (16, 16));
-			colorButton->setToolTip (entry.color()->name);
+			colorButton->setToolTip (entry.color()->name());
 
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
 			ui->colorToolbar->addWidget (colorButton);
@@ -424,14 +424,11 @@ void MainWindow::buildObjList()
 			item->setForeground (QColor ("#FFAA00"));
 		}
 		elif (cfg::colorizeObjectsList && obj->isColored() &&
-			obj->color() != maincolor && obj->color() != edgecolor)
+			obj->color() != null && obj->color() != maincolor() && obj->color() != edgecolor())
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			LDColor* col = getColor (obj->color());
-
-			if (col)
-				item->setForeground (col->faceColor);
+			item->setForeground (obj->color()->faceColor());
 		}
 
 		obj->qObjListEntry = item;
@@ -506,7 +503,7 @@ void MainWindow::slot_recentFile()
 void MainWindow::slot_quickColor()
 {
 	QToolButton* button = static_cast<QToolButton*> (sender());
-	LDColor* col = null;
+	LDColor col = null;
 
 	for (const LDQuickColor& entry : m_quickColors)
 	{
@@ -520,14 +517,12 @@ void MainWindow::slot_quickColor()
 	if (col == null)
 		return;
 
-	int newColor = col->index;
-
 	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue; // uncolored object
 
-		obj->setColor (newColor);
+		obj->setColor (col);
 		R()->compileObject (obj);
 	}
 
@@ -584,19 +579,19 @@ void MainWindow::updateSelection()
 
 // =============================================================================
 //
-int MainWindow::getSelectedColor()
+LDColor MainWindow::getSelectedColor()
 {
-	int result = -1;
+	LDColor result;
 
 	for (LDObjectPtr obj : selection())
 	{
 		if (not obj->isColored())
 			continue; // doesn't use color
 
-		if (result != -1 && obj->color() != result)
-			return -1; // No consensus in object color
+		if (result != null && obj->color() != result)
+			return null; // No consensus in object color
 
-		if (result == -1)
+		if (result == null)
 			result = obj->color();
 	}
 
@@ -689,13 +684,13 @@ void MainWindow::spawnContextMenu (const QPoint pos)
 
 // =============================================================================
 //
-void MainWindow::deleteByColor (int colnum)
+void MainWindow::deleteByColor (LDColor color)
 {
 	LDObjectList objs;
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (not obj->isColored() || obj->color() != colnum)
+		if (not obj->isColored() || obj->color() != color)
 			continue;
 
 		objs << obj;
@@ -828,14 +823,14 @@ void critical (const QString& message)
 
 // =============================================================================
 //
-QIcon makeColorIcon (LDColor* colinfo, const int size)
+QIcon makeColorIcon (LDColor colinfo, const int size)
 {
 	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
-	QColor col = colinfo->faceColor;
+	QColor col = colinfo->faceColor();
 
-	if (colinfo->index == maincolor)
+	if (colinfo == maincolor())
 	{
 		// Use the user preferences for main color here
 		col = cfg::mainColor;
@@ -843,7 +838,7 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 	}
 
 	// Paint the icon border
-	paint.fillRect (QRect (0, 0, size, size), colinfo->edgeColor);
+	paint.fillRect (QRect (0, 0, size, size), colinfo->edgeColor());
 
 	// Paint the checkerboard background, visible with translucent icons
 	paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
@@ -857,11 +852,11 @@ QIcon makeColorIcon (LDColor* colinfo, const int size)
 //
 void makeColorComboBox (QComboBox* box)
 {
-	std::map<int, int> counts;
+	std::map<LDColor, int> counts;
 
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 	{
-		if (not obj->isColored())
+		if (not obj->isColored() || obj->color() == null)
 			continue;
 
 		if (counts.find (obj->color()) == counts.end())
@@ -875,13 +870,10 @@ void makeColorComboBox (QComboBox* box)
 
 	for (const auto& pair : counts)
 	{
-		LDColor* col = getColor (pair.first);
-		assert (col != null);
-
-		QIcon ico = makeColorIcon (col, 16);
+		QIcon ico = makeColorIcon (pair.first, 16);
 		box->addItem (ico, format ("[%1] %2 (%3 object%4)",
-			pair.first, col->name, pair.second, plural (pair.second)));
-		box->setItemData (row, pair.first);
+			pair.first, pair.first->name(), pair.second, plural (pair.second)));
+		box->setItemData (row, pair.first->index());
 
 		++row;
 	}
@@ -1012,7 +1004,7 @@ QImage imageFromScreencap (uchar* data, int w, int h)
 
 // =============================================================================
 //
-LDQuickColor::LDQuickColor (LDColor* color, QToolButton* toolButton) :
+LDQuickColor::LDQuickColor (LDColor color, QToolButton* toolButton) :
 	m_color (color),
 	m_toolButton (toolButton) {}
 

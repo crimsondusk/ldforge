@@ -24,10 +24,11 @@
 #include "configuration.h"
 #include "ldObject.h"
 #include "ui_ldforge.h"
+#include "colors.h"
 
 class MessageManager;
 class MainWindow;
-class LDColor;
+class LDColorData;
 class QToolButton;
 class QDialogButtonBox;
 class GLRenderer;
@@ -58,11 +59,11 @@ class Primitive;
 // =============================================================================
 class LDQuickColor
 {
-	PROPERTY (public,	LDColor*,		color,		setColor,		STOCK_WRITE)
+	PROPERTY (public,	LDColor,		color,		setColor,		STOCK_WRITE)
 	PROPERTY (public,	QToolButton*,	toolButton,	setToolButton,	STOCK_WRITE)
 
 	public:
-		LDQuickColor (LDColor* color, QToolButton* toolButton);
+		LDQuickColor (LDColor color, QToolButton* toolButton);
 		bool isSeparator() const;
 
 		static LDQuickColor getSeparator();
@@ -129,7 +130,7 @@ public:
 
 	// Returns the uniform selected color (i.e. 4 if everything selected is
 	// red), -1 if there is no such consensus.
-	int getSelectedColor();
+	LDColor getSelectedColor();
 
 	// Automatically scrolls the object list so that it points to the first
 	// selected object.
@@ -142,7 +143,7 @@ public:
 	int deleteSelection();
 
 	// Deletes all objects by the given color number.
-	void deleteByColor (int colnum);
+	void deleteByColor (LDColor color);
 
 	// Tries to save the given document.
 	bool save (LDDocumentPtr doc, bool saveAs);
@@ -331,7 +332,7 @@ bool confirm (const QString& message);
 void critical (const QString& message);
 
 //! Makes an icon of \c size x \c size pixels to represent \c colinfo
-QIcon makeColorIcon (LDColor* colinfo, const int size);
+QIcon makeColorIcon (LDColor colinfo, const int size);
 
 //! Fills the given combo-box with color information
 void makeColorComboBox (QComboBox* box);

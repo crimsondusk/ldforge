@@ -20,23 +20,74 @@
 #include <QColor>
 #include "main.h"
 
-#define MAX_COLORS 512
+class LDColor;
 
-class LDColor
+class LDColorData
+{
+protected:
+	QString _name;
+	QString _hexcode;
+	QColor _faceColor;
+	QColor _edgeColor;
+	qint32 _index;
+	friend class LDConfigParser;
+	friend class LDColor;
+	friend void initColors();
+
+public:
+	LDColorData(){}
+
+	readAccess (edgeColor)
+	readAccess (faceColor)
+	readAccess (hexcode)
+	readAccess (index)
+	QString		indexString() const;
+	bool		isDirect() const;
+	readAccess (name)
+};
+
+
+class LDColor : public QSharedPointer<LDColorData>
 {
 public:
-	QString name, hexcode;
-	QColor faceColor, edgeColor;
-	int index;
+	using Super = QSharedPointer<LDColorData>;
+	using Self = LDColor;
+
+	LDColor() : Super() {}
+	LDColor (LDColorData* data) : Super (data) {}
+	LDColor (Super const& other) : Super (other) {}
+	LDColor (QWeakPointer<LDColorData> const& other) : Super (other) {}
+
+	template <typename Deleter>
+	LDColor (LDColorData* data, Deleter dlt) : Super (data, dlt) {}
+
+	inline bool			operator== (Self const& other);
+	inline bool			operator== (decltype(nullptr)) { return data() == nullptr; }
+	inline bool			operator!= (decltype(nullptr)) { return data() != nullptr; }
+	inline LDColorData*	operator->() const { return data(); }
+
+	static void			addLDConfigColor (qint32 index, LDColor color);
+	static LDColor		fromIndex (qint32 index);
 };
 
 void initColors();
 int luma (const QColor& col);
+int numLDConfigColors();
 
-// Safely gets a color with the given number or null if no such color.
-LDColor* getColor (int colnum);
-void setColor (int colnum, LDColor* col);
+// Main and edge colors
+LDColor maincolor();
+LDColor edgecolor();
+static constexpr int mainColorIndex = 16;
+static constexpr int edgeColorIndex = 24;
 
-// Main and edge color identifiers
-static const int maincolor = 16;
-static const int edgecolor = 24;
+bool LDColor::operator== (LDColor const& other)
+{
+	if ((data() == nullptr) ^ (other == nullptr))
+		return false;
+
+	if (data() != nullptr)
+		return data()->index() == other->index();
+
+	// both are null
+	return true;
+}

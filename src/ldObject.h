@@ -21,6 +21,7 @@
 #include "main.h"
 #include "basics.h"
 #include "glShared.h"
+#include "colors.h"
 
 #define LDOBJ(T)												\
 public:															\
@@ -93,7 +94,7 @@ class LDObject
 	PROPERTY (public,		LDObjectWeakPtr,	parent,			setParent,		STOCK_WRITE)
 	PROPERTY (public,		LDDocumentWeakPtr,	document,		setDocument,	STOCK_WRITE)
 	PROPERTY (private,		int32,				id,				setID,			STOCK_WRITE)
-	PROPERTY (public,		int,				color,			setColor,		CUSTOM_WRITE)
+	PROPERTY (public,		LDColor,			color,			setColor,		CUSTOM_WRITE)
 	PROPERTY (private,		QColor,				randomColor,	setRandomColor,	STOCK_WRITE)
 	PROPERTY (private,		LDObjectWeakPtr,	self,			setSelf,		STOCK_WRITE)
 

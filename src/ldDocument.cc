@@ -808,17 +808,27 @@ static void checkTokenNumbers (const QStringList& tokens, int min, int max)
 {
 	bool ok;
 
-	// Check scientific notation, e.g. 7.99361e-15
 	QRegExp scient ("\\-?[0-9]+\\.[0-9]+e\\-[0-9]+");
 
 	for (int i = min; i <= max; ++i)
 	{
-		tokens[i].toDouble (&ok);
-
-		if (not ok && not scient.exactMatch (tokens[i]))
+		// Check hex
+		if (tokens[i].startsWith ("0x"))
 		{
-			throw QString (format ("Token #%1 was `%2`, expected a number (matched length: %3)",
-				(i + 1), tokens[i], scient.matchedLength()));
+			tokens[i].mid (2).toInt (&ok, 16);
+
+			if (not ok)
+			{
+				// Check for floating point
+				tokens[i].toDouble (&ok);
+
+				// Also check scientific notation, e.g. 7.99361e-15
+				if (not ok && not scient.exactMatch (tokens[i]))
+				{
+					throw QString (format ("Token #%1 was `%2`, expected a number (matched length: %3)",
+						(i + 1), tokens[i], scient.matchedLength()));
+				}
+			}
 		}
 	}
 }
@@ -830,6 +840,19 @@ static Vertex parseVertex (QStringList& s, const int n)
 	Vertex v;
 	v.apply ([&] (Axis ax, double& a) { a = s[n + ax].toDouble(); });
 	return v;
+}
+
+static int32 stringToNumber (QString a)
+{
+	int base = 10;
+
+	if (a.startsWith ("0x"))
+	{
+		a.remove (0, 2);
+		base = 16;
+	}
+
+	return a.toLong (null, base);
 }
 
 // =============================================================================
@@ -890,7 +913,7 @@ LDObjectPtr parseLine (QString line)
 						checkTokenNumbers (tokens, 3, 6);
 
 						LDVertexPtr obj = spawn<LDVertex>();
-						obj->setColor (tokens[3].toLong());
+						obj->setColor (LDColor::fromIndex (stringToNumber (tokens[3])));
 						obj->pos.apply ([&](Axis ax, double& value) { value = tokens[4 + ax].toDouble(); });
 						return obj;
 					}
@@ -939,7 +962,7 @@ LDObjectPtr parseLine (QString line)
 				}
 
 				LDSubfilePtr obj = spawn<LDSubfile>();
-				obj->setColor (tokens[1].toLong());
+				obj->setColor (LDColor::fromIndex (stringToNumber (tokens[1])));
 				obj->setPosition (parseVertex (tokens, 2));  // 2 - 4
 
 				Matrix transform;
@@ -959,7 +982,7 @@ LDObjectPtr parseLine (QString line)
 
 				// Line
 				LDLinePtr obj (spawn<LDLine>());
-				obj->setColor (tokens[1].toLong());
+				obj->setColor (LDColor::fromIndex (stringToNumber (tokens[1])));
 
 				for (int i = 0; i < 2; ++i)
 					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 7
@@ -974,7 +997,7 @@ LDObjectPtr parseLine (QString line)
 
 				// Triangle
 				LDTrianglePtr obj (spawn<LDTriangle>());
-				obj->setColor (tokens[1].toLong());
+				obj->setColor (LDColor::fromIndex (stringToNumber (tokens[1])));
 
 				for (int i = 0; i < 3; ++i)
 					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 10
@@ -996,7 +1019,7 @@ LDObjectPtr parseLine (QString line)
 				else
 					obj = spawn<LDCondLine>();
 
-				obj->setColor (tokens[1].toLong());
+				obj->setColor (LDColor::fromIndex (stringToNumber (tokens[1])));
 
 				for (int i = 0; i < 4; ++i)
 					obj->setVertex (i, parseVertex (tokens, 2 + (i * 3)));   // 2 - 13

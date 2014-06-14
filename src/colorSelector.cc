@@ -23,7 +23,7 @@
 #include <QGraphicsItem>
 #include <QMouseEvent>
 #include <QScrollBar>
-
+#include <QColorDialog>
 #include "main.h"
 #include "mainWindow.h"
 #include "colorSelector.h"
@@ -39,20 +39,16 @@ EXTERN_CFGENTRY (String, mainColor);
 EXTERN_CFGENTRY (Float, mainColorAlpha);
 
 // =============================================================================
-// =============================================================================
-ColorSelector::ColorSelector (int defval, QWidget* parent) : QDialog (parent)
+//
+ColorSelector::ColorSelector (LDColor defval, QWidget* parent) : QDialog (parent)
 {
-	// Remove the default color if it's invalid
-	if (not getColor (defval))
-		defval = -1;
-
 	m_firstResize = true;
 	ui = new Ui_ColorSelUI;
 	ui->setupUi (this);
 
 	m_scene = new QGraphicsScene;
 	ui->viewport->setScene (m_scene);
-	setSelection (getColor (defval));
+	setSelection (defval);
 
 	// not really an icon but eh
 	m_scene->setBackgroundBrush (getIcon ("checkerboard"));
@@ -62,18 +58,21 @@ ColorSelector::ColorSelector (int defval, QWidget* parent) : QDialog (parent)
 	ui->viewport->setMinimumWidth (width);
 	ui->viewport->setMaximumWidth (width);
 
+	connect (ui->directColor, SIGNAL (clicked (bool)), this, SLOT (chooseDirectColor()));
+	connect (ui->transparentDirectColor, SIGNAL (clicked (bool)), this, SLOT (transparentCheckboxClicked()));
+
 	drawColorInfo();
 }
 
 // =============================================================================
-// =============================================================================
+//
 ColorSelector::~ColorSelector()
 {
 	delete ui;
 }
 
 // =============================================================================
-// =============================================================================
+//
 void ColorSelector::drawScene()
 {
 	const int numCols = g_numColumns;
@@ -89,33 +88,33 @@ void ColorSelector::drawScene()
 	// Draw the color rectangles.
 	m_scene->clear();
 
-	for (int i = 0; i < MAX_COLORS; ++i)
+	for (int i = 0; i < numLDConfigColors(); ++i)
 	{
-		LDColor* info = ::getColor (i);
+		LDColor info = LDColor::fromIndex (i);
 
-		if (not info)
+		if (info == null)
 			continue;
 
 		const double x = (i % numCols) * square;
 		const double y = (i / numCols) * square;
 		const double w = square - (penWidth / 2);
 
-		QColor col = info->faceColor;
+		QColor col (info->faceColor());
 
-		if (i == maincolor)
+		if (i == mainColorIndex)
 		{
 			// Use the user preferences for main color here
 			col = QColor (cfg::mainColor);
 			col.setAlpha (cfg::mainColorAlpha * 255.0f);
 		}
 
-		QPen pen (info->edgeColor, penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		QPen pen (info->edgeColor(), penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		m_scene->addRect (x, y, w, w, pen, col);
 		QGraphicsTextItem* numtext = m_scene->addText (format ("%1", i));
-		numtext->setDefaultTextColor ( (luma (col) < 80) ? Qt::white : Qt::black);
+		numtext->setDefaultTextColor ((luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 
-		if (selection() && i == selection()->index)
+		if (selection() && i == selection()->index())
 		{
 			auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
 			curspic->setPos (x, y);
@@ -124,58 +123,62 @@ void ColorSelector::drawScene()
 }
 
 // =============================================================================
-// =============================================================================
+//
 int ColorSelector::numRows() const
 {
-	return (MAX_COLORS / g_numColumns);
+	return (numLDConfigColors() / g_numColumns);
 }
 
 // =============================================================================
-// =============================================================================
+//
 int ColorSelector::viewportWidth() const
 {
 	return g_numColumns * g_squareSize + 21;
 }
 
 // =============================================================================
-// =============================================================================
+//
 void ColorSelector::drawColorInfo()
 {
-	if (not selection())
+	if (selection() == null)
 	{
 		ui->colorLabel->setText ("---");
+		ui->iconLabel->setPixmap (null);
+		ui->transparentDirectColor->setChecked (false);
 		return;
 	}
 
-	ui->colorLabel->setText (format ("%1 - %2", selection()->index, selection()->name));
+	ui->colorLabel->setText (format ("%1 - %2", selection()->indexString(),
+		(selection()->isDirect() ? "<direct color>" : selection()->name())));
+	ui->iconLabel->setPixmap (makeColorIcon (selection(), 16).pixmap (16, 16));
+	ui->transparentDirectColor->setChecked (selection()->isDirect() && selection()->faceColor().alphaF() < 1.0);
 }
 
 // =============================================================================
-// =============================================================================
-void ColorSelector::resizeEvent (QResizeEvent* ev)
+//
+void ColorSelector::resizeEvent (QResizeEvent*)
 {
 	// If this is the first resize, check if we need to scroll down to see the
 	// currently selected color. We cannot do this in the constructor because the
-	// height is not set properly there.
-	if (m_firstResize)
+	// height is not set properly there. Though don't do this if we selected a
+	// direct color.
+	if (m_firstResize && selection()->index() >= numLDConfigColors())
 	{
 		int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
 
-		if (selection() && selection()->index >= visibleColors)
+		if (selection() && selection()->index() >= visibleColors)
 		{
-			int y = (selection()->index / g_numColumns) * g_squareSize;
+			int y = (selection()->index() / g_numColumns) * g_squareSize;
 			ui->viewport->verticalScrollBar()->setValue (y);
 		}
-
-		m_firstResize = false;
 	}
 
-	(void) ev;
+	m_firstResize = false;
 	drawScene();
 }
 
 // =============================================================================
-// =============================================================================
+//
 void ColorSelector::mousePressEvent (QMouseEvent* event)
 {
 	QPointF scenepos = ui->viewport->mapToScene (event->pos());
@@ -184,7 +187,7 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 	int y = (scenepos.y() - (g_squareSize / 2)) / g_squareSize;
 	int idx = (y * g_numColumns) + x;
 
-	LDColor* col = ::getColor (idx);
+	LDColor col = LDColor::fromIndex (idx);
 
 	if (not col)
 		return;
@@ -195,14 +198,47 @@ void ColorSelector::mousePressEvent (QMouseEvent* event)
 }
 
 // =============================================================================
+//
+void ColorSelector::selectDirectColor (QColor col)
+{
+	int32 idx = (ui->transparentDirectColor->isChecked() ? 0x03000000 : 0x02000000);
+	idx |= (col.red() << 16) | (col.green() << 8) | (col.blue());
+	setSelection (LDColor::fromIndex (idx));
+	drawColorInfo();
+}
+
 // =============================================================================
-bool ColorSelector::selectColor (int& val, int defval, QWidget* parent)
+//
+void ColorSelector::chooseDirectColor()
+{
+	QColor defcolor = selection() != null ? selection()->faceColor() : Qt::white;
+	QColor newcolor = QColorDialog::getColor (defcolor);
+
+	if (not newcolor.isValid())
+		return; // canceled
+
+	selectDirectColor (newcolor);
+}
+
+// =============================================================================
+//
+void ColorSelector::transparentCheckboxClicked()
+{
+	if (selection() == null || not selection()->isDirect())
+		return;
+
+	selectDirectColor (selection()->faceColor());
+}
+
+// =============================================================================
+//
+bool ColorSelector::selectColor (LDColor& val, LDColor defval, QWidget* parent)
 {
 	ColorSelector dlg (defval, parent);
 
 	if (dlg.exec() && dlg.selection() != null)
 	{
-		val = dlg.selection()->index;
+		val = dlg.selection();
 		return true;
 	}
 

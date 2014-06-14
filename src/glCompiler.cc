@@ -155,23 +155,23 @@ QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObjectPtr topobj,
 			break;
 
 		case VBOCM_NormalColors:
-			if (poly.color == maincolor)
+			if (poly.color == mainColorIndex)
 			{
-				if (topobj->color() == maincolor)
+				if (topobj->color() == maincolor())
 					qcol = GLRenderer::getMainColor();
 				else
-					qcol = getColor (topobj->color())->faceColor;
+					qcol = topobj->color()->faceColor();
 			}
-			elif (poly.color == edgecolor)
+			elif (poly.color == edgeColorIndex)
 			{
 				qcol = luma (QColor (cfg::backgroundColor)) > 40 ? Qt::black : Qt::white;
 			}
 			else
 			{
-				LDColor* col = getColor (poly.color);
+				LDColor col = LDColor::fromIndex (poly.color);
 
 				if (col)
-					qcol = col->faceColor;
+					qcol = col->faceColor();
 			}
 			break;
 	}

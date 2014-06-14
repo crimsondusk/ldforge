@@ -1452,7 +1452,7 @@ void GLRenderer::endDraw (bool accept)
 				for (int i = 0; i < quad->numVertices(); ++i)
 					quad->setVertex (i, m_rectverts[i]);
 
-				quad->setColor (maincolor);
+				quad->setColor (maincolor());
 				objs << quad;
 			}
 			else
@@ -1464,7 +1464,7 @@ void GLRenderer::endDraw (bool accept)
 						// 1 vertex - add a vertex object
 						LDVertexPtr obj = spawn<LDVertex>();
 						obj->pos = verts[0];
-						obj->setColor (maincolor);
+						obj->setColor (maincolor());
 						objs << obj;
 					} break;
 
@@ -1472,7 +1472,7 @@ void GLRenderer::endDraw (bool accept)
 					{
 						// 2 verts - make a line
 						LDLinePtr obj = spawn<LDLine> (verts[0], verts[1]);
-						obj->setColor (edgecolor);
+						obj->setColor (edgecolor());
 						objs << obj;
 					} break;
 
@@ -1483,7 +1483,7 @@ void GLRenderer::endDraw (bool accept)
 							  static_cast<LDObjectPtr> (spawn<LDTriangle>()) :
 							  static_cast<LDObjectPtr> (spawn<LDQuad>());
 
-						obj->setColor (maincolor);
+						obj->setColor (maincolor());
 
 						for (int i = 0; i < obj->numVertices(); ++i)
 							obj->setVertex (i, verts[i]);
@@ -1537,7 +1537,7 @@ void GLRenderer::endDraw (bool accept)
 					ref->setFileInfo (refFile);
 					ref->setTransform (getCircleDrawMatrix (cmp.scale));
 					ref->setPosition (m_drawedVerts[0]);
-					ref->setColor (maincolor);
+					ref->setColor (maincolor());
 					objs << ref;
 				}
 			}
@@ -1574,7 +1574,7 @@ void GLRenderer::endDraw (bool accept)
 					v3.setCoordinate (relY, v3[relY] + c1[i].y1());
 
 					LDQuadPtr quad (spawn<LDQuad> (v0, v1, v2, v3));
-					quad->setColor (maincolor);
+					quad->setColor (maincolor());
 
 					// Ensure the quads always are BFC-front towards the camera
 					if (camera() % 3 <= 0)
@@ -1590,7 +1590,7 @@ void GLRenderer::endDraw (bool accept)
 				ref->setFileInfo (refFile);
 				ref->setTransform (transform);
 				ref->setPosition (m_drawedVerts[0]);
-				ref->setColor (maincolor);
+				ref->setColor (maincolor());
 				objs << ref;
 			}
 		} break;
@@ -2189,7 +2189,7 @@ void GLRenderer::dropEvent (QDropEvent* ev)
 	{
 		QString primName = static_cast<SubfileListItem*> (g_win->getPrimitivesTree()->currentItem())->primitive()->name;
 		LDSubfilePtr ref = spawn<LDSubfile>();
-		ref->setColor (maincolor);
+		ref->setColor (maincolor());
 		ref->setFileInfo (getDocument (primName));
 		ref->setPosition (g_origin);
 		ref->setTransform (g_identity);

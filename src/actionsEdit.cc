@@ -224,22 +224,20 @@ DEFINE_ACTION (SetColor, KEY (C))
 	if (selection().isEmpty())
 		return;
 
-	int colnum;
-	int defcol = -1;
-
 	LDObjectList objs = selection();
 
 	// If all selected objects have the same color, said color is our default
 	// value to the color selection dialog.
-	defcol = getSelectedColor();
+	LDColor color;
+	LDColor defaultcol = getSelectedColor();
 
 	// Show the dialog to the user now and ask for a color.
-	if (ColorSelector::selectColor (colnum, defcol, g_win))
+	if (ColorSelector::selectColor (color, defaultcol, g_win))
 	{
 		for (LDObjectPtr obj : objs)
 		{
 			if (obj->isColored())
-				obj->setColor (colnum);
+				obj->setColor (color);
 		}
 
 		refresh();
@@ -284,7 +282,7 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 				continue;
 
 			long idx = obj->lineNumber() + i + 1;
-			lines[i]->setColor (edgecolor);
+			lines[i]->setColor (edgecolor());
 			getCurrentDocument()->insertObj (idx, lines[i]);
 		}
 
@@ -566,12 +564,7 @@ DEFINE_ACTION (Uncolor, 0)
 		if (not obj->isColored())
 			continue;
 
-		int col = maincolor;
-
-		if (obj->type() == OBJ_Line || obj->type() == OBJ_CondLine)
-			col = edgecolor;
-
-		obj->setColor (col);
+		obj->setColor ((obj->type() == OBJ_Line || obj->type() == OBJ_CondLine) ? edgecolor() : maincolor());
 		num++;
 	}
 
@@ -689,11 +682,13 @@ DEFINE_ACTION (Demote, 0)
 
 // =============================================================================
 //
-static bool isColorUsed (int colnum)
+static bool isColorUsed (LDColor color)
 {
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
-		if (obj->isColored() && obj->color() == colnum)
+	{
+		if (obj->isColored() && obj->color() == color)
 			return true;
+	}
 
 	return false;
 }
@@ -703,11 +698,12 @@ static bool isColorUsed (int colnum)
 DEFINE_ACTION (Autocolor, 0)
 {
 	int colnum = 0;
+	LDColor color;
 
-	while (colnum < MAX_COLORS && (getColor (colnum) == null || isColorUsed (colnum)))
-		colnum++;
+	for (colnum = 0; colnum < numLDConfigColors() && ((color = LDColor::fromIndex (colnum)) == null || isColorUsed (color)); colnum++)
+		;
 
-	if (colnum >= MAX_COLORS)
+	if (colnum >= numLDConfigColors())
 	{
 		print (tr ("Cannot auto-color: all colors are in use!"));
 		return;
@@ -718,10 +714,10 @@ DEFINE_ACTION (Autocolor, 0)
 		if (not obj->isColored())
 			continue;
 
-		obj->setColor (colnum);
+		obj->setColor (color);
 	}
 
-	print (tr ("Auto-colored: new color is [%1] %2"), colnum, getColor (colnum)->name);
+	print (tr ("Auto-colored: new color is [%1] %2"), colnum, color->name());
 	refresh();
 }
 
