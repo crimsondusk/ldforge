@@ -75,8 +75,8 @@
           <rect>
            <x>0</x>
            <y>0</y>
-           <width>233</width>
-           <height>436</height>
+           <width>99</width>
+           <height>99</height>
           </rect>
          </property>
          <attribute name="label">
@@ -230,6 +230,7 @@
     <addaction name="actionFlip"/>
     <addaction name="actionDemote"/>
     <addaction name="actionOpenSubfiles"/>
+    <addaction name="actionSplitLines"/>
     <addaction name="separator"/>
     <addaction name="actionVisibilityHide"/>
     <addaction name="actionVisibilityToggle"/>
@@ -1419,10 +1420,15 @@
   </action>
   <action name="actionOpenSubfiles">
    <property name="text">
-    <string>Open Subfiles</string>
+    <string>Open Subfiles for Editing</string>
    </property>
    <property name="toolTip">
     <string>Opens the documents used by the selected subparts for editing.</string>
+   </property>
+  </action>
+  <action name="actionSplitLines">
+   <property name="text">
+    <string>Split Lines...</string>
    </property>
   </action>
  </widget>

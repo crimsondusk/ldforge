@@ -16,10 +16,12 @@
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+#include <limits>
 #include <QSpinBox>
 #include <QCheckBox>
 #include <QBoxLayout>
 #include <QClipboard>
+#include <QInputDialog>
 #include "mainWindow.h"
 #include "main.h"
 #include "ldDocument.h"
@@ -34,10 +36,11 @@
 #include "ui_flip.h"
 #include "ui_addhistoryline.h"
 
-EXTERN_CFGENTRY (String, defaultUser);
+EXTERN_CFGENTRY (String, defaultUser)
 
-CFGENTRY (Int,	roundPosition,	3);
-CFGENTRY (Int,	roundMatrix,	4);
+CFGENTRY (Int,	roundPosition,		3)
+CFGENTRY (Int,	roundMatrix,		4)
+CFGENTRY (Int,	splitLinesSegments, 5)
 
 // =============================================================================
 //
@@ -777,4 +780,54 @@ DEFINE_ACTION (AddHistoryLine, 0)
 
 	buildObjList();
 	delete ui;
+}
+
+DEFINE_ACTION (SplitLines, 0)
+{
+	bool ok;
+	int segments = QInputDialog::getInt (g_win, APPNAME, "Amount of segments:", cfg::splitLinesSegments, 0,
+		std::numeric_limits<int>::max(), 1, &ok);
+
+	if (not ok)
+		return;
+
+	cfg::splitLinesSegments = segments;
+
+	for (LDObjectPtr obj : selection())
+	{
+		if (obj->type() != OBJ_Line && obj->type() != OBJ_CondLine)
+			continue;
+
+		QVector<LDObjectPtr> newsegs;
+
+		for (int i = 0; i < segments; ++i)
+		{
+			LDObjectPtr segment;
+
+			if (obj->type() == OBJ_Line)
+				segment = spawn<LDLine>();
+			else
+				segment = spawn<LDCondLine>();
+
+			Vertex v0, v1;
+			v0.apply ([&](Axis ax, double& a) { a = (obj->vertex (0)[ax] + (((obj->vertex (1)[ax] - obj->vertex (0)[ax]) * i) / segments)); });
+			v1.apply ([&](Axis ax, double& a) { a = (obj->vertex (0)[ax] + (((obj->vertex (1)[ax] - obj->vertex (0)[ax]) * (i + 1)) / segments)); });
+			print ("%1, %2\n", v0.toString(true), v1.toString(true));
+			segment->setVertex (0, v0);
+			segment->setVertex (0, v1);
+			segment->setVertex (2, obj->vertex (2));
+			segment->setVertex (3, obj->vertex (3));
+			newsegs << segment;
+		}
+
+		int ln = obj->lineNumber();
+
+		for (LDObjectPtr seg : newsegs)
+			getCurrentDocument()->insertObj (ln++, seg);
+
+		obj->destroy();
+	}
+
+	buildObjList();
+	g_win->refresh();
 }
