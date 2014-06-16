@@ -41,7 +41,8 @@ protected:														\
 #define LDOBJ_VERTICES(V)      public: virtual int numVertices() const override { return V; }
 #define LDOBJ_SETCOLORED(V)    public: virtual bool isColored() const override { return V; }
 #define LDOBJ_COLORED          LDOBJ_SETCOLORED (true)
-#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false)
+#define LDOBJ_UNCOLORED        LDOBJ_SETCOLORED (false) LDOBJ_DEFAULTCOLOR (maincolor())
+#define LDOBJ_DEFAULTCOLOR(V)  public: virtual LDColor defaultColor() const override { return (V); }
 
 #define LDOBJ_CUSTOM_SCEMANTIC public: virtual bool isScemantic() const override
 #define LDOBJ_SCEMANTIC        LDOBJ_CUSTOM_SCEMANTIC { return true; }
@@ -54,12 +55,13 @@ protected:														\
 class QListWidgetItem;
 class LDSubfile;
 class LDDocument;
-class LDSharedVertex;
 
 class LDBFC;
 using LDBFCPtr = QSharedPointer<LDBFC>;
 
+//
 // Object type codes.
+//
 enum LDObjectType
 {
 	OBJ_Subfile,		//	Object represents a	sub-file reference
@@ -78,14 +80,16 @@ enum LDObjectType
 	OBJ_FirstType = OBJ_Subfile
 };
 
-// =============================================================================
+NUMERIC_ENUM_OPERATORS (LDObjectType)
+
+//
 // LDObject
 //
 // Base class object for all object types. Each LDObject represents a single line
 // in the LDraw code file. The virtual method getType returns an enumerator
 // which is a token of the object's type. The object can be casted into
 // sub-classes based on this enumerator.
-// =============================================================================
+//
 class LDObject
 {
 	PROPERTY (public,		bool,				isHidden,		setHidden,		STOCK_WRITE)
@@ -106,6 +110,9 @@ public:
 
 	// Makes a copy of this object
 	LDObjectPtr					createCopy() const;
+
+	// What color does the object default to?
+	virtual LDColor				defaultColor() const = 0;
 
 	// Deletes this object
 	void						destroy();
@@ -209,7 +216,7 @@ protected:
 	friend class QSharedPointer<LDObject>::ExternalRefCount;
 
 private:
-	LDSharedVertex*	m_coords[4];
+	Vertex m_coords[4];
 };
 
 //
@@ -222,10 +229,13 @@ inline QSharedPointer<T> spawn (Args... args)
 	static_assert (std::is_base_of<LDObject, T>::value, "spawn may only be used with LDObject-derivatives");
 	LDObjectPtr ptr;
 	new T (&ptr, args...);
+
+	// Set default color. This cannot be done in the c-tor.
+	if (ptr->isColored())
+		ptr->setColor (ptr->defaultColor());
+
 	return ptr.staticCast<T>();
 }
-
-NUMERIC_ENUM_OPERATORS (LDObjectType)
 
 //
 // Apparently QWeakPointer doesn't implement operator<. This is a problem when
@@ -237,38 +247,7 @@ inline bool operator< (LDObjectWeakPtr a, LDObjectWeakPtr b)
 	return a.data() < b.data();
 }
 
-// =============================================================================
-// LDSharedVertex
 //
-// For use as coordinates of LDObjects. Keeps count of references.
-// =============================================================================
-class LDSharedVertex
-{
-	public:
-		inline const Vertex& data() const
-		{
-			return m_data;
-		}
-
-		inline operator const Vertex&() const
-		{
-			return m_data;
-		}
-
-		void addRef (LDObjectPtr a);
-		void delRef (LDObjectPtr a);
-
-		static LDSharedVertex* getSharedVertex (const Vertex& a);
-
-	protected:
-		LDSharedVertex (const Vertex& a) : m_data (a) {}
-
-	private:
-		LDObjectList m_refs;
-		Vertex m_data;
-};
-
-// =============================================================================
 //
 // Common code for objects with matrices. This class is multiple-derived in
 // and thus not used directly other than as a common storage point for matrices
@@ -286,43 +265,43 @@ class LDMatrixObject
 	PROPERTY (public,	LDObjectWeakPtr,	linkPointer,	setLinkPointer,	STOCK_WRITE)
 	PROPERTY (public,	Matrix,				transform,		setTransform,	CUSTOM_WRITE)
 
-	public:
-		LDMatrixObject() :
-			m_position (LDSharedVertex::getSharedVertex (g_origin)) {}
+public:
+	LDMatrixObject() :
+		m_position (g_origin) {}
 
-		LDMatrixObject (const Matrix& transform, const Vertex& pos) :
-			m_transform (transform),
-			m_position (LDSharedVertex::getSharedVertex (pos)) {}
+	LDMatrixObject (const Matrix& transform, const Vertex& pos) :
+		m_transform (transform),
+		m_position (pos) {}
 
-		inline const Vertex& position() const
+	inline const Vertex& position() const
+	{
+		return m_position;
+	}
+
+	void setCoordinate (const Axis ax, double value)
+	{
+		Vertex v = position();
+
+		switch (ax)
 		{
-			return m_position->data();
+			case X: v.setX (value); break;
+			case Y: v.setY (value); break;
+			case Z: v.setZ (value); break;
 		}
 
-		void setCoordinate (const Axis ax, double value)
-		{
-			Vertex v = position();
+		setPosition (v);
+	}
 
-			switch (ax)
-			{
-				case X: v.setX (value); break;
-				case Y: v.setY (value); break;
-				case Z: v.setZ (value); break;
-			}
+	void setPosition (const Vertex& a);
 
-			setPosition (v);
-		}
-
-		void setPosition (const Vertex& a);
-
-	private:
-		LDSharedVertex*	m_position;
+private:
+	Vertex m_position;
 };
 
 using LDMatrixObjectPtr = QSharedPointer<LDMatrixObject>;
 using LDMatrixObjectWeakPtr = QWeakPointer<LDMatrixObject>;
 
-// =============================================================================
+//
 //
 // Represents a line in the LDraw file that could not be properly parsed. It is
 // represented by a (!) ERROR in the code view. It exists for the purpose of
@@ -340,17 +319,17 @@ class LDError : public LDObject
 	PROPERTY (private,	QString,	contents,		setContents,		STOCK_WRITE)
 	PROPERTY (private,	QString,	reason,			setReason,			STOCK_WRITE)
 
-	public:
-		LDError (LDObjectPtr* selfptr, QString contents, QString reason) :
-			LDObject (selfptr),
-			m_contents (contents),
-			m_reason (reason) {}
+public:
+	LDError (LDObjectPtr* selfptr, QString contents, QString reason) :
+		LDObject (selfptr),
+		m_contents (contents),
+		m_reason (reason) {}
 };
 
 using LDErrorPtr = QSharedPointer<LDError>;
 using LDErrorWeakPtr = QWeakPointer<LDError>;
 
-// =============================================================================
+//
 //
 // Represents an empty line in the LDraw code file.
 //
@@ -367,7 +346,7 @@ class LDEmpty : public LDObject
 using LDEmptyPtr = QSharedPointer<LDEmpty>;
 using LDEmptyWeakPtr = QWeakPointer<LDEmpty>;
 
-// =============================================================================
+//
 //
 // Represents a code-0 comment in the LDraw code file.
 //
@@ -381,225 +360,222 @@ class LDComment : public LDObject
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		LDComment (LDObjectPtr* selfptr, QString text) :
-			LDObject (selfptr),
-			m_text (text) {}
+public:
+	LDComment (LDObjectPtr* selfptr, QString text) :
+		LDObject (selfptr),
+		m_text (text) {}
 };
 
 using LDCommentPtr = QSharedPointer<LDComment>;
 using LDCommentWeakPtr = QWeakPointer<LDComment>;
 
-// =============================================================================
 //
-// Represents a 0 BFC statement in the LDraw code. eStatement contains the type
-// of this statement.
+//
+// Represents a 0 BFC statement in the LDraw code.
 //
 class LDBFC : public LDObject
 {
-	public:
-		enum Statement
-		{
-			CertifyCCW,
-			CCW,
-			CertifyCW,
-			CW,
-			NoCertify,
-			InvertNext,
-			Clip,
-			ClipCCW,
-			ClipCW,
-			NoClip,
-			NumStatements
-		};
+public:
+	enum Statement
+	{
+		CertifyCCW,
+		CCW,
+		CertifyCW,
+		CW,
+		NoCertify,
+		InvertNext,
+		Clip,
+		ClipCCW,
+		ClipCW,
+		NoClip,
+		NumStatements
+	};
 
-		LDOBJ (BFC)
-		LDOBJ_NAME (bfc)
-		LDOBJ_VERTICES (0)
-		LDOBJ_UNCOLORED
-		LDOBJ_CUSTOM_SCEMANTIC { return (statement() == InvertNext); }
-		LDOBJ_NO_MATRIX
-		PROPERTY (public, Statement, statement, setStatement, STOCK_WRITE)
+	LDOBJ (BFC)
+	LDOBJ_NAME (bfc)
+	LDOBJ_VERTICES (0)
+	LDOBJ_UNCOLORED
+	LDOBJ_CUSTOM_SCEMANTIC { return (statement() == InvertNext); }
+	LDOBJ_NO_MATRIX
+	PROPERTY (public, Statement, statement, setStatement, STOCK_WRITE)
 
-	public:
-		LDBFC (LDObjectPtr* selfptr, const LDBFC::Statement type) :
-			LDObject (selfptr),
-			m_statement (type) {}
+public:
+	LDBFC (LDObjectPtr* selfptr, const LDBFC::Statement type) :
+		LDObject (selfptr),
+		m_statement (type) {}
 
-		// Statement strings
-		static const char* k_statementStrings[];
+	// Statement strings
+	static const char* k_statementStrings[];
 };
 
 using LDBFCPtr = QSharedPointer<LDBFC>;
 using LDBFCWeakPtr = QWeakPointer<LDBFC>;
 
-// =============================================================================
+//
 // LDSubfile
 //
 // Represents a single code-1 subfile reference.
-// =============================================================================
+//
 class LDSubfile : public LDObject, public LDMatrixObject
 {
 	LDOBJ (Subfile)
 	LDOBJ_NAME (subfile)
 	LDOBJ_VERTICES (0)
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (maincolor())
 	LDOBJ_SCEMANTIC
 	LDOBJ_HAS_MATRIX
 	PROPERTY (public, LDDocumentPtr, fileInfo, setFileInfo, CUSTOM_WRITE)
 
-	public:
-		enum InlineFlag
-		{
-			DeepInline     = (1 << 0),
-			CacheInline    = (1 << 1),
-			RendererInline = (1 << 2),
-			DeepCacheInline = (DeepInline | CacheInline),
-		};
+public:
+	enum InlineFlag
+	{
+		DeepInline     = (1 << 0),
+		CacheInline    = (1 << 1),
+		RendererInline = (1 << 2),
+		DeepCacheInline = (DeepInline | CacheInline),
+	};
 
-		Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
+	Q_DECLARE_FLAGS (InlineFlags, InlineFlag)
 
-		// Inlines this subfile.
-		LDObjectList inlineContents (bool deep, bool render);
-		QList<LDPolygon> inlinePolygons();
+	// Inlines this subfile.
+	LDObjectList inlineContents (bool deep, bool render);
+	QList<LDPolygon> inlinePolygons();
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS (LDSubfile::InlineFlags)
 using LDSubfilePtr = QSharedPointer<LDSubfile>;
 using LDSubfileWeakPtr = QWeakPointer<LDSubfile>;
 
-// =============================================================================
+//
 // LDLine
 //
-// Represents a single code-2 line in the LDraw code file. v0 and v1 are the end
-// points of the line. The line is colored with dColor unless uncolored mode is
-// set.
-// =============================================================================
+// Represents a single code-2 line in the LDraw code file.
+//
 class LDLine : public LDObject
 {
 	LDOBJ (Line)
 	LDOBJ_NAME (line)
 	LDOBJ_VERTICES (2)
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (edgecolor())
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		LDLine (LDObjectPtr* selfptr, Vertex v1, Vertex v2);
+public:
+	LDLine (LDObjectPtr* selfptr, Vertex v1, Vertex v2);
 };
 
 using LDLinePtr = QSharedPointer<LDLine>;
 using LDLineWeakPtr = QWeakPointer<LDLine>;
 
-// =============================================================================
+//
 // LDCondLine
 //
-// Represents a single code-5 conditional line. The end-points v0 and v1 are
-// inherited from LDLine, c0 and c1 are the control points of this line.
-// =============================================================================
+// Represents a single code-5 conditional line.
+//
 class LDCondLine : public LDLine
 {
 	LDOBJ (CondLine)
 	LDOBJ_NAME (condline)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (edgecolor())
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		LDCondLine (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
-					const Vertex& v2, const Vertex& v3);
-		LDLinePtr demote();
+public:
+	LDCondLine (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
+				const Vertex& v2, const Vertex& v3);
+	LDLinePtr toEdgeLine();
 };
 
 using LDCondLinePtr = QSharedPointer<LDCondLine>;
 using LDCondLineWeakPtr = QWeakPointer<LDCondLine>;
 
-// =============================================================================
+//
 // LDTriangle
 //
 // Represents a single code-3 triangle in the LDraw code file. Vertices v0, v1
 // and v2 contain the end-points of this triangle. dColor is the color the
 // triangle is colored with.
-// =============================================================================
+//
 class LDTriangle : public LDObject
 {
 	LDOBJ (Triangle)
 	LDOBJ_NAME (triangle)
 	LDOBJ_VERTICES (3)
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (maincolor())
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		LDTriangle (LDObjectPtr* selfptr, Vertex v0, Vertex v1, Vertex v2) :
-			LDObject (selfptr)
-		{
-			setVertex (0, v0);
-			setVertex (1, v1);
-			setVertex (2, v2);
-		}
+public:
+	LDTriangle (LDObjectPtr* selfptr, Vertex const& v1,
+		Vertex const& v2, Vertex const& v3);
 };
 
 using LDTrianglePtr = QSharedPointer<LDTriangle>;
 using LDTriangleWeakPtr = QWeakPointer<LDTriangle>;
 
-// =============================================================================
+//
 // LDQuad
 //
 // Represents a single code-4 quadrilateral. v0, v1, v2 and v3 are the end points
 // of the quad, dColor is the color used for the quad.
-// =============================================================================
+//
 class LDQuad : public LDObject
 {
 	LDOBJ (Quad)
 	LDOBJ_NAME (quad)
 	LDOBJ_VERTICES (4)
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (maincolor())
 	LDOBJ_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		LDQuad (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
-				const Vertex& v2, const Vertex& v3);
+public:
+	LDQuad (LDObjectPtr* selfptr, const Vertex& v1, const Vertex& v2,
+		const Vertex& v3, const Vertex& v4);
 
-		// Split this quad into two triangles (note: heap-allocated)
-		QList<LDTrianglePtr> splitToTriangles();
+	// Split this quad into two triangles
+	QList<LDTrianglePtr> splitToTriangles();
 };
 
 using LDQuadPtr = QSharedPointer<LDQuad>;
 using LDQuadWeakPtr = QWeakPointer<LDQuad>;
 
-// =============================================================================
+//
 // LDVertex
 //
 // The vertex is an LDForce-specific extension which represents a single
 // vertex which can be used as a parameter to tools or to store coordinates
 // with. Vertices are a part authoring tool and they should not appear in
 // finished parts.
-// =============================================================================
+//
 class LDVertex : public LDObject
 {
 	LDOBJ (Vertex)
 	LDOBJ_NAME (vertex)
-	LDOBJ_VERTICES (0) // TODO: move pos to vaCoords[0]
+	LDOBJ_VERTICES (0) // TODO: move pos to m_vertices[0]
 	LDOBJ_COLORED
+	LDOBJ_DEFAULTCOLOR (maincolor())
 	LDOBJ_NON_SCEMANTIC
 	LDOBJ_NO_MATRIX
 
-	public:
-		Vertex pos;
+public:
+	Vertex pos;
 };
 
 using LDVertexPtr = QSharedPointer<LDVertex>;
 using LDVertexWeakPtr = QWeakPointer<LDVertex>;
 
-// =============================================================================
+//
 // LDOverlay
 //
 // Overlay image meta, stored in the header of parts so as to preserve overlay
 // information.
-// =============================================================================
+//
 class LDOverlay : public LDObject
 {
 	LDOBJ (Overlay)

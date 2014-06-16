@@ -285,7 +285,6 @@ DEFINE_ACTION (Borders, CTRL_SHIFT (B))
 				continue;
 
 			long idx = obj->lineNumber() + i + 1;
-			lines[i]->setColor (edgecolor());
 			getCurrentDocument()->insertObj (idx, lines[i]);
 		}
 
@@ -567,7 +566,7 @@ DEFINE_ACTION (Uncolor, 0)
 		if (not obj->isColored())
 			continue;
 
-		obj->setColor ((obj->type() == OBJ_Line || obj->type() == OBJ_CondLine) ? edgecolor() : maincolor());
+		obj->setColor (obj->defaultColor());
 		num++;
 	}
 
@@ -675,7 +674,7 @@ DEFINE_ACTION (Demote, 0)
 		if (obj->type() != OBJ_CondLine)
 			continue;
 
-		obj.staticCast<LDCondLine>()->demote();
+		obj.staticCast<LDCondLine>()->toEdgeLine();
 		++num;
 	}
 
@@ -803,20 +802,15 @@ DEFINE_ACTION (SplitLines, 0)
 		for (int i = 0; i < segments; ++i)
 		{
 			LDObjectPtr segment;
-
-			if (obj->type() == OBJ_Line)
-				segment = spawn<LDLine>();
-			else
-				segment = spawn<LDCondLine>();
-
 			Vertex v0, v1;
 			v0.apply ([&](Axis ax, double& a) { a = (obj->vertex (0)[ax] + (((obj->vertex (1)[ax] - obj->vertex (0)[ax]) * i) / segments)); });
 			v1.apply ([&](Axis ax, double& a) { a = (obj->vertex (0)[ax] + (((obj->vertex (1)[ax] - obj->vertex (0)[ax]) * (i + 1)) / segments)); });
-			print ("%1, %2\n", v0.toString(true), v1.toString(true));
-			segment->setVertex (0, v0);
-			segment->setVertex (0, v1);
-			segment->setVertex (2, obj->vertex (2));
-			segment->setVertex (3, obj->vertex (3));
+
+			if (obj->type() == OBJ_Line)
+				segment = spawn<LDLine> (v0, v1);
+			else
+				segment = spawn<LDCondLine> (v0, v1, obj->vertex (2), obj->vertex (3));
+
 			newsegs << segment;
 		}
 

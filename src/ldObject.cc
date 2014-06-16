@@ -266,14 +266,24 @@ LDLine::LDLine (LDObjectPtr* selfptr, Vertex v1, Vertex v2) :
 
 // =============================================================================
 //
-LDQuad::LDQuad (LDObjectPtr* selfptr, const Vertex& v0, const Vertex& v1,
-				const Vertex& v2, const Vertex& v3) :
+LDTriangle::LDTriangle (LDObjectPtr* selfptr, const Vertex& v1, const Vertex& v2, const Vertex& v3) :
 	LDObject (selfptr)
 {
-	setVertex (0, v0);
-	setVertex (1, v1);
-	setVertex (2, v2);
-	setVertex (3, v3);
+	setVertex (0, v1);
+	setVertex (1, v2);
+	setVertex (2, v3);
+}
+
+// =============================================================================
+//
+LDQuad::LDQuad (LDObjectPtr* selfptr, const Vertex& v1, const Vertex& v2,
+	const Vertex& v3, const Vertex& v4) :
+	LDObject (selfptr)
+{
+	setVertex (0, v1);
+	setVertex (1, v2);
+	setVertex (2, v3);
+	setVertex (3, v4);
 }
 
 // =============================================================================
@@ -742,7 +752,7 @@ void LDVertex::invert() {}
 
 // =============================================================================
 //
-LDLinePtr LDCondLine::demote()
+LDLinePtr LDCondLine::toEdgeLine()
 {
 	LDLinePtr replacement (spawn<LDLine>());
 
@@ -818,7 +828,7 @@ void LDObject::setColor (LDColor const& val)
 //
 const Vertex& LDObject::vertex (int i) const
 {
-	return m_coords[i]->data();
+	return m_coords[i];
 }
 
 // =============================================================================
@@ -826,9 +836,9 @@ const Vertex& LDObject::vertex (int i) const
 void LDObject::setVertex (int i, const Vertex& vert)
 {
 	if (document() != null)
-		document().toStrongRef()->vertexChanged (*m_coords[i], vert);
+		document().toStrongRef()->vertexChanged (m_coords[i], vert);
 
-	changeProperty (self(), &m_coords[i], LDSharedVertex::getSharedVertex (vert));
+	changeProperty (self(), &m_coords[i], vert);
 }
 
 // =============================================================================
@@ -840,7 +850,7 @@ void LDMatrixObject::setPosition (const Vertex& a)
 	if (ref->document() != null)
 		ref->document().toStrongRef()->removeKnownVerticesOf (ref);
 
-	changeProperty (ref, &m_position, LDSharedVertex::getSharedVertex (a));
+	changeProperty (ref, &m_position, a);
 
 	if (ref->document() != null)
 		ref->document().toStrongRef()->addKnownVerticesOf (ref);
@@ -859,44 +869,6 @@ void LDMatrixObject::setTransform (const Matrix& val)
 
 	if (ref->document() != null)
 		ref->document().toStrongRef()->addKnownVerticesOf (ref);
-}
-
-// =============================================================================
-//
-static QMap<Vertex, LDSharedVertex*> g_sharedVerts;
-
-LDSharedVertex* LDSharedVertex::getSharedVertex (const Vertex& a)
-{
-	auto it = g_sharedVerts.find (a);
-
-	if (it == g_sharedVerts.end())
-	{
-		LDSharedVertex* v = new LDSharedVertex (a);
-		g_sharedVerts[a] = v;
-		return v;
-	}
-
-	return *it;
-}
-
-// =============================================================================
-//
-void LDSharedVertex::addRef (LDObjectPtr a)
-{
-	m_refs << a;
-}
-
-// =============================================================================
-//
-void LDSharedVertex::delRef (LDObjectPtr a)
-{
-	m_refs.removeOne (a);
-
-	if (m_refs.empty())
-	{
-		g_sharedVerts.remove (m_data);
-		delete this;
-	}
 }
 
 // =============================================================================
