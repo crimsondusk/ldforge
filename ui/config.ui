@@ -79,7 +79,7 @@
      <item>
       <widget class="QStackedWidget" name="m_pages">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="page_3">
         <layout class="QVBoxLayout" name="verticalLayout_13">
@@ -710,7 +710,7 @@ Usually this contains MainColor, EdgeColor and some auxiliary colors used to gro
                  <string> LDU</string>
                 </property>
                 <property name="decimals">
-                 <number>3</number>
+                 <number>5</number>
                 </property>
                 <property name="maximum">
                  <double>10000.000000000000000</double>
@@ -753,7 +753,7 @@ Usually this contains MainColor, EdgeColor and some auxiliary colors used to gro
                  <string> LDU</string>
                 </property>
                 <property name="decimals">
-                 <number>3</number>
+                 <number>5</number>
                 </property>
                 <property name="maximum">
                  <double>10000.000000000000000</double>
@@ -796,7 +796,7 @@ Usually this contains MainColor, EdgeColor and some auxiliary colors used to gro
                  <string> LDU</string>
                 </property>
                 <property name="decimals">
-                 <number>3</number>
+                 <number>5</number>
                 </property>
                 <property name="maximum">
                  <double>10000.000000000000000</double>
