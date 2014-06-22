@@ -48,7 +48,7 @@ EXTERN_CFGENTRY (Bool,		randomColors)
 
 // =============================================================================
 //
-DEFINE_ACTION (New, CTRL_SHIFT (N))
+void MainWindow::slot_actionNew()
 {
 	QDialog* dlg = new QDialog (g_win);
 	Ui::NewPartUI ui;
@@ -114,14 +114,14 @@ DEFINE_ACTION (New, CTRL_SHIFT (N))
 
 // =============================================================================
 //
-DEFINE_ACTION (NewFile, CTRL (N))
+void MainWindow::slot_actionNewFile()
 {
 	newFile();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (Open, CTRL (O))
+void MainWindow::slot_actionOpen()
 {
 	QString name = QFileDialog::getOpenFileName (g_win, "Open File", "", "LDraw files (*.dat *.ldr)");
 
@@ -133,21 +133,21 @@ DEFINE_ACTION (Open, CTRL (O))
 
 // =============================================================================
 //
-DEFINE_ACTION (Save, CTRL (S))
+void MainWindow::slot_actionSave()
 {
 	save (getCurrentDocument(), false);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (SaveAs, CTRL_SHIFT (S))
+void MainWindow::slot_actionSaveAs()
 {
 	save (getCurrentDocument(), true);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (SaveAll, CTRL (L))
+void MainWindow::slot_actionSaveAll()
 {
 	for (LDDocumentPtr file : LDDocument::explicitDocuments())
 		save (file, false);
@@ -155,7 +155,7 @@ DEFINE_ACTION (SaveAll, CTRL (L))
 
 // =============================================================================
 //
-DEFINE_ACTION (Close, CTRL (W))
+void MainWindow::slot_actionClose()
 {
 	if (not getCurrentDocument()->isSafeToClose())
 		return;
@@ -165,7 +165,7 @@ DEFINE_ACTION (Close, CTRL (W))
 
 // =============================================================================
 //
-DEFINE_ACTION (CloseAll, 0)
+void MainWindow::slot_actionCloseAll()
 {
 	if (not safeToCloseAll())
 		return;
@@ -175,84 +175,84 @@ DEFINE_ACTION (CloseAll, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Settings, 0)
+void MainWindow::slot_actionSettings()
 {
 	(new ConfigDialog)->exec();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (SetLDrawPath, 0)
+void MainWindow::slot_actionSetLDrawPath()
 {
 	(new LDrawPathDialog (true))->exec();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (Exit, CTRL (Q))
+void MainWindow::slot_actionExit()
 {
 	exit (0);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewSubfile, 0)
+void MainWindow::slot_actionNewSubfile()
 {
 	AddObjectDialog::staticDialog (OBJ_Subfile, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewLine, 0)
+void MainWindow::slot_actionNewLine()
 {
 	AddObjectDialog::staticDialog (OBJ_Line, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewTriangle, 0)
+void MainWindow::slot_actionNewTriangle()
 {
 	AddObjectDialog::staticDialog (OBJ_Triangle, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewQuad, 0)
+void MainWindow::slot_actionNewQuad()
 {
 	AddObjectDialog::staticDialog (OBJ_Quad, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewCLine, 0)
+void MainWindow::slot_actionNewCLine()
 {
 	AddObjectDialog::staticDialog (OBJ_CondLine, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewComment, 0)
+void MainWindow::slot_actionNewComment()
 {
 	AddObjectDialog::staticDialog (OBJ_Comment, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewBFC, 0)
+void MainWindow::slot_actionNewBFC()
 {
 	AddObjectDialog::staticDialog (OBJ_BFC, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (NewVertex, 0)
+void MainWindow::slot_actionNewVertex()
 {
 	AddObjectDialog::staticDialog (OBJ_Vertex, LDObjectPtr());
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (Edit, 0)
+void MainWindow::slot_actionEdit()
 {
 	if (selection().size() != 1)
 		return;
@@ -263,27 +263,27 @@ DEFINE_ACTION (Edit, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Help, KEY (F1))
+void MainWindow::slot_actionHelp()
 {
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (About, 0)
+void MainWindow::slot_actionAbout()
 {
 	AboutDialog().exec();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (AboutQt, 0)
+void MainWindow::slot_actionAboutQt()
 {
 	QMessageBox::aboutQt (g_win);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (SelectAll, CTRL (A))
+void MainWindow::slot_actionSelectAll()
 {
 	for (LDObjectPtr obj : getCurrentDocument()->objects())
 		obj->select();
@@ -294,7 +294,7 @@ DEFINE_ACTION (SelectAll, CTRL (A))
 
 // =============================================================================
 //
-DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
+void MainWindow::slot_actionSelectByColor()
 {
 	if (selection().isEmpty())
 		return;
@@ -322,7 +322,7 @@ DEFINE_ACTION (SelectByColor, CTRL_SHIFT (A))
 
 // =============================================================================
 //
-DEFINE_ACTION (SelectByType, 0)
+void MainWindow::slot_actionSelectByType()
 {
 	if (selection().isEmpty())
 		return;
@@ -362,19 +362,19 @@ DEFINE_ACTION (SelectByType, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (GridCoarse, 0)
+void MainWindow::slot_actionGridCoarse()
 {
 	cfg::grid = Grid::Coarse;
 	updateGridToolBar();
 }
 
-DEFINE_ACTION (GridMedium, 0)
+void MainWindow::slot_actionGridMedium()
 {
 	cfg::grid = Grid::Medium;
 	updateGridToolBar();
 }
 
-DEFINE_ACTION (GridFine, 0)
+void MainWindow::slot_actionGridFine()
 {
 	cfg::grid = Grid::Fine;
 	updateGridToolBar();
@@ -382,7 +382,7 @@ DEFINE_ACTION (GridFine, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (ResetView, CTRL (0))
+void MainWindow::slot_actionResetView()
 {
 	R()->resetAngles();
 	R()->update();
@@ -390,7 +390,7 @@ DEFINE_ACTION (ResetView, CTRL (0))
 
 // =============================================================================
 //
-DEFINE_ACTION (InsertFrom, 0)
+void MainWindow::slot_actionInsertFrom()
 {
 	QString fname = QFileDialog::getOpenFileName();
 	int idx = getInsertionPoint();
@@ -425,7 +425,7 @@ DEFINE_ACTION (InsertFrom, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (ExportTo, 0)
+void MainWindow::slot_actionExportTo()
 {
 	if (selection().isEmpty())
 		return;
@@ -454,7 +454,7 @@ DEFINE_ACTION (ExportTo, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (InsertRaw, 0)
+void MainWindow::slot_actionInsertRaw()
 {
 	int idx = getInsertionPoint();
 
@@ -490,7 +490,7 @@ DEFINE_ACTION (InsertRaw, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Screenshot, 0)
+void MainWindow::slot_actionScreenshot()
 {
 	setlocale (LC_ALL, "C");
 
@@ -516,7 +516,7 @@ DEFINE_ACTION (Screenshot, 0)
 // =============================================================================
 //
 EXTERN_CFGENTRY (Bool, drawAxes);
-DEFINE_ACTION (Axes, 0)
+void MainWindow::slot_actionAxes()
 {
 	cfg::drawAxes = not cfg::drawAxes;
 	updateActions();
@@ -525,7 +525,7 @@ DEFINE_ACTION (Axes, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (VisibilityToggle, 0)
+void MainWindow::slot_actionVisibilityToggle()
 {
 	for (LDObjectPtr obj : selection())
 		obj->setHidden (not obj->isHidden());
@@ -535,7 +535,7 @@ DEFINE_ACTION (VisibilityToggle, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (VisibilityHide, 0)
+void MainWindow::slot_actionVisibilityHide()
 {
 	for (LDObjectPtr obj : selection())
 		obj->setHidden (true);
@@ -545,7 +545,7 @@ DEFINE_ACTION (VisibilityHide, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (VisibilityReveal, 0)
+void MainWindow::slot_actionVisibilityReveal()
 {
 	for (LDObjectPtr obj : selection())
 	obj->setHidden (false);
@@ -554,7 +554,7 @@ DEFINE_ACTION (VisibilityReveal, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Wireframe, 0)
+void MainWindow::slot_actionWireframe()
 {
 	cfg::drawWireframe = not cfg::drawWireframe;
 	R()->refresh();
@@ -562,7 +562,7 @@ DEFINE_ACTION (Wireframe, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (SetOverlay,  0)
+void MainWindow::slot_actionSetOverlay()
 {
 	OverlayDialog dlg;
 
@@ -575,35 +575,35 @@ DEFINE_ACTION (SetOverlay,  0)
 
 // =============================================================================
 //
-DEFINE_ACTION (ClearOverlay, 0)
+void MainWindow::slot_actionClearOverlay()
 {
 	R()->clearOverlay();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (ModeSelect, CTRL (1))
+void MainWindow::slot_actionModeSelect()
 {
 	R()->setEditMode (ESelectMode);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (ModeDraw, CTRL (2))
+void MainWindow::slot_actionModeDraw()
 {
 	R()->setEditMode (EDrawMode);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (ModeCircle, CTRL (3))
+void MainWindow::slot_actionModeCircle()
 {
 	R()->setEditMode (ECircleMode);
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (DrawAngles, 0)
+void MainWindow::slot_actionDrawAngles()
 {
 	cfg::drawAngles = not cfg::drawAngles;
 	R()->refresh();
@@ -611,7 +611,7 @@ DEFINE_ACTION (DrawAngles, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (SetDrawDepth, 0)
+void MainWindow::slot_actionSetDrawDepth()
 {
 	if (R()->camera() == EFreeCamera)
 		return;
@@ -629,7 +629,7 @@ DEFINE_ACTION (SetDrawDepth, 0)
 // This is a test to draw a dummy axle. Meant to be used as a primitive gallery,
 // but I can't figure how to generate these pictures properly. Multi-threading
 // these is an immense pain.
-DEFINE_ACTION (testpic, "Test picture", "", "", (0))
+void MainWindow::slot_actiontestpic()
 {
 	LDDocumentPtr file = getFile ("axle.dat");
 	setlocale (LC_ALL, "C");
@@ -676,14 +676,14 @@ DEFINE_ACTION (testpic, "Test picture", "", "", (0))
 
 // =============================================================================
 //
-DEFINE_ACTION (ScanPrimitives, 0)
+void MainWindow::slot_actionScanPrimitives()
 {
 	PrimitiveScanner::start();
 }
 
 // =============================================================================
 //
-DEFINE_ACTION (BFCView, SHIFT (B))
+void MainWindow::slot_actionBFCView()
 {
 	cfg::bfcRedGreenView = not cfg::bfcRedGreenView;
 
@@ -696,7 +696,7 @@ DEFINE_ACTION (BFCView, SHIFT (B))
 
 // =============================================================================
 //
-DEFINE_ACTION (JumpTo, CTRL (G))
+void MainWindow::slot_actionJumpTo()
 {
 	bool ok;
 	int defval = 0;
@@ -718,7 +718,7 @@ DEFINE_ACTION (JumpTo, CTRL (G))
 
 // =============================================================================
 //
-DEFINE_ACTION (SubfileSelection, 0)
+void MainWindow::slot_actionSubfileSelection()
 {
 	if (selection().size() == 0)
 		return;
@@ -886,7 +886,7 @@ DEFINE_ACTION (SubfileSelection, 0)
 	}
 }
 
-DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
+void MainWindow::slot_actionRandomColors()
 {
 	cfg::randomColors = not cfg::randomColors;
 
@@ -897,7 +897,7 @@ DEFINE_ACTION (RandomColors, CTRL_SHIFT (R))
 	R()->refresh();
 }
 
-DEFINE_ACTION (OpenSubfiles, 0)
+void MainWindow::slot_actionOpenSubfiles()
 {
 	for (LDObjectPtr obj : selection())
 	{

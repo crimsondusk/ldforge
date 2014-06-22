@@ -17,6 +17,7 @@
  */
 
 #pragma once
+#include <functional>
 #include <QMainWindow>
 #include <QAction>
 #include <QListWidget>
@@ -43,20 +44,6 @@ class Primitive;
 	connect (bbx_buttons, SIGNAL (accepted()), this, SLOT (accept())); \
 	connect (bbx_buttons, SIGNAL (rejected()), this, SLOT (reject())); \
 
-// =============================================================================
-// * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * * *
-// =============================================================================
-#define DEFINE_ACTION(NAME, DEFSHORTCUT) \
-	CFGENTRY (KeySequence, action##NAME##Shortcut, DEFSHORTCUT); \
-	void MainWindow::slot_action##NAME()
-
-// Convenience macros for key sequences.
-#define KEY(N) (Qt::Key_##N)
-#define CTRL(N) (Qt::CTRL | Qt::Key_##N)
-#define SHIFT(N) (Qt::SHIFT | Qt::Key_##N)
-#define CTRL_SHIFT(N) (Qt::CTRL | Qt::SHIFT | Qt::Key_##N)
-
-// =============================================================================
 class LDQuickColor
 {
 	PROPERTY (public,	LDColor,		color,		setColor,		STOCK_WRITE)
@@ -85,7 +72,7 @@ class ObjectList : public QListWidget
 //
 class MainWindow : public QMainWindow
 {
-Q_OBJECT
+	Q_OBJECT
 
 public:
 	explicit MainWindow (QWidget* parent = null, Qt::WindowFlags flags = 0);
@@ -172,19 +159,17 @@ public:
 	// Updates the object list. Right now this just rebuilds it.
 	void refreshObjectList();
 
-	// Updates all actions to ensure they have the correct shortcut as
-	// defined in the configuration entries.
-	void updateActionShortcuts();
-
-	// Gets the shortcut configuration for the given \c action
-	KeySequenceConfigEntry* shortcutForAction (QAction* action);
-
 	void endAction();
 
 	inline QTreeWidget* getPrimitivesTree() const
 	{
 		return ui->primitives;
 	}
+
+	static QKeySequence defaultShortcut (QAction* act);
+	void loadShortcuts (QSettings const* settings);
+	void saveShortcuts (QSettings* settings);
+	void applyToActions (std::function<void(QAction*)> function);
 
 public slots:
 	void updatePrimitives();

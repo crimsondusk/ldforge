@@ -406,7 +406,7 @@ LDPolygon* LDObject::getPolygon()
 	LDPolygon* data = new LDPolygon;
 	data->id = id();
 	data->num = num;
-	data->color = color()->index();
+	data->color = color().index();
 
 	for (int i = 0; i < data->numVertices(); ++i)
 		data->vertices[i] = vertex (i);

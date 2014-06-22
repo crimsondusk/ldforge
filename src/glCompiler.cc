@@ -160,7 +160,7 @@ QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObjectPtr topobj,
 				if (topobj->color() == maincolor())
 					qcol = GLRenderer::getMainColor();
 				else
-					qcol = topobj->color()->faceColor();
+					qcol = topobj->color().faceColor();
 			}
 			elif (poly.color == edgeColorIndex)
 			{
@@ -171,7 +171,7 @@ QColor GLCompiler::getColorForPolygon (LDPolygon& poly, LDObjectPtr topobj,
 				LDColor col = LDColor::fromIndex (poly.color);
 
 				if (col)
-					qcol = col->faceColor();
+					qcol = col.faceColor();
 			}
 			break;
 	}

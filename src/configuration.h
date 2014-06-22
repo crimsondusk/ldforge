@@ -45,6 +45,7 @@ namespace Config
 	void reset();
 	QString dirpath();
 	QString filepath (QString file);
+	QSettings* settingsObject();
 }
 
 class ConfigEntry
@@ -79,6 +80,7 @@ public:
 	virtual void		loadFromVariant (const QVariant& val) = 0;
 	virtual void		resetValue() = 0;
 	virtual QVariant	toVariant() const = 0;
+
 
 protected:
 	static void addToArray (ConfigEntry* ptr);

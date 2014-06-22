@@ -333,7 +333,7 @@ static void insertOutput (QString fname, bool replace, QList<LDColor> colorsToRe
 // =============================================================================
 // Interface for Ytruder
 // =============================================================================
-DEFINE_ACTION (Ytruder, 0)
+void MainWindow::slot_actionYtruder()
 {
 	setlocale (LC_ALL, "C");
 
@@ -390,7 +390,7 @@ DEFINE_ACTION (Ytruder, 0)
 // =============================================================================
 // Rectifier interface
 // =============================================================================
-DEFINE_ACTION (Rectifier, 0)
+void MainWindow::slot_actionRectifier()
 {
 	setlocale (LC_ALL, "C");
 
@@ -435,7 +435,7 @@ DEFINE_ACTION (Rectifier, 0)
 // =============================================================================
 // Intersector interface
 // =============================================================================
-DEFINE_ACTION (Intersector, 0)
+void MainWindow::slot_actionIntersector()
 {
 	setlocale (LC_ALL, "C");
 
@@ -534,7 +534,7 @@ DEFINE_ACTION (Intersector, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Coverer, 0)
+void MainWindow::slot_actionCoverer()
 {
 	setlocale (LC_ALL, "C");
 
@@ -598,7 +598,7 @@ DEFINE_ACTION (Coverer, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Isecalc, 0)
+void MainWindow::slot_actionIsecalc()
 {
 	setlocale (LC_ALL, "C");
 
@@ -657,7 +657,7 @@ DEFINE_ACTION (Isecalc, 0)
 
 // =============================================================================
 //
-DEFINE_ACTION (Edger2, 0)
+void MainWindow::slot_actionEdger2()
 {
 	setlocale (LC_ALL, "C");
 

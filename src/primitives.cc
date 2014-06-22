@@ -688,7 +688,7 @@ void PrimitivePrompt::hiResToggled (bool on)
 
 // =============================================================================
 //
-DEFINE_ACTION (MakePrimitive, 0)
+void MainWindow::slot_actionMakePrimitive()
 {
 	PrimitivePrompt* dlg = new PrimitivePrompt (g_win);
 

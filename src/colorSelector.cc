@@ -104,7 +104,7 @@ void ColorSelector::drawScene()
 		const double y = (i / numCols) * square;
 		const double w = square - (penWidth / 2);
 
-		QColor col (info->faceColor());
+		QColor col (info.faceColor());
 
 		if (i == mainColorIndex)
 		{
@@ -113,13 +113,13 @@ void ColorSelector::drawScene()
 			col.setAlpha (cfg::mainColorAlpha * 255.0f);
 		}
 
-		QPen pen (info->edgeColor(), penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		QPen pen (info.edgeColor(), penWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		m_scene->addRect (x, y, w, w, pen, col);
 		QGraphicsTextItem* numtext = m_scene->addText (format ("%1", i));
 		numtext->setDefaultTextColor ((luma (col) < 80) ? Qt::white : Qt::black);
 		numtext->setPos (x, y);
 
-		if (selection() && i == selection()->index())
+		if (selection() && i == selection().index())
 		{
 			auto curspic = m_scene->addPixmap (getIcon ("colorcursor"));
 			curspic->setPos (x, y);
@@ -153,13 +153,13 @@ void ColorSelector::drawColorInfo()
 		return;
 	}
 
-	ui->colorLabel->setText (format ("%1 - %2", selection()->indexString(),
-		(selection()->isDirect() ? "<direct color>" : selection()->name())));
+	ui->colorLabel->setText (format ("%1 - %2", selection().indexString(),
+		(selection().isDirect() ? "<direct color>" : selection().name())));
 	ui->iconLabel->setPixmap (makeColorIcon (selection(), 16).pixmap (16, 16));
 
 #ifdef TRANSPARENT_DIRECT_COLORS
-	ui->transparentDirectColor->setEnabled (selection()->isDirect());
-	ui->transparentDirectColor->setChecked (selection()->isDirect() && selection()->faceColor().alphaF() < 1.0);
+	ui->transparentDirectColor->setEnabled (selection().isDirect());
+	ui->transparentDirectColor->setChecked (selection().isDirect() && selection().faceColor().alphaF() < 1.0);
 #else
 	ui->transparentDirectColor->setChecked (false);
 	ui->transparentDirectColor->setEnabled (false);
@@ -174,13 +174,13 @@ void ColorSelector::resizeEvent (QResizeEvent*)
 	// currently selected color. We cannot do this in the constructor because the
 	// height is not set properly there. Though don't do this if we selected a
 	// direct color.
-	if (m_firstResize && selection()->index() >= numLDConfigColors())
+	if (m_firstResize && selection().index() >= numLDConfigColors())
 	{
 		int visibleColors = (ui->viewport->height() / g_squareSize) * g_numColumns;
 
-		if (selection() && selection()->index() >= visibleColors)
+		if (selection() && selection().index() >= visibleColors)
 		{
-			int y = (selection()->index() / g_numColumns) * g_squareSize;
+			int y = (selection().index() / g_numColumns) * g_squareSize;
 			ui->viewport->verticalScrollBar()->setValue (y);
 		}
 	}
@@ -223,7 +223,7 @@ void ColorSelector::selectDirectColor (QColor col)
 //
 void ColorSelector::chooseDirectColor()
 {
-	QColor defcolor = selection() != null ? selection()->faceColor() : Qt::white;
+	QColor defcolor = selection() != null ? selection().faceColor() : Qt::white;
 	QColor newcolor = QColorDialog::getColor (defcolor);
 
 	if (not newcolor.isValid())
@@ -236,10 +236,10 @@ void ColorSelector::chooseDirectColor()
 //
 void ColorSelector::transparentCheckboxClicked()
 {
-	if (selection() == null || not selection()->isDirect())
+	if (selection() == null || not selection().isDirect())
 		return;
 
-	selectDirectColor (selection()->faceColor());
+	selectDirectColor (selection().faceColor());
 }
 
 // =============================================================================

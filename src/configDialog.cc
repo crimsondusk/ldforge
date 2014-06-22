@@ -122,15 +122,10 @@ ConfigDialog::ConfigDialog (ConfigDialog::Tab deftab, QWidget* parent, Qt::Windo
 	ui->roundPosition->setValue (cfg::roundPosition);
 	ui->roundMatrix->setValue (cfg::roundMatrix);
 
-	int i = 0;
-
-	for (QAction* act : g_win->findChildren<QAction*>())
+	g_win->applyToActions ([&](QAction* act)
 	{
-		KeySequenceConfigEntry* cfg = g_win->shortcutForAction (act);
-
-		if (cfg)
-			addShortcut (*cfg, act, i);
-	}
+		addShortcut (act);
+	});
 
 	ui->shortcutsList->setSortingEnabled (true);
 	ui->shortcutsList->sortItems();
@@ -197,12 +192,12 @@ void ConfigDialog::selectPage (int row)
 // =============================================================================
 // Adds a shortcut entry to the list of shortcuts.
 // =============================================================================
-void ConfigDialog::addShortcut (KeySequenceConfigEntry& cfg, QAction* act, int& i)
+void ConfigDialog::addShortcut (QAction* act)
 {
 	ShortcutListItem* item = new ShortcutListItem;
 	item->setIcon (act->icon());
-	item->setKeyConfig (&cfg);
 	item->setAction (act);
+	item->setSequence (act->shortcut());
 	setShortcutText (item);
 
 	// If the action doesn't have a valid icon, use an empty one
@@ -210,7 +205,7 @@ void ConfigDialog::addShortcut (KeySequenceConfigEntry& cfg, QAction* act, int& 
 	if (act->icon().isNull())
 		item->setIcon (getIcon ("empty"));
 
-	ui->shortcutsList->insertItem (i++, item);
+	ui->shortcutsList->insertItem (ui->shortcutsList->count(), item);
 }
 
 // =============================================================================
@@ -320,9 +315,6 @@ void ConfigDialog::applySettings()
 	cfg::gridFineCoordinateSnap = ui->gridFineCoordinateSnap->value();
 	cfg::gridFineAngleSnap = ui->gridFineAngleSnap->value();
 
-	// Apply key shortcuts
-	g_win->updateActionShortcuts();
-
 	// Ext program settings
 	for (const LDExtProgInfo& info : g_LDExtProgInfo)
 	{
@@ -331,6 +323,13 @@ void ConfigDialog::applySettings()
 #ifndef _WIN32
 		*info.wine = info.wineBox->isChecked();
 #endif // _WIN32
+	}
+
+	// Apply shortcuts
+	for (int i = 0; i < ui->shortcutsList->count(); ++i)
+	{
+		auto item = static_cast<ShortcutListItem*> (ui->shortcutsList->item (i));
+		item->action()->setShortcut (item->sequence());
 	}
 
 	Config::save();
@@ -393,7 +392,7 @@ void ConfigDialog::updateQuickColorList (LDQuickColor* sel)
 			}
 			else
 			{
-				item->setText (col->name());
+				item->setText (col.name());
 				item->setIcon (makeColorIcon (col, 16));
 			}
 		}
@@ -617,7 +616,7 @@ void ConfigDialog::slot_setShortcut()
 
 	ShortcutListItem* item = sel[0];
 
-	if (KeySequenceDialog::staticDialog (item->keyConfig(), this))
+	if (KeySequenceDialog::staticDialog (item, this))
 		setShortcutText (item);
 }
 
@@ -630,7 +629,7 @@ void ConfigDialog::slot_resetShortcut()
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->keyConfig()->resetValue();
+		item->setSequence (MainWindow::defaultShortcut (item->action()));
 		setShortcutText (item);
 	}
 }
@@ -644,7 +643,7 @@ void ConfigDialog::slot_clearShortcut()
 
 	for (ShortcutListItem* item : sel)
 	{
-		item->keyConfig()->setValue (QKeySequence());
+		item->setSequence (QKeySequence());
 		setShortcutText (item);
 	}
 }
@@ -692,7 +691,7 @@ void ConfigDialog::setShortcutText (ShortcutListItem* item)
 {
 	QAction* act = item->action();
 	QString label = act->iconText();
-	QString keybind = item->keyConfig()->getValue().toString();
+	QString keybind = item->sequence().toString();
 	item->setText (format ("%1 (%2)", label, keybind));
 }
 
@@ -711,7 +710,7 @@ QString ConfigDialog::quickColorString()
 		if (entry.isSeparator())
 			val += '|';
 		else
-			val += format ("%1", entry.color()->index());
+			val += format ("%1", entry.color().index());
 	}
 
 	return val;
@@ -744,14 +743,14 @@ KeySequenceDialog::KeySequenceDialog (QKeySequence seq, QWidget* parent, Qt::Win
 
 // =============================================================================
 // =============================================================================
-bool KeySequenceDialog::staticDialog (KeySequenceConfigEntry* cfg, QWidget* parent)
+bool KeySequenceDialog::staticDialog (ShortcutListItem* item, QWidget* parent)
 {
-	KeySequenceDialog dlg (cfg->getValue(), parent);
+	KeySequenceDialog dlg (item->sequence(), parent);
 
 	if (dlg.exec() == QDialog::Rejected)
 		return false;
 
-	cfg->setValue (dlg.seq);
+	item->setSequence (dlg.seq);
 	return true;
 }
 

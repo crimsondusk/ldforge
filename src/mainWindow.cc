@@ -35,6 +35,7 @@
 #include <QCoreApplication>
 #include <QTimer>
 #include <QMetaMethod>
+#include <QSettings>
 #include "main.h"
 #include "glRenderer.h"
 #include "mainWindow.h"
@@ -51,6 +52,7 @@
 #include "primitives.h"
 
 static bool g_isSelectionLocked = false;
+static QMap<QAction*, QKeySequence> g_defaultShortcuts;
 
 CFGENTRY (Bool, colorizeObjectsList, true);
 CFGENTRY (String, quickColorToolbar, "4:25:14:27:2:3:11:1:22:|:0:72:71:15");
@@ -102,40 +104,22 @@ MainWindow::MainWindow (QWidget* parent, Qt::WindowFlags flags) :
 	ui->actionWireframe->setChecked (cfg::drawWireframe);
 	ui->actionBFCView->setChecked (cfg::bfcRedGreenView);
 	ui->actionRandomColors->setChecked (cfg::randomColors);
+
+	// Connect all actions and save default sequences
+	applyToActions ([&](QAction* act)
+	{
+		connect (act, SIGNAL (triggered()), this, SLOT (slot_action()));
+		g_defaultShortcuts[act] = act->shortcut();
+	});
+
 	updateGridToolBar();
 	updateEditModeActions();
 	updateRecentFilesMenu();
 	updateColorToolbar();
 	updateTitle();
-	updateActionShortcuts();
+	loadShortcuts (Config::settingsObject());
 	setMinimumSize (300, 200);
 	connect (qApp, SIGNAL (aboutToQuit()), this, SLOT (slot_lastSecondCleanup()));
-
-	// Connect all actions
-	for (QAction* act : findChildren<QAction*>())
-		if (not act->objectName().isEmpty())
-			connect (act, SIGNAL (triggered()), this, SLOT (slot_action()));
-}
-
-// =============================================================================
-//
-KeySequenceConfigEntry* MainWindow::shortcutForAction (QAction* action)
-{
-	QString keycfgname = action->objectName() + "Shortcut";
-	return KeySequenceConfigEntry::getByName (keycfgname);
-}
-
-// =============================================================================
-//
-void MainWindow::updateActionShortcuts()
-{
-	for (QAction* act : findChildren<QAction*>())
-	{
-		KeySequenceConfigEntry* cfg = shortcutForAction (act);
-
-		if (cfg)
-			act->setShortcut (cfg->getValue());
-	}
 }
 
 // =============================================================================
@@ -233,7 +217,7 @@ void MainWindow::updateColorToolbar()
 			QToolButton* colorButton = new QToolButton;
 			colorButton->setIcon (makeColorIcon (entry.color(), 16));
 			colorButton->setIconSize (QSize (16, 16));
-			colorButton->setToolTip (entry.color()->name());
+			colorButton->setToolTip (entry.color().name());
 
 			connect (colorButton, SIGNAL (clicked()), this, SLOT (slot_quickColor()));
 			ui->colorToolbar->addWidget (colorButton);
@@ -430,7 +414,7 @@ void MainWindow::buildObjList()
 		{
 			// If the object isn't in the main or edge color, draw this
 			// list entry in said color.
-			item->setForeground (obj->color()->faceColor());
+			item->setForeground (obj->color().faceColor());
 		}
 
 		obj->qObjListEntry = item;
@@ -830,7 +814,7 @@ QIcon makeColorIcon (LDColor colinfo, const int size)
 	// Create an image object and link a painter to it.
 	QImage img (size, size, QImage::Format_ARGB32);
 	QPainter paint (&img);
-	QColor col = colinfo->faceColor();
+	QColor col = colinfo.faceColor();
 
 	if (colinfo == maincolor())
 	{
@@ -840,7 +824,7 @@ QIcon makeColorIcon (LDColor colinfo, const int size)
 	}
 
 	// Paint the icon border
-	paint.fillRect (QRect (0, 0, size, size), colinfo->edgeColor());
+	paint.fillRect (QRect (0, 0, size, size), colinfo.edgeColor());
 
 	// Paint the checkerboard background, visible with translucent icons
 	paint.drawPixmap (QRect (1, 1, size - 2, size - 2), getIcon ("checkerboard"), QRect (0, 0, 8, 8));
@@ -874,8 +858,8 @@ void makeColorComboBox (QComboBox* box)
 	{
 		QIcon ico = makeColorIcon (pair.first, 16);
 		box->addItem (ico, format ("[%1] %2 (%3 object%4)",
-			pair.first, pair.first->name(), pair.second, plural (pair.second)));
-		box->setItemData (row, pair.first->index());
+			pair.first, pair.first.name(), pair.second, plural (pair.second)));
+		box->setItemData (row, pair.first.index());
 
 		++row;
 	}
@@ -1007,6 +991,50 @@ void MainWindow::closeTab (int tabindex)
 		return;
 
 	doc->dismiss();
+}
+
+// =============================================================================
+//
+void MainWindow::loadShortcuts (QSettings const* settings)
+{
+	for (QAction* act : findChildren<QAction*>())
+	{
+		QKeySequence seq = settings->value ("shortcut_" + act->objectName(), act->shortcut()).value<QKeySequence>();
+		act->setShortcut (seq);
+	}
+}
+
+// =============================================================================
+//
+void MainWindow::saveShortcuts (QSettings* settings)
+{
+	applyToActions ([&](QAction* act)
+	{
+		QString const key = "shortcut_" + act->objectName();
+
+		if (g_defaultShortcuts[act] != act->shortcut())
+			settings->setValue (key, act->shortcut());
+		else
+			settings->remove (key);
+	});
+}
+
+// =============================================================================
+//
+void MainWindow::applyToActions (std::function<void(QAction*)> function)
+{
+	for (QAction* act : findChildren<QAction*>())
+	{
+		if (not act->objectName().isEmpty())
+			function (act);
+	}
+}
+
+// =============================================================================
+//
+QKeySequence MainWindow::defaultShortcut (QAction* act) // [static]
+{
+	return g_defaultShortcuts[act];
 }
 
 // =============================================================================

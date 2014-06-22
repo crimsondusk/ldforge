@@ -240,7 +240,7 @@ void AddObjectDialog::setButtonBackground (QPushButton* button, LDColor color)
 	button->setAutoFillBackground (true);
 
 	if (color != null)
-		button->setStyleSheet (format ("background-color: %1", color->hexcode()));
+		button->setStyleSheet (format ("background-color: %1", color.hexcode()));
 }
 
 // =============================================================================

@@ -45,15 +45,6 @@ static int							g_cfgPointerCursor = 0;
 static QMap<QString, ConfigEntry*>	g_configsByName;
 static QList<ConfigEntry*>			g_configs;
 
-//
-// Get the QSettings object.
-//
-static QSettings* getSettingsObject()
-{
-	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
-	return new QSettings (path, QSettings::IniFormat);
-}
-
 ConfigEntry::ConfigEntry (QString name) :
 	m_name (name) {}
 
@@ -62,12 +53,12 @@ ConfigEntry::ConfigEntry (QString name) :
 //
 bool Config::load()
 {
-	QSettings* settings = getSettingsObject();
+	QSettings* settings = settingsObject();
 	print ("config::load: Loading configuration file from %1\n", settings->fileName());
 
 	for (ConfigEntry* cfg : g_configPointers)
 	{
-		if (not cfg)
+		if (cfg == null)
 			break;
 
 		QVariant val = settings->value (cfg->name(), cfg->getDefaultAsVariant());
@@ -76,7 +67,10 @@ bool Config::load()
 		g_configs << cfg;
 	}
 
-	settings->deleteLater();
+	if (g_win != null)
+		g_win->loadShortcuts (settings);
+
+	delete settings;
 	return true;
 }
 
@@ -85,7 +79,7 @@ bool Config::load()
 //
 bool Config::save()
 {
-	QSettings* settings = getSettingsObject();
+	QSettings* settings = settingsObject();
 
 	for (ConfigEntry* cfg : g_configs)
 	{
@@ -95,9 +89,12 @@ bool Config::save()
 			settings->remove (cfg->name());
 	}
 
+	if (g_win != null)
+		g_win->saveShortcuts (settings);
+
 	settings->sync();
 	print ("Configuration saved to %1.\n", settings->fileName());
-	settings->deleteLater();
+	delete settings;
 	return true;
 }
 
@@ -123,8 +120,19 @@ QString Config::filepath (QString file)
 //
 QString Config::dirpath()
 {
-	QSettings* cfg = getSettingsObject();
-	return dirname (cfg->fileName());
+	QSettings* settings = settingsObject();
+	QString result = dirname (settings->fileName());
+	delete settings;
+	return result;
+}
+
+//
+// Accessor to the settings object
+//
+QSettings* Config::settingsObject()
+{
+	QString path = qApp->applicationDirPath() + "/" UNIXNAME EXTENSION;
+	return new QSettings (path, QSettings::IniFormat);
 }
 
 //

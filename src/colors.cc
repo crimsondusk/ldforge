@@ -28,7 +28,7 @@ static LDColor g_LDConfigColors[512];
 
 void initColors()
 {
-	LDColor col;
+	LDColorData* col;
 	print ("Initializing color information.\n");
 
 	// Always make sure there's 16 and 24 available. They're special like that.
@@ -79,16 +79,41 @@ LDColor LDColor::fromIndex (qint32 index)
 		if (index > 0x3000000)
 			col.setAlpha (128);
 
-		LDColor color (new LDColorData);
+		LDColorData* color = new LDColorData;
 		color->_name = "0x" + QString::number (index, 16).toUpper();
 		color->_faceColor = col;
 		color->_edgeColor = luma(col) < 48 ? Qt::white : Qt::black;
 		color->_hexcode = col.name();
 		color->_index = index;
-		return color;
+		return LDColor (color);
 	}
 
 	return null;
+}
+
+QString LDColor::indexString() const
+{
+	if (isDirect())
+		return "0x" + QString::number (index(), 16).toUpper();
+
+	return QString::number (index());
+}
+
+bool LDColor::isDirect() const
+{
+	return index() >= 0x02000000;
+}
+
+bool LDColor::operator== (LDColor const& other)
+{
+	if ((data() == nullptr) ^ (other == nullptr))
+		return false;
+
+	if (data() != nullptr)
+		return index() == other.index();
+
+	// both are null
+	return true;
 }
 
 int luma (const QColor& col)
@@ -101,17 +126,4 @@ int luma (const QColor& col)
 int numLDConfigColors()
 {
 	return countof (g_LDConfigColors);
-}
-
-QString LDColorData::indexString() const
-{
-	if (isDirect())
-		return "0x" + QString::number (_index, 16).toUpper();
-
-	return QString::number (_index);
-}
-
-bool LDColorData::isDirect() const
-{
-	return _index >= 0x02000000;
 }

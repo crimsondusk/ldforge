@@ -531,7 +531,7 @@ void PartDownloadRequest::abort()
 
 // =============================================================================
 //
-DEFINE_ACTION (DownloadFrom, 0)
+void MainWindow::slot_actionDownloadFrom()
 {
 	PartDownloader::staticBegin();
 }

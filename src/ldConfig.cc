@@ -105,14 +105,14 @@ void LDConfigParser::parseLDConfig()
 		if (parseLDConfigTag (pars, "ALPHA", valuestr))
 			alpha = clamp (valuestr.toInt(), 0, 255);
 
-		LDColor col (new LDColorData);
+		LDColorData* col = new LDColorData;
 		col->_name = name;
 		col->_faceColor = faceColor;
 		col->_edgeColor = edgeColor;
 		col->_hexcode = facename;
 		col->_faceColor.setAlpha (alpha);
 		col->_index = code;
-		LDColor::addLDConfigColor (code, col);
+		LDColor::addLDConfigColor (code, LDColor (col));
 	}
 
 	fp->close();

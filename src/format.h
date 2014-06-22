@@ -38,7 +38,7 @@ public:
 	StringFormatArg (const Vertex& a) : m_text (a.toString()) {}
 	StringFormatArg (const Matrix& a) : m_text (a.toString()) {}
 	StringFormatArg (const char* a) : m_text (a) {}
-	StringFormatArg (LDColor a) : m_text (a->indexString()) {}
+	StringFormatArg (LDColor a) : m_text (a.indexString()) {}
 
 	StringFormatArg (const void* a)
 	{

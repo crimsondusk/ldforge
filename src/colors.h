@@ -20,6 +20,27 @@
 #include <QColor>
 #include "main.h"
 
+#define SHARED_POINTER_DERIVATIVE(T) \
+public: \
+	using Self = T; \
+	using DataType = T##Data; \
+	using Super = QSharedPointer<DataType>; \
+	\
+	T() : Super() {} \
+	T (DataType* data) : Super (data) {} \
+	T (Super const& other) : Super (other) {} \
+	T (QWeakPointer<DataType> const& other) : Super (other) {} \
+	\
+	template <typename Deleter> \
+	T (DataType* data, Deleter dlt) : Super (data, dlt) {} \
+	\
+	inline bool			operator== (decltype(nullptr)) { return data() == nullptr; } \
+	inline bool			operator!= (decltype(nullptr)) { return data() != nullptr; } \
+	inline DataType*	operator->() const = delete;
+
+#define SHARED_POINTER_DATA_ACCESS(N) \
+	public: inline decltype(DataType::_##N) const& N() const { return data()->_##N; }
+
 class LDColor;
 
 class LDColorData
@@ -36,36 +57,23 @@ protected:
 
 public:
 	LDColorData(){}
-
-	readAccess (edgeColor)
-	readAccess (faceColor)
-	readAccess (hexcode)
-	readAccess (index)
-	QString		indexString() const;
-	bool		isDirect() const;
-	readAccess (name)
 };
 
 
 class LDColor : public QSharedPointer<LDColorData>
 {
+	SHARED_POINTER_DERIVATIVE (LDColor)
+	SHARED_POINTER_DATA_ACCESS (edgeColor)
+	SHARED_POINTER_DATA_ACCESS (faceColor)
+	SHARED_POINTER_DATA_ACCESS (hexcode)
+	SHARED_POINTER_DATA_ACCESS (index)
+	SHARED_POINTER_DATA_ACCESS (name)
+
 public:
-	using Super = QSharedPointer<LDColorData>;
-	using Self = LDColor;
+	QString				indexString() const;
+	bool				isDirect() const;
 
-	LDColor() : Super() {}
-	LDColor (LDColorData* data) : Super (data) {}
-	LDColor (Super const& other) : Super (other) {}
-	LDColor (QWeakPointer<LDColorData> const& other) : Super (other) {}
-
-	template <typename Deleter>
-	LDColor (LDColorData* data, Deleter dlt) : Super (data, dlt) {}
-
-	inline bool			operator== (Self const& other);
-	inline bool			operator== (decltype(nullptr)) { return data() == nullptr; }
-	inline bool			operator!= (decltype(nullptr)) { return data() != nullptr; }
-	inline LDColorData*	operator->() const { return data(); }
-
+	bool				operator== (Self const& other);
 	static void			addLDConfigColor (qint32 index, LDColor color);
 	static LDColor		fromIndex (qint32 index);
 };
@@ -79,15 +87,3 @@ LDColor maincolor();
 LDColor edgecolor();
 static constexpr int mainColorIndex = 16;
 static constexpr int edgeColorIndex = 24;
-
-bool LDColor::operator== (LDColor const& other)
-{
-	if ((data() == nullptr) ^ (other == nullptr))
-		return false;
-
-	if (data() != nullptr)
-		return data()->index() == other->index();
-
-	// both are null
-	return true;
-}
